@@ -7,7 +7,7 @@ namespace AElf.CrossChain.Grpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             base.ConfigureServices(context);
-            
+
             Configure<GrpcCrossChainConfigOption>(option =>
             {
                 option.LocalClient = true;

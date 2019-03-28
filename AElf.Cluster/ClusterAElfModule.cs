@@ -3,10 +3,8 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Cluster
 {
-    [DependsOn(
-    )]
+    [DependsOn]
     public class ClusterAElfModule : AElfModule<ClusterAElfModule>
     {
-        
     }
 }

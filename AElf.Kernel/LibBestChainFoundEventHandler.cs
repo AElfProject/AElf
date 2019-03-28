@@ -18,11 +18,9 @@ namespace AElf.Kernel
     public class LibBestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
     {
         private readonly IBlockchainService _blockchainService;
-        private readonly ITransactionResultQueryService _transactionResultQueryService;
-        private readonly ISmartContractAddressService _smartContractAddressService;
-        public ILogger<LibBestChainFoundEventHandler> Logger { get; set; }
-        public ILocalEventBus LocalEventBus { get; set; }
         private readonly ByteString _libTopicFlag = ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray());
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ITransactionResultQueryService _transactionResultQueryService;
 
         public LibBestChainFoundEventHandler(IBlockchainService blockchainService,
             ITransactionResultQueryService transactionResultQueryService,
@@ -36,16 +34,16 @@ namespace AElf.Kernel
             Logger = NullLogger<LibBestChainFoundEventHandler>.Instance;
         }
 
+        public ILogger<LibBestChainFoundEventHandler> Logger { get; set; }
+        public ILocalEventBus LocalEventBus { get; set; }
+
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            if (eventData.ExecutedBlocks == null)
-            {
-                return;
-            }
+            if (eventData.ExecutedBlocks == null) return;
 
             foreach (var executedBlock in eventData.ExecutedBlocks)
             {
-                Logger.LogTrace($"Check event for block {executedBlock}" );
+                Logger.LogTrace($"Check event for block {executedBlock}");
 
                 var block = await _blockchainService.GetBlockByHashAsync(executedBlock);
                 foreach (var transactionHash in block.Body.Transactions)
@@ -59,13 +57,16 @@ namespace AElf.Kernel
 
                     if (result.Status == TransactionResultStatus.Failed)
                     {
-                        Logger.LogTrace($"Transaction failed, transactionHash: {transactionHash}, error: {result.Error}");
+                        Logger.LogTrace(
+                            $"Transaction failed, transactionHash: {transactionHash}, error: {result.Error}");
                         continue;
                     }
 
                     foreach (var contractEvent in result.Logs)
                     {
-                        var address = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+                        var address =
+                            _smartContractAddressService.GetAddressByContractName(
+                                ConsensusSmartContractAddressNameProvider.Name);
                         if (contractEvent.Address != address || !contractEvent.Topics.Contains(_libTopicFlag))
                             continue;
 
@@ -73,7 +74,8 @@ namespace AElf.Kernel
                         var libHeight = block.Height - offset;
 
                         var chain = await _blockchainService.GetChainAsync();
-                        var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);
+                        var blockHash =
+                            await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);
 
                         Logger.LogInformation($"Lib setting, block: {block}, tx: {transactionHash}, offset: {offset}");
                         await _blockchainService.SetIrreversibleBlockAsync(chain, libHeight, blockHash);

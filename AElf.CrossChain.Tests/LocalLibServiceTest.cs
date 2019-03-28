@@ -8,23 +8,16 @@ namespace AElf.CrossChain
 {
     public sealed class LocalLibServiceTest : CrossChainWithChainTestBase
     {
-        private readonly ILocalLibService _localLibService;
-        private readonly KernelTestHelper _kernelTestHelper;
-        private readonly ITransactionManager _transactionManager;
-        
         public LocalLibServiceTest()
         {
             _localLibService = GetRequiredService<ILocalLibService>();
             _transactionManager = GetRequiredService<ITransactionManager>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
-        
-        [Fact]
-        public async Task GetLibHeight_Test()
-        {
-            var libHeight = await _localLibService.GetLibHeight();
-            libHeight.ShouldBe(5);
-        }
+
+        private readonly ILocalLibService _localLibService;
+        private readonly KernelTestHelper _kernelTestHelper;
+        private readonly ITransactionManager _transactionManager;
 
         [Fact]
         public async Task GetIrreversibleBlockByHeight_Test()
@@ -42,7 +35,15 @@ namespace AElf.CrossChain
                 var tx = await _transactionManager.GetTransaction(txId);
                 body.TransactionList.Add(tx);
             }
+
             irreversibleBlock.Equals(block).ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task GetLibHeight_Test()
+        {
+            var libHeight = await _localLibService.GetLibHeight();
+            libHeight.ShouldBe(5);
         }
     }
 }

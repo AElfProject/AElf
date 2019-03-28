@@ -1,12 +1,9 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.TestBase;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract;
@@ -30,24 +27,26 @@ namespace AElf.Contracts.Resource.Tests
                 Issuer = starter.GetCallOwnerAddress(),
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
-            
+
             // For testing.
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = "ELF",
                 Amount = 1000_000L,
                 To = starter.GetCallOwnerAddress(),
-                Memo = "Set dividends.",
+                Memo = "Set dividends."
             });
-            
+
             await starter.InitialChainAsync(
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
                     list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
-                    list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
+                    list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name,
+                        tokenContractCallList);
                     list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
-                    list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
+                    list.AddGenesisSmartContract<FeeReceiverContract>(
+                        ResourceFeeReceiverSmartContractAddressNameProvider.Name);
                 });
         }
     }

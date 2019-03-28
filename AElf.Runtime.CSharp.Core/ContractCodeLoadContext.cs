@@ -1,23 +1,21 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.IO;
+﻿using System.Reflection;
 using System.Runtime.Loader;
-using System.Reflection;
 
 namespace AElf.Runtime.CSharp
 {
     /// <summary>
-    /// Smart contract running context which contains the contract assembly with a unique Api singleton.
+    ///     Smart contract running context which contains the contract assembly with a unique Api singleton.
     /// </summary>
     public class ContractCodeLoadContext : AssemblyLoadContext
     {
         private readonly ISdkStreamManager _sdkStreamManager;
-        public Assembly Sdk { get; private set; }
 
         public ContractCodeLoadContext(ISdkStreamManager sdkStreamManager)
         {
             _sdkStreamManager = sdkStreamManager;
         }
+
+        public Assembly Sdk { get; private set; }
 
         protected override Assembly Load(AssemblyName assemblyName)
         {

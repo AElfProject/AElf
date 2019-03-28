@@ -17,17 +17,6 @@ namespace AElf.Cryptography
 {
     public class AElfKeyStore : IKeyStore
     {
-        private static readonly SecureRandom Random = new SecureRandom();
-
-        private const string KeyFileExtension = ".ak";
-        private const string KeyFolderName = "keys";
-
-        private const string _algo = "AES-256-CFB";
-        private readonly string _dataDirectory;
-
-        private readonly List<OpenAccount> _openAccounts;
-        private readonly TimeSpan _defaultTimeoutToClose = TimeSpan.FromMinutes(10);
-
         public enum Errors
         {
             None = 0,
@@ -37,24 +26,20 @@ namespace AElf.Cryptography
             AccountFileNotFound = 4
         }
 
+        private const string KeyFileExtension = ".ak";
+        private const string KeyFolderName = "keys";
+
+        private const string _algo = "AES-256-CFB";
+        private static readonly SecureRandom Random = new SecureRandom();
+        private readonly string _dataDirectory;
+        private readonly TimeSpan _defaultTimeoutToClose = TimeSpan.FromMinutes(10);
+
+        private readonly List<OpenAccount> _openAccounts;
+
         public AElfKeyStore(string dataDirectory)
         {
             _dataDirectory = dataDirectory;
             _openAccounts = new List<OpenAccount>();
-        }
-
-        private async Task OpenAsync(string address, string password, TimeSpan? timeoutToClose)
-        {
-            var keyPair = await ReadKeyPairAsync(address, password);
-            var openAccount = new OpenAccount(address) {KeyPair = keyPair};
-
-            if (timeoutToClose.HasValue)
-            {
-                var t = new Timer(CloseAccount, openAccount, timeoutToClose.Value, timeoutToClose.Value);
-                openAccount.CloseTimer = t;
-            }
-
-            _openAccounts.Add(openAccount);
         }
 
         public bool IsOpen { get; }
@@ -68,13 +53,9 @@ namespace AElf.Cryptography
                     return Errors.AccountAlreadyUnlocked;
 
                 if (withTimeout)
-                {
                     await OpenAsync(address, password, _defaultTimeoutToClose);
-                }
                 else
-                {
                     await OpenAsync(address, password, null);
-                }
             }
             catch (InvalidPasswordException)
             {
@@ -86,15 +67,6 @@ namespace AElf.Cryptography
             }
 
             return Errors.None;
-        }
-
-        //TODO: Add CloseAccount test case [Case]
-        private void CloseAccount(object accountObject)
-        {
-            if (!(accountObject is OpenAccount openAccount))
-                return;
-            openAccount.Close();
-            _openAccounts.Remove(openAccount);
         }
 
         public ECKeyPair GetAccountKeyPair(string address)
@@ -145,6 +117,29 @@ namespace AElf.Cryptography
             }
         }
 
+        private async Task OpenAsync(string address, string password, TimeSpan? timeoutToClose)
+        {
+            var keyPair = await ReadKeyPairAsync(address, password);
+            var openAccount = new OpenAccount(address) {KeyPair = keyPair};
+
+            if (timeoutToClose.HasValue)
+            {
+                var t = new Timer(CloseAccount, openAccount, timeoutToClose.Value, timeoutToClose.Value);
+                openAccount.CloseTimer = t;
+            }
+
+            _openAccounts.Add(openAccount);
+        }
+
+        //TODO: Add CloseAccount test case [Case]
+        private void CloseAccount(object accountObject)
+        {
+            if (!(accountObject is OpenAccount openAccount))
+                return;
+            openAccount.Close();
+            _openAccounts.Remove(openAccount);
+        }
+
         private async Task<bool> WriteKeyPairAsync(ECKeyPair keyPair, string password, string chainId)
         {
             if (keyPair?.PrivateKey == null || keyPair.PublicKey == null)
@@ -172,8 +167,10 @@ namespace AElf.Cryptography
                 return false;
             }
 
-            var privateKeyParam = new ECPrivateKeyParameters(new BigInteger(1, keyPair.PrivateKey), ECParameters.DomainParams);
-            var publicKeyParam = new ECPublicKeyParameters("EC", ECParameters.Curve.Curve.DecodePoint(keyPair.PublicKey), ECParameters.DomainParams);
+            var privateKeyParam =
+                new ECPrivateKeyParameters(new BigInteger(1, keyPair.PrivateKey), ECParameters.DomainParams);
+            var publicKeyParam = new ECPublicKeyParameters("EC",
+                ECParameters.Curve.Curve.DecodePoint(keyPair.PublicKey), ECParameters.DomainParams);
 
             var asymmetricCipherKeyPair = new AsymmetricCipherKeyPair(publicKeyParam, privateKeyParam);
 
@@ -191,7 +188,7 @@ namespace AElf.Cryptography
         }
 
         /// <summary>
-        /// Return the full path of the files 
+        ///     Return the full path of the files
         /// </summary>
         private string GetKeyFileFullPath(string address)
         {

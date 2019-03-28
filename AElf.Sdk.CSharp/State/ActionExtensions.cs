@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using AElf.Sdk.CSharp.State;
 
 namespace AElf.Sdk.CSharp
 {
     //TODO: AElf.Sdk.CSharp State neeed add test cases [Case]
     public static class ActionExtensions
     {
-        public static readonly HashSet<Type> Actions = new HashSet<Type>()
+        public static readonly HashSet<Type> Actions = new HashSet<Type>
         {
             typeof(Action),
             typeof(Action<>),
@@ -32,10 +29,7 @@ namespace AElf.Sdk.CSharp
 
         public static bool IsAction(this Type type)
         {
-            if (type.IsConstructedGenericType)
-            {
-                return Actions.Contains(type.GetGenericTypeDefinition());
-            }
+            if (type.IsConstructedGenericType) return Actions.Contains(type.GetGenericTypeDefinition());
 
             return Actions.Contains(type);
         }

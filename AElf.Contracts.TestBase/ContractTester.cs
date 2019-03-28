@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.Authorization;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividend;
@@ -28,7 +26,6 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -41,27 +38,20 @@ using InitializeWithContractSystemNamesInput = AElf.Contracts.Consensus.DPoS.Ini
 namespace AElf.Contracts.TestBase
 {
     /// <summary>
-    /// For testing contracts.
-    /// Basically we can use this class to:
-    /// 
-    /// Create a new chain with provided smart contracts deployed,
-    /// Package chosen transactions and mine a block,
-    /// execute a block if transactions in block body provided,
-    /// call a contract method and get the execution result,
-    /// generate a new tester using exists context,
-    /// etc.
+    ///     For testing contracts.
+    ///     Basically we can use this class to:
+    ///     Create a new chain with provided smart contracts deployed,
+    ///     Package chosen transactions and mine a block,
+    ///     execute a block if transactions in block body provided,
+    ///     call a contract method and get the execution result,
+    ///     generate a new tester using exists context,
+    ///     etc.
     /// </summary>
     /// <typeparam name="TContractTestAElfModule"></typeparam>
     //[Obsolete("Deprecated. Use AElf.Contracts.TestKit for contract testing.")]
     public class ContractTester<TContractTestAElfModule> : ITransientDependency
         where TContractTestAElfModule : ContractTestAElfModule
     {
-        private IAbpApplicationWithInternalServiceProvider Application { get; }
-
-        public ECKeyPair KeyPair { get; }
-
-        public string PublicKey => KeyPair.PublicKey.ToHex();
-
         public ContractTester() : this(0, null)
         {
         }
@@ -74,13 +64,9 @@ namespace AElf.Contracts.TestBase
                 AbpApplicationFactory.Create<TContractTestAElfModule>(options =>
                 {
                     options.UseAutofac();
-                    if (chainId != 0)
-                    {
-                        options.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
-                    }
+                    if (chainId != 0) options.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
 
                     if (keyPair != null)
-                    {
                         options.Services.AddTransient(o =>
                         {
                             var mockService = new Mock<IAccountService>();
@@ -100,7 +86,6 @@ namespace AElf.Contracts.TestBase
 
                             return mockService.Object;
                         });
-                    }
                 });
 
             Application.Initialize();
@@ -139,7 +124,7 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        /// Use default chain id.
+        ///     Use default chain id.
         /// </summary>
         /// <param name="keyPair"></param>
         public ContractTester(ECKeyPair keyPair)
@@ -175,57 +160,7 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        /// Initial a chain with given chain id (passed to ctor),
-        /// and produce the genesis block with provided smart contract configuration.
-        /// Will deploy consensus contract by default.
-        /// </summary>
-        /// <returns>Return contract addresses as the param order.</returns>
-        public async Task InitialChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
-        {
-            var osBlockchainNodeContextService =
-                Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
-            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var dto = new OsBlockchainNodeContextStartDto
-            {
-                ChainId = chainOptions.ChainId,
-                ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory 
-            };
-
-            var consensusMethodCallList = new SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                new InitializeWithContractSystemNamesInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
-                });
-            
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
-            configureSmartContract?.Invoke(dto.InitializationSmartContracts);
-
-            await osBlockchainNodeContextService.StartAsync(dto);
-        }
-        
-        public async Task InitialSideChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
-        {
-            var osBlockchainNodeContextService =
-                Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
-            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var dto = new OsBlockchainNodeContextStartDto
-            {
-                ChainId = chainOptions.ChainId,
-                ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory 
-            };
-            
-            dto.InitializationSmartContracts.AddConsensusSmartContract<AElf.Contracts.Consensus.DPoS.SideChain.ConsensusContract>();
-            configureSmartContract?.Invoke(dto.InitializationSmartContracts);
-
-            await osBlockchainNodeContextService.StartAsync(dto);
-        }
-
-        /// <summary>
-        /// Use randomized ECKeyPair.
+        ///     Use randomized ECKeyPair.
         /// </summary>
         /// <param name="chainId"></param>
         public ContractTester(int chainId)
@@ -239,8 +174,64 @@ namespace AElf.Contracts.TestBase
             Application.Initialize();
         }
 
+        private IAbpApplicationWithInternalServiceProvider Application { get; }
+
+        public ECKeyPair KeyPair { get; }
+
+        public string PublicKey => KeyPair.PublicKey.ToHex();
+
         /// <summary>
-        /// Same chain, different key pair.
+        ///     Initial a chain with given chain id (passed to ctor),
+        ///     and produce the genesis block with provided smart contract configuration.
+        ///     Will deploy consensus contract by default.
+        /// </summary>
+        /// <returns>Return contract addresses as the param order.</returns>
+        public async Task InitialChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
+        {
+            var osBlockchainNodeContextService =
+                Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
+            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
+            var dto = new OsBlockchainNodeContextStartDto
+            {
+                ChainId = chainOptions.ChainId,
+                ZeroSmartContract = typeof(BasicContractZero),
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
+            };
+
+            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
+                new InitializeWithContractSystemNamesInput
+                {
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                });
+
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
+            configureSmartContract?.Invoke(dto.InitializationSmartContracts);
+
+            await osBlockchainNodeContextService.StartAsync(dto);
+        }
+
+        public async Task InitialSideChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
+        {
+            var osBlockchainNodeContextService =
+                Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
+            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
+            var dto = new OsBlockchainNodeContextStartDto
+            {
+                ChainId = chainOptions.ChainId,
+                ZeroSmartContract = typeof(BasicContractZero),
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
+            };
+
+            dto.InitializationSmartContracts.AddConsensusSmartContract<Consensus.DPoS.SideChain.ConsensusContract>();
+            configureSmartContract?.Invoke(dto.InitializationSmartContracts);
+
+            await osBlockchainNodeContextService.StartAsync(dto);
+        }
+
+        /// <summary>
+        ///     Same chain, different key pair.
         /// </summary>
         /// <param name="keyPair"></param>
         /// <returns></returns>
@@ -250,7 +241,7 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        /// Same key pair, different chain.
+        ///     Same key pair, different chain.
         /// </summary>
         /// <param name="chainId"></param>
         /// <returns></returns>
@@ -317,7 +308,7 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        /// Generate a transaction and sign it by provided key pair.
+        ///     Generate a transaction and sign it by provided key pair.
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
@@ -329,7 +320,8 @@ namespace AElf.Contracts.TestBase
         {
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var refBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            var paramInfo = input == null ? ByteString.Empty : input.ToByteString(); //Add input parameter is null situation
+            var paramInfo =
+                input == null ? ByteString.Empty : input.ToByteString(); //Add input parameter is null situation
             var tx = new Transaction
             {
                 From = Address.FromPublicKey(ecKeyPair.PublicKey),
@@ -347,8 +339,8 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        /// Mine a block with given normal txs and system txs.
-        /// Normal txs will use tx pool while system txs not.
+        ///     Mine a block with given normal txs and system txs.
+        ///     Normal txs will use tx pool while system txs not.
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
@@ -364,9 +356,9 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        /// In test cases, we can't distinguish normal txs and system txs,
-        /// so just keep in mind if some txs looks like system txs,
-        /// just add them first manually.
+        ///     In test cases, we can't distinguish normal txs and system txs,
+        ///     so just keep in mind if some txs looks like system txs,
+        ///     just add them first manually.
         /// </summary>
         /// <param name="txs"></param>
         /// <returns></returns>
@@ -374,16 +366,14 @@ namespace AElf.Contracts.TestBase
         {
             var txHub = Application.ServiceProvider.GetRequiredService<ITxHub>();
             foreach (var tx in txs)
-            {
                 await txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction> {tx}
                 });
-            }
         }
 
         /// <summary>
-        /// Generate a tx then package the new tx to a new block.
+        ///     Generate a tx then package the new tx to a new block.
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
@@ -400,22 +390,22 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        ///  Generate a tx then package the new tx to a new block.
+        ///     Generate a tx then package the new tx to a new block.
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
         /// <param name="input"></param>
         /// <returns></returns>
         public async Task<(Block, Transaction)> ExecuteContractWithMiningReturnBlockAsync(Address contractAddress,
-            string methodName,IMessage input)
+            string methodName, IMessage input)
         {
             var tx = await GenerateTransactionAsync(contractAddress, methodName, KeyPair, input);
             return (await MineAsync(new List<Transaction> {tx}), tx);
         }
 
         /// <summary>
-        /// Using tx to call a method without mining.
-        /// The state database won't change.
+        ///     Using tx to call a method without mining.
+        ///     The state database won't change.
         /// </summary>
         /// <param name="contractAddress"></param>
         /// <param name="methodName"></param>
@@ -468,7 +458,7 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        /// Execute a block and add it to chain database.
+        ///     Execute a block and add it to chain database.
         /// </summary>
         /// <param name="block"></param>
         /// <param name="txs"></param>
@@ -487,7 +477,7 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        /// Get the execution result of a tx by its tx id.
+        ///     Get the execution result of a tx by its tx id.
         /// </summary>
         /// <param name="txId"></param>
         /// <returns></returns>
@@ -504,10 +494,11 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
-        /// Zero Contract and Consensus Contract will deploy independently, thus this list won't contain this two contracts.
+        ///     Zero Contract and Consensus Contract will deploy independently, thus this list won't contain this two contracts.
         /// </summary>
         /// <returns></returns>
-        public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes(Address issuer, out long totalSupply, out long dividend, out long balanceOfStarter)
+        public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes(Address issuer, out long totalSupply,
+            out long dividend, out long balanceOfStarter)
         {
             totalSupply = 1000_000L;
             dividend = 200_000L;

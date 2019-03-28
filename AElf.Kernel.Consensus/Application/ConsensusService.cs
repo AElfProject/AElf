@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Consensus.DPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.EventMessages;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,15 +16,14 @@ namespace AElf.Kernel.Consensus.Application
 {
     public class ConsensusService : IConsensusService
     {
-        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
-
-        private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
         private readonly ConsensusControlInformation _consensusControlInformation;
+
+        private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly IConsensusScheduler _consensusScheduler;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        public ILogger<ConsensusService> Logger { get; set; }
+        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
         public ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
             IAccountService accountService, ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
@@ -46,6 +41,8 @@ namespace AElf.Kernel.Consensus.Application
 
             Logger = NullLogger<ConsensusService>.Instance;
         }
+
+        public ILogger<ConsensusService> Logger { get; set; }
 
         public async Task TriggerConsensusAsync()
         {
@@ -92,9 +89,7 @@ namespace AElf.Kernel.Consensus.Application
                     _consensusInformationGenerationService.ConvertBlockExtraData(consensusExtraData)));
 
             if (!validationResult.Success)
-            {
                 Logger.LogError($"Consensus validating before execution failed: {validationResult.Message}");
-            }
 
             return validationResult.Success;
         }
@@ -114,9 +109,7 @@ namespace AElf.Kernel.Consensus.Application
                     _consensusInformationGenerationService.ConvertBlockExtraData(consensusExtraData)));
 
             if (!validationResult.Success)
-            {
                 Logger.LogError($"Consensus validating after execution failed: {validationResult.Message}");
-            }
 
             return validationResult.Success;
         }
@@ -146,9 +139,9 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = chain.BestChainHeight
             };
 
-            var generatedTransactions =TransactionList.Parser.ParseFrom(
-                (await ExecuteContractAsync(address, chainContext, ConsensusConsts.GenerateConsensusTransactions,
-                    _consensusInformationGenerationService.GetTriggerInformation())))
+            var generatedTransactions = TransactionList.Parser.ParseFrom(
+                    await ExecuteContractAsync(address, chainContext, ConsensusConsts.GenerateConsensusTransactions,
+                        _consensusInformationGenerationService.GetTriggerInformation()))
                 .Transactions
                 .ToList();
 

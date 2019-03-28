@@ -13,19 +13,19 @@ namespace AElf.Synchronization.Tests
     public static class ChainGenerationHelpers
     {
         /// <summary>
-        /// Generates <see cref="count"/> random miners.
+        ///     Generates <see cref="count" /> random miners.
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>
         public static List<ECKeyPair> GetRandomMiners(int count = 3)
         {
             Assert.True(count > 0);
-            
-            List<ECKeyPair> keyPairs = new List<ECKeyPair>(count);
-            
-            for (int i = 0; i < count; i++)
+
+            var keyPairs = new List<ECKeyPair>(count);
+
+            for (var i = 0; i < count; i++)
                 keyPairs.Add(CryptoHelpers.GenerateKeyPair());
-            
+
             return keyPairs;
         }
 
@@ -38,9 +38,9 @@ namespace AElf.Synchronization.Tests
 //
 //            return pubKeyStrings;
 //        }
-        
+
         /// <summary>
-        /// Get random chain Id
+        ///     Get random chain Id
         /// </summary>
         /// <returns></returns>
         public static int GetRandomChainId()
@@ -49,9 +49,9 @@ namespace AElf.Synchronization.Tests
             var chainId = ChainHelpers.GetChainId(random.Next(195112, 11316496));
             return chainId;
         }
-        
+
         /// <summary>
-        /// Builds the genesis block with AElfs builder.
+        ///     Builds the genesis block with AElfs builder.
         /// </summary>
         /// <returns></returns>
         public static Block GetGenesisBlock()
@@ -60,10 +60,10 @@ namespace AElf.Synchronization.Tests
             var builder = new GenesisBlockBuilder().Build(chainId);
             return builder.Block;
         }
-        
+
         /// <summary>
-        /// Given a block, will generate the next, only the height and
-        /// the previous will not be random.
+        ///     Given a block, will generate the next, only the height and
+        ///     the previous will not be random.
         /// </summary>
         /// <param name="previous">The block to build upon on.</param>
         /// <returns>The new block</returns>
@@ -86,8 +86,8 @@ namespace AElf.Synchronization.Tests
         }
 
         /// <summary>
-        /// Will create a chain from start with <see cref="count"/> extra blocks.
-        /// Total block count will be <see cref="count"/>+1. 
+        ///     Will create a chain from start with <see cref="count" /> extra blocks.
+        ///     Total block count will be <see cref="count" />+1.
         /// </summary>
         /// <param name="start">The start block, if null will create a genesis block.</param>
         /// <param name="count">The amount of extra blocks to create</param>
@@ -96,12 +96,12 @@ namespace AElf.Synchronization.Tests
         {
             Assert.True(count > 0);
 
-            List<Block> blocks = new List<Block>();
+            var blocks = new List<Block>();
 
-            Block current = start ?? GetGenesisBlock();
+            var current = start ?? GetGenesisBlock();
             blocks.Add(current);
 
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 current = BuildNext(current);
                 blocks.Add(current);

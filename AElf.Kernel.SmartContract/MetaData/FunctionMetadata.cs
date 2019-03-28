@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Kernel;
+using AElf.Common;
+using AElf.Kernel.SmartContract.MetaData;
 using QuickGraph;
 using QuickGraph.Algorithms;
-using AElf.Common;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.MetaData;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.SmartContract
@@ -23,7 +21,7 @@ namespace AElf.Kernel.SmartContract
         }
 
         /// <summary>
-        /// TODO: For the contracts that contains no metadata
+        ///     TODO: For the contracts that contains no metadata
         /// </summary>
         /// <param name="noMetadataTemplate"></param>
         public FunctionMetadataTemplate(bool noMetadataTemplate)
@@ -38,7 +36,7 @@ namespace AElf.Kernel.SmartContract
 
         public HashSet<string> CallingSet { get; }
         public HashSet<Resource> LocalResourceSet { get; }
-        
+
         bool IEquatable<FunctionMetadataTemplate>.Equals(FunctionMetadataTemplate other)
         {
             return HashSet<string>.CreateSetComparer().Equals(CallingSet, other.CallingSet) &&
@@ -48,31 +46,33 @@ namespace AElf.Kernel.SmartContract
 
     public class ContractMetadataTemplate
     {
-        public List<string> ProcessFunctionOrder;
-        public CallGraph LocalCallingGraph;
-        public Dictionary<string, FunctionMetadataTemplate> MethodMetadataTemplates;
-        public string FullName;
         public Dictionary<string, Address> ContractReferences;
         public Dictionary<string, List<string>> ExternalFuncCall;
+        public string FullName;
+        public CallGraph LocalCallingGraph;
+        public Dictionary<string, FunctionMetadataTemplate> MethodMetadataTemplates;
+        public List<string> ProcessFunctionOrder;
 
-        
-        public ContractMetadataTemplate(string fullName, Dictionary<string, FunctionMetadataTemplate> methodMetadataTemplates, Dictionary<string, Address> contractReferences)
+
+        public ContractMetadataTemplate(string fullName,
+            Dictionary<string, FunctionMetadataTemplate> methodMetadataTemplates,
+            Dictionary<string, Address> contractReferences)
         {
             FullName = fullName;
             MethodMetadataTemplates = methodMetadataTemplates;
             ContractReferences = contractReferences;
-            
+
             ExternalFuncCall = new Dictionary<string, List<string>>();
             TrySetLocalCallingGraph(out var callGraph, out var topologicRes);
             ProcessFunctionOrder = topologicRes.Reverse().ToList();
             LocalCallingGraph = callGraph;
         }
-        
+
         /// <summary>
-        /// try to get
-        /// (1) local calling graph, where only local function calls are considered
-        /// (2) process function order ( reverse order of topological order of the calling graph)
-        /// (3) external function call list for every function
+        ///     try to get
+        ///     (1) local calling graph, where only local function calls are considered
+        ///     (2) process function order ( reverse order of topological order of the calling graph)
+        ///     (3) external function call list for every function
         /// </summary>
         /// <param name="callGraph"></param>
         /// <param name="topologicRes"></param>
@@ -83,7 +83,6 @@ namespace AElf.Kernel.SmartContract
             {
                 callGraph.AddVertex(kvPair.Key);
                 foreach (var calledFunc in kvPair.Value.CallingSet)
-                { 
                     if (calledFunc.StartsWith(Replacement.This))
                     {
                         callGraph.AddVerticesAndEdge(new Edge<string>(kvPair.Key, calledFunc));
@@ -95,9 +94,9 @@ namespace AElf.Kernel.SmartContract
                             callingList = new List<string>();
                             ExternalFuncCall.Add(kvPair.Key, callingList);
                         }
+
                         callingList.Add(calledFunc);
                     }
-                }
             }
 
             try
@@ -109,10 +108,9 @@ namespace AElf.Kernel.SmartContract
                 callGraph.Clear();
                 callGraph = null;
                 topologicRes = null;
-                throw new FunctionMetadataException($"Calling graph of contract {FullName} is Non-DAG thus nothing take effect");
+                throw new FunctionMetadataException(
+                    $"Calling graph of contract {FullName} is Non-DAG thus nothing take effect");
             }
         }
     }
-
-    
 }

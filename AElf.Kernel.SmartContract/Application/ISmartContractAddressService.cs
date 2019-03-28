@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using AElf.Common;
 using AElf.Kernel.SmartContract.Infrastructure;

@@ -7,16 +7,14 @@ namespace AElf.BenchBase
     [DependsOn(typeof(TestBaseAElfModule))]
     public class BenchBaseAElfModule : AElfModule<BenchBaseAElfModule>
     {
-        
     }
-    
+
     public class BenchBaseTest<TModule> : AElfIntegratedTest<TModule>
-        where TModule: IAbpModule
+        where TModule : IAbpModule
     {
     }
 
     public class BenchBaseTest : AElfIntegratedTest<TestBaseAElfModule>
     {
-        
     }
 }

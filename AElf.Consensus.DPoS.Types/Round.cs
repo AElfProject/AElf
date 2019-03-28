@@ -5,6 +5,7 @@ namespace AElf.Consensus.DPoS
 {
     public partial class Round
     {
-        public long RoundId => RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
+        public long RoundId =>
+            RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
     }
 }

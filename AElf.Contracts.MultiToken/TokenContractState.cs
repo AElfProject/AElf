@@ -1,4 +1,3 @@
-using System;
 using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
@@ -17,9 +16,10 @@ namespace AElf.Contracts.MultiToken
         public SingletonState<Address> FeePoolAddress { get; set; }
 
         /// <summary>
-        /// symbol -> address -> is in white list.
+        ///     symbol -> address -> is in white list.
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
+
         internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
     }
 }

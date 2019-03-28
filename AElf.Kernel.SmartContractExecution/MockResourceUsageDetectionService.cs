@@ -2,8 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Google.Protobuf;
 using AElf.Common;
+using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContractExecution
 {
@@ -13,13 +13,12 @@ namespace AElf.Kernel.SmartContractExecution
         public async Task<IEnumerable<string>> GetResources(Transaction transaction)
         {
             //var hashes = ECParameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
-            List<Address> addresses = new List<Address>();
-            using (MemoryStream mm = new MemoryStream(transaction.Params.ToByteArray()))
-            using (CodedInputStream input = new CodedInputStream(mm))
+            var addresses = new List<Address>();
+            using (var mm = new MemoryStream(transaction.Params.ToByteArray()))
+            using (var input = new CodedInputStream(mm))
             {
                 uint tag;
                 while ((tag = input.ReadTag()) != 0)
-                {
                     switch (WireFormat.GetTagWireType(tag))
                     {
                         case WireFormat.WireType.Varint:
@@ -36,7 +35,6 @@ namespace AElf.Kernel.SmartContractExecution
 
                             break;
                     }
-                }
             }
 
             addresses.Add(transaction.From);

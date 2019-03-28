@@ -1,26 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using Xunit;
 using AElf.Common;
 using Google.Protobuf;
 using Shouldly;
+using Xunit;
 
 namespace AElf.Types.Tests
 {
     public class Base58Tests
     {
-        [Fact]
-        public void Encode_And_Decode_Hash()
-        {
-            var hash = Hash.Generate();
-            var data = hash.DumpByteArray();
-
-            var enCode = Base58CheckEncoding.Encode(data);
-            enCode.ShouldNotBe(string.Empty);
-            var deCode = Base58CheckEncoding.Decode(enCode);
-            deCode.ShouldBe(data);
-        }
-
         [Fact]
         public void Encode_And_Decode_Address()
         {
@@ -37,23 +24,15 @@ namespace AElf.Types.Tests
         }
 
         [Fact]
-        public void EncodePlain_And_DecodePlain_Hash()
+        public void Encode_And_Decode_Hash()
         {
             var hash = Hash.Generate();
             var data = hash.DumpByteArray();
-            var bytes = new byte[]{0};
 
-            var enCode = Base58CheckEncoding.EncodePlain(data);
+            var enCode = Base58CheckEncoding.Encode(data);
             enCode.ShouldNotBe(string.Empty);
-            var deCode = Base58CheckEncoding.DecodePlain(enCode);
+            var deCode = Base58CheckEncoding.Decode(enCode);
             deCode.ShouldBe(data);
-            
-            Base58CheckEncoding.EncodePlain(bytes).ShouldBe("1");
-            Should.Throw<FormatException>(() => {
-                Base58CheckEncoding.DecodePlain(bytes.ToString());
-            });
-
-            Should.Throw<FormatException>(() => { Base58CheckEncoding.Decode(enCode); });
         }
 
         [Fact]
@@ -66,6 +45,24 @@ namespace AElf.Types.Tests
             enCode.ShouldNotBe(string.Empty);
             var deCode = Base58CheckEncoding.DecodePlain(enCode);
             deCode.ShouldBe(data);
+        }
+
+        [Fact]
+        public void EncodePlain_And_DecodePlain_Hash()
+        {
+            var hash = Hash.Generate();
+            var data = hash.DumpByteArray();
+            var bytes = new byte[] {0};
+
+            var enCode = Base58CheckEncoding.EncodePlain(data);
+            enCode.ShouldNotBe(string.Empty);
+            var deCode = Base58CheckEncoding.DecodePlain(enCode);
+            deCode.ShouldBe(data);
+
+            Base58CheckEncoding.EncodePlain(bytes).ShouldBe("1");
+            Should.Throw<FormatException>(() => { Base58CheckEncoding.DecodePlain(bytes.ToString()); });
+
+            Should.Throw<FormatException>(() => { Base58CheckEncoding.Decode(enCode); });
         }
 
         [Fact]

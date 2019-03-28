@@ -1,8 +1,5 @@
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Volo.Abp.EventBus;
-using Volo.Abp.EventBus.Local;
 using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.TestBase.Tests

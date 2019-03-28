@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Infrastructure;
-using AElf.OS.Node.Application;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
@@ -17,17 +15,14 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
     {
-        private readonly IPeerPool _peerPool;
-        
-        private readonly NetworkOptions _networkOptions;
-
-        private readonly PeerService.PeerServiceBase _serverService;
         private readonly AuthInterceptor _authInterceptor;
 
-        private Server _server;
+        private readonly NetworkOptions _networkOptions;
+        private readonly IPeerPool _peerPool;
 
-        public ILocalEventBus EventBus { get; set; }
-        public ILogger<GrpcNetworkServer> Logger { get; set; }
+        private readonly PeerService.PeerServiceBase _serverService;
+
+        private Server _server;
 
         public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, PeerService.PeerServiceBase serverService,
             IPeerPool peerPool, AuthInterceptor authInterceptor)
@@ -41,16 +36,19 @@ namespace AElf.OS.Network.Grpc
             EventBus = NullLocalEventBus.Instance;
         }
 
+        public ILocalEventBus EventBus { get; set; }
+        public ILogger<GrpcNetworkServer> Logger { get; set; }
+
         public async Task StartAsync()
         {
-            ServerServiceDefinition serviceDefinition = PeerService.BindService(_serverService);
+            var serviceDefinition = PeerService.BindService(_serverService);
 
             if (_authInterceptor != null)
                 serviceDefinition = serviceDefinition.Intercept(_authInterceptor);
-            
+
             _server = new Server
             {
-                Services = { serviceDefinition },
+                Services = {serviceDefinition},
                 Ports =
                 {
                     new ServerPort(IPAddress.Any.ToString(), _networkOptions.ListeningPort, ServerCredentials.Insecure)
@@ -62,7 +60,7 @@ namespace AElf.OS.Network.Grpc
             // Add the provided boot nodes
             if (_networkOptions.BootNodes != null && _networkOptions.BootNodes.Any())
             {
-                List<Task<bool>> taskList = _networkOptions.BootNodes.Select(_peerPool.AddPeerAsync).ToList();
+                var taskList = _networkOptions.BootNodes.Select(_peerPool.AddPeerAsync).ToList();
                 await Task.WhenAll(taskList.ToArray<Task>());
             }
             else
@@ -86,7 +84,6 @@ namespace AElf.OS.Network.Grpc
             foreach (var peer in _peerPool.GetPeers(true))
             {
                 if (gracefulDisconnect)
-                {
                     try
                     {
                         await peer.SendDisconnectAsync();
@@ -95,7 +92,6 @@ namespace AElf.OS.Network.Grpc
                     {
                         Logger.LogError(e, $"Error sending disconnect {peer}.");
                     }
-                }
 
                 await peer.StopAsync();
             }

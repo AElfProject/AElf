@@ -1,20 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.Types;
-using AElf.Types.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
-using Volo.Abp.DependencyInjection;
-using Volo.Abp.Threading;
 
 namespace AElf.CrossChain
 {
@@ -24,13 +15,20 @@ namespace AElf.CrossChain
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public ILogger<CrossChainIndexingTransactionGenerator> Logger { get; set; }
-
         public CrossChainIndexingTransactionGenerator(ICrossChainService crossChainService,
             ISmartContractAddressService smartContractAddressService)
         {
             _crossChainService = crossChainService;
             _smartContractAddressService = smartContractAddressService;
+        }
+
+        public ILogger<CrossChainIndexingTransactionGenerator> Logger { get; set; }
+
+        public void GenerateTransactions(Address from, long preBlockHeight, Hash previousBlockHash,
+            ref List<Transaction> generatedTransactions)
+        {
+            generatedTransactions.AddRange(
+                GenerateCrossChainIndexingTransaction(from, preBlockHeight, previousBlockHash));
         }
 
         private IEnumerable<Transaction> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
@@ -44,40 +42,33 @@ namespace AElf.CrossChain
 //            var crossChainBlockData = new CrossChainBlockData();
 //            crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
 //            crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
-            
+
             var generatedTransactions = new List<Transaction>();
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
 
             //Logger.LogTrace($"Generate cross chain txn with hash {previousBlockHash}, height {refBlockNumber}");
-            
+
             // should return the same data already filled in block header.
             var filledCrossChainBlockData =
                 _crossChainService.GetCrossChainBlockDataFilledInBlock(previousBlockHash, refBlockNumber);
-            
+
             // filledCrossChainBlockData == null means no cross chain data filled in this block.
             if (filledCrossChainBlockData != null)
-            {
-                generatedTransactions.Add(GenerateNotSignedTransaction(from, CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber,
+                generatedTransactions.Add(GenerateNotSignedTransaction(from,
+                    CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber,
                     previousBlockPrefix, filledCrossChainBlockData));
-            }
-            
+
             return generatedTransactions;
         }
 
-        public void GenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
-            ref List<Transaction> generatedTransactions)
-        {
-            generatedTransactions.AddRange(GenerateCrossChainIndexingTransaction(from, preBlockHeight, previousBlockHash));
-        }
-
         /// <summary>
-        /// Create a txn with provided data.
+        ///     Create a txn with provided data.
         /// </summary>
         /// <param name="from"></param>
         /// <param name="methodName"></param>
         /// <param name="refBlockNumber"></param>
         /// <param name=""></param>
-        /// <param name="refBlockPrefix"></param> 
+        /// <param name="refBlockPrefix"></param>
         /// <param name="input"></param>
         /// <returns></returns>
         private Transaction GenerateNotSignedTransaction(Address from, string methodName, long refBlockNumber,
@@ -91,7 +82,7 @@ namespace AElf.CrossChain
                 RefBlockNumber = refBlockNumber,
                 RefBlockPrefix = ByteString.CopyFrom(refBlockPrefix),
                 MethodName = methodName,
-                Params = input.ToByteString(),
+                Params = input.ToByteString()
             };
         }
     }

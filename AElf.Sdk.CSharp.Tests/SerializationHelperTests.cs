@@ -25,60 +25,6 @@ namespace AElf.Sdk.CSharp.Tests
         }
 
         [Fact]
-        public void Serialization_Int_Test()
-        {
-            var intValue = new Random().Next();
-            var byteArray = SerializationHelper.Serialize(intValue);
-            var serializeValue = SerializationHelper.Deserialize<int>(byteArray);
-            intValue.ShouldBe(serializeValue);
-        }
-
-        [Fact]
-        public void Serialization_UInt_Test()
-        {
-            var uintValue = Convert.ToUInt32(new Random().Next());
-            var byteArray = SerializationHelper.Serialize(uintValue);
-            var serializeValue = SerializationHelper.Deserialize<uint>(byteArray);
-            uintValue.ShouldBe(serializeValue);
-        }
-
-        [Fact]
-        public void Serialization_Long_Test()
-        {
-            var longArray = new[] {long.MinValue, -10054, -100, -50, 0, 50, 100, 10005, long.MaxValue};
-            foreach (var longValue in longArray)
-            {
-                var byteArray = SerializationHelper.Serialize(longValue);
-                var serializeValue = SerializationHelper.Deserialize<long>(byteArray);
-                longValue.ShouldBe(serializeValue);
-            }
-        }
-
-        [Fact]
-        public void Serialization_ULong_Test()
-        {
-            var ulongArray = new ulong[] { ulong.MinValue, 50, 100, 1004, ulong.MaxValue };
-            foreach (var longValue in ulongArray)
-            {
-                var byteArray = SerializationHelper.Serialize(longValue);
-                var serializeValue = SerializationHelper.Deserialize<ulong>(byteArray);
-                longValue.ShouldBe(serializeValue);
-            }
-        }
-
-        [Fact]
-        public void Serialization_UnSupported_Type()
-        {
-            //Serialize
-            var byteString = ByteString.CopyFromUtf8("ByteString shold not supported.");
-            Should.Throw<InvalidOperationException>(() => SerializationHelper.Serialize(byteString));
-
-            //Deserialize
-            var byteArray = byteString.ToByteArray();
-            Should.Throw<InvalidOperationException>(() => SerializationHelper.Deserialize<ByteString>(byteArray));
-        }
-
-        [Fact]
         public void Serialization_ByteArray_Test()
         {
             //Hash test
@@ -119,8 +65,8 @@ namespace AElf.Sdk.CSharp.Tests
             var body = new BlockBody
             {
                 BlockHeader = header.GetHash(),
-                Transactions = { transaction.GetHash() },
-                TransactionList = { transaction }
+                Transactions = {transaction.GetHash()},
+                TransactionList = {transaction}
             };
             var bodyArray = SerializationHelper.Serialize(body);
             var body1 = SerializationHelper.Deserialize<BlockBody>(bodyArray);
@@ -136,6 +82,60 @@ namespace AElf.Sdk.CSharp.Tests
             var blockArray = SerializationHelper.Serialize(block);
             var block1 = SerializationHelper.Deserialize<Block>(blockArray);
             block.ShouldBe(block1);
+        }
+
+        [Fact]
+        public void Serialization_Int_Test()
+        {
+            var intValue = new Random().Next();
+            var byteArray = SerializationHelper.Serialize(intValue);
+            var serializeValue = SerializationHelper.Deserialize<int>(byteArray);
+            intValue.ShouldBe(serializeValue);
+        }
+
+        [Fact]
+        public void Serialization_Long_Test()
+        {
+            var longArray = new[] {long.MinValue, -10054, -100, -50, 0, 50, 100, 10005, long.MaxValue};
+            foreach (var longValue in longArray)
+            {
+                var byteArray = SerializationHelper.Serialize(longValue);
+                var serializeValue = SerializationHelper.Deserialize<long>(byteArray);
+                longValue.ShouldBe(serializeValue);
+            }
+        }
+
+        [Fact]
+        public void Serialization_UInt_Test()
+        {
+            var uintValue = Convert.ToUInt32(new Random().Next());
+            var byteArray = SerializationHelper.Serialize(uintValue);
+            var serializeValue = SerializationHelper.Deserialize<uint>(byteArray);
+            uintValue.ShouldBe(serializeValue);
+        }
+
+        [Fact]
+        public void Serialization_ULong_Test()
+        {
+            var ulongArray = new ulong[] {ulong.MinValue, 50, 100, 1004, ulong.MaxValue};
+            foreach (var longValue in ulongArray)
+            {
+                var byteArray = SerializationHelper.Serialize(longValue);
+                var serializeValue = SerializationHelper.Deserialize<ulong>(byteArray);
+                longValue.ShouldBe(serializeValue);
+            }
+        }
+
+        [Fact]
+        public void Serialization_UnSupported_Type()
+        {
+            //Serialize
+            var byteString = ByteString.CopyFromUtf8("ByteString shold not supported.");
+            Should.Throw<InvalidOperationException>(() => SerializationHelper.Serialize(byteString));
+
+            //Deserialize
+            var byteArray = byteString.ToByteArray();
+            Should.Throw<InvalidOperationException>(() => SerializationHelper.Deserialize<ByteString>(byteArray));
         }
     }
 }

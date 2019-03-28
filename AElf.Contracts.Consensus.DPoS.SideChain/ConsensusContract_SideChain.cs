@@ -9,12 +9,12 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         public override Empty UpdateMainChainConsensus(DPoSInformation input)
         {
             // TODO: Only cross chain contract can call UpdateMainChainConsensus method of consensus contract.
-            
+
             // For now we just extract the miner list from main chain consensus information, then update miners list.
-            if(input == null || input == new DPoSInformation())
+            if (input == null || input == new DPoSInformation())
                 return new Empty();
             var consensusInformation = input;
-            if(consensusInformation.Round.TermNumber <= State.TermNumberFromMainChainField.Value)
+            if (consensusInformation.Round.TermNumber <= State.TermNumberFromMainChainField.Value)
                 return new Empty();
             Context.LogDebug(() => $"Shared BP of term {consensusInformation.Round.TermNumber.ToInt64Value()}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
@@ -22,15 +22,14 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             State.CurrentMiners.Value = minersKeys.ToList().ToMiners();
             return new Empty();
         }
-        
+
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp timestamp,
             Timestamp blockchainStartTimestamp, out Round nextRound)
         {
-            if (State.CurrentMiners.Value == null || currentRound.RealTimeMinersInformation.Keys.ToList().ToMiners().GetMinersHash() ==
+            if (State.CurrentMiners.Value == null ||
+                currentRound.RealTimeMinersInformation.Keys.ToList().ToMiners().GetMinersHash() ==
                 State.CurrentMiners.Value.GetMinersHash())
-            {
                 return currentRound.GenerateNextRoundInformation(timestamp, blockchainStartTimestamp, out nextRound);
-            }
 
             nextRound = State.CurrentMiners.Value.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(),
                 currentRound.RoundNumber, State.TermNumberFromMainChainField.Value);

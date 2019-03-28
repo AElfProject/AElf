@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         public void SetDefaultContractZeroRegistrationByType(Type defaultZero)
         {
             var code = File.ReadAllBytes(defaultZero.Assembly.Location);
-            DefaultContractZeroRegistration = new SmartContractRegistration()
+            DefaultContractZeroRegistration = new SmartContractRegistration
             {
                 Category = KernelConstants.DefaultRunnerCategory,
                 Code = ByteString.CopyFrom(code),

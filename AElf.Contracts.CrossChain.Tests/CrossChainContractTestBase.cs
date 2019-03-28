@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.Authorization;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -14,28 +12,27 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Token;
-using AElf.TestBase;
 using Google.Protobuf;
-using Secp256k1Net;
 using Shouldly;
 using Volo.Abp.Threading;
-using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
 
 namespace AElf.Contract.CrossChain.Tests
 {
     public class CrossChainContractTestBase : ContractTestBase<CrossChainContractTestAElfModule>
     {
-        protected Address CrossChainContractAddress;
-        protected Address TokenContractAddress;
-        protected Address ConsensusContractAddress;
+        protected long _balanceOfStarter;
 
         protected long _totalSupply;
-        protected long _balanceOfStarter;
+        protected Address ConsensusContractAddress;
+        protected Address CrossChainContractAddress;
+        protected Address TokenContractAddress;
+
         public CrossChainContractTestBase()
         {
             Tester = new ContractTester<CrossChainContractTestAElfModule>(CrossChainContractTestHelper.EcKeyPair);
             AsyncHelper.RunSync(() =>
-                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply, out _,
+                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
+                    out _,
                     out _balanceOfStarter)));
             CrossChainContractAddress = Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
@@ -96,7 +93,7 @@ namespace AElf.Contract.CrossChain.Tests
             var chainId = ChainHelpers.GetChainId(1);
             var tx2 = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.CreateSideChain),
-                new SInt32Value()
+                new SInt32Value
                 {
                     Value = chainId
                 });
@@ -108,13 +105,15 @@ namespace AElf.Contract.CrossChain.Tests
         {
             return await Tester.MineAsync(txs);
         }
-        
-        protected  async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName, IMessage input)
+
+        protected async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress,
+            string methodName, IMessage input)
         {
             return await Tester.ExecuteContractWithMiningAsync(contractAddress, methodName, input);
         }
 
-        protected async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName, ECKeyPair ecKeyPair, IMessage input)
+        protected async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
+            ECKeyPair ecKeyPair, IMessage input)
         {
             return ecKeyPair == null
                 ? await Tester.GenerateTransactionAsync(contractAddress, methodName, input)
@@ -134,7 +133,7 @@ namespace AElf.Contract.CrossChain.Tests
 
         protected byte[] GetFriendlyBytes(int value)
         {
-            byte[] bytes = BitConverter.GetBytes(value);
+            var bytes = BitConverter.GetBytes(value);
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(bytes);
             return bytes.Skip(Array.FindIndex(bytes, Convert.ToBoolean)).ToArray();

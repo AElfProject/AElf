@@ -83,17 +83,13 @@ namespace AElf.Consensus.DPoS
         }
 
         /// <summary>
-        /// This method is only executable when the miners of this round is more than 1.
+        ///     This method is only executable when the miners of this round is more than 1.
         /// </summary>
         /// <param name="round"></param>
         /// <returns></returns>
         public static int GetMiningInterval(this Round round)
         {
-            if (round.RealTimeMinersInformation.Count < 2)
-            {
-                // Just appoint the mining interval for single miner.
-                return 4000;
-            }
+            if (round.RealTimeMinersInformation.Count < 2) return 4000;
 
             var firstTwoMiners = round.RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
                 .ToList();
@@ -105,26 +101,23 @@ namespace AElf.Consensus.DPoS
         }
 
         /// <summary>
-        /// In current DPoS design, each miner produce his block in one time slot, then the extra block producer
-        /// produce a block to terminate current round and confirm the mining order of next round.
-        /// So totally, the time of one round is:
-        /// MiningInterval * MinersCount + MiningInterval.
+        ///     In current DPoS design, each miner produce his block in one time slot, then the extra block producer
+        ///     produce a block to terminate current round and confirm the mining order of next round.
+        ///     So totally, the time of one round is:
+        ///     MiningInterval * MinersCount + MiningInterval.
         /// </summary>
         /// <param name="round"></param>
         /// <param name="miningInterval"></param>
-        /// <returns></returns>                                                
+        /// <returns></returns>
         public static int TotalMilliseconds(this Round round, int miningInterval = 0)
         {
-            if (miningInterval == 0)
-            {
-                miningInterval = round.GetMiningInterval();
-            }
+            if (miningInterval == 0) miningInterval = round.GetMiningInterval();
 
             return round.RealTimeMinersInformation.Count * miningInterval + miningInterval;
         }
 
         /// <summary>
-        /// Actually the expected mining time of the miner whose order is 1.
+        ///     Actually the expected mining time of the miner whose order is 1.
         /// </summary>
         /// <param name="round"></param>
         /// <returns></returns>
@@ -134,8 +127,8 @@ namespace AElf.Consensus.DPoS
         }
 
         /// <summary>
-        /// This method for now is able to handle the situation of a miner keeping offline so many rounds,
-        /// by using missedRoundsCount.
+        ///     This method for now is able to handle the situation of a miner keeping offline so many rounds,
+        ///     by using missedRoundsCount.
         /// </summary>
         /// <param name="round"></param>
         /// <param name="miningInterval"></param>
@@ -143,10 +136,7 @@ namespace AElf.Consensus.DPoS
         /// <returns></returns>
         public static Timestamp GetExpectedEndTime(this Round round, int missedRoundsCount = 0, int miningInterval = 0)
         {
-            if (miningInterval == 0)
-            {
-                miningInterval = round.GetMiningInterval();
-            }
+            if (miningInterval == 0) miningInterval = round.GetMiningInterval();
 
             return round.GetStartTime().ToDateTime().AddMilliseconds(round.TotalMilliseconds(miningInterval))
                 // Arrange an ending time if this node missed so many rounds.
@@ -155,8 +145,8 @@ namespace AElf.Consensus.DPoS
         }
 
         /// <summary>
-        /// Simply read the expected mining time of provided public key from round information.
-        /// Do not check this node missed his time slot or not.
+        ///     Simply read the expected mining time of provided public key from round information.
+        ///     Do not check this node missed his time slot or not.
         /// </summary>
         /// <param name="round"></param>
         /// <param name="publicKey"></param>
@@ -164,16 +154,14 @@ namespace AElf.Consensus.DPoS
         public static Timestamp GetExpectedMiningTime(this Round round, string publicKey)
         {
             if (round.RealTimeMinersInformation.ContainsKey(publicKey))
-            {
                 return round.RealTimeMinersInformation[publicKey].ExpectedMiningTime;
-            }
 
             return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
         }
 
         /// <summary>
-        /// For now, if current time is behind the end of expected mining time slot,
-        /// we can say this node missed his time slot.
+        ///     For now, if current time is behind the end of expected mining time slot,
+        ///     we can say this node missed his time slot.
         /// </summary>
         /// <param name="round"></param>
         /// <param name="publicKey"></param>
@@ -196,38 +184,29 @@ namespace AElf.Consensus.DPoS
         }
 
         /// <summary>
-        /// If one node produced block this round or missed his time slot,
-        /// whatever how long he missed, we can give him a consensus command with new time slot
-        /// to produce a block (for terminating current round and start new round).
-        /// The schedule generated by this command will be cancelled
-        /// if this node executed blocks from other nodes.
-        /// 
-        /// Notice:
-        /// This method shouldn't return the expected mining time from round information.
-        /// To prevent this kind of misuse, this method will return a invalid timestamp
-        /// when this node hasn't missed his time slot.
+        ///     If one node produced block this round or missed his time slot,
+        ///     whatever how long he missed, we can give him a consensus command with new time slot
+        ///     to produce a block (for terminating current round and start new round).
+        ///     The schedule generated by this command will be cancelled
+        ///     if this node executed blocks from other nodes.
+        ///     Notice:
+        ///     This method shouldn't return the expected mining time from round information.
+        ///     To prevent this kind of misuse, this method will return a invalid timestamp
+        ///     when this node hasn't missed his time slot.
         /// </summary>
         /// <returns></returns>
         public static Timestamp ArrangeAbnormalMiningTime(this Round round, string publicKey, Timestamp timestamp,
             int miningInterval = 0)
         {
-            if (miningInterval == 0)
-            {
-                miningInterval = round.GetMiningInterval();
-            }
+            if (miningInterval == 0) miningInterval = round.GetMiningInterval();
 
             if (!round.IsTimeSlotPassed(publicKey, timestamp, out var minerInRound) && minerInRound.OutValue == null)
-            {
                 return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
-            }
 
             if (round.GetExtraBlockProducerInformation().PublicKey == publicKey)
             {
                 var distance = (round.GetExtraBlockMiningTime() - timestamp.ToDateTime()).TotalMilliseconds;
-                if (distance > 0)
-                {
-                    return timestamp.ToDateTime().AddMilliseconds(distance).ToTimestamp();
-                }
+                if (distance > 0) return timestamp.ToDateTime().AddMilliseconds(distance).ToTimestamp();
             }
 
             if (round.RealTimeMinersInformation.ContainsKey(publicKey) && miningInterval > 0)
@@ -250,10 +229,7 @@ namespace AElf.Consensus.DPoS
 
         public static DateTime GetExtraBlockMiningTime(this Round round, int miningInterval = 0)
         {
-            if (miningInterval == 0)
-            {
-                miningInterval = round.GetMiningInterval();
-            }
+            if (miningInterval == 0) miningInterval = round.GetMiningInterval();
 
             return round.RealTimeMinersInformation.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value
                 .ExpectedMiningTime.ToDateTime()
@@ -262,17 +238,12 @@ namespace AElf.Consensus.DPoS
 
         public static ToUpdate GenerateToUpdate(this Round round, string publicKey)
         {
-            if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
-            {
-                return null;
-            }
-            
+            if (!round.RealTimeMinersInformation.ContainsKey(publicKey)) return null;
+
             var changeOrders = new List<ChangeOrderInformation>();
             foreach (var tune in round.RealTimeMinersInformation.Values.Where(m => m.TuneOrderOfNextRound != 0)
                 .ToDictionary(m => m.PublicKey, m => m.TuneOrderOfNextRound))
-            {
                 changeOrders.Add(new ChangeOrderInformation {PublickKey = tune.Key, NewOrder = tune.Value});
-            }
 
             var minerInRound = round.RealTimeMinersInformation[publicKey];
             return new ToUpdate
@@ -287,7 +258,7 @@ namespace AElf.Consensus.DPoS
                 ChangedOrders = {changeOrders}
             };
         }
-        
+
 
         public static Round ApplyNormalConsensusData(this Round round, string publicKey, Hash previousInValue,
             Hash outValue, Hash signature, Timestamp timestamp)
@@ -299,13 +270,9 @@ namespace AElf.Consensus.DPoS
                 round.RealTimeMinersInformation[publicKey].PreviousInValue = previousInValue;
                 round.RealTimeMinersInformation[publicKey].OutValue = outValue;
                 if (round.RoundNumber != 1)
-                {
                     round.RealTimeMinersInformation[publicKey].Signature = signature;
-                }
                 else
-                {
                     signature = round.RealTimeMinersInformation[publicKey].Signature;
-                }
 
                 var minersCount = round.RealTimeMinersInformation.Count;
                 var sigNum =
@@ -320,7 +287,6 @@ namespace AElf.Consensus.DPoS
                     .Where(i => i.OrderOfNextRound == orderOfNextRound).ToList();
 
                 foreach (var minerInRound in conflicts)
-                {
                     // Though multiple conflicts should be wrong, we can still arrange their orders of next round.
 
                     for (var i = minerInRound.Order + 1; i < minersCount * 2 + 1; i++)
@@ -328,12 +294,9 @@ namespace AElf.Consensus.DPoS
                         var maybeNewOrder = i % minersCount + 1;
                         if (round.RealTimeMinersInformation.Values.All(m =>
                             m.OrderOfNextRound != maybeNewOrder && m.TuneOrderOfNextRound != maybeNewOrder))
-                        {
                             round.RealTimeMinersInformation[minerInRound.PublicKey].TuneOrderOfNextRound =
                                 maybeNewOrder;
-                        }
                     }
-                }
 
                 round.RealTimeMinersInformation[publicKey].OrderOfNextRound = orderOfNextRound;
             }
@@ -343,10 +306,7 @@ namespace AElf.Consensus.DPoS
 
         private static void ClearTuneOrderOfNextRound(this Round round)
         {
-            foreach (var minerInRound in round.RealTimeMinersInformation.Values)
-            {
-                minerInRound.TuneOrderOfNextRound = 0;
-            }
+            foreach (var minerInRound in round.RealTimeMinersInformation.Values) minerInRound.TuneOrderOfNextRound = 0;
         }
 
         public static bool GenerateNextRoundInformation(this Round round, Timestamp timestamp,
@@ -357,10 +317,7 @@ namespace AElf.Consensus.DPoS
             // Check: If one miner's OrderOfNextRound isn't 0, his must published his signature.
             var minersMinedCurrentRound =
                 round.RealTimeMinersInformation.Values.Where(m => m.OrderOfNextRound != 0).ToList();
-            if (minersMinedCurrentRound.Any(m => m.Signature == null))
-            {
-                return false;
-            }
+            if (minersMinedCurrentRound.Any(m => m.Signature == null)) return false;
 
             // TODO: Check: No order conflicts for next round.
 
@@ -399,7 +356,7 @@ namespace AElf.Consensus.DPoS
                     PublicKey = minersNotMinedCurrentRound[i].PublicKey,
                     Order = order,
                     ExpectedMiningTime = timestamp.GetArrangedTimestamp(order, miningInterval),
-                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
+                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks
                 };
             }
 
@@ -408,13 +365,9 @@ namespace AElf.Consensus.DPoS
             var expectedExtraBlockProducer =
                 nextRound.RealTimeMinersInformation.Values.FirstOrDefault(m => m.Order == extraBlockProducerOrder);
             if (expectedExtraBlockProducer == null)
-            {
                 nextRound.RealTimeMinersInformation.Values.First().IsExtraBlockProducer = true;
-            }
             else
-            {
                 expectedExtraBlockProducer.IsExtraBlockProducer = true;
-            }
 
             return true;
         }
@@ -427,11 +380,7 @@ namespace AElf.Consensus.DPoS
         private static int CalculateNextExtraBlockProducerOrder(this Round round)
         {
             var firstPlaceInfo = round.GetFirstPlaceMinerInformation();
-            if (firstPlaceInfo == null)
-            {
-                // If no miner produce block during this round, just appoint the first miner to be the extra block producer of next round.
-                return 1;
-            }
+            if (firstPlaceInfo == null) return 1;
 
             var signature = firstPlaceInfo.Signature;
             var sigNum = BitConverter.ToInt64(
@@ -447,7 +396,7 @@ namespace AElf.Consensus.DPoS
         }
 
         /// <summary>
-        /// Get the first valid (mined) miner's information, which means this miner's signature shouldn't be empty.
+        ///     Get the first valid (mined) miner's information, which means this miner's signature shouldn't be empty.
         /// </summary>
         /// <param name="round"></param>
         /// <returns></returns>
@@ -461,12 +410,8 @@ namespace AElf.Consensus.DPoS
         {
             // Check the signatures
             foreach (var minerInRound in round.RealTimeMinersInformation)
-            {
                 if (minerInRound.Value.Signature == null)
-                {
                     minerInRound.Value.Signature = Hash.FromString(minerInRound.Key);
-                }
-            }
 
             return Hash.FromTwoHashes(inValue,
                 round.RealTimeMinersInformation.Values.Aggregate(Hash.Empty,
@@ -484,7 +429,7 @@ namespace AElf.Consensus.DPoS
         }
 
         /// <summary>
-        /// Include both min and max value.
+        ///     Include both min and max value.
         /// </summary>
         /// <param name="value"></param>
         /// <param name="min"></param>
@@ -500,10 +445,7 @@ namespace AElf.Consensus.DPoS
         {
             var dict = new Dictionary<string, int>();
 
-            foreach (var miner in miners.PublicKeys)
-            {
-                dict.Add(miner, miner[0]);
-            }
+            foreach (var miner in miners.PublicKeys) dict.Add(miner, miner[0]);
 
             var sortedMiners =
                 (from obj in dict
@@ -519,17 +461,14 @@ namespace AElf.Consensus.DPoS
             {
                 var minerInRound = new MinerInRound();
 
-                if (i == selected)
-                {
-                    minerInRound.IsExtraBlockProducer = true;
-                }
+                if (i == selected) minerInRound.IsExtraBlockProducer = true;
 
                 minerInRound.PublicKey = sortedMiners[i];
                 minerInRound.Order = i + 1;
                 // Signatures totally randomized.
                 minerInRound.Signature = Hash.Generate();
                 minerInRound.ExpectedMiningTime =
-                    GetTimestampOfUtcNow((i * miningInterval) + miningInterval);
+                    GetTimestampOfUtcNow(i * miningInterval + miningInterval);
                 minerInRound.PromisedTinyBlocks = 1;
 
                 round.RealTimeMinersInformation.Add(sortedMiners[i], minerInRound);
@@ -551,7 +490,7 @@ namespace AElf.Consensus.DPoS
             long termNumber)
         {
             var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
-            var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
+            var minimumCount = (int) (minersCount * 2d / 3) + 1;
             var approvalsCount = round.RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null)
                 .Select(m => m.ActualMiningTime)
                 .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp, t, termNumber));
@@ -559,12 +498,12 @@ namespace AElf.Consensus.DPoS
         }
 
         /// <summary>
-        /// If DaysEachTerm == 7:
-        /// 1, 1, 1 => 0 != 1 - 1 => false
-        /// 1, 2, 1 => 0 != 1 - 1 => false
-        /// 1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
-        /// 1, 9, 2 => 1 != 2 - 1 => false
-        /// 1, 15, 2 => 2 != 2 - 1 => true => term number will be 3.
+        ///     If DaysEachTerm == 7:
+        ///     1, 1, 1 => 0 != 1 - 1 => false
+        ///     1, 2, 1 => 0 != 1 - 1 => false
+        ///     1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
+        ///     1, 9, 2 => 1 != 2 - 1 => false
+        ///     1, 15, 2 => 2 != 2 - 1 => true => term number will be 3.
         /// </summary>
         /// <param name="blockchainStartTimestamp"></param>
         /// <param name="termNumber"></param>
@@ -598,10 +537,7 @@ namespace AElf.Consensus.DPoS
         public static bool IsExpired(this VotingRecord votingRecord, long currentAge)
         {
             var lockExpiredAge = votingRecord.VoteAge;
-            foreach (var day in votingRecord.LockDaysList)
-            {
-                lockExpiredAge += day;
-            }
+            foreach (var day in votingRecord.LockDaysList) lockExpiredAge += day;
 
             return lockExpiredAge <= currentAge;
         }
@@ -622,7 +558,7 @@ namespace AElf.Consensus.DPoS
         }
 
         /// <summary>
-        /// Get local time
+        ///     Get local time
         /// </summary>
         /// <param name="offset">minutes</param>
         /// <returns></returns>

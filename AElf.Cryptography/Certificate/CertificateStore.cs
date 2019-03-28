@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.OpenSsl;
@@ -9,10 +8,7 @@ namespace AElf.Cryptography.Certificate
 {
     public class CertificateStore : ICertificateStore
     {
-        private string _dataDirectory;
-        public string FolderName { get; } = "certs";
-        public string CertExtension { get; } = ".cert.pem";
-        public string KeyExtension { get; } = ".key.pem";
+        private readonly string _dataDirectory;
 
 
         public CertificateStore(string dataDirectory)
@@ -20,8 +16,12 @@ namespace AElf.Cryptography.Certificate
             _dataDirectory = dataDirectory;
         }
 
+        public string FolderName { get; } = "certs";
+        public string CertExtension { get; } = ".cert.pem";
+        public string KeyExtension { get; } = ".key.pem";
+
         /// <summary>
-        /// write certificate and private key
+        ///     write certificate and private key
         /// </summary>
         /// <param name="name"> prefix of file </param>
         /// <param name="ipAddress">ip address to be authenticated</param>
@@ -31,21 +31,42 @@ namespace AElf.Cryptography.Certificate
             // generate key pair
             var keyPair = new RSAKeyPairGenerator().Generate();
             var certGenerator = GetCertificateGenerator(keyPair);
-            
+
             // Todo: "127.0.0.1" would be removed eventually
             certGenerator.AddAlternativeName(ipAddress);
-            
+
             // generate certificate
             var cert = certGenerator.Generate(keyPair.PrivateKey);
             var path = Path.Combine(_dataDirectory, FolderName);
-            
+
             WriteKeyAndCertificate(cert, path, name, CertExtension);
             WriteKeyAndCertificate(keyPair.PrivateKey, path, name, KeyExtension);
             return keyPair;
         }
 
         /// <summary>
-        /// write certificate
+        ///     get certificate with file name prefix
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public string LoadCertificate(string name)
+        {
+            return File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + CertExtension));
+        }
+
+        /// <summary>
+        ///     get private with file name prefix
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public string LoadKeyStore(string name)
+        {
+            var crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + KeyExtension));
+            return crt;
+        }
+
+        /// <summary>
+        ///     write certificate
         /// </summary>
         /// <param name="name"> prefix of file </param>
         /// <param name="certificate"> cert content </param>
@@ -54,9 +75,9 @@ namespace AElf.Cryptography.Certificate
         {
             Directory.CreateDirectory(Path.Combine(_dataDirectory, FolderName));
             //name = PrefixString(name);
-            using (StreamWriter streamWriter = new StreamWriter(Path.Combine(_dataDirectory, FolderName, name + CertExtension)))
+            using (var streamWriter = new StreamWriter(Path.Combine(_dataDirectory, FolderName, name + CertExtension)))
             {
-                PemWriter pem = new PemWriter(streamWriter);
+                var pem = new PemWriter(streamWriter);
                 try
                 {
                     pem.Writer.WriteAsync(certificate);
@@ -67,27 +88,6 @@ namespace AElf.Cryptography.Certificate
                     pem.Writer.Close();
                 }
             }
-        }
-        
-        /// <summary>
-        /// get certificate with file name prefix
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public string LoadCertificate(string name)
-        {
-            return File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + CertExtension));
-        }
-        
-        /// <summary>
-        /// get private with file name prefix
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public string LoadKeyStore(string name)
-        {
-            string crt = File.ReadAllText(Path.Combine(_dataDirectory, FolderName, name + KeyExtension));
-            return crt;
         }
 
         private CertGenerator GetCertificateGenerator(RSAKeyPair keyPair)
@@ -100,8 +100,9 @@ namespace AElf.Cryptography.Certificate
             // create directory if not exists
             Directory.CreateDirectory(dir);
             //fileName = PrefixString(fileName);
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(dir, fileName + extension), false)) {
-                PemWriter pw = new PemWriter(outputFile);
+            using (var outputFile = new StreamWriter(Path.Combine(dir, fileName + extension), false))
+            {
+                var pw = new PemWriter(outputFile);
                 try
                 {
                     switch (obj)

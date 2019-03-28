@@ -1,7 +1,6 @@
 using System;
 using AElf.Common;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -19,9 +18,9 @@ namespace AElf.Kernel.Types.Tests
                 MultiSigAccount = Address.Generate(),
                 Name = "proposal test",
                 Proposer = Address.Generate(),
-                TxnData = ByteString.CopyFrom(Hash.Generate().DumpByteArray()) 
+                TxnData = ByteString.CopyFrom(Hash.Generate().DumpByteArray())
             };
-            
+
             var hash = proposal.GetHash();
             hash.ShouldNotBe(null);
         }

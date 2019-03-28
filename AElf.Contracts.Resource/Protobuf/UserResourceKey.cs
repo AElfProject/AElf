@@ -1,5 +1,4 @@
 using AElf.Common;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Resource
 {
@@ -7,8 +6,8 @@ namespace AElf.Contracts.Resource
     {
         public UserResourceKey(Address userAddress, ResourceType resourceType)
         {
-            this.Address = userAddress;
-            this.Type = resourceType;
+            Address = userAddress;
+            Type = resourceType;
         }
     }
 }

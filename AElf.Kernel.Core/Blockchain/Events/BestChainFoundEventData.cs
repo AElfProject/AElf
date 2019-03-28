@@ -7,7 +7,7 @@ namespace AElf.Kernel.Blockchain.Events
     {
         public Hash BlockHash { get; set; }
         public long BlockHeight { get; set; }
-        
+
         public List<Hash> ExecutedBlocks { get; set; }
     }
 }

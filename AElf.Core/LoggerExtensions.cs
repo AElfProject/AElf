@@ -1,6 +1,7 @@
 using System;
-using System.Linq.Expressions;
 using Microsoft.Extensions.Logging;
+
+Microsoft.Extensions.Logging;
 
 namespace AElf
 {
@@ -9,7 +10,8 @@ namespace AElf
         public static void LogTrace(this ILogger logger, Func<String> func)
         {
 #if DEBUG
-            logger.LogTrace(func());
+            logger.Log
+    (func());
 #endif
         }
     }

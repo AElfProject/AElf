@@ -5,7 +5,7 @@ namespace AElf.Sdk.CSharp.State
 {
     public static class FuncExtensions
     {
-        public static readonly HashSet<Type> Funcs = new HashSet<Type>()
+        public static readonly HashSet<Type> Funcs = new HashSet<Type>
         {
             typeof(Func<>),
             typeof(Func<,>),
@@ -28,10 +28,7 @@ namespace AElf.Sdk.CSharp.State
 
         public static bool IsFunc(this Type type)
         {
-            if (type.IsConstructedGenericType)
-            {
-                return Funcs.Contains(type.GetGenericTypeDefinition());
-            }
+            if (type.IsConstructedGenericType) return Funcs.Contains(type.GetGenericTypeDefinition());
 
             return Funcs.Contains(type);
         }

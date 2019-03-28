@@ -1,13 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Cryptography.Certificate;
 using AElf.Kernel;
-using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
@@ -16,14 +12,13 @@ namespace AElf.CrossChain.Grpc
 {
     public class CrossChainGrpcServerBase : CrossChainRpc.CrossChainRpcBase, ISingletonDependency
     {
-        public ILogger<CrossChainGrpcServerBase> Logger { get; set; }
-        public ILocalEventBus LocalEventBus { get; set; }
         private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
+        private readonly CrossChainConfigOption _crossChainConfigOption;
         private readonly ICrossChainService _crossChainService;
         private readonly ILocalLibService _localLibService;
-        private readonly CrossChainConfigOption _crossChainConfigOption;
-        
-        public CrossChainGrpcServerBase(CrossChainService crossChainService, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption,
+
+        public CrossChainGrpcServerBase(CrossChainService crossChainService,
+            IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption,
             IBlockExtraDataExtractor blockExtraDataExtractor, ILocalLibService localLibService)
         {
             _crossChainService = crossChainService;
@@ -33,14 +28,17 @@ namespace AElf.CrossChain.Grpc
             _crossChainConfigOption = crossChainConfigOption.Value;
         }
 
-        public override async Task RequestIndexingParentChain(RequestCrossChainBlockData request, 
+        public ILogger<CrossChainGrpcServerBase> Logger { get; set; }
+        public ILocalEventBus LocalEventBus { get; set; }
+
+        public override async Task RequestIndexingParentChain(RequestCrossChainBlockData request,
             IServerStreamWriter<ResponseParentChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Parent Chain Server received IndexedInfo message.");
             await WriteResponseStream(request, responseStream, false);
         }
-        
-        public override async Task RequestIndexingSideChain(RequestCrossChainBlockData request, 
+
+        public override async Task RequestIndexingSideChain(RequestCrossChainBlockData request,
             IServerStreamWriter<ResponseSideChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Side Chain Server received IndexedInfo message.");
@@ -158,7 +156,8 @@ namespace AElf.CrossChain.Grpc
 //            return Task.FromResult(new IndexingRequestResult{Result = true});
 //        }
 
-        public override Task<IndexingHandShakeReply> CrossChainIndexingShake(IndexingHandShake request, ServerCallContext context)
+        public override Task<IndexingHandShakeReply> CrossChainIndexingShake(IndexingHandShake request,
+            ServerCallContext context)
         {
             var splitRes = context.Peer.Split(':');
             LocalEventBus.PublishAsync(new GrpcServeNewChainReceivedEvent
@@ -173,7 +172,7 @@ namespace AElf.CrossChain.Grpc
                 }
             });
             Logger.LogWarning($"Hand shake from chain {request.ChainId}");
-            return Task.FromResult(new IndexingHandShakeReply{Result = true});
+            return Task.FromResult(new IndexingHandShakeReply {Result = true});
         }
 
         private async Task<IList<SideChainBlockData>> GetIndexedSideChainBlockInfoResult(Block block)
@@ -183,14 +182,13 @@ namespace AElf.CrossChain.Grpc
             return crossChainBlockData.SideChainBlockData;
         }
 
-        private IEnumerable<(long, MerklePath)> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 
+        private IEnumerable<(long, MerklePath)> GetEnumerableMerklePath(
+            IList<SideChainBlockData> indexedSideChainBlockDataResult,
             int sideChainId)
         {
             var binaryMerkleTree = new BinaryMerkleTree();
             foreach (var blockInfo in indexedSideChainBlockDataResult)
-            {
                 binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
-            }
 
             binaryMerkleTree.ComputeRootHash();
             // This is to tell side chain the merkle path for one side chain block,
@@ -208,7 +206,7 @@ namespace AElf.CrossChain.Grpc
 
             return merklepathList;
         }
-        
+
         private async Task<IResponseIndexingMessage> CreateParentChainResponse(Block block, int parentChain)
         {
             var responseParentChainBlockData = new ResponseParentChainBlockData
@@ -226,21 +224,19 @@ namespace AElf.CrossChain.Grpc
             foreach (var symbol in _crossChainConfigOption.ExtraDataSymbols)
             {
                 var extraData = _blockExtraDataExtractor.ExtractOtherExtraData(symbol, block.Header);
-                if(extraData != null)
+                if (extraData != null)
                     responseParentChainBlockData.BlockData.ExtraData.Add(symbol, extraData);
             }
-            
+
             var crossChainExtra = _blockExtraDataExtractor.ExtractCrossChainExtraData(block.Header);
-            if (crossChainExtra == null) 
+            if (crossChainExtra == null)
                 return responseParentChainBlockData;
-            
+
             responseParentChainBlockData.BlockData.Root.CrossChainExtraData = crossChainExtra;
             var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockInfoResult(block);
             var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, parentChain);
             foreach (var (sideChainHeight, merklePath) in enumerableMerklePath)
-            {
                 responseParentChainBlockData.BlockData.IndexedMerklePath.Add(sideChainHeight, merklePath);
-            }
             return responseParentChainBlockData;
         }
 
@@ -259,7 +255,7 @@ namespace AElf.CrossChain.Grpc
             };
         }
 
-        private async Task WriteResponseStream<T>(RequestCrossChainBlockData request, 
+        private async Task WriteResponseStream<T>(RequestCrossChainBlockData request,
             IServerStreamWriter<T> responseStream, bool requestSideChain) where T : IResponseIndexingMessage
         {
             var requestedHeight = request.NextHeight;
@@ -276,7 +272,7 @@ namespace AElf.CrossChain.Grpc
                 requestedHeight++;
             }
         }
-            
+
         private async Task<Block> GetIrreversibleBlock(long height)
         {
             return await _localLibService.GetIrreversibleBlockByHeightAsync(height);

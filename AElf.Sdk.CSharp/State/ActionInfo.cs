@@ -5,8 +5,8 @@ namespace AElf.Sdk.CSharp.State
 {
     public class ActionInfo
     {
-        private readonly ContractReferenceState _owner;
         private readonly string _name;
+        private readonly ContractReferenceState _owner;
 
         public ActionInfo(ContractReferenceState owner, string name)
         {

@@ -76,27 +76,18 @@ namespace AElf.Kernel.Blockchain.Application
         {
         }
 
-        public Hash BlockHash { get; private set; }
+        public Hash BlockHash { get; }
     }
 
     public class BlockValidationProvider : IBlockValidationProvider
     {
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
-            if (block?.Header == null || block.Body == null)
-            {
-                return false;
-            }
+            if (block?.Header == null || block.Body == null) return false;
 
-            if (block.Body.TransactionsCount == 0)
-            {
-                return false;
-            }
+            if (block.Body.TransactionsCount == 0) return false;
 
-            if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
-            {
-                return false;
-            }
+            if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions) return false;
 
             return true;
         }

@@ -7,10 +7,6 @@ namespace AElf.Database.Tests
     public abstract class KeyValueDbContextTestBase<TKeyValueDbContext> : DatabaseTestBase
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
     {
-        protected TKeyValueDbContext _context;
-
-        protected IKeyValueDatabase<TKeyValueDbContext> _database;
-
         protected KeyValueDbContextTestBase()
         {
             // ReSharper disable once VirtualMemberCallInConstructor
@@ -18,20 +14,15 @@ namespace AElf.Database.Tests
             _database = _context.Database;
         }
 
-        [Fact]
-        public void IsConnectedTest()
-        {
-            var result = _database.IsConnected();
-            Assert.True(result);
-        }
+        protected TKeyValueDbContext _context;
+
+        protected IKeyValueDatabase<TKeyValueDbContext> _database;
 
         [Fact]
-        public async Task SetTest()
+        public void Get_ExceptionTest()
         {
-            var key = "settest";
-            var value = Guid.NewGuid().ToString();
-
-            await _database.SetAsync(key, Helper.StringToBytes(value));
+            var key = string.Empty;
+            Assert.Throws<ArgumentException>(() => { _database.GetAsync(key); });
         }
 
         [Fact]
@@ -47,10 +38,17 @@ namespace AElf.Database.Tests
         }
 
         [Fact]
-        public void Get_ExceptionTest()
+        public void IsConnectedTest()
+        {
+            var result = _database.IsConnected();
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void Remove_ExceptionTest()
         {
             var key = string.Empty;
-            Assert.Throws<ArgumentException>(() => { _database.GetAsync(key); });
+            Assert.Throws<ArgumentException>(() => { _database.RemoveAsync(key); });
         }
 
         [Fact]
@@ -62,10 +60,12 @@ namespace AElf.Database.Tests
         }
 
         [Fact]
-        public void Remove_ExceptionTest()
+        public async Task SetTest()
         {
-            var key = string.Empty;
-            Assert.Throws<ArgumentException>(() => { _database.RemoveAsync(key); });
+            var key = "settest";
+            var value = Guid.NewGuid().ToString();
+
+            await _database.SetAsync(key, Helper.StringToBytes(value));
         }
     }
 }

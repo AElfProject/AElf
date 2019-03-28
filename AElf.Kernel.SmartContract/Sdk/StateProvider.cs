@@ -1,8 +1,5 @@
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Infrastructure;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Domain;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {

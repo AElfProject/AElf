@@ -12,9 +12,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         public const int AliasLimit = 20;
 
         public const string InitialMinersAliases = "YQ,SM,WK,ZY,SC,ZX,RP,ZZ,MH,YS,GL,LN,ZA,MM,GG,MC,WS,KL";
-        
+
         #endregion
-        
+
         #region Dividends Settings
 
         public const long ElfTokenPerBlock = 10000;

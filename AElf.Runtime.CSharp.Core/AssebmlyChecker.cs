@@ -9,13 +9,12 @@ namespace AElf.Runtime.CSharp
     public class AssemblyChecker
     {
         private readonly IEnumerable<Regex> _blackList;
-        private readonly IEnumerable<Regex> _whiteList;
 
         private readonly string[] _systemBlackList =
         {
             @"System\.Reflection.*",
             //@"System\.IO.*",
-            @"System\.Net.*",
+            @"System\.Net.*"
             //@"System\.Threading.*",
         };
 
@@ -29,6 +28,8 @@ namespace AElf.Runtime.CSharp
             "System.Reflection.AssemblyTitleAttribute".Replace(".", "\\."),
             @"AElf\..+"
         };
+
+        private readonly IEnumerable<Regex> _whiteList;
 
         public AssemblyChecker(IEnumerable<string> blackList, IEnumerable<string> whiteList)
         {
@@ -50,16 +51,11 @@ namespace AElf.Runtime.CSharp
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
             var forbiddenTypeRefs = GetBlackListedTypeReferences(modDef);
             if (isPrivileged)
-            {
-                // Allow system user to use multi-thread
                 forbiddenTypeRefs = forbiddenTypeRefs.Where(x => !x.FullName.StartsWith("System.Threading")).ToList();
-            }
 
             if (forbiddenTypeRefs.Count > 0)
-            {
                 throw new InvalidCodeException(
                     $"\nForbidden type references detected:\n{string.Join("\n  ", forbiddenTypeRefs.Select(x => x.FullName))}");
-            }
         }
     }
 }

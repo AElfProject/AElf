@@ -7,7 +7,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.Node
 {
     [DependsOn(typeof(CoreKernelAElfModule), typeof(TransactionPoolAElfModule), typeof(ChainControllerAElfModule))]
-    public class NodeAElfModule: AElfModule
+    public class NodeAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

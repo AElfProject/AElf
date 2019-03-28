@@ -30,6 +30,5 @@ namespace AElf.CrossChain
         {
             return _blockExtraDataService.GetExtraDataFromBlockHeader(symbol, header);
         }
-
     }
 }

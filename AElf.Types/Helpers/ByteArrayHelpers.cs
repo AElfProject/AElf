@@ -96,7 +96,8 @@ namespace AElf.Common
 
         public static byte[] SubArray(byte[] arr, int start)
         {
-            return SubArray(arr, start, arr.Length - start);
+            return SubArray(arr, start, arr.
+    h - start);
         }
     }
 }

@@ -11,10 +11,10 @@ namespace AElf.OS.Network.Infrastructure
         string PubKey { get; }
         Hash CurrentBlockHash { get; set; }
         long CurrentBlockHeight { get; set; }
-        
+
         Task SendDisconnectAsync();
         Task StopAsync();
-        
+
         Task AnnounceAsync(PeerNewBlockAnnouncement an);
         Task SendTransactionAsync(Transaction tx);
         Task<Block> RequestBlockAsync(Hash hash);

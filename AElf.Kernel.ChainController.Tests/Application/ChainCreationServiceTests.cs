@@ -9,14 +9,14 @@ namespace AElf.Kernel.ChainController.Application
 {
     public class ChainCreationServiceTests : ChainControllerTestBase
     {
-        private readonly ChainCreationService _chainCreationService;
-        private readonly IBlockchainService _blockchainService;
-
         public ChainCreationServiceTests()
         {
             _chainCreationService = GetRequiredService<ChainCreationService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
         }
+
+        private readonly ChainCreationService _chainCreationService;
+        private readonly IBlockchainService _blockchainService;
 
         [Fact]
         public async Task Create_NewChain_Success()

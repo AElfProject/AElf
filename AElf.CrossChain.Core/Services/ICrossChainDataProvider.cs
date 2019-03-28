@@ -19,6 +19,7 @@ namespace AElf.CrossChain
         Task ActivateCrossChainCacheAsync(Hash blockHash, long blockHeight);
 
         void RegisterNewChain(int chainId);
+
         //void AddNewSideChainDataConsumer(ICrossChainDataConsumer crossChainDataConsumer);
         //int GetCachedChainCount();
         //void CreateNewSideChain();

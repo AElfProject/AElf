@@ -10,12 +10,52 @@ namespace AElf.Contracts.DPoS.SideChain
 {
     public class ConsensusContractSideChainTests : DPoSSideChainTestBase
     {
-        private DPoSSideChainTester TesterManager { get; set; }
-        
         public ConsensusContractSideChainTests()
         {
             TesterManager = new DPoSSideChainTester();
             TesterManager.InitialSingleTester();
+        }
+
+        private DPoSSideChainTester TesterManager { get; }
+
+        [Fact]
+        public async Task UpdateMainChainConsensus_FirstRoundInfo()
+        {
+            TesterManager.InitialTesters();
+
+            var dposInformation = new DPoSInformation
+            {
+                Behaviour = DPoSBehaviour.NextRound,
+                Round = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
+                    .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval),
+                SenderPublicKey = TesterManager.MinersKeyPairs[0].PublicKey.ToHex()
+            };
+
+            var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
+                TesterManager.DPoSSideChainContractAddress,
+                "UpdateMainChainConsensus", dposInformation);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        [Fact]
+        public async Task UpdateMainChainConsensus_Success()
+        {
+            TesterManager.InitialTesters();
+
+            var dposInformation = new DPoSInformation
+            {
+                Behaviour = DPoSBehaviour.NextRound,
+                Round = new Round
+                {
+                    TermNumber = 2
+                },
+                SenderPublicKey = TesterManager.MinersKeyPairs[0].PublicKey.ToHex()
+            };
+
+            var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
+                TesterManager.DPoSSideChainContractAddress,
+                "UpdateMainChainConsensus", dposInformation);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         //TODO: UpdateMainChainConsensus default parameter check should be update, round info should check.
@@ -27,7 +67,7 @@ namespace AElf.Contracts.DPoS.SideChain
         public async Task UpdateMainChainConsensus_WithDefaultDPosInformation()
         {
             TesterManager.InitialTesters();
-            
+
             //input = new DPoSInformation()
             var dposInformation = new DPoSInformation();
             var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
@@ -36,12 +76,12 @@ namespace AElf.Contracts.DPoS.SideChain
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
-        
+
         [Fact]
         public async Task UpdateMainChainConsensus_WithoutChange()
         {
             TesterManager.InitialTesters();
-            
+
             //term number < main chain term number
             var dposInformation = new DPoSInformation
             {
@@ -52,47 +92,7 @@ namespace AElf.Contracts.DPoS.SideChain
             var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
                 TesterManager.DPoSSideChainContractAddress,
                 "UpdateMainChainConsensus", dposInformation);
-            
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
-        
-        [Fact]
-        public async Task UpdateMainChainConsensus_Success()
-        {
-            TesterManager.InitialTesters();
-            
-            var dposInformation = new DPoSInformation
-            {
-                Behaviour = DPoSBehaviour.NextRound,
-                Round = new Round()
-                {
-                    TermNumber = 2
-                },
-                SenderPublicKey = TesterManager.MinersKeyPairs[0].PublicKey.ToHex()
-            };
-            
-            var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
-                TesterManager.DPoSSideChainContractAddress,
-                "UpdateMainChainConsensus", dposInformation);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
 
-        [Fact]
-        public async Task UpdateMainChainConsensus_FirstRoundInfo()
-        {
-            TesterManager.InitialTesters();
-            
-            var dposInformation = new DPoSInformation
-            {
-                Behaviour = DPoSBehaviour.NextRound,
-                Round = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
-                    .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval),
-                SenderPublicKey = TesterManager.MinersKeyPairs[0].PublicKey.ToHex()
-            };
-            
-            var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
-                TesterManager.DPoSSideChainContractAddress,
-                "UpdateMainChainConsensus", dposInformation);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
     }

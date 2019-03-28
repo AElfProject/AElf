@@ -30,9 +30,9 @@ namespace AElf.Kernel.Blockchain.Application
         Task<List<IBlockIndex>> GetReversedBlockIndexes(Hash lastBlockHash, int count);
 
         /// <summary>
-        /// if to chainBranchBlockHash have no enough block hashes, may return less hashes than count
-        /// for example, chainBranchBlockHash's height is 5, count is 10, firstHash's height is 2, will only return
-        /// hashes 3, 4, 5
+        ///     if to chainBranchBlockHash have no enough block hashes, may return less hashes than count
+        ///     for example, chainBranchBlockHash's height is 5, count is 10, firstHash's height is 2, will only return
+        ///     hashes 3, 4, 5
         /// </summary>
         /// <param name="chain"></param>
         /// <param name="firstHash"></param>
@@ -137,11 +137,9 @@ namespace AElf.Kernel.Blockchain.Application
 
     public class FullBlockchainService : IFullBlockchainService, ITransientDependency
     {
-        private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
+        private readonly IChainManager _chainManager;
         private readonly ITransactionManager _transactionManager;
-        public ILocalEventBus LocalEventBus { get; set; }
-        public ILogger<FullBlockchainService> Logger { get; set; }
 
         public FullBlockchainService(IChainManager chainManager, IBlockManager blockManager,
             ITransactionManager transactionManager)
@@ -152,6 +150,9 @@ namespace AElf.Kernel.Blockchain.Application
             _transactionManager = transactionManager;
             LocalEventBus = NullLocalEventBus.Instance;
         }
+
+        public ILocalEventBus LocalEventBus { get; set; }
+        public ILogger<FullBlockchainService> Logger { get; set; }
 
         public int GetChainId()
         {
@@ -169,22 +170,20 @@ namespace AElf.Kernel.Blockchain.Application
         {
             await _blockManager.AddBlockHeaderAsync(block.Header);
             foreach (var transaction in block.Body.TransactionList)
-            {
                 await _transactionManager.AddTransactionAsync(transaction);
-            }
 
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
         }
 
         public async Task<bool> HasBlockAsync(Hash blockId)
         {
-            return (await _blockManager.GetBlockHeaderAsync(blockId)) != null;
+            return await _blockManager.GetBlockHeaderAsync(blockId) != null;
         }
 
 
         /// <summary>
-        /// Returns the block with the specified height, searching from <see cref="chainBranchBlockHash"/>. If the height
-        /// is in the irreversible section of the chain, it will get the block from the indexed blocks.
+        ///     Returns the block with the specified height, searching from <see cref="chainBranchBlockHash" />. If the height
+        ///     is in the irreversible section of the chain, it will get the block from the indexed blocks.
         /// </summary>
         /// <param name="chain">the chain to search</param>
         /// <param name="height">the height of the block</param>
@@ -193,10 +192,7 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash chainBranchBlockHash)
         {
             if (chain.LastIrreversibleBlockHeight >= height)
-            {
-                // search irreversible section of the chain
                 return (await _chainManager.GetChainBlockIndexAsync(height)).BlockHash;
-            }
 
             // TODO: may introduce cache to improve the performance
 
@@ -249,7 +245,7 @@ namespace AElf.Kernel.Blockchain.Application
             Hash irreversibleBlockHash)
         {
             // Create before IChainManager.SetIrreversibleBlockAsync so that we can correctly get the previous LIB info
-            var eventDataToPublish = new NewIrreversibleBlockFoundEvent()
+            var eventDataToPublish = new NewIrreversibleBlockFoundEvent
             {
                 PreviousIrreversibleBlockHash = chain.LastIrreversibleBlockHash,
                 PreviousIrreversibleBlockHeight = chain.LastIrreversibleBlockHeight,
@@ -348,10 +344,7 @@ namespace AElf.Kernel.Blockchain.Application
                 hashes.Add(chainBlockLink.BlockHash);
             }
 
-            if (chainBlockLink.PreviousBlockHash != firstHash)
-            {
-                return new List<Hash>();
-            }
+            if (chainBlockLink.PreviousBlockHash != firstHash) return new List<Hash>();
 
             hashes.Reverse();
 
@@ -362,10 +355,7 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<Block> GetBlockByHashAsync(Hash blockId)
         {
             var block = await _blockManager.GetBlockAsync(blockId);
-            if (block == null)
-            {
-                return null;
-            }
+            if (block == null) return null;
 
             var body = block.Body;
 
@@ -383,15 +373,15 @@ namespace AElf.Kernel.Blockchain.Application
             return await _blockManager.GetBlockHeaderAsync(blockId);
         }
 
+        public async Task<Chain> GetChainAsync()
+        {
+            return await _chainManager.GetAsync();
+        }
+
         public async Task<BlockHeader> GetBlockHeaderByHeightAsync(long height)
         {
             var index = await _chainManager.GetChainBlockIndexAsync(height);
             return await _blockManager.GetBlockHeaderAsync(index.BlockHash);
-        }
-
-        public async Task<Chain> GetChainAsync()
-        {
-            return await _chainManager.GetAsync();
         }
 
         private async Task RemoveBlocksAsync(List<Hash> blockHashs)

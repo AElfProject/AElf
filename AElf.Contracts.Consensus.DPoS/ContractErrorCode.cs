@@ -14,7 +14,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public const int AttemptFailed = 4;
 
         public const int NoPermission = 5;
-        
+
         public static readonly Dictionary<int, string> Message = new Dictionary<int, string>
         {
             {NotFound, "Not found"},

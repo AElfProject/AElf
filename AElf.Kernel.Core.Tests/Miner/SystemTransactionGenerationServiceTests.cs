@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Miner.Application;
 using Shouldly;
@@ -8,15 +6,17 @@ using Xunit;
 
 namespace AElf.Kernel.Miner
 {
-    public class SystemTransactionGenerationServiceTests: AElfMinerTestBase
+    public class SystemTransactionGenerationServiceTests : AElfMinerTestBase
     {
-        private ISystemTransactionGenerator _systemTransactionGenerator;
-        private SystemTransactionGenerationService _systemTransactionGenerationService;
         public SystemTransactionGenerationServiceTests()
         {
             _systemTransactionGenerator = GetRequiredService<ISystemTransactionGenerator>();
-            _systemTransactionGenerationService = new SystemTransactionGenerationService(new[] {_systemTransactionGenerator});
+            _systemTransactionGenerationService =
+                new SystemTransactionGenerationService(new[] {_systemTransactionGenerator});
         }
+
+        private readonly ISystemTransactionGenerator _systemTransactionGenerator;
+        private readonly SystemTransactionGenerationService _systemTransactionGenerationService;
 
         [Fact]
         public void Generate_SystemTransactions()
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Miner
             _systemTransactionGenerator.GenerateTransactions(Address.Zero, 0L, Hash.Empty, ref transactions);
             transactions.Count.ShouldBe(2);
         }
-        
+
         [Fact]
         public void Generate_SystemTransactionsTest()
         {

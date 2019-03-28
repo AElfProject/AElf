@@ -21,7 +21,6 @@ namespace AElf.OS.Rpc
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            
         }
     }
 }

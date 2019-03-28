@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
 {
     public static class BlockExtensions
     {
         /// <summary>
-        /// block signature
+        ///     block signature
         /// </summary>
         /// <param name="keyPair"></param>
         /// <exception cref="NotImplementedException"></exception>
@@ -26,7 +24,7 @@ namespace AElf.Kernel
         }
 
         /// <summary>
-        /// Add transaction Hashes to the block
+        ///     Add transaction Hashes to the block
         /// </summary>
         /// <returns><c>true</c>, if the hash was added, <c>false</c> otherwise.</returns>
         /// <param name="txs">the transactions hash</param>
@@ -39,7 +37,7 @@ namespace AElf.Kernel
         }
 
         /// <summary>
-        /// Add transaction Hash to the block
+        ///     Add transaction Hash to the block
         /// </summary>
         /// <returns><c>true</c>, if the hash was added, <c>false</c> otherwise.</returns>
         /// <param name="tx">the transactions hash</param>
@@ -51,7 +49,7 @@ namespace AElf.Kernel
             return block.Body.AddTransaction(tx);
         }
 
-        
+
         public static void FillTxsMerkleTreeRootInHeader(this IBlock block)
         {
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();

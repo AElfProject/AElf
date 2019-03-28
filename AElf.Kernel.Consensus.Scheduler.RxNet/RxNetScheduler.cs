@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.EventMessages;
 using Microsoft.Extensions.Logging;
@@ -14,16 +13,16 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
     {
         private IDisposable _observables;
 
-        public ILocalEventBus LocalEventBus { get; set; }
-
-        public ILogger<RxNetScheduler> Logger { get; set; }
-
         public RxNetScheduler()
         {
             LocalEventBus = NullLocalEventBus.Instance;
 
             Logger = NullLogger<RxNetScheduler>.Instance;
         }
+
+        public ILocalEventBus LocalEventBus { get; set; }
+
+        public ILogger<RxNetScheduler> Logger { get; set; }
 
         public void NewEvent(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
         {
@@ -33,14 +32,6 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
         public void CancelCurrentEvent()
         {
             _observables?.Dispose();
-        }
-        public IDisposable Subscribe(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
-        {
-            Logger.LogDebug($"Will produce block after {countingMilliseconds} ms - " +
-                            $"{DateTime.UtcNow.AddMilliseconds(countingMilliseconds):yyyy-MM-dd HH.mm.ss,fff}");
-
-            return Observable.Timer(TimeSpan.FromMilliseconds(countingMilliseconds))
-                .Select(_ => blockMiningEventData).Subscribe(this);
         }
 
         public void OnCompleted()
@@ -56,6 +47,15 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
         {
             Logger.LogDebug($"Published block mining event. Current block height: {value.PreviousBlockHeight}");
             LocalEventBus.PublishAsync(value);
+        }
+
+        public IDisposable Subscribe(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
+        {
+            Logger.LogDebug($"Will produce block after {countingMilliseconds} ms - " +
+                            $"{DateTime.UtcNow.AddMilliseconds(countingMilliseconds):yyyy-MM-dd HH.mm.ss,fff}");
+
+            return Observable.Timer(TimeSpan.FromMilliseconds(countingMilliseconds))
+                .Select(_ => blockMiningEventData).Subscribe(this);
         }
     }
 }

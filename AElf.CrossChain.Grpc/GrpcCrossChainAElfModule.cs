@@ -21,7 +21,7 @@ namespace AElf.CrossChain.Grpc
                 return;
             var grpcCrossChainConfiguration =
                 crossChainConfiguration.GetChildren().FirstOrDefault(child => child.Key.Equals("Grpc"));
-            if(grpcCrossChainConfiguration == null)
+            if (grpcCrossChainConfiguration == null)
                 return;
             Configure<GrpcCrossChainConfigOption>(grpcCrossChainConfiguration);
             services.AddTransient<INodePlugin, GrpcCrossChainClientNodePlugin>();

@@ -2,7 +2,7 @@
 
 namespace AElf.Contracts.Resource
 {
-    public class ResourceContractTestBase: ContractTestBase<ResourceContractTestAElfModule>
+    public class ResourceContractTestBase : ContractTestBase<ResourceContractTestAElfModule>
     {
     }
 }

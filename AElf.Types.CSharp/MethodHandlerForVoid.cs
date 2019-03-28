@@ -6,20 +6,15 @@ namespace AElf.Types.CSharp
 {
     public class MethodHandlerForVoid : IMethodHandler
     {
-        protected MethodInfo _methodInfo;
-        protected object _contract;
         protected readonly Type[] _parameterTypes;
+        protected object _contract;
+        protected MethodInfo _methodInfo;
 
         public MethodHandlerForVoid(MethodInfo methodInfo, object contract)
         {
             _methodInfo = methodInfo;
             _contract = contract;
             _parameterTypes = methodInfo.GetParameters().Select(y => y.ParameterType).ToArray();
-        }
-
-        public object[] GetArguments(byte[] serialized)
-        {
-            return ParamsPacker.Unpack(serialized, _parameterTypes);
         }
 
         public byte[] Execute(byte[] paramsBytes)
@@ -36,6 +31,11 @@ namespace AElf.Types.CSharp
         public object BytesToReturnType(byte[] bytes)
         {
             return null;
+        }
+
+        public object[] GetArguments(byte[] serialized)
+        {
+            return ParamsPacker.Unpack(serialized, _parameterTypes);
         }
     }
 }

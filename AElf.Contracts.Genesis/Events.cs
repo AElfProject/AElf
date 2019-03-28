@@ -5,22 +5,22 @@ namespace AElf.Contracts.Genesis
 {
     public class ContractHasBeenDeployed : Event
     {
-        [Indexed] public Address Creator;
-        [Indexed] public Hash CodeHash;
         public Address Address;
+        [Indexed] public Hash CodeHash;
+        [Indexed] public Address Creator;
     }
 
     public class ContractCodeHasBeenUpdated : Event
     {
         public Address Address;
-        public Hash OldCodeHash;
         public Hash NewCodeHash;
+        public Hash OldCodeHash;
     }
 
     public class OwnerHasBeenChanged : Event
     {
         public Address Address;
-        public Address OldOwner;
         public Address NewOwner;
+        public Address OldOwner;
     }
 }

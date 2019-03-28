@@ -1,15 +1,14 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.CrossChain.Cache;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.CrossChain.Grpc
 {
-    public abstract class CrossChainGrpcClient<TResponse> : IGrpcCrossChainClient where TResponse : IResponseIndexingMessage
+    public abstract class CrossChainGrpcClient<TResponse> : IGrpcCrossChainClient
+        where TResponse : IResponseIndexingMessage
     {
         protected CrossChainRpc.CrossChainRpcClient Client;
 //        private int _initInterval;
@@ -35,7 +34,7 @@ namespace AElf.CrossChain.Grpc
 //            UpdateRequestInterval(receivedEventData.Interval);
 //            return Task.CompletedTask;
 //        }
-       
+
 //        /// <summary>
 //        /// Task to read response in loop.
 //        /// </summary>
@@ -163,29 +162,6 @@ namespace AElf.CrossChain.Grpc
             return true;
         }
 
-        private Task ReadResponse(AsyncServerStreamingCall<TResponse> serverStream, ICrossChainDataProducer crossChainDataProducer)
-        {
-            var responseReaderTask = Task.Run(async () =>
-            {
-                while (await serverStream.ResponseStream.MoveNext())
-                {
-                    var response = serverStream.ResponseStream.Current;
-
-                    // requestCrossChain failed or useless response
-                    if (!response.Success)
-                    {
-                        continue;
-                    }
-                    if(!crossChainDataProducer.AddNewBlockInfo(response.BlockInfoResult))
-                        continue;
-                    crossChainDataProducer.Logger.LogTrace(
-                        $"Received response from chain {ChainHelpers.ConvertChainIdToBase58(response.BlockInfoResult.ChainId)} at height {response.Height}");
-                }
-            });
-    
-            return responseReaderTask;
-        }
-
         public Task<IndexingHandShakeReply> TryHandShakeAsync(int chainId, int localListeningPort)
         {
             var handShakeReply = Client.CrossChainIndexingShake(new IndexingHandShake
@@ -197,13 +173,34 @@ namespace AElf.CrossChain.Grpc
             return Task.FromResult(handShakeReply);
         }
 
+        private Task ReadResponse(AsyncServerStreamingCall<TResponse> serverStream,
+            ICrossChainDataProducer crossChainDataProducer)
+        {
+            var responseReaderTask = Task.Run(async () =>
+            {
+                while (await serverStream.ResponseStream.MoveNext())
+                {
+                    var response = serverStream.ResponseStream.Current;
+
+                    // requestCrossChain failed or useless response
+                    if (!response.Success) continue;
+                    if (!crossChainDataProducer.AddNewBlockInfo(response.BlockInfoResult))
+                        continue;
+                    crossChainDataProducer.Logger.LogTrace(
+                        $"Received response from chain {ChainHelpers.ConvertChainIdToBase58(response.BlockInfoResult.ChainId)} at height {response.Height}");
+                }
+            });
+
+            return responseReaderTask;
+        }
+
         //protected abstract AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> CallWithDuplexStreaming(int milliSeconds = 0);
 
         protected abstract AsyncServerStreamingCall<TResponse> RequestIndexing(
             RequestCrossChainBlockData requestCrossChainBlockData);
-        
+
         /// <summary>
-        /// Create a new channel
+        ///     Create a new channel
         /// </summary>
         /// <param name="uriStr"></param>
         /// <param name="crt">Certificate</param>
@@ -215,10 +212,9 @@ namespace AElf.CrossChain.Grpc
             return channel;
         }
     }
-    
+
     public class GrpcClientForSideChain : CrossChainGrpcClient<ResponseSideChainBlockData>
     {
-
         public GrpcClientForSideChain(string uri, string certificate)
         {
             Client = new CrossChainRpc.CrossChainRpcClient(CreateChannel(uri, certificate));
@@ -242,12 +238,13 @@ namespace AElf.CrossChain.Grpc
 //            });
 //        }
 
-        protected override AsyncServerStreamingCall<ResponseSideChainBlockData> RequestIndexing(RequestCrossChainBlockData requestCrossChainBlockData)
+        protected override AsyncServerStreamingCall<ResponseSideChainBlockData> RequestIndexing(
+            RequestCrossChainBlockData requestCrossChainBlockData)
         {
             return Client.RequestIndexingSideChain(requestCrossChainBlockData);
         }
     }
-    
+
     public class GrpcClientForParentChain : CrossChainGrpcClient<ResponseParentChainBlockData>
     {
         public GrpcClientForParentChain(string uri, string certificate)
@@ -267,7 +264,8 @@ namespace AElf.CrossChain.Grpc
 //                : _client.RequestParentChainDuplexStreaming(deadline: DateTime.UtcNow.AddMilliseconds(milliSeconds));
 //        }
 
-        protected override AsyncServerStreamingCall<ResponseParentChainBlockData> RequestIndexing(RequestCrossChainBlockData requestCrossChainBlockData)
+        protected override AsyncServerStreamingCall<ResponseParentChainBlockData> RequestIndexing(
+            RequestCrossChainBlockData requestCrossChainBlockData)
         {
             return Client.RequestIndexingParentChain(requestCrossChainBlockData);
         }

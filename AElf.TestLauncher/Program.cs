@@ -3,18 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Serilog.Extensions.Logging.File;
 
 namespace AElf.TestLauncher
 {
-    class Program
+    internal class Program
     {
         public static void Main(string[] args)
         {
@@ -53,7 +49,7 @@ namespace AElf.TestLauncher
                     .ConfigureLogging(logger =>
                     {
                         logger
-                            .AddFile($"Logs/{fileNameWithoutExtension}.log",LogLevel.Trace);
+                            .AddFile($"Logs/{fileNameWithoutExtension}.log", LogLevel.Trace);
                     })
 
                     //.UseContentRoot(dir)

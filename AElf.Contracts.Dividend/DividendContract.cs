@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Dividend
@@ -22,7 +19,7 @@ namespace AElf.Contracts.Dividend
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
             return new Empty();
         }
-        
+
         public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
         {
             var consensusContractAddress = input.ConsensusContractSystemName;
@@ -43,19 +40,15 @@ namespace AElf.Contracts.Dividend
                 return new Empty();
 
             if (State.ConsensusContract.Value == null)
-            {
                 State.ConsensusContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
-            }
-            
+
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
             if (State.TokenContract.Value == null)
-            {
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
-            }
-            
+
             State.TokenContract.Transfer.Send(new TransferInput
             {
                 To = targetAddress,
@@ -67,7 +60,7 @@ namespace AElf.Contracts.Dividend
         }
 
         /// <summary>
-        /// Transfer dividends to miners.
+        ///     Transfer dividends to miners.
         /// </summary>
         /// <param name="votingRecord"></param>
         /// <returns></returns>
@@ -76,10 +69,8 @@ namespace AElf.Contracts.Dividend
         {
             var votingRecord = input;
             if (State.ConsensusContract.Value == null)
-            {
                 State.ConsensusContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
-            }
             Assert(Context.Sender == State.ConsensusContract.Value, "Only consensus contract can transfer dividends.");
 
             var dividendsOwner = votingRecord.From;
@@ -87,12 +78,9 @@ namespace AElf.Contracts.Dividend
 
             var startTermNumber = votingRecord.TermNumber + 1;
             var history = State.LastRequestedDividendsMap[votingRecord.TransactionId];
-            if (history > 0)
-            {
-                startTermNumber = history + 1;
-            }
+            if (history > 0) startTermNumber = history + 1;
 
-            var voteInfo= new VoteInfo()
+            var voteInfo = new VoteInfo
             {
                 Record = votingRecord,
                 Age = State.ConsensusContract.GetBlockchainAge.Call(new Empty()).Value
@@ -114,11 +102,9 @@ namespace AElf.Contracts.Dividend
             }
 
             if (State.TokenContract.Value == null)
-            {
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
-            }
-            
+
             State.TokenContract.Transfer.Send(new TransferInput
             {
                 To = dividendsOwnerAddress,
@@ -127,11 +113,11 @@ namespace AElf.Contracts.Dividend
                 Memo = "Transfer dividends."
             });
 
-            Context.LogDebug(()=>$"Gonna transfer {totalDividendsAmount} dividends to {dividendsOwnerAddress}");
+            Context.LogDebug(() => $"Gonna transfer {totalDividendsAmount} dividends to {dividendsOwnerAddress}");
 
             State.LastRequestedDividendsMap[votingRecord.TransactionId] = actualTermNumber;
 
-            return new SInt64Value() {Value = totalDividendsAmount};
+            return new SInt64Value {Value = totalDividendsAmount};
         }
 
         public override SInt64Value AddDividends(AddDividendsInput input)
@@ -141,9 +127,9 @@ namespace AElf.Contracts.Dividend
             var currentDividends = State.DividendsMap[termNumber];
             var finalDividends = currentDividends + dividendsAmount;
             State.DividendsMap[termNumber] = finalDividends;
-            Context.LogDebug(()=>$"Dividends of term {termNumber}: {dividendsAmount}");
+            Context.LogDebug(() => $"Dividends of term {termNumber}: {dividendsAmount}");
 
-            return new SInt64Value() {Value = finalDividends};
+            return new SInt64Value {Value = finalDividends};
         }
 
         public override SInt64Value AddWeights(WeightsInfo input)
@@ -153,9 +139,9 @@ namespace AElf.Contracts.Dividend
             var currentWeights = State.TotalWeightsMap[termNumber];
             var finalWeights = currentWeights + weights;
             State.TotalWeightsMap[termNumber] = finalWeights;
-            Context.LogDebug(()=>$"Weights of term {termNumber}: {finalWeights}.[Add]");
+            Context.LogDebug(() => $"Weights of term {termNumber}: {finalWeights}.[Add]");
 
-            return new SInt64Value() {Value = finalWeights};
+            return new SInt64Value {Value = finalWeights};
         }
 
         public override ActionResult KeepWeights(SInt64Value input)
@@ -164,8 +150,8 @@ namespace AElf.Contracts.Dividend
             var totalWeights = State.TotalWeightsMap[oldTermNumber];
             if (totalWeights > 0)
             {
-                Context.LogDebug(()=>"[Forwarding weights]");
-                AddWeights(new WeightsInfo()
+                Context.LogDebug(() => "[Forwarding weights]");
+                AddWeights(new WeightsInfo
                 {
                     TermNumber = oldTermNumber + 1,
                     Weights = totalWeights

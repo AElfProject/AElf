@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.SmartContractExecution.Domain;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -17,10 +14,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class BlockExecutingServiceTests : SmartContractExecutionExecutingTestBase
     {
-        private readonly BlockExecutingService _blockExecutingService;
-        private readonly IBlockManager _blockManager;
-        private readonly IBlockchainStateManager _blockchainStateManager;
-
         public BlockExecutingServiceTests()
         {
             _blockExecutingService = GetRequiredService<BlockExecutingService>();
@@ -28,29 +21,22 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
         }
 
-        [Fact]
-        public async Task Execute_Block_NonCancellable()
+        private readonly BlockExecutingService _blockExecutingService;
+        private readonly IBlockManager _blockManager;
+        private readonly IBlockchainStateManager _blockchainStateManager;
+
+        private List<Transaction> BuildTransactions(int txCount)
         {
-            var blockHeader = new BlockHeader
-            {
-                Height = 2,
-                PreviousBlockHash = Hash.Empty,
-                Time = DateTime.UtcNow.ToTimestamp()
-            };
-            var txs = BuildTransactions(5);
+            var result = new List<Transaction>(txCount);
+            for (var i = 0; i < txCount; i++)
+                result.Add(new Transaction
+                {
+                    From = Address.Zero,
+                    To = Address.Zero,
+                    MethodName = Guid.NewGuid().ToString()
+                });
 
-            var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, txs);
-            var allTxIds = txs.Select(x => x.GetHash()).ToList();
-
-            block.Body.TransactionsCount.ShouldBe(txs.Count);
-
-            var binaryMerkleTree = new BinaryMerkleTree();
-            binaryMerkleTree.AddNodes(allTxIds);
-            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
-            block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
-
-            block.Body.Transactions.ShouldBe(allTxIds);
-            block.Body.TransactionList.ShouldBe(txs);
+            return result;
         }
 
         [Fact]
@@ -92,20 +78,29 @@ namespace AElf.Kernel.SmartContractExecution.Application
             block.Body.TransactionList.ShouldBe(allTxs);
         }
 
-        private List<Transaction> BuildTransactions(int txCount)
+        [Fact]
+        public async Task Execute_Block_NonCancellable()
         {
-            var result = new List<Transaction>(txCount);
-            for (int i = 0; i < txCount; i++)
+            var blockHeader = new BlockHeader
             {
-                result.Add(new Transaction
-                {
-                    From = Address.Zero,
-                    To = Address.Zero,
-                    MethodName = Guid.NewGuid().ToString()
-                });
-            }
+                Height = 2,
+                PreviousBlockHash = Hash.Empty,
+                Time = DateTime.UtcNow.ToTimestamp()
+            };
+            var txs = BuildTransactions(5);
 
-            return result;
+            var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, txs);
+            var allTxIds = txs.Select(x => x.GetHash()).ToList();
+
+            block.Body.TransactionsCount.ShouldBe(txs.Count);
+
+            var binaryMerkleTree = new BinaryMerkleTree();
+            binaryMerkleTree.AddNodes(allTxIds);
+            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
+            block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
+
+            block.Body.Transactions.ShouldBe(allTxIds);
+            block.Body.TransactionList.ShouldBe(txs);
         }
     }
 }

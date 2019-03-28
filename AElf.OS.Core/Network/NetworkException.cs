@@ -18,7 +18,7 @@ namespace AElf.OS.Network.Application
         {
         }
 
-        protected NetworkException(SerializationInfo info, StreamingContext context) 
+        protected NetworkException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }

@@ -12,7 +12,8 @@ namespace AElf.Common
         public void Get_Path()
         {
             var appDatePath1 = ApplicationHelper.AppDataPath;
-            var appDatePath2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "aelf");
+            var appDatePath2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "aelf");
             appDatePath1.ShouldBe(appDatePath2);
         }
 
@@ -25,10 +26,11 @@ namespace AElf.Common
             ApplicationHelper.AppDataPath = path1;
             ApplicationHelper.AppDataPath = path2;
             ApplicationHelper.AppDataPath.ShouldBe(path2);
-            
+
             //Recover to default.
             Directory.Delete(path2, true);
-            ApplicationHelper.AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "aelf");
+            ApplicationHelper.AppDataPath =
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "aelf");
         }
     }
 }

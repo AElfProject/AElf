@@ -15,7 +15,7 @@ namespace AElf.Launcher
         Main,
         Side
     }
-    
+
     public class Startup
     {
         private readonly IConfiguration _configuration;
@@ -24,11 +24,11 @@ namespace AElf.Launcher
         {
             _configuration = configuration;
         }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-
             var chainType = _configuration.GetValue<ChainType>("ChainType");
 
             switch (chainType)
@@ -43,8 +43,8 @@ namespace AElf.Launcher
 
             return services.BuildAutofacServiceProvider();
         }
-        
-        private static void AddApplication<T>(IServiceCollection services) where T: IAbpModule
+
+        private static void AddApplication<T>(IServiceCollection services) where T : IAbpModule
         {
             services.AddApplication<T>(options => { options.UseAutofac(); });
         }

@@ -1,4 +1,5 @@
 ﻿using AElf.Common;
+
 namespace AElf.Kernel
 {
     public interface IHashProvider

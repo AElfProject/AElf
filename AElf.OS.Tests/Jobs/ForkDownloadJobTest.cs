@@ -7,19 +7,20 @@ namespace AElf.OS.Jobs
 {
     public sealed class ForkDownloadJobTest : NetWorkTestBase
     {
-        private readonly IBlockchainService _blockChainService;
-        private readonly BlockSyncJob _job;
-
         public ForkDownloadJobTest()
         {
             _blockChainService = GetRequiredService<IBlockchainService>();
             _job = GetRequiredService<BlockSyncJob>();
         }
 
+        private readonly IBlockchainService _blockChainService;
+        private readonly BlockSyncJob _job;
+
         [Fact]
-        public async Task ExecSyncJob_ShouldSyncChain()
+        public async Task ExecSyncJob_Overlapping_ShouldSyncAllBlocks()
         {
             _job.Execute(new BlockSyncJobArgs {BlockHeight = 12});
+            _job.Execute(new BlockSyncJobArgs {BlockHeight = 15});
 
             var chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(15);
@@ -45,10 +46,9 @@ namespace AElf.OS.Jobs
         }
 
         [Fact]
-        public async Task ExecSyncJob_Overlapping_ShouldSyncAllBlocks()
+        public async Task ExecSyncJob_ShouldSyncChain()
         {
             _job.Execute(new BlockSyncJobArgs {BlockHeight = 12});
-            _job.Execute(new BlockSyncJobArgs {BlockHeight = 15});
 
             var chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(15);

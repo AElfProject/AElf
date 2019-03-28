@@ -5,9 +5,8 @@ namespace AElf.Kernel
 {
     public static class BlockBodyExtensions
     {
-
         /// <summary>
-        /// Calculate merkle tree root of transaction and side chain block info. 
+        ///     Calculate merkle tree root of transaction and side chain block info.
         /// </summary>
         /// <returns></returns>
         public static Hash CalculateMerkleTreeRoots(this BlockBody blockBody)

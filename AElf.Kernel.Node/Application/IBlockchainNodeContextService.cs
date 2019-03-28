@@ -1,8 +1,5 @@
 using System;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
@@ -10,8 +7,6 @@ using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.Kernel.Types;
-using Google.Protobuf;
 
 namespace AElf.Kernel.Node.Application
 {
@@ -35,12 +30,12 @@ namespace AElf.Kernel.Node.Application
     //Maybe we should call it CSharpBlockchainNodeContextService, or we should spilt the logic depended on CSharp
     public class BlockchainNodeContextService : IBlockchainNodeContextService
     {
-        private readonly ITxHub _txHub;
         private readonly IBlockchainService _blockchainService;
         private readonly IChainCreationService _chainCreationService;
-        private readonly ISmartContractAddressUpdateService _smartContractAddressUpdateService;
-        private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly IConsensusService _consensusService;
+        private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
+        private readonly ISmartContractAddressUpdateService _smartContractAddressUpdateService;
+        private readonly ITxHub _txHub;
 
         public BlockchainNodeContextService(
             IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
@@ -62,7 +57,7 @@ namespace AElf.Kernel.Node.Application
             var context = new BlockchainNodeContext
             {
                 ChainId = dto.ChainId,
-                TxHub = _txHub,
+                TxHub = _txHub
             };
             var chain = await _blockchainService.GetChainAsync() ??
                         await _chainCreationService.CreateNewChainAsync(dto.Transactions);

@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Data;
@@ -15,7 +14,7 @@ namespace AElf.Database
         {
             serviceCollection.TryAddSingleton<TKeyValueDbContext>();
 
-            serviceCollection.TryAddTransient<KeyValueDatabaseOptions<TKeyValueDbContext>>(factory =>
+            serviceCollection.TryAddTransient(factory =>
             {
                 var o = new KeyValueDatabaseOptions<TKeyValueDbContext>();
                 var name = ConnectionStringNameAttribute.GetConnStringName<TKeyValueDbContext>();

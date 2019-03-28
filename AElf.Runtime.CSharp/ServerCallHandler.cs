@@ -16,11 +16,6 @@
 
 #endregion
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Google.Protobuf.WellKnownTypes;
-
 namespace AElf.Types.CSharp
 {
     internal interface IServerCallHandler
@@ -37,10 +32,11 @@ namespace AElf.Types.CSharp
         where TRequest : class
         where TResponse : class
     {
-        readonly Method<TRequest, TResponse> method;
-        readonly UnaryServerMethod<TRequest, TResponse> handler;
+        private readonly UnaryServerMethod<TRequest, TResponse> handler;
+        private readonly Method<TRequest, TResponse> method;
 
-        public UnaryServerCallHandler(Method<TRequest, TResponse> method, UnaryServerMethod<TRequest, TResponse> handler)
+        public UnaryServerCallHandler(Method<TRequest, TResponse> method,
+            UnaryServerMethod<TRequest, TResponse> handler)
         {
             this.method = method;
             this.handler = handler;

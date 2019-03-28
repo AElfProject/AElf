@@ -1,4 +1,3 @@
-using AElf.Kernel;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,10 +17,7 @@ namespace AElf.Kernel.TransactionPool
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            
             //TODO! should define a interface like RuntimeEnvironment and inject it in ClientManager.
         }
-
-
     }
 }

@@ -1,38 +1,31 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
-using ByteString = Google.Protobuf.ByteString;
 
 namespace AElf.Kernel.Services
 {
     public class MinerService : IMinerService
     {
-        public ILogger<MinerService> Logger { get; set; }
-        private ITxHub _txHub;
-        private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
-        private readonly IBlockGenerationService _blockGenerationService;
+        private const float RatioMine = 0.3f;
         private readonly IAccountService _accountService;
+        private readonly IBlockchainExecutingService _blockchainExecutingService;
 
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockExecutingService _blockExecutingService;
-        private readonly IBlockchainExecutingService _blockchainExecutingService;
-
-        public ILocalEventBus EventBus { get; set; }
-
-        private const float RatioMine = 0.3f;
+        private readonly IBlockGenerationService _blockGenerationService;
+        private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
+        private readonly ITxHub _txHub;
 
         public MinerService(IAccountService accountService,
             IBlockGenerationService blockGenerationService,
@@ -52,9 +45,13 @@ namespace AElf.Kernel.Services
             EventBus = NullLocalEventBus.Instance;
         }
 
+        public ILogger<MinerService> Logger { get; set; }
+
+        public ILocalEventBus EventBus { get; set; }
+
         /// <inheritdoc />
         /// <summary>
-        /// Mine process.
+        ///     Mine process.
         /// </summary>
         /// <returns></returns>
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime time)
@@ -65,15 +62,11 @@ namespace AElf.Kernel.Services
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
             var pending = new List<Transaction>();
             if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
-            {
                 pending = executableTransactionSet.Transactions;
-            }
             else
-            {
-                Logger.LogWarning($"Transaction pool gives transactions to be appended to " +
+                Logger.LogWarning("Transaction pool gives transactions to be appended to " +
                                   $"{executableTransactionSet.PreviousBlockHash} which doesn't match the current " +
                                   $"best chain hash {previousBlockHash}.");
-            }
 
             using (var cts = new CancellationTokenSource())
             {
@@ -109,10 +102,7 @@ namespace AElf.Kernel.Services
                     previousBlockHash);
 
             //TODO: SignAsync in foreach logic not covered [Case]
-            foreach (var txn in generatedTxns)
-            {
-                await SignAsync(txn);
-            }
+            foreach (var txn in generatedTxns) await SignAsync(txn);
 
             return generatedTxns;
         }
@@ -127,7 +117,7 @@ namespace AElf.Kernel.Services
         }
 
         /// <summary>
-        /// Generate block
+        ///     Generate block
         /// </summary>
         /// <returns></returns>
         private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight)

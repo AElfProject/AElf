@@ -13,15 +13,15 @@ namespace AElf.Types.Tests
         {
             var descriptorBytes = Hash.Descriptor.File.SerializedData;
 
-            var file =  FileDescriptor.BuildFromByteStrings(new ByteString[] {descriptorBytes});
+            var file = FileDescriptor.BuildFromByteStrings(new[] {descriptorBytes});
 
             var reg = TypeRegistry.FromFiles(file);
 
             var messageDescriptor = reg.Find("Hash");
-            
+
             messageDescriptor.Name.ShouldBe("Hash");
-            
-            var hash=Hash.FromString("hello");
+
+            var hash = Hash.FromString("hello");
 
             var json = JsonFormatter.Default.Format(hash);
 
@@ -30,7 +30,6 @@ namespace AElf.Types.Tests
 
             var deserializedHash = (Hash) JsonParser.Default.Parse(json, Hash.Descriptor);
             JsonParser.Default.Parse<Hash>(json);
-
         }
     }
 }

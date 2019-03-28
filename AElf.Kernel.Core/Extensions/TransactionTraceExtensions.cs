@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using AElf.Common;
-
 namespace AElf.Kernel
 {
     public static class TransactionTraceExtensions
@@ -9,18 +5,11 @@ namespace AElf.Kernel
         public static bool IsSuccessful(this TransactionTrace txTrace)
         {
             var successful = txTrace.ExecutionStatus == ExecutionStatus.Executed;
-            if (!successful)
-            {
-                return false;
-            }
+            if (!successful) return false;
 
             foreach (var trace in txTrace.InlineTraces)
-            {
                 if (!trace.IsSuccessful())
-                {
                     return false;
-                }
-            }
 
             return true;
         }

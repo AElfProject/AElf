@@ -15,7 +15,7 @@ using Akka.Actor;
 namespace AElf.Kernel.SmartContractExecution
 {
     /// <summary>
-    /// A worker that runs a list of transactions sequentially.
+    ///     A worker that runs a list of transactions sequentially.
     /// </summary>
     public class Worker : UntypedActor
     {
@@ -26,14 +26,15 @@ namespace AElf.Kernel.SmartContractExecution
             Running,
             Suspended // TODO: Support suspend
         }
-
-        private State _state = State.PendingSetSericePack;
-        // private long _servingRequestId = -1;
-        private ServicePack _servicePack;
         //private IExecutingService _proxyExecutingService;
 
         // TODO: Add cancellation
         private CancellationTokenSource _cancellationTokenSource;
+
+        // private long _servingRequestId = -1;
+        private ServicePack _servicePack;
+
+        private State _state = State.PendingSetSericePack;
 
         protected override void OnReceive(object message)
         {
@@ -62,16 +63,18 @@ namespace AElf.Kernel.SmartContractExecution
                             RunJob(req)
                                 .ContinueWith(
                                     task => task.Result,
-                                    TaskContinuationOptions.AttachedToParent & TaskContinuationOptions.ExecuteSynchronously
+                                    TaskContinuationOptions.AttachedToParent &
+                                    TaskContinuationOptions.ExecuteSynchronously
                                 ).PipeTo(self);
                         });
-                        
+
 /*
  Temporarily disabled.
  TODO: https://github.com/AElfProject/AElf/issues/338
                         Sender.Tell(new JobExecutionStatus(req.RequestId, JobExecutionStatus.RequestStatus.Running));
 */
                     }
+
 /*
  Temporarily disabled.
  TODO: https://github.com/AElfProject/AElf/issues/338
@@ -113,7 +116,7 @@ namespace AElf.Kernel.SmartContractExecution
         private async Task<JobExecutionStatus> RunJob(JobExecutionRequest request)
         {
             throw new NotImplementedException();
-///*
+            ///*
 // Temporarily disabled.
 // TODO: https://github.com/AElfProject/AElf/issues/338
 //            _state = State.Running;
@@ -127,7 +130,7 @@ namespace AElf.Kernel.SmartContractExecution
 //
 //            var retMsg = new JobExecutionStatus(request.RequestId, JobExecutionStatus.RequestStatus.Completed);
 //            // TODO: tell requestor and router about the worker complete job,and set to idle state.
-///*
+            ///*
 // Temporarily disabled.
 // TODO: https://github.com/AElfProject/AElf/issues/338
 //            request.ResultCollector?.Tell(retMsg);

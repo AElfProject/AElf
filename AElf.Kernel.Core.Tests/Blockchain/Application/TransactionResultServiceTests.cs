@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +5,6 @@ using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
@@ -15,13 +13,6 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public class TransactionResultServiceTests : AElfKernelWithChainTestBase
     {
-        private readonly KernelTestHelper _kernelTestHelper;
-        private readonly IBlockchainService _blockchainService;
-        private readonly ITransactionResultService _transactionResultService;
-        private readonly ITransactionResultManager _transactionResultManager;
-        private readonly ITransactionBlockIndexManager _transacionBlockIndexManager;
-        private readonly ILocalEventBus _localEventBus;
-        
         public TransactionResultServiceTests()
         {
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
@@ -32,6 +23,13 @@ namespace AElf.Kernel.Blockchain.Application
             _localEventBus = GetRequiredService<ILocalEventBus>();
         }
 
+        private readonly KernelTestHelper _kernelTestHelper;
+        private readonly IBlockchainService _blockchainService;
+        private readonly ITransactionResultService _transactionResultService;
+        private readonly ITransactionResultManager _transactionResultManager;
+        private readonly ITransactionBlockIndexManager _transacionBlockIndexManager;
+        private readonly ILocalEventBus _localEventBus;
+
         private async Task AddTransactionResultsWithPreMiningAsync(Block block, IEnumerable<TransactionResult> results)
         {
             var merkleRoot = block.Header.MerkleTreeRootOfTransactions;
@@ -40,10 +38,8 @@ namespace AElf.Kernel.Blockchain.Application
 
             // // TransactionResults are added during execution
             foreach (var result in results)
-            {
                 // Add TransactionResult before completing and adding block
                 await _transactionResultService.AddTransactionResultAsync(result, block.Header);
-            }
 
             // Set block back to post mining
             block.Header.MerkleTreeRootOfTransactions = merkleRoot;
@@ -64,10 +60,8 @@ namespace AElf.Kernel.Blockchain.Application
 
             // TransactionResults are added during execution
             foreach (var result in results)
-            {
                 // Add TransactionResult before completing and adding block
                 await _transactionResultService.AddTransactionResultAsync(result, block.Header);
-            }
 
             // Set best chain after execution
             await _blockchainService.SetBestChainAsync(chain, block.Height, block.GetHash());
@@ -76,9 +70,9 @@ namespace AElf.Kernel.Blockchain.Application
         private (Block, List<TransactionResult>) GetNextBlockWithTransactionAndResults(BlockHeader previous,
             IEnumerable<Transaction> transactions, ByteString uniqueData = null)
         {
-            var block = new Block()
+            var block = new Block
             {
-                Header = new BlockHeader()
+                Header = new BlockHeader
                 {
                     Height = previous.Height + 1,
                     PreviousBlockHash = previous.GetHash(),
@@ -86,18 +80,14 @@ namespace AElf.Kernel.Blockchain.Application
                 },
                 Body = new BlockBody()
             };
-            if (uniqueData != null)
-            {
-                // piggy back on Bloom to make block unique
-                block.Header.Bloom = uniqueData;
-            }
+            if (uniqueData != null) block.Header.Bloom = uniqueData;
 
             var results = new List<TransactionResult>();
             foreach (var transaction in transactions)
             {
                 block.Body.Transactions.Add(transaction.GetHash());
                 block.Body.TransactionList.Add(transaction);
-                results.Add(new TransactionResult()
+                results.Add(new TransactionResult
                 {
                     TransactionId = transaction.GetHash(),
                     ReturnValue = ByteString.CopyFromUtf8(block.GetHash().ToHex())
@@ -109,26 +99,12 @@ namespace AElf.Kernel.Blockchain.Application
 
         private Transaction GetDummyTransactionWithMethodNameAsId(string id)
         {
-            return new Transaction()
+            return new Transaction
             {
                 From = Address.Zero,
                 To = Address.Zero,
                 MethodName = id
             };
-        }
-
-        [Fact]
-        public async Task Add_TransactionResult_With_PreMiningHash()
-        {
-            var tx = _kernelTestHelper.GenerateTransaction();
-            var (block, results) = GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last()
-            .Header, new[] {tx});
-
-            var result = results.First();
-            await AddTransactionResultsWithPreMiningAsync(block, new[] {result});
-
-            var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
-            queried.ShouldBe(result);
         }
 
         [Fact]
@@ -141,6 +117,20 @@ namespace AElf.Kernel.Blockchain.Application
             var result = results.First();
             // Complete block
             await AddTransactionResultsWithPostMiningAsync(block, new[] {result});
+
+            var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
+            queried.ShouldBe(result);
+        }
+
+        [Fact]
+        public async Task Add_TransactionResult_With_PreMiningHash()
+        {
+            var tx = _kernelTestHelper.GenerateTransaction();
+            var (block, results) = GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last()
+                .Header, new[] {tx});
+
+            var result = results.First();
+            await AddTransactionResultsWithPreMiningAsync(block, new[] {result});
 
             var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
             queried.ShouldBe(result);
@@ -217,7 +207,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             #endregion
 
-            await _localEventBus.PublishAsync(new NewIrreversibleBlockFoundEvent()
+            await _localEventBus.PublishAsync(new NewIrreversibleBlockFoundEvent
             {
                 BlockHash = block11.GetHash(),
                 BlockHeight = block11.Height
@@ -256,7 +246,7 @@ namespace AElf.Kernel.Blockchain.Application
             // Complete block
             await AddTransactionResultsWithPostMiningAsync(block, new[] {result});
 
-            var transactionBlockIndex = new TransactionBlockIndex()
+            var transactionBlockIndex = new TransactionBlockIndex
             {
                 BlockHash = block.GetHash()
             };

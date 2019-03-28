@@ -16,9 +16,7 @@ namespace AElf.Kernel.Miner.Application
         {
             var generatedTxns = new List<Transaction>();
             foreach (var generator in _systemTransactionGenerators)
-            {
-                generator.GenerateTransactions(@from, preBlockHeight, preBlockHash, ref generatedTxns);
-            }
+                generator.GenerateTransactions(from, preBlockHeight, preBlockHash, ref generatedTxns);
 
             return generatedTxns;
         }

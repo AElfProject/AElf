@@ -8,10 +8,7 @@ namespace AElf.Runtime.CSharp.Metadata
         public DependencyAssemblyResolver(string path)
         {
             var files = Directory.GetFiles(path, "*.dll");
-            foreach (var f in files)
-            {
-                RegisterAssembly(AssemblyDefinition.ReadAssembly(f));
-            }
+            foreach (var f in files) RegisterAssembly(AssemblyDefinition.ReadAssembly(f));
         }
     }
 }

@@ -6,8 +6,8 @@ namespace AElf.Contract.CrossChain.Tests
 {
     public class CrossChainContractTestHelper
     {
-        public static ECKeyPair EcKeyPair { get; } =  CryptoHelpers.GenerateKeyPair();
-        
+        public static ECKeyPair EcKeyPair { get; } = CryptoHelpers.GenerateKeyPair();
+
         public static byte[] Sign(byte[] data)
         {
             return CryptoHelpers.SignWithPrivateKey(EcKeyPair.PrivateKey, data);

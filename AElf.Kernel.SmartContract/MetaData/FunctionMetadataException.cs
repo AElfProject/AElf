@@ -6,7 +6,6 @@ namespace AElf.Kernel.SmartContract.MetaData
     {
         public FunctionMetadataException(string msg) : base(msg)
         {
-            
         }
     }
 }

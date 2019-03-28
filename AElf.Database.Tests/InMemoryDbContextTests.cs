@@ -1,6 +1,6 @@
 namespace AElf.Database.Tests
 {
-    public class InMemoryDbContextTests: KeyValueDbContextTestBase<InMemoryDbContext>
+    public class InMemoryDbContextTests : KeyValueDbContextTestBase<InMemoryDbContext>
     {
     }
 }

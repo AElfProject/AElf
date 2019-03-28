@@ -1,8 +1,6 @@
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Sdk;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp
@@ -35,7 +33,7 @@ namespace AElf.Sdk.CSharp
             context.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
                 ConvertToByteString(message));
         }
-        
+
         public static T Call<T>(this CSharpSmartContractContext context, IStateCache stateCache, Address address,
             string methodName, IMessage message)
         {

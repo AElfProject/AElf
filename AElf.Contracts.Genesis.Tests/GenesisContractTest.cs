@@ -20,20 +20,55 @@ namespace AElf.Contracts.Genesis
     {
         private ISmartContractAddressService ContractAddressService =>
             Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
+
         private Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
+
         public BasicContractZeroContainer.BasicContractZeroTester DefaultTester =>
             GetTester<BasicContractZeroContainer.BasicContractZeroTester>(ContractZeroAddress, DefaultSenderKeyPair);
+
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs.First();
         private Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         private ECKeyPair AnotherUserKeyPair => SampleECKeyPairs.KeyPairs.Last();
         private Address AnotherUser => Address.FromPublicKey(AnotherUserKeyPair.PublicKey);
+
         public BasicContractZeroContainer.BasicContractZeroTester AnotherTester =>
             GetTester<BasicContractZeroContainer.BasicContractZeroTester>(ContractZeroAddress, AnotherUserKeyPair);
 
         [Fact]
+        public async Task Change_Contract_Owner()
+        {
+            var contractAddress = await Deploy_SmartContracts();
+
+            var resultChange = await DefaultTester.ChangeContractOwner.SendAsync(
+                new ChangeContractOwnerInput
+                {
+                    ContractAddress = contractAddress,
+                    NewOwner = AnotherUser
+                });
+            resultChange.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var resultOwner = await DefaultTester.GetContractOwner.CallAsync(contractAddress);
+            resultOwner.ShouldBe(AnotherUser);
+        }
+
+        [Fact]
+        public async Task Change_Contract_Owner_Without_Permission()
+        {
+            var contractAddress = await Deploy_SmartContracts();
+            var result = await AnotherTester.ChangeContractOwner.SendAsync(
+                new ChangeContractOwnerInput
+                {
+                    ContractAddress = contractAddress,
+                    NewOwner = AnotherUser
+                });
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.TransactionResult.Error.Contains("no permission.").ShouldBeTrue();
+        }
+
+        [Fact]
         public async Task<Address> Deploy_SmartContracts()
         {
-            var result = await DefaultTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
+            var result = await DefaultTester.DeploySmartContract.SendAsync(new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
                 Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
@@ -60,14 +95,13 @@ namespace AElf.Contracts.Genesis
                 var resultHash = await DefaultTester.GetContractHash.CallAsync(contractAddress);
                 var contractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
                 var contractHash = Hash.FromRawBytes(contractCode);
-                resultHash.ShouldBe(contractHash);                
+                resultHash.ShouldBe(contractHash);
             }
 
             {
                 var resultOwner = await DefaultTester.GetContractOwner.CallAsync(contractAddress);
-                resultOwner.ShouldBe(DefaultSender);                
+                resultOwner.ShouldBe(DefaultSender);
             }
-
         }
 
         [Fact]
@@ -76,13 +110,13 @@ namespace AElf.Contracts.Genesis
             var contractAddress = await Deploy_SmartContracts();
 
             var resultUpdate = await DefaultTester.UpdateSmartContract.SendAsync(
-                new ContractUpdateInput()
+                new ContractUpdateInput
                 {
                     Address = contractAddress,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ResourceContract).Assembly.Location))
                 });
             resultUpdate.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var updateAddress = resultUpdate.Output;
             updateAddress.ShouldBe(contractAddress);
 
@@ -93,63 +127,32 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task Update_SmartContract_Without_Owner()
-        {
-            var contractAddress = await Deploy_SmartContracts();
-            var result = await AnotherTester.UpdateSmartContract.SendAsync(
-                new ContractUpdateInput()
-                {
-                    Address = contractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ResourceContract).Assembly.Location))
-                });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("Only owner is allowed to update code.").ShouldBeTrue();
-        }
-
-        [Fact]
         public async Task Update_SmartContract_With_Same_Code()
         {
             var contractAddress = await Deploy_SmartContracts();
 
             var result = await DefaultTester.UpdateSmartContract.SendAsync(
-                new ContractUpdateInput()
+                new ContractUpdateInput
                 {
                     Address = contractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))    
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
                 });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Code is not changed.").ShouldBeTrue();
         }
 
         [Fact]
-        public async Task Change_Contract_Owner()
+        public async Task Update_SmartContract_Without_Owner()
         {
             var contractAddress = await Deploy_SmartContracts();
-
-            var resultChange = await DefaultTester.ChangeContractOwner.SendAsync(
-                new ChangeContractOwnerInput()
+            var result = await AnotherTester.UpdateSmartContract.SendAsync(
+                new ContractUpdateInput
                 {
-                    ContractAddress = contractAddress,
-                    NewOwner = AnotherUser    
+                    Address = contractAddress,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ResourceContract).Assembly.Location))
                 });
-            resultChange.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var resultOwner = await DefaultTester.GetContractOwner.CallAsync(contractAddress);
-            resultOwner.ShouldBe(AnotherUser);
-        }
-
-        [Fact]
-        public async Task Change_Contract_Owner_Without_Permission()
-        {
-            var contractAddress = await Deploy_SmartContracts();
-            var result = await AnotherTester.ChangeContractOwner.SendAsync(
-                new ChangeContractOwnerInput()
-            {
-                ContractAddress = contractAddress,
-                NewOwner = AnotherUser
-            });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("no permission.").ShouldBeTrue();
+            result.TransactionResult.Error.Contains("Only owner is allowed to update code.").ShouldBeTrue();
         }
     }
 }

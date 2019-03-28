@@ -8,9 +8,9 @@ namespace AElf.CrossChain
 {
     public class CrossChainTestBase : AElfIntegratedTest<CrossChainTestModule>
     {
-        protected IMultiChainBlockInfoCacheProvider MultiChainBlockInfoCacheProvider;
-        protected ICrossChainDataProducer CrossChainDataProducer;
         protected ICrossChainDataConsumer CrossChainDataConsumer;
+        protected ICrossChainDataProducer CrossChainDataProducer;
+        protected IMultiChainBlockInfoCacheProvider MultiChainBlockInfoCacheProvider;
 
         public CrossChainTestBase()
         {
@@ -21,10 +21,7 @@ namespace AElf.CrossChain
 
         protected void CreateFakeCache(Dictionary<int, BlockInfoCache> cachingData)
         {
-            foreach (var (key, value) in cachingData)
-            {
-                MultiChainBlockInfoCacheProvider.AddBlockInfoCache(key, value);
-            }
+            foreach (var (key, value) in cachingData) MultiChainBlockInfoCacheProvider.AddBlockInfoCache(key, value);
         }
 
         protected void AddFakeCacheData(Dictionary<int, List<IBlockInfo>> fakeCache)
@@ -32,34 +29,28 @@ namespace AElf.CrossChain
             foreach (var (crossChainId, blockInfos) in fakeCache)
             {
                 CrossChainDataConsumer.TryRegisterNewChainCache(crossChainId, blockInfos.First().Height);
-                foreach (var blockInfo in blockInfos)
-                {
-                    CrossChainDataProducer.AddNewBlockInfo(blockInfo);
-                }
+                foreach (var blockInfo in blockInfos) CrossChainDataProducer.AddNewBlockInfo(blockInfo);
             }
         }
     }
 
     public class CrossChainWithChainTestBase : AElfIntegratedTest<CrossChainWithChainTestModule>
     {
-        private readonly ICrossChainDataProducer _crossChainDataProducer;
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
+        private readonly ICrossChainDataProducer _crossChainDataProducer;
 
         protected CrossChainWithChainTestBase()
         {
             _crossChainDataProducer = Application.ServiceProvider.GetRequiredService<ICrossChainDataProducer>();
             _crossChainDataConsumer = Application.ServiceProvider.GetRequiredService<ICrossChainDataConsumer>();
         }
-        
+
         protected void AddFakeCacheData(Dictionary<int, List<IBlockInfo>> fakeCache)
         {
             foreach (var (crossChainId, blockInfos) in fakeCache)
             {
                 _crossChainDataConsumer.TryRegisterNewChainCache(crossChainId, blockInfos.First().Height);
-                foreach (var blockInfo in blockInfos)
-                {
-                    _crossChainDataProducer.AddNewBlockInfo(blockInfo);
-                }
+                foreach (var blockInfo in blockInfos) _crossChainDataProducer.AddNewBlockInfo(blockInfo);
             }
         }
     }

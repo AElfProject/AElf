@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using AElf.Common;
-using AElf.Consensus.DPoS;
 using AElf.Kernel;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -16,15 +11,15 @@ namespace AElf.Contracts.CrossChain
             Address targetAddress, string invokingMethod, IMessage input)
         {
             // packed txn
-            byte[] txnData = new Transaction
+            var txnData = new Transaction
             {
                 From = fromAddress,
                 To = targetAddress,
                 MethodName = invokingMethod,
-                Params = input.ToByteString(),
+                Params = input.ToByteString()
             }.ToByteArray();
             var expiredTime = Context.CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime();
-            Proposal proposal = new Proposal
+            var proposal = new Proposal
             {
                 MultiSigAccount = fromAddress,
                 Name = proposalName,

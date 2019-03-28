@@ -1,14 +1,13 @@
 ﻿using AElf.Common;
-using AElf.Kernel.Types;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class BlockHeader: IBlockHeader
+    public partial class BlockHeader : IBlockHeader
     {
         private Hash _blockHash;
-        
+
         public BlockHeader(Hash preBlockHash)
         {
             PreviousBlockHash = preBlockHash;
@@ -16,10 +15,7 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            if (_blockHash == null)
-            {
-                _blockHash = Hash.FromRawBytes(GetSignatureData());
-            }
+            if (_blockHash == null) _blockHash = Hash.FromRawBytes(GetSignatureData());
 
             return _blockHash;
         }

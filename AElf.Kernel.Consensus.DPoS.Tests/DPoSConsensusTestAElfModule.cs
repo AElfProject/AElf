@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -8,15 +7,11 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.OS;
-using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
 using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus.DPoS
@@ -55,19 +50,19 @@ namespace AElf.Kernel.Consensus.DPoS
             context.Services.AddTransient(builder =>
             {
                 var consensusService = new Mock<IConsensusService>();
-                consensusService.Setup(m=>m.ValidateConsensusBeforeExecutionAsync(It.IsAny<Hash>(), It.IsAny<long>(),
+                consensusService.Setup(m => m.ValidateConsensusBeforeExecutionAsync(It.IsAny<Hash>(), It.IsAny<long>(),
                         It.IsAny<byte[]>()))
                     .Returns(Task.FromResult(true));
-                consensusService.Setup(m=>m.ValidateConsensusAfterExecutionAsync(It.IsAny<Hash>(), It.IsAny<long>(),
+                consensusService.Setup(m => m.ValidateConsensusAfterExecutionAsync(It.IsAny<Hash>(), It.IsAny<long>(),
                         It.IsAny<byte[]>()))
                     .Returns(Task.FromResult(true));
-                
+
                 return consensusService.Object;
             });
             context.Services.AddTransient(o => Mock.Of<ConsensusControlInformation>());
             Configure<DPoSOptions>(o =>
             {
-                o.InitialMiners = new List<string>()
+                o.InitialMiners = new List<string>
                 {
                     ecKeyPair.PublicKey.ToHex()
                 };

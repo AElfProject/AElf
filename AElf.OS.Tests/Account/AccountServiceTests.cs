@@ -7,22 +7,14 @@ namespace AElf.OS.Account
 {
     public class AccountServiceTests : OSTestBase
     {
-        private readonly AccountOptions _accountOptions;
-        private readonly AccountService _accountService;
-
         public AccountServiceTests()
         {
             _accountOptions = GetRequiredService<IOptionsSnapshot<AccountOptions>>().Value;
             _accountService = GetRequiredService<AccountService>();
         }
 
-        [Fact]
-        public async Task GetPublicKeyTest()
-        {
-            var publicKey = await _accountService.GetPublicKeyAsync();
-
-            Assert.Equal(Address.FromPublicKey(publicKey).GetFormatted(), _accountOptions.NodeAccount);
-        }
+        private readonly AccountOptions _accountOptions;
+        private readonly AccountService _accountService;
 
         [Fact]
         public async Task GetAccountTest()
@@ -33,15 +25,11 @@ namespace AElf.OS.Account
         }
 
         [Fact]
-        public async Task SignAndVerifyPassTest()
+        public async Task GetPublicKeyTest()
         {
-            var data = Hash.FromString("test").DumpByteArray();
-
-            var signature = await _accountService.SignAsync(data);
             var publicKey = await _accountService.GetPublicKeyAsync();
-            var verifyResult = await _accountService.VerifySignatureAsync(signature, data, publicKey);
 
-            Assert.True(verifyResult);
+            Assert.Equal(Address.FromPublicKey(publicKey).GetFormatted(), _accountOptions.NodeAccount);
         }
 
         [Fact]
@@ -55,6 +43,18 @@ namespace AElf.OS.Account
             var verifyResult = await _accountService.VerifySignatureAsync(signature, data2, publicKey);
 
             Assert.False(verifyResult);
+        }
+
+        [Fact]
+        public async Task SignAndVerifyPassTest()
+        {
+            var data = Hash.FromString("test").DumpByteArray();
+
+            var signature = await _accountService.SignAsync(data);
+            var publicKey = await _accountService.GetPublicKeyAsync();
+            var verifyResult = await _accountService.VerifySignatureAsync(signature, data, publicKey);
+
+            Assert.True(verifyResult);
         }
     }
 }

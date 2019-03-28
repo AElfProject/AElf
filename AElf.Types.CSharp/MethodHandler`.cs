@@ -6,11 +6,11 @@ namespace AElf.Types.CSharp
 {
     public class MethodHandler<T> : IMethodHandler
     {
-        protected MethodInfo _methodInfo;
-        protected object _contract;
         protected readonly Type[] _parameterTypes;
-        protected Func<T, byte[]> _encoder;
+        protected object _contract;
         protected Func<byte[], T> _decoder;
+        protected Func<T, byte[]> _encoder;
+        protected MethodInfo _methodInfo;
         protected Func<T, string> _stringConverter;
 
         public MethodHandler(MethodInfo methodInfo, object contract)
@@ -21,11 +21,6 @@ namespace AElf.Types.CSharp
             _encoder = ReturnTypeHelper.GetEncoder<T>();
             _decoder = ReturnTypeHelper.GetDecoder<T>();
             _stringConverter = ReturnTypeHelper.GetStringConverter<T>();
-        }
-
-        private object[] GetArguments(byte[] serialized)
-        {
-            return ParamsPacker.Unpack(serialized, _parameterTypes);
         }
 
         public byte[] Execute(byte[] paramsBytes)
@@ -42,6 +37,11 @@ namespace AElf.Types.CSharp
         public object BytesToReturnType(byte[] bytes)
         {
             return bytes == null ? default(T) : _decoder(bytes);
+        }
+
+        private object[] GetArguments(byte[] serialized)
+        {
+            return ParamsPacker.Unpack(serialized, _parameterTypes);
         }
     }
 }

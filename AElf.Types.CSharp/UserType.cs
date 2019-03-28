@@ -1,22 +1,18 @@
 ﻿using System;
-using System.IO;
-using System.Linq;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
-using Google.Protobuf.Reflection;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Kernel;
-using AElf.Types.CSharp;
+using Type = System.Type;
 
 namespace AElf.Types.CSharp
 {
     public class UserType
     {
-        private static ConcurrentDictionary<System.Type, List<UserFieldInfo>> _fieldInfosByType 
-            = new ConcurrentDictionary<System.Type, List<UserFieldInfo>>();
+        private static readonly ConcurrentDictionary<Type, List<UserFieldInfo>> _fieldInfosByType
+            = new ConcurrentDictionary<Type, List<UserFieldInfo>>();
 
         public UserTypeHolder Pack()
         {
@@ -26,6 +22,7 @@ namespace AElf.Types.CSharp
                 var val = fi.FieldInfo.GetValue(this);
                 holder.Fields.Add(fi.Name, fi.Packer.Pack(val));
             }
+
             return holder;
         }
 
@@ -44,34 +41,31 @@ namespace AElf.Types.CSharp
             if (!_fieldInfosByType.TryGetValue(type, out var fieldInfos))
             {
                 fieldInfos = type.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                                      .Select(x => new UserFieldInfo(x)).ToList();
+                    .Select(x => new UserFieldInfo(x)).ToList();
                 _fieldInfosByType.TryAdd(type, fieldInfos);
             }
+
             return fieldInfos;
         }
 
         protected bool Equals(UserType other)
         {
-            if (ReferenceEquals(other, null)) {
-                return false;
-            }
-            if (ReferenceEquals(other, this)) {
-                return true;
-            }
-            return this.Pack().Equals(other.Pack());
+            if (ReferenceEquals(other, null)) return false;
+            if (ReferenceEquals(other, this)) return true;
+            return Pack().Equals(other.Pack());
         }
 
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((UserType) obj);
         }
 
         public override int GetHashCode()
         {
-            return this.Pack().GetHashCode();
+            return Pack().GetHashCode();
         }
     }
 
@@ -82,20 +76,22 @@ namespace AElf.Types.CSharp
             Pack = pack;
             Unpack = unpack;
         }
+
         public Func<object, Any> Pack { get; }
         public Func<Any, object> Unpack { get; }
     }
 
     internal class UserFieldInfo
     {
-        private static readonly Dictionary<System.Type, Packer> _packers = new Dictionary<System.Type, Packer>(){
-            {typeof(bool), new Packer((obj) => ((bool)obj).ToAny(), (any) => any.AnyToBool())},
-            {typeof(int), new Packer((obj) => ((int)obj).ToAny(),(any) => any.AnyToInt32())},
-            {typeof(uint), new Packer((obj) => ((uint)obj).ToAny(),(any) => any.AnyToUInt32())},
-            {typeof(long), new Packer((obj) => ((long)obj).ToAny(),(any) => any.AnyToInt64())},
-            {typeof(ulong), new Packer((obj) => ((ulong)obj).ToAny(),(any) => any.AnyToUInt64())},
-            {typeof(string), new Packer((obj) => ((string)obj).ToAny(),(any) => any.AnyToString())},
-            {typeof(byte[]), new Packer((obj) => ((byte[])obj).ToAny(),(any) => any.AnyToBytes())}
+        private static readonly Dictionary<Type, Packer> _packers = new Dictionary<Type, Packer>
+        {
+            {typeof(bool), new Packer(obj => ((bool) obj).ToAny(), any => any.AnyToBool())},
+            {typeof(int), new Packer(obj => ((int) obj).ToAny(), any => any.AnyToInt32())},
+            {typeof(uint), new Packer(obj => ((uint) obj).ToAny(), any => any.AnyToUInt32())},
+            {typeof(long), new Packer(obj => ((long) obj).ToAny(), any => any.AnyToInt64())},
+            {typeof(ulong), new Packer(obj => ((ulong) obj).ToAny(), any => any.AnyToUInt64())},
+            {typeof(string), new Packer(obj => ((string) obj).ToAny(), any => any.AnyToString())},
+            {typeof(byte[]), new Packer(obj => ((byte[]) obj).ToAny(), any => any.AnyToBytes())}
         };
 
         public UserFieldInfo(FieldInfo fieldInfo)
@@ -110,29 +106,18 @@ namespace AElf.Types.CSharp
         public Packer Packer { get; }
 
         //TODO: Add  GetPacker case [Case]
-        private Packer GetPacker(System.Type type)
+        private Packer GetPacker(Type type)
         {
-            string typeName = type.FullName;
-            if (_packers.TryGetValue(type, out var packer))
-            {
-                return packer;
-            }
+            var typeName = type.FullName;
+            if (_packers.TryGetValue(type, out var packer)) return packer;
             if (type.IsPbMessageType())
-            {
-                return new Packer((obj) => ((IMessage)obj).ToAny(), (any) => any.AnyToPbMessage(type));
-            }
+                return new Packer(obj => ((IMessage) obj).ToAny(), any => any.AnyToPbMessage(type));
             if (type.IsUserType())
-            {
                 return new Packer(
-                    (obj) => ((UserType)obj).ToAny(),
-                    (any) =>
-                    {
-                        return any.AnyToUserType(type);
-                    }
+                    obj => ((UserType) obj).ToAny(),
+                    any => { return any.AnyToUserType(type); }
                 );
-            }
             throw new Exception("Unrecognizable field type found.");
         }
     }
-
 }

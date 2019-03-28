@@ -14,16 +14,13 @@ namespace AElf.Contracts.Genesis
 
         public override UInt64Value CurrentContractSerialNumber(Empty input)
         {
-            return new UInt64Value() {Value = State.ContractSerialNumber.Value};
+            return new UInt64Value {Value = State.ContractSerialNumber.Value};
         }
 
-        public override Kernel.ContractInfo GetContractInfo(Address input)
+        public override ContractInfo GetContractInfo(Address input)
         {
             var info = State.ContractInfos[input];
-            if (info == null)
-            {
-                return new Kernel.ContractInfo();
-            }
+            if (info == null) return new ContractInfo();
 
             return info;
         }
@@ -48,10 +45,7 @@ namespace AElf.Contracts.Genesis
         public override SmartContractRegistration GetSmartContractRegistrationByAddress(Address input)
         {
             var info = State.ContractInfos[input];
-            if (info == null)
-            {
-                return null;
-            }
+            if (info == null) return null;
 
             return State.SmartContractRegistrations[info.CodeHash];
         }
@@ -69,9 +63,7 @@ namespace AElf.Contracts.Genesis
             var address = PrivateDeploySystemSmartContract(name, category, code);
 
             foreach (var methodCall in transactionMethodCallList.Value)
-            {
                 Context.SendInline(address, methodCall.MethodName, methodCall.Params);
-            }
 
             return address;
         }
@@ -110,7 +102,7 @@ namespace AElf.Contracts.Genesis
 
             Context.DeployContract(contractAddress, reg, name);
 
-            Context.FireEvent(new ContractHasBeenDeployed()
+            Context.FireEvent(new ContractHasBeenDeployed
             {
                 CodeHash = codeHash,
                 Address = contractAddress,
@@ -130,7 +122,7 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
-            return DeploySystemSmartContract(new SystemContractDeploymentInput()
+            return DeploySystemSmartContract(new SystemContractDeploymentInput
             {
                 Category = input.Category,
                 Code = input.Code,
@@ -166,7 +158,7 @@ namespace AElf.Contracts.Genesis
 
             Context.UpdateContract(contractAddress, reg, null);
 
-            Context.FireEvent(new ContractCodeHasBeenUpdated()
+            Context.FireEvent(new ContractCodeHasBeenUpdated
             {
                 Address = contractAddress,
                 OldCodeHash = oldCodeHash,
@@ -202,7 +194,6 @@ namespace AElf.Contracts.Genesis
     public static class AddressHelper
     {
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>

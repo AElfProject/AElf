@@ -49,14 +49,14 @@ namespace AElf.TestLauncher
     )]
     public class MainBlockchainAElfModule : AElfModule
     {
-        public ILogger<MainBlockchainAElfModule> Logger { get; set; }
-
-        public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
-
         public MainBlockchainAElfModule()
         {
             Logger = NullLogger<MainBlockchainAElfModule>.Instance;
         }
+
+        public ILogger<MainBlockchainAElfModule> Logger { get; set; }
+
+        public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
 
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
@@ -75,7 +75,7 @@ namespace AElf.TestLauncher
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var dto = new OsBlockchainNodeContextStartDto()
+            var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero)
@@ -96,7 +96,7 @@ namespace AElf.TestLauncher
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
         }
-        
+
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
         {
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();

@@ -1,8 +1,7 @@
 ﻿// ReSharper disable once CheckNamespace
 
-using System;
-using Google.Protobuf;
 using AElf.Common;
+using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -14,7 +13,7 @@ namespace AElf.Kernel
             Id = chainId;
             GenesisBlockHash = genesisBlockHash;
         }
-        
+
         public byte[] Serialize()
         {
             return this.ToByteArray();

@@ -8,14 +8,14 @@ namespace AElf.Contracts.TestKit
 {
     public sealed class RefBlockInfo
     {
-        public long Height { get; }
-        public ByteString Prefix { get; }
-
         public RefBlockInfo(long height, ByteString prefix)
         {
             Height = height;
             Prefix = prefix;
         }
+
+        public long Height { get; }
+        public ByteString Prefix { get; }
     }
 
     public interface IRefBlockInfoProvider

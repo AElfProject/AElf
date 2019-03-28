@@ -4,7 +4,7 @@ namespace AElf.Runtime.CSharp
 {
     public class InvalidMethodNameException : Exception
     {
-        public InvalidMethodNameException() : base()
+        public InvalidMethodNameException()
         {
         }
 
@@ -15,7 +15,7 @@ namespace AElf.Runtime.CSharp
 
     public class RuntimeException : Exception
     {
-        public RuntimeException() : base()
+        public RuntimeException()
         {
         }
 
@@ -26,7 +26,7 @@ namespace AElf.Runtime.CSharp
 
     public class InvalidCodeException : Exception
     {
-        public InvalidCodeException() : base()
+        public InvalidCodeException()
         {
         }
 
@@ -34,5 +34,4 @@ namespace AElf.Runtime.CSharp
         {
         }
     }
-
 }

@@ -2,11 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.CrossChain.Cache;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Types;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Xunit;
 
@@ -14,37 +11,15 @@ namespace AElf.CrossChain
 {
     public class CrossChainBlockExtraDataProviderTest : CrossChainTestBase
     {
-        private readonly IBlockExtraDataProvider _crossChainBlockExtraDataProvider;
-        private readonly CrossChainTestHelper _crossChainTestHelper;
         public CrossChainBlockExtraDataProviderTest()
         {
             _crossChainBlockExtraDataProvider = GetRequiredService<IBlockExtraDataProvider>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
         }
-        
-        [Fact(Skip = "Return value would be null.")]
-        public async Task FillExtraData_WithoutData()
-        {
-            var header = new BlockHeader
-            {
-                Height = 1
-            };
-            await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
-            Assert.Empty(header.BlockExtraDatas);
-        }
-        
-        
-        [Fact]
-        public async Task FillExtraData_GenesisHeight()
-        {
-            var header = new BlockHeader
-            {
-                Height = 1
-            };
-            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
-            Assert.Empty(bytes);
-        }
-        
+
+        private readonly IBlockExtraDataProvider _crossChainBlockExtraDataProvider;
+        private readonly CrossChainTestHelper _crossChainTestHelper;
+
         [Fact]
         public async Task FillExtraData()
         {
@@ -52,9 +27,9 @@ namespace AElf.CrossChain
             var fakeMerkleTreeRoot2 = Hash.FromString("fakeMerkleTreeRoot2");
             var fakeMerkleTreeRoot3 = Hash.FromString("fakeMerkleTreeRoot3");
 
-            int chainId1 = 2111;
-            int chainId2 = 2112;
-            int chainId3 = 2113;
+            var chainId1 = 2111;
+            var chainId2 = 2112;
+            var chainId3 = 2113;
             var fakeSideChainBlockDataList = new List<SideChainBlockData>
             {
                 new SideChainBlockData
@@ -76,16 +51,16 @@ namespace AElf.CrossChain
                     SideChainId = chainId3
                 }
             };
-            
+
             var list1 = new List<IBlockInfo>();
             var list2 = new List<IBlockInfo>();
             var list3 = new List<IBlockInfo>();
-            
+
             list1.Add(fakeSideChainBlockDataList[0]);
-            list2.Add(fakeSideChainBlockDataList[1]);          
+            list2.Add(fakeSideChainBlockDataList[1]);
             list3.Add(fakeSideChainBlockDataList[2]);
 
-            for (int i = 2; i < CrossChainConsts.MinimalBlockInfoCacheThreshold + 2; i++)
+            for (var i = 2; i < CrossChainConsts.MinimalBlockInfoCacheThreshold + 2; i++)
             {
                 list1.Add(new SideChainBlockData
                 {
@@ -105,7 +80,6 @@ namespace AElf.CrossChain
                     TransactionMKRoot = fakeMerkleTreeRoot3,
                     SideChainId = chainId3
                 });
-                
             }
 
             AddFakeCacheData(new Dictionary<int, List<IBlockInfo>>
@@ -114,7 +88,7 @@ namespace AElf.CrossChain
                 {chainId2, list2},
                 {chainId3, list3}
             });
-            
+
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId1, 0);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId2, 0);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId3, 0);
@@ -132,6 +106,29 @@ namespace AElf.CrossChain
                 .ComputeRootHash();
             var expected = new CrossChainExtraData {SideChainTransactionsRoot = merkleTreeRoot}.ToByteString();
             Assert.Equal(expected, sideChainTxMerkleTreeRoot);
+        }
+
+
+        [Fact]
+        public async Task FillExtraData_GenesisHeight()
+        {
+            var header = new BlockHeader
+            {
+                Height = 1
+            };
+            var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
+            Assert.Empty(bytes);
+        }
+
+        [Fact(Skip = "Return value would be null.")]
+        public async Task FillExtraData_WithoutData()
+        {
+            var header = new BlockHeader
+            {
+                Height = 1
+            };
+            await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
+            Assert.Empty(header.BlockExtraDatas);
         }
     }
 }

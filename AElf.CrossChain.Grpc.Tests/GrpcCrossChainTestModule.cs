@@ -15,7 +15,6 @@ namespace AElf.CrossChain.Grpc
     )]
     public class GrpcCrossChainTestModule : AElfModule
     {
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
@@ -30,14 +29,11 @@ namespace AElf.CrossChain.Grpc
                 option.RemoteParentChainNodePort = 5000;
                 option.RemoteParentCertificateFileName = "AELF";
             });
-            
-            Configure<ChainOptions>(option =>
-            {
-                option.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
-            });
-            
-            Configure<CrossChainConfigOption>(option=>option.ParentChainId = "AELF");
-            
+
+            Configure<ChainOptions>(option => { option.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"); });
+
+            Configure<CrossChainConfigOption>(option => option.ParentChainId = "AELF");
+
             services.AddTransient<INodePlugin, GrpcCrossChainClientNodePlugin>();
             services.AddTransient<INodePlugin, GrpcCrossChainServerNodePlugin>();
             services.AddSingleton<ICrossChainServer, CrossChainGrpcServer>();
@@ -47,7 +43,9 @@ namespace AElf.CrossChain.Grpc
             {
                 var mockCertificateStore = new Mock<ICertificateStore>();
                 mockCertificateStore.Setup(m => m.LoadKeyStore(It.IsAny<string>()))
-                    .Returns<string>((name) => { return @"-----BEGIN RSA PRIVATE KEY-----
+                    .Returns<string>(name =>
+                    {
+                        return @"-----BEGIN RSA PRIVATE KEY-----
 MIIEjwIBAAKB/gm+Ca6sg/U+/IamfEx9FK/0brAyPWZV4MS9WRA5xx7UZaZ4iNon
 LE8TT3E4skTLtkepAj1PSUztNPCD/Wq7gVvOxQYgwgmD7NUPkuLyRvNn1H8klcBm
 MDYXWWdVIBbZK+avYqGtb+DgXVFhVsRFxRv8ELZXgOPLIAh/KXwHKsIRGQyZVyBu
@@ -73,9 +71,12 @@ HGEux0SHaq7AXTvzUvk3VB/Oc+Kq12c/Uadc7ZHKV6EwtaJ5Cde3Yo72bgtD4YCl
 fuyKG1W+m9jRgY8jc074LY6qU8YhX+DxGJufhH+rjRrgA4ZZYNdrI164V7hH4nTJ
 rlfzGF7a+YwQr6GuaaoaT/te2hXrLSmAqybPEVsprP9unyDklxM3n2urbNeTEcR+
 p1LVsMzwxFxt+Whdyxgd4qzrBg==
------END RSA PRIVATE KEY-----"; });
+-----END RSA PRIVATE KEY-----";
+                    });
                 mockCertificateStore.Setup(m => m.LoadCertificate(It.IsAny<string>()))
-                    .Returns<string>((name) => { return @"-----BEGIN CERTIFICATE-----
+                    .Returns<string>(name =>
+                    {
+                        return @"-----BEGIN CERTIFICATE-----
 MIICtzCCAaKgAwIBAgIIWTIRLVpy1xEwDQYJKoZIhvcNAQELBQAwDzENMAsGA1UE
 AwwEYWVsZjAeFw0xOTAzMjEwMDAwMDBaFw0yMDAzMjAwMDAwMDBaMA8xDTALBgNV
 BAMMBGFlbGYwggEeMA0GCSqGSIb3DQEBAQUAA4IBCwAwggEGAoH+Cb4JrqyD9T78
@@ -91,7 +92,8 @@ A2DAeWE1wDkQ5/Xs3bxMVNOM7gcULPWIaQqlBXW+gjQj87sByJq/ghDRq/0qPM99
 ygxcat8262abGL4STuWpAY2iTri7WPQnytnAyg305KjIHCazIi/787vuAnZp58CP
 9yL+1ak0ClAfId+qgMpZVYZcbuN//VL+8FSdlE/PqP3B4Dc/k9p9LGGSyRlNZbYW
 eAkW/Qv4MEnbgaq97yC2lPkyrd19N2fh5oBT
------END CERTIFICATE-----"; });
+-----END CERTIFICATE-----";
+                    });
                 return mockCertificateStore.Object;
             });
         }

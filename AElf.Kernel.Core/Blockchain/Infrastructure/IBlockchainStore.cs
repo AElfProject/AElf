@@ -11,7 +11,8 @@ namespace AElf.Kernel.Blockchain.Infrastructure
     public class BlockchainStore<T> : KeyValueStoreBase<BlockchainKeyValueDbContext, T>, IBlockchainStore<T>
         where T : IMessage<T>, new()
     {
-        public BlockchainStore(BlockchainKeyValueDbContext keyValueDbContext, IStoreKeyPrefixProvider<T> prefixProvider) : base(keyValueDbContext, prefixProvider)
+        public BlockchainStore(BlockchainKeyValueDbContext keyValueDbContext, IStoreKeyPrefixProvider<T> prefixProvider)
+            : base(keyValueDbContext, prefixProvider)
         {
         }
     }

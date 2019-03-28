@@ -19,10 +19,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
         {
-            if (blockHeader.Height == 1 || blockHeader.BlockExtraDatas.Any())
-            {
-                return null;
-            }
+            if (blockHeader.Height == 1 || blockHeader.BlockExtraDatas.Any()) return null;
 
             var consensusInformation = await _consensusService.GetNewConsensusInformationAsync();
 

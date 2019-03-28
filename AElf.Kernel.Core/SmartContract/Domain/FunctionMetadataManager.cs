@@ -7,9 +7,9 @@ namespace AElf.Kernel.SmartContract.Domain
 {
     public class FunctionMetadataManager : IFunctionMetadataManager
     {
-        private readonly IBlockchainStore<FunctionMetadata> _functionMetadataStore;
         private readonly IBlockchainStore<SerializedCallGraph> _callGraphStore;
         private readonly int _chainId;
+        private readonly IBlockchainStore<FunctionMetadata> _functionMetadataStore;
 
         public FunctionMetadataManager(IBlockchainStore<FunctionMetadata> functionMetadataStore,
             IBlockchainStore<SerializedCallGraph> callGraphStore, IOptionsSnapshot<ChainOptions> options)
@@ -17,12 +17,6 @@ namespace AElf.Kernel.SmartContract.Domain
             _functionMetadataStore = functionMetadataStore;
             _callGraphStore = callGraphStore;
             _chainId = options.Value.ChainId;
-        }
-
-
-        private string GetMetadataKey(string name)
-        {
-            return _chainId.ToStorageKey() + name;
         }
 
         public async Task AddMetadataAsync(string name, FunctionMetadata metadata)
@@ -51,6 +45,12 @@ namespace AElf.Kernel.SmartContract.Domain
         public async Task<SerializedCallGraph> GetCallGraphAsync()
         {
             return await _callGraphStore.GetAsync(_chainId.ToStorageKey());
+        }
+
+
+        private string GetMetadataKey(string name)
+        {
+            return _chainId.ToStorageKey() + name;
         }
     }
 }

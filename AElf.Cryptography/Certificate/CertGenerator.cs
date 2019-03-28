@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
@@ -9,17 +7,15 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
-using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
 
 namespace AElf.Cryptography.Certificate
 {
     public class CertGenerator
     {
-        private readonly X509V3CertificateGenerator _certificateGenerator;
-        private string _signatureAlgorithm = "SHA256WITHRSA";
         private const string DefaultSubjectName = "aelf";
-        public static double DefautIntervalDays { get; } = 365;
+        private readonly X509V3CertificateGenerator _certificateGenerator;
         private readonly SecureRandom _random = new SecureRandom();
+        private string _signatureAlgorithm = "SHA256WITHRSA";
 
         public CertGenerator(double days = 0)
         {
@@ -35,8 +31,11 @@ namespace AElf.Cryptography.Certificate
             _certificateGenerator.SetNotBefore(notBefore);
             _certificateGenerator.SetNotAfter(notAfter);
 
-            _certificateGenerator.SetSerialNumber(BigIntegers.CreateRandomInRange(BigInteger.One, BigInteger.ValueOf(long.MaxValue), _random));
+            _certificateGenerator.SetSerialNumber(BigIntegers.CreateRandomInRange(BigInteger.One,
+                BigInteger.ValueOf(long.MaxValue), _random));
         }
+
+        public static double DefautIntervalDays { get; } = 365;
 
         public CertGenerator SetSignatureAlgorithm(string algorithm)
         {
@@ -60,7 +59,7 @@ namespace AElf.Cryptography.Certificate
         {
             var generalNames = addresses.Select(addr => new GeneralName(GeneralName.IPAddress, addr)).ToArray();
             generalNames = generalNames.Append(new GeneralName(GeneralName.DnsName, "localhost")).ToArray();
-            GeneralNames subjectAltName = new GeneralNames(generalNames);
+            var subjectAltName = new GeneralNames(generalNames);
             _certificateGenerator.AddExtension(X509Extensions.SubjectAlternativeName, false, subjectAltName);
             return this;
         }

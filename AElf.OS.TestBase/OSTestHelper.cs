@@ -18,42 +18,23 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.Kernel.Types.SmartContract;
 using AElf.OS.Node.Application;
-using AElf.Types.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
-using Volo.Abp.Threading;
 
 namespace AElf.OS
 {
     public class OSTestHelper
     {
-        private readonly ChainOptions _chainOptions;
-        
-        private readonly IOsBlockchainNodeContextService _osBlockchainNodeContextService;
         private readonly IAccountService _accountService;
-        private readonly IMinerService _minerService;
         private readonly IBlockchainService _blockchainService;
+        private readonly ChainOptions _chainOptions;
+        private readonly IMinerService _minerService;
+
+        private readonly IOsBlockchainNodeContextService _osBlockchainNodeContextService;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITxHub _txHub;
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
-        
-        /// <summary>
-        /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
-        /// </summary>
-        public List<Block> BestBranchBlockList { get; set; }
-        
-        /// <summary>
-        /// 5 Blocks: q -> r -> s -> t -> u
-        /// </summary>
-        public List<Block> ForkBranchBlockList { get; set; }
-        
-        /// <summary>
-        /// 5 Blocks: v -> w -> x -> y -> z
-        /// </summary>
-        public List<Block> UnlinkedBranchBlockList { get; set; }
+        private readonly ITxHub _txHub;
 
         public OSTestHelper(IOsBlockchainNodeContextService osBlockchainNodeContextService,
             IAccountService accountService,
@@ -80,17 +61,31 @@ namespace AElf.OS
         }
 
         /// <summary>
-        /// Mock a chain with a best branch, and some fork branches
+        ///     12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
+        /// </summary>
+        public List<Block> BestBranchBlockList { get; set; }
+
+        /// <summary>
+        ///     5 Blocks: q -> r -> s -> t -> u
+        /// </summary>
+        public List<Block> ForkBranchBlockList { get; set; }
+
+        /// <summary>
+        ///     5 Blocks: v -> w -> x -> y -> z
+        /// </summary>
+        public List<Block> UnlinkedBranchBlockList { get; set; }
+
+        /// <summary>
+        ///     Mock a chain with a best branch, and some fork branches
         /// </summary>
         /// <returns>
-        ///       Mock Chain
-        ///    BestChainHeight: 11
-        ///         LIB height: 5
-        /// 
-        ///             Height: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14
-        ///        Best Branch: a -> b -> c -> d -> e -> f -> g -> h -> i -> j  -> k
-        ///        Fork Branch:                    (e)-> q -> r -> s -> t -> u
-        ///    Unlinked Branch:                                              v  -> w  -> x  -> y  -> z
+        ///     Mock Chain
+        ///     BestChainHeight: 11
+        ///     LIB height: 5
+        ///     Height: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14
+        ///     Best Branch: a -> b -> c -> d -> e -> f -> g -> h -> i -> j  -> k
+        ///     Fork Branch:                    (e)-> q -> r -> s -> t -> u
+        ///     Unlinked Branch:                                              v  -> w  -> x  -> y  -> z
         /// </returns>
         public async Task MockChain()
         {
@@ -129,7 +124,7 @@ namespace AElf.OS
             return transaction;
         }
 
-        public Transaction GenerateTransaction(Address from, Address to,string methodName, IMessage input)
+        public Transaction GenerateTransaction(Address from, Address to, string methodName, IMessage input)
         {
             var chain = _blockchainService.GetChainAsync().Result;
             var transaction = new Transaction
@@ -139,7 +134,7 @@ namespace AElf.OS
                 MethodName = methodName,
                 Params = input.ToByteString(),
                 RefBlockNumber = chain.BestChainHeight,
-                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray())
             };
 
             return transaction;
@@ -169,8 +164,8 @@ namespace AElf.OS
 
             return block;
         }
-        
-        
+
+
         #region private methods
 
         private async Task StartNode()
@@ -191,7 +186,7 @@ namespace AElf.OS
                 TokenName = "ELF_Token",
                 TotalSupply = 1000_0000L,
                 Decimals = 2,
-                Issuer =  ownAddress,
+                Issuer = ownAddress,
                 IsBurnable = true
             });
             callList.Add(nameof(TokenContract.Issue), new IssueInput
@@ -201,7 +196,7 @@ namespace AElf.OS
                 To = ownAddress,
                 Memo = "Issue"
             });
-            
+
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
                 DividendsSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
@@ -220,13 +215,13 @@ namespace AElf.OS
                 var transaction = await GenerateTransferTransaction();
                 await BroadcastTransactions(new List<Transaction> {transaction});
                 var block = await MinedOneBlock(chain.BestChainHash, chain.BestChainHeight);
-                
+
                 bestBranchBlockList.Add(block);
             }
 
             return bestBranchBlockList;
         }
-        
+
         private async Task<List<Block>> AddForkBranch(Hash previousHash, long previousHeight)
         {
             var forkBranchBlockList = new List<Block>();
@@ -235,8 +230,8 @@ namespace AElf.OS
             {
 //                var transaction = await GenerateTransferTransaction();
 //                await BroadcastTransactions(new List<Transaction> {transaction});
-                var block = await MinedOneBlock(previousHash,previousHeight);
-                
+                var block = await MinedOneBlock(previousHash, previousHeight);
+
                 forkBranchBlockList.Add(block);
 
                 previousHeight++;
@@ -245,7 +240,7 @@ namespace AElf.OS
 
             return forkBranchBlockList;
         }
-        
+
         #endregion
     }
 }

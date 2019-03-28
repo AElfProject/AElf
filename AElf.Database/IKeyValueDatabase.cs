@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace AElf.Database
 {
     public interface IKeyValueDatabase<TKeyValueDbContext>
-        where TKeyValueDbContext: KeyValueDbContext<TKeyValueDbContext>
+        where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
     {
         Task<byte[]> GetAsync(string key);
         Task SetAsync(string key, byte[] bytes);

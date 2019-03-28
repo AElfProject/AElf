@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract
         Address GetContractAddressByName(Hash hash);
 
         void Initialize(ITransactionContext transactionContext, ISmartContractContext smartContractContext);
-        
+
         Task<ByteString> GetStateAsync(string key);
     }
 }

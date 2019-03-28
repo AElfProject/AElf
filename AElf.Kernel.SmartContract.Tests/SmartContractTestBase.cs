@@ -1,15 +1,12 @@
-﻿using System;
-using AElf.TestBase;
+﻿using AElf.TestBase;
 
 namespace AElf.Kernel.SmartContract
 {
     public class SmartContractTestBase : AElfIntegratedTest<SmartContractTestAElfModule>
     {
-        
     }
-    
+
     public class SmartContractRunnerTestBase : AElfIntegratedTest<SmartContractRunnerTestAElfModule>
     {
-        
     }
 }

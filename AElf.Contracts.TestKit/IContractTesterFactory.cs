@@ -22,7 +22,7 @@ namespace AElf.Contracts.TestKit
 
         public T Create<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractTesterBase, new()
         {
-            return new T()
+            return new T
             {
                 __factory = new TestMethodFactory(_serviceProvider)
                 {

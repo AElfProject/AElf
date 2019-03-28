@@ -22,9 +22,7 @@ namespace AElf.Cryptography
         public static ECKeyPair FromPrivateKey(byte[] privateKey)
         {
             if (privateKey == null || privateKey.Length != 32)
-            {
                 throw new ArgumentException("Private key has to have length of 32.");
-            }
 
             try
             {
@@ -110,7 +108,7 @@ namespace AElf.Cryptography
         }
 
         /// <summary>
-        /// Returns a byte array of the specified length, filled with random bytes.
+        ///     Returns a byte array of the specified length, filled with random bytes.
         /// </summary>
         public static byte[] RandomFill(int count)
         {

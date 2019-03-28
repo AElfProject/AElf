@@ -28,6 +28,8 @@ namespace AElf.Database.RedisProtocol
 
     public static class RedisExtensions
     {
+        public static readonly string[] EmptyStringArray = new string [0];
+
         public static byte[][] ToMultiByteArray(this string[] args)
         {
             var byteArgs = new byte[args.Length][];
@@ -74,7 +76,7 @@ namespace AElf.Database.RedisProtocol
         }
 
         /// <summary>
-        /// Skip the encoding process for 'safe strings' 
+        ///     Skip the encoding process for 'safe strings'
         /// </summary>
         /// <param name="strVal"></param>
         /// <returns></returns>
@@ -86,7 +88,7 @@ namespace AElf.Database.RedisProtocol
 
             return bytes;
         }
-    
+
         public static List<RedisEndpoint> ToRedisEndPoints(this IEnumerable<string> hosts)
         {
             return hosts == null
@@ -94,45 +96,44 @@ namespace AElf.Database.RedisProtocol
                 : hosts.Select(x => ToRedisEndpoint(x)).ToList();
         }
 
-        
-        public static string [] SplitOnFirst (this string strVal, char needle)
+
+        public static string[] SplitOnFirst(this string strVal, char needle)
         {
             if (strVal == null) return EmptyStringArray;
-            var pos = strVal.IndexOf (needle);
+            var pos = strVal.IndexOf(needle);
             return pos == -1
-                ? new [] { strVal }
-                : new [] { strVal.Substring (0, pos), strVal.Substring (pos + 1) };
+                ? new[] {strVal}
+                : new[] {strVal.Substring(0, pos), strVal.Substring(pos + 1)};
         }
 
 
-        public static string [] SplitOnFirst (this string strVal, string needle)
+        public static string[] SplitOnFirst(this string strVal, string needle)
         {
             if (strVal == null) return EmptyStringArray;
-            var pos = strVal.IndexOf (needle, StringComparison.OrdinalIgnoreCase);
+            var pos = strVal.IndexOf(needle, StringComparison.OrdinalIgnoreCase);
             return pos == -1
-                ? new [] { strVal }
-                : new [] { strVal.Substring (0, pos), strVal.Substring (pos + needle.Length) };
-        }
-        public static string [] SplitOnLast (this string strVal, char needle)
-        {
-            if (strVal == null) return EmptyStringArray;
-            var pos = strVal.LastIndexOf (needle);
-            return pos == -1
-                ? new [] { strVal }
-                : new [] { strVal.Substring (0, pos), strVal.Substring (pos + 1) };
+                ? new[] {strVal}
+                : new[] {strVal.Substring(0, pos), strVal.Substring(pos + needle.Length)};
         }
 
-        public static readonly string [] EmptyStringArray = new string [0];
-
-        public static string [] SplitOnLast (this string strVal, string needle)
+        public static string[] SplitOnLast(this string strVal, char needle)
         {
             if (strVal == null) return EmptyStringArray;
-            var pos = strVal.LastIndexOf (needle, StringComparison.OrdinalIgnoreCase);
+            var pos = strVal.LastIndexOf(needle);
             return pos == -1
-                ? new [] { strVal }
-                : new [] { strVal.Substring (0, pos), strVal.Substring (pos + needle.Length) };
+                ? new[] {strVal}
+                : new[] {strVal.Substring(0, pos), strVal.Substring(pos + 1)};
         }
-        
+
+        public static string[] SplitOnLast(this string strVal, string needle)
+        {
+            if (strVal == null) return EmptyStringArray;
+            var pos = strVal.LastIndexOf(needle, StringComparison.OrdinalIgnoreCase);
+            return pos == -1
+                ? new[] {strVal}
+                : new[] {strVal.Substring(0, pos), strVal.Substring(pos + needle.Length)};
+        }
+
         public static RedisEndpoint ToRedisEndpoint(this string connectionString, int? defaultPort = null)
         {
             if (connectionString == null)
@@ -167,7 +168,7 @@ namespace AElf.Database.RedisProtocol
                 foreach (var param in qsParams)
                 {
                     var entry = param.Split('=');
-                    var value = entry.Length > 1 ? WebUtility.UrlDecode( entry[1] ) : null;
+                    var value = entry.Length > 1 ? WebUtility.UrlDecode(entry[1]) : null;
                     if (value == null) continue;
 
                     var name = entry[0].ToLower();
@@ -216,43 +217,6 @@ namespace AElf.Database.RedisProtocol
 
     internal static class RedisExtensionsInternal
     {
-//        public static bool IsConnected(this Socket socket)
-//        {
-//            try
-//            {
-//                return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
-//            }
-//            catch (SocketException)
-//            {
-//                return false;
-//            }
-//        }
-
-//
-//        public static string[] GetIds(this IHasStringId[] itemsWithId)
-//        {
-//            var ids = new string[itemsWithId.Length];
-//            for (var i = 0; i < itemsWithId.Length; i++)
-//            {
-//                ids[i] = itemsWithId[i].Id;
-//            }
-//
-//            return ids;
-//        }
-
-        public static List<string> ToStringList(this byte[][] multiDataList)
-        {
-            if (multiDataList == null)
-                return new List<string>();
-
-            var results = new List<string>();
-            foreach (var multiData in multiDataList)
-            {
-                results.Add(multiData.FromUtf8Bytes());
-            }
-
-            return results;
-        }
 //
 //        public static string[] ToStringArray(this byte[][] multiDataList)
 //        {
@@ -289,6 +253,40 @@ namespace AElf.Database.RedisProtocol
             PositiveInfinitySymbol = "+inf",
             NegativeInfinitySymbol = "-inf"
         };
+//        public static bool IsConnected(this Socket socket)
+//        {
+//            try
+//            {
+//                return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
+//            }
+//            catch (SocketException)
+//            {
+//                return false;
+//            }
+//        }
+
+//
+//        public static string[] GetIds(this IHasStringId[] itemsWithId)
+//        {
+//            var ids = new string[itemsWithId.Length];
+//            for (var i = 0; i < itemsWithId.Length; i++)
+//            {
+//                ids[i] = itemsWithId[i].Id;
+//            }
+//
+//            return ids;
+//        }
+
+        public static List<string> ToStringList(this byte[][] multiDataList)
+        {
+            if (multiDataList == null)
+                return new List<string>();
+
+            var results = new List<string>();
+            foreach (var multiData in multiDataList) results.Add(multiData.FromUtf8Bytes());
+
+            return results;
+        }
 
         public static byte[] ToFastUtf8Bytes(this double value)
         {
@@ -351,10 +349,10 @@ namespace AElf.Database.RedisProtocol
             Code = code;
         }
 
-        public string Code { get; private set; }
+        public string Code { get; }
     }
 
-    public class RedisEndpoint 
+    public class RedisEndpoint
     {
         public RedisEndpoint()
         {
@@ -372,10 +370,10 @@ namespace AElf.Database.RedisProtocol
         public RedisEndpoint(string host, int port, string password = null, long db = RedisConfig.DefaultDb)
             : this()
         {
-            this.Host = host;
-            this.Port = port;
-            this.Password = password;
-            this.Db = db;
+            Host = host;
+            Port = port;
+            Password = password;
+            Db = db;
         }
 
         public string Host { get; set; }
@@ -390,10 +388,7 @@ namespace AElf.Database.RedisProtocol
         public string Client { get; set; }
         public string Password { get; set; }
 
-        public bool RequiresAuth
-        {
-            get { return !string.IsNullOrEmpty(Password); }
-        }
+        public bool RequiresAuth => !string.IsNullOrEmpty(Password);
 
         public string NamespacePrefix { get; set; }
 
@@ -403,11 +398,11 @@ namespace AElf.Database.RedisProtocol
             sb.AppendFormat("{0}:{1}", Host, Port);
 
             var args = new List<string>();
-            
+
             if (Client != null)
                 args.Add("Client=" + Client);
             if (Password != null)
-                args.Add("Password=" + System.Net.WebUtility.UrlEncode(Password));
+                args.Add("Password=" + WebUtility.UrlEncode(Password));
             if (Db != RedisConfig.DefaultDb)
                 args.Add("Db=" + Db);
             if (Ssl)
@@ -423,7 +418,7 @@ namespace AElf.Database.RedisProtocol
             if (IdleTimeOutSecs != RedisConfig.DefaultIdleTimeOutSecs)
                 args.Add("IdleTimeOutSecs=" + IdleTimeOutSecs);
             if (NamespacePrefix != null)
-                args.Add("NamespacePrefix=" + System.Net.WebUtility.UrlEncode(NamespacePrefix));
+                args.Add("NamespacePrefix=" + WebUtility.UrlEncode(NamespacePrefix));
 
             if (args.Count > 0)
                 sb.Append("?").Append(string.Join("&", args));
@@ -451,7 +446,7 @@ namespace AElf.Database.RedisProtocol
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((RedisEndpoint) obj);
         }
 
@@ -459,7 +454,7 @@ namespace AElf.Database.RedisProtocol
         {
             unchecked
             {
-                var hashCode = (Host != null ? Host.GetHashCode() : 0);
+                var hashCode = Host != null ? Host.GetHashCode() : 0;
                 hashCode = (hashCode * 397) ^ Port;
                 hashCode = (hashCode * 397) ^ Ssl.GetHashCode();
                 hashCode = (hashCode * 397) ^ ConnectTimeout;
@@ -475,7 +470,7 @@ namespace AElf.Database.RedisProtocol
             }
         }
     }
-    
+
     public class RedisConfig
     {
         //redis-server defaults:
@@ -486,89 +481,88 @@ namespace AElf.Database.RedisProtocol
         public const string DefaultHost = "localhost";
 
         /// <summary>
-        /// The default RedisClient Socket ConnectTimeout (default -1, None)
+        ///     The default RedisClient Socket ConnectTimeout (default -1, None)
         /// </summary>
         public static int DefaultConnectTimeout = -1;
 
         /// <summary>
-        /// The default RedisClient Socket SendTimeout (default -1, None)
+        ///     The default RedisClient Socket SendTimeout (default -1, None)
         /// </summary>
         public static int DefaultSendTimeout = -1;
 
         /// <summary>
-        /// The default RedisClient Socket ReceiveTimeout (default -1, None)
+        ///     The default RedisClient Socket ReceiveTimeout (default -1, None)
         /// </summary>
         public static int DefaultReceiveTimeout = -1;
 
         /// <summary>
-        /// Default Idle TimeOut before a connection is considered to be stale (default 240 secs)
+        ///     Default Idle TimeOut before a connection is considered to be stale (default 240 secs)
         /// </summary>
         public static int DefaultIdleTimeOutSecs = 240;
 
         /// <summary>
-        /// The default RetryTimeout for auto retry of failed operations (default 10,000ms)
+        ///     The default RetryTimeout for auto retry of failed operations (default 10,000ms)
         /// </summary>
         public static int DefaultRetryTimeout = 10 * 1000;
 
         /// <summary>
-        /// Default Max Pool Size for Pooled Redis Client Managers (default none)
+        ///     Default Max Pool Size for Pooled Redis Client Managers (default none)
         /// </summary>
         public static int? DefaultMaxPoolSize;
 
         /// <summary>
-        /// The BackOff multiplier failed Auto Retries starts from (default 10ms)
+        ///     The BackOff multiplier failed Auto Retries starts from (default 10ms)
         /// </summary>
         public static int BackOffMultiplier = 10;
 
         /// <summary>
-        /// The Byte Buffer Size to combine Redis Operations within (1450 bytes)
-        /// </summary>
-        public static int BufferLength => 1450;
-
-        /// <summary>
-        /// The Byte Buffer Size for Operations to use a byte buffer pool (default 500kb)
+        ///     The Byte Buffer Size for Operations to use a byte buffer pool (default 500kb)
         /// </summary>
         public static int BufferPoolMaxSize = 500000;
 
         /// <summary>
-        /// Whether Connections to Master hosts should be verified they're still master instances (default true)
+        ///     Whether Connections to Master hosts should be verified they're still master instances (default true)
         /// </summary>
         public static bool VerifyMasterConnections = true;
 
         /// <summary>
-        /// The ConnectTimeout on clients used to find the next available host (default 200ms)
+        ///     The ConnectTimeout on clients used to find the next available host (default 200ms)
         /// </summary>
         public static int HostLookupTimeoutMs = 200;
 
         /// <summary>
-        /// Skip ServerVersion Checks by specifying Min Version number, e.g: 2.8.12 => 2812, 2.9.1 => 2910
+        ///     Skip ServerVersion Checks by specifying Min Version number, e.g: 2.8.12 => 2812, 2.9.1 => 2910
         /// </summary>
         public static int? AssumeServerVersion;
 
         /// <summary>
-        /// How long to hold deactivated clients for before disposing their connection (default 1 min)
-        /// Dispose of deactivated Clients immediately with TimeSpan.Zero
+        ///     How long to hold deactivated clients for before disposing their connection (default 1 min)
+        ///     Dispose of deactivated Clients immediately with TimeSpan.Zero
         /// </summary>
         public static TimeSpan DeactivatedClientsExpiry = TimeSpan.FromMinutes(1);
 
         /// <summary>
-        /// Whether Debug Logging should log detailed Redis operations (default false)
+        ///     Whether Debug Logging should log detailed Redis operations (default false)
         /// </summary>
-        public static bool DisableVerboseLogging = false;
+        public static bool DisableVerboseLogging;
 
 
         /// <summary>
-        /// Assert all access using pooled RedisClient instance should be limited to same thread.
-        /// Captures StackTrace so is very slow, use only for debugging connection issues.
+        ///     Assert all access using pooled RedisClient instance should be limited to same thread.
+        ///     Captures StackTrace so is very slow, use only for debugging connection issues.
         /// </summary>
-        public static bool AssertAccessOnlyOnSameThread = false;
+        public static bool AssertAccessOnlyOnSameThread;
 
         /// <summary>
-        /// Resets Redis Config and Redis Stats back to default values
+        ///     The Byte Buffer Size to combine Redis Operations within (1450 bytes)
+        /// </summary>
+        public static int BufferLength => 1450;
+
+        /// <summary>
+        ///     Resets Redis Config and Redis Stats back to default values
         /// </summary>
         public static void Reset()
         {
-
             DefaultConnectTimeout = -1;
             DefaultSendTimeout = -1;
             DefaultReceiveTimeout = -1;

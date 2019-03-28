@@ -4,11 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Application;
 using AElf.Cryptography;
-using AElf.Kernel;
-using AElf.OS;
-using AElf.OS.Rpc;
 using Anemonis.AspNetCore.JsonRpc;
-using Microsoft.Extensions.Options;
 
 namespace AElf.OS.Rpc.Wallet
 {
@@ -31,15 +27,11 @@ namespace AElf.OS.Rpc.Wallet
         {
             var tryOpen = await KeyStore.OpenAsync(address, password);
             if (tryOpen == AElfKeyStore.Errors.WrongPassword)
-            {
                 throw new JsonRpcServiceException(Error.WrongPassword, Error.Message[Error.WrongPassword]);
-            }
 
             var kp = KeyStore.GetAccountKeyPair(address);
             if (kp == null)
-            {
                 throw new JsonRpcServiceException(Error.AccountNotExist, Error.Message[Error.AccountNotExist]);
-            }
 
             var toSig = ByteArrayHelpers.FromHexString(hash);
             var signature = CryptoHelpers.SignWithPrivateKey(kp.PrivateKey, toSig);

@@ -1,9 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using AElf.Kernel;
-using AElf.Kernel.SmartContract;
-using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 
@@ -12,8 +6,8 @@ namespace AElf.Sdk.CSharp.State
     //TODO: Add FuncInfo test case [Case]
     public class FuncInfo<T>
     {
-        private readonly ContractReferenceState _owner;
         private readonly string _name;
+        private readonly ContractReferenceState _owner;
 
         public FuncInfo(ContractReferenceState owner, string name)
         {

@@ -4,25 +4,24 @@ using System.IO;
 using System.Text;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using Org.BouncyCastle.Asn1.X509.Qualified;
 
 namespace AElf.Sdk.CSharp.State
 {
     public static class SerializationHelper
     {
         private static readonly Dictionary<Type, Action<CodedOutputStream, object>> _primitiveWriters =
-            new Dictionary<Type, Action<CodedOutputStream, object>>()
+            new Dictionary<Type, Action<CodedOutputStream, object>>
             {
                 {typeof(bool), (stream, value) => stream.WriteBool((bool) value)},
                 {typeof(int), (stream, value) => stream.WriteSInt32((int) value)},
                 {typeof(uint), (stream, value) => stream.WriteUInt32((uint) value)},
                 {typeof(long), (stream, value) => stream.WriteSInt64((long) value)},
                 {typeof(ulong), (stream, value) => stream.WriteUInt64((ulong) value)},
-                {typeof(byte[]), (stream, value) => stream.WriteBytes(ByteString.CopyFrom((byte[]) value))},
+                {typeof(byte[]), (stream, value) => stream.WriteBytes(ByteString.CopyFrom((byte[]) value))}
             };
 
         private static readonly Dictionary<Type, Func<CodedInputStream, object>> _primitiveReaders =
-            new Dictionary<Type, Func<CodedInputStream, object>>()
+            new Dictionary<Type, Func<CodedInputStream, object>>
             {
                 {typeof(bool), stream => stream.ReadBool()},
                 {typeof(int), stream => stream.ReadSInt32()},
@@ -35,7 +34,6 @@ namespace AElf.Sdk.CSharp.State
         private static Func<object, byte[]> GetPrimitiveSerializer(Type type)
         {
             if (_primitiveWriters.TryGetValue(type, out var writer))
-            {
                 return value =>
                 {
                     using (var mm = new MemoryStream())
@@ -47,7 +45,6 @@ namespace AElf.Sdk.CSharp.State
                         return mm.ToArray();
                     }
                 };
-            }
 
             return null;
         }
@@ -55,7 +52,6 @@ namespace AElf.Sdk.CSharp.State
         private static Func<byte[], object> GetPrimitiveDeserializer(Type type)
         {
             if (_primitiveReaders.TryGetValue(type, out var reader))
-            {
                 return bytes =>
                 {
                     using (var cis = new CodedInputStream(bytes))
@@ -63,7 +59,6 @@ namespace AElf.Sdk.CSharp.State
                         return reader(cis);
                     }
                 };
-            }
 
             return null;
         }
@@ -71,22 +66,13 @@ namespace AElf.Sdk.CSharp.State
         //Done: make a unit test to test Serialize / Deserialize different types such as int,string,long,Block,Hash....
         public static byte[] Serialize(object value)
         {
-            if (value == null)
-            {
-                return null;
-            }
+            if (value == null) return null;
 
             var type = value.GetType();
             var primitiveSerializer = GetPrimitiveSerializer(type);
-            if (primitiveSerializer != null)
-            {
-                return primitiveSerializer(value);
-            }
+            if (primitiveSerializer != null) return primitiveSerializer(value);
 
-            if (type == typeof(string))
-            {
-                return Encoding.UTF8.GetBytes((string) value);
-            }
+            if (type == typeof(string)) return Encoding.UTF8.GetBytes((string) value);
 
             if (type.IsPbMessageType())
             {
@@ -106,18 +92,12 @@ namespace AElf.Sdk.CSharp.State
             var primitiveDeserializer = GetPrimitiveDeserializer(type);
             if (primitiveDeserializer != null)
             {
-                if (bytes.Length > 0)
-                {
-                    return (T) primitiveDeserializer(bytes);
-                }
+                if (bytes.Length > 0) return (T) primitiveDeserializer(bytes);
 
                 return default(T);
             }
 
-            if (type == typeof(string))
-            {
-                return (T) (object) Encoding.UTF8.GetString(bytes);
-            }
+            if (type == typeof(string)) return (T) (object) Encoding.UTF8.GetString(bytes);
 
             if (type.IsPbMessageType())
             {

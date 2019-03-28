@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -13,13 +12,14 @@ namespace AElf.Kernel
         ITransientDependency
     {
         private readonly IBackgroundJobManager _backgroundJobManager;
-        public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(IBackgroundJobManager backgroundJobManager)
         {
             _backgroundJobManager = backgroundJobManager;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
+
+        public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {

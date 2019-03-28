@@ -4,7 +4,6 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
@@ -12,12 +11,12 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainService _crossChainService;
 
-        public ILogger<CrossChainBlockExtraDataProvider> Logger { get; set; }
-
         public CrossChainBlockExtraDataProvider(ICrossChainService crossChainService)
         {
             _crossChainService = crossChainService;
         }
+
+        public ILogger<CrossChainBlockExtraDataProvider> Logger { get; set; }
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
         {
@@ -31,7 +30,7 @@ namespace AElf.CrossChain
                     blockHeader.Height - 1);
             if (newCrossChainBlockData == null || newCrossChainBlockData.SideChainBlockData.Count == 0)
                 return ByteString.Empty;
-            
+
             var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMKRoot);
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
 

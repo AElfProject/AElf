@@ -7,15 +7,15 @@ using Xunit;
 
 namespace AElf.Kernel.Blockchain.Application
 {
-    public class FullBlockchainServiceCreateChainTests: AElfKernelTestBase
+    public class FullBlockchainServiceCreateChainTests : AElfKernelTestBase
     {
-        private readonly FullBlockchainService _fullBlockchainService;
-
         public FullBlockchainServiceCreateChainTests()
         {
             _fullBlockchainService = GetRequiredService<FullBlockchainService>();
         }
-        
+
+        private readonly FullBlockchainService _fullBlockchainService;
+
         [Fact]
         public async Task Create_Chain_Success()
         {

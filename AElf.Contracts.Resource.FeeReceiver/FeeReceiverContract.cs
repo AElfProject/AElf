@@ -1,5 +1,4 @@
-﻿using System;
-using AElf.Common;
+﻿using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -7,10 +6,10 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.Resource.FeeReceiver
 {
     /// <summary>
-    /// This contracts controls how the fees collected from resource trading can be used. Current rule says
-    /// 50% of the fees will be burned and the other 50% distributed to the foundation.
+    ///     This contracts controls how the fees collected from resource trading can be used. Current rule says
+    ///     50% of the fees will be burned and the other 50% distributed to the foundation.
     /// </summary>
-    public class FeeReceiverContract: FeeReceiverContractContainer.FeeReceiverContractBase
+    public class FeeReceiverContract : FeeReceiverContractContainer.FeeReceiverContractBase
     {
         #region Views
 
@@ -26,15 +25,15 @@ namespace AElf.Contracts.Resource.FeeReceiver
 
         public override SInt64Value GetOwedToFoundation(Empty input)
         {
-            return new SInt64Value() {Value = State.OwedToFoundation.Value};
+            return new SInt64Value {Value = State.OwedToFoundation.Value};
         }
 
         #endregion Views
-        
+
         #region Actions
 
         /// <summary>
-        /// Initializes this contract.
+        ///     Initializes this contract.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -49,7 +48,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         /// <summary>
-        /// Withdraw specific amount owed to the foundation. Only foundation can perform this action.
+        ///     Withdraw specific amount owed to the foundation. Only foundation can perform this action.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -60,31 +59,29 @@ namespace AElf.Contracts.Resource.FeeReceiver
             var owed = State.OwedToFoundation.Value;
             Assert(owed >= amount, "Too much to withdraw.");
             if (amount > 0)
-            {
                 State.TokenContract.Transfer.Send(new TransferInput
                 {
                     To = State.FoundationAddress.Value,
                     Amount = amount,
                     Symbol = "ELF"
                 });
-            }
             State.OwedToFoundation.Value = owed.Sub(amount);
             return new Empty();
         }
 
         /// <summary>
-        /// Withdraw all amount owed to the foundation. Only foundation can perform this action.
+        ///     Withdraw all amount owed to the foundation. Only foundation can perform this action.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
         public override Empty WithdrawAll(Empty input)
         {
             var owed = State.OwedToFoundation.Value;
-            return Withdraw(new SInt64Value() {Value = owed});
+            return Withdraw(new SInt64Value {Value = owed});
         }
 
         /// <summary>
-        /// Burn half of raw tokens and set the other half as owed to foundation. Anyone can perform this action.
+        ///     Burn half of raw tokens and set the other half as owed to foundation. Anyone can perform this action.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -99,13 +96,11 @@ namespace AElf.Contracts.Resource.FeeReceiver
             var preBurnAmount = bal.Sub(owed);
             var half = preBurnAmount.Div(2);
             if (half > 0)
-            {
                 State.TokenContract.Burn.Send(new BurnInput
                 {
                     Symbol = "ELF",
                     Amount = half
                 });
-            }
             owed = owed.Add(half);
             State.OwedToFoundation.Value = owed;
             return new Empty();

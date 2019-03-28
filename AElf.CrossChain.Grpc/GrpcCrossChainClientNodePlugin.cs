@@ -3,20 +3,21 @@ using AElf.Common;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Node.Infrastructure;
-using Grpc.Core;
 using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Grpc
 {
-    public class GrpcCrossChainClientNodePlugin : INodePlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>, ILocalEventHandler<BestChainFoundEventData>
+    public class GrpcCrossChainClientNodePlugin : INodePlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>,
+        ILocalEventHandler<BestChainFoundEventData>
     {
+        private readonly ICertificateStore _certificateStore;
+        private readonly CrossChainConfigOption _crossChainConfigOption;
         private readonly CrossChainGrpcClientController _crossChainGrpcClientController;
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
-        private readonly CrossChainConfigOption _crossChainConfigOption;
-        private readonly ICertificateStore _certificateStore;
-        public GrpcCrossChainClientNodePlugin(CrossChainGrpcClientController crossChainGrpcClientController, 
-            IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
+
+        public GrpcCrossChainClientNodePlugin(CrossChainGrpcClientController crossChainGrpcClientController,
+            IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption,
             IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption, ICertificateStore certificateStore)
         {
             _crossChainGrpcClientController = crossChainGrpcClientController;
@@ -25,9 +26,23 @@ namespace AElf.CrossChain.Grpc
             _certificateStore = certificateStore;
         }
 
+        public Task HandleEventAsync(BestChainFoundEventData eventData)
+        {
+            _crossChainGrpcClientController.RequestCrossChainIndexing();
+            return Task.CompletedTask;
+        }
+
+        public Task HandleEventAsync(GrpcServeNewChainReceivedEvent receivedEventData)
+        {
+            return _crossChainGrpcClientController.CreateClient(receivedEventData.CrossChainCommunicationContextDto,
+                LoadCertificate(
+                    ((GrpcCrossChainCommunicationContext) receivedEventData.CrossChainCommunicationContextDto)
+                    .CertificateFileName));
+        }
+
         public Task StartAsync(int chainId)
         {
-            if (!_grpcCrossChainConfigOption.LocalClient) 
+            if (!_grpcCrossChainConfigOption.LocalClient)
                 return Task.CompletedTask;
             var certificate = LoadCertificate(_grpcCrossChainConfigOption.RemoteParentCertificateFileName);
             return _crossChainGrpcClientController.CreateClient(new GrpcCrossChainCommunicationContext
@@ -42,19 +57,6 @@ namespace AElf.CrossChain.Grpc
             }, certificate);
         }
 
-        public Task HandleEventAsync(GrpcServeNewChainReceivedEvent receivedEventData)
-        {
-            return _crossChainGrpcClientController.CreateClient(receivedEventData.CrossChainCommunicationContextDto,
-                LoadCertificate(
-                    ((GrpcCrossChainCommunicationContext) receivedEventData.CrossChainCommunicationContextDto)
-                    .CertificateFileName));
-        }
-        public Task HandleEventAsync(BestChainFoundEventData eventData)
-        {
-            _crossChainGrpcClientController.RequestCrossChainIndexing();
-            return Task.CompletedTask;
-        }
-        
         public Task ShutdownAsync()
         {
             _crossChainGrpcClientController.CloseClientsToSideChain();

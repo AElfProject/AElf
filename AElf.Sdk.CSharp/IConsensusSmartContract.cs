@@ -1,7 +1,4 @@
-using AElf.Common;
 using AElf.Kernel;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp
 {

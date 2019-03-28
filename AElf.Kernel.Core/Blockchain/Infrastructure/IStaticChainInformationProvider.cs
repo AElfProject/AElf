@@ -14,6 +14,12 @@ namespace AElf.Kernel.Blockchain.Infrastructure
 
     public class StaticChainInformationProvider : IStaticChainInformationProvider, ISingletonDependency
     {
+        public StaticChainInformationProvider(IOptionsSnapshot<ChainOptions> chainOptions)
+        {
+            ChainId = chainOptions.Value.ChainId;
+            ZeroSmartContractAddress = BuildContractAddress(ChainId, 0);
+        }
+
         public int ChainId { get; }
         public Address ZeroSmartContractAddress { get; }
 
@@ -22,14 +28,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
             return BuildContractAddress(ChainId, i);
         }
 
-        public StaticChainInformationProvider(IOptionsSnapshot<ChainOptions> chainOptions)
-        {
-            ChainId = chainOptions.Value.ChainId;
-            ZeroSmartContractAddress = BuildContractAddress(ChainId, 0);
-        }
-
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="chainId"></param>
         /// <param name="serialNumber"></param>

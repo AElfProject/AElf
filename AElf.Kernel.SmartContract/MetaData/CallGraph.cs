@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Google.Protobuf.Collections;
 using QuickGraph;
 
 //TODO: All code about Metadata without cases covered, including AElf.Kernel.SmartContract and AElf.Runtime.CSharp.Core [Case]
@@ -12,7 +11,7 @@ namespace AElf.Kernel.SmartContract.MetaData
         {
             return CallingGraphToString(this) == CallingGraphToString(other);
         }
-        
+
         private string CallingGraphToString(CallGraph callGraph)
         {
             return

@@ -1,20 +1,16 @@
-﻿using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using Org.BouncyCastle.Security;
+﻿using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Kernel.SmartContract.Domain;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Domain;
 
 namespace AElf.Kernel.SmartContract.Metadata
 {
     public class FunctionMetadataService : IFunctionMetadataService
     {
-        public ILogger<FunctionMetadataService> Logger { get; set; }
         private readonly IFunctionMetadataManager _functionMetadataManager;
 
-        private ChainFunctionMetadata chainFuncMetadata;
+        private readonly ChainFunctionMetadata chainFuncMetadata;
 
         public FunctionMetadataService(IFunctionMetadataManager functionMetadataManager)
         {
@@ -22,6 +18,8 @@ namespace AElf.Kernel.SmartContract.Metadata
             chainFuncMetadata = new ChainFunctionMetadata(_functionMetadataManager);
             _functionMetadataManager = functionMetadataManager;
         }
+
+        public ILogger<FunctionMetadataService> Logger { get; set; }
 
         public async Task DeployContract(Address address, ContractMetadataTemplate contractMetadataTemplate)
         {

@@ -11,18 +11,12 @@ namespace AElf.Kernel.SmartContract.Infrastructure
 
         public SmartContractRunnerContainer(IEnumerable<ISmartContractRunner> runners)
         {
-            foreach (var r in runners)
-            {
-                _runners[r.Category] = r;
-            }
+            foreach (var r in runners) _runners[r.Category] = r;
         }
 
         public ISmartContractRunner GetRunner(int category)
         {
-            if (_runners.TryGetValue(category, out var runner))
-            {
-                return runner;
-            }
+            if (_runners.TryGetValue(category, out var runner)) return runner;
 
             throw new InvalidParameterException($"The runner for category {category} is not registered.");
         }
@@ -30,17 +24,12 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         public void AddRunner(int category, ISmartContractRunner runner)
         {
             if (!_runners.TryAdd(category, runner))
-            {
                 throw new InvalidParameterException($"The runner for category {category} is already registered.");
-            }
         }
 
         public void UpdateRunner(int category, ISmartContractRunner runner)
         {
-            if (_runners.ContainsKey(category))
-            {
-                _runners.AddOrUpdate(category, runner, (key, oldVal) => runner);
-            }
+            if (_runners.ContainsKey(category)) _runners.AddOrUpdate(category, runner, (key, oldVal) => runner);
         }
     }
 }

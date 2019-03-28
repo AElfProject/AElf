@@ -19,10 +19,6 @@ namespace AElf.Contracts.MultiToken
 {
     public class LockTest
     {
-        private ContractTester<MultiTokenContractTestAElfModule> Starter { get; set; }
-
-        private Address ConsensusContractAddress => Starter.GetConsensusContractAddress();
-
         public LockTest()
         {
             Starter = new ContractTester<MultiTokenContractTestAElfModule>();
@@ -43,7 +39,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 20,
                 ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
-                Memo = "Issue ",
+                Memo = "Issue "
             });
 
             // For testing.
@@ -52,7 +48,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 80,
                 To = Starter.GetCallOwnerAddress(),
-                Memo = "Set dividends.",
+                Memo = "Set dividends."
             });
             AsyncHelper.RunSync(() => Starter.InitialChainAsync(list =>
             {
@@ -60,6 +56,94 @@ namespace AElf.Contracts.MultiToken
                 list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name,
                     tokenContractCallList);
             }));
+        }
+
+        private ContractTester<MultiTokenContractTestAElfModule> Starter { get; }
+
+        private Address ConsensusContractAddress => Starter.GetConsensusContractAddress();
+
+        private async Task<ContractTester<MultiTokenContractTestAElfModule>> GenerateTesterAndIssueToken(long amount)
+        {
+            var user = GenerateUser();
+
+            var tester = Starter.CreateNewContractTester(user);
+
+            await Starter.TransferTokenAsync(user, amount);
+
+            return tester;
+        }
+
+        private static User GenerateUser()
+        {
+            var callKeyPair = CryptoHelpers.GenerateKeyPair();
+            var callAddress = Address.FromPublicKey(callKeyPair.PublicKey);
+            var callPublicKey = callKeyPair.PublicKey.ToHex();
+
+            return new User
+            {
+                KeyPair = callKeyPair,
+                Address = callAddress,
+                PublicKey = callPublicKey
+            };
+        }
+
+        private struct User
+        {
+            public ECKeyPair KeyPair { get; set; }
+            public Address Address { get; set; }
+            public string PublicKey { get; set; }
+
+            public static implicit operator ECKeyPair(User user)
+            {
+                return user.KeyPair;
+            }
+
+            public static implicit operator Address(User user)
+            {
+                return user.Address;
+            }
+
+            public static implicit operator string(User user)
+            {
+                return user.PublicKey;
+            }
+        }
+
+        [Fact]
+        public async Task Cannot_Lock_To_Address_Not_In_White_List()
+        {
+            const long amount = 100;
+
+            var user = GenerateUser();
+
+            var tester = Starter.CreateNewContractTester(user);
+
+            await Starter.TransferTokenAsync(user, amount);
+
+            // Try to lock.
+            var lockId = Hash.Generate();
+
+            // Lock.
+            var transactionResult = await tester.Lock(amount, lockId, Address.Generate());
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Not in white list");
+        }
+
+        [Fact]
+        public async Task Lock_With_Insufficient_Balance()
+        {
+            const long amount = 100;
+
+            var tester = await GenerateTesterAndIssueToken(amount);
+
+            var lockId = Hash.Generate();
+
+            // Lock.
+            var transactionResult = await tester.Lock(amount * 2, lockId);
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Insufficient balance");
         }
 
         [Fact]
@@ -119,44 +203,42 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Cannot_Lock_To_Address_Not_In_White_List()
+        public async Task Unlock_Token_Not_Himself()
         {
             const long amount = 100;
 
-            var user = GenerateUser();
+            var tester1 = await GenerateTesterAndIssueToken(amount);
+            var tester2 = await GenerateTesterAndIssueToken(amount);
 
-            var tester = Starter.CreateNewContractTester(user);
-
-            await Starter.TransferTokenAsync(user, amount);
-
-            // Try to lock.
             var lockId = Hash.Generate();
 
             // Lock.
-            var transactionResult = await tester.Lock(amount, lockId, Address.Generate());
+            await tester1.Lock(amount, lockId);
+
+            var transactionResult = await tester2.Unlock(amount, lockId);
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Not in white list");
+            transactionResult.Error.ShouldContain("Insufficient balance");
         }
 
         [Fact]
-        public async Task Lock_With_Insufficient_Balance()
+        public async Task Unlock_Token_With_Strange_LockId()
         {
             const long amount = 100;
 
             var tester = await GenerateTesterAndIssueToken(amount);
 
-            var lockId = Hash.Generate();
-
             // Lock.
-            var transactionResult = await tester.Lock(amount * 2, lockId);
+            await tester.Lock(amount, Hash.Generate());
+
+            var transactionResult = await tester.Unlock(amount, Hash.Generate());
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Insufficient balance");
         }
 
         /// <summary>
-        /// It's okay to unlock one locked token to get total amount via several times.
+        ///     It's okay to unlock one locked token to get total amount via several times.
         /// </summary>
         /// <returns></returns>
         [Fact]
@@ -210,88 +292,6 @@ namespace AElf.Contracts.MultiToken
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Insufficient balance");
-        }
-
-        [Fact]
-        public async Task Unlock_Token_Not_Himself()
-        {
-            const long amount = 100;
-
-            var tester1 = await GenerateTesterAndIssueToken(amount);
-            var tester2 = await GenerateTesterAndIssueToken(amount);
-
-            var lockId = Hash.Generate();
-
-            // Lock.
-            await tester1.Lock(amount, lockId);
-
-            var transactionResult = await tester2.Unlock(amount, lockId);
-
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Insufficient balance");
-        }
-
-        [Fact]
-        public async Task Unlock_Token_With_Strange_LockId()
-        {
-            const long amount = 100;
-
-            var tester = await GenerateTesterAndIssueToken(amount);
-
-            // Lock.
-            await tester.Lock(amount, Hash.Generate());
-
-            var transactionResult = await tester.Unlock(amount, Hash.Generate());
-
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Insufficient balance");
-        }
-
-        private async Task<ContractTester<MultiTokenContractTestAElfModule>> GenerateTesterAndIssueToken(long amount)
-        {
-            var user = GenerateUser();
-
-            var tester = Starter.CreateNewContractTester(user);
-
-            await Starter.TransferTokenAsync(user, amount);
-
-            return tester;
-        }
-
-        private static User GenerateUser()
-        {
-            var callKeyPair = CryptoHelpers.GenerateKeyPair();
-            var callAddress = Address.FromPublicKey(callKeyPair.PublicKey);
-            var callPublicKey = callKeyPair.PublicKey.ToHex();
-
-            return new User
-            {
-                KeyPair = callKeyPair,
-                Address = callAddress,
-                PublicKey = callPublicKey
-            };
-        }
-
-        private struct User
-        {
-            public ECKeyPair KeyPair { get; set; }
-            public Address Address { get; set; }
-            public string PublicKey { get; set; }
-
-            public static implicit operator ECKeyPair(User user)
-            {
-                return user.KeyPair;
-            }
-
-            public static implicit operator Address(User user)
-            {
-                return user.Address;
-            }
-
-            public static implicit operator string(User user)
-            {
-                return user.PublicKey;
-            }
         }
     }
 }

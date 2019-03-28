@@ -9,6 +9,5 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public IResourceUsageDetectionService ResourceDetectionService { get; set; }
         public ISmartContractService SmartContractService { get; set; }
         public ITransactionTraceManager TransactionTraceManager { get; set; }
-        
     }
 }

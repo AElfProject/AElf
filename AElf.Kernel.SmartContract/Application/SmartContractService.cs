@@ -1,23 +1,19 @@
-﻿using System.Collections.Concurrent;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.Types;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Application
 {
     //TODO: remove _executivePools, _contractHashs, change ISingletonDependency to ITransientDependency
     public class SmartContractService : ISmartContractService, ISingletonDependency
     {
-        private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
+        private readonly IBlockchainService _chainService;
 
         private readonly IFunctionMetadataService _functionMetadataService;
-        private readonly IBlockchainService _chainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
 
         public SmartContractService(
             ISmartContractRunnerContainer smartContractRunnerContainer,
@@ -30,7 +26,7 @@ namespace AElf.Kernel.SmartContract.Application
             _smartContractAddressService = smartContractAddressService;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public async Task DeployContractAsync(Address contractAddress,
             SmartContractRegistration registration, bool isPrivileged, Hash name)
         {
@@ -64,6 +60,5 @@ namespace AElf.Kernel.SmartContract.Application
 //            await _functionMetadataService.UpdateContract(contractAddress, newContractTemplate,
 //                oldContractTemplate);
         }
-
     }
 }

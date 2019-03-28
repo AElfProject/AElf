@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Miner.Application;
 using Volo.Abp.Threading;
 
@@ -14,8 +13,8 @@ namespace AElf.Kernel.Consensus.Application
         {
             _consensusService = consensusService;
         }
-        
-        public void GenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
+
+        public void GenerateTransactions(Address from, long preBlockHeight, Hash previousBlockHash,
             ref List<Transaction> generatedTransactions)
         {
             generatedTransactions.AddRange(

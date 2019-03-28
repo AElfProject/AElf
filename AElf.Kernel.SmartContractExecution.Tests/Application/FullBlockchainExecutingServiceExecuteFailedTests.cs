@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using Shouldly;
@@ -13,11 +10,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class FullBlockchainExecutingServiceExecuteFailedTests : ExecuteFailedTestBase
     {
-        private readonly FullBlockchainExecutingService _fullBlockchainExecutingService;
-        private readonly IBlockchainService _blockchainService;
-        private readonly IChainManager _chainManager;
-        private readonly KernelTestHelper _kernelTestHelper;
-
         public FullBlockchainExecutingServiceExecuteFailedTests()
         {
             _fullBlockchainExecutingService = GetRequiredService<FullBlockchainExecutingService>();
@@ -25,6 +17,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _chainManager = GetRequiredService<IChainManager>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
+
+        private readonly FullBlockchainExecutingService _fullBlockchainExecutingService;
+        private readonly IBlockchainService _blockchainService;
+        private readonly IChainManager _chainManager;
+        private readonly KernelTestHelper _kernelTestHelper;
 
         [Fact]
         public async Task ExecuteBlocksAttachedToLongestChain_ExecuteFailed()
@@ -34,7 +31,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var bestChainHash = chain.BestChainHash;
 
             var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash,
-                new List<Transaction>{_kernelTestHelper.GenerateTransaction()});
+                new List<Transaction> {_kernelTestHelper.GenerateTransaction()});
 
             await _blockchainService.AddBlockAsync(newBlock);
             var status = await _blockchainService.AttachBlockToChainAsync(chain, newBlock);

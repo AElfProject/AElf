@@ -28,23 +28,10 @@ namespace AElf.Tester
 {
     public class Tester : ITransientDependency
     {
-        private IAbpApplicationWithInternalServiceProvider Application { get; set; }
-        
-        public ECKeyPair KeyPair { get; }
-
-        public Chain Chain
-        {
-            get
-            {
-                var chainManager = Application.ServiceProvider.GetRequiredService<IChainManager>();
-                return AsyncHelper.RunSync(() => chainManager.GetAsync());
-            }
-        }
-        
         public Tester(ECKeyPair keyPair, int port, params int[] bootNodes)
         {
             KeyPair = keyPair ?? CryptoHelpers.GenerateKeyPair();
-            
+
             Application =
                 AbpApplicationFactory.Create<TesterAElfModule>(options =>
                 {
@@ -79,20 +66,38 @@ namespace AElf.Tester
                 });
         }
 
+        private IAbpApplicationWithInternalServiceProvider Application { get; }
+
+        public ECKeyPair KeyPair { get; }
+
+        public Chain Chain
+        {
+            get
+            {
+                var chainManager = Application.ServiceProvider.GetRequiredService<IChainManager>();
+                return AsyncHelper.RunSync(() => chainManager.GetAsync());
+            }
+        }
+
         public async Task StartAsync()
         {
             var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var dto = new OsBlockchainNodeContextStartDto()
+            var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(ConsensusSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
+                TokenSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
+                DividendsSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
+                ResourceSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
+                ResourceFeeReceiverSmartContractAddressNameProvider.Name);
 
             var osService = Application.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             await osService.StartAsync(dto);

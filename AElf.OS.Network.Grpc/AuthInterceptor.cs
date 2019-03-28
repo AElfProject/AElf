@@ -15,7 +15,8 @@ namespace AElf.OS.Network.Grpc
         }
 
         //TODO: Add UnaryServerHandler test case [Case]
-        public override Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request, ServerCallContext context, UnaryServerMethod<TRequest, TResponse> continuation)
+        public override Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request,
+            ServerCallContext context, UnaryServerMethod<TRequest, TResponse> continuation)
         {
             if (context.Method != "/" + nameof(PeerService) + "/" + nameof(PeerService.PeerServiceBase.Connect))
             {
@@ -23,10 +24,10 @@ namespace AElf.OS.Network.Grpc
 
                 if (peer == null)
                     return Task.FromResult<TResponse>(null);
-                
+
                 context.RequestHeaders.Add(new Metadata.Entry(GrpcConsts.PeerInfoMetadataKey, $"{peer}"));
             }
-            
+
             return continuation(request, context);
         }
     }

@@ -1,25 +1,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.Genesis;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.Miner.Application;
-using AElf.Kernel.Token;
 using AElf.Modularity;
-using AElf.OS.Network.Infrastructure;
-using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Moq;
-using Volo.Abp;
 using Volo.Abp.Modularity;
-using Volo.Abp.Threading;
 
 namespace AElf.OS
 {
@@ -45,17 +34,14 @@ namespace AElf.OS
             Configure<DPoSOptions>(o =>
             {
                 var miners = new List<string>();
-                for (var i = 0; i < 3; i++)
-                {
-                    miners.Add(CryptoHelpers.GenerateKeyPair().PublicKey.ToHex());
-                }
+                for (var i = 0; i < 3; i++) miners.Add(CryptoHelpers.GenerateKeyPair().PublicKey.ToHex());
 
                 o.InitialMiners = miners;
                 o.MiningInterval = 4000;
                 o.IsBootMiner = true;
             });
 
-            context.Services.AddTransient<IAccountService>(o =>
+            context.Services.AddTransient(o =>
             {
                 var mockService = new Mock<IAccountService>();
                 mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>

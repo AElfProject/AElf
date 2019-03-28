@@ -6,7 +6,7 @@ namespace AElf.Sdk.CSharp
 {
     // Lot of types data should not be defined including: byte, sbyte, char, short, ushort, decimal, float and double. 
     // Becasue ParamsPacker.Pack() those types data wil be throw exception.
-     
+
     public class TransactionEvent : Event
     {
         [Indexed] public Transaction IndexTransaction { get; set; }
@@ -28,25 +28,25 @@ namespace AElf.Sdk.CSharp
     public class DataEvent : Event
     {
         [Indexed] public int IndexInt { get; set; }
-        [Indexed] public uint IndexUInt {get;set;}
-        [Indexed] public long IndexLong {get;set;}
-        [Indexed] public ulong IndexULong {get;set;}
+        [Indexed] public uint IndexUInt { get; set; }
+        [Indexed] public long IndexLong { get; set; }
+        [Indexed] public ulong IndexULong { get; set; }
 
         public int NonIndexInt { get; set; }
-        public long NonIndexLong {get;set;}
+        public long NonIndexLong { get; set; }
     }
 
     public class MultiEvent : Event
     {
-        [Indexed] public Transaction IndexTransaction {get;set;}
-        [Indexed] public Address IndexAddress {get;set;}
-        [Indexed] public string IndexString {get;set;}
-        [Indexed] public int IndexInt {get;set;}
-        [Indexed] public long IndexLong {get;set;}
+        [Indexed] public Transaction IndexTransaction { get; set; }
+        [Indexed] public Address IndexAddress { get; set; }
+        [Indexed] public string IndexString { get; set; }
+        [Indexed] public int IndexInt { get; set; }
+        [Indexed] public long IndexLong { get; set; }
 
-        public Address NonIndexAddress {get;set;}
-        public string NonIndexString {get;set;}
-        public int NonIndexInt {get;set;}
+        public Address NonIndexAddress { get; set; }
+        public string NonIndexString { get; set; }
+        public int NonIndexInt { get; set; }
     }
 
     //Double event
@@ -59,7 +59,7 @@ namespace AElf.Sdk.CSharp
     {
         public double NonIndexDouble { get; set; }
     }
-    
+
     //Float event
     public class NotSupportIndexFloat : Event
     {
@@ -70,6 +70,7 @@ namespace AElf.Sdk.CSharp
     {
         public double NonIndexFloat { get; set; }
     }
+
     public class ListIndexEvent : Event
     {
         [Indexed] public List<Address> IndexAddressList { get; set; }

@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.SmartContractExecution.Application;
 using Akka.Actor;
-using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.SmartContractExecution.Execution
 {
@@ -148,7 +146,7 @@ namespace AElf.Kernel.SmartContractExecution.Execution
     #endregion Chain Executors
 
     /// <summary>
-    /// Message sent to local requestor for transaction execution.
+    ///     Message sent to local requestor for transaction execution.
     /// </summary>
     public sealed class LocalExecuteTransactionsMessage
     {
@@ -187,7 +185,7 @@ namespace AElf.Kernel.SmartContractExecution.Execution
     #region Singleton Messages
 
     /// <summary>
-    /// Short-lived executor actors require a <see cref="StartExecutionMessage"/> to start execution.
+    ///     Short-lived executor actors require a <see cref="StartExecutionMessage" /> to start execution.
     /// </summary>
     public sealed class StartExecutionMessage
     {
@@ -196,11 +194,11 @@ namespace AElf.Kernel.SmartContractExecution.Execution
         }
 
         /// <summary>
-        /// The singleton instance of StartExecutionMessage.
+        ///     The singleton instance of StartExecutionMessage.
         /// </summary>
         public static StartExecutionMessage Instance { get; } = new StartExecutionMessage();
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public override string ToString()
         {
             return "<StartExecutionMessage>";
@@ -208,7 +206,8 @@ namespace AElf.Kernel.SmartContractExecution.Execution
     }
 
     /// <summary>
-    /// <see cref="StartGroupingMessage"/> is automatically sent to the actor itself upon starting so that grouping will start.
+    ///     <see cref="StartGroupingMessage" /> is automatically sent to the actor itself upon starting so that grouping will
+    ///     start.
     /// </summary>
     public sealed class StartGroupingMessage
     {
@@ -217,11 +216,11 @@ namespace AElf.Kernel.SmartContractExecution.Execution
         }
 
         /// <summary>
-        /// The singleton instance of StartGroupingMessage.
+        ///     The singleton instance of StartGroupingMessage.
         /// </summary>
         public static StartGroupingMessage Instance { get; } = new StartGroupingMessage();
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public override string ToString()
         {
             return "<StartGroupingMessage>";
@@ -229,7 +228,8 @@ namespace AElf.Kernel.SmartContractExecution.Execution
     }
 
     /// <summary>
-    /// <see cref="StartBatchingMessage"/> is automatically sent to the actor itself upon starting so that batching will start.
+    ///     <see cref="StartBatchingMessage" /> is automatically sent to the actor itself upon starting so that batching will
+    ///     start.
     /// </summary>
     public sealed class StartBatchingMessage
     {
@@ -238,11 +238,11 @@ namespace AElf.Kernel.SmartContractExecution.Execution
         }
 
         /// <summary>
-        /// The singleton instance of StartBatchingMessage.
+        ///     The singleton instance of StartBatchingMessage.
         /// </summary>
         public static StartBatchingMessage Instance { get; } = new StartBatchingMessage();
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public override string ToString()
         {
             return "<StartBatchingMessage>";
@@ -268,7 +268,7 @@ namespace AElf.Kernel.SmartContractExecution.Execution
     public class JobExecutionRequest
     {
         public JobExecutionRequest(long requestId, int chainId, List<Transaction> transactions,
-            IActorRef resultCollector, IActorRef router, DateTime currentBlockTime, Hash disambiguationHash = null, 
+            IActorRef resultCollector, IActorRef router, DateTime currentBlockTime, Hash disambiguationHash = null,
             bool skipFee = false)
         {
             RequestId = requestId;
@@ -299,11 +299,11 @@ namespace AElf.Kernel.SmartContractExecution.Execution
         }
 
         /// <summary>
-        /// The singleton instance of JobExecutionCancelMessage.
+        ///     The singleton instance of JobExecutionCancelMessage.
         /// </summary>
         public static JobExecutionCancelMessage Instance { get; } = new JobExecutionCancelMessage();
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public override string ToString()
         {
             return "<JobExecutionCancelMessage>";
@@ -317,11 +317,11 @@ namespace AElf.Kernel.SmartContractExecution.Execution
         }
 
         /// <summary>
-        /// The singleton instance of JobExecutionCancelMessage.
+        ///     The singleton instance of JobExecutionCancelMessage.
         /// </summary>
         public static JobExecutionCancelAckMessage Instance { get; } = new JobExecutionCancelAckMessage();
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public override string ToString()
         {
             return "<JobExecutionCancelAckMessage>";

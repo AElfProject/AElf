@@ -4,6 +4,7 @@ using AElf.Kernel;
 using Newtonsoft.Json.Linq;
 
 [assembly: InternalsVisibleTo("AElf.OS.Rpc.ChainController.Tests")]
+
 namespace AElf.OS.Rpc.ChainController
 {
     internal static class DtoExtensions

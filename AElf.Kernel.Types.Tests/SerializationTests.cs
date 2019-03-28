@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using AElf.Common;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -12,19 +12,9 @@ namespace AElf.Kernel.Types.Tests
     public class SerializationTest
     {
         [Fact]
-        public void FromTo()
+        public void DefaultValueTest()
         {
-            var t = new Transaction();
-            t.From = Address.Generate();
-            t.To = Address.Generate();
-
-            byte[] b = t.ToByteArray();
-            b.ShouldNotBe(null);
-            b.Length.ShouldBeGreaterThan(0);
-
-            string bstr = b.ToHex();
-            bstr.ShouldNotBe(string.Empty);
-
+            Debug.WriteLine(default(UInt64Value));
         }
 
 
@@ -35,13 +25,22 @@ namespace AElf.Kernel.Types.Tests
                 "0a200a1e9dee15619106b96861d52f03ad30ac7e57aa529eb2f05f7796472d8ce4a112200a1e96d8bf2dccf2ad419d02ed4a7b7a9d77df10617c4d731e766ce8dde63535320a496e697469616c697a653a0a0a015b120122180020005003");
             var txBytes = ByteString.CopyFrom(bytes).ToByteArray();
             var txn = Transaction.Parser.ParseFrom(txBytes);
-            string str =txn.From.Value.ToByteArray().ToHex();
+            var str = txn.From.Value.ToByteArray().ToHex();
         }
 
         [Fact]
-        public void DefaultValueTest()
+        public void FromTo()
         {
-            System.Diagnostics.Debug.WriteLine(default(UInt64Value));
+            var t = new Transaction();
+            t.From = Address.Generate();
+            t.To = Address.Generate();
+
+            var b = t.ToByteArray();
+            b.ShouldNotBe(null);
+            b.Length.ShouldBeGreaterThan(0);
+
+            var bstr = b.ToHex();
+            bstr.ShouldNotBe(string.Empty);
         }
     }
 
@@ -65,23 +64,22 @@ namespace AElf.Kernel.Types.Tests
 
     public class SchemaGenerator
     {
-        private static readonly Dictionary<Type, ParamType> Maps = new Dictionary<Type, ParamType>(
-        )
+        private static readonly Dictionary<Type, ParamType> Maps = new Dictionary<Type, ParamType>
         {
-            {typeof(String), ParamType.String},
-            {typeof(Boolean), ParamType.Boolean},
-            {typeof(Single), ParamType.Single},
-            {typeof(Double), ParamType.Double},
-            {typeof(Byte), ParamType.Byte},
-            {typeof(Decimal), ParamType.Decimal},
-            {typeof(UInt16), ParamType.UInt16},
-            {typeof(UInt32), ParamType.UInt32},
-            {typeof(UInt64), ParamType.UInt64},
-            {typeof(Int16), ParamType.Int16},
-            {typeof(Int32), ParamType.Int32},
-            {typeof(Int64), ParamType.Int64},
+            {typeof(string), ParamType.String},
+            {typeof(bool), ParamType.Boolean},
+            {typeof(float), ParamType.Single},
+            {typeof(double), ParamType.Double},
+            {typeof(byte), ParamType.Byte},
+            {typeof(decimal), ParamType.Decimal},
+            {typeof(ushort), ParamType.UInt16},
+            {typeof(uint), ParamType.UInt32},
+            {typeof(ulong), ParamType.UInt64},
+            {typeof(short), ParamType.Int16},
+            {typeof(int), ParamType.Int32},
+            {typeof(long), ParamType.Int64},
             {typeof(byte[]), ParamType.Bytes},
-            {typeof(char[]), ParamType.Chars},
+            {typeof(char[]), ParamType.Chars}
         };
 
         public static ParamType ToType(Type t)
@@ -89,6 +87,4 @@ namespace AElf.Kernel.Types.Tests
             return Maps[t];
         }
     }
-
-
 }

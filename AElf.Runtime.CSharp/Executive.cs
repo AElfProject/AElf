@@ -4,32 +4,95 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
-using AElf.Types.CSharp;
-using Google.Protobuf;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
+using AElf.Types.CSharp;
+using Google.Protobuf;
 using Google.Protobuf.Reflection;
 
 namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
-        private readonly Assembly _contractAssembly;
-        private readonly Type _contractType;
-        private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
-
-        private CSharpSmartContractProxy _smartContractProxy;
-        private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
-        private int _maxCallDepth = 4;
+        private readonly Assembly _contractAssembly;
+        private readonly object _contractInstance;
+        private readonly Type _contractType;
+        private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
-        private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
+        private int _maxCallDepth = 4;
+
+        private readonly CSharpSmartContractProxy _smartContractProxy;
+
+        public Executive(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
+        {
+            _contractAssembly = assembly;
+            _executivePlugins = executivePlugins;
+            _contractType = FindContractType(assembly);
+            _contractInstance = Activator.CreateInstance(_contractType);
+            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
+            _callHandlers = GetHandlers(assembly);
+        }
+
+        private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
+
+        public IExecutive SetMaxCallDepth(int maxCallDepth)
+        {
+            _maxCallDepth = maxCallDepth;
+            return this;
+        }
+
+        public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
+        {
+            _hostSmartContractBridgeContext = smartContractBridgeContext;
+            _smartContractProxy.InternalInitialize(_hostSmartContractBridgeContext);
+            return this;
+        }
+
+        public void SetDataCache(IStateCache cache)
+        {
+            _hostSmartContractBridgeContext.StateProvider.Cache = cache ?? new NullStateCache();
+        }
+
+        public IExecutive SetTransactionContext(ITransactionContext transactionContext)
+        {
+            _hostSmartContractBridgeContext.TransactionContext = transactionContext;
+            return this;
+        }
+
+        public async Task ApplyAsync()
+        {
+            await ExecuteMainTransaction();
+//            MaybeInsertFeeTransaction();
+            foreach (var executivePlugin in _executivePlugins)
+            {
+                // TODO: Change executive plugin to use this executive
+//                executivePlugin.AfterApply(_contractInstance, 
+//                    _hostSmartContractBridgeContext, ExecuteReadOnlyHandler);
+            }
+        }
+
+        public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)
+        {
+            if (!_callHandlers.TryGetValue(methodName, out var handler)) return "";
+
+            return handler.InputBytesToString(paramsBytes);
+        }
+
+        public byte[] GetFileDescriptorSet()
+        {
+            var prop = FindContractContainer(_contractAssembly).GetProperty("Descriptor",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            var descriptor = (ServiceDescriptor) prop.GetValue(null, null);
+            var output = new FileDescriptorSet();
+            output.File.AddRange(GetSelfAndDependency(descriptor.File).Select(x => x.SerializedData));
+            return output.ToByteArray();
+        }
 
         private Type FindContractType(Assembly assembly)
         {
@@ -57,55 +120,9 @@ namespace AElf.Runtime.CSharp
             return ssd.GetCallHandlers();
         }
 
-        public Executive(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
-        {
-            _contractAssembly = assembly;
-            _executivePlugins = executivePlugins;
-            _contractType = FindContractType(assembly);
-            _contractInstance = Activator.CreateInstance(_contractType);
-            _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
-            _callHandlers = GetHandlers(assembly);
-        }
-
-        public IExecutive SetMaxCallDepth(int maxCallDepth)
-        {
-            _maxCallDepth = maxCallDepth;
-            return this;
-        }
-
-        public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
-        {
-            _hostSmartContractBridgeContext = smartContractBridgeContext;
-            _smartContractProxy.InternalInitialize(_hostSmartContractBridgeContext);
-            return this;
-        }
-
-        public void SetDataCache(IStateCache cache)
-        {
-            _hostSmartContractBridgeContext.StateProvider.Cache = cache ?? new NullStateCache();
-        }
-
-        public IExecutive SetTransactionContext(ITransactionContext transactionContext)
-        {
-            _hostSmartContractBridgeContext.TransactionContext = transactionContext;
-            return this;
-        }
-
         private void Cleanup()
         {
             _smartContractProxy.Cleanup();
-        }
-
-        public async Task ApplyAsync()
-        {
-            await ExecuteMainTransaction();
-//            MaybeInsertFeeTransaction();
-            foreach (var executivePlugin in _executivePlugins)
-            {
-                // TODO: Change executive plugin to use this executive
-//                executivePlugin.AfterApply(_contractInstance, 
-//                    _hostSmartContractBridgeContext, ExecuteReadOnlyHandler);
-            }
         }
 
         public async Task ExecuteMainTransaction()
@@ -123,10 +140,8 @@ namespace AElf.Runtime.CSharp
             try
             {
                 if (!_callHandlers.TryGetValue(methodName, out var handler))
-                {
                     throw new RuntimeException(
                         $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers.");
-                }
 
                 try
                 {
@@ -162,20 +177,12 @@ namespace AElf.Runtime.CSharp
 
                     var address = _hostSmartContractBridgeContext.Self.ToStorageKey();
                     foreach (var (key, value) in changes.Writes)
-                    {
                         if (!key.StartsWith(address))
-                        {
                             throw new InvalidOperationException("a contract cannot access other contracts data");
-                        }
-                    }
 
                     foreach (var (key, value) in changes.Reads)
-                    {
                         if (!key.StartsWith(address))
-                        {
                             throw new InvalidOperationException("a contract cannot access other contracts data");
-                        }
-                    }
 
 
                     CurrentTransactionContext.Trace.StateSet = changes;
@@ -199,16 +206,6 @@ namespace AElf.Runtime.CSharp
             CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }
 
-        public string GetJsonStringOfParameters(string methodName, byte[] paramsBytes)
-        {
-            if (!_callHandlers.TryGetValue(methodName, out var handler))
-            {
-                return "";
-            }
-
-            return handler.InputBytesToString(paramsBytes);
-        }
-
 //        public object GetReturnValue(string methodName, byte[] bytes)
 //        {
 //            if (!_callHandlers.TryGetValue(methodName, out var handler))
@@ -223,26 +220,13 @@ namespace AElf.Runtime.CSharp
             HashSet<string> known = null)
         {
             known = known ?? new HashSet<string>();
-            if (known.Contains(fileDescriptor.Name))
-            {
-                return new List<FileDescriptor>();
-            }
+            if (known.Contains(fileDescriptor.Name)) return new List<FileDescriptor>();
 
             var fileDescriptors = new List<FileDescriptor>();
             fileDescriptors.AddRange(fileDescriptor.Dependencies.SelectMany(x => GetSelfAndDependency(x, known)));
             fileDescriptors.Add(fileDescriptor);
             known.Add(fileDescriptor.Name);
             return fileDescriptors;
-        }
-
-        public byte[] GetFileDescriptorSet()
-        {
-            var prop = FindContractContainer(_contractAssembly).GetProperty("Descriptor",
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            var descriptor = (ServiceDescriptor) prop.GetValue(null, null);
-            var output = new FileDescriptorSet();
-            output.File.AddRange(GetSelfAndDependency(descriptor.File).Select(x => x.SerializedData));
-            return output.ToByteArray();
         }
     }
 }

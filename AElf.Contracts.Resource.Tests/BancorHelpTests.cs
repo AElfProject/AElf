@@ -5,11 +5,9 @@ namespace AElf.Contracts.Resource
 {
     public class BancorHelpTests
     {
-        public Converter CpuConverter;
-
         public BancorHelpTests()
         {
-            CpuConverter = new Converter()
+            CpuConverter = new Converter
             {
                 ElfBalance = 1000_000L,
                 ElfWeight = 500_000L,
@@ -17,6 +15,8 @@ namespace AElf.Contracts.Resource
                 ResWeight = 500_000L
             };
         }
+
+        public Converter CpuConverter;
 
         [Theory]
         [InlineData(10L)]
@@ -42,36 +42,6 @@ namespace AElf.Contracts.Resource
             elfAmount1.ShouldBeGreaterThanOrEqualTo(elfAmount2);
         }
 
-        [Fact]
-        public void Buy_And_Sell_Test()
-        {
-            var resourceAmount1 = BuyOperation(1000L);
-            var elfAmount = SellOperation(resourceAmount1);
-            elfAmount.ShouldBeLessThan(1000L);
-
-            var resourceAmount2 = BuyOperation(1000L);
-            BuyOperation(1000L);
-            var elfAmount2 = SellOperation(resourceAmount2);
-            elfAmount2.ShouldBeGreaterThan(1000L);
-        }
-
-        [Fact]
-        public void Calculate_CrossConnector_NormalCase()
-        {
-            BancorHelpers.CalculateCrossConnectorReturn(100_000, 200_000, 100_000, 200_000, 1000);
-
-            BancorHelpers.CalculateCrossConnectorReturn(100_000, 200_000, 200_000, 400_000, 1000);
-        }
-        
-        [Fact]
-        public void Pow_Test()
-        {
-            var result1 = BancorHelpers.Pow(1.5m, 1);
-            result1.ShouldBe(1.5m);
-
-            BancorHelpers.Pow(1.5m, 2);
-        }
-
         private long BuyOperation(long paidElf)
         {
             var resourcePayout = BancorHelpers.CalculateCrossConnectorReturn(
@@ -94,6 +64,36 @@ namespace AElf.Contracts.Resource
             CpuConverter.ResBalance += paidRes;
 
             return elfPayout;
+        }
+
+        [Fact]
+        public void Buy_And_Sell_Test()
+        {
+            var resourceAmount1 = BuyOperation(1000L);
+            var elfAmount = SellOperation(resourceAmount1);
+            elfAmount.ShouldBeLessThan(1000L);
+
+            var resourceAmount2 = BuyOperation(1000L);
+            BuyOperation(1000L);
+            var elfAmount2 = SellOperation(resourceAmount2);
+            elfAmount2.ShouldBeGreaterThan(1000L);
+        }
+
+        [Fact]
+        public void Calculate_CrossConnector_NormalCase()
+        {
+            BancorHelpers.CalculateCrossConnectorReturn(100_000, 200_000, 100_000, 200_000, 1000);
+
+            BancorHelpers.CalculateCrossConnectorReturn(100_000, 200_000, 200_000, 400_000, 1000);
+        }
+
+        [Fact]
+        public void Pow_Test()
+        {
+            var result1 = BancorHelpers.Pow(1.5m, 1);
+            result1.ShouldBe(1.5m);
+
+            BancorHelpers.Pow(1.5m, 2);
         }
     }
 }

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.IO;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Types.CSharp.Tests;
-using Google.Protobuf;
-using Newtonsoft.Json.Linq;
 using Shouldly;
 using Xunit;
 
@@ -12,6 +9,20 @@ namespace AElf.Types.CSharp
 {
     public class ReturnTypeHelperTest
     {
+        [Fact]
+        public void ByteString_Deserialize()
+        {
+            var bytes = new byte[]
+            {
+                125, 33, 27, 37, 202, 102, 171, 207, 118, 196, 214, 99, 224, 148, 157, 25, 230, 96, 125, 28, 227, 78, 1,
+                228,
+                24, 161, 56, 125, 186, 214
+            };
+            var encoded = ReturnTypeHelper.GetEncoder<byte[]>()(bytes);
+            var decoded = ReturnTypeHelper.GetEncoder<byte[]>()(encoded);
+            decoded.ShouldBe(bytes);
+        }
+
         [Fact]
         public void Deserialize_To_Bool()
         {
@@ -26,9 +37,8 @@ namespace AElf.Types.CSharp
             {
                 var bytes = ReturnTypeHelper.GetEncoder<bool>()(false);
                 var decoded = ReturnTypeHelper.GetDecoder<bool>()(bytes);
-                decoded.ShouldBe(false);      
+                decoded.ShouldBe(false);
             }
-
         }
 
         [Fact]
@@ -41,6 +51,15 @@ namespace AElf.Types.CSharp
         }
 
         [Fact]
+        public void Deserialize_To_Long()
+        {
+            var tr = new TransactionResult
+            {
+                TransactionId = Hash.Generate()
+            };
+        }
+
+        [Fact]
         public void Deserialize_To_UInt()
         {
             var randomUInt = Convert.ToUInt32(new Random(DateTime.Now.Millisecond).Next());
@@ -50,33 +69,10 @@ namespace AElf.Types.CSharp
         }
 
         [Fact]
-        public void Deserialize_To_Long()
-        {
-            TransactionResult tr = new TransactionResult()
-            {
-                TransactionId = Hash.Generate(),
-
-            };
-        }
-
-        [Fact]
-        public void ByteString_Deserialize()
-        {
-            var bytes = new byte[]
-            {
-                125, 33, 27, 37, 202, 102, 171, 207, 118, 196, 214, 99, 224, 148, 157, 25, 230, 96, 125, 28, 227, 78, 1, 228,
-                24, 161, 56, 125, 186, 214
-            };
-            var encoded = ReturnTypeHelper.GetEncoder<byte[]>()(bytes);
-            var decoded = ReturnTypeHelper.GetEncoder<byte[]>()(encoded);
-            decoded.ShouldBe(bytes);
-        }
-
-        [Fact]
         public void GetStringConverter_From_UserType()
         {
             var convertResult = ReturnTypeHelper.GetStringConverter<PersonalData>();
-            var userData = new PersonalData{ Name = "Lily", Sex = "Female"};
+            var userData = new PersonalData {Name = "Lily", Sex = "Female"};
 
             var result = convertResult(userData);
             result.ShouldBe(userData.Pack().ToString());

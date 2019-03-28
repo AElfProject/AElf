@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
@@ -19,7 +18,6 @@ namespace AElf.Kernel.SmartContract.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainStateManager _blockchainStateManager;
-        public ILogger<BlockchainStateMergingService> Logger { get; set; }
 
         public BlockchainStateMergingService(IBlockchainService blockchainService,
             IBlockchainStateManager blockchainStateManager)
@@ -28,6 +26,8 @@ namespace AElf.Kernel.SmartContract.Application
             _blockchainStateManager = blockchainStateManager;
             Logger = NullLogger<BlockchainStateMergingService>.Instance;
         }
+
+        public ILogger<BlockchainStateMergingService> Logger { get; set; }
 
         // TODO: Add MergeBlockStateAsync test case [Case]
         public async Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash)
@@ -46,13 +46,12 @@ namespace AElf.Kernel.SmartContract.Application
 
             var blockIndexes = new List<IBlockIndex>();
             if (chainStateInfo.Status == ChainStateMergingStatus.Merged)
-            {
                 blockIndexes.Add(new BlockIndex(chainStateInfo.MergingBlockHash, -1));
-            }
 
-            var reversedBlockIndexes = await _blockchainService.GetReversedBlockIndexes(lastIrreversibleBlockHash, (int) mergeCount);
+            var reversedBlockIndexes =
+                await _blockchainService.GetReversedBlockIndexes(lastIrreversibleBlockHash, (int) mergeCount);
             reversedBlockIndexes.Reverse();
-            
+
             blockIndexes.AddRange(reversedBlockIndexes);
 
             blockIndexes.Add(new BlockIndex(lastIrreversibleBlockHash, lastIrreversibleBlockHeight));
@@ -61,7 +60,6 @@ namespace AElf.Kernel.SmartContract.Application
                 $"Merge lib height: {lastIrreversibleBlockHeight}, lib block hash: {lastIrreversibleBlockHash}, merge count: {blockIndexes.Count}");
 
             foreach (var blockIndex in blockIndexes)
-            {
                 try
                 {
                     Logger.LogDebug($"Merging state {chainStateInfo} for block {blockIndex}");
@@ -73,7 +71,6 @@ namespace AElf.Kernel.SmartContract.Application
                         $"Exception while merge state {chainStateInfo} for block {blockIndex}");
                     break;
                 }
-            }
         }
     }
 }

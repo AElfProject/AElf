@@ -8,11 +8,11 @@ namespace AElf.CrossChain.Grpc
 {
     public class GrpcCrossChainServerNodePlugin : INodePlugin
     {
-        private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
         private readonly ICertificateStore _certificateStore;
         private readonly ICrossChainServer _crossChainServer;
+        private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
 
-        public GrpcCrossChainServerNodePlugin(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
+        public GrpcCrossChainServerNodePlugin(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption,
             ICertificateStore certificateStore, ICrossChainServer crossChainServer)
         {
             _grpcCrossChainConfigOption = grpcCrossChainConfigOption.Value;
@@ -34,7 +34,7 @@ namespace AElf.CrossChain.Grpc
             _crossChainServer.Dispose();
             return Task.CompletedTask;
         }
-        
+
         private KeyCertificatePair LoadKeyPair(string fileName)
         {
             var keyStore = _certificateStore.LoadKeyStore(fileName);

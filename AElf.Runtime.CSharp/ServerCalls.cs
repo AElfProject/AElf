@@ -20,7 +20,8 @@ namespace AElf.Types.CSharp
 {
     internal static class ServerCalls
     {
-        public static IServerCallHandler UnaryCall<TRequest, TResponse>(Method<TRequest, TResponse> method, UnaryServerMethod<TRequest, TResponse> handler)
+        public static IServerCallHandler UnaryCall<TRequest, TResponse>(Method<TRequest, TResponse> method,
+            UnaryServerMethod<TRequest, TResponse> handler)
             where TRequest : class
             where TResponse : class
         {

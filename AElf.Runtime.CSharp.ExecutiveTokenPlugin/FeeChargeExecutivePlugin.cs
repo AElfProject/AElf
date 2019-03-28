@@ -4,7 +4,6 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.Kernel.Types.SmartContract;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
@@ -23,10 +22,10 @@ namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
             }*/
 
             var fee = (Int64Value) executeReadOnlyHandler(nameof(IFeeChargedContract.GetMethodFee),
-                new StringValue() {Value = context.TransactionContext.Transaction.MethodName});
+                new StringValue {Value = context.TransactionContext.Transaction.MethodName});
 
 
-            context.TransactionContext.Trace.InlineTransactions.Add(new Transaction()
+            context.TransactionContext.Trace.InlineTransactions.Add(new Transaction
             {
                 From = context.TransactionContext.Transaction.From,
                 To = context.GetContractAddressByName(

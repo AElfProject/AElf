@@ -1,17 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel;
-using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
-using AElf.Kernel.SmartContract;
-using AElf.Types.CSharp;
-using Google.Protobuf;
-using Moq;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace AElf.Sdk.CSharp.Tests
@@ -20,45 +8,21 @@ namespace AElf.Sdk.CSharp.Tests
     {
         internal T GetValue<T>()
         {
-            if (typeof(T) == typeof(bool))
-            {
-                return (T) (object) true;
-            }
+            if (typeof(T) == typeof(bool)) return (T) (object) true;
 
-            if (typeof(T) == typeof(int))
-            {
-                return (T) (object) (int) -12345;
-            }
+            if (typeof(T) == typeof(int)) return (T) (object) -12345;
 
-            if (typeof(T) == typeof(uint))
-            {
-                return (T) (object) (uint) 12345U;
-            }
+            if (typeof(T) == typeof(uint)) return (T) (object) 12345U;
 
-            if (typeof(T) == typeof(long))
-            {
-                return (T) (object) (long) -678910L;
-            }
+            if (typeof(T) == typeof(long)) return (T) (object) -678910L;
 
-            if (typeof(T) == typeof(ulong))
-            {
-                return (T) (object) (ulong) 678910UL;
-            }
+            if (typeof(T) == typeof(ulong)) return (T) (object) 678910UL;
 
-            if (typeof(T) == typeof(byte[]))
-            {
-                return (T) (object) ByteArrayHelpers.FromHexString("302010");
-            }
+            if (typeof(T) == typeof(byte[])) return (T) (object) ByteArrayHelpers.FromHexString("302010");
 
-            if (typeof(T) == typeof(string))
-            {
-                return (T) (object) "aelf";
-            }
+            if (typeof(T) == typeof(string)) return (T) (object) "aelf";
 
-            if (typeof(T) == typeof(Address))
-            {
-                return (T) (object) Address.FromString("a");
-            }
+            if (typeof(T) == typeof(Address)) return (T) (object) Address.FromString("a");
 
             throw new Exception("Not supported type.");
         }

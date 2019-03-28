@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;
 
@@ -13,29 +10,22 @@ namespace AElf.Sdk.CSharp.State
 
     public class SingletonState<TEntity> : SingletonState
     {
-        internal bool Loaded = false;
-        internal bool Modified => Equals(_originalValue, _value);
-
         private TEntity _originalValue;
         private TEntity _value;
+        internal bool Loaded;
+        internal bool Modified => Equals(_originalValue, _value);
 
         public TEntity Value
         {
             get
             {
-                if (!Loaded)
-                {
-                    Load();
-                }
+                if (!Loaded) Load();
 
                 return _value;
             }
             set
             {
-                if (!Loaded)
-                {
-                    Load();
-                }
+                if (!Loaded) Load();
 
                 _value = value;
             }
@@ -45,13 +35,9 @@ namespace AElf.Sdk.CSharp.State
         {
             Loaded = false;
             if (typeof(TEntity) == typeof(byte[]))
-            {
                 _originalValue = (TEntity) (object) new byte[0];
-            }
             else
-            {
                 _originalValue = default(TEntity);
-            }
 
             _value = _originalValue;
         }
@@ -60,9 +46,7 @@ namespace AElf.Sdk.CSharp.State
         {
             var stateSet = new TransactionExecutingStateSet();
             if (!Equals(_originalValue, _value))
-            {
                 stateSet.Writes[Path.ToStateKey()] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
-            }
 
             return stateSet;
         }

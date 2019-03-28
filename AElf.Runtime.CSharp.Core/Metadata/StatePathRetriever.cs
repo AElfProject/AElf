@@ -1,23 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Linq;
 using AElf.Kernel.SmartContract.Metadata;
 using Google.Protobuf.Collections;
 using Mono.Cecil;
 using Mono.Collections.Generic;
-using AccessMode = AElf.Kernel.SmartContract.Metadata.DataAccessPath.Types.AccessMode;
 
 namespace AElf.Runtime.CSharp.Metadata
 {
     public abstract class StatePathRetrieverBase
     {
-        protected readonly TypeReference _stateType;
-        protected readonly GeneralStatePathRetriever _retriever;
         protected readonly ICollection<MethodReference> _methodReferencesInTheSameBody;
-
-        protected IEnumerable<MethodReference> AccessedMethods =>
-            _methodReferencesInTheSameBody.Where(IsDeclaredByThisStateType);
+        protected readonly GeneralStatePathRetriever _retriever;
+        protected readonly TypeReference _stateType;
 
         protected StatePathRetrieverBase(TypeReference stateType, ICollection<MethodReference> referencedMethods,
             GeneralStatePathRetriever retriever)
@@ -26,6 +21,9 @@ namespace AElf.Runtime.CSharp.Metadata
             _methodReferencesInTheSameBody = referencedMethods;
             _retriever = retriever;
         }
+
+        protected IEnumerable<MethodReference> AccessedMethods =>
+            _methodReferencesInTheSameBody.Where(IsDeclaredByThisStateType);
 
         public abstract RepeatedField<DataAccessPath> GetPaths();
 
@@ -38,25 +36,22 @@ namespace AElf.Runtime.CSharp.Metadata
 
     public class SingletonStatePathRetriever : StatePathRetrieverBase
     {
-        private PropertyMethodIndex PropertyMethodIndex => _retriever.PropertyMethodIndex;
-
         public SingletonStatePathRetriever(TypeReference stateType, ICollection<MethodReference> referencedMethods,
             GeneralStatePathRetriever retriever) : base(stateType, referencedMethods, retriever)
         {
         }
 
+        private PropertyMethodIndex PropertyMethodIndex => _retriever.PropertyMethodIndex;
+
         public RepeatedField<InlineCall> GetInlineCalls()
         {
-            if (!IsContractReferenceState())
-            {
-                return new RepeatedField<InlineCall>();
-            }
+            if (!IsContractReferenceState()) return new RepeatedField<InlineCall>();
 
             var calls = new RepeatedField<InlineCall>();
             var toBeAdded = AccessedMethods.Select(x => PropertyMethodIndex[x.Resolve()])
                 .Where(x => x != null)
                 .Where(PropertyTypeIsActionType)
-                .Select(x => new InlineCall()
+                .Select(x => new InlineCall
                 {
                     MethodName = x.Name
                 });
@@ -66,13 +61,13 @@ namespace AElf.Runtime.CSharp.Metadata
 
         public override RepeatedField<DataAccessPath> GetPaths()
         {
-            return new RepeatedField<DataAccessPath>()
+            return new RepeatedField<DataAccessPath>
             {
-                new DataAccessPath()
+                new DataAccessPath
                 {
                     Mode = AccessedMethods.Any(x => x.Resolve().IsSetter)
-                        ? AccessMode.Write
-                        : AccessMode.Read
+                        ? DataAccessPath.Types.AccessMode.Write
+                        : DataAccessPath.Types.AccessMode.Read
                 }
             };
         }
@@ -94,12 +89,12 @@ namespace AElf.Runtime.CSharp.Metadata
 
     public class StructuredStatePathRetriever : StatePathRetrieverBase
     {
-        private PropertyMethodIndex PropertyMethodIndex => _retriever.PropertyMethodIndex;
-
         public StructuredStatePathRetriever(TypeReference stateType, ICollection<MethodReference> referencedMethods,
             GeneralStatePathRetriever retriever) : base(stateType, referencedMethods, retriever)
         {
         }
+
+        private PropertyMethodIndex PropertyMethodIndex => _retriever.PropertyMethodIndex;
 
         public RepeatedField<InlineCall> GetInlineCalls()
         {
@@ -146,23 +141,25 @@ namespace AElf.Runtime.CSharp.Metadata
 
     public class MappedStatePathRetriever : StatePathRetrieverBase
     {
-        private TypeDefinition MappedStateBase => _retriever.MappedStateBase;
-        private TypeDefinition AddressType => _retriever.AddressType;
-
         public MappedStatePathRetriever(TypeReference stateType, ICollection<MethodReference> referencedMethods,
             GeneralStatePathRetriever retriever) : base(stateType, referencedMethods, retriever)
         {
         }
 
+        private TypeDefinition MappedStateBase => _retriever.MappedStateBase;
+        private TypeDefinition AddressType => _retriever.AddressType;
+
 
         public override RepeatedField<DataAccessPath> GetPaths()
         {
-            var path = new DataAccessPath()
+            var path = new DataAccessPath
             {
-                Mode = AccessedMethods.Any(IsWriteAccessMode) ? AccessMode.Write : AccessMode.Read
+                Mode = AccessedMethods.Any(IsWriteAccessMode)
+                    ? DataAccessPath.Types.AccessMode.Write
+                    : DataAccessPath.Types.AccessMode.Read
             };
             path.Path.AddRange(GetAddressParts(_stateType));
-            return new RepeatedField<DataAccessPath>() {path};
+            return new RepeatedField<DataAccessPath> {path};
         }
 
         #region private methods
@@ -190,10 +187,7 @@ namespace AElf.Runtime.CSharp.Metadata
             var addresses = new RepeatedField<string>();
             foreach (var a in arguments)
             {
-                if (a.Resolve() != AddressType)
-                {
-                    break;
-                }
+                if (a.Resolve() != AddressType) break;
 
                 addresses.Add($"{{{a.Name}}}");
             }
@@ -204,10 +198,7 @@ namespace AElf.Runtime.CSharp.Metadata
         private bool IsWriteAccessMode(MethodReference getterOfSetter)
         {
             var methodDefinition = getterOfSetter.Resolve();
-            if (methodDefinition.IsSetter)
-            {
-                return true;
-            }
+            if (methodDefinition.IsSetter) return true;
 
             var returnType = getterOfSetter.ReturnType;
 

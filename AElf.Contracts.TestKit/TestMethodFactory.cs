@@ -15,12 +15,6 @@ namespace AElf.Contracts.TestKit
 {
     public class TestMethodFactory : ITestMethodFactory, ITransientDependency
     {
-        public ECKeyPair KeyPair { get; set; } = CryptoHelpers.GenerateKeyPair();
-
-        public Address ContractAddress { get; set; }
-
-        public Address Sender => Address.FromPublicKey(KeyPair.PublicKey);
-
         private readonly IRefBlockInfoProvider _refBlockInfoProvider;
         private readonly ITransactionExecutor _transactionExecutor;
         private readonly ITransactionResultService _transactionResultService;
@@ -32,6 +26,12 @@ namespace AElf.Contracts.TestKit
             _transactionResultService = serviceProvider.GetRequiredService<ITransactionResultService>();
         }
 
+        public ECKeyPair KeyPair { get; set; } = CryptoHelpers.GenerateKeyPair();
+
+        public Address ContractAddress { get; set; }
+
+        public Address Sender => Address.FromPublicKey(KeyPair.PublicKey);
+
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         public TestMethod<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
@@ -39,7 +39,7 @@ namespace AElf.Contracts.TestKit
             async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
             {
                 var refBlockInfo = _refBlockInfoProvider.GetRefBlockInfo();
-                var transaction = new Transaction()
+                var transaction = new Transaction
                 {
                     From = Sender,
                     To = ContractAddress,
@@ -54,7 +54,7 @@ namespace AElf.Contracts.TestKit
                 await _transactionExecutor.ExecuteAsync(transaction);
                 var transactionResult =
                     await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
-                return new ExecutionResult<TOutput>()
+                return new ExecutionResult<TOutput>
                 {
                     Transaction = transaction, TransactionResult = transactionResult,
                     Output = method.ResponseMarshaller.Deserializer(transactionResult.ReturnValue.ToByteArray())
@@ -63,7 +63,7 @@ namespace AElf.Contracts.TestKit
 
             async Task<TOutput> CallAsync(TInput input)
             {
-                var transaction = new Transaction()
+                var transaction = new Transaction
                 {
                     From = Sender,
                     To = ContractAddress,

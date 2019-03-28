@@ -1,9 +1,10 @@
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.Node.Domain;
-using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.OS.Network.Application;
+using Volo.Abp.DependencyInjection;
+using Volo.Abp.EventBus;
+
+nPool.Infrastructure;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
@@ -17,7 +18,8 @@ namespace AElf.OS.Handlers
     {
         public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>, ITransientDependency
         {
-            public INetworkService NetworkService { get; set; }
+            public INetworkService NetworkSer
+        t; set; }
 
             public async Task HandleEventAsync(BlockAcceptedEvent eventData)
             {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -34,28 +33,22 @@ namespace AElf.Runtime.CSharp
             using (Stream stream = new MemoryStream(code))
             {
                 assembly = loadContext.LoadFromStream(stream);
-                
+
                 //load by main context, not load in code, directly load in dll
 
                 try
                 {
                     var assembly2 = Assembly.Load(assembly.FullName);
 
-                    if (code.SequenceEqual(File.ReadAllBytes(assembly2.Location)))
-                    {
-                        assembly = assembly2;
-                    }
+                    if (code.SequenceEqual(File.ReadAllBytes(assembly2.Location))) assembly = assembly2;
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     //may cannot find assembly in local
                 }
             }
 
-            if (assembly == null)
-            {
-                throw new InvalidCodeException("Invalid binary code.");
-            }
+            if (assembly == null) throw new InvalidCodeException("Invalid binary code.");
 
             var executive = new Executive(assembly, _executivePlugins);
 

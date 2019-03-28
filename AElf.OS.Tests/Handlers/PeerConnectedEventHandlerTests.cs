@@ -9,6 +9,11 @@ namespace AElf.OS.Handlers
 {
     public class PeerConnectedEventHandlerTests : SyncTestBase
     {
+        public PeerConnectedEventHandlerTests()
+        {
+            _handler = GetRequiredService<PeerConnectedEventHandler>();
+            _jobStore = GetRequiredService<IBackgroundJobStore>();
+        }
         // Cases to test:
         // 1) we already have the block
         // 2) we don't have the block => go get it:
@@ -16,18 +21,23 @@ namespace AElf.OS.Handlers
         //     b) It's not linkable => queue job
 
         /// <summary>
-        /// Default amount of jobs to get from the store, since for now all tests should queues at most one, then
-        /// 2 is enough to check.
+        ///     Default amount of jobs to get from the store, since for now all tests should queues at most one, then
+        ///     2 is enough to check.
         /// </summary>
         private const int MaxJobsToCheck = 2;
 
         private readonly PeerConnectedEventHandler _handler;
-        private IBackgroundJobStore _jobStore;
+        private readonly IBackgroundJobStore _jobStore;
 
-        public PeerConnectedEventHandlerTests()
+        [Fact]
+        public async Task HandleEventAsync_QueuesJob()
         {
-            _handler = GetRequiredService<PeerConnectedEventHandler>();
-            _jobStore = GetRequiredService<IBackgroundJobStore>();
+            var announcement = new PeerNewBlockAnnouncement
+                {BlockHash = Hash.FromString("unlinkable"), BlockHeight = 2};
+            await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1"));
+
+            var jobs = await _jobStore.GetWaitingJobsAsync(MaxJobsToCheck);
+            Assert.True(jobs.Count == 1);
         }
 
         [Fact]
@@ -38,16 +48,6 @@ namespace AElf.OS.Handlers
 
             var jobs = await _jobStore.GetWaitingJobsAsync(MaxJobsToCheck);
             Assert.True(jobs.Count == 0);
-        }
-
-        [Fact]
-        public async Task HandleEventAsync_QueuesJob()
-        {
-            var announcement = new PeerNewBlockAnnouncement {BlockHash = Hash.FromString("unlinkable"), BlockHeight = 2};
-            await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1"));
-
-            var jobs = await _jobStore.GetWaitingJobsAsync(MaxJobsToCheck);
-            Assert.True(jobs.Count == 1);
         }
     }
 }

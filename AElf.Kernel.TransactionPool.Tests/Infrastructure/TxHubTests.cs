@@ -1,31 +1,56 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Shouldly;
-using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
     public class TxHubTests : TransactionPoolWithChainTestBase
     {
-        private readonly TxHub _txHub;
-        private readonly IBlockchainService _blockchainService;
-        private readonly KernelTestHelper _kernelTestHelper;
-        
         public TxHubTests()
         {
             _txHub = GetRequiredService<TxHub>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
-        
+
+        private readonly TxHub _txHub;
+        private readonly IBlockchainService _blockchainService;
+        private readonly KernelTestHelper _kernelTestHelper;
+
+        private void TransactionShouldInPool(Transaction transaction)
+        {
+            var existTransactionReceipt = _txHub.GetTransactionReceiptAsync(transaction.GetHash()).Result;
+            existTransactionReceipt.Transaction.ShouldBe(transaction);
+        }
+
+        private void TransactionPoolSizeShouldBe(int size)
+        {
+            var transactionPoolSize = _txHub.GetTransactionPoolSizeAsync().Result;
+            transactionPoolSize.ShouldBe(size);
+        }
+
+        private void ExecutableTransactionShouldBe(Hash previousBlockHash, long previousBlockHeight,
+            List<Transaction> transactions = null)
+        {
+            var executableTxSet = _txHub.GetExecutableTransactionSetAsync().Result;
+            executableTxSet.PreviousBlockHash.ShouldBe(previousBlockHash);
+            executableTxSet.PreviousBlockHeight.ShouldBe(previousBlockHeight);
+            if (transactions != null)
+            {
+                executableTxSet.Transactions.Count.ShouldBe(transactions.Count);
+
+                foreach (var tx in transactions) executableTxSet.Transactions.ShouldContain(tx);
+            }
+            else
+            {
+                executableTxSet.Transactions.Count.ShouldBe(0);
+            }
+        }
+
         [Fact]
         public async Task Test_TxHub()
         {
@@ -51,7 +76,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //         BestChainHeight: 0
                 //          AllTransaction: 1
                 //   ExecutableTransaction: 0
-                
+
                 // Receive the transaction first time
                 await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
                 {
@@ -59,10 +84,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 });
 
                 ExecutableTransactionShouldBe(Hash.Empty, 0);
-                
+
                 TransactionPoolSizeShouldBe(1);
                 TransactionShouldInPool(transactionHeight100);
-                
+
                 // Receive the same transaction again
                 await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
                 {
@@ -84,7 +109,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //          AllTransaction: 2
                 //   ExecutableTransaction: 0
                 var chain = await _blockchainService.GetChainAsync();
-                var transactionValid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+                var transactionValid =
+                    _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
 
                 await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
                 {
@@ -102,7 +128,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //         BestChainHeight: 0
                 //          AllTransaction: 1
                 //   ExecutableTransaction: 0
-                var transactionNotInPool = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+                var transactionNotInPool =
+                    _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
 
                 var newBlock = await _kernelTestHelper.AttachBlockToBestChain(new List<Transaction>
                 {
@@ -134,13 +161,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
                 });
-                
+
                 ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
-                
+
                 TransactionPoolSizeShouldBe(1);
                 TransactionShouldInPool(transactionHeight100);
             }
-            
+
             {
                 // Receive a valid transaction and a invalid transaction
                 // Chain:
@@ -150,23 +177,24 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //          AllTransaction: 3
                 //   ExecutableTransaction: 1
                 var chain = await _blockchainService.GetChainAsync();
-                var transactionValid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
+                var transactionValid =
+                    _kernelTestHelper.GenerateTransaction(chain.BestChainHeight, chain.BestChainHash);
                 var transactionInvalid = _kernelTestHelper.GenerateTransaction(chain.BestChainHeight - 1);
 
                 await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction>
                     {
-                        transactionValid, 
+                        transactionValid,
                         transactionInvalid
                     }
                 });
-                
+
                 ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight, new List<Transaction>
                 {
                     transactionValid
                 });
-                
+
                 TransactionPoolSizeShouldBe(3);
                 TransactionShouldInPool(transactionHeight100);
                 TransactionShouldInPool(transactionValid);
@@ -189,7 +217,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 {
                     transactionValid
                 });
-                
+
                 TransactionPoolSizeShouldBe(3);
                 TransactionShouldInPool(transactionHeight100);
                 TransactionShouldInPool(transactionValid);
@@ -224,47 +252,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 }
 
                 ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
-                
+
                 TransactionPoolSizeShouldBe(1);
                 TransactionShouldInPool(transactionHeight100);
             }
         }
-
-        #region check methods
-
-        private void TransactionShouldInPool(Transaction transaction)
-        {
-            var existTransactionReceipt = _txHub.GetTransactionReceiptAsync(transaction.GetHash()).Result;
-            existTransactionReceipt.Transaction.ShouldBe(transaction);
-        }
-
-        private void TransactionPoolSizeShouldBe(int size)
-        {
-            var transactionPoolSize = _txHub.GetTransactionPoolSizeAsync().Result;
-            transactionPoolSize.ShouldBe(size);
-        }
-
-        private void ExecutableTransactionShouldBe(Hash previousBlockHash, long previousBlockHeight,
-            List<Transaction> transactions = null)
-        {
-            var executableTxSet = _txHub.GetExecutableTransactionSetAsync().Result;
-            executableTxSet.PreviousBlockHash.ShouldBe(previousBlockHash);
-            executableTxSet.PreviousBlockHeight.ShouldBe(previousBlockHeight);
-            if (transactions != null)
-            {
-                executableTxSet.Transactions.Count.ShouldBe(transactions.Count);
-
-                foreach (var tx in transactions)
-                {
-                    executableTxSet.Transactions.ShouldContain(tx);
-                }
-            }
-            else
-            {
-                executableTxSet.Transactions.Count.ShouldBe(0);
-            }
-        }
-
-        #endregion
     }
 }

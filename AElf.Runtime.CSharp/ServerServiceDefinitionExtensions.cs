@@ -24,9 +24,10 @@ namespace AElf.Types.CSharp
     internal static class ServerServiceDefinitionExtensions
     {
         /// <summary>
-        /// Maps methods from <c>ServerServiceDefinition</c> to server call handlers.
+        ///     Maps methods from <c>ServerServiceDefinition</c> to server call handlers.
         /// </summary>
-        internal static ReadOnlyDictionary<string, IServerCallHandler> GetCallHandlers(this ServerServiceDefinition serviceDefinition)
+        internal static ReadOnlyDictionary<string, IServerCallHandler> GetCallHandlers(
+            this ServerServiceDefinition serviceDefinition)
         {
             var binder = new DefaultServiceBinder();
             serviceDefinition.BindService(binder);
@@ -34,15 +35,16 @@ namespace AElf.Types.CSharp
         }
 
         /// <summary>
-        /// Helper for converting <c>ServerServiceDefinition</c> to server call handlers.
+        ///     Helper for converting <c>ServerServiceDefinition</c> to server call handlers.
         /// </summary>
         private class DefaultServiceBinder : ServiceBinderBase
         {
-            readonly Dictionary<string, IServerCallHandler> callHandlers = new Dictionary<string, IServerCallHandler>();
+            private readonly Dictionary<string, IServerCallHandler> callHandlers =
+                new Dictionary<string, IServerCallHandler>();
 
             internal ReadOnlyDictionary<string, IServerCallHandler> GetCallHandlers()
             {
-                return new ReadOnlyDictionary<string, IServerCallHandler>(this.callHandlers);
+                return new ReadOnlyDictionary<string, IServerCallHandler>(callHandlers);
             }
 
             public override void AddMethod<TRequest, TResponse>(

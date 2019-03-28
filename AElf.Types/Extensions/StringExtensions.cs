@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Common
@@ -15,9 +14,9 @@ namespace AElf.Common
         {
             return str.StartsWith("0x") ? str : "0x" + str;
         }
-        
+
         /// <summary>
-        /// Calculates the hash for a string.
+        ///     Calculates the hash for a string.
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>

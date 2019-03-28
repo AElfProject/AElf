@@ -20,18 +20,17 @@ namespace AElf.Kernel.Infrastructure
             return typeof(T).Name;
         }
     }
-    
+
     public class FastStoreKeyPrefixProvider<T> : IStoreKeyPrefixProvider<T>
         where T : IMessage<T>, new()
     {
-
         private readonly string _prefix;
-            
+
         public FastStoreKeyPrefixProvider(string prefix)
         {
             _prefix = prefix;
         }
-        
+
         public string GetStoreKeyPrefix()
         {
             return _prefix;
@@ -39,14 +38,12 @@ namespace AElf.Kernel.Infrastructure
     }
 
 
-
     public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<T>
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
         where T : IMessage<T>, new()
     {
-        private readonly TKeyValueDbContext _keyValueDbContext;
-
         private readonly IKeyValueCollection _collection;
+        private readonly TKeyValueDbContext _keyValueDbContext;
 
         private readonly MessageParser<T> _messageParser;
 
@@ -65,11 +62,6 @@ namespace AElf.Kernel.Infrastructure
             await _collection.SetAsync(key, Serialize(value));
         }
 
-        private static byte[] Serialize(T value)
-        {
-            return value?.ToByteArray();
-        }
-
         public async Task PipelineSetAsync(Dictionary<string, T> pipelineSet)
         {
             await _collection.PipelineSetAsync(
@@ -80,17 +72,22 @@ namespace AElf.Kernel.Infrastructure
         {
             var result = await _collection.GetAsync(key);
 
-            return result == null ? default(T) : Deserialize(result);
-        }
-
-        private T Deserialize(byte[] result)
-        {
-            return _messageParser.ParseFrom(result);
+            return result == null ? default : Deserialize(result);
         }
 
         public virtual async Task RemoveAsync(string key)
         {
             await _collection.RemoveAsync(key);
+        }
+
+        private static byte[] Serialize(T value)
+        {
+            return value?.ToByteArray();
+        }
+
+        private T Deserialize(byte[] result)
+        {
+            return _messageParser.ParseFrom(result);
         }
     }
 }

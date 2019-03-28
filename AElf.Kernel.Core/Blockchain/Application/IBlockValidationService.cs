@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -16,8 +15,6 @@ namespace AElf.Kernel.Blockchain.Application
 
     public class BlockValidationService : IBlockValidationService, ITransientDependency
     {
-        public ILogger<BlockValidationService> Logger { get; set; }
-
         private readonly IEnumerable<IBlockValidationProvider> _blockValidationProviders;
 
         public BlockValidationService(IEnumerable<IBlockValidationProvider> blockValidationProviders)
@@ -26,13 +23,13 @@ namespace AElf.Kernel.Blockchain.Application
             _blockValidationProviders = blockValidationProviders;
         }
 
+        public ILogger<BlockValidationService> Logger { get; set; }
+
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
             foreach (var provider in _blockValidationProviders)
-            {
                 if (!await provider.ValidateBlockBeforeExecuteAsync(block))
                     return false;
-            }
 
             return true;
         }
@@ -40,10 +37,8 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
             foreach (var provider in _blockValidationProviders)
-            {
                 if (!await provider.ValidateBlockAfterExecuteAsync(block))
                     return false;
-            }
 
             return true;
         }

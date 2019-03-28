@@ -11,7 +11,7 @@ namespace AElf.Contracts.Dividend
         public BoolState Initialized { get; set; }
         internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal  BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
+        internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
 
         // Term Number -> Dividends Amount
         public MappedState<long, long> DividendsMap { get; set; }

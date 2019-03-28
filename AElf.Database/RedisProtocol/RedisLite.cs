@@ -13,7 +13,7 @@ namespace AElf.Database.RedisProtocol
     /**
      * Simplified NServiceKit.Redis
      */
-    public class RedisLite: IDisposable
+    public class RedisLite : IDisposable
     {
         public const long DefaultDb = 0;
         public const int DefaultPort = 6379;
@@ -22,42 +22,23 @@ namespace AElf.Database.RedisProtocol
 
         internal const int Success = 1;
         internal const int OneGb = 1073741824;
-        private readonly byte[] endData = new[] {(byte) '\r', (byte) '\n'};
+
+        private readonly IList<ArraySegment<byte>> _cmdBuffer = new List<ArraySegment<byte>>();
+        private readonly byte[] endData = {(byte) '\r', (byte) '\n'};
+        private byte[] _currentBuffer = BufferPool.GetBuffer();
+        private int _currentBufferIndex;
+
+        protected BufferedStream Bstream;
 
         private int clientPort;
         private string lastCommand;
-        private SocketException lastSocketException;
-        public bool HadExceptions { get; protected set; }
-
-        protected Socket socket;
-        protected BufferedStream Bstream;
-
-        /// <summary>
-        /// Used to manage connection pooling
-        /// </summary>
-        internal bool Active { get; set; }
 
         internal long LastConnectedAtTimestamp;
+        private SocketException lastSocketException;
 
-        public long Id { get; set; }
+        protected Socket socket;
 
-        public string Host { get; private set; }
-        public int Port { get; private set; }
-
-        /// <summary>
-        /// Gets or sets object key prefix.
-        /// </summary>
-        public string NamespacePrefix { get; set; }
-
-        public int ConnectTimeout { get; set; }
-        public int RetryTimeout { get; set; }
-        public int RetryCount { get; set; }
-        public int SendTimeout { get; set; }
-        public int ReceiveTimeout { get; set; }
-        public string Password { get; set; }
-        public int IdleTimeOutSecs { get; set; }
-
-        public RedisLite(string host, int port = 6379): this(host, port, null)
+        public RedisLite(string host, int port = 6379) : this(host, port, null)
         {
         }
 
@@ -72,11 +53,39 @@ namespace AElf.Database.RedisProtocol
             IdleTimeOutSecs = DefaultIdleTimeOutSecs;
         }
 
-        private long _db;
-        public long Db
+        public bool HadExceptions { get; protected set; }
+
+        /// <summary>
+        ///     Used to manage connection pooling
+        /// </summary>
+        internal bool Active { get; set; }
+
+        public long Id { get; set; }
+
+        public string Host { get; }
+        public int Port { get; }
+
+        /// <summary>
+        ///     Gets or sets object key prefix.
+        /// </summary>
+        public string NamespacePrefix { get; set; }
+
+        public int ConnectTimeout { get; set; }
+        public int RetryTimeout { get; set; }
+        public int RetryCount { get; set; }
+        public int SendTimeout { get; set; }
+        public int ReceiveTimeout { get; set; }
+        public string Password { get; set; }
+        public int IdleTimeOutSecs { get; set; }
+
+        public long Db { get; set; }
+
+        private bool IsDisposed { get; set; }
+
+        public void Dispose()
         {
-            get => _db;
-            set => _db = value;
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         public bool Ping()
@@ -190,8 +199,8 @@ namespace AElf.Database.RedisProtocol
                 if (Password != null)
                     SendExpectSuccess(Commands.Auth, Password.ToUtf8Bytes());
 
-                if (_db != 0)
-                    SendExpectSuccess(Commands.Select, _db.ToUtf8Bytes());
+                if (Db != 0)
+                    SendExpectSuccess(Commands.Select, Db.ToUtf8Bytes());
 
                 clientPort = socket.LocalEndPoint is IPEndPoint ipEndpoint ? ipEndpoint.Port : -1;
                 lastCommand = null;
@@ -210,14 +219,6 @@ namespace AElf.Database.RedisProtocol
             }
         }
 
-        private bool IsDisposed { get; set; }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         ~RedisLite()
         {
             Dispose(false);
@@ -227,11 +228,7 @@ namespace AElf.Database.RedisProtocol
         {
             Active = false;
 
-            if (disposing)
-            {
-                //dispose un managed resources
-                DisposeConnection();
-            }
+            if (disposing) DisposeConnection();
         }
 
         private void DisposeConnection()
@@ -253,7 +250,7 @@ namespace AElf.Database.RedisProtocol
 
         private bool Reconnect()
         {
-            var previousDb = _db;
+            var previousDb = Db;
 
             SafeConnectionClose();
             Connect(); //sets db to 0
@@ -303,18 +300,12 @@ namespace AElf.Database.RedisProtocol
                 var now = Stopwatch.GetTimestamp();
                 var elapsedSecs = (now - LastConnectedAtTimestamp) / Stopwatch.Frequency;
 
-                if (socket == null || elapsedSecs > IdleTimeOutSecs && !socket.IsConnected())
-                {
-                    return Reconnect();
-                }
+                if (socket == null || elapsedSecs > IdleTimeOutSecs && !socket.IsConnected()) return Reconnect();
 
                 LastConnectedAtTimestamp = now;
             }
 
-            if (socket == null)
-            {
-                Connect();
-            }
+            if (socket == null) Connect();
 
             var isConnected = socket != null;
 
@@ -369,7 +360,7 @@ namespace AElf.Database.RedisProtocol
         }
 
         /// <summary>
-        /// Command to set multuple binary safe arguments
+        ///     Command to set multuple binary safe arguments
         /// </summary>
         /// <param name="cmdWithBinaryArgs"></param>
         /// <returns></returns>
@@ -406,10 +397,6 @@ namespace AElf.Database.RedisProtocol
                 WriteToSendBuffer(endData);
             }
         }
-
-        private readonly IList<ArraySegment<byte>> _cmdBuffer = new List<ArraySegment<byte>>();
-        private byte[] _currentBuffer = BufferPool.GetBuffer();
-        private int _currentBufferIndex;
 
         private void WriteToSendBuffer(byte[] cmdBytes)
         {
@@ -465,12 +452,12 @@ namespace AElf.Database.RedisProtocol
         }
 
         /// <summary>
-        /// reset buffer index in send buffer
+        ///     reset buffer index in send buffer
         /// </summary>
         public void ResetSendBuffer()
         {
             _currentBufferIndex = 0;
-            for (int i = _cmdBuffer.Count - 1; i >= 0; i--)
+            for (var i = _cmdBuffer.Count - 1; i >= 0; i--)
             {
                 var buffer = _cmdBuffer[i].Array;
                 BufferPool.ReleaseBufferToPool(ref buffer);
@@ -524,7 +511,7 @@ namespace AElf.Database.RedisProtocol
         public double ReadDouble()
         {
             var bytes = ReadData();
-            return (bytes == null) ? double.NaN : ParseDouble(bytes);
+            return bytes == null ? double.NaN : ParseDouble(bytes);
         }
 
         public static double ParseDouble(byte[] doubleBytes)
@@ -580,17 +567,14 @@ namespace AElf.Database.RedisProtocol
             }
 
             lastCommand = sb.ToString();
-            if (lastCommand.Length > 100)
-            {
-                lastCommand = lastCommand.Substring(0, 100) + "...";
-            }
+            if (lastCommand.Length > 100) lastCommand = lastCommand.Substring(0, 100) + "...";
 
             Console.WriteLine("S: " + lastCommand);
         }
 
         protected void ExpectSuccess()
         {
-            int c = SafeReadByte();
+            var c = SafeReadByte();
             if (c == -1)
                 throw CreateResponseError("No more data");
 
@@ -604,7 +588,7 @@ namespace AElf.Database.RedisProtocol
 
         private void ExpectWord(string word)
         {
-            int c = SafeReadByte();
+            var c = SafeReadByte();
             if (c == -1)
                 throw CreateResponseError("No more data");
 
@@ -621,7 +605,7 @@ namespace AElf.Database.RedisProtocol
 
         private string ExpectCode()
         {
-            int c = SafeReadByte();
+            var c = SafeReadByte();
             if (c == -1)
                 throw CreateResponseError("No more data");
 
@@ -647,7 +631,7 @@ namespace AElf.Database.RedisProtocol
 
         public long ReadInt()
         {
-            int c = SafeReadByte();
+            var c = SafeReadByte();
             if (c == -1)
                 throw CreateResponseError("No more data");
 
@@ -670,7 +654,7 @@ namespace AElf.Database.RedisProtocol
 
         public long ReadLong()
         {
-            int c = SafeReadByte();
+            var c = SafeReadByte();
             if (c == -1)
                 throw CreateResponseError("No more data");
 
@@ -703,7 +687,7 @@ namespace AElf.Database.RedisProtocol
             if (r.Length == 0)
                 throw CreateResponseError("Zero length respose");
 
-            char c = r[0];
+            var c = r[0];
             if (c == '-')
                 throw CreateResponseError(r.StartsWith("-ERR") ? r.Substring(5) : r.Substring(1));
 
@@ -713,7 +697,7 @@ namespace AElf.Database.RedisProtocol
                     return null;
                 int count;
 
-                if (Int32.TryParse(r.Substring(1), out count))
+                if (int.TryParse(r.Substring(1), out count))
                 {
                     var retbuf = new byte[count];
 
@@ -737,18 +721,14 @@ namespace AElf.Database.RedisProtocol
                 throw CreateResponseError("Invalid length");
             }
 
-            if (c == ':')
-            {
-                //match the return value
-                return r.Substring(1).ToUtf8Bytes();
-            }
+            if (c == ':') return r.Substring(1).ToUtf8Bytes();
 
             throw CreateResponseError("Unexpected reply: " + r);
         }
 
         private byte[][] ReadMultiData()
         {
-            int c = SafeReadByte();
+            var c = SafeReadByte();
             if (c == -1)
                 throw CreateResponseError("No more data");
 
@@ -770,15 +750,11 @@ namespace AElf.Database.RedisProtocol
                     int count;
                     if (int.TryParse(s, out count))
                     {
-                        if (count == -1)
-                        {
-                            //redis is in an invalid state
-                            return new byte[0][];
-                        }
+                        if (count == -1) return new byte[0][];
 
                         var result = new byte[count][];
 
-                        for (int i = 0; i < count; i++)
+                        for (var i = 0; i < count; i++)
                             result[i] = ReadData();
 
                         return result;
@@ -797,7 +773,7 @@ namespace AElf.Database.RedisProtocol
 
         private object ReadDeeplyNestedMultiDataItem()
         {
-            int c = SafeReadByte();
+            var c = SafeReadByte();
             if (c == -1)
                 throw CreateResponseError("No more data");
 
@@ -817,10 +793,7 @@ namespace AElf.Database.RedisProtocol
                     if (int.TryParse(s, out count))
                     {
                         var array = new object[count];
-                        for (int i = 0; i < count; i++)
-                        {
-                            array[i] = ReadDeeplyNestedMultiDataItem();
-                        }
+                        for (var i = 0; i < count; i++) array[i] = ReadDeeplyNestedMultiDataItem();
 
                         return array;
                     }
@@ -836,7 +809,7 @@ namespace AElf.Database.RedisProtocol
 
         internal int ReadMultiDataResultCount()
         {
-            int c = SafeReadByte();
+            var c = SafeReadByte();
             if (c == -1)
                 throw CreateResponseError("No more data");
 
@@ -847,10 +820,7 @@ namespace AElf.Database.RedisProtocol
             if (c == '*')
             {
                 int count;
-                if (int.TryParse(s, out count))
-                {
-                    return count;
-                }
+                if (int.TryParse(s, out count)) return count;
             }
 
             throw CreateResponseError("Unknown reply on multi-request: " + c + s);
@@ -870,7 +840,8 @@ namespace AElf.Database.RedisProtocol
             return MergeCommandWithKeysAndValues(firstParams, keys, values);
         }
 
-        private static byte[][] MergeCommandWithKeysAndValues(byte[] cmd, byte[] firstArg, byte[][] keys, byte[][] values)
+        private static byte[][] MergeCommandWithKeysAndValues(byte[] cmd, byte[] firstArg, byte[][] keys,
+            byte[][] values)
         {
             var firstParams = new[] {cmd, firstArg};
             return MergeCommandWithKeysAndValues(firstParams, keys, values);
@@ -891,10 +862,7 @@ namespace AElf.Database.RedisProtocol
             var keysAndValuesLength = keys.Length * 2 + keyValueStartIndex;
             var keysAndValues = new byte[keysAndValuesLength][];
 
-            for (var i = 0; i < keyValueStartIndex; i++)
-            {
-                keysAndValues[i] = firstParams[i];
-            }
+            for (var i = 0; i < keyValueStartIndex; i++) keysAndValues[i] = firstParams[i];
 
             var j = 0;
             for (var i = keyValueStartIndex; i < keysAndValuesLength; i += 2)
@@ -917,10 +885,7 @@ namespace AElf.Database.RedisProtocol
         {
             var mergedBytes = new byte[1 + args.Length][];
             mergedBytes[0] = cmd;
-            for (var i = 0; i < args.Length; i++)
-            {
-                mergedBytes[i + 1] = args[i];
-            }
+            for (var i = 0; i < args.Length; i++) mergedBytes[i + 1] = args[i];
 
             return mergedBytes;
         }
@@ -930,10 +895,7 @@ namespace AElf.Database.RedisProtocol
             var mergedBytes = new byte[2 + args.Length][];
             mergedBytes[0] = cmd;
             mergedBytes[1] = firstArg;
-            for (var i = 0; i < args.Length; i++)
-            {
-                mergedBytes[i + 2] = args[i];
-            }
+            for (var i = 0; i < args.Length; i++) mergedBytes[i + 2] = args[i];
 
             return mergedBytes;
         }
@@ -959,10 +921,7 @@ namespace AElf.Database.RedisProtocol
 
             var keysLength = keys.Length;
             var merged = new string[keysLength + args.Length];
-            for (var i = 0; i < merged.Length; i++)
-            {
-                merged[i] = i < keysLength ? keys[i] : args[i - keysLength];
-            }
+            for (var i = 0; i < merged.Length; i++) merged[i] = i < keysLength ? keys[i] : args[i - keysLength];
 
             return ConvertToBytes(merged);
         }
@@ -970,35 +929,32 @@ namespace AElf.Database.RedisProtocol
 
     internal class BufferPool
     {
-        internal static void Flush()
-        {
-            for (int i = 0; i < pool.Length; i++)
-            {
-                Interlocked.Exchange(ref pool[i], null); // and drop the old value on the floor
-            }
-        }
+        private const int PoolSize = 1000; //1.45MB
+        internal const int BufferLength = 1450; //MTU size - some headers
+        private static readonly object[] pool = new object[PoolSize];
 
         private BufferPool()
         {
         }
 
-        const int PoolSize = 1000; //1.45MB
-        internal const int BufferLength = 1450; //MTU size - some headers
-        private static readonly object[] pool = new object[PoolSize];
+        internal static void Flush()
+        {
+            for (var i = 0; i < pool.Length; i++)
+                Interlocked.Exchange(ref pool[i], null); // and drop the old value on the floor
+        }
 
         internal static byte[] GetBuffer()
         {
             object tmp;
-            for (int i = 0; i < pool.Length; i++)
-            {
+            for (var i = 0; i < pool.Length; i++)
                 if ((tmp = Interlocked.Exchange(ref pool[i], null)) != null)
                     return (byte[]) tmp;
-            }
 
             return new byte[BufferLength];
         }
 
-        internal static void ResizeAndFlushLeft(ref byte[] buffer, int toFitAtLeastBytes, int copyFromIndex, int copyBytes)
+        internal static void ResizeAndFlushLeft(ref byte[] buffer, int toFitAtLeastBytes, int copyFromIndex,
+            int copyBytes)
         {
             Debug.Assert(buffer != null);
             Debug.Assert(toFitAtLeastBytes > buffer.Length);
@@ -1006,19 +962,13 @@ namespace AElf.Database.RedisProtocol
             Debug.Assert(copyBytes >= 0);
 
             // try doubling, else match
-            int newLength = buffer.Length * 2;
+            var newLength = buffer.Length * 2;
             if (newLength < toFitAtLeastBytes) newLength = toFitAtLeastBytes;
 
             var newBuffer = new byte[newLength];
-            if (copyBytes > 0)
-            {
-                Buffer.BlockCopy(buffer, copyFromIndex, newBuffer, 0, copyBytes);
-            }
+            if (copyBytes > 0) Buffer.BlockCopy(buffer, copyFromIndex, newBuffer, 0, copyBytes);
 
-            if (buffer.Length == BufferLength)
-            {
-                ReleaseBufferToPool(ref buffer);
-            }
+            if (buffer.Length == BufferLength) ReleaseBufferToPool(ref buffer);
 
             buffer = newBuffer;
         }
@@ -1027,15 +977,9 @@ namespace AElf.Database.RedisProtocol
         {
             if (buffer == null) return;
             if (buffer.Length == BufferLength)
-            {
-                for (int i = 0; i < pool.Length; i++)
-                {
+                for (var i = 0; i < pool.Length; i++)
                     if (Interlocked.CompareExchange(ref pool[i], buffer, null) == null)
-                    {
                         break; // found a null; swapped it in
-                    }
-                }
-            }
 
             // if no space, just drop it on the floor
             buffer = null;

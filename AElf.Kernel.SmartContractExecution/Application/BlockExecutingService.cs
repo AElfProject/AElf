@@ -1,26 +1,21 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.SmartContractExecution.Domain;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class BlockExecutingService : IBlockExecutingService, ITransientDependency
     {
-        private readonly ITransactionExecutingService _executingService;
-        private readonly IBlockManager _blockManager;
         private readonly IBlockGenerationService _blockGenerationService;
-        
+        private readonly IBlockManager _blockManager;
+        private readonly ITransactionExecutingService _executingService;
+
         public BlockExecutingService(ITransactionExecutingService executingService, IBlockManager blockManager,
             IBlockGenerationService blockGenerationService)
         {
@@ -45,7 +40,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var nonCancellable = nonCancellableTransactions.ToList();
             var cancellable = cancellableTransactions.ToList();
 
-            var chainContext = new ChainContext()
+            var chainContext = new ChainContext
             {
                 BlockHash = blockHeader.PreviousBlockHash,
                 BlockHeight = blockHeader.Height - 1

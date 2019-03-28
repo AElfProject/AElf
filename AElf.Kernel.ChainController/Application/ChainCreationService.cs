@@ -1,33 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.Blockchain.Helpers;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Types.CSharp;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
-using Type = System.Type;
 
 namespace AElf.Kernel.ChainController.Application
 {
     public class ChainCreationService : IChainCreationService
     {
+        private readonly IBlockchainExecutingService _blockchainExecutingService;
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockExecutingService _blockExecutingService;
-        private readonly IBlockchainExecutingService _blockchainExecutingService;
-        public ILogger<ChainCreationService> Logger { get; set; }
-
-        public ILocalEventBus LocalEventBus { get; set; }
 
         public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
             IBlockchainExecutingService blockchainExecutingService)
@@ -39,8 +28,12 @@ namespace AElf.Kernel.ChainController.Application
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
+        public ILogger<ChainCreationService> Logger { get; set; }
+
+        public ILocalEventBus LocalEventBus { get; set; }
+
         /// <summary>
-        /// Creates a new chain with the provided and Smart Contract Zero.
+        ///     Creates a new chain with the provided and Smart Contract Zero.
         /// </summary>
         /// <returns>The new chain async.</returns>
         /// <param name="">The new chain id which will be derived from the creator address.</param>
@@ -56,12 +49,12 @@ namespace AElf.Kernel.ChainController.Application
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),
                     ChainId = _blockchainService.GetChainId()
                 };
-                
-                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions); 
+
+                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions);
                 var chain = await _blockchainService.CreateChainAsync(block);
                 await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain,
                     BlockAttachOperationStatus.LongestChainFound);
-                    
+
                 return await _blockchainService.GetChainAsync();
             }
             catch (Exception e)

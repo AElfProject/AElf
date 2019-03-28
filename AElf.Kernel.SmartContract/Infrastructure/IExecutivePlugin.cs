@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Infrastructure

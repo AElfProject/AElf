@@ -13,18 +13,17 @@ namespace AElf.Database.Tests
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddSingleton<IConnectionStringResolver>(o => Mock.Of<IConnectionStringResolver>(
+            services.AddSingleton(o => Mock.Of<IConnectionStringResolver>(
                 c => c.Resolve("Default") == "127.0.0.1" &&
                      c.Resolve("AElf.Database.Tests.MyContext2") == "10.1.1.1"
             ));
 
             services.AddKeyValueDbContext<MyContext>(builder => builder.UseRedisDatabase());
-            
+
             services.AddKeyValueDbContext<MyContext>(builder => builder.UseInMemoryDatabase());
 
             services.AddKeyValueDbContext<MyContext2>(builder => builder.UseSsdbDatabase());
             services.AddKeyValueDbContext<InMemoryDbContext>(builder => builder.UseInMemoryDatabase());
-
         }
     }
 
@@ -41,6 +40,5 @@ namespace AElf.Database.Tests
 
     public class InMemoryDbContext : KeyValueDbContext<InMemoryDbContext>
     {
-        
     }
 }

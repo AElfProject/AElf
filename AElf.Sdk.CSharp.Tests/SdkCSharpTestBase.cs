@@ -2,7 +2,7 @@
 
 namespace AElf.Sdk.CSharp.Tests
 {
-    public class SdkCSharpTestBase:AElfIntegratedTest<TestSdkCSharpAElfModule>
+    public class SdkCSharpTestBase : AElfIntegratedTest<TestSdkCSharpAElfModule>
     {
     }
 }

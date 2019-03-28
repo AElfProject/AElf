@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using AElf.Common;
 using AElf.CrossChain.Cache.Exception;
@@ -11,11 +10,12 @@ namespace AElf.CrossChain.Cache
     {
         private readonly IMultiChainBlockInfoCacheProvider _multiChainBlockInfoCacheProvider;
 
-        public ILogger<CrossChainDataProducer> Logger { get; set; }
         public CrossChainDataProducer(IMultiChainBlockInfoCacheProvider multiChainBlockInfoCacheProvider)
         {
             _multiChainBlockInfoCacheProvider = multiChainBlockInfoCacheProvider;
         }
+
+        public ILogger<CrossChainDataProducer> Logger { get; set; }
 
         public bool AddNewBlockInfo(IBlockInfo blockInfo)
         {
@@ -33,7 +33,8 @@ namespace AElf.CrossChain.Cache
         {
             var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             if (blockInfoCache == null)
-                throw new ChainCacheNotFoundException($"Chain {ChainHelpers.ConvertChainIdToBase58(chainId)} cache not found.");
+                throw new ChainCacheNotFoundException(
+                    $"Chain {ChainHelpers.ConvertChainIdToBase58(chainId)} cache not found.");
             return blockInfoCache.TargetChainHeight();
         }
 

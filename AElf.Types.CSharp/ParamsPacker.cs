@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Google.Protobuf;
@@ -14,15 +13,14 @@ namespace AElf.Types.CSharp
             if (objs.Length == 0)
                 return new byte[] { };
             // Put plain clr data in Pb types.
-            if (!objs.All(o => o.GetType().IsArray && o.GetType().GetElementType().IsAllowedType() || o.GetType().IsAllowedType()))
-            {
+            if (!objs.All(o =>
+                o.GetType().IsArray && o.GetType().GetElementType().IsAllowedType() || o.GetType().IsAllowedType()))
                 throw new Exception("Contains invalid type.");
-            }
 
-            using (MemoryStream mm = new MemoryStream())
-            using (CodedOutputStream stream = new CodedOutputStream(mm))
+            using (var mm = new MemoryStream())
+            using (var stream = new CodedOutputStream(mm))
             {
-                int fieldNumber = 1;
+                var fieldNumber = 1;
                 foreach (var obj in objs)
                 {
                     stream.WriteRawTag((byte) obj.GetTagForFieldNumber(fieldNumber));
@@ -39,11 +37,7 @@ namespace AElf.Types.CSharp
                     var array = (ICollection) obj;
                     // write array length
                     stream.WriteUInt32((uint) array.Count);
-                    foreach (var o in (IEnumerable) obj)
-                    {
-                        o.WriteToStream(stream);
-                    }
-
+                    foreach (var o in (IEnumerable) obj) o.WriteToStream(stream);
                 }
 
                 stream.Flush();
@@ -56,23 +50,18 @@ namespace AElf.Types.CSharp
         {
             if (bytes.Length == 0)
                 return new object[] { };
-            if (types.Length * bytes.Length == 0)
-            {
-                throw new Exception("Invalid input.");
-            }
+            if (types.Length * bytes.Length == 0) throw new Exception("Invalid input.");
 
             var objs = new object[types.Length];
-            using (CodedInputStream stream = new CodedInputStream(bytes))
+            using (var stream = new CodedInputStream(bytes))
             {
-                for (int i = 0; i < types.Length; i++)
+                for (var i = 0; i < types.Length; i++)
                 {
                     var tag = stream.ReadTag();
                     var fieldNumber = WireFormat.GetTagFieldNumber(tag);
                     var index = fieldNumber - 1;
                     if (index < i || index > types.Length)
-                    {
                         throw new Exception("Invalid input. Wrong parameter order or wrong number of parameters.");
-                    }
 
                     while (i < index)
                     {

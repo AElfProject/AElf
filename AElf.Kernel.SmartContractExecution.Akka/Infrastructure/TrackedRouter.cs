@@ -9,33 +9,34 @@ using Akka.Util;
 
 namespace AElf.Kernel.SmartContractExecution.Execution
 {
-    class IgnoreMessageRoutee : Routee
+    internal class IgnoreMessageRoutee : Routee
     {
         public override void Send(object message, IActorRef sender)
         {
         }
     }
 
-    class NoAvailableRoutee : Routee
+    internal class NoAvailableRoutee : Routee
     {
         public override void Send(object message, IActorRef sender)
         {
             if (message is JobExecutionRequest request)
-            {
                 sender.Tell(new JobExecutionStatus(request.RequestId,
                     JobExecutionStatus.RequestStatus.FailedDueToNoAvailableWorker));
-            }
         }
     }
 
     public class TrackedRoutingLogic : RoutingLogic
     {
+        private readonly HashSet<int> _idleRouteeIndexes = new HashSet<int>();
+        private readonly ReaderWriterLock _lock = new ReaderWriterLock();
+
+        private readonly ConcurrentDictionary<long, int>
+            _requestIdToRouteeIndex = new ConcurrentDictionary<long, int>();
+
+        private readonly HashSet<int> _runningRouteeIndexes = new HashSet<int>();
         private IgnoreMessageRoutee IgnoreMessageRoutee { get; } = new IgnoreMessageRoutee();
         private NoAvailableRoutee NoAvailableRoutee { get; } = new NoAvailableRoutee();
-        private readonly ReaderWriterLock _lock = new ReaderWriterLock();
-        private readonly HashSet<int> _runningRouteeIndexes = new HashSet<int>();
-        private readonly HashSet<int> _idleRouteeIndexes = new HashSet<int>();
-        private readonly ConcurrentDictionary<long, int> _requestIdToRouteeIndex = new ConcurrentDictionary<long, int>();
 
         public override Routee Select(object message, Routee[] routees)
         {
@@ -43,12 +44,8 @@ namespace AElf.Kernel.SmartContractExecution.Execution
             {
                 _lock.AcquireWriterLock(Timeout.Infinite);
                 if (_runningRouteeIndexes.Count == 0 && _idleRouteeIndexes.Count == 0)
-                {
-                    for (int i = 0; i < routees.Length; i++)
-                    {
+                    for (var i = 0; i < routees.Length; i++)
                         _idleRouteeIndexes.Add(i);
-                    }
-                }
 
                 if (message is JobExecutionStatus status)
                 {
@@ -66,10 +63,7 @@ namespace AElf.Kernel.SmartContractExecution.Execution
                 }
                 else if (message is JobExecutionRequest req)
                 {
-                    if (_idleRouteeIndexes.Count == 0)
-                    {
-                        return NoAvailableRoutee;
-                    }
+                    if (_idleRouteeIndexes.Count == 0) return NoAvailableRoutee;
 
                     var ind = _idleRouteeIndexes.First();
 
@@ -136,24 +130,24 @@ namespace AElf.Kernel.SmartContractExecution.Execution
             public class TrackedGroupSurrogate : ISurrogate
             {
                 /// <summary>
-                /// Creates a <see cref="TrackedGroupSurrogate"/> encapsulated by this surrogate.
-                /// </summary>
-                /// <param name="system">The actor system that owns this router.</param>
-                /// <returns>The <see cref="TrackedGroupSurrogate"/> encapsulated by this surrogate.</returns>
-                public ISurrogated FromSurrogate(ActorSystem system)
-                {
-                    return new TrackedGroup(Paths, RouterDispatcher);
-                }
-
-                /// <summary>
-                /// The actor paths used by this router during routee selection.
+                ///     The actor paths used by this router during routee selection.
                 /// </summary>
                 public IEnumerable<string> Paths { get; set; }
 
                 /// <summary>
-                /// The dispatcher to use when passing messages to the routees.
+                ///     The dispatcher to use when passing messages to the routees.
                 /// </summary>
                 public string RouterDispatcher { get; set; }
+
+                /// <summary>
+                ///     Creates a <see cref="TrackedGroupSurrogate" /> encapsulated by this surrogate.
+                /// </summary>
+                /// <param name="system">The actor system that owns this router.</param>
+                /// <returns>The <see cref="TrackedGroupSurrogate" /> encapsulated by this surrogate.</returns>
+                public ISurrogated FromSurrogate(ActorSystem system)
+                {
+                    return new TrackedGroup(Paths, RouterDispatcher);
+                }
             }
         }
     }

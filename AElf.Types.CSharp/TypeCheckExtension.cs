@@ -6,7 +6,7 @@ namespace AElf.Types.CSharp
 {
     public static class TypeCheckExtension
     {
-        private static HashSet<Type> _allowedPrimitives = new HashSet<System.Type>()
+        private static readonly HashSet<Type> _allowedPrimitives = new HashSet<Type>
         {
             typeof(void), typeof(bool), typeof(int), typeof(uint), typeof(long), typeof(ulong),
             typeof(string), typeof(byte[])

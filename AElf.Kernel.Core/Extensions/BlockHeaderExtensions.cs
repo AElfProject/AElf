@@ -11,7 +11,7 @@ namespace AElf.Kernel
 
         public static Hash GetPreMiningHash(this BlockHeader blockHeader)
         {
-            return new BlockHeader()
+            return new BlockHeader
             {
                 PreviousBlockHash = blockHeader.PreviousBlockHash,
                 Height = blockHeader.Height

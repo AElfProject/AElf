@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using Grpc.Core;
 
@@ -11,7 +10,7 @@ namespace AElf.OS.Network.Grpc
             return context.RequestHeaders
                 .FirstOrDefault(entry => entry.Key == GrpcConsts.PubkeyMetadataKey)?.Value;
         }
-        
+
         public static string GetPeerInfo(this ServerCallContext context)
         {
             return context.RequestHeaders

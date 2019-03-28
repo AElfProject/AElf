@@ -29,14 +29,15 @@ namespace AElf.Types.CSharp
 
     public sealed class TestMethod<TInput, TOutput> where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
     {
-        public Func<TInput, Task<IExecutionResult<TOutput>>> SendAsync { get; }
-        public Func<TInput, Task<TOutput>> CallAsync { get; }
-
-        public TestMethod(Func<TInput, Task<IExecutionResult<TOutput>>> sendAsync, Func<TInput, Task<TOutput>> callAsync)
+        public TestMethod(Func<TInput, Task<IExecutionResult<TOutput>>> sendAsync,
+            Func<TInput, Task<TOutput>> callAsync)
         {
             SendAsync = sendAsync;
             CallAsync = callAsync;
         }
+
+        public Func<TInput, Task<IExecutionResult<TOutput>>> SendAsync { get; }
+        public Func<TInput, Task<TOutput>> CallAsync { get; }
     }
 
     public interface ITestMethodFactory

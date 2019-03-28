@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -11,7 +10,7 @@ namespace AElf.Kernel.Blockchain.Application
         Task FillBlockExtraData(BlockHeader blockHeader);
 
         /// <summary>
-        /// Get extra data from block header.
+        ///     Get extra data from block header.
         /// </summary>
         /// <param name="blockExtraDataProviderSymbol"></param>
         /// <param name="blockHeader"></param>

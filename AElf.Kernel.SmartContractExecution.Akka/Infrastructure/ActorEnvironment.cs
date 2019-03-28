@@ -1,17 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.SmartContractExecution.Execution;
 using Akka.Actor;
 using Akka.Configuration;
 using Akka.Routing;
-using AElf.Kernel;
-using AElf.Kernel.SmartContractExecution;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.SmartContractExecution.Execution;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.SmartContractExecution
@@ -19,11 +15,18 @@ namespace AElf.Kernel.SmartContractExecution
     public class ActorEnvironment : IActorEnvironment
     {
         private const string SystemName = "AElfSystem";
-        private ActorSystem _actorSystem;
-        private IActorRef _router;
-        private IActorRef _requestor;
-        private readonly ServicePack _servicePack;
         private readonly ExecutionOptions _executionOptions;
+        private readonly ServicePack _servicePack;
+        private ActorSystem _actorSystem;
+        private IActorRef _requestor;
+        private IActorRef _router;
+
+        public ActorEnvironment(ServicePack servicePack, IOptionsSnapshot<ExecutionOptions> options)
+        {
+            _servicePack = servicePack;
+            _executionOptions = options.Value;
+            Initialized = false;
+        }
 
         public bool Initialized { get; private set; }
 
@@ -33,20 +36,10 @@ namespace AElf.Kernel.SmartContractExecution
         {
             get
             {
-                if (_requestor == null)
-                {
-                    _requestor = _actorSystem.ActorOf(Akka.Infrastructure.Requestor.Props(_router));    
-                }
+                if (_requestor == null) _requestor = _actorSystem.ActorOf(Akka.Infrastructure.Requestor.Props(_router));
 
                 return _requestor;
             }
-        }
-
-        public ActorEnvironment(ServicePack servicePack, IOptionsSnapshot<ExecutionOptions> options)
-        {
-            _servicePack = servicePack;
-            _executionOptions = options.Value;
-            Initialized = false;
         }
 
         public void InitActorSystem()
@@ -91,12 +84,10 @@ namespace AElf.Kernel.SmartContractExecution
         private Config PrepareActorConfig(string content)
         {
             if (_executionOptions.Seeds == null || _executionOptions.Seeds.Count == 0)
-            {
                 _executionOptions.Seeds = new List<SeedNode>
                 {
                     new SeedNode {HostName = _executionOptions.HostName, Port = _executionOptions.Port}
                 };
-            }
 
             var seeds = string.Join(",",
                 _executionOptions.Seeds.Select(s => $@"""akka.tcp://{SystemName}@{s.HostName}:{s.Port}"""));

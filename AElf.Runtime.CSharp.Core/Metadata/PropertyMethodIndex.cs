@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Mono.Cecil;
 
@@ -14,27 +13,6 @@ namespace AElf.Runtime.CSharp.Metadata
             AddPropertyDefinitions(propertyDefinitions);
         }
 
-        public void AddPropertyDefinitions(IEnumerable<PropertyDefinition> propertyDefinitions)
-        {
-            foreach (var property in propertyDefinitions)
-            {
-                AddPropertyDefinition(property);
-            }
-        }
-
-        public void AddPropertyDefinition(PropertyDefinition propertyDefinition)
-        {
-            if (propertyDefinition.SetMethod != null)
-            {
-                _cache[propertyDefinition.SetMethod] = propertyDefinition;
-            }
-
-            if (propertyDefinition.GetMethod != null)
-            {
-                _cache[propertyDefinition.GetMethod] = propertyDefinition;
-            }
-        }
-
         public PropertyDefinition this[MethodDefinition methodDefinition]
         {
             get
@@ -42,6 +20,18 @@ namespace AElf.Runtime.CSharp.Metadata
                 _cache.TryGetValue(methodDefinition, out var propertyDefinition);
                 return propertyDefinition;
             }
-        } 
+        }
+
+        public void AddPropertyDefinitions(IEnumerable<PropertyDefinition> propertyDefinitions)
+        {
+            foreach (var property in propertyDefinitions) AddPropertyDefinition(property);
+        }
+
+        public void AddPropertyDefinition(PropertyDefinition propertyDefinition)
+        {
+            if (propertyDefinition.SetMethod != null) _cache[propertyDefinition.SetMethod] = propertyDefinition;
+
+            if (propertyDefinition.GetMethod != null) _cache[propertyDefinition.GetMethod] = propertyDefinition;
+        }
     }
 }

@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
@@ -14,6 +12,8 @@ namespace AElf.Contracts.Resource
         private static readonly List<string> _resourceTypes = Enum.GetValues(typeof(ResourceType))
             .Cast<ResourceType>().Select(x => x.ToString().ToUpper()).ToList();
 
+        private static readonly decimal MaxWeight = 1000000m;
+
         private void AssertCorrectResourceType(string resourceType)
         {
             Assert(_resourceTypes.Contains(resourceType.ToUpper()), "Incorrect resource type.");
@@ -23,7 +23,7 @@ namespace AElf.Contracts.Resource
         {
             AssertCorrectResourceType(resourceType);
             return (ResourceType) Enum.Parse(typeof(ResourceType),
-                resourceType, ignoreCase: true);
+                resourceType, true);
         }
 
         private string Standardized(string resourceType)
@@ -34,7 +34,7 @@ namespace AElf.Contracts.Resource
         private StringValue GetConverterKey(string resourceType)
         {
             AssertCorrectResourceType(resourceType);
-            return new StringValue() {Value = resourceType.ToUpper()};
+            return new StringValue {Value = resourceType.ToUpper()};
         }
 
         private void Transfer(Address from, Address to, long amount, ResourceType rt)
@@ -48,8 +48,6 @@ namespace AElf.Contracts.Resource
             State.UserBalances[fromKey] = fromBal;
             State.UserBalances[toKey] = toBal;
         }
-        
-        private static readonly decimal MaxWeight = 1000000m;
 
         public long BuyResourceFromExchange(string resourceType, long paidElf)
         {

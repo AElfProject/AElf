@@ -50,7 +50,7 @@ namespace AElf.Contracts.DPoS.SideChain
                 () => SingleTester.InitialSideChainAsync());
             DPoSSideChainContractAddress = SingleTester.GetConsensusContractAddress();
         }
-        
+
         public DPoSTriggerInformation GetTriggerInformationForInitialTerm(IReadOnlyList<ECKeyPair> stubMiners)
         {
             return new DPoSTriggerInformation
@@ -58,17 +58,14 @@ namespace AElf.Contracts.DPoS.SideChain
                 PublicKey = stubMiners[0].PublicKey.ToHex(),
                 Timestamp = DateTime.UtcNow.ToTimestamp(),
                 Miners = {stubMiners.Select(m => m.PublicKey.ToHex()).ToList()},
-                MiningInterval = 4000,
+                MiningInterval = 4000
             };
         }
-        
+
         public DPoSTriggerInformation GetTriggerInformationForNormalBlock(string publicKey, Hash currentInValue,
             Hash previousInValue = null)
         {
-            if (previousInValue == null)
-            {
-                previousInValue = Hash.Empty;
-            }
+            if (previousInValue == null) previousInValue = Hash.Empty;
 
             return new DPoSTriggerInformation
             {
@@ -79,7 +76,8 @@ namespace AElf.Contracts.DPoS.SideChain
             };
         }
 
-        public DPoSTriggerInformation GetTriggerInformationForNextRoundOrTerm(string publicKey, Timestamp timestamp, bool isBootMiner = true)
+        public DPoSTriggerInformation GetTriggerInformationForNextRoundOrTerm(string publicKey, Timestamp timestamp,
+            bool isBootMiner = true)
         {
             return new DPoSTriggerInformation
             {

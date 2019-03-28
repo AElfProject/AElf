@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Dynamic;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 

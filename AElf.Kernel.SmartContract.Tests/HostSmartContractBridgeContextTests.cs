@@ -6,7 +6,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Org.BouncyCastle.Security;
@@ -17,13 +16,6 @@ namespace AElf.Kernel.SmartContract
 {
     public class HostSmartContractBridgeContextTests : SmartContractRunnerTestBase
     {
-        private readonly IBlockchainService _blockchainService;
-        private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
-        private readonly ECKeyPair _keyPair;
-
-        private IHostSmartContractBridgeContext _bridgeContext;
-
         public HostSmartContractBridgeContextTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
@@ -33,15 +25,121 @@ namespace AElf.Kernel.SmartContract
             _bridgeContext = CreateNewContext();
         }
 
-        [Fact]
-        public void Recover_PublicKey_Success()
-        {
-            var hash = Hash.FromString("RecoverPublicKey").DumpByteArray();
-            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey,
-                Hash.FromString("RecoverPublicKeyFail").DumpByteArray());
+        private readonly IBlockchainService _blockchainService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
+        private readonly ECKeyPair _keyPair;
 
-            var recoverPublicKey = _bridgeContext.RecoverPublicKey(signature, hash);
-            recoverPublicKey.ShouldNotBe(_keyPair.PublicKey);
+        private IHostSmartContractBridgeContext _bridgeContext;
+
+        private IHostSmartContractBridgeContext CreateNewContext()
+        {
+            _bridgeContext = GetRequiredService<IHostSmartContractBridgeContext>();
+            var smartContractContext = new SmartContractContext
+            {
+                ContractAddress = Address.Genesis
+            };
+            _bridgeContext.SmartContractContext = smartContractContext;
+
+            var transactionContext = new TransactionContext
+            {
+                Transaction = new Transaction
+                {
+                    From = Address.FromPublicKey(_keyPair.PublicKey),
+                    To = Address.Genesis
+                },
+                BlockHeight = 3,
+                CurrentBlockTime = DateTime.Now,
+                PreviousBlockHash = Hash.Empty,
+                Trace = new TransactionTrace()
+            };
+            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, transactionContext.Transaction
+                .GetHash().DumpByteArray());
+            transactionContext.Transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            _bridgeContext.TransactionContext = transactionContext;
+
+            return _bridgeContext;
+        }
+
+        private Transaction GetNewTransaction()
+        {
+            var tx = new Transaction
+            {
+                From = Address.FromString("From"),
+                To = Address.FromString("To"),
+                MethodName = Guid.NewGuid().ToString()
+            };
+            return tx;
+        }
+
+        [Fact]
+        public void Deploy_Contract_Success()
+        {
+            var smartContractContext = new SmartContractContext
+            {
+                ContractAddress = _smartContractAddressService.GetZeroSmartContractAddress()
+            };
+            _bridgeContext.SmartContractContext = smartContractContext;
+
+            var registration = new SmartContractRegistration
+            {
+                Category = KernelConstants.DefaultRunnerCategory,
+                Code = ByteString.Empty,
+                CodeHash = Hash.Generate()
+            };
+
+            _bridgeContext.DeployContract(Address.Zero, registration, Hash.FromMessage(registration.CodeHash));
+        }
+
+        [Fact]
+        public void Deploy_Contract_ThrowInvalidParameterException()
+        {
+            var smartContractContext = new SmartContractContext
+            {
+                ContractAddress = _smartContractAddressService.GetZeroSmartContractAddress()
+            };
+            _bridgeContext.SmartContractContext = smartContractContext;
+
+            Should.Throw<InvalidParameterException>(() =>
+                _bridgeContext.DeployContract(_smartContractAddressService.GetZeroSmartContractAddress(),
+                    new SmartContractRegistration {Category = -1}, null));
+        }
+
+        [Fact]
+        public void Deploy_Contract_ThrowNoPermissionException()
+        {
+            Should.Throw<NoPermissionException>(() =>
+                _bridgeContext.DeployContract(_smartContractAddressService.GetZeroSmartContractAddress(),
+                    new SmartContractRegistration(), null));
+        }
+
+        [Fact]
+        public void Get_GetPreviousBlock_Success()
+        {
+            var newBlock = new Block
+            {
+                Height = 2,
+                Header = new BlockHeader
+                {
+                    PreviousBlockHash = Hash.Empty
+                },
+                Body = new BlockBody()
+            };
+            _blockchainService.AddBlockAsync(newBlock);
+
+            _bridgeContext.TransactionContext.PreviousBlockHash = newBlock.GetHash();
+
+            var previousBlock = _bridgeContext.GetPreviousBlock();
+            previousBlock.Height.ShouldBe(newBlock.Height);
+            previousBlock.GetHash().ShouldBe(newBlock.GetHash());
+        }
+
+        [Fact]
+        public void Recover_Context_PublicKey_Success()
+        {
+            var recoverPublicKey = _bridgeContext.RecoverPublicKey();
+            recoverPublicKey.ShouldNotBeNull();
+            recoverPublicKey.ShouldBe(_keyPair.PublicKey);
         }
 
         [Fact]
@@ -56,11 +154,25 @@ namespace AElf.Kernel.SmartContract
         }
 
         [Fact]
-        public void Recover_Context_PublicKey_Success()
+        public void Recover_PublicKey_Success()
         {
-            var recoverPublicKey = _bridgeContext.RecoverPublicKey();
-            recoverPublicKey.ShouldNotBeNull();
-            recoverPublicKey.ShouldBe(_keyPair.PublicKey);
+            var hash = Hash.FromString("RecoverPublicKey").DumpByteArray();
+            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey,
+                Hash.FromString("RecoverPublicKeyFail").DumpByteArray());
+
+            var recoverPublicKey = _bridgeContext.RecoverPublicKey(signature, hash);
+            recoverPublicKey.ShouldNotBe(_keyPair.PublicKey);
+        }
+
+        [Fact]
+        public void Send_DeferredTransaction_Success()
+        {
+            var deferredTransaction = GetNewTransaction();
+
+            _bridgeContext.SendDeferredTransaction(deferredTransaction);
+
+            var currentDeferredTransaction = _bridgeContext.TransactionContext.Trace.DeferredTransaction;
+            currentDeferredTransaction.ShouldBe(deferredTransaction.ToByteString());
         }
 
         [Fact]
@@ -99,60 +211,35 @@ namespace AElf.Kernel.SmartContract
         }
 
         [Fact]
-        public void Get_GetPreviousBlock_Success()
+        public void Update_Contract_Success()
         {
-            var newBlock = new Block
+            var smartContractContext = new SmartContractContext
             {
-                Height = 2,
-                Header = new BlockHeader
-                {
-                    PreviousBlockHash = Hash.Empty
-                },
-                Body = new BlockBody()
+                ContractAddress = _defaultContractZeroCodeProvider.ContractZeroAddress
             };
-            _blockchainService.AddBlockAsync(newBlock);
+            _bridgeContext.SmartContractContext = smartContractContext;
 
-            _bridgeContext.TransactionContext.PreviousBlockHash = newBlock.GetHash();
-
-            var previousBlock = _bridgeContext.GetPreviousBlock();
-            previousBlock.Height.ShouldBe(newBlock.Height);
-            previousBlock.GetHash().ShouldBe(newBlock.GetHash());
-        }
-
-        [Fact]
-        public void Verify_Signature_NoSignature_ReturnFalse()
-        {
-            var tx = new Transaction();
-            var verifyResult = _bridgeContext.VerifySignature(tx);
-            verifyResult.ShouldBe(false);
-        }
-
-        [Fact]
-        public void Verify_Signature_SingleSignature_ReturnTrue()
-        {
-            var tx = new Transaction
+            var registration = new SmartContractRegistration
             {
-                From = Address.FromPublicKey(_keyPair.PublicKey),
-                To = Address.FromString("To"),
-                MethodName = "TestMethod"
+                Category = KernelConstants.DefaultRunnerCategory,
+                Code = ByteString.Empty,
+                CodeHash = Hash.Empty
             };
-            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature));
 
-            var verifyResult = _bridgeContext.VerifySignature(tx);
-            verifyResult.ShouldBe(true);
+            _bridgeContext.UpdateContract(Address.Zero, registration, null);
         }
 
         [Fact]
-        public void Verify_Signature_SingleSignature_ReturnFalse()
+        public void Update_Contract_ThrowAssertionError()
         {
-            var tx = GetNewTransaction();
-
-            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature));
-
-            var verifyResult = _bridgeContext.VerifySignature(tx);
-            verifyResult.ShouldBe(false);
+            var smartContractContext = new SmartContractContext
+            {
+                ContractAddress = _smartContractAddressService.GetZeroSmartContractAddress()
+            };
+            _bridgeContext.SmartContractContext = smartContractContext;
+            Should.Throw<InvalidParameterException>(() =>
+                _bridgeContext.UpdateContract(_smartContractAddressService.GetZeroSmartContractAddress(),
+                    new SmartContractRegistration {Category = -1}, null));
         }
 
         [Fact]
@@ -172,127 +259,39 @@ namespace AElf.Kernel.SmartContract
         }
 
         [Fact]
-        public void Send_DeferredTransaction_Success()
+        public void Verify_Signature_NoSignature_ReturnFalse()
         {
-            var deferredTransaction = GetNewTransaction();
-
-            _bridgeContext.SendDeferredTransaction(deferredTransaction);
-
-            var currentDeferredTransaction = _bridgeContext.TransactionContext.Trace.DeferredTransaction;
-            currentDeferredTransaction.ShouldBe(deferredTransaction.ToByteString());
+            var tx = new Transaction();
+            var verifyResult = _bridgeContext.VerifySignature(tx);
+            verifyResult.ShouldBe(false);
         }
 
         [Fact]
-        public void Deploy_Contract_ThrowNoPermissionException()
+        public void Verify_Signature_SingleSignature_ReturnFalse()
         {
-            Should.Throw<NoPermissionException>(() =>
-                _bridgeContext.DeployContract(_smartContractAddressService.GetZeroSmartContractAddress(),
-                    new SmartContractRegistration(), null));
+            var tx = GetNewTransaction();
+
+            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature));
+
+            var verifyResult = _bridgeContext.VerifySignature(tx);
+            verifyResult.ShouldBe(false);
         }
 
         [Fact]
-        public void Deploy_Contract_ThrowInvalidParameterException()
-        {
-            var smartContractContext = new SmartContractContext
-            {
-                ContractAddress = _smartContractAddressService.GetZeroSmartContractAddress(),
-            };
-            _bridgeContext.SmartContractContext = smartContractContext;
-
-            Should.Throw<InvalidParameterException>(() =>
-                _bridgeContext.DeployContract(_smartContractAddressService.GetZeroSmartContractAddress(),
-                    new SmartContractRegistration(){Category = -1}, null));
-        }
-
-        [Fact]
-        public void Deploy_Contract_Success()
-        {
-            var smartContractContext = new SmartContractContext
-            {
-                ContractAddress = _smartContractAddressService.GetZeroSmartContractAddress(),
-            };
-            _bridgeContext.SmartContractContext = smartContractContext;
-
-            var registration = new SmartContractRegistration
-            {
-                Category = KernelConstants.DefaultRunnerCategory,
-                Code = ByteString.Empty,
-                CodeHash = Hash.Generate()
-            };
-
-            _bridgeContext.DeployContract(Address.Zero, registration, Hash.FromMessage(registration.CodeHash));
-        }
-
-        [Fact]
-        public void Update_Contract_ThrowAssertionError()
-        {
-            var smartContractContext = new SmartContractContext
-            {
-                ContractAddress = _smartContractAddressService.GetZeroSmartContractAddress(),
-            };
-            _bridgeContext.SmartContractContext = smartContractContext;
-            Should.Throw<InvalidParameterException>(() =>
-                _bridgeContext.UpdateContract(_smartContractAddressService.GetZeroSmartContractAddress(),
-                    new SmartContractRegistration(){Category = -1}, null));
-        }
-
-        [Fact]
-        public void Update_Contract_Success()
-        {
-            var smartContractContext = new SmartContractContext
-            {
-                ContractAddress = _defaultContractZeroCodeProvider.ContractZeroAddress
-            };
-            _bridgeContext.SmartContractContext = smartContractContext;
-
-            var registration = new SmartContractRegistration
-            {
-                Category = KernelConstants.DefaultRunnerCategory,
-                Code = ByteString.Empty,
-                CodeHash = Hash.Empty
-            };
-
-            _bridgeContext.UpdateContract(Address.Zero, registration, null);
-        }
-        
-        private IHostSmartContractBridgeContext CreateNewContext()
-        {
-            _bridgeContext = GetRequiredService<IHostSmartContractBridgeContext>();
-            var smartContractContext = new SmartContractContext
-            {
-                ContractAddress = Address.Genesis,
-            };
-            _bridgeContext.SmartContractContext = smartContractContext;
-
-            var transactionContext = new TransactionContext()
-            {
-                Transaction = new Transaction()
-                {
-                    From = Address.FromPublicKey(_keyPair.PublicKey),
-                    To = Address.Genesis
-                },
-                BlockHeight = 3,
-                CurrentBlockTime = DateTime.Now,
-                PreviousBlockHash = Hash.Empty,
-                Trace = new TransactionTrace()
-            };
-            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, transactionContext.Transaction
-                .GetHash().DumpByteArray());
-            transactionContext.Transaction.Sigs.Add(ByteString.CopyFrom(signature));
-            _bridgeContext.TransactionContext = transactionContext;
-
-            return _bridgeContext;
-        }
-
-        private Transaction GetNewTransaction()
+        public void Verify_Signature_SingleSignature_ReturnTrue()
         {
             var tx = new Transaction
             {
-                From = Address.FromString("From"),
+                From = Address.FromPublicKey(_keyPair.PublicKey),
                 To = Address.FromString("To"),
-                MethodName = Guid.NewGuid().ToString()
+                MethodName = "TestMethod"
             };
-            return tx;
+            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            tx.Sigs.Add(ByteString.CopyFrom(signature));
+
+            var verifyResult = _bridgeContext.VerifySignature(tx);
+            verifyResult.ShouldBe(true);
         }
     }
 }

@@ -22,18 +22,14 @@ namespace AElf.Contracts.Consensus.DPoS
             // A voter cannot join the election before all his voting record expired.
             var tickets = State.TicketsMap[publicKey.ToStringValue()];
             if (tickets != null)
-            {
                 foreach (var voteToTransaction in tickets.VoteToTransactions)
                 {
                     var votingRecord = State.VotingRecordsMap[voteToTransaction];
                     if (votingRecord != null)
-                    {
                         Assert(votingRecord.IsWithdrawn,
                             ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidOperation,
                                 "Voter can't announce election."));
-                    }
                 }
-            }
 
             var candidates = State.CandidatesField.Value;
             if (candidates != null)
@@ -55,16 +51,12 @@ namespace AElf.Contracts.Consensus.DPoS
             State.CandidatesField.Value = candidates;
 
             if (alias == "" || alias.Length > DPoSContractConsts.AliasLimit)
-            {
                 alias = publicKey.Substring(0, DPoSContractConsts.AliasLimit);
-            }
 
             var publicKeyOfThisAlias = State.AliasesLookupMap[alias.ToStringValue()];
             if (publicKeyOfThisAlias != null &&
                 publicKey == publicKeyOfThisAlias.Value)
-            {
                 return new ActionResult {Success = true};
-            }
 
             State.AliasesLookupMap[alias.ToStringValue()] = publicKey.ToStringValue();
             State.AliasesMap[publicKey.ToStringValue()] = alias.ToStringValue();
@@ -78,7 +70,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     candidateHistoryInformation.Aliases.Add(alias);
                     candidateHistoryInformation.CurrentAlias = alias;
                 }
-                
+
                 candidateHistoryInformation.AnnouncementTransactionId = Context.TransactionId;
                 State.HistoryMap[publicKey.ToStringValue()] = candidateHistoryInformation;
             }
@@ -91,7 +83,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
             }
 
-            State.TokenContract.Lock.Send(new LockInput()
+            State.TokenContract.Lock.Send(new LockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -180,10 +172,10 @@ namespace AElf.Contracts.Consensus.DPoS
                 RoundNumber = currentRoundNumber,
                 TransactionId = Context.TransactionId,
                 VoteAge = CurrentAge,
-                UnlockAge = CurrentAge + (long) lockTime,
+                UnlockAge = CurrentAge + lockTime,
                 TermNumber = currentTermNumber,
                 VoteTimestamp = blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp(),
-                UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge + (long) lockTime)
+                UnlockTimestamp = blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge + lockTime)
                     .ToTimestamp()
             };
 
@@ -232,14 +224,14 @@ namespace AElf.Contracts.Consensus.DPoS
             State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;
 
             // Tell Dividends Contract to add weights for this voting record.
-            State.DividendContract.AddWeights.Send(new WeightsInfo()
+            State.DividendContract.AddWeights.Send(new WeightsInfo
                 {TermNumber = currentTermNumber + 1, Weights = votingRecord.Weight});
 
             Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
 
             return Context.TransactionId;
         }
-        
+
         // ReSharper disable once PossibleNullReferenceException
         public override ActionResult ReceiveDividendsByTransactionId(Hash input)
         {
@@ -331,7 +323,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Sub weight.
             State.DividendContract.SubWeights.Send(
-                new WeightsInfo()
+                new WeightsInfo
                 {
                     TermNumber = State.CurrentTermNumberField.Value,
                     Weights = votingRecord.Weight
@@ -370,11 +362,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 Assert(votingRecord != null,
                     ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
 
-                if (votingRecord.UnlockAge > CurrentAge)
-                {
-                    // Just check next one, no need to assert.
-                    continue;
-                }
+                if (votingRecord.UnlockAge > CurrentAge) continue;
 
                 // Update voting record map.
                 var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
@@ -386,13 +374,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 // Prepare data for updating tickets map.
                 withdrawnAmount += votingRecord.Count;
                 if (candidatesVotesDict.ContainsKey(votingRecord.To))
-                {
                     candidatesVotesDict[votingRecord.To] += votingRecord.Count;
-                }
                 else
-                {
                     candidatesVotesDict.Add(votingRecord.To, votingRecord.Count);
-                }
 
                 State.TokenContract.Unlock.Send(new UnlockInput
                 {
@@ -405,7 +389,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 });
 
                 State.DividendContract.SubWeights.Send(
-                    new WeightsInfo()
+                    new WeightsInfo
                     {
                         TermNumber = State.CurrentTermNumberField.Value,
                         Weights = votingRecord.Weight

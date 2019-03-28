@@ -1,12 +1,48 @@
+using System;
 using System.Collections.Generic;
-using Xunit;
 using AElf.Common;
 using Shouldly;
+using Xunit;
 
 namespace AElf.Types.Tests
 {
     public class HashTests
     {
+        [Fact]
+        public void CompareTest()
+        {
+            var hash1 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
+            var hash2 = Hash.FromRawBytes(new byte[] {15, 1, 14, 10});
+            hash1.CompareTo(hash2).ShouldBe(-1);
+            Should.Throw<InvalidOperationException>(() => { hash1.CompareTo(null); });
+
+            (hash1 < null).ShouldBeFalse();
+            (null < hash2).ShouldBeTrue();
+            (hash1 > hash2).ShouldBe(hash1.CompareTo(hash2) > 0);
+        }
+
+        [Fact]
+        public void DictionaryTest()
+        {
+            var dict = new Dictionary<Hash, string>();
+            var hash = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
+            dict[hash] = "test";
+
+            var anotherHash = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
+
+            Assert.True(dict.TryGetValue(anotherHash, out var test));
+            test.ShouldBe("test");
+        }
+
+        [Fact]
+        public void EqualTest()
+        {
+            var hash1 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
+            var hash2 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
+            var hash3 = Hash.FromRawBytes(new byte[] {15, 1, 14, 10});
+            hash1.ShouldBe(hash2);
+            hash1.ShouldNotBe(hash3);
+        }
 
         [Fact]
         public void Generate_Hash()
@@ -21,14 +57,14 @@ namespace AElf.Types.Tests
             hash3.ShouldNotBe(null);
 
             //Generate from byte
-            var bytes = new byte[]{00, 12, 14, 16};
+            var bytes = new byte[] {00, 12, 14, 16};
             var hash4 = Hash.FromRawBytes(bytes);
             hash4.ShouldNotBe(null);
 
             //Generate from teo hash
             var hash5 = Hash.FromTwoHashes(hash1, hash2);
             hash5.ShouldNotBe(null);
-            
+
             //Generate from xor
             var hash6 = Hash.Xor(hash1, hash2);
             hash6.ShouldNotBe(null);
@@ -42,42 +78,6 @@ namespace AElf.Types.Tests
             var hexString = hash.ToHex();
             byteArray.Length.ShouldBe(32);
             hexString.ShouldNotBe(string.Empty);
-        }
-
-        [Fact]
-        public void EqualTest()
-        {
-            var hash1 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
-            var hash2 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
-            var hash3 = Hash.FromRawBytes(new byte[] {15, 1, 14, 10});
-            hash1.ShouldBe(hash2);
-            hash1.ShouldNotBe(hash3);
-        }
-
-        [Fact]
-        public void CompareTest()
-        {
-            var hash1 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
-            var hash2 = Hash.FromRawBytes(new byte[] {15, 1, 14, 10});
-            hash1.CompareTo(hash2).ShouldBe(-1); 
-            Should.Throw<System.InvalidOperationException>(() => { hash1.CompareTo(null); });
-            
-            (hash1 < null).ShouldBeFalse();
-            (null < hash2).ShouldBeTrue();
-            (hash1 > hash2).ShouldBe(hash1.CompareTo(hash2)>0);
-        }
-
-        [Fact]
-        public void DictionaryTest()
-        {
-            var dict = new Dictionary<Hash, string>();
-            var hash = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
-            dict[hash] = "test";
-
-            var anotherHash = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
-
-            Assert.True(dict.TryGetValue(anotherHash, out var test));
-            test.ShouldBe("test");
         }
     }
 }

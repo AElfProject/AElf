@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;
-using AElf.Common;
 
 namespace AElf.Sdk.CSharp
 {
@@ -23,7 +23,7 @@ namespace AElf.Sdk.CSharp
 
         public static LogEvent ToLogEvent(TEvent e, Address self = null)
         {
-            var le = new LogEvent()
+            var le = new LogEvent
             {
                 Address = self
             };
@@ -33,33 +33,13 @@ namespace AElf.Sdk.CSharp
             le.Topics.Add(ByteString.CopyFrom(Hash.FromString(container.EventName).DumpByteArray()));
 
             foreach (var indexedField in container.Indexes)
-            {
                 le.Topics.Add(ByteString.CopyFrom(
                     SHA256.Create().ComputeHash(ParamsPacker.Pack(indexedField.Function(e))))
                 );
-            }
 
             var nonIndexed = container.NonIndexes.Select(x => x.Function(e)).ToArray();
             le.Data = ByteString.CopyFrom(ParamsPacker.Pack(nonIndexed));
             return le;
-        }
-
-        class TypeCache<T>
-            where T : Event
-        {
-            public Func<T, object> Function { get; set; }
-            public string Name { get; set; }
-            public bool Indexed { get; set; }
-        }
-
-        class CacheContainer<T>
-            where T : Event
-
-        {
-            public List<TypeCache<T>> Indexes { get; set; }
-            public List<TypeCache<T>> NonIndexes { get; set; }
-
-            public string EventName { get; set; }
         }
 
         private static CacheContainer<TEvent> CreateCache()
@@ -74,7 +54,7 @@ namespace AElf.Sdk.CSharp
                         Indexed = IsIndexed(x)
                     })
                 .ToList();
-            return new CacheContainer<TEvent>()
+            return new CacheContainer<TEvent>
             {
                 Indexes = fields.Where(p => p.Indexed).ToList(),
                 NonIndexes = fields.Where(p => !p.Indexed).ToList(),
@@ -83,14 +63,13 @@ namespace AElf.Sdk.CSharp
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="propertyName"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        static Func<T, object> CreateGetFuncFor<T>(string propertyName)
+        private static Func<T, object> CreateGetFuncFor<T>(string propertyName)
         {
-            PropertyInfo prop = typeof(T).GetProperty(propertyName);
+            var prop = typeof(T).GetProperty(propertyName);
 
             var methodInfo = prop.GetGetMethod();
 
@@ -117,7 +96,8 @@ namespace AElf.Sdk.CSharp
 
                 if (Test<byte>(type, out del))
                 {
-                }else if (Test<sbyte>(type, out del))
+                }
+                else if (Test<sbyte>(type, out del))
                 {
                 }
                 else if (Test<char>(type, out del))
@@ -157,10 +137,7 @@ namespace AElf.Sdk.CSharp
                         null,
                         methodInfo);
                     del = o => my.DynamicInvoke(o);
-
                 }
-
-
             }
             else
             {
@@ -176,6 +153,24 @@ namespace AElf.Sdk.CSharp
         {
             var attributes = fieldInfo.GetCustomAttributes(typeof(IndexedAttribute), true);
             return attributes.Length > 0;
+        }
+
+        private class TypeCache<T>
+            where T : Event
+        {
+            public Func<T, object> Function { get; set; }
+            public string Name { get; set; }
+            public bool Indexed { get; set; }
+        }
+
+        private class CacheContainer<T>
+            where T : Event
+
+        {
+            public List<TypeCache<T>> Indexes { get; set; }
+            public List<TypeCache<T>> NonIndexes { get; set; }
+
+            public string EventName { get; set; }
         }
     }
 }

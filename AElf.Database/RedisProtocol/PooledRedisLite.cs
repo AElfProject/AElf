@@ -11,19 +11,11 @@ namespace AElf.Database.RedisProtocol
     */
     public class PooledRedisLite
     {
-        private readonly RedisLite[] _writeClients;
         private readonly RedisLite[] _readOnlyClients;
+        private readonly RedisLite[] _writeClients;
+        private int _readOnlyClientIndex;
 
-        private int PoolSize { get; }
-        private int Db { get; }
-        public string Host { get; }
-        public int Port { get; }
-        private string Password { get; }
-        public int? PoolTimeout { get; set; }
-        public int RecheckPoolAfterMs { get; } = 10;
-
-        private int _writeClientIndex = 0;
-        private int _readOnlyClientIndex = 0;
+        private int _writeClientIndex;
 
         public PooledRedisLite(string host, int port = 6379, string password = null, int db = 0, int poolSize = 20)
         {
@@ -42,6 +34,14 @@ namespace AElf.Database.RedisProtocol
                 _readOnlyClients[i] = new RedisLite(host, port, Password, db);
             }
         }
+
+        private int PoolSize { get; }
+        private int Db { get; }
+        public string Host { get; }
+        public int Port { get; }
+        private string Password { get; }
+        public int? PoolTimeout { get; set; }
+        public int RecheckPoolAfterMs { get; } = 10;
 
         public bool Ping()
         {
@@ -111,7 +111,6 @@ namespace AElf.Database.RedisProtocol
                 {
                     RedisLite inActiveClient;
                     while ((inActiveClient = GetInActiveRedisClient(readOnly)) == null)
-                    {
                         if (PoolTimeout.HasValue)
                         {
                             // wait for a connection, cry out if made to wait too long
@@ -119,8 +118,9 @@ namespace AElf.Database.RedisProtocol
                                 throw new TimeoutException("Pool timeout error.");
                         }
                         else
+                        {
                             Monitor.Wait(lockObject, RecheckPoolAfterMs);
-                    }
+                        }
 
                     inActiveClient.Active = true;
                     return inActiveClient;
@@ -147,9 +147,7 @@ namespace AElf.Database.RedisProtocol
                     _writeClientIndex = index + 1;
 
                 if (clients[index] != null && !clients[index].Active && !clients[index].HadExceptions)
-                {
                     return clients[index];
-                }
 
                 if (clients[index] == null || clients[index].HadExceptions)
                 {

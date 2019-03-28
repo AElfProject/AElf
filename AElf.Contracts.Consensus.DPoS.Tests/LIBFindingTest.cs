@@ -12,14 +12,6 @@ namespace AElf.Contracts.Consensus.DPoS
     // ReSharper disable InconsistentNaming
     public class LIBFindingTest
     {
-        private ContractTester<DPoSContractTestAElfModule> Starter { get; }
-
-        private List<ContractTester<DPoSContractTestAElfModule>> Miners { get; }
-
-        private const int MinersCount = 17;
-
-        private const int MiningInterval = 1;
-
         public LIBFindingTest()
         {
             // The starter initial chain and tokens.
@@ -31,6 +23,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 .Select(i => Starter.CreateNewContractTester(minersKeyPairs[i])).ToList();
         }
 
+        private ContractTester<DPoSContractTestAElfModule> Starter { get; }
+
+        private List<ContractTester<DPoSContractTestAElfModule>> Miners { get; }
+
+        private const int MinersCount = 17;
+
+        private const int MiningInterval = 1;
+
         [Fact]
         public async Task GetLIBOffsetTest()
         {
@@ -40,7 +40,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 offset.ShouldBe(0L);
             }
 
-            var minimumCount = ((int) ((MinersCount * 2d) / 3)) + 1;
+            var minimumCount = (int) (MinersCount * 2d / 3) + 1;
 
             // Not enough for LIB, offset should be 0.
             {

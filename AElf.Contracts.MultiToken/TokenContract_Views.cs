@@ -1,6 +1,6 @@
-﻿using AElf.Contracts.MultiToken.Messages;
+﻿using AElf.Common;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
-using Address = AElf.Common.Address;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -15,7 +15,7 @@ namespace AElf.Contracts.MultiToken
         [View]
         public override GetBalanceOutput GetBalance(GetBalanceInput input)
         {
-            return new GetBalanceOutput()
+            return new GetBalanceOutput
             {
                 Symbol = input.Symbol,
                 Owner = input.Owner,
@@ -26,7 +26,7 @@ namespace AElf.Contracts.MultiToken
         [View]
         public override GetAllowanceOutput GetAllowance(GetAllowanceInput input)
         {
-            return new GetAllowanceOutput()
+            return new GetAllowanceOutput
             {
                 Symbol = input.Symbol,
                 Owner = input.Owner,
@@ -40,20 +40,20 @@ namespace AElf.Contracts.MultiToken
         [View]
         public string GetTokenInfo2(string symbol)
         {
-            return GetTokenInfo(new GetTokenInfoInput() {Symbol = symbol}).ToString();
+            return GetTokenInfo(new GetTokenInfoInput {Symbol = symbol}).ToString();
         }
 
         [View]
         public string GetBalance2(string symbol, Address owner)
         {
             return GetBalance(
-                new GetBalanceInput() {Symbol = symbol, Owner = owner})?.ToString();
+                new GetBalanceInput {Symbol = symbol, Owner = owner})?.ToString();
         }
 
         [View]
         public string GetAllowance2(string symbol, Address owner, Address spender)
         {
-            return GetAllowance(new GetAllowanceInput()
+            return GetAllowance(new GetAllowanceInput
             {
                 Owner = owner,
                 Symbol = symbol,

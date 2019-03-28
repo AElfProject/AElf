@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Xunit;
-using AElf.Common;
+﻿using AElf.Common;
 using Shouldly;
+using Xunit;
 
 namespace AElf.Kernel.Types.Tests
 {

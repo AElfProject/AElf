@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
@@ -23,77 +22,6 @@ namespace AElf.Contracts.TestBase.Tests
         private int DefaultCategory { get; } = SmartContractTestConstants.TestRunnerCategory;
 
         [Fact]
-        public async Task InitialChainTest()
-        {
-            var tester = new ContractTester<ContractTestAElfModule>();
-            await tester.InitialChainAsync();
-
-            var chain = await tester.GetChainAsync();
-            var longestChainHeight = chain.LongestChainHeight;
-
-            Assert.Equal(1, longestChainHeight);
-        }
-
-        [Fact]
-        public async Task MineTest()
-        {
-            var tester = new ContractTester<ContractTestAElfModule>();
-            await tester.InitialChainAsync();
-
-            var zeroContractAddress = tester.GetContractAddress(Hash.Empty);
-            // Create a transaction to deploy token contract.
-            var tx = await tester.GenerateTransactionAsync(zeroContractAddress,
-                "DeploySmartContract", 
-                new ContractDeploymentInput()
-                {
-                    Category = SmartContractTestConstants.TestRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
-                });
-
-            var chain = await tester.GetChainAsync();
-            var longestChainHeight = chain.LongestChainHeight;
-
-            Assert.Equal(1, longestChainHeight);
-
-            await tester.MineAsync(new List<Transaction> {tx});
-
-            chain = await tester.GetChainAsync();
-            longestChainHeight = chain.LongestChainHeight;
-
-            // The longest chain height increased from 1 to 2.
-            Assert.Equal(2, longestChainHeight);
-        }
-
-        [Fact]
-        public async Task MultipleNodesTest()
-        {
-            var tester1 = new ContractTester<ContractTestAElfModule>();
-            await tester1.InitialChainAsync();
-
-            var tester2 = new ContractTester<ContractTestAElfModule>();
-            await tester2.InitialChainAsync();
-
-            var zeroContractAddress = tester1.GetContractAddress(Hash.Empty);
-
-            var tx = await tester1.GenerateTransactionAsync(zeroContractAddress, 
-                "DeploySmartContract", 
-                new ContractDeploymentInput()
-                {
-                    Category = SmartContractTestConstants.TestRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
-                });
-
-            await tester1.MineAsync(new List<Transaction> {tx});
-
-            var chain1 = await tester1.GetChainAsync();
-            var chain2 = await tester2.GetChainAsync();
-
-            // For different nodes, the chain information are different.
-            Assert.Equal(2, chain1.BestChainHeight);
-            Assert.Equal(1, chain2.BestChainHeight);
-        }
-
-        [Fact]
         public async Task AddABlockTest()
         {
             var tester1 = new ContractTester<ContractTestAElfModule>();
@@ -103,9 +31,9 @@ namespace AElf.Contracts.TestBase.Tests
             await tester2.InitialChainAsync();
 
             var zeroContractAddress = tester1.GetZeroContractAddress();
-            var tx = await tester1.GenerateTransactionAsync(zeroContractAddress, 
+            var tx = await tester1.GenerateTransactionAsync(zeroContractAddress,
                 "DeploySmartContract",
-                new ContractDeploymentInput()
+                new ContractDeploymentInput
                 {
                     Category = SmartContractTestConstants.TestRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
@@ -146,12 +74,34 @@ namespace AElf.Contracts.TestBase.Tests
                 new GetBalanceInput
                 {
                     Symbol = "ELF",
-                    Owner = tester.GetCallOwnerAddress(),
+                    Owner = tester.GetCallOwnerAddress()
                 });
 
             var balanceOutput = bytes.DeserializeToPbMessage<GetBalanceOutput>();
 
             Assert.Equal(0L, balanceOutput.Balance);
+        }
+
+        [Fact]
+        public async Task CreateContractTesterTest()
+        {
+            var tester = new ContractTester<ContractTestAElfModule>();
+            await tester.InitialChainAsync();
+            var zeroContractAddress = tester.GetContractAddress(Hash.Empty);
+            var tx = await tester.GenerateTransactionAsync(zeroContractAddress,
+                "DeploySmartContract",
+                new ContractDeploymentInput
+                {
+                    Category = SmartContractTestConstants.TestRunnerCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                });
+
+            await tester.MineAsync(new List<Transaction> {tx});
+
+            var newTester = tester.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
+            var chain = await newTester.GetChainAsync();
+
+            Assert.Equal(2L, chain.BestChainHeight);
         }
 
         [Fact]
@@ -177,25 +127,74 @@ namespace AElf.Contracts.TestBase.Tests
         }
 
         [Fact]
-        public async Task CreateContractTesterTest()
+        public async Task InitialChainTest()
         {
             var tester = new ContractTester<ContractTestAElfModule>();
             await tester.InitialChainAsync();
+
+            var chain = await tester.GetChainAsync();
+            var longestChainHeight = chain.LongestChainHeight;
+
+            Assert.Equal(1, longestChainHeight);
+        }
+
+        [Fact]
+        public async Task MineTest()
+        {
+            var tester = new ContractTester<ContractTestAElfModule>();
+            await tester.InitialChainAsync();
+
             var zeroContractAddress = tester.GetContractAddress(Hash.Empty);
-            var tx = await tester.GenerateTransactionAsync(zeroContractAddress, 
+            // Create a transaction to deploy token contract.
+            var tx = await tester.GenerateTransactionAsync(zeroContractAddress,
                 "DeploySmartContract",
-                new ContractDeploymentInput()
+                new ContractDeploymentInput
                 {
                     Category = SmartContractTestConstants.TestRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
                 });
 
+            var chain = await tester.GetChainAsync();
+            var longestChainHeight = chain.LongestChainHeight;
+
+            Assert.Equal(1, longestChainHeight);
+
             await tester.MineAsync(new List<Transaction> {tx});
 
-            var newTester = tester.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
-            var chain = await newTester.GetChainAsync();
+            chain = await tester.GetChainAsync();
+            longestChainHeight = chain.LongestChainHeight;
 
-            Assert.Equal(2L, chain.BestChainHeight);
+            // The longest chain height increased from 1 to 2.
+            Assert.Equal(2, longestChainHeight);
+        }
+
+        [Fact]
+        public async Task MultipleNodesTest()
+        {
+            var tester1 = new ContractTester<ContractTestAElfModule>();
+            await tester1.InitialChainAsync();
+
+            var tester2 = new ContractTester<ContractTestAElfModule>();
+            await tester2.InitialChainAsync();
+
+            var zeroContractAddress = tester1.GetContractAddress(Hash.Empty);
+
+            var tx = await tester1.GenerateTransactionAsync(zeroContractAddress,
+                "DeploySmartContract",
+                new ContractDeploymentInput
+                {
+                    Category = SmartContractTestConstants.TestRunnerCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                });
+
+            await tester1.MineAsync(new List<Transaction> {tx});
+
+            var chain1 = await tester1.GetChainAsync();
+            var chain2 = await tester2.GetChainAsync();
+
+            // For different nodes, the chain information are different.
+            Assert.Equal(2, chain1.BestChainHeight);
+            Assert.Equal(1, chain2.BestChainHeight);
         }
     }
 }

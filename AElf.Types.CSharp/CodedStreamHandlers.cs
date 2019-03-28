@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using Google.Protobuf;
 
@@ -8,7 +7,7 @@ namespace AElf.Types.CSharp
     public static class CodedStreamHandlers
     {
         private static readonly Dictionary<Type, Action<CodedOutputStream, object>> _writeHandlers =
-            new Dictionary<Type, Action<CodedOutputStream, object>>()
+            new Dictionary<Type, Action<CodedOutputStream, object>>
             {
                 {typeof(bool), (s, v) => s.WriteBool((bool) v)},
                 {typeof(int), (s, v) => s.WriteSInt32((int) v)},
@@ -20,44 +19,33 @@ namespace AElf.Types.CSharp
             };
 
         private static readonly Dictionary<Type, Func<CodedInputStream, object>> _readHandlers =
-            new Dictionary<Type, Func<CodedInputStream, object>>()
+            new Dictionary<Type, Func<CodedInputStream, object>>
             {
-                {typeof(bool), (s) => s.ReadBool()},
-                {typeof(int), (s) => s.ReadSInt32()},
-                {typeof(uint), (s) => s.ReadUInt32()},
-                {typeof(long), (s) => s.ReadSInt64()},
-                {typeof(ulong), (s) => s.ReadUInt64()},
-                {typeof(string), (s) => s.ReadString()},
-                {typeof(byte[]), (s) => s.ReadBytes().ToByteArray()}
+                {typeof(bool), s => s.ReadBool()},
+                {typeof(int), s => s.ReadSInt32()},
+                {typeof(uint), s => s.ReadUInt32()},
+                {typeof(long), s => s.ReadSInt64()},
+                {typeof(ulong), s => s.ReadUInt64()},
+                {typeof(string), s => s.ReadString()},
+                {typeof(byte[]), s => s.ReadBytes().ToByteArray()}
             };
 
         public static void WriteToStream(this object value, CodedOutputStream output)
         {
             var type = value.GetType();
             if (_writeHandlers.TryGetValue(type, out var h))
-            {
                 h(output, value);
-            }
             else if (type.IsPbMessageType())
-            {
-                output.WriteMessage((IMessage)value);
-            }
+                output.WriteMessage((IMessage) value);
             else if (type.IsUserType())
-            {
-                output.WriteMessage(((UserType)value).ToPbMessage());
-            }
+                output.WriteMessage(((UserType) value).ToPbMessage());
             else
-            {
                 throw new Exception($"Unable to write for type {type}.");
-            }
         }
 
         public static object GetDefault(this Type type)
         {
-            if(type.IsValueType)
-            {
-                return Activator.CreateInstance(type);
-            }
+            if (type.IsValueType) return Activator.CreateInstance(type);
             return null;
         }
 
@@ -65,11 +53,8 @@ namespace AElf.Types.CSharp
         public static object ReadFromStream(this Type type, CodedInputStream input)
         {
             uint length = 1;
-            bool isArray = false;
-            if (_readHandlers.TryGetValue(type, out var h))
-            {
-                return h(input);
-            }
+            var isArray = false;
+            if (_readHandlers.TryGetValue(type, out var h)) return h(input);
 
             if (type.IsArray && type != typeof(byte[]))
             {
@@ -84,22 +69,22 @@ namespace AElf.Types.CSharp
                 input.ReadMessage(obj);
                 return obj;
             }
-            
+
             // PbMessage array
-            if( isArray && type.GetElementType().IsPbMessageType())
+            if (isArray && type.GetElementType().IsPbMessageType())
             {
                 if (length == 0)
                     return null;
-                object[] array = new Object[length];
+                var array = new object[length];
                 //var array = Activator.CreateInstance(type.GetElementType(), length);
-                for (int i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
                     var obj = (IMessage) Activator.CreateInstance(type.GetElementType());
                     input.ReadMessage(obj);
                     array[i] = obj;
                 }
 
-                Array destinationArray = Array.CreateInstance(type.GetElementType(), length);
+                var destinationArray = Array.CreateInstance(type.GetElementType(), length);
                 Array.Copy(array, destinationArray, length);
                 return destinationArray;
             }
@@ -107,28 +92,29 @@ namespace AElf.Types.CSharp
             // User type
             if (type.IsUserType())
             {
-                var obj = (UserType)Activator.CreateInstance(type);
+                var obj = (UserType) Activator.CreateInstance(type);
                 var holder = new UserTypeHolder();
                 input.ReadMessage(holder);
                 obj.Unpack(holder);
                 return obj;
             }
-            
+
             // User type
-            if(isArray && type.GetElementType().IsUserType())
+            if (isArray && type.GetElementType().IsUserType())
             {
                 if (length == 0)
                     return null;
                 var array = new object[length];
-                for (int i = 0; i < length; i++)
+                for (var i = 0; i < length; i++)
                 {
-                    var obj = (UserType)Activator.CreateInstance(type.GetElementType());
+                    var obj = (UserType) Activator.CreateInstance(type.GetElementType());
                     var holder = new UserTypeHolder();
                     input.ReadMessage(holder);
                     obj.Unpack(holder);
                     array[i] = obj;
                 }
-                Array destinationArray = Array.CreateInstance(type.GetElementType(), length);
+
+                var destinationArray = Array.CreateInstance(type.GetElementType(), length);
                 Array.Copy(array, destinationArray, length);
                 return destinationArray;
             }

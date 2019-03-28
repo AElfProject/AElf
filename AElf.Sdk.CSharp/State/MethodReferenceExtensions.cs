@@ -6,10 +6,7 @@ namespace AElf.Sdk.CSharp.State
     {
         public static bool IsMethodReference(this Type type)
         {
-            if (type.IsConstructedGenericType)
-            {
-                return type.GetGenericTypeDefinition() == typeof(MethodReference<,>);
-            }
+            if (type.IsConstructedGenericType) return type.GetGenericTypeDefinition() == typeof(MethodReference<,>);
 
             return type == typeof(MethodReference<,>);
         }

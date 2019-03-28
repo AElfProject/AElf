@@ -16,6 +16,5 @@ namespace AElf.Kernel.Account.Application
         {
             return Address.FromPublicKey(await accountService.GetPublicKeyAsync());
         }
-
     }
 }

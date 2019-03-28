@@ -8,100 +8,97 @@ namespace AElf.Sdk.CSharp
 {
     public class CSharpSmartContractContext
     {
-        private readonly ISmartContractBridgeContext _smartContractBridgeContextImplementation;
-
-        public ISmartContractBridgeContext SmartContractBridgeContextImplementation =>
-            _smartContractBridgeContextImplementation;
-
         public CSharpSmartContractContext(ISmartContractBridgeContext smartContractBridgeContextImplementation)
         {
-            _smartContractBridgeContextImplementation = smartContractBridgeContextImplementation;
+            SmartContractBridgeContextImplementation = smartContractBridgeContextImplementation;
         }
 
-        public int ChainId => _smartContractBridgeContextImplementation.ChainId;
+        public ISmartContractBridgeContext SmartContractBridgeContextImplementation { get; }
+
+        public int ChainId => SmartContractBridgeContextImplementation.ChainId;
+
+        public Hash TransactionId => SmartContractBridgeContextImplementation.TransactionId;
+
+        public Address Sender => SmartContractBridgeContextImplementation.Sender;
+
+        public Address Self => SmartContractBridgeContextImplementation.Self;
+
+        public Address Genesis => SmartContractBridgeContextImplementation.Genesis;
+
+        public long CurrentHeight => SmartContractBridgeContextImplementation.CurrentHeight;
+
+        public DateTime CurrentBlockTime => SmartContractBridgeContextImplementation.CurrentBlockTime;
+
+        public Hash PreviousBlockHash => SmartContractBridgeContextImplementation.PreviousBlockHash;
 
         public void LogDebug(Func<string> func)
         {
-            _smartContractBridgeContextImplementation.LogDebug(func);
+            SmartContractBridgeContextImplementation.LogDebug(func);
         }
 
         public void FireLogEvent(LogEvent logEvent)
         {
-            _smartContractBridgeContextImplementation.FireLogEvent(logEvent);
+            SmartContractBridgeContextImplementation.FireLogEvent(logEvent);
         }
-
-        public Hash TransactionId => _smartContractBridgeContextImplementation.TransactionId;
-
-        public Address Sender => _smartContractBridgeContextImplementation.Sender;
-
-        public Address Self => _smartContractBridgeContextImplementation.Self;
-
-        public Address Genesis => _smartContractBridgeContextImplementation.Genesis;
-
-        public long CurrentHeight => _smartContractBridgeContextImplementation.CurrentHeight;
-
-        public DateTime CurrentBlockTime => _smartContractBridgeContextImplementation.CurrentBlockTime;
-
-        public Hash PreviousBlockHash => _smartContractBridgeContextImplementation.PreviousBlockHash;
 
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
-            return _smartContractBridgeContextImplementation.RecoverPublicKey(signature, hash);
+            return SmartContractBridgeContextImplementation.RecoverPublicKey(signature, hash);
         }
 
         public byte[] RecoverPublicKey()
         {
-            return _smartContractBridgeContextImplementation.RecoverPublicKey();
+            return SmartContractBridgeContextImplementation.RecoverPublicKey();
         }
 
         public Block GetPreviousBlock()
         {
-            return _smartContractBridgeContextImplementation.GetPreviousBlock();
+            return SmartContractBridgeContextImplementation.GetPreviousBlock();
         }
 
         public bool VerifySignature(Transaction tx)
         {
-            return _smartContractBridgeContextImplementation.VerifySignature(tx);
+            return SmartContractBridgeContextImplementation.VerifySignature(tx);
         }
 
         public void SendDeferredTransaction(Transaction deferredTxn)
         {
-            _smartContractBridgeContextImplementation.SendDeferredTransaction(deferredTxn);
+            SmartContractBridgeContextImplementation.SendDeferredTransaction(deferredTxn);
         }
 
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
         {
-            _smartContractBridgeContextImplementation.DeployContract(address, registration, name);
+            SmartContractBridgeContextImplementation.DeployContract(address, registration, name);
         }
 
         public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
         {
-            _smartContractBridgeContextImplementation.UpdateContract(address, registration, name);
+            SmartContractBridgeContextImplementation.UpdateContract(address, registration, name);
         }
 
         public T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args)
         {
-            return _smartContractBridgeContextImplementation.Call<T>(stateCache, address, methodName, args);
+            return SmartContractBridgeContextImplementation.Call<T>(stateCache, address, methodName, args);
         }
 
         public void SendInline(Address toAddress, string methodName, ByteString args)
         {
-            _smartContractBridgeContextImplementation.SendInline(toAddress, methodName, args);
+            SmartContractBridgeContextImplementation.SendInline(toAddress, methodName, args);
         }
 
         public void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args)
         {
-            _smartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName, args);
+            SmartContractBridgeContextImplementation.SendVirtualInline(fromVirtualAddress, toAddress, methodName, args);
         }
 
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
-            return _smartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddress(virtualAddress);
+            return SmartContractBridgeContextImplementation.ConvertVirtualAddressToContractAddress(virtualAddress);
         }
 
         public Address GetZeroSmartContractAddress()
         {
-            return _smartContractBridgeContextImplementation.GetZeroSmartContractAddress();
+            return SmartContractBridgeContextImplementation.GetZeroSmartContractAddress();
         }
     }
 }

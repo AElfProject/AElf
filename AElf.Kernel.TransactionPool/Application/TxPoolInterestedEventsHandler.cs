@@ -18,10 +18,9 @@ namespace AElf.Kernel.TransactionPool.Application
             _txHub = txHub;
         }
 
-
-        public async Task HandleEventAsync(TransactionsReceivedEvent eventData)
+        public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            await _txHub.HandleTransactionsReceivedAsync(eventData);
+            await _txHub.HandleBestChainFoundAsync(eventData);
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
@@ -29,14 +28,15 @@ namespace AElf.Kernel.TransactionPool.Application
             await _txHub.HandleBlockAcceptedAsync(eventData);
         }
 
-        public async Task HandleEventAsync(BestChainFoundEventData eventData)
-        {
-            await _txHub.HandleBestChainFoundAsync(eventData);
-        }
-
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             await _txHub.HandleNewIrreversibleBlockFoundAsync(eventData);
+        }
+
+
+        public async Task HandleEventAsync(TransactionsReceivedEvent eventData)
+        {
+            await _txHub.HandleTransactionsReceivedAsync(eventData);
         }
     }
 }

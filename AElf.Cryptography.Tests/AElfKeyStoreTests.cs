@@ -10,12 +10,12 @@ namespace AElf.Cryptography.Tests
 {
     public class AElfKeyStoreTests
     {
-        private AElfKeyStore _keyStore;
-
         public AElfKeyStoreTests(ITestOutputHelper testOutputHelper)
         {
             InitKeyStore();
         }
+
+        private AElfKeyStore _keyStore;
 
         private void InitKeyStore()
         {
@@ -48,7 +48,8 @@ namespace AElf.Cryptography.Tests
 
             Directory.Delete("/tmp/keys", true);
 
-            await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync(addString + "_fake", "123"));
+            await Should.ThrowAsync<KeyStoreNotFoundException>(() =>
+                _keyStore.ReadKeyPairAsync(addString + "_fake", "123"));
         }
 
         [Fact]
@@ -78,18 +79,6 @@ namespace AElf.Cryptography.Tests
         }
 
         [Fact]
-        public async Task Open_NotExist_Account()
-        {
-            var address = Address.FromString("test account");
-            var addString = address.GetFormatted();
-            var keyPair = _keyStore.GetAccountKeyPair(addString);
-            keyPair.ShouldBe(null);
-
-            var errResult = await _keyStore.OpenAsync(addString, "123");
-            errResult.ShouldBe(AElfKeyStore.Errors.AccountFileNotFound);
-        }
-
-        [Fact]
         public async Task Open_Account_WithTimeout()
         {
             var keyPair = await _keyStore.CreateAsync("123", "AELF");
@@ -99,6 +88,18 @@ namespace AElf.Cryptography.Tests
             //Open account
             var errResult = await _keyStore.OpenAsync(addString, "123", false);
             errResult.ShouldBe(AElfKeyStore.Errors.None);
+        }
+
+        [Fact]
+        public async Task Open_NotExist_Account()
+        {
+            var address = Address.FromString("test account");
+            var addString = address.GetFormatted();
+            var keyPair = _keyStore.GetAccountKeyPair(addString);
+            keyPair.ShouldBe(null);
+
+            var errResult = await _keyStore.OpenAsync(addString, "123");
+            errResult.ShouldBe(AElfKeyStore.Errors.AccountFileNotFound);
         }
     }
 }

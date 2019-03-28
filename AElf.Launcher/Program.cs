@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Launcher
 {
-    class Program
+    internal class Program
     {
         public static void Main(string[] args)
         {
@@ -24,9 +24,11 @@ namespace AElf.Launcher
         }
 
         // create default https://github.com/aspnet/MetaPackages/blob/master/src/Microsoft.AspNetCore/WebHost.cs
-        private static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+        private static IWebHostBuilder CreateWebHostBuilder(string[] args)
+        {
+            return WebHost.CreateDefaultBuilder(args)
                 .ConfigureLogging(builder => { builder.ClearProviders(); })
                 .UseStartup<Startup>();
+        }
     }
 }

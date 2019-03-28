@@ -11,7 +11,7 @@ namespace AElf.Kernel.Extensions
         public void LogEvent_GetBloomAndCompare()
         {
             var address = Address.Generate();
-            var logEvent = new LogEvent()
+            var logEvent = new LogEvent
             {
                 Address = address,
                 Topics =
@@ -21,14 +21,14 @@ namespace AElf.Kernel.Extensions
             };
             var bloom = logEvent.GetBloom();
             bloom.Data.ShouldNotBeNull();
-            
-            var logEvent1 = new LogEvent()
+
+            var logEvent1 = new LogEvent
             {
                 Address = address,
                 Topics =
                 {
                     ByteString.CopyFromUtf8("event1"),
-                    ByteString.CopyFromUtf8("event2"),
+                    ByteString.CopyFromUtf8("event2")
                 }
             };
             var bloom1 = logEvent1.GetBloom();

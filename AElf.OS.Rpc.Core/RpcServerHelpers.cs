@@ -26,12 +26,10 @@ namespace AElf.OS.Rpc
         {
             var methodInfo = typeof(JsonRpcServicesExtensions).GetMethod("AddJsonRpcService");
             if (methodInfo == null)
-            {
                 throw new InvalidOperationException(
                     "Cannot find extension method AddJsonRpcService for IServiceCollection.");
-            }
 
-            var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] {type});
+            var methodInfoGeneric = methodInfo.MakeGenericMethod(type);
             methodInfoGeneric.Invoke(services, new object[] {services, null});
         }
 
@@ -40,12 +38,10 @@ namespace AElf.OS.Rpc
         {
             var methodInfo = typeof(JsonRpcBuilderExtensions).GetMethod("UseJsonRpcService");
             if (methodInfo == null)
-            {
                 throw new InvalidOperationException(
                     "Cannot find extension method UseJsonRpcService for IApplicationBuilder.");
-            }
 
-            var methodInfoGeneric = methodInfo.MakeGenericMethod(new[] {type});
+            var methodInfoGeneric = methodInfo.MakeGenericMethod(type);
             methodInfoGeneric.Invoke(appBuilder, new object[] {appBuilder, path});
         }
 
@@ -53,10 +49,7 @@ namespace AElf.OS.Rpc
         {
             var types = GetServiceTypes(services);
 
-            foreach (var serviceType in types)
-            {
-                AddJsonRpcService(services, serviceType);
-            }
+            foreach (var serviceType in types) AddJsonRpcService(services, serviceType);
         }
 
         internal static void Configure(IApplicationBuilder appBuilder, IServiceCollection scope)
@@ -66,9 +59,7 @@ namespace AElf.OS.Rpc
             {
                 var attributes = serviceType.GetCustomAttributes(typeof(PathAttribute), false);
                 if (attributes.Length == 0)
-                {
                     throw new Exception($"Json rpc service {serviceType} doesn't have a Path attribute.");
-                }
 
                 UseJsonRpcService(appBuilder, serviceType, ((PathAttribute) attributes[0]).Path);
             }

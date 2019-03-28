@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -14,26 +13,18 @@ namespace AElf.Cryptography
             var md5Csp = new MD5CryptoServiceProvider();
             var resEncrypt = md5Csp.ComputeHash(encrypt);
             var sBuilder = new StringBuilder();
-            foreach (var t in resEncrypt)
-            {
-                sBuilder.Append(t.ToString("x2"));
-            }
+            foreach (var t in resEncrypt) sBuilder.Append(t.ToString("x2"));
 
             return sBuilder.ToString();
         }
 
-        public static bool Check(string chainApikey, string chainId, string method, string timestamp, string sign,int timeout)
+        public static bool Check(string chainApikey, string chainId, string method, string timestamp, string sign,
+            int timeout)
         {
             var time = GetTime(timestamp);
-            if (time.AddMinutes(timeout) < DateTime.Now)
-            {
-                return false;
-            }
+            if (time.AddMinutes(timeout) < DateTime.Now) return false;
 
-            if (sign != GetSign(chainApikey, chainId, method, timestamp))
-            {
-                return false;
-            }
+            if (sign != GetSign(chainApikey, chainId, method, timestamp)) return false;
 
             return true;
         }

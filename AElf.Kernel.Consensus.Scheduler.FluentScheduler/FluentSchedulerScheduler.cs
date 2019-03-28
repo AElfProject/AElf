@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.EventMessages;
 using FluentScheduler;
@@ -13,16 +12,16 @@ namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
 {
     public class FluentSchedulerScheduler : IConsensusScheduler, ISingletonDependency
     {
-        public ILocalEventBus LocalEventBus { get; set; }
-
-        public ILogger Logger { get; set; }
-
         public FluentSchedulerScheduler()
         {
             LocalEventBus = NullLocalEventBus.Instance;
 
             Logger = NullLogger<FluentSchedulerScheduler>.Instance;
         }
+
+        public ILocalEventBus LocalEventBus { get; set; }
+
+        public ILogger Logger { get; set; }
 
         public void NewEvent(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
         {
@@ -36,10 +35,7 @@ namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
 
         public void CancelCurrentEvent()
         {
-            if (JobManager.RunningSchedules.Any())
-            {
-                JobManager.Stop();
-            }
+            if (JobManager.RunningSchedules.Any()) JobManager.Stop();
         }
     }
 }

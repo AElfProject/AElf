@@ -3,7 +3,6 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContractExecution.Scheduling;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 

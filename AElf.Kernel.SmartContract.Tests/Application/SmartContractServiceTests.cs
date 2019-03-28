@@ -1,20 +1,18 @@
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.SmartContract.Domain;
 using Google.Protobuf;
-using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.SmartContract.Application
 {
     public class SmartContractServiceTests : SmartContractRunnerTestBase
     {
-        private readonly SmartContractService _smartContractService;
-
         public SmartContractServiceTests()
         {
             _smartContractService = GetRequiredService<SmartContractService>();
         }
+
+        private readonly SmartContractService _smartContractService;
 
         [Fact]
         public async Task Deploy_Contract_Success()
@@ -28,7 +26,6 @@ namespace AElf.Kernel.SmartContract.Application
 
 
             await _smartContractService.DeployContractAsync(Address.Genesis, registration, false, null);
-
         }
 
         [Fact]
@@ -60,7 +57,6 @@ namespace AElf.Kernel.SmartContract.Application
 
 
             await _smartContractService.UpdateContractAsync(Address.Genesis, registrationB, false, null);
-
         }
     }
 }

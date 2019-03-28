@@ -8,7 +8,7 @@ namespace AElf.Kernel.SmartContract
     [DependsOn(
         typeof(SmartContractAElfModule),
         typeof(KernelCoreTestAElfModule))]
-    public class SmartContractTestAElfModule: AElfModule
+    public class SmartContractTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

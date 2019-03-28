@@ -12,7 +12,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         public StringState StringInfo { get; set; }
         public BytesState BytesInfo { get; set; }
         public ProtobufState<ProtobufMessage> ProtoInfo { get; set; }
-        
+
         public MappedState<long, string, ProtobufMessage> Complex3Info { get; set; }
     }
 }

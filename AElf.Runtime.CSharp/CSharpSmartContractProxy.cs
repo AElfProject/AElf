@@ -1,23 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Sdk;
 
 namespace AElf.Runtime.CSharp
 {
     public class CSharpSmartContractProxy
     {
-        private static MethodInfo GetMethedInfo(Type type, string name)
-        {
-            return type.GetMethod(name,
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
-        }
-
-        private object _instance;
+        private readonly object _instance;
 
         private Dictionary<string, MethodInfo> _methodInfos = new Dictionary<string, MethodInfo>();
 
@@ -27,11 +19,17 @@ namespace AElf.Runtime.CSharp
             InitializeMethodInfos(_instance.GetType());
         }
 
+        private static MethodInfo GetMethedInfo(Type type, string name)
+        {
+            return type.GetMethod(name,
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy);
+        }
+
         private void InitializeMethodInfos(Type instanceType)
         {
             _methodInfos = new[]
             {
-                nameof(GetChanges),nameof(Cleanup),nameof(InternalInitialize)
+                nameof(GetChanges), nameof(Cleanup), nameof(InternalInitialize)
             }.ToDictionary(x => x, x => GetMethedInfo(instanceType, x));
         }
 

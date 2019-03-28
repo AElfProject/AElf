@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
@@ -37,26 +34,29 @@ namespace AElf.CrossChain
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
-        public CrossChainContractReader(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, 
+        public CrossChainContractReader(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ISmartContractAddressService smartContractAddressService)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _smartContractAddressService = smartContractAddressService;
         }
 
+        private Address CrossChainContractMethodAddress =>
+            _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
+
         public Task<MerklePath> GetTxRootMerklePathInParentChainAsync(long blockHeight)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(long height)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public Task<long> GetBoundParentChainHeightAsync(long localChainHeight)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public async Task<long> GetParentChainCurrentHeightAsync(Hash blockHash, long blockHeight)
@@ -67,13 +67,12 @@ namespace AElf.CrossChain
             return (await ReadByTransactionAsync<SInt64Value>(readOnlyTransaction, blockHash, blockHeight))?.Value ?? 0;
         }
 
-        
 
         public async Task<long> GetSideChainCurrentHeightAsync(int sideChainId, Hash blockHash, long blockHeight)
         {
             var readOnlyTransaction = GenerateReadOnlyTransaction(
                 nameof(CrossChainContractMethodNames.GetSideChainHeight),
-                new SInt32Value()
+                new SInt32Value
                 {
                     Value = sideChainId
                 });
@@ -93,7 +92,8 @@ namespace AElf.CrossChain
             var readOnlyTransaction = GenerateReadOnlyTransaction(
                 nameof(CrossChainContractMethodNames.GetSideChainIdAndHeight),
                 new Empty());
-            var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash, blockHeight);
+            var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash,
+                blockHeight);
             return new Dictionary<int, long>(dict.IdHeighDict);
         }
 
@@ -102,7 +102,8 @@ namespace AElf.CrossChain
             var readOnlyTransaction = GenerateReadOnlyTransaction(
                 nameof(CrossChainContractMethodNames.GetAllChainsIdAndHeight),
                 new Empty());
-            var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash, blockHeight);
+            var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash,
+                blockHeight);
             return dict == null ? null : new Dictionary<int, long>(dict.IdHeighDict);
         }
 
@@ -111,16 +112,13 @@ namespace AElf.CrossChain
             var readOnlyTransaction =
                 GenerateReadOnlyTransaction(
                     nameof(CrossChainContractMethodNames.GetIndexedCrossChainBlockDataByHeight),
-                    new SInt64Value(){Value = blockHeight});
+                    new SInt64Value {Value = blockHeight});
             return await ReadByTransactionAsync<CrossChainBlockData>(readOnlyTransaction, blockHash, blockHeight);
         }
 
-        private Address CrossChainContractMethodAddress =>
-            _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
-        
         private Transaction GenerateReadOnlyTransaction(string methodName, IMessage input)
         {
-            var transaction =  new Transaction
+            var transaction = new Transaction
             {
                 From = Address.Generate(), // this is not good enough, only used for temporary.
                 To = CrossChainContractMethodAddress,
@@ -130,12 +128,14 @@ namespace AElf.CrossChain
             return transaction;
         }
 
-        private async Task<T> ReadByTransactionAsync<T>(Transaction readOnlyTransaction, Hash blockHash, long blockHeight)
-        where T: IMessage<T>, new()
+        private async Task<T> ReadByTransactionAsync<T>(Transaction readOnlyTransaction, Hash blockHash,
+            long blockHeight)
+            where T : IMessage<T>, new()
         {
             var chainContext = GenerateChainContext(blockHash, blockHeight);
             var trace =
-                await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, readOnlyTransaction, DateTime.UtcNow);
+                await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, readOnlyTransaction,
+                    DateTime.UtcNow);
 
             if (trace.IsSuccessful())
             {
@@ -143,9 +143,10 @@ namespace AElf.CrossChain
                 obj.MergeFrom(trace.ReturnValue);
                 return obj;
             }
+
             return default(T);
         }
-        
+
         private IChainContext GenerateChainContext(Hash blockHash, long blockHeight)
         {
             var chainContext = new ChainContext
@@ -156,7 +157,7 @@ namespace AElf.CrossChain
             return chainContext;
         }
     }
-    
+
     public enum CrossChainContractMethodNames
     {
         GetParentChainHeight,
@@ -164,7 +165,6 @@ namespace AElf.CrossChain
         GetParentChainId,
         GetSideChainIdAndHeight,
         GetAllChainsIdAndHeight,
-        GetIndexedCrossChainBlockDataByHeight,
-            
+        GetIndexedCrossChainBlockDataByHeight
     }
 }

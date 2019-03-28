@@ -1,7 +1,6 @@
 ﻿using System;
-using AElf.Sdk.CSharp;
-using Xunit;
 using Shouldly;
+using Xunit;
 
 namespace AElf.Sdk.CSharp.Tests
 {

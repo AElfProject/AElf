@@ -1,8 +1,7 @@
 using System;
 using System.Security.Cryptography;
-using Google.Protobuf;
 using AElf.Common;
-using Google.Protobuf.WellKnownTypes;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -21,10 +20,7 @@ namespace AElf.Kernel
 
         private byte[] GetSignatureData()
         {
-            if (To == null)
-            {
-                throw new InvalidOperationException($"Transaction.To cannot be empty: {this}");
-            }
+            if (To == null) throw new InvalidOperationException($"Transaction.To cannot be empty: {this}");
 
             var txData = new Transaction
             {
@@ -38,6 +34,5 @@ namespace AElf.Kernel
             txData.RefBlockPrefix = RefBlockPrefix;
             return txData.ToByteArray();
         }
-
     }
 }

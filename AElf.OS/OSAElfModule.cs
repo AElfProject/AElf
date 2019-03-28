@@ -1,14 +1,14 @@
-﻿using System;
-using AElf.Common.Application;
+﻿using AElf.Common.Application;
 using AElf.CrossChain.Grpc;
 using AElf.Cryptography;
 using AElf.Modularity;
 using AElf.OS.Handlers;
 using AElf.OS.Jobs;
 using AElf.OS.Network.Grpc;
-using AElf.OS.Rpc.ChainController;
-using AElf.OS.Rpc.Net;
-using AElf.OS.Rpc.Wallet;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Modularity;
+
+g AElf.OS.Rpc.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -33,7 +33,8 @@ namespace AElf.OS
             context.Services.AddTransient<BlockSyncJob>();
 
             //TODO: make ApplicationHelper as a provider, inject it into key store
-            var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);
+            var keyStore = new AElfKeyStore(Applica
+    elper.AppDataPath);
             context.Services.AddSingleton<IKeyStore>(keyStore);
         }
     }

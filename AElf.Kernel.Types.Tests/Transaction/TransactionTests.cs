@@ -13,8 +13,7 @@ namespace AElf.Kernel.Types.Tests
             {
                 From = Address.Generate(),
                 To = Address.Genesis,
-                MethodName = "TestMethod",
-
+                MethodName = "TestMethod"
             };
             var hash = transaction.GetHash();
             var hashBytes = transaction.GetHashBytes();

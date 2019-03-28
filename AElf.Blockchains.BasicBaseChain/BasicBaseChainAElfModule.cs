@@ -1,5 +1,4 @@
-﻿using System;
-using AElf.Common;
+﻿using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Modularity;
@@ -22,7 +21,6 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
-        
         typeof(CSharpRuntimeAElfModule),
         typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
@@ -31,7 +29,6 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),
         typeof(NetRpcAElfModule),
-        
         typeof(RuntimeSetupAElfModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule<BasicBaseChainAElfModule>

@@ -13,7 +13,10 @@ namespace AElf.OS.Network.Application
         Task<Block> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfFail = false);
         Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader);
         Task<int> BroadcastTransactionAsync(Transaction tx);
-        Task<List<Block>> GetBlocksAsync(Hash previousBlock, long previousHeight, int count, string peerPubKey = null, bool tryOthersIfFail = false);
+
+        Task<List<Block>> GetBlocksAsync(Hash previousBlock, long previousHeight, int count, string peerPubKey = null,
+            bool tryOthersIfFail = false);
+
         Task<long> GetBestChainHeightAsync(string peerPubKey = null);
     }
 }

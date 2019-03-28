@@ -1,24 +1,21 @@
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;
 using Moq;
-using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.SmartContract.Application
 {
     public class SmartContractExecutiveServiceTests : SmartContractRunnerTestBase
     {
-        private readonly SmartContractExecutiveService _smartContractExecutiveService;
-
         public SmartContractExecutiveServiceTests()
         {
             _smartContractExecutiveService = GetRequiredService<SmartContractExecutiveService>();
         }
+
+        private readonly SmartContractExecutiveService _smartContractExecutiveService;
 
         [Fact]
         public async Task Put_ZeroRegistration_Executive_Success()
@@ -37,6 +34,5 @@ namespace AElf.Kernel.SmartContract.Application
 
             await _smartContractExecutiveService.PutExecutiveAsync(Address.Genesis, mockExecutive.Object);
         }
-
     }
 }

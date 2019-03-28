@@ -34,10 +34,7 @@ namespace AElf.Kernel.SmartContract.Application
                 return obj;
             }
 
-            if (failedThrowException)
-            {
-                throw new SmartContractExecutingException(trace.StdErr);
-            }
+            if (failedThrowException) throw new SmartContractExecutingException(trace.StdErr);
 
             return default(T);
         }
@@ -95,7 +92,7 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task<TransactionTrace> ExecuteAsync(IChainContext chainContext, Transaction transaction,
             DateTime currentBlockTime)
         {
-            var trace = new TransactionTrace()
+            var trace = new TransactionTrace
             {
                 TransactionId = transaction.GetHash()
             };
@@ -107,7 +104,7 @@ namespace AElf.Kernel.SmartContract.Application
                 Transaction = transaction,
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,
-                CallDepth = 0,
+                CallDepth = 0
             };
 
             var executive = await _smartContractExecutiveService.GetExecutiveAsync(
@@ -141,10 +138,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
-                if (executive != null)
-                {
-                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
-                }
+                if (executive != null) await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
             }
 
             return output;
@@ -161,10 +155,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
-                if (executive != null)
-                {
-                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
-                }
+                if (executive != null) await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
             }
         }
     }

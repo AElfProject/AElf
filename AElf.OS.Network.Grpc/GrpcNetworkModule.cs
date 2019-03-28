@@ -14,7 +14,7 @@ namespace AElf.OS.Network.Grpc
             context.Services.AddSingleton<IPeerPool, GrpcPeerPool>();
 
             context.Services.AddSingleton<PeerService.PeerServiceBase, GrpcServerService>();
-            
+
             context.Services.AddSingleton<AuthInterceptor>();
         }
     }

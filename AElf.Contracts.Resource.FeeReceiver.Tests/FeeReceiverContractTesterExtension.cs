@@ -13,7 +13,8 @@ namespace AElf.Contracts.Resource.FeeReceiver
 {
     public static class FeeReceiverContractTesterExtension
     {
-        public static async Task InitialChainAndTokenAsync(this ContractTester<FeeReceiverContractTestAElfModule> starter)
+        public static async Task InitialChainAndTokenAsync(
+            this ContractTester<FeeReceiverContractTestAElfModule> starter)
         {
             var tokenContractCallList = new SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
@@ -26,23 +27,25 @@ namespace AElf.Contracts.Resource.FeeReceiver
                 Issuer = starter.GetCallOwnerAddress(),
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
-            
+
             // For testing.
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = "ELF",
                 Amount = 1000_000L,
                 To = starter.GetCallOwnerAddress(),
-                Memo = "Set dividends.",
+                Memo = "Set dividends."
             });
-            
+
             await starter.InitialChainAsync(
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
                     list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
-                    list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
-                    list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
+                    list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name,
+                        tokenContractCallList);
+                    list.AddGenesisSmartContract<FeeReceiverContract>(
+                        ResourceFeeReceiverSmartContractAddressNameProvider.Name);
                 });
         }
     }

@@ -7,7 +7,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.TestLauncher
 {
-    public class MainBlockchainStartup<T> where T: AbpModule 
+    public class MainBlockchainStartup<T> where T : AbpModule
     {
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940

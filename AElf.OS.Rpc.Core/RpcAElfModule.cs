@@ -11,7 +11,7 @@ namespace AElf.OS.Rpc
     )]
     public class RpcAElfModule : AElfModule
     {
-        private IServiceCollection _serviceCollection = null;
+        private IServiceCollection _serviceCollection;
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

@@ -12,7 +12,7 @@ namespace AElf.Sdk.CSharp.State
         private Dictionary<string, PropertyInfo> _propertyInfos;
 
         //private Dictionary<string, StateBase> _states;
-         
+
 
         public StructuredState()
         {
@@ -22,7 +22,7 @@ namespace AElf.Sdk.CSharp.State
 
         private void DetectPropertyInfos()
         {
-            _propertyInfos = this.GetType()
+            _propertyInfos = GetType()
                 .GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .Where(x => x.PropertyType.IsSubclassOf(typeof(StateBase)))
                 .ToDictionary(x => x.Name, x => x);
@@ -55,7 +55,7 @@ namespace AElf.Sdk.CSharp.State
             foreach (var kv in _propertyInfos)
             {
                 var propertyInfo = kv.Value;
-                var path = this.Path.Clone();
+                var path = Path.Clone();
                 path.Path.Add(ByteString.CopyFromUtf8(kv.Key));
                 ((StateBase) propertyInfo.GetValue(this)).Path = path;
             }
@@ -79,7 +79,7 @@ namespace AElf.Sdk.CSharp.State
             foreach (var kv in _propertyInfos)
             {
                 var propertyInfo = kv.Value;
-                ((StateBase) propertyInfo.GetValue(this)).Provider = this.Provider;
+                ((StateBase) propertyInfo.GetValue(this)).Provider = Provider;
             }
 
             base.OnProviderSet();
@@ -101,10 +101,7 @@ namespace AElf.Sdk.CSharp.State
             {
                 var propertyInfo = kv.Value;
                 var propertyValue = (StateBase) propertyInfo.GetValue(this);
-                foreach (var kv1 in propertyValue.GetChanges().Writes)
-                {
-                    stateSet.Writes[kv1.Key] = kv1.Value;
-                }
+                foreach (var kv1 in propertyValue.GetChanges().Writes) stateSet.Writes[kv1.Key] = kv1.Value;
             }
 
             return stateSet;

@@ -16,18 +16,15 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 {
     public class TxHub : ITxHub, ISingletonDependency
     {
-        public ILogger<TxHub> Logger { get; set; }
-
-        private readonly ITransactionManager _transactionManager;
-        private readonly IBlockchainService _blockchainService;
-
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTransactions =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
 
-        private Dictionary<Hash, TransactionReceipt> _validated = new Dictionary<Hash, TransactionReceipt>();
+        private readonly IBlockchainService _blockchainService;
 
-        private Dictionary<long, Dictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
-            new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
+        private readonly ITransactionManager _transactionManager;
+        private Hash _bestChainHash = Hash.Empty;
+
+        private long _bestChainHeight = KernelConstants.GenesisBlockHeight - 1;
 
         private Dictionary<long, Dictionary<Hash, TransactionReceipt>> _expiredByExpiryBlock =
             new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
@@ -35,10 +32,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private Dictionary<long, Dictionary<Hash, TransactionReceipt>> _futureByBlock =
             new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
 
-        private long _bestChainHeight = KernelConstants.GenesisBlockHeight - 1;
-        private Hash _bestChainHash = Hash.Empty;
+        private Dictionary<long, Dictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
+            new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
 
-        public ILocalEventBus LocalEventBus { get; set; }
+        private Dictionary<Hash, TransactionReceipt> _validated = new Dictionary<Hash, TransactionReceipt>();
 
         public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService)
         {
@@ -48,21 +45,25 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
+        public ILogger<TxHub> Logger { get; set; }
+
+        public ILocalEventBus LocalEventBus { get; set; }
+
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync()
         {
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
             {
                 Logger.LogWarning(
-                    $"Attempting to retrieve executable transactions while best chain records don't macth.");
-                return new ExecutableTransactionSet()
+                    "Attempting to retrieve executable transactions while best chain records don't macth.");
+                return new ExecutableTransactionSet
                 {
                     PreviousBlockHash = _bestChainHash,
                     PreviousBlockHeight = _bestChainHeight
                 };
             }
 
-            var output = new ExecutableTransactionSet()
+            var output = new ExecutableTransactionSet
             {
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight
@@ -76,6 +77,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             _allTransactions.TryGetValue(transactionId, out var receipt);
             return Task.FromResult(receipt);
+        }
+
+        public async Task<int> GetTransactionPoolSizeAsync()
+        {
+            return await Task.FromResult(_allTransactions.Count);
         }
 
         #region Private Methods
@@ -131,7 +137,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return await GetPrefixByHeightAsync(chain, height, bestChainHash);
         }
 
-        private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(IEnumerable<long> heights, Hash bestChainHash)
+        private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(IEnumerable<long> heights,
+            Hash bestChainHash)
         {
             var prefixes = new Dictionary<long, ByteString>();
             var chain = await _blockchainService.GetChainAsync();
@@ -180,50 +187,33 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             foreach (var transaction in eventData.Transactions)
             {
                 var receipt = new TransactionReceipt(transaction);
-                if (_allTransactions.ContainsKey(receipt.TransactionId))
-                {
-                    continue;
-                }
+                if (_allTransactions.ContainsKey(receipt.TransactionId)) continue;
 
                 var txn = await _transactionManager.GetTransaction(receipt.TransactionId);
-                if (txn != null)
-                {
-                    continue;
-                }
+                if (txn != null) continue;
 
                 var success = _allTransactions.TryAdd(receipt.TransactionId, receipt);
-                if (!success)
-                {
-                    continue;
-                }
+                if (!success) continue;
 
                 await _transactionManager.AddTransactionAsync(transaction);
 
-                if (_bestChainHash == Hash.Empty)
-                {
-                    continue;
-                }
+                if (_bestChainHash == Hash.Empty) continue;
 
                 var prefix = await GetPrefixByHeightAsync(receipt.Transaction.RefBlockNumber, _bestChainHash);
                 CheckPrefixForOne(receipt, prefix, _bestChainHeight);
                 AddToRespectiveCurrentCollection(receipt);
                 if (receipt.RefBlockStatus == RefBlockStatus.RefBlockValid)
-                {
-                    await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
+                    await LocalEventBus.PublishAsync(new TransactionAcceptedEvent
                     {
                         Transaction = transaction
                     });
-                }
             }
         }
 
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            foreach (var txId in block.Body.Transactions)
-            {
-                _allTransactions.TryRemove(txId, out _);
-            }
+            foreach (var txId in block.Body.Transactions) _allTransactions.TryRemove(txId, out _);
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
@@ -245,21 +235,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             foreach (var txIds in _expiredByExpiryBlock.Where(kv => kv.Key <= eventData.BlockHeight))
-            {
-                foreach (var txId in txIds.Value.Keys)
-                {
-                    _allTransactions.TryRemove(txId, out _);
-                }
-            }
+            foreach (var txId in txIds.Value.Keys)
+                _allTransactions.TryRemove(txId, out _);
 
             await Task.CompletedTask;
         }
 
         #endregion
-
-        public async Task<int> GetTransactionPoolSizeAsync()
-        {
-            return await Task.FromResult(_allTransactions.Count);
-        }
     }
 }

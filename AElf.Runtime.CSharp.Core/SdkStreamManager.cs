@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
@@ -21,10 +20,7 @@ namespace AElf.Runtime.CSharp
         {
             // TODO: Handle version
             var path = Path.Combine(_sdkDir, assemblyName.Name + ".dll");
-            if (!File.Exists(path))
-            {
-                return null;
-            }
+            if (!File.Exists(path)) return null;
 
             if (!_cachedSdkStreams.TryGetValue(path, out var ms))
             {

@@ -15,10 +15,7 @@ namespace AElf.Kernel
             get
             {
                 var o = Logs.Clone();
-                foreach (var t in InlineTraces)
-                {
-                    o.AddRange(t.FlattenedLogs);
-                }
+                foreach (var t in InlineTraces) o.AddRange(t.FlattenedLogs);
 
                 return o;
             }
@@ -26,18 +23,11 @@ namespace AElf.Kernel
 
         public IEnumerable<KeyValuePair<string, ByteString>> GetFlattenedWrite()
         {
-            foreach (var kv in StateSet.Writes)
-            {
-                yield return kv;
-            }
+            foreach (var kv in StateSet.Writes) yield return kv;
 
             foreach (var trace in InlineTraces)
-            {
-                foreach (var kv in trace.GetFlattenedWrite())
-                {
-                    yield return kv;
-                }
-            }
+            foreach (var kv in trace.GetFlattenedWrite())
+                yield return kv;
         }
     }
 }

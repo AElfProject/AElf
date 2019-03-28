@@ -4,8 +4,8 @@ namespace AElf.Sdk.CSharp.State
 {
     public class MethodReference<TInput, TOutput> where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
     {
-        private readonly ContractReferenceState _parent;
         private readonly string _name;
+        private readonly ContractReferenceState _parent;
 
         public MethodReference(ContractReferenceState parent, string name)
         {

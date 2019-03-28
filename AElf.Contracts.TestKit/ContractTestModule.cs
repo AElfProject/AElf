@@ -26,6 +26,9 @@ namespace AElf.Contracts.TestKit
     )]
     public class ContractTestModule : AElfModule
     {
+        public int ChainId { get; } = 500;
+        public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
+
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
@@ -33,7 +36,7 @@ namespace AElf.Contracts.TestKit
             services.AddSingleton(o => Mock.Of<IPeerPool>());
 
             services.AddSingleton(o => Mock.Of<INetworkService>());
-            
+
             // When testing contract and packaging transactions, no need to generate and schedule real consensus stuff.
             context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
@@ -42,9 +45,6 @@ namespace AElf.Contracts.TestKit
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
             context.Services.AddTransient<ITransactionExecutor, TransactionExecutor>();
         }
-
-        public int ChainId { get; } = 500;
-        public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
@@ -65,6 +65,5 @@ namespace AElf.Contracts.TestKit
             var that = this;
             AsyncHelper.RunSync(() => osService.StopAsync(that.OsBlockchainNodeContext));
         }
-
     }
 }

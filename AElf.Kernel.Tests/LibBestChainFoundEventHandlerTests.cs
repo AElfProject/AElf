@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -15,13 +14,6 @@ namespace AElf.Kernel
 {
     public class LibBestChainFoundEventHandlerTests : KernelWithChainTestBase
     {
-        private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IBlockchainService _blockchainService;
-        private readonly LibBestChainFoundEventHandler _libBestChainFoundEventHandler;
-        private readonly KernelTestHelper _kernelTestHelper;
-        
-        private readonly Address _consensusAddress = Address.FromString("ConsensusAddress");
-
         public LibBestChainFoundEventHandlerTests()
         {
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
@@ -30,6 +22,20 @@ namespace AElf.Kernel
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
 
             _smartContractAddressService.SetAddress(ConsensusSmartContractAddressNameProvider.Name, _consensusAddress);
+        }
+
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IBlockchainService _blockchainService;
+        private readonly LibBestChainFoundEventHandler _libBestChainFoundEventHandler;
+        private readonly KernelTestHelper _kernelTestHelper;
+
+        private readonly Address _consensusAddress = Address.FromString("ConsensusAddress");
+
+        private void LibShouldBe(long libHeight, Hash libHash)
+        {
+            var chain = _blockchainService.GetChainAsync().Result;
+            chain.LastIrreversibleBlockHeight.ShouldBe(libHeight);
+            chain.LastIrreversibleBlockHash.ShouldBe(libHash);
         }
 
         [Fact]
@@ -188,16 +194,5 @@ namespace AElf.Kernel
                 LibShouldBe(10, libHash);
             }
         }
-
-        #region check methods
-
-        private void LibShouldBe(long libHeight, Hash libHash)
-        {
-            var chain = _blockchainService.GetChainAsync().Result;
-            chain.LastIrreversibleBlockHeight.ShouldBe(libHeight);
-            chain.LastIrreversibleBlockHash.ShouldBe(libHash);
-        }
-
-        #endregion
     }
 }

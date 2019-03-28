@@ -24,7 +24,7 @@ namespace AElf.Kernel.Types.Tests
             var pubKeyHash = Hash.FromRawBytes(keyPair.PublicKey);
             var hash = HashHelpers.GetDisambiguationHash(blockHeight, pubKeyHash);
             hash.ShouldNotBeNull();
-            hash.ShouldNotBe(Hash.FromMessage(new Int64Value(){Value = blockHeight}));
+            hash.ShouldNotBe(Hash.FromMessage(new Int64Value {Value = blockHeight}));
             hash.ShouldNotBe(pubKeyHash);
         }
     }

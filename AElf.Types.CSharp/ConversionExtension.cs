@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Net.Http.Headers;
-using System.Text;
-using Google.Protobuf;
-using Google.Protobuf.Reflection;
-using Google.Protobuf.WellKnownTypes;
 using AElf.Common;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Type = System.Type;
 
 namespace AElf.Types.CSharp
@@ -17,40 +12,19 @@ namespace AElf.Types.CSharp
 
         public static object DeserializeToType(this ByteString bs, Type type)
         {
-            if (type == typeof(bool))
-            {
-                return bs.DeserializeToBool();
-            }
+            if (type == typeof(bool)) return bs.DeserializeToBool();
 
-            if (type == typeof(int))
-            {
-                return bs.DeserializeToInt32();
-            }
+            if (type == typeof(int)) return bs.DeserializeToInt32();
 
-            if (type == typeof(uint))
-            {
-                return bs.DeserializeToUInt32();
-            }
+            if (type == typeof(uint)) return bs.DeserializeToUInt32();
 
-            if (type == typeof(long))
-            {
-                return bs.DeserializeToInt64();
-            }
+            if (type == typeof(long)) return bs.DeserializeToInt64();
 
-            if (type == typeof(ulong))
-            {
-                return bs.DeserializeToUInt64();
-            }
+            if (type == typeof(ulong)) return bs.DeserializeToUInt64();
 
-            if (type == typeof(string))
-            {
-                return bs.DeserializeToString();
-            }
+            if (type == typeof(string)) return bs.DeserializeToString();
 
-            if (type == typeof(byte[]))
-            {
-                return bs.DeserializeToBytes();
-            }
+            if (type == typeof(byte[])) return bs.DeserializeToBytes();
 
             if (type.IsPbMessageType())
             {
@@ -82,7 +56,7 @@ namespace AElf.Types.CSharp
 
         public static IMessage ToPbMessage(this bool value)
         {
-            return new BoolValue() {Value = value};
+            return new BoolValue {Value = value};
         }
 
         public static Any ToAny(this bool value)
@@ -106,7 +80,7 @@ namespace AElf.Types.CSharp
 
         public static IMessage ToPbMessage(this int value)
         {
-            return new SInt32Value() {Value = value};
+            return new SInt32Value {Value = value};
         }
 
         public static Any ToAny(this int value)
@@ -130,7 +104,7 @@ namespace AElf.Types.CSharp
 
         public static IMessage ToPbMessage(this uint value)
         {
-            return new UInt32Value() {Value = value};
+            return new UInt32Value {Value = value};
         }
 
         public static Any ToAny(this uint value)
@@ -154,7 +128,7 @@ namespace AElf.Types.CSharp
 
         public static IMessage ToPbMessage(this long value)
         {
-            return new SInt64Value() {Value = value};
+            return new SInt64Value {Value = value};
         }
 
         public static Any ToAny(this long value)
@@ -178,7 +152,7 @@ namespace AElf.Types.CSharp
 
         public static IMessage ToPbMessage(this ulong value)
         {
-            return new UInt64Value() {Value = value};
+            return new UInt64Value {Value = value};
         }
 
         public static Any ToAny(this ulong value)
@@ -202,7 +176,7 @@ namespace AElf.Types.CSharp
 
         public static IMessage ToPbMessage(this string value)
         {
-            return new StringValue() {Value = value};
+            return new StringValue {Value = value};
         }
 
         public static Any ToAny(this string value)
@@ -226,7 +200,7 @@ namespace AElf.Types.CSharp
 
         public static IMessage ToPbMessage(this byte[] value)
         {
-            return new BytesValue() {Value = ByteString.CopyFrom(value)};
+            return new BytesValue {Value = ByteString.CopyFrom(value)};
         }
 
         public static Any ToAny(this byte[] value)
@@ -242,9 +216,10 @@ namespace AElf.Types.CSharp
         #endregion byte[]
 
         #region IMessage
+
         public static T DeserializeToPbMessage<T>(this byte[] bytes) where T : IMessage, new()
         {
-            if (bytes.Length==0)
+            if (bytes.Length == 0)
                 return default(T);
             var obj = new T();
             ((IMessage) obj).MergeFrom(bytes);
@@ -253,9 +228,9 @@ namespace AElf.Types.CSharp
 
         public static T DeserializeToPbMessage<T>(this ByteString bs) where T : IMessage, new()
         {
-            if (bs.Length==0)
+            if (bs.Length == 0)
                 return default(T);
-            
+
             return ReturnTypeHelper.GetDecoder<T>()(bs?.ToByteArray());
         }
 
@@ -269,25 +244,17 @@ namespace AElf.Types.CSharp
             return Any.Pack(value.ToPbMessage());
         }
 
-        public static IMessage AnyToPbMessage(this Any any, System.Type type)
+        public static IMessage AnyToPbMessage(this Any any, Type type)
         {
-            if (any == null)
-            {
-                throw new Exception($"Cannot convert null to {type.FullName}.");
-            }
+            if (any == null) throw new Exception($"Cannot convert null to {type.FullName}.");
 
-            if (!type.IsPbMessageType())
-            {
-                throw new Exception("Type given is not an IMessage.");
-            }
+            if (!type.IsPbMessageType()) throw new Exception("Type given is not an IMessage.");
 
             var target = (IMessage) Activator.CreateInstance(type);
 
             if (Any.GetTypeName(any.TypeUrl) != target.Descriptor.FullName)
-            {
                 throw new Exception(
                     $"Full type name for {target.Descriptor.Name} is {target.Descriptor.FullName}; Any message's type url is {any.TypeUrl}");
-            }
 
             target.MergeFrom(any.Value);
             return target;
@@ -296,6 +263,7 @@ namespace AElf.Types.CSharp
         #endregion IMessage
 
         #region UserType
+
         public static T DeserializeToUserType<T>(this byte[] bytes) where T : UserType, new()
         {
             var obj = new T();
@@ -320,7 +288,7 @@ namespace AElf.Types.CSharp
             return Any.Pack(value.ToPbMessage());
         }
 
-        public static UserType AnyToUserType(this Any any, System.Type type)
+        public static UserType AnyToUserType(this Any any, Type type)
         {
             if (!type.IsUserType())
                 throw new Exception("Type given is not a UserType.");

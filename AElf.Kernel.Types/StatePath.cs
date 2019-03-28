@@ -1,9 +1,6 @@
-using System;
-using AElf.Common;
-
 namespace AElf.Kernel
 {
-    public partial class StatePath 
+    public partial class StatePath
     {
         //Add StatePath->GetHash [Case]
         /*public Hash GetHash()

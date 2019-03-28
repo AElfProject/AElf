@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContractExecution.Application
@@ -20,11 +16,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
     public class SmartContractAddressUpdateService : ISmartContractAddressUpdateService
     {
-        private readonly ITransactionReadOnlyExecutionService _transactionExecutingService;
-
         private readonly IEnumerable<ISmartContractAddressNameProvider> _smartContractAddressNameProviders;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ITransactionReadOnlyExecutionService _transactionExecutingService;
 
         public SmartContractAddressUpdateService(
             IEnumerable<ISmartContractAddressNameProvider> smartContractAddressNameProviders,
@@ -39,15 +34,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task UpdateSmartContractAddressesAsync(BlockHeader blockHeader)
         {
             foreach (var smartContractAddressNameProvider in _smartContractAddressNameProviders)
-            {
                 await UpdateSmartContractAddressesAsync(blockHeader, smartContractAddressNameProvider);
-            }
         }
 
         private async Task UpdateSmartContractAddressesAsync(BlockHeader blockHeader,
             ISmartContractAddressNameProvider smartContractAddressNameProvider)
         {
-            var t = new Transaction()
+            var t = new Transaction
             {
                 From = _smartContractAddressService.GetZeroSmartContractAddress(),
                 To = _smartContractAddressService.GetZeroSmartContractAddress(),
@@ -56,9 +49,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
             };
 
             var transactionResult =
-                (await _transactionExecutingService.ExecuteAsync(
-                    new ChainContext() {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height}, t,
-                    DateTime.UtcNow));
+                await _transactionExecutingService.ExecuteAsync(
+                    new ChainContext {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height}, t,
+                    DateTime.UtcNow);
 
             if (!transactionResult.IsSuccessful())
                 throw new InvalidOperationException();

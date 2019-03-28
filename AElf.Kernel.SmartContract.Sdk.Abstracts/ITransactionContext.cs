@@ -8,14 +8,12 @@ namespace AElf.Kernel.SmartContract.Sdk
         Address Origin { get; set; }
         Address Miner { get; set; }
         Hash PreviousBlockHash { get; set; }
-        long BlockHeight { get; set;}
-        
+        long BlockHeight { get; set; }
+
         DateTime CurrentBlockTime { get; set; }
-        
+
         int CallDepth { get; set; }
         Transaction Transaction { get; set; }
         TransactionTrace Trace { get; set; }
-        
-
     }
 }

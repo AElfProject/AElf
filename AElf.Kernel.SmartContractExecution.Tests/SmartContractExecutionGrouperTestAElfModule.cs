@@ -18,13 +18,13 @@ namespace AElf.Kernel.SmartContractExecution
         {
             var services = context.Services;
             // TODO: Should remove it. Don't mock it.
-            services.AddTransient<IResourceUsageDetectionService>(p =>
+            services.AddTransient(p =>
             {
                 var mockService = new Mock<IResourceUsageDetectionService>();
                 mockService.Setup(m => m.GetResources(It.IsAny<Transaction>()))
-                    .Returns<Transaction>((transaction) =>
+                    .Returns<Transaction>(transaction =>
                     {
-                        var list = new List<string>()
+                        var list = new List<string>
                         {
                             transaction.From.GetFormatted(),
                             transaction.To.GetFormatted()

@@ -18,14 +18,14 @@ namespace AElf.OS.Rpc
 {
     public class RpcTestBase : AbpAspNetCoreIntegratedTestBase<RpcTestStartup>, ITestOutputHelperAccessor
     {
-        public ITestOutputHelper OutputHelper { get; set; }
-
         public RpcTestBase(ITestOutputHelper outputHelper)
         {
             OutputHelper = outputHelper;
             Client.DefaultRequestHeaders.Accept.Add(MediaTypeWithQualityHeaderValue.Parse("application/json"));
             Client.DefaultRequestHeaders.TryAddWithoutValidation("content-type", "application/json");
         }
+
+        public ITestOutputHelper OutputHelper { get; set; }
 
         protected override IWebHostBuilder CreateWebHostBuilder()
         {
@@ -72,7 +72,7 @@ namespace AElf.OS.Rpc
                     {
                         jsonrpc = "2.0",
                         id = id ?? Guid.NewGuid(),
-                        method = method,
+                        method,
                         @params = @params ?? new object()
                     })
                 ));
@@ -106,7 +106,7 @@ namespace AElf.OS.Rpc
 
         protected JsonContent(string content, Encoding encoding, string mediaType) : base(content, encoding, mediaType)
         {
-            this.Headers.ContentType = new MediaTypeHeaderValue(mediaType ?? "application/json")
+            Headers.ContentType = new MediaTypeHeaderValue(mediaType ?? "application/json")
             {
                 CharSet = null
             };

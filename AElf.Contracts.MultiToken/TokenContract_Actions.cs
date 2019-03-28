@@ -5,7 +5,6 @@ using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Asn1.X509;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -20,7 +19,7 @@ namespace AElf.Contracts.MultiToken
             Assert(input.Issuer != null, "Invalid issuer address.");
             var existing = State.TokenInfos[input.Symbol];
             Assert(existing == null || existing == new TokenInfo(), "Token already exists.");
-            State.TokenInfos[input.Symbol] = new TokenInfo()
+            State.TokenInfos[input.Symbol] = new TokenInfo
             {
                 Symbol = input.Symbol,
                 TokenName = input.TokenName,
@@ -30,14 +29,11 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = input.IsBurnable
             };
 
-            foreach (var address in input.LockWhiteList)
-            {
-                State.LockWhiteLists[input.Symbol][address] = true;
-            }
-            
+            foreach (var address in input.LockWhiteList) State.LockWhiteLists[input.Symbol][address] = true;
+
             return new Empty();
         }
-        
+
         public override Empty CreateNativeToken(CreateNativeTokenInput input)
         {
             Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already created.");
@@ -49,6 +45,7 @@ namespace AElf.Contracts.MultiToken
                 var address = State.BasicContractZero.GetContractAddressByName.Call(systemContractName);
                 whiteList.Add(address);
             }
+
             var createInput = new CreateInput
             {
                 Symbol = input.Symbol,
@@ -74,7 +71,7 @@ namespace AElf.Contracts.MultiToken
             State.Balances[input.To][input.Symbol] = input.Amount;
             return new Empty();
         }
-        
+
         public override Empty IssueNativeToken(IssueNativeTokenInput input)
         {
             Assert(input.ToSystemContractName != null, "To address not filled.");
@@ -117,7 +114,7 @@ namespace AElf.Contracts.MultiToken
                 To = input.From,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
-                Memo = input.Usage,
+                Memo = input.Usage
             });
             return new Empty();
         }
@@ -126,7 +123,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertValidToken(input.Symbol, input.Amount);
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
-            Assert(allowance >= input.Amount, $"Insufficient allowance.");
+            Assert(allowance >= input.Amount, "Insufficient allowance.");
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
@@ -138,7 +135,7 @@ namespace AElf.Contracts.MultiToken
             AssertValidToken(input.Symbol, input.Amount);
             State.Allowances[Context.Sender][input.Spender][input.Symbol] =
                 State.Allowances[Context.Sender][input.Spender][input.Symbol].Add(input.Amount);
-            Context.FireEvent(new Approved()
+            Context.FireEvent(new Approved
             {
                 Owner = Context.Sender,
                 Spender = input.Spender,
@@ -154,7 +151,7 @@ namespace AElf.Contracts.MultiToken
             var oldAllowance = State.Allowances[Context.Sender][input.Spender][input.Symbol];
             var amountOrAll = Math.Min(input.Amount, oldAllowance);
             State.Allowances[Context.Sender][input.Spender][input.Symbol] = oldAllowance.Sub(amountOrAll);
-            Context.FireEvent(new UnApproved()
+            Context.FireEvent(new UnApproved
             {
                 Owner = Context.Sender,
                 Spender = input.Spender,
@@ -172,7 +169,7 @@ namespace AElf.Contracts.MultiToken
             Assert(existingBalance >= input.Amount, "Burner doesn't own enough balance.");
             State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
-            Context.FireEvent(new Burned()
+            Context.FireEvent(new Burned
             {
                 Burner = Context.Sender,
                 Symbol = input.Symbol,
@@ -210,7 +207,7 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
-        
+
         public override Empty SetFeePoolAddress(Hash dividendContractSystemName)
         {
             var dividendContractAddress =
@@ -226,7 +223,7 @@ namespace AElf.Contracts.MultiToken
         public void Create2(string symbol, int decimals, bool isBurnable, Address issuer, string tokenName,
             long totalSupply, Address whiteAddress)
         {
-            Create(new CreateInput()
+            Create(new CreateInput
             {
                 Symbol = symbol,
                 Decimals = decimals,
@@ -234,31 +231,29 @@ namespace AElf.Contracts.MultiToken
                 Issuer = issuer,
                 TokenName = tokenName,
                 TotalSupply = totalSupply,
-                LockWhiteList = { whiteAddress}
+                LockWhiteList = {whiteAddress}
             });
         }
 
         public void Issue2(string symbol, long amount, Address to, string memo)
         {
-            Issue(new IssueInput() {Symbol = symbol, Amount = amount, To = to, Memo = memo});
+            Issue(new IssueInput {Symbol = symbol, Amount = amount, To = to, Memo = memo});
         }
 
         public void Transfer2(string symbol, long amount, Address to, string memo)
         {
-            Transfer(new TransferInput() {Symbol = symbol, Amount = amount, To = to, Memo = memo});
+            Transfer(new TransferInput {Symbol = symbol, Amount = amount, To = to, Memo = memo});
         }
 
         public void Approve2(string symbol, long amount, Address spender)
         {
-            Approve(new ApproveInput() {Symbol = symbol, Amount = amount, Spender = spender});
+            Approve(new ApproveInput {Symbol = symbol, Amount = amount, Spender = spender});
         }
 
         public void UnApprove2(string symbol, long amount, Address spender)
         {
-            UnApprove(new UnApproveInput() {Symbol = symbol, Amount = amount, Spender = spender});
+            UnApprove(new UnApproveInput {Symbol = symbol, Amount = amount, Spender = spender});
         }
-
-
 
         #endregion
     }

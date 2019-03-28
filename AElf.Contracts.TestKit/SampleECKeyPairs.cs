@@ -11,17 +11,6 @@ namespace AElf.Contracts.TestKit
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public static class SampleECKeyPairs
     {
-        static SampleECKeyPairs()
-        {
-            KeyPairs = new ReadOnlyCollection<ECKeyPair>(
-                _keys.Select(x =>
-                {
-                    var privateKeyHex = x.Split(",").First();
-                    var privateKey = ByteArrayHelpers.FromHexString(privateKeyHex);
-                    return CryptoHelpers.FromPrivateKey(privateKey);
-                }).ToList());
-        }
-
         public static IReadOnlyList<ECKeyPair> KeyPairs;
 
         private static readonly string[] _keys =
@@ -127,5 +116,16 @@ namespace AElf.Contracts.TestKit
             "b8f0494f9cf177805ef44b1cfbc3b56f1c2b65e41efd1611097141e0b5e0a7d4,04fdb18cabb707daae7bcd2ac10f3d89fc9bf84ed761dd83cb02e441d346da7bc4454bb86c2d142c2f11b89497e1a4840252a80b76ae38dca2345f78a3f35e99c7",
             "97ca2faf11dbbb4438ef32d0fad52d92d2fcfd63227a2e9c4b5cc624b614c3cb,04f6ffe5110fe36099d8b53b1768404656eec9ae998beb55e905093132c8f5aa419f21d832d0baff0bf2a5c705e8117e41bb2b506c6dba6dff61fb2a95ddc15cd1"
         };
+
+        static SampleECKeyPairs()
+        {
+            KeyPairs = new ReadOnlyCollection<ECKeyPair>(
+                _keys.Select(x =>
+                {
+                    var privateKeyHex = x.Split(",").First();
+                    var privateKey = ByteArrayHelpers.FromHexString(privateKeyHex);
+                    return CryptoHelpers.FromPrivateKey(privateKey);
+                }).ToList());
+        }
     }
 }

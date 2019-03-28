@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using AElf.BenchBase;
 using NBench;
 using Pro.NBench.xUnit.XunitExtensions;
@@ -10,27 +9,23 @@ namespace AElf.Database.Benches
 {
     public class Class2 : BenchBaseTest<DatabaseAElfModule>
     {
+        private Counter _counter;
+        private DbContext _dbContext;
+
+        private InMemoryDatabase<DbContext> _memoryDatabase;
+
         public Class2(ITestOutputHelper output)
         {
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new XunitTraceListener(output));
         }
 
-        class DbContext : KeyValueDbContext<DbContext>
-        {
-        }
-
-        private Counter _counter;
-
-        private InMemoryDatabase<DbContext> _memoryDatabase;
-        private DbContext _dbContext;
-
         [PerfSetup]
         public void Setup(BenchmarkContext context)
         {
             _counter = context.GetCounter("TestCounter");
 
-            
+
             _memoryDatabase = new InMemoryDatabase<DbContext>();
             _dbContext = new DbContext();
             _dbContext.Database = _memoryDatabase;
@@ -50,6 +45,10 @@ namespace AElf.Database.Benches
         public void Cleanup()
         {
             // does nothing
+        }
+
+        private class DbContext : KeyValueDbContext<DbContext>
+        {
         }
     }
 }

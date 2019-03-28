@@ -7,11 +7,11 @@ using Google.Protobuf;
 namespace AElf.Common
 {
     /// <summary>
-    /// From https://github.com/adamcaudill/Base58Check, for NOT dotnet core version
-    /// Base58Check Encoding / Decoding (Bitcoin-style)
+    ///     From https://github.com/adamcaudill/Base58Check, for NOT dotnet core version
+    ///     Base58Check Encoding / Decoding (Bitcoin-style)
     /// </summary>
     /// <remarks>
-    /// See here for more details: https://en.bitcoin.it/wiki/Base58Check_encoding
+    ///     See here for more details: https://en.bitcoin.it/wiki/Base58Check_encoding
     /// </remarks>
     public static class Base58CheckEncoding
     {
@@ -19,7 +19,7 @@ namespace AElf.Common
         private const string Digits = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
         /// <summary>
-        /// Encodes data with a 4-byte checksum
+        ///     Encodes data with a 4-byte checksum
         /// </summary>
         /// <param name="data">Data to be encoded</param>
         /// <returns></returns>
@@ -29,7 +29,7 @@ namespace AElf.Common
         }
 
         /// <summary>
-        /// Encodes data in plain Base58, without any checksum.
+        ///     Encodes data in plain Base58, without any checksum.
         /// </summary>
         /// <param name="data">The data to be encoded</param>
         /// <returns></returns>
@@ -48,16 +48,13 @@ namespace AElf.Common
             }
 
             // Append `1` for each leading 0 byte
-            for (var i = 0; i < data.Length && data[i] == 0; i++)
-            {
-                result = '1' + result;
-            }
+            for (var i = 0; i < data.Length && data[i] == 0; i++) result = '1' + result;
 
             return result;
         }
 
         /// <summary>
-        /// Encodes data in plain Base58, without any checksum.
+        ///     Encodes data in plain Base58, without any checksum.
         /// </summary>
         /// <param name="data">The data to be encoded</param>
         /// <returns></returns>
@@ -76,17 +73,14 @@ namespace AElf.Common
             }
 
             // Append `1` for each leading 0 byte
-            for (var i = 0; i < data.Length && data[i] == 0; i++)
-            {
-                result = '1' + result;
-            }
+            for (var i = 0; i < data.Length && data[i] == 0; i++) result = '1' + result;
 
             return result;
         }
 
 
         /// <summary>
-        /// Decodes data in Base58Check format (with 4 byte checksum)
+        ///     Decodes data in Base58Check format (with 4 byte checksum)
         /// </summary>
         /// <param name="data">Data to be decoded</param>
         /// <returns>Returns decoded data if valid; throws FormatException if invalid</returns>
@@ -95,16 +89,13 @@ namespace AElf.Common
             var dataWithCheckSum = DecodePlain(data);
             var dataWithoutCheckSum = _VerifyAndRemoveCheckSum(dataWithCheckSum);
 
-            if (dataWithoutCheckSum == null)
-            {
-                throw new FormatException("Base58 checksum is invalid");
-            }
+            if (dataWithoutCheckSum == null) throw new FormatException("Base58 checksum is invalid");
 
             return dataWithoutCheckSum;
         }
 
         /// <summary>
-        /// Decodes data in plain Base58, without any checksum.
+        ///     Decodes data in plain Base58, without any checksum.
         /// </summary>
         /// <param name="data">Data to be decoded</param>
         /// <returns>Returns decoded data if valid; throws FormatException if invalid</returns>
@@ -116,10 +107,7 @@ namespace AElf.Common
             {
                 var digit = Digits.IndexOf(data[i]); //Slow
 
-                if (digit < 0)
-                {
-                    throw new FormatException($"Invalid Base58 character `{data[i]}` at position {i}");
-                }
+                if (digit < 0) throw new FormatException($"Invalid Base58 character `{data[i]}` at position {i}");
 
                 intData = intData * 58 + digit;
             }

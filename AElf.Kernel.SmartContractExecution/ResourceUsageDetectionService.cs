@@ -3,16 +3,17 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Google.Protobuf;
 using AElf.Common;
 using AElf.Kernel.SmartContract;
+using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContractExecution
 {
     // TODO: ResourceUsageDetectionService no cases covered [Case]
     public class ResourceUsageDetectionService : IResourceUsageDetectionService
     {
-        private IFunctionMetadataService _functionMetadataService;
+        private readonly IFunctionMetadataService _functionMetadataService;
+
         public ResourceUsageDetectionService(IFunctionMetadataService functionMetadataService)
         {
             _functionMetadataService = functionMetadataService;
@@ -20,28 +21,22 @@ namespace AElf.Kernel.SmartContractExecution
 
         public async Task<IEnumerable<string>> GetResources(Transaction transaction)
         {
-
             var addrs = GetRelatedAccount(transaction).ToImmutableHashSet()
                 .Select(addr => addr.GetFormatted()).ToList();
 
             var results = new List<string>();
             var functionMetadata = await _functionMetadataService.GetFunctionMetadata(GetFunctionName(transaction));
             foreach (var resource in functionMetadata.FullResourceSet)
-            {
                 switch (resource.DataAccessMode)
                 {
                     case DataAccessMode.AccountSpecific:
-                        foreach (var addr in addrs)
-                        {
-                            results.Add(resource.Name + "." + addr);
-                        }
+                        foreach (var addr in addrs) results.Add(resource.Name + "." + addr);
                         break;
-                    
+
                     case DataAccessMode.ReadWriteAccountSharing:
                         results.Add(resource.Name);
                         break;
                 }
-            }
 
             return results;
         }
@@ -54,13 +49,12 @@ namespace AElf.Kernel.SmartContractExecution
         private List<Address> GetRelatedAccount(Transaction transaction)
         {
             //var hashes = ECParameters.Parser.ParseFrom(transaction.Params).Params.Select(p => p.HashVal);
-            List<Address> addresses = new List<Address>();
-            using (MemoryStream mm = new MemoryStream(transaction.Params.ToByteArray()))
-            using (CodedInputStream input = new CodedInputStream(mm))
+            var addresses = new List<Address>();
+            using (var mm = new MemoryStream(transaction.Params.ToByteArray()))
+            using (var input = new CodedInputStream(mm))
             {
                 uint tag;
                 while ((tag = input.ReadTag()) != 0)
-                {
                     switch (WireFormat.GetTagWireType(tag))
                     {
                         case WireFormat.WireType.Varint:
@@ -75,9 +69,9 @@ namespace AElf.Kernel.SmartContractExecution
                                 h.MergeFrom(bytes);
                                 addresses.Add(h);
                             }
+
                             break;
                     }
-                }
             }
 
             addresses.Add(transaction.From);

@@ -1,4 +1,3 @@
-
 namespace AElf.Common
 {
     public static class AddressHelpers
@@ -8,7 +7,7 @@ namespace AElf.Common
         {
             return Address.FromPublicKey(key);
         }
-        
+
         // Test only 
         public static Address BuildAddress(byte[] chainId, byte[] key)
         {

@@ -2,8 +2,7 @@
 
 namespace AElf.OS
 {
-    public class OSCoreNetworkServiceTestBase: AElfIntegratedTest<NetworkServiceTestModule>
+    public class OSCoreNetworkServiceTestBase : AElfIntegratedTest<NetworkServiceTestModule>
     {
-    
     }
 }

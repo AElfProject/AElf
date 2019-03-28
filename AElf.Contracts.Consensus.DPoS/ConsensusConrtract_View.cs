@@ -4,7 +4,6 @@ using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
@@ -18,7 +17,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override SInt64Value GetCurrentRoundNumber(Empty input)
         {
-            return new SInt64Value() {Value = State.CurrentRoundNumberField.Value};
+            return new SInt64Value {Value = State.CurrentRoundNumberField.Value};
         }
 
         public override Round GetCurrentRoundInformation(Empty input)
@@ -28,12 +27,12 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override SInt64Value GetCurrentTermNumber(Empty input)
         {
-            return new SInt64Value() {Value = State.CurrentTermNumberField.Value};
+            return new SInt64Value {Value = State.CurrentTermNumberField.Value};
         }
 
         public override BoolValue IsCandidate(PublicKey input)
         {
-            return new BoolValue() {Value = State.CandidatesField.Value.PublicKeys.Contains(input.Hex)};
+            return new BoolValue {Value = State.CandidatesField.Value.PublicKeys.Contains(input.Hex)};
         }
 
         public override StringList GetCandidatesList(Empty input)
@@ -52,7 +51,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override FriendlyString GetCandidatesListToFriendlyString(Empty input)
         {
-            return new FriendlyString() {Value = GetCandidatesList(input).ToString()};
+            return new FriendlyString {Value = GetCandidatesList(input).ToString()};
         }
 
         public override CandidateInHistory GetCandidateHistoryInformation(PublicKey input)
@@ -71,7 +70,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override FriendlyString GetCandidateHistoryInfoToFriendlyString(PublicKey input)
         {
-            return new FriendlyString() {Value = GetCandidateHistoryInformation(input).ToString()};
+            return new FriendlyString {Value = GetCandidateHistoryInformation(input).ToString()};
         }
 
         public override CandidateInHistoryDictionary GetCandidatesHistoryInfo(Empty input)
@@ -84,16 +83,10 @@ namespace AElf.Contracts.Consensus.DPoS
             foreach (var candidate in candidates.PublicKeys)
             {
                 var historyInformation = State.HistoryMap[candidate.ToStringValue()];
-                if (historyInformation == null)
-                {
-                    return result;
-                }
+                if (historyInformation == null) return result;
 
                 var tickets = State.TicketsMap[candidate.ToStringValue()];
-                if (tickets == null)
-                {
-                    return result;
-                }
+                if (tickets == null) return result;
 
                 historyInformation.CurrentVotesNumber = tickets.ObtainedTickets;
                 result.Maps.Add(candidate, historyInformation);
@@ -104,7 +97,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override FriendlyString GetCandidatesHistoryInfoToFriendlyString(Empty input)
         {
-            return new FriendlyString() {Value = GetCandidatesHistoryInfo(input).ToString()};
+            return new FriendlyString {Value = GetCandidatesHistoryInfo(input).ToString()};
         }
 
         public override CandidateInHistoryDictionary GetPageableCandidatesHistoryInfo(PageInfo input)
@@ -141,16 +134,13 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override FriendlyString GetPageableCandidatesHistoryInfoToFriendlyString(PageInfo input)
         {
-            return new FriendlyString() {Value = GetPageableCandidatesHistoryInfo(input).ToString()};
+            return new FriendlyString {Value = GetPageableCandidatesHistoryInfo(input).ToString()};
         }
 
         public override Miners GetCurrentMiners(Empty input)
         {
             var currentTermNumber = State.CurrentTermNumberField.Value;
-            if (currentTermNumber == 0)
-            {
-                currentTermNumber = 1;
-            }
+            if (currentTermNumber == 0) currentTermNumber = 1;
 
             var currentMiners = State.MinersMap[currentTermNumber.ToInt64Value()];
 
@@ -159,7 +149,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override FriendlyString GetCurrentMinersToFriendlyString(Empty input)
         {
-            return new FriendlyString() {Value = GetCurrentMiners(input).ToString()};
+            return new FriendlyString {Value = GetCurrentMiners(input).ToString()};
         }
 
         // TODO: Add an API to get unexpired tickets info.
@@ -167,36 +157,27 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var tickets = State.TicketsMap[input.Hex.ToStringValue()];
 
-            if (tickets == null)
-            {
-                return null;
-            }
+            if (tickets == null) return null;
 
             foreach (var transactionId in tickets.VoteToTransactions)
             {
                 var votingRecord = State.VotingRecordsMap[transactionId];
-                if (votingRecord != null)
-                {
-                    tickets.VotingRecords.Add(votingRecord);
-                }
+                if (votingRecord != null) tickets.VotingRecords.Add(votingRecord);
             }
 
             foreach (var transactionId in tickets.VoteFromTransactions)
             {
                 var votingRecord = State.VotingRecordsMap[transactionId];
-                if (votingRecord != null)
-                {
-                    tickets.VotingRecords.Add(votingRecord);
-                }
+                if (votingRecord != null) tickets.VotingRecords.Add(votingRecord);
             }
 
-            tickets.VotingRecordsCount = (long) tickets.VotingRecords.Count;
+            tickets.VotingRecordsCount = tickets.VotingRecords.Count;
             return tickets;
         }
 
         public override FriendlyString GetTicketsInformationToFriendlyString(PublicKey input)
         {
-            return new FriendlyString() {Value = GetTicketsInformation(input).ToString()};
+            return new FriendlyString {Value = GetTicketsInformation(input).ToString()};
         }
 
         public override VotingRecord GetVotingRecord(Hash input)
@@ -208,12 +189,9 @@ namespace AElf.Contracts.Consensus.DPoS
         public override SInt64Value QueryObtainedNotExpiredVotes(PublicKey input)
         {
             var tickets = GetTicketsInformation(input);
-            if (!tickets.VotingRecords.Any())
-            {
-                return new SInt64Value();
-            }
+            if (!tickets.VotingRecords.Any()) return new SInt64Value();
 
-            return new SInt64Value()
+            return new SInt64Value
             {
                 Value = tickets.VotingRecords
                     .Where(vr => vr.To == input.Hex && !vr.IsExpired(State.AgeField.Value))
@@ -224,10 +202,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public override SInt64Value QueryObtainedVotes(PublicKey input)
         {
             var tickets = GetTicketsInformation(input);
-            if (tickets.VotingRecords.Any())
-            {
-                return new SInt64Value() {Value = tickets.ObtainedTickets};
-            }
+            if (tickets.VotingRecords.Any()) return new SInt64Value {Value = tickets.ObtainedTickets};
 
             return new SInt64Value();
         }
@@ -236,7 +211,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var startIndex = input.Start;
             var length = input.Length;
-            var publicKey = new PublicKey(){Hex = input.PublicKey};
+            var publicKey = new PublicKey {Hex = input.PublicKey};
             var tickets = GetTicketsInformation(publicKey);
 
             var count = tickets.VotingRecords.Count;
@@ -249,7 +224,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 VotedTickets = tickets.VotedTickets,
                 HistoryObtainedTickets = tickets.HistoryObtainedTickets,
                 HistoryVotedTickets = tickets.HistoryVotedTickets,
-                VotingRecordsCount = (long) count,
+                VotingRecordsCount = count,
                 VoteToTransactions = {tickets.VoteToTransactions},
                 VoteFromTransactions = {tickets.VoteFromTransactions}
             };
@@ -259,12 +234,12 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override FriendlyString GetPageableTicketsInfoToFriendlyString(PageableTicketsInfoInput input)
         {
-            return new FriendlyString() {Value = GetPageableTicketsInfo(input).ToString()};
+            return new FriendlyString {Value = GetPageableTicketsInfo(input).ToString()};
         }
 
         public override Tickets GetPageableNotWithdrawnTicketsInfo(PageableTicketsInfoInput input)
         {
-            var publicKey = new PublicKey(){Hex = input.PublicKey};
+            var publicKey = new PublicKey {Hex = input.PublicKey};
             var startIndex = input.Start;
             var length = input.Length;
             var tickets = GetTicketsInformation(publicKey);
@@ -280,7 +255,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 VotedTickets = tickets.VotedTickets,
                 HistoryObtainedTickets = tickets.HistoryObtainedTickets,
                 HistoryVotedTickets = tickets.HistoryVotedTickets,
-                VotingRecordsCount = (long) count,
+                VotingRecordsCount = count,
                 VoteToTransactions = {tickets.VoteToTransactions},
                 VoteFromTransactions = {tickets.VoteFromTransactions}
             };
@@ -288,14 +263,15 @@ namespace AElf.Contracts.Consensus.DPoS
             return result;
         }
 
-        public override FriendlyString GetPageableNotWithdrawnTicketsInfoToFriendlyString(PageableTicketsInfoInput input)
+        public override FriendlyString GetPageableNotWithdrawnTicketsInfoToFriendlyString(
+            PageableTicketsInfoInput input)
         {
-            return new FriendlyString() {Value = GetPageableNotWithdrawnTicketsInfo(input).ToString()};
+            return new FriendlyString {Value = GetPageableNotWithdrawnTicketsInfo(input).ToString()};
         }
 
         public override TicketsHistories GetPageableTicketsHistories(PageableTicketsInfoInput input)
         {
-            var publicKey = new PublicKey() {Hex = input.PublicKey};
+            var publicKey = new PublicKey {Hex = input.PublicKey};
             var startIndex = input.Start;
             var length = input.Length;
             var histories = new TicketsHistories();
@@ -315,7 +291,6 @@ namespace AElf.Contracts.Consensus.DPoS
                     State = true
                 });
                 if (votingRecord.IsWithdrawn)
-                {
                     histories.Values.Add(new TicketsHistory
                     {
                         CandidateAlias = alias.Value,
@@ -324,26 +299,25 @@ namespace AElf.Contracts.Consensus.DPoS
                         VotesNumber = votingRecord.Count,
                         State = true
                     });
-                }
             }
 
             var take = Math.Min(length - startIndex, histories.Values.Count - startIndex);
             result.Values.AddRange(histories.Values.Skip(startIndex).Take(take));
-            result.HistoriesNumber = (long) histories.Values.Count;
+            result.HistoriesNumber = histories.Values.Count;
 
             return result;
         }
 
         public override FriendlyString GetPageableTicketsHistoriesToFriendlyString(PageableTicketsInfoInput input)
         {
-            return new FriendlyString() {Value = GetPageableTicketsHistories(input).ToString()};
+            return new FriendlyString {Value = GetPageableTicketsHistories(input).ToString()};
         }
 
         /// <summary>
-        /// Order by:
-        /// 0 - Announcement order. (Default)
-        /// 1 - Obtained votes ascending.
-        /// 2 - Obtained votes descending.
+        ///     Order by:
+        ///     0 - Announcement order. (Default)
+        ///     1 - Obtained votes ascending.
+        ///     2 - Obtained votes descending.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -355,44 +329,32 @@ namespace AElf.Contracts.Consensus.DPoS
             if (orderBy == 0)
             {
                 var publicKeys = State.CandidatesField.Value.PublicKeys;
-                if (length == 0)
-                {
-                    length = publicKeys.Count;
-                }
+                if (length == 0) length = publicKeys.Count;
 
                 var dict = new Dictionary<string, Tickets>();
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
                 foreach (var publicKey in publicKeys.Skip(startIndex).Take(take))
                 {
                     var tickets = State.TicketsMap[publicKey.ToStringValue()];
-                    if (tickets != null)
-                    {
-                        dict.Add(publicKey, tickets);
-                    }
+                    if (tickets != null) dict.Add(publicKey, tickets);
                 }
 
                 return new TicketsDictionary
                 {
-                    Maps = {dict},
+                    Maps = {dict}
                 };
             }
 
             if (orderBy == 1)
             {
                 var publicKeys = State.CandidatesField.Value.PublicKeys;
-                if (length == 0)
-                {
-                    length = publicKeys.Count;
-                }
+                if (length == 0) length = publicKeys.Count;
 
                 var dict = new Dictionary<string, Tickets>();
                 foreach (var publicKey in publicKeys)
                 {
                     var tickets = State.TicketsMap[publicKey.ToStringValue()];
-                    if (tickets != null)
-                    {
-                        dict.Add(publicKey, tickets);
-                    }
+                    if (tickets != null) dict.Add(publicKey, tickets);
                 }
 
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
@@ -409,19 +371,13 @@ namespace AElf.Contracts.Consensus.DPoS
             if (orderBy == 2)
             {
                 var publicKeys = State.CandidatesField.Value.PublicKeys;
-                if (length == 0)
-                {
-                    length = publicKeys.Count;
-                }
+                if (length == 0) length = publicKeys.Count;
 
                 var dict = new Dictionary<string, Tickets>();
                 foreach (var publicKey in publicKeys)
                 {
                     var tickets = State.TicketsMap[publicKey.ToStringValue()];
-                    if (tickets != null)
-                    {
-                        dict.Add(publicKey, tickets);
-                    }
+                    if (tickets != null) dict.Add(publicKey, tickets);
                 }
 
                 var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
@@ -440,12 +396,12 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override FriendlyString GetPageableElectionInfoToFriendlyString(PageableElectionInfoInput input)
         {
-            return new FriendlyString() {Value = GetPageableElectionInfo(input).ToString()};
+            return new FriendlyString {Value = GetPageableElectionInfo(input).ToString()};
         }
 
         public override SInt64Value GetBlockchainAge(Empty input)
         {
-            return new SInt64Value() {Value = State.AgeField.Value};
+            return new SInt64Value {Value = State.AgeField.Value};
         }
 
         public override StringList GetCurrentVictories(Empty input)
@@ -457,7 +413,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override FriendlyString GetCurrentVictoriesToFriendlyString(Empty input)
         {
-            return new FriendlyString() {Value = GetCurrentVictories(input).ToString()};
+            return new FriendlyString {Value = GetCurrentVictories(input).ToString()};
         }
 
         public override TermSnapshot GetTermSnapshot(SInt64Value input)
@@ -467,14 +423,14 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override FriendlyString GetTermSnapshotToFriendlyString(SInt64Value input)
         {
-            return new FriendlyString() {Value = GetTermSnapshot(input).ToString()};
+            return new FriendlyString {Value = GetTermSnapshot(input).ToString()};
         }
 
         public override Alias QueryAlias(PublicKey input)
         {
             var aliasString = State.AliasesMap[input.Hex.ToStringValue()]?.Value;
             var alias = aliasString ?? input.Hex.Substring(0, DPoSContractConsts.AliasLimit);
-            return new Alias(){Value = alias};
+            return new Alias {Value = alias};
         }
 
         public override SInt64Value GetTermNumberByRoundNumber(SInt64Value input)
@@ -482,41 +438,35 @@ namespace AElf.Contracts.Consensus.DPoS
             var map = State.TermNumberLookupField.Value.Map;
             Assert(map != null, "Term number not found.");
             var roundNumber = map?.OrderBy(p => p.Key).Last(p => input.Value >= p.Value).Key ?? (long) 0;
-            return new SInt64Value(){Value = roundNumber};
+            return new SInt64Value {Value = roundNumber};
         }
 
         public override SInt64Value GetVotesCount(Empty input)
         {
-            return new SInt64Value() {Value = State.VotesCountField.Value};
+            return new SInt64Value {Value = State.VotesCountField.Value};
         }
 
         public override SInt64Value GetTicketsCount(Empty input)
         {
-            return new SInt64Value() {Value = State.TicketsCountField.Value};
+            return new SInt64Value {Value = State.TicketsCountField.Value};
         }
 
         public override SInt64Value QueryCurrentDividendsForVoters(Empty input)
         {
-            return new SInt64Value()
+            return new SInt64Value
                 {Value = (long) (QueryCurrentDividends(input).Value * DPoSContractConsts.VotersRatio)};
         }
 
         public override SInt64Value QueryCurrentDividends(Empty input)
         {
             var currentRoundNumber = GetCurrentRoundNumber(input);
-            if (currentRoundNumber.Value == 0)
-            {
-                return currentRoundNumber;
-            }
+            if (currentRoundNumber.Value == 0) return currentRoundNumber;
 
             var round = State.RoundsMap[currentRoundNumber.Value.ToInt64Value()];
-            if (round == null)
-            {
-                return new SInt64Value();
-            }
+            if (round == null) return new SInt64Value();
 
             var minedBlocks = round.GetMinedBlocks();
-            return new SInt64Value() {Value = minedBlocks * DPoSContractConsts.ElfTokenPerBlock};
+            return new SInt64Value {Value = minedBlocks * DPoSContractConsts.ElfTokenPerBlock};
         }
 
         public override StringList QueryAliasesInUse(Empty input)
@@ -526,10 +476,7 @@ namespace AElf.Contracts.Consensus.DPoS
             foreach (var publicKey in candidates.PublicKeys)
             {
                 var alias = State.AliasesMap[publicKey.ToStringValue()];
-                if (alias != null)
-                {
-                    result.Values.Add(alias.Value);
-                }
+                if (alias != null) result.Values.Add(alias.Value);
             }
 
             return result;
@@ -539,19 +486,15 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var round = State.RoundsMap[GetCurrentRoundNumber(new Empty()).Value.ToInt64Value()];
             if (round != null)
-            {
                 if (round.RealTimeMinersInformation.ContainsKey(input.Hex))
-                {
-                    return new SInt64Value() {Value = round.RealTimeMinersInformation[input.Hex].ProducedBlocks};
-                }
-            }
+                    return new SInt64Value {Value = round.RealTimeMinersInformation[input.Hex].ProducedBlocks};
 
             return new SInt64Value();
         }
 
         public override FriendlyString QueryAliasesInUseToFriendlyString(Empty input)
         {
-            return new FriendlyString() {Value = QueryAliasesInUse(input).ToString()};
+            return new FriendlyString {Value = QueryAliasesInUse(input).ToString()};
         }
     }
 }

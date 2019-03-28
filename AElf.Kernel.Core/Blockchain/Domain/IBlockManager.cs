@@ -16,12 +16,11 @@ namespace AElf.Kernel.Blockchain.Domain
         Task<BlockHeader> GetBlockHeaderAsync(Hash blockHash);
         Task RemoveBlockAsync(Hash blockHash);
     }
-    
+
     public class BlockManager : IBlockManager
     {
-        private readonly IBlockchainStore<BlockHeader> _blockHeaderStore;
         private readonly IBlockchainStore<BlockBody> _blockBodyStore;
-        public ILogger<BlockManager> Logger {get;set;}
+        private readonly IBlockchainStore<BlockHeader> _blockHeaderStore;
 
         public BlockManager(IBlockchainStore<BlockHeader> blockHeaderStore, IBlockchainStore<BlockBody> blockBodyStore)
         {
@@ -29,7 +28,9 @@ namespace AElf.Kernel.Blockchain.Domain
             _blockHeaderStore = blockHeaderStore;
             _blockBodyStore = blockBodyStore;
         }
-        
+
+        public ILogger<BlockManager> Logger { get; set; }
+
         public async Task AddBlockHeaderAsync(BlockHeader header)
         {
             await _blockHeaderStore.SetAsync(header.GetHash().ToStorageKey(), header);
@@ -40,13 +41,10 @@ namespace AElf.Kernel.Blockchain.Domain
             blockBody.TransactionList.Clear();
             await _blockBodyStore.SetAsync(blockHash.Clone().ToStorageKey(), blockBody);
         }
-        
+
         public async Task<Block> GetBlockAsync(Hash blockHash)
         {
-            if (blockHash == null)
-            {
-                return null;
-            }
+            if (blockHash == null) return null;
 
             try
             {
@@ -56,7 +54,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 if (header == null || bb == null)
                     return null;
 
-                return new Block { Header = header, Body = bb };
+                return new Block {Header = header, Body = bb};
             }
             catch (Exception e)
             {
@@ -70,16 +68,16 @@ namespace AElf.Kernel.Blockchain.Domain
             return await _blockHeaderStore.GetAsync(blockHash.ToHex());
         }
 
-        private async Task<BlockBody> GetBlockBodyAsync(Hash bodyHash)
-        {
-            return await _blockBodyStore.GetAsync(bodyHash.ToHex());
-        }
-
         public async Task RemoveBlockAsync(Hash blockHash)
         {
             var blockKey = blockHash.ToStorageKey();
             await _blockHeaderStore.RemoveAsync(blockKey);
             await _blockBodyStore.RemoveAsync(blockKey);
+        }
+
+        private async Task<BlockBody> GetBlockBodyAsync(Hash bodyHash)
+        {
+            return await _blockBodyStore.GetAsync(bodyHash.ToHex());
         }
     }
 }

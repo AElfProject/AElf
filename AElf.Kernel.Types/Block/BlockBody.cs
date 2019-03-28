@@ -7,22 +7,12 @@ namespace AElf.Kernel
 {
     public partial class BlockBody : IBlockBody
     {
-        public int TransactionsCount => Transactions.Count;
         private Hash _blockBodyHash;
+        public int TransactionsCount => Transactions.Count;
         public BinaryMerkleTree BinaryMerkleTree { get; } = new BinaryMerkleTree();
 
-        private Hash CalculateBodyHash()
-        {
-            _blockBodyHash = new List<Hash>()
-            {
-                BlockHeader,
-                BinaryMerkleTree.Root
-            }.Aggregate(Hash.FromTwoHashes);
-            return _blockBodyHash;
-        }
-
         //TODO: Add GetHash test case [Case]
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public Hash GetHash()
         {
             return _blockBodyHash ?? CalculateBodyHash();
@@ -32,6 +22,16 @@ namespace AElf.Kernel
         {
             _blockBodyHash = null;
             return GetHash();
+        }
+
+        private Hash CalculateBodyHash()
+        {
+            _blockBodyHash = new List<Hash>
+            {
+                BlockHeader,
+                BinaryMerkleTree.Root
+            }.Aggregate(Hash.FromTwoHashes);
+            return _blockBodyHash;
         }
     }
 }

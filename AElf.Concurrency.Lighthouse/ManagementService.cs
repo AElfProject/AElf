@@ -9,15 +9,15 @@ namespace AElf.Concurrency.Lighthouse
 {
     public class ManagementService
     {
-        private ActorSystem _actorSystem;
-        public Task TerminationHandle => _actorSystem.WhenTerminated;
-
         private readonly ExecutionOptions _executionOptions;
+        private ActorSystem _actorSystem;
 
         public ManagementService(IOptionsSnapshot<ExecutionOptions> options)
         {
             _executionOptions = options.Value;
         }
+
+        public Task TerminationHandle => _actorSystem.WhenTerminated;
 
         private ActorSystem CreateActorSystem()
         {
@@ -34,7 +34,7 @@ namespace AElf.Concurrency.Lighthouse
             var seedConfigString = seeds.Aggregate("akka.cluster.seed-nodes = [",
                 (current, seed) => current + @"""" + seed + @""", ");
             seedConfigString += "]";
-            
+
             var finalConfig = ConfigurationFactory.ParseString(seedConfigString)
                 .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.hostname=" + hostName))
                 .WithFallback(ConfigurationFactory.ParseString("akka.remote.dot-netty.tcp.port=" + port))

@@ -10,11 +10,6 @@ namespace AElf.CrossChain.Grpc
 {
     public sealed class GrpcCrossChainClientNodePluginTest : GrpcCrossChainClientTestBase
     {
-        private readonly INodePlugin _grpcCrossChainServerNodePlugin;
-        private readonly GrpcCrossChainClientNodePlugin _grpcCrossChainClientNodePlugin;
-        private readonly ChainOptions _chainOptions;
-        private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
-
         public GrpcCrossChainClientNodePluginTest()
         {
             _grpcCrossChainServerNodePlugin = GetRequiredService<INodePlugin>();
@@ -23,13 +18,24 @@ namespace AElf.CrossChain.Grpc
             _grpcCrossChainConfigOption = GetRequiredService<IOptionsSnapshot<GrpcCrossChainConfigOption>>().Value;
         }
 
+        private readonly INodePlugin _grpcCrossChainServerNodePlugin;
+        private readonly GrpcCrossChainClientNodePlugin _grpcCrossChainClientNodePlugin;
+        private readonly ChainOptions _chainOptions;
+        private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
+
         [Fact]
-        public async Task Server_Start_Test()
+        public async Task BestChainFoundEventTest()
         {
-            var chainId = _chainOptions.ChainId;
-            await _grpcCrossChainServerNodePlugin.StartAsync(chainId);
+            var bestChainFoundEventData = new BestChainFoundEventData();
+            await _grpcCrossChainClientNodePlugin.HandleEventAsync(bestChainFoundEventData);
         }
-        
+
+        [Fact]
+        public async Task Client_Shutdown_Test()
+        {
+            //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
+        }
+
         [Fact]
         public async Task Client_Start_Test()
         {
@@ -58,16 +64,10 @@ namespace AElf.CrossChain.Grpc
         }
 
         [Fact]
-        public async Task BestChainFoundEventTest()
+        public async Task Server_Start_Test()
         {
-            var bestChainFoundEventData = new BestChainFoundEventData();
-            await _grpcCrossChainClientNodePlugin.HandleEventAsync(bestChainFoundEventData);
-        }
-
-        [Fact]
-        public async Task Client_Shutdown_Test()
-        {
-            //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
+            var chainId = _chainOptions.ChainId;
+            await _grpcCrossChainServerNodePlugin.StartAsync(chainId);
         }
     }
 }

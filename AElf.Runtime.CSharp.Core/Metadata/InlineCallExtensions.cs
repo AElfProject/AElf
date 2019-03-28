@@ -6,7 +6,7 @@ namespace AElf.Runtime.CSharp.Metadata
     {
         public static InlineCall WithPrefix(this InlineCall original, string prefix)
         {
-            var output = new InlineCall()
+            var output = new InlineCall
             {
                 AddressPath = {prefix},
                 MethodName = original.MethodName

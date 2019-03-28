@@ -6,6 +6,16 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
 {
     public partial class TokenContract : CSharpSmartContract<TokenContractState>, IFeeChargedContract
     {
+        public ulong GetMethodFee(string methodName)
+        {
+            return State.MethodFees[methodName];
+        }
+
+        public void SetMethodFee(string methodName, ulong fee)
+        {
+            State.MethodFees[methodName] = fee;
+        }
+
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -43,7 +53,7 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
         public void Approve(Address spender, ulong amount)
         {
             State.Allowances[Context.Sender][spender] = State.Allowances[Context.Sender][spender].Add(amount);
-            Context.FireEvent(new Approved()
+            Context.FireEvent(new Approved
             {
                 Owner = Context.Sender,
                 Spender = spender,
@@ -56,7 +66,7 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
             var oldAllowance = State.Allowances[Context.Sender][spender];
             var amountOrAll = Math.Min(amount, oldAllowance);
             State.Allowances[Context.Sender][spender] = oldAllowance.Sub(amountOrAll);
-            Context.FireEvent(new UnApproved()
+            Context.FireEvent(new UnApproved
             {
                 Owner = Context.Sender,
                 Spender = spender,
@@ -70,21 +80,11 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
             Assert(existingBalance >= amount, "Burner doesn't own enough balance.");
             State.Balances[Context.Sender] = existingBalance.Sub(amount);
             State.TokenInfo.TotalSupply.Value = State.TokenInfo.TotalSupply.Value.Sub(amount);
-            Context.FireEvent(new Burned()
+            Context.FireEvent(new Burned
             {
                 Burner = Context.Sender,
                 Amount = amount
             });
-        }
-
-        public ulong GetMethodFee(string methodName)
-        {
-            return State.MethodFees[methodName];
-        }
-
-        public void SetMethodFee(string methodName, ulong fee)
-        {
-            State.MethodFees[methodName] = fee;
         }
     }
 }

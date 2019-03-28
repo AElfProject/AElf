@@ -6,7 +6,6 @@ using AElf.Kernel.Infrastructure;
 using Shouldly;
 using Shouldly.ShouldlyExtensionMethods;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace AElf.Kernel.Blockchain.Domain
 {
@@ -20,6 +19,12 @@ namespace AElf.Kernel.Blockchain.Domain
 
     public class ChainManagerTests : AElfKernelTestBase
     {
+        public ChainManagerTests()
+        {
+            _chainManager = GetRequiredService<ChainManager>();
+            _genesis = _blocks[0];
+        }
+
         private readonly ChainManager _chainManager;
         private readonly Hash _genesis;
         private readonly Hash[] _blocks = Enumerable.Range(1, 101).Select(IntToHash).ToArray();
@@ -32,10 +37,124 @@ namespace AElf.Kernel.Blockchain.Domain
             return Hash.LoadByteArray(arr);
         }
 
-        public ChainManagerTests()
+        [Fact]
+        public async Task Attach_Forked_Blocks_Test()
         {
-            _chainManager = GetRequiredService<ChainManager>();
-            _genesis = _blocks[0];
+            // execution success blocks
+            var chain = await _chainManager.CreateAsync(_genesis);
+
+            // *4[4]
+            var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 4.BlockHeight(),
+                BlockHash = _blocks[4],
+                PreviousBlockHash = _blocks[3]
+            });
+            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.LongestChainFound);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
+
+            // *1[1] ... 4[4]
+            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 1.BlockHeight(),
+                BlockHash = _blocks[1],
+                PreviousBlockHash = _genesis
+            });
+            status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
+            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
+
+            // 1[1] ... 4[4] -> *5[5]
+            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 5.BlockHeight(),
+                BlockHash = _blocks[5],
+                PreviousBlockHash = _blocks[4]
+            });
+            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.LongestChainFound);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
+
+            // 1[1] -> *2[2] .... 4[4] -> 5[5]
+            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 2.BlockHeight(),
+                BlockHash = _blocks[2],
+                PreviousBlockHash = _blocks[1]
+            });
+            status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
+            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
+
+            // 1[1] -> 2[2] -> *3[3] -> 4[4] -> 5[5]
+            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 3.BlockHeight(),
+                BlockHash = _blocks[3],
+                PreviousBlockHash = _blocks[2]
+            });
+            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
+            status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
+
+            // Attach 4 again
+            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 4.BlockHeight(),
+                BlockHash = _blocks[4],
+                PreviousBlockHash = _blocks[3]
+            });
+            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
+
+            //  1[1] -> 2[2] -> 3[3] -> 4[4] -> 5[5]
+            //                             | -> *10[5]
+            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 5.BlockHeight(),
+                BlockHash = _blocks[10],
+                PreviousBlockHash = _blocks[4]
+            });
+            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.LongestChainFound);
+
+            // 1[1] -> 2[2] -> 3[3] -> 4[4] -> 5[5] -> *6[6]
+            //                            | -> 10[5]
+            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 6.BlockHeight(),
+                BlockHash = _blocks[6],
+                PreviousBlockHash = _blocks[5]
+            });
+            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
+            status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
+
+            // 1[1] -> 2[2] -> 3[3] -> 4[4] -> 5[5] -> 6[6]
+            //                            | -> 10[5] -> *11[6]
+            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 6.BlockHeight(),
+                BlockHash = _blocks[11],
+                PreviousBlockHash = _blocks[10]
+            });
+            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.LongestChainFound);
+
+            // 1[1] -> 2[2] -> 3[3] -> 4[4] -> 5[5] -> 6[6] -> *7[7]
+            //                            | -> 10[5] -> 11[6]
+            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 7.BlockHeight(),
+                BlockHash = _blocks[7],
+                PreviousBlockHash = _blocks[6]
+            });
+            status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
+            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
         }
 
         [Fact]
@@ -43,7 +162,7 @@ namespace AElf.Kernel.Blockchain.Domain
         {
             var chain = await _chainManager.GetAsync();
             chain.ShouldBeNull();
-            
+
             var createChainResult = await _chainManager.CreateAsync(_genesis);
             chain = await _chainManager.GetAsync();
             chain.ShouldBe(createChainResult);
@@ -78,6 +197,68 @@ namespace AElf.Kernel.Blockchain.Domain
         }
 
         [Fact]
+        public async Task Get_Not_ExecutedBlocks_Test()
+        {
+            // execution success blocks
+            var chain = await _chainManager.CreateAsync(_genesis);
+            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 1.BlockHeight(),
+                BlockHash = _blocks[1],
+                PreviousBlockHash = _genesis
+            });
+            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 2.BlockHeight(),
+                BlockHash = _blocks[2],
+                PreviousBlockHash = _blocks[1]
+            });
+
+            var chainBlockLinks = await _chainManager.GetNotExecutedBlocks(_blocks[2]);
+            chainBlockLinks.Count.ShouldBe(3);
+            chainBlockLinks[0].BlockHash.ShouldBe(_blocks[0]);
+            chainBlockLinks[1].BlockHash.ShouldBe(_blocks[1]);
+            chainBlockLinks[2].BlockHash.ShouldBe(_blocks[2]);
+
+            // execution failed block
+            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 3.BlockHeight(),
+                BlockHash = _blocks[3],
+                PreviousBlockHash = _blocks[2]
+            });
+
+            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 4.BlockHeight(),
+                BlockHash = _blocks[4],
+                PreviousBlockHash = _blocks[3],
+                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionFailed
+            });
+
+            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
+            {
+                Height = 5.BlockHeight(),
+                BlockHash = _blocks[5],
+                PreviousBlockHash = _blocks[4]
+            });
+
+
+            //when block 3 is the last one, all blocks status is execution none
+            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(_blocks[3]);
+            chainBlockLinks.Count.ShouldBe(4);
+            chainBlockLinks[0].BlockHash.ShouldBe(_blocks[0]);
+            chainBlockLinks[1].BlockHash.ShouldBe(_blocks[1]);
+            chainBlockLinks[2].BlockHash.ShouldBe(_blocks[2]);
+
+
+            //when block 5 is the last one, as block 4 is executed failed, mean all block 4's previous blocks have been
+            //executed, and as block 4 is failed, so all block after block 4 is failed. so Count = 0
+            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(_blocks[5]);
+            chainBlockLinks.Count.ShouldBe(0);
+        }
+
+        [Fact]
         public async Task LIB_Blocks_Test()
         {
             //0 -> 1 linked
@@ -91,7 +272,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
             //0 -> *1, no branch
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 1.BlockHeight(),
                     BlockHash = _blocks[1],
@@ -110,7 +291,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //0 -> 1 -> *2, no branch
 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 2.BlockHeight(),
                     BlockHash = _blocks[2],
@@ -143,7 +324,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //not linked: *4
 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 4.BlockHeight(),
                     BlockHash = _blocks[4],
@@ -174,7 +355,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //not linked: 4, *5
 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 5.BlockHeight(),
                     BlockHash = _blocks[5],
@@ -193,7 +374,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //0 -> 1 -> 2 -> *3 -> 4 -> 5
 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 3.BlockHeight(),
                     BlockHash = _blocks[3],
@@ -230,7 +411,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //0 -> 1 -> 2 -> 3 -> 4 -> 5 , 2 branches
             //                    4 -> *6
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 5.BlockHeight(),
                     BlockHash = _blocks[6],
@@ -249,7 +430,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //0 -> 1 -> 2 -> 3 -> 4 -> 5         , 2 branches
             //                    4 -> 6 -> *7
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 6.BlockHeight(),
                     BlockHash = _blocks[7],
@@ -270,7 +451,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> *8[5] 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 5.BlockHeight(),
                     BlockHash = _blocks[8],
@@ -292,7 +473,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> 8[5] 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 6.BlockHeight(),
                     BlockHash = _blocks[10],
@@ -314,7 +495,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> 8[5] , (11) -> *12[8]
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 8.BlockHeight(),
                     BlockHash = _blocks[12],
@@ -337,7 +518,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> 8[5]
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 7.BlockHeight(),
                     BlockHash = _blocks[11],
@@ -378,6 +559,47 @@ namespace AElf.Kernel.Blockchain.Domain
         }
 
         [Fact]
+        public async Task Set_Best_Chain_Test()
+        {
+            var chain = await _chainManager.CreateAsync(_genesis);
+
+            await _chainManager.SetBestChainAsync(chain, 1.BlockHeight(), _blocks[1]);
+            var currentChain = await _chainManager.GetAsync();
+            currentChain.BestChainHeight.ShouldBe(1.BlockHeight());
+            currentChain.BestChainHash.ShouldBe(_blocks[1]);
+
+            _chainManager.SetBestChainAsync(chain, 0.BlockHeight(), _blocks[1])
+                .ShouldThrow<InvalidOperationException>();
+        }
+
+        [Fact]
+        public async Task Set_Block_Validated_Test()
+        {
+            var firstBlockLink = new ChainBlockLink
+            {
+                Height = 1.BlockHeight(),
+                BlockHash = _blocks[1],
+                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
+            };
+
+            await _chainManager.SetChainBlockLinkExecutionStatus(firstBlockLink,
+                ChainBlockLinkExecutionStatus.ExecutionFailed);
+            var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[1]);
+            currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
+
+            var secondBlockLink = new ChainBlockLink
+            {
+                Height = 2.BlockHeight(),
+                BlockHash = _blocks[2],
+                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionFailed
+            };
+
+            _chainManager
+                .SetChainBlockLinkExecutionStatus(secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed)
+                .ShouldThrow<InvalidOperationException>();
+        }
+
+        [Fact]
         public async Task Should_Attach_Blocks_To_A_Chain()
         {
             //0 -> 1 linked
@@ -392,7 +614,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
             //0 -> *1, no branch
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 1.BlockHeight(),
                     BlockHash = _blocks[1],
@@ -411,7 +633,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //0 -> 1 -> *2, no branch
 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 2.BlockHeight(),
                     BlockHash = _blocks[2],
@@ -431,7 +653,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //not linked: *4
 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 4.BlockHeight(),
                     BlockHash = _blocks[4],
@@ -451,7 +673,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //not linked: 4, *5
 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 5.BlockHeight(),
                     BlockHash = _blocks[5],
@@ -470,7 +692,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //0 -> 1 -> 2 -> *3 -> 4 -> 5
 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 3.BlockHeight(),
                     BlockHash = _blocks[3],
@@ -489,7 +711,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //0 -> 1 -> 2 -> 3 -> 4 -> 5 , 2 branches
             //                    4 -> *6
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 5.BlockHeight(),
                     BlockHash = _blocks[6],
@@ -508,7 +730,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //0 -> 1 -> 2 -> 3 -> 4 -> 5         , 2 branches
             //                    4 -> 6 -> *7
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 6.BlockHeight(),
                     BlockHash = _blocks[7],
@@ -529,7 +751,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> *8[5] 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 5.BlockHeight(),
                     BlockHash = _blocks[8],
@@ -551,7 +773,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> 8[5] 
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 6.BlockHeight(),
                     BlockHash = _blocks[10],
@@ -573,7 +795,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> 8[5] , (11) -> *12[8]
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 8.BlockHeight(),
                     BlockHash = _blocks[12],
@@ -596,7 +818,7 @@ namespace AElf.Kernel.Blockchain.Domain
             //                    4 -> 6 -> 7[6]
             //not linked: (9) -> 8[5]
             {
-                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink
                 {
                     Height = 7.BlockHeight(),
                     BlockHash = _blocks[11],
@@ -641,228 +863,6 @@ namespace AElf.Kernel.Blockchain.Domain
             _chainManager
                 .SetChainBlockLinkExecutionStatus(secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess)
                 .ShouldThrow<InvalidOperationException>();
-        }
-
-        [Fact]
-        public async Task Set_Block_Validated_Test()
-        {
-            var firstBlockLink = new ChainBlockLink
-            {
-                Height = 1.BlockHeight(),
-                BlockHash = _blocks[1],
-                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone
-            };
-
-            await _chainManager.SetChainBlockLinkExecutionStatus(firstBlockLink,
-                ChainBlockLinkExecutionStatus.ExecutionFailed);
-            var currentBlockLink = await _chainManager.GetChainBlockLinkAsync(_blocks[1]);
-            currentBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
-
-            var secondBlockLink = new ChainBlockLink
-            {
-                Height = 2.BlockHeight(),
-                BlockHash = _blocks[2],
-                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionFailed
-            };
-
-            _chainManager.SetChainBlockLinkExecutionStatus(secondBlockLink, ChainBlockLinkExecutionStatus.ExecutionFailed)
-                .ShouldThrow<InvalidOperationException>();
-        }
-
-        [Fact]
-        public async Task Set_Best_Chain_Test()
-        {
-            var chain = await _chainManager.CreateAsync(_genesis);
-
-            await _chainManager.SetBestChainAsync(chain, 1.BlockHeight(), _blocks[1]);
-            var currentChain = await _chainManager.GetAsync();
-            currentChain.BestChainHeight.ShouldBe(1.BlockHeight());
-            currentChain.BestChainHash.ShouldBe(_blocks[1]);
-
-            _chainManager.SetBestChainAsync(chain, 0.BlockHeight(), _blocks[1])
-                .ShouldThrow<InvalidOperationException>();
-        }
-
-        [Fact]
-        public async Task Get_Not_ExecutedBlocks_Test()
-        {
-            // execution success blocks
-            var chain = await _chainManager.CreateAsync(_genesis);
-            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 1.BlockHeight(),
-                BlockHash = _blocks[1],
-                PreviousBlockHash = _genesis
-            });
-            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 2.BlockHeight(),
-                BlockHash = _blocks[2],
-                PreviousBlockHash = _blocks[1]
-            });
-
-            var chainBlockLinks = await _chainManager.GetNotExecutedBlocks(_blocks[2]);
-            chainBlockLinks.Count.ShouldBe(3);
-            chainBlockLinks[0].BlockHash.ShouldBe(_blocks[0]);
-            chainBlockLinks[1].BlockHash.ShouldBe(_blocks[1]);
-            chainBlockLinks[2].BlockHash.ShouldBe(_blocks[2]);
-
-            // execution failed block
-            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 3.BlockHeight(),
-                BlockHash = _blocks[3],
-                PreviousBlockHash = _blocks[2],
-            });
-
-            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 4.BlockHeight(),
-                BlockHash = _blocks[4],
-                PreviousBlockHash = _blocks[3],
-                ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionFailed
-            });
-
-            await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 5.BlockHeight(),
-                BlockHash = _blocks[5],
-                PreviousBlockHash = _blocks[4]
-            });
-
-
-            //when block 3 is the last one, all blocks status is execution none
-            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(_blocks[3]);
-            chainBlockLinks.Count.ShouldBe(4);
-            chainBlockLinks[0].BlockHash.ShouldBe(_blocks[0]);
-            chainBlockLinks[1].BlockHash.ShouldBe(_blocks[1]);
-            chainBlockLinks[2].BlockHash.ShouldBe(_blocks[2]);
-
-
-            //when block 5 is the last one, as block 4 is executed failed, mean all block 4's previous blocks have been
-            //executed, and as block 4 is failed, so all block after block 4 is failed. so Count = 0
-            chainBlockLinks = await _chainManager.GetNotExecutedBlocks(_blocks[5]);
-            chainBlockLinks.Count.ShouldBe(0);
-        }
-
-        [Fact]
-        public async Task Attach_Forked_Blocks_Test()
-        {
-            // execution success blocks
-            var chain = await _chainManager.CreateAsync(_genesis);
-
-            // *4[4]
-            var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 4.BlockHeight(),
-                BlockHash = _blocks[4],
-                PreviousBlockHash = _blocks[3]
-            });
-            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.LongestChainFound);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
-
-            // *1[1] ... 4[4]
-            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 1.BlockHeight(),
-                BlockHash = _blocks[1],
-                PreviousBlockHash = _genesis
-            });
-            status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
-            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
-
-            // 1[1] ... 4[4] -> *5[5]
-            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 5.BlockHeight(),
-                BlockHash = _blocks[5],
-                PreviousBlockHash = _blocks[4]
-            });
-            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.LongestChainFound);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
-
-            // 1[1] -> *2[2] .... 4[4] -> 5[5]
-            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 2.BlockHeight(),
-                BlockHash = _blocks[2],
-                PreviousBlockHash = _blocks[1]
-            });
-            status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
-            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
-
-            // 1[1] -> 2[2] -> *3[3] -> 4[4] -> 5[5]
-            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 3.BlockHeight(),
-                BlockHash = _blocks[3],
-                PreviousBlockHash = _blocks[2]
-            });
-            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
-            status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
-
-            // Attach 4 again
-            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 4.BlockHeight(),
-                BlockHash = _blocks[4],
-                PreviousBlockHash = _blocks[3]
-            });
-            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
-
-            //  1[1] -> 2[2] -> 3[3] -> 4[4] -> 5[5]
-            //                             | -> *10[5]
-            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 5.BlockHeight(),
-                BlockHash = _blocks[10],
-                PreviousBlockHash = _blocks[4]
-            });
-            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.LongestChainFound);
-
-            // 1[1] -> 2[2] -> 3[3] -> 4[4] -> 5[5] -> *6[6]
-            //                            | -> 10[5]
-            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 6.BlockHeight(),
-                BlockHash = _blocks[6],
-                PreviousBlockHash = _blocks[5]
-            });
-            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
-            status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
-
-            // 1[1] -> 2[2] -> 3[3] -> 4[4] -> 5[5] -> 6[6]
-            //                            | -> 10[5] -> *11[6]
-            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 6.BlockHeight(),
-                BlockHash = _blocks[11],
-                PreviousBlockHash = _blocks[10]
-            });
-            status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.LongestChainFound);
-
-            // 1[1] -> 2[2] -> 3[3] -> 4[4] -> 5[5] -> 6[6] -> *7[7]
-            //                            | -> 10[5] -> 11[6]
-            status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
-            {
-                Height = 7.BlockHeight(),
-                BlockHash = _blocks[7],
-                PreviousBlockHash = _blocks[6]
-            });
-            status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
-            status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
         }
     }
 }

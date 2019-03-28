@@ -9,7 +9,7 @@ namespace AElf.Database
             creationOptions.UseDatabase<RedisDatabase<TKeyValueDbContext>>();
             return creationOptions;
         }
-        
+
         public static KeyValueDbContextCreationOptions<TKeyValueDbContext> UseSsdbDatabase<TKeyValueDbContext>(
             this KeyValueDbContextCreationOptions<TKeyValueDbContext> creationOptions)
             where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
@@ -17,7 +17,7 @@ namespace AElf.Database
             creationOptions.UseDatabase<SsdbDatabase<TKeyValueDbContext>>();
             return creationOptions;
         }
-        
+
         public static KeyValueDbContextCreationOptions<TKeyValueDbContext> UseInMemoryDatabase<TKeyValueDbContext>(
             this KeyValueDbContextCreationOptions<TKeyValueDbContext> creationOptions)
             where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>

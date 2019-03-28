@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel.Account.Application;
@@ -17,14 +16,10 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     // ReSharper disable once InconsistentNaming
     public class DPoSInformationGenerationService : IConsensusInformationGenerationService
     {
-        private readonly DPoSOptions _dpoSOptions;
         private readonly IAccountService _accountService;
         private readonly ConsensusControlInformation _controlInformation;
+        private readonly DPoSOptions _dpoSOptions;
         private Hash _inValue;
-
-        public DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
-
-        public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
         public DPoSInformationGenerationService(IOptions<DPoSOptions> consensusOptions, IAccountService accountService,
             ConsensusControlInformation controlInformation)
@@ -36,10 +31,13 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
 
+        public DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
+
+        public ILogger<DPoSInformationGenerationService> Logger { get; set; }
+
         public DPoSTriggerInformation GetTriggerInformation()
         {
             if (_controlInformation.ConsensusCommand == null)
-            {
                 return new DPoSTriggerInformation
                 {
                     IsBootMiner = _dpoSOptions.IsBootMiner,
@@ -47,7 +45,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     Timestamp = Timestamp.FromDateTime(DateTime.UtcNow),
                     InitialTermNumber = _dpoSOptions.InitialTermNumber
                 };
-            }
 
             switch (Hint.Behaviour)
             {

@@ -1,14 +1,12 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
 
 namespace AElf.Concurrency.Lighthouse
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             using (var application = AbpApplicationFactory.Create<LighthouseConcurrencyAElfModule>(options =>
             {

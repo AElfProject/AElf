@@ -13,10 +13,6 @@ namespace AElf.Kernel.SmartContract.Sdk
     {
         int ChainId { get; }
 
-        void LogDebug(Func<string> func);
-
-        void FireLogEvent(LogEvent logEvent);
-
         Hash TransactionId { get; }
 
         Address Sender { get; }
@@ -30,6 +26,12 @@ namespace AElf.Kernel.SmartContract.Sdk
         DateTime CurrentBlockTime { get; }
         Hash PreviousBlockHash { get; }
 
+        IStateProvider StateProvider { get; }
+
+        void LogDebug(Func<string> func);
+
+        void FireLogEvent(LogEvent logEvent);
+
         // TODO: Remove RecoverPublicKey(byte[] signature, byte[] hash)
         byte[] RecoverPublicKey(byte[] signature, byte[] hash);
 
@@ -41,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Sdk
         bool VerifySignature(Transaction tx);
 
         /// <summary>
-        /// Generate txn not executed before next block. 
+        ///     Generate txn not executed before next block.
         /// </summary>
         /// <param name="deferredTxn"></param>
         void SendDeferredTransaction(Transaction deferredTxn);
@@ -49,9 +51,9 @@ namespace AElf.Kernel.SmartContract.Sdk
         void DeployContract(Address address, SmartContractRegistration registration, Hash name);
 
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
-        
+
         T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args);
-        
+
         void SendInline(Address toAddress, string methodName, ByteString args);
 
         void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
@@ -59,13 +61,10 @@ namespace AElf.Kernel.SmartContract.Sdk
         Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
 
         Address GetZeroSmartContractAddress();
-        
-        IStateProvider StateProvider { get; }
     }
 
     public interface ILimitedSmartContractContext
     {
-        
     }
 
     [Serializable]

@@ -16,16 +16,38 @@ namespace AElf.CrossChain.Grpc
 //        private CancellationTokenSource TokenSourceToSideChain { get; } = new CancellationTokenSource();
 //        private CancellationTokenSource TokenSourceToParentChain { get; } = new CancellationTokenSource();
         private readonly ICrossChainDataProducer _crossChainDataProducer;
-        public ILogger<CrossChainGrpcClientController> Logger { get; set; }
 
 //        private ILocalEventBus LocalEventBus { get; }
 
-        private readonly Dictionary<int, IGrpcCrossChainClient> _grpcCrossChainClients = new Dictionary<int, IGrpcCrossChainClient>();
-        
+        private readonly Dictionary<int, IGrpcCrossChainClient> _grpcCrossChainClients =
+            new Dictionary<int, IGrpcCrossChainClient>();
+
         public CrossChainGrpcClientController(ICrossChainDataProducer crossChainDataProducer)
         {
             _crossChainDataProducer = crossChainDataProducer;
 //            LocalEventBus = NullLocalEventBus.Instance;
+        }
+
+        public ILogger<CrossChainGrpcClientController> Logger { get; set; }
+
+        /// <summary>
+        ///     Close and clear clients to side chain
+        /// </summary>
+        public void CloseClientsToSideChain()
+        {
+            //TokenSourceToSideChain?.Cancel();
+            //TokenSourceToSideChain?.Dispose();
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        ///     close and clear clients to parent chain
+        /// </summary>
+        public void CloseClientToParentChain()
+        {
+            //TokenSourceToParentChain?.Cancel();
+            //TokenSourceToParentChain?.Dispose();
+            throw new NotImplementedException();
         }
 
 //        /// <summary>
@@ -42,12 +64,14 @@ namespace AElf.CrossChain.Grpc
 
         #region Create client
 
-        public async Task CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext, string certificate)
+        public async Task CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext,
+            string certificate)
         {
-            if (crossChainCommunicationContext.RemoteIsSideChain && 
-                !_crossChainDataProducer.GetCachedChainIds().Contains(crossChainCommunicationContext.RemoteChainId)) 
+            if (crossChainCommunicationContext.RemoteIsSideChain &&
+                !_crossChainDataProducer.GetCachedChainIds().Contains(crossChainCommunicationContext.RemoteChainId))
                 return; // dont create client for not cached remote side chain
-            var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext, certificate);
+            var client = CreateGrpcClient((GrpcCrossChainCommunicationContext) crossChainCommunicationContext,
+                certificate);
             var reply = await TryRequest(client, c => c.TryHandShakeAsync(crossChainCommunicationContext.LocalChainId,
                 ((GrpcCrossChainCommunicationContext) crossChainCommunicationContext).LocalListeningPort));
             if (reply == null || !reply.Result)
@@ -56,13 +80,14 @@ namespace AElf.CrossChain.Grpc
         }
 
         /// <summary>
-        /// Create a new client to parent chain 
+        ///     Create a new client to parent chain
         /// </summary>
         /// <returns>
-        /// </returns>    
-        private IGrpcCrossChainClient CreateGrpcClient(GrpcCrossChainCommunicationContext grpcClientBase, string certificate)
+        /// </returns>
+        private IGrpcCrossChainClient CreateGrpcClient(GrpcCrossChainCommunicationContext grpcClientBase,
+            string certificate)
         {
-            string uri = grpcClientBase.ToUriStr();
+            var uri = grpcClientBase.ToUriStr();
 
             if (!grpcClientBase.RemoteIsSideChain)
                 return new GrpcClientForParentChain(uri, certificate);
@@ -81,13 +106,14 @@ namespace AElf.CrossChain.Grpc
             foreach (var chainId in chainIds)
             {
                 Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
-                if(!_grpcCrossChainClients.TryGetValue(chainId, out var client))
+                if (!_grpcCrossChainClients.TryGetValue(chainId, out var client))
                     continue;
                 var task = TryRequest(client, c => c.StartIndexingRequest(chainId, _crossChainDataProducer));
             }
         }
 
-        private async Task<T> TryRequest<T>(IGrpcCrossChainClient client, Func<IGrpcCrossChainClient, Task<T>> requestFunc)
+        private async Task<T> TryRequest<T>(IGrpcCrossChainClient client,
+            Func<IGrpcCrossChainClient, Task<T>> requestFunc)
         {
             try
             {
@@ -99,27 +125,7 @@ namespace AElf.CrossChain.Grpc
                 return default(T);
             }
         }
-        
-        #endregion
-        
-        /// <summary>
-        /// Close and clear clients to side chain
-        /// </summary>
-        public void CloseClientsToSideChain()
-        {
-            //TokenSourceToSideChain?.Cancel();
-            //TokenSourceToSideChain?.Dispose();
-            throw new NotImplementedException();
-        }
 
-        /// <summary>
-        /// close and clear clients to parent chain
-        /// </summary>
-        public void CloseClientToParentChain()
-        {
-            //TokenSourceToParentChain?.Cancel();
-            //TokenSourceToParentChain?.Dispose();
-            throw new NotImplementedException();
-        }
+        #endregion
     }
 }

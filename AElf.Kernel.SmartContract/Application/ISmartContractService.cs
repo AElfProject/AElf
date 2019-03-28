@@ -6,7 +6,7 @@ namespace AElf.Kernel.SmartContract.Application
     public interface ISmartContractService
     {
         /// <summary>
-        /// Deploys a contract to the specified chain and account.
+        ///     Deploys a contract to the specified chain and account.
         /// </summary>
         /// <param name="">The chain id for the contract to be deployed in.</param>
         /// <param name="contractAddress">The target address for the contract.</param>

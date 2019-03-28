@@ -19,7 +19,7 @@
 namespace AElf.Types.CSharp
 {
     /// <summary>
-    /// Handler for a contract method.
+    ///     Handler for a contract method.
     /// </summary>
     /// <typeparam name="TRequest">Request message type for this method.</typeparam>
     /// <typeparam name="TResponse">Response message type for this method.</typeparam>

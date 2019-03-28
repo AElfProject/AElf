@@ -13,7 +13,7 @@ namespace AElf.Kernel.ChainController
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            
+
             services.AddTransient<ChainCreationService>();
         }
     }

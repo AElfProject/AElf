@@ -9,19 +9,19 @@ namespace AElf.Kernel.TransactionPool
         typeof(TransactionPoolAElfModule),
         typeof(KernelCoreTestAElfModule)
     )]
-    public class TransactionPoolTestAElfModule: AElfModule
+    public class TransactionPoolTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<TxHub>();
         }
     }
-    
+
     [DependsOn(
         typeof(TransactionPoolTestAElfModule),
         typeof(KernelCoreWithChainTestAElfModule)
     )]
-    public class TransactionPoolWithChainTestAElfModule: AElfModule
+    public class TransactionPoolWithChainTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

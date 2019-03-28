@@ -15,13 +15,13 @@ namespace AElf.Common
         {
             return Base58CheckEncoding.EncodePlain(value);
         }
-        
+
 
         public static string ToHex(this byte[] bytes, bool withPrefix = false)
         {
-            int offset = withPrefix ? 2 : 0;
-            int length = bytes.Length * 2 + offset;
-            char[] c = new char[length];
+            var offset = withPrefix ? 2 : 0;
+            var length = bytes.Length * 2 + offset;
+            var c = new char[length];
 
             byte b;
 
@@ -33,10 +33,10 @@ namespace AElf.Common
 
             for (int bx = 0, cx = offset; bx < bytes.Length; ++bx, ++cx)
             {
-                b = ((byte) (bytes[bx] >> 4));
+                b = (byte) (bytes[bx] >> 4);
                 c[cx] = (char) (b > 9 ? b + 0x37 + 0x20 : b + 0x30);
 
-                b = ((byte) (bytes[bx] & 0x0F));
+                b = (byte) (bytes[bx] & 0x0F);
                 c[++cx] = (char) (b > 9 ? b + 0x37 + 0x20 : b + 0x30);
             }
 
@@ -45,9 +45,9 @@ namespace AElf.Common
 
         public static string ToHex(this ByteString bytes, bool withPrefix = false)
         {
-            int offset = withPrefix ? 2 : 0;
-            int length = bytes.Length * 2 + offset;
-            char[] c = new char[length];
+            var offset = withPrefix ? 2 : 0;
+            var length = bytes.Length * 2 + offset;
+            var c = new char[length];
 
             byte b;
 
@@ -59,10 +59,10 @@ namespace AElf.Common
 
             for (int bx = 0, cx = offset; bx < bytes.Length; ++bx, ++cx)
             {
-                b = ((byte) (bytes[bx] >> 4));
+                b = (byte) (bytes[bx] >> 4);
                 c[cx] = (char) (b > 9 ? b + 0x37 + 0x20 : b + 0x30);
 
-                b = ((byte) (bytes[bx] & 0x0F));
+                b = (byte) (bytes[bx] & 0x0F);
                 c[++cx] = (char) (b > 9 ? b + 0x37 + 0x20 : b + 0x30);
             }
 
@@ -70,7 +70,7 @@ namespace AElf.Common
         }
 
         /// <summary>
-        /// Calculates the hash for a byte array.
+        ///     Calculates the hash for a byte array.
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>

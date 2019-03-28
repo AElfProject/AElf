@@ -1,7 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using AElf.Common;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -9,12 +5,12 @@ using Type = System.Type;
 
 namespace AElf.Types.CSharp.Tests
 {
-    class TestUserType : UserType
+    internal class TestUserType : UserType
     {
         public string Value { get; set; }
     }
 
-    class MockContractForVoid
+    internal class MockContractForVoid
     {
         public int Value { get; private set; }
 
@@ -24,7 +20,7 @@ namespace AElf.Types.CSharp.Tests
         }
     }
 
-    class MockContract
+    internal class MockContract
     {
         public bool BoolReturnTypeMethod()
         {
@@ -76,56 +72,31 @@ namespace AElf.Types.CSharp.Tests
     {
         public static object GetValue(Type type)
         {
-            if (type == typeof(bool))
-            {
-                return true;
-            }
+            if (type == typeof(bool)) return true;
 
-            if (type == typeof(int))
-            {
-                return 32;
-            }
+            if (type == typeof(int)) return 32;
 
-            if (type == typeof(uint))
-            {
-                return 32u;
-            }
+            if (type == typeof(uint)) return 32u;
 
-            if (type == typeof(long))
-            {
-                return 64l;
-            }
+            if (type == typeof(long)) return 64l;
 
-            if (type == typeof(ulong))
-            {
-                return 64ul;
-            }
+            if (type == typeof(ulong)) return 64ul;
 
-            if (type == typeof(string))
-            {
-                return "AElf";
-            }
+            if (type == typeof(string)) return "AElf";
 
-            if (type == typeof(byte[]))
-            {
-                return new byte[] {0x1, 0x2, 0x3};
-            }
+            if (type == typeof(byte[])) return new byte[] {0x1, 0x2, 0x3};
 
             if (type == typeof(StringValue))
-            {
-                return new StringValue()
+                return new StringValue
                 {
                     Value = "AElf"
                 };
-            }
 
             if (type == typeof(TestUserType))
-            {
-                return new TestUserType()
+                return new TestUserType
                 {
                     Value = "AElf"
                 };
-            }
 
             return null;
         }
@@ -144,10 +115,7 @@ namespace AElf.Types.CSharp.Tests
                 var contract = new MockContract();
                 foreach (var m in typeof(MockContract).GetMethods())
                 {
-                    if (m.IsConstructor || m.DeclaringType.Name != nameof(MockContract))
-                    {
-                        continue;
-                    }
+                    if (m.IsConstructor || m.DeclaringType.Name != nameof(MockContract)) continue;
 
                     var handler = MethodHandlerFactory.CreateMethodHandler(m, contract);
                     var returnBytes = handler.Execute(ParamsPacker.Pack());
@@ -157,7 +125,7 @@ namespace AElf.Types.CSharp.Tests
             {
                 // Void ReturnType
                 var contract = new MockContractForVoid();
-                int value = 99;
+                var value = 99;
                 var handler = MethodHandlerFactory.CreateMethodHandler(
                     typeof(MockContractForVoid).GetMethod(nameof(MockContractForVoid.SetInt)), contract);
                 handler.Execute(ParamsPacker.Pack(value));

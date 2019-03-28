@@ -25,7 +25,7 @@ namespace AElf.Kernel.Types.Tests
 
             var hashArray3 = stateValue.Get();
             hashArray3.ShouldBe(hashArray2);
-            
+
             stateValue.OriginalValue.ShouldBe(hashArray);
             stateValue.CurrentValue.ShouldBe(hashArray2);
         }

@@ -7,7 +7,7 @@ namespace AElf.Kernel.TransactionPool
     {
         public static Transaction Generate()
         {
-            var transaction = new Transaction()
+            var transaction = new Transaction
             {
                 From = Address.Generate(),
                 To = Address.Generate(),

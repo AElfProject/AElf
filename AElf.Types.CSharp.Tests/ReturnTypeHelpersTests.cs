@@ -6,7 +6,7 @@ namespace AElf.Types.CSharp.Tests
 {
     public class ReturnTypeHelperTests
     {
-        class TestUserType : UserType
+        private class TestUserType : UserType
         {
             public string Value { get; set; }
         }
@@ -16,58 +16,40 @@ namespace AElf.Types.CSharp.Tests
             private T GetValue<T>()
             {
                 var type = typeof(T);
-                if (type == typeof(bool))
-                {
-                    return (T) (object) true;
-                }
+                if (type == typeof(bool)) return (T) (object) true;
 
-                if (type == typeof(int))
-                {
-                    return (T) (object) 32;
-                }
+                if (type == typeof(int)) return (T) (object) 32;
 
-                if (type == typeof(uint))
-                {
-                    return (T) (object) 32u;
-                }
+                if (type == typeof(uint)) return (T) (object) 32u;
 
-                if (type == typeof(long))
-                {
-                    return (T) (object) 64l;
-                }
+                if (type == typeof(long)) return (T) (object) 64l;
 
-                if (type == typeof(ulong))
-                {
-                    return (T) (object) 64ul;
-                }
+                if (type == typeof(ulong)) return (T) (object) 64ul;
 
-                if (type == typeof(string))
-                {
-                    return (T) (object) "AElf";
-                }
+                if (type == typeof(string)) return (T) (object) "AElf";
 
-                if (type == typeof(byte[]))
-                {
-                    return (T) (object) new byte[] {0x1, 0x2, 0x3};
-                }
+                if (type == typeof(byte[])) return (T) (object) new byte[] {0x1, 0x2, 0x3};
 
                 if (type == typeof(StringValue))
-                {
-                    return (T) (object) new StringValue()
+                    return (T) (object) new StringValue
                     {
                         Value = "AElf"
                     };
-                }
 
                 if (type == typeof(TestUserType))
-                {
-                    return (T) (object) new TestUserType()
+                    return (T) (object) new TestUserType
                     {
                         Value = "AElf"
                     };
-                }
 
                 return default(T);
+            }
+
+            private void TestForType<T>()
+            {
+                var encoded = ReturnTypeHelper.GetEncoder<T>()(GetValue<T>());
+                var decoded = ReturnTypeHelper.GetDecoder<T>()(encoded);
+                decoded.ShouldBe(GetValue<T>());
             }
 
             [Fact]
@@ -82,13 +64,6 @@ namespace AElf.Types.CSharp.Tests
                 TestForType<byte[]>();
                 TestForType<StringValue>();
                 TestForType<TestUserType>();
-            }
-
-            private void TestForType<T>()
-            {
-                var encoded = ReturnTypeHelper.GetEncoder<T>()(GetValue<T>());
-                var decoded = ReturnTypeHelper.GetDecoder<T>()(encoded);
-                decoded.ShouldBe(GetValue<T>());
             }
         }
     }

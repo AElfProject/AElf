@@ -10,7 +10,6 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
@@ -22,22 +21,24 @@ namespace AElf.OS.Rpc.ChainController
     [Path("/chain")]
     public class ChainControllerRpcService : IJsonRpcService
     {
+        public ChainControllerRpcService()
+        {
+            Logger = NullLogger<ChainControllerRpcService>.Instance;
+        }
+
         public IBlockchainService BlockchainService { get; set; }
         public ITxHub TxHub { get; set; }
         public ITransactionReadOnlyExecutionService TransactionReadOnlyExecutionService { get; set; }
         public ITransactionResultQueryService TransactionResultQueryService { get; set; }
         public ITransactionManager TransactionManager { get; set; }
+
         public ISmartContractAddressService SmartContractAddressService { get; set; }
+
         //TODO: should not directly use BlockStateSets
         public IStateStore<BlockStateSet> BlockStateSets { get; set; }
         public ILogger<ChainControllerRpcService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; } = NullLocalEventBus.Instance;
-
-        public ChainControllerRpcService()
-        {
-            Logger = NullLogger<ChainControllerRpcService>.Instance;
-        }
 
         [JsonRpcMethod("GetCommands")]
         public async Task<JArray> GetCommands()
@@ -89,7 +90,7 @@ namespace AElf.OS.Rpc.ChainController
             {
                 return await this.GetFileDescriptorSetAsync(Address.Parse(address));
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             }
@@ -98,7 +99,7 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("BroadcastTransaction", "rawTransaction")]
         public async Task<JObject> BroadcastTransaction(string rawTransaction)
         {
-            var txIds = await this.PublishTransactionsAsync(new string[] {rawTransaction});
+            var txIds = await this.PublishTransactionsAsync(new[] {rawTransaction});
             var response = new JObject {["TransactionId"] = txIds[0]};
             return response;
         }
@@ -121,7 +122,8 @@ namespace AElf.OS.Rpc.ChainController
             }
             catch
             {
-                throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
+                throw new JsonRpcServiceException(Error.InvalidTransactionId,
+                    Error.Message[Error.InvalidTransactionId]);
             }
 
             var transactionResult = await this.GetTransactionResult(transactionHash);
@@ -148,7 +150,7 @@ namespace AElf.OS.Rpc.ChainController
                 // Params is not structured but plain string
                 response["Transaction"]["Params"] = p;
             }
-            
+
 
             return response;
         }
@@ -156,15 +158,10 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetTransactionsResult", "blockHash", "offset", "limit")]
         public async Task<JArray> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10)
         {
-            if (offset < 0)
-            {
-                throw new JsonRpcServiceException(Error.InvalidOffset, Error.Message[Error.InvalidOffset]);
-            }
+            if (offset < 0) throw new JsonRpcServiceException(Error.InvalidOffset, Error.Message[Error.InvalidOffset]);
 
             if (limit <= 0 || limit > 100)
-            {
                 throw new JsonRpcServiceException(Error.InvalidNum, Error.Message[Error.InvalidNum]);
-            }
 
             Hash realBlockHash;
             try
@@ -177,10 +174,7 @@ namespace AElf.OS.Rpc.ChainController
             }
 
             var block = await this.GetBlock(realBlockHash);
-            if (block == null)
-            {
-                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
-            }
+            if (block == null) throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
 
             var response = new JArray();
             if (offset <= block.Body.Transactions.Count - 1)
@@ -198,7 +192,8 @@ namespace AElf.OS.Rpc.ChainController
                         jObjectResult["Error"] = transactionResult.Error;
 
                     jObjectResult["Transaction"] = (JObject) JsonConvert.DeserializeObject(transaction.ToString());
-                    jObjectResult["Transaction"]["Params"] = (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
+                    jObjectResult["Transaction"]["Params"] =
+                        (JObject) JsonConvert.DeserializeObject(await this.GetTransactionParameters(transaction));
                     response.Add(jObjectResult);
                 }
             }
@@ -216,10 +211,7 @@ namespace AElf.OS.Rpc.ChainController
         public async Task<JObject> GetBlockInfo(long blockHeight, bool includeTransactions = false)
         {
             var blockInfo = await this.GetBlockAtHeight(blockHeight);
-            if (blockInfo == null)
-            {
-                throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
-            }
+            if (blockInfo == null) throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
 
             // TODO: Create DTO Exntension for Block
             var response = new JObject
@@ -238,7 +230,7 @@ namespace AElf.OS.Rpc.ChainController
                 },
                 ["Body"] = new JObject
                 {
-                    ["TransactionsCount"] = blockInfo.Body.TransactionsCount,
+                    ["TransactionsCount"] = blockInfo.Body.TransactionsCount
                 }
             };
 
@@ -246,10 +238,7 @@ namespace AElf.OS.Rpc.ChainController
             {
                 var transactions = blockInfo.Body.Transactions;
                 var txs = new List<string>();
-                foreach (var txHash in transactions)
-                {
-                    txs.Add(txHash.ToHex());
-                }
+                foreach (var txHash in transactions) txs.Add(txHash.ToHex());
 
                 response["Body"]["Transactions"] = JArray.FromObject(txs);
             }

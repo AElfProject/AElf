@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace AElf.Types.CSharp
 {
@@ -7,7 +6,8 @@ namespace AElf.Types.CSharp
     {
         public static string ToShorterName(this string longName)
         {
-            Dictionary<string, string> shorterNames = new Dictionary<string, string>(){
+            var shorterNames = new Dictionary<string, string>
+            {
                 {"System.Void", "void"},
                 {"System.Boolean", "bool"},
                 {"System.Byte", "byte"},
@@ -19,10 +19,7 @@ namespace AElf.Types.CSharp
                 {"System.Object", "object"},
                 {"System.String", "string"}
             };
-            if (!shorterNames.TryGetValue(longName, out var shorterName))
-            {
-                shorterName = longName;
-            }
+            if (!shorterNames.TryGetValue(longName, out var shorterName)) shorterName = longName;
             return shorterName;
         }
     }

@@ -1,18 +1,12 @@
-﻿using System.Collections.Generic;
-using AElf.Common;
-using AElf.Database;
+﻿using AElf.Database;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.Types;
 using AElf.Modularity;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp;
-using Volo.Abp.Data;
-using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel
@@ -27,7 +21,6 @@ namespace AElf.Kernel
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            
             var services = context.Services;
 
             services.AddAssemblyOf<CoreKernelAElfModule>();

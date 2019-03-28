@@ -1,5 +1,3 @@
-using AElf.Common;
-
 namespace AElf
 {
     public static class KernelConstants
@@ -9,6 +7,5 @@ namespace AElf
         public const int ProtocolVersion = 1;
         public const int DefaultRunnerCategory = 0;
         public const int CodeCoverageRunnerCategory = 30;
-
     }
 }

@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using AElf.Common;
 using Shouldly;
@@ -8,11 +7,18 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public class BlockValidationProviderTests : AElfKernelTestBase
     {
-        private readonly BlockValidationProvider _blockValidationProvider;
-        
         public BlockValidationProviderTests()
         {
             _blockValidationProvider = GetRequiredService<BlockValidationProvider>();
+        }
+
+        private readonly BlockValidationProvider _blockValidationProvider;
+
+        [Fact]
+        public async Task Test_Validate_Block_After_Execute()
+        {
+            var validateResult = await _blockValidationProvider.ValidateBlockAfterExecuteAsync(null);
+            validateResult.ShouldBeTrue();
         }
 
         [Fact]
@@ -23,32 +29,25 @@ namespace AElf.Kernel.Blockchain.Application
 
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             validateResult.ShouldBeFalse();
-            
+
             block = new Block();
-            validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
+            validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             validateResult.ShouldBeFalse();
-            
+
             block.Header = new BlockHeader();
-            validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
+            validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             validateResult.ShouldBeFalse();
-            
+
             block.Body = new BlockBody();
-            validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
+            validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             validateResult.ShouldBeFalse();
-            
+
             block.Body.Transactions.Add(Hash.Empty);
-            validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
+            validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             validateResult.ShouldBeFalse();
 
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
-            validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
-            validateResult.ShouldBeTrue();        
-        }
-
-        [Fact]
-        public async Task Test_Validate_Block_After_Execute()
-        {
-            var validateResult = await _blockValidationProvider.ValidateBlockAfterExecuteAsync( null);
+            validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             validateResult.ShouldBeTrue();
         }
     }

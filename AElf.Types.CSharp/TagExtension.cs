@@ -6,7 +6,7 @@ namespace AElf.Types.CSharp
 {
     public static class TagExtension
     {
-        private static readonly HashSet<Type> VarintTypes = new HashSet<Type>()
+        private static readonly HashSet<Type> VarintTypes = new HashSet<Type>
         {
             typeof(bool),
             typeof(int),
@@ -15,18 +15,12 @@ namespace AElf.Types.CSharp
             typeof(ulong)
         };
 
-        public static uint GetTagForFieldNumber( this object o, int fieldNumber)
+        public static uint GetTagForFieldNumber(this object o, int fieldNumber)
         {
             // Support upto 63 fields first
-            if (fieldNumber > 63)
-            {
-                throw  new Exception("Only upto 63 fields are supported.");
-            }
-            
-            if (VarintTypes.Contains(o.GetType()))
-            {
-                return WireFormat.MakeTag(fieldNumber, WireFormat.WireType.Varint);
-            }
+            if (fieldNumber > 63) throw new Exception("Only upto 63 fields are supported.");
+
+            if (VarintTypes.Contains(o.GetType())) return WireFormat.MakeTag(fieldNumber, WireFormat.WireType.Varint);
 
             return WireFormat.MakeTag(fieldNumber, WireFormat.WireType.LengthDelimited);
         }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.SmartContractExecution.Domain;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
@@ -12,28 +11,26 @@ namespace AElf.Kernel
 {
     public sealed class BlockchainStateManagerTests : AElfKernelTestBase
     {
-        private readonly BlockchainStateManager _blockchainStateManager;
-
-        private List<TestPair> _tv;
-
         public BlockchainStateManagerTests()
         {
             _blockchainStateManager = GetRequiredService<BlockchainStateManager>();
             _tv = new List<TestPair>();
             for (var i = 0; i < 200; i++)
-            {
-                _tv.Add(new TestPair()
+                _tv.Add(new TestPair
                 {
                     BlockHash = Hash.Generate(),
                     BlockHeight = i,
                     Key = $"key{i}",
                     Value = ByteString.CopyFromUtf8($"value{i}")
                 });
-            }
         }
 
+        private readonly BlockchainStateManager _blockchainStateManager;
 
-        class TestPair
+        private readonly List<TestPair> _tv;
+
+
+        private class TestPair
         {
             public Hash BlockHash;
             public long BlockHeight;
@@ -42,10 +39,91 @@ namespace AElf.Kernel
         }
 
         [Fact]
+        public async Task Test_GetState_From_BlockStateSet()
+        {
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet
+            {
+                BlockHash = _tv[1].BlockHash,
+                BlockHeight = _tv[1].BlockHeight,
+                PreviousHash = null
+            });
+            var result = await _blockchainStateManager.GetStateAsync(_tv[2].Key, _tv[2].BlockHeight, _tv[1].BlockHash);
+            result.ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task Test_GetState_From_VersionedState()
+        {
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet
+            {
+                BlockHash = _tv[1].BlockHash,
+                BlockHeight = _tv[1].BlockHeight,
+                PreviousHash = null
+            });
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet
+            {
+                BlockHash = _tv[2].BlockHash,
+                BlockHeight = _tv[2].BlockHeight,
+                PreviousHash = _tv[1].BlockHash,
+                Changes =
+                {
+                    {
+                        _tv[1].Key,
+                        _tv[2].Value
+                    }
+                }
+            });
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet
+            {
+                BlockHash = _tv[3].BlockHash,
+                BlockHeight = _tv[3].BlockHeight,
+                PreviousHash = null,
+                Changes =
+                {
+                    {
+                        _tv[2].Key,
+                        _tv[3].Value
+                    }
+                }
+            });
+
+            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[2].BlockHash);
+
+            var result = await _blockchainStateManager.GetStateAsync(_tv[1].Key, _tv[3].BlockHeight, _tv[3].BlockHash);
+            result.ShouldNotBeNull();
+            result.ShouldBe(_tv[2].Value);
+        }
+
+        [Fact]
+        public async Task Test_MergeBlockState_WithStatus_NotCommonStatus()
+        {
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet
+            {
+                BlockHash = _tv[1].BlockHash,
+                BlockHeight = _tv[1].BlockHeight,
+                PreviousHash = null,
+                Changes =
+                {
+                    {
+                        _tv[1].Key,
+                        _tv[1].Value
+                    }
+                }
+            });
+
+            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            chainStateInfo.Status = ChainStateMergingStatus.Merged;
+
+            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
+        }
+
+        [Fact]
         public async Task TestAddBlockStateSet()
         {
             // one level tests without best chain state
-            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet
             {
                 BlockHash = _tv[1].BlockHash,
                 BlockHeight = _tv[1].BlockHeight,
@@ -59,7 +137,7 @@ namespace AElf.Kernel
                     {
                         _tv[2].Key,
                         _tv[2].Value
-                    },
+                    }
                 }
             });
 
@@ -77,7 +155,7 @@ namespace AElf.Kernel
 
             //two level tests without best chain state
 
-            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet
             {
                 BlockHash = _tv[2].BlockHash,
                 BlockHeight = _tv[2].BlockHeight,
@@ -88,7 +166,7 @@ namespace AElf.Kernel
                     {
                         _tv[1].Key,
                         _tv[2].Value
-                    },
+                    }
                 }
             });
             var check2 = new Func<Task>(async () =>
@@ -106,7 +184,7 @@ namespace AElf.Kernel
             //but when we we can get value at the height of block height 1, also block hash 1
             await check1();
 
-            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet
             {
                 BlockHash = _tv[3].BlockHash,
                 BlockHeight = _tv[3].BlockHeight,
@@ -117,7 +195,7 @@ namespace AElf.Kernel
                     {
                         _tv[2].Key,
                         _tv[4].Value
-                    },
+                    }
                 }
             });
             var check3_1 = new Func<Task>(async () =>
@@ -131,7 +209,7 @@ namespace AElf.Kernel
             await check2();
             await check3_1();
 
-            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
+            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet
             {
                 BlockHash = _tv[4].BlockHash,
                 BlockHeight = _tv[3].BlockHeight, // it's a branch
@@ -142,7 +220,7 @@ namespace AElf.Kernel
                     {
                         _tv[2].Key,
                         _tv[5].Value
-                    },
+                    }
                 }
             });
 
@@ -156,7 +234,7 @@ namespace AElf.Kernel
             await check2();
             await check3_2();
 
-            int chainId = 1;
+            var chainId = 1;
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
 
@@ -176,7 +254,7 @@ namespace AElf.Kernel
             //test failed merge recover
             chainStateInfo.Status = ChainStateMergingStatus.Merging;
             chainStateInfo.MergingBlockHash = _tv[4].BlockHash;
-            
+
             //merge best to second branch
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[4].BlockHash);
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -186,104 +264,22 @@ namespace AElf.Kernel
             await Assert.ThrowsAsync<InvalidOperationException>(async () =>
                 await check3_1());
             await check3_2();
-            
+
             //test failed merge recover
             chainStateInfo.Status = ChainStateMergingStatus.Merged;
             chainStateInfo.MergingBlockHash = _tv[4].BlockHash;
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[4].BlockHash);
-
         }
 
-        [Fact]
-        public async Task Test_MergeBlockState_WithStatus_NotCommonStatus()
-        {
-            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
-            {
-                BlockHash = _tv[1].BlockHash,
-                BlockHeight = _tv[1].BlockHeight,
-                PreviousHash = null,
-                Changes =
-                {
-                    {
-                        _tv[1].Key,
-                        _tv[1].Value
-                    }
-                }
-            });
-            
-            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
-            chainStateInfo.Status = ChainStateMergingStatus.Merged;
-
-            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
-        }
-        
-        [Fact]
-        public async Task Test_GetState_From_VersionedState()
-        {
-            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
-            {
-                BlockHash = _tv[1].BlockHash,
-                BlockHeight = _tv[1].BlockHeight,
-                PreviousHash = null,
-            });
-            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
-            {
-                BlockHash = _tv[2].BlockHash,
-                BlockHeight = _tv[2].BlockHeight,
-                PreviousHash = _tv[1].BlockHash,
-                Changes =
-                {
-                    {
-                        _tv[1].Key,
-                        _tv[2].Value
-                    }
-                }
-            });
-            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
-            {
-                BlockHash = _tv[3].BlockHash,
-                BlockHeight = _tv[3].BlockHeight,
-                PreviousHash = null,
-                Changes =
-                {
-                    {
-                        _tv[2].Key,
-                        _tv[3].Value
-                    }
-                }
-            });
-            
-            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
-            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
-            await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[2].BlockHash);
-            
-            var result = await _blockchainStateManager.GetStateAsync(_tv[1].Key, _tv[3].BlockHeight, _tv[3].BlockHash);
-            result.ShouldNotBeNull();
-            result.ShouldBe(_tv[2].Value);
-        }
-
-        [Fact]
-        public async Task Test_GetState_From_BlockStateSet()
-        {
-            await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
-            {
-                BlockHash = _tv[1].BlockHash,
-                BlockHeight = _tv[1].BlockHeight,
-                PreviousHash = null,
-            });
-            var result = await _blockchainStateManager.GetStateAsync(_tv[2].Key, _tv[2].BlockHeight, _tv[1].BlockHash);
-            result.ShouldBeNull();
-        }
-        
         [Fact]
         public async Task TestState_MergedSituation()
         {
-            int chainId = 1;
+            var chainId = 1;
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             chainStateInfo.Status = ChainStateMergingStatus.Merged;
             chainStateInfo.MergingBlockHash = _tv[1].BlockHash;
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
-            
+
             chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             chainStateInfo.Status.ShouldBe(ChainStateMergingStatus.Common);
             chainStateInfo.MergingBlockHash.ShouldBeNull();

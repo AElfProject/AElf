@@ -1,22 +1,20 @@
-﻿using System;
-using System.Threading;
-using AElf.Common;
+﻿using System.Threading;
 using AElf.Cryptography.ECDSA;
 
 namespace AElf.Cryptography
 {
     public class OpenAccount
     {
-        // Close account when time out 
-        public Timer CloseTimer { private get; set; }
-        
-        public ECKeyPair KeyPair { get; set; }
-        public string AccountName { get; }
-
         public OpenAccount(string address)
         {
             AccountName = address;
         }
+
+        // Close account when time out 
+        public Timer CloseTimer { private get; set; }
+
+        public ECKeyPair KeyPair { get; set; }
+        public string AccountName { get; }
 
         public void Close()
         {

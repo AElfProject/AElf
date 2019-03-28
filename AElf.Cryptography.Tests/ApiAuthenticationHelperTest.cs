@@ -15,7 +15,7 @@ namespace AElf.Cryptography.Tests
 
             var sign = ApiAuthenticationHelper.GetSign(chainApiKey, chainId, method, timestamp);
             var checkResult = ApiAuthenticationHelper.Check(chainApiKey, chainId, method, timestamp, sign, 5);
-            
+
             Assert.True(checkResult);
         }
 

@@ -6,8 +6,6 @@ using AElf.Kernel.SmartContract.Domain;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Linq;
-using AElf.Kernel.Infrastructure;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -33,12 +31,10 @@ namespace AElf.Kernel.SmartContract.Application
 
     public class SmartContractBridgeService : ISmartContractBridgeService
     {
-        private readonly ISmartContractService _smartContractService;
         private readonly IBlockchainService _blockchainService;
-        private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IBlockchainStateManager _blockchainStateManager;
-
-        public ILogger<SmartContractBridgeService> Logger { get; set; }
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ISmartContractService _smartContractService;
 
         public SmartContractBridgeService(ISmartContractService smartContractService,
             IBlockchainService blockchainService, ISmartContractAddressService smartContractAddressService,
@@ -50,6 +46,8 @@ namespace AElf.Kernel.SmartContract.Application
             _blockchainStateManager = blockchainStateManager;
             Logger = NullLogger<SmartContractBridgeService>.Instance;
         }
+
+        public ILogger<SmartContractBridgeService> Logger { get; set; }
 
 
         public void LogDebug(Func<string> func)
@@ -94,9 +92,9 @@ namespace AElf.Kernel.SmartContract.Application
         public Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash)
         {
             var address = contractAddress.GetFormatted();
-            if(!key.StartsWith(address))
+            if (!key.StartsWith(address))
                 throw new InvalidOperationException("a contract cannot access other contracts data");
-            
+
             return _blockchainStateManager.GetStateAsync(key, blockHeight,
                 blockHash);
         }

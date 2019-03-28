@@ -2,7 +2,7 @@ using AElf.Common;
 
 namespace AElf.Kernel.SmartContract
 {
-    public interface ISmartContractAddressNameProvider 
+    public interface ISmartContractAddressNameProvider
     {
         Hash ContractName { get; }
     }

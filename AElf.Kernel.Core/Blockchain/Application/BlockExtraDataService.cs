@@ -10,6 +10,7 @@ namespace AElf.Kernel.Blockchain.Application
     public class BlockExtraDataService : IBlockExtraDataService
     {
         private readonly List<IBlockExtraDataProvider> _blockExtraDataProviders;
+
         public BlockExtraDataService(IEnumerable<IBlockExtraDataProvider> blockExtraDataProviders)
         {
             _blockExtraDataProviders = blockExtraDataProviders.ToList();
@@ -21,12 +22,7 @@ namespace AElf.Kernel.Blockchain.Application
             foreach (var blockExtraDataProvider in _blockExtraDataProviders)
             {
                 var extraData = await blockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(blockHeader);
-                if (extraData != null) 
-                {
-                    // Actually extraData cannot be NULL if it is mining processing, as the index in BlockExtraData is fixed.
-                    // So it can be ByteString.Empty but not NULL.
-                    blockHeader.BlockExtraDatas.Add(extraData);
-                }
+                if (extraData != null) blockHeader.BlockExtraDatas.Add(extraData);
             }
         }
 
@@ -35,11 +31,10 @@ namespace AElf.Kernel.Blockchain.Application
             for (var i = 0; i < _blockExtraDataProviders.Count; i++)
             {
                 var blockExtraDataProviderName = _blockExtraDataProviders[i].GetType().Name;
-                if (blockExtraDataProviderName.Contains(blockExtraDataProviderSymbol) && i < blockHeader.BlockExtraDatas.Count)
-                {
-                    return blockHeader.BlockExtraDatas[i];
-                }
+                if (blockExtraDataProviderName.Contains(blockExtraDataProviderSymbol) &&
+                    i < blockHeader.BlockExtraDatas.Count) return blockHeader.BlockExtraDatas[i];
             }
+
             return null;
         }
 
@@ -47,28 +42,27 @@ namespace AElf.Kernel.Blockchain.Application
             IEnumerable<(Hash, TransactionResultStatus)> blockExecutionReturnSet)
         {
             var extraDataCount = blockHeader.BlockExtraDatas.Count;
-            if( blockHeader.Height != KernelConstants.GenesisBlockHeight 
-                && extraDataCount != _blockExtraDataProviders.Count 
+            if (blockHeader.Height != KernelConstants.GenesisBlockHeight
+                && extraDataCount != _blockExtraDataProviders.Count
                 && extraDataCount != _blockExtraDataProviders.Count + 1)
                 throw new Exception("Incorrect filled extra data");
-            
+
             var nodes = new List<Hash>();
             foreach (var (transactionId, status) in blockExecutionReturnSet)
-            {
                 nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
-            }
             var rootByteString = new BinaryMerkleTree().AddNodes(nodes).ComputeRootHash().ToByteString();
-            if (blockHeader.Height == KernelConstants.GenesisBlockHeight || extraDataCount == _blockExtraDataProviders.Count)
+            if (blockHeader.Height == KernelConstants.GenesisBlockHeight ||
+                extraDataCount == _blockExtraDataProviders.Count)
                 blockHeader.BlockExtraDatas.Add(rootByteString); // not filled.
             else
-                blockHeader.BlockExtraDatas[_blockExtraDataProviders.Count] = rootByteString; //reset it since already filled
+                blockHeader.BlockExtraDatas[_blockExtraDataProviders.Count] =
+                    rootByteString; //reset it since already filled
         }
-        
+
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,
             TransactionResultStatus executionReturnStatus)
         {
             return Hash.FromTwoHashes(txId, Hash.FromString(executionReturnStatus.ToString()));
         }
-        
     }
 }

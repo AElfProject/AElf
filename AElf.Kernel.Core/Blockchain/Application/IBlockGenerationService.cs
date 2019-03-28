@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -30,12 +29,13 @@ namespace AElf.Kernel.Blockchain.Application
 
     public class BlockGenerationService : IBlockGenerationService
     {
+        private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
-        private readonly IBlockchainStateManager _blockchainStateManager;
 
         public BlockGenerationService(IBlockExtraDataService blockExtraDataService,
-            IStaticChainInformationProvider staticChainInformationProvider, IBlockchainStateManager blockchainStateManager)
+            IStaticChainInformationProvider staticChainInformationProvider,
+            IBlockchainStateManager blockchainStateManager)
         {
             _blockExtraDataService = blockExtraDataService;
             _staticChainInformationProvider = staticChainInformationProvider;
@@ -72,16 +72,12 @@ namespace AElf.Kernel.Blockchain.Application
                 PreviousHash = blockHeader.PreviousBlockHash
             };
             foreach (var returnSet in blockExecutionReturnSet)
-            {
-                foreach (var change in returnSet.StateChanges)
-                {
-                    blockStateSet.Changes[change.Key] = change.Value;
-                }
-            }
-            
+            foreach (var change in returnSet.StateChanges)
+                blockStateSet.Changes[change.Key] = change.Value;
+
             var merkleTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
             blockHeader.MerkleTreeRootOfWorldState = merkleTreeRootOfWorldState;
-            
+
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
             var bmt = new BinaryMerkleTree();
             bmt.AddNodes(allExecutedTransactionIds);
@@ -90,17 +86,17 @@ namespace AElf.Kernel.Blockchain.Application
             _blockExtraDataService.FillMerkleTreeRootExtraDataForTransactionStatus(blockHeader,
                 blockExecutionReturnSet.Select(executionReturn =>
                     (executionReturn.TransactionId, executionReturn.Status)));
-            
+
             var blockBody = new BlockBody();
             blockBody.Transactions.AddRange(allExecutedTransactionIds);
             blockBody.TransactionList.AddRange(transactions);
-            
+
             var block = new Block
             {
                 Header = blockHeader,
                 Body = blockBody
             };
-            
+
             blockBody.BlockHeader = blockHeader.GetHash();
             blockStateSet.BlockHash = blockHeader.GetHash();
 
@@ -108,7 +104,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             return block;
         }
-        
+
         private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)
         {
             var keys = blockStateSet.Changes.Keys;
@@ -123,10 +119,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             using (var hashAlgorithm = SHA256.Create())
             {
-                foreach (var bytes in byteArrays)
-                {
-                    hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
-                }
+                foreach (var bytes in byteArrays) hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
 
                 hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
                 return Hash.LoadByteArray(hashAlgorithm.Hash);

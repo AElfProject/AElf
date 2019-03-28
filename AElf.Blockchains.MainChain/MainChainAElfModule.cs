@@ -26,6 +26,7 @@ using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
+using InitializeWithContractSystemNamesInput = AElf.Contracts.Consensus.DPoS.InitializeWithContractSystemNamesInput;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -34,20 +35,20 @@ namespace AElf.Blockchains.MainChain
     )]
     public class MainChainAElfModule : AElfModule
     {
-        public ILogger<MainChainAElfModule> Logger { get; set; }
-
-        public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
-
         public MainChainAElfModule()
         {
             Logger = NullLogger<MainChainAElfModule>.Instance;
         }
 
+        public ILogger<MainChainAElfModule> Logger { get; set; }
+
+        public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
+
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var dto = new OsBlockchainNodeContextStartDto()
+            var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero)
@@ -55,7 +56,7 @@ namespace AElf.Blockchains.MainChain
 
             var consensusMethodCallList = new SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                new Contracts.Consensus.DPoS.InitializeWithContractSystemNamesInput
+                new InitializeWithContractSystemNamesInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
@@ -63,13 +64,13 @@ namespace AElf.Blockchains.MainChain
 
             var dividendMethodCallList = new SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                new AElf.Contracts.Dividend.InitializeWithContractSystemNamesInput
+                new Contracts.Dividend.InitializeWithContractSystemNamesInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
 
-                dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(consensusMethodCallList);
 
             var zeroContractAddress = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
                 .GetZeroSmartContractAddress();
@@ -113,20 +114,18 @@ namespace AElf.Blockchains.MainChain
                 Symbol = symbol,
                 Amount = 2_0000_0000,
                 ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
-                Memo = "Set dividends.",
+                Memo = "Set dividends."
             });
 
             //TODO: Maybe should be removed after testing.
             foreach (var tokenReceiver in tokenReceivers)
-            {
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {
                     Symbol = symbol,
                     Amount = 8_0000_0000 / tokenReceivers.Count,
                     To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(tokenReceiver)),
-                    Memo = "Set initial miner's balance.",
+                    Memo = "Set initial miner's balance."
                 });
-            }
 
             // Set fee pool address to dividend contract address.
             tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),

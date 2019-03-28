@@ -24,7 +24,8 @@ namespace AElf.OS.Jobs
         //TODO: Add ExecuteAsync case [Case]
         protected override async Task ExecuteAsync(BlockSyncJobArgs args)
         {
-            Logger.LogDebug($"Start block sync job, target height: {args.BlockHeight}, target block hash: {args.BlockHash}, peer: {args.SuggestedPeerPubKey}");
+            Logger.LogDebug(
+                $"Start block sync job, target height: {args.BlockHeight}, target block hash: {args.BlockHash}, peer: {args.SuggestedPeerPubKey}");
 
             var chain = await BlockchainService.GetChainAsync();
             try
@@ -45,15 +46,14 @@ namespace AElf.OS.Jobs
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
                         return;
                     }
+
                     var status = await AttachBlockToChain(peerBlock);
-                    if (!status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
-                    {
-                        return;
-                    }
+                    if (!status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked)) return;
                 }
 
                 var blockHash = chain.LastIrreversibleBlockHash;
-                Logger.LogDebug($"Trigger sync blocks from peers, lib height: {chain.LastIrreversibleBlockHeight}, lib block hash: {blockHash}");
+                Logger.LogDebug(
+                    $"Trigger sync blocks from peers, lib height: {chain.LastIrreversibleBlockHeight}, lib block hash: {blockHash}");
 
                 var blockHeight = chain.LastIrreversibleBlockHeight;
                 var count = NetworkOptions.Value.BlockIdRequestCount;
@@ -61,7 +61,7 @@ namespace AElf.OS.Jobs
                 while (true)
                 {
                     Logger.LogDebug($"Request blocks start with {blockHash}");
-                    
+
                     var peer = peerBestChainHeight - blockHeight > InitialSyncLimit ? null : args.SuggestedPeerPubKey;
                     var blocks = await NetworkService.GetBlocksAsync(blockHash, blockHeight, count, peer);
 
@@ -76,7 +76,8 @@ namespace AElf.OS.Jobs
                     if (blocks.First().Header.PreviousBlockHash != blockHash)
                     {
                         Logger.LogError($"Current job hash : {blockHash}");
-                        throw new InvalidOperationException($"Previous block not match previous {blockHash}, network back {blocks.First().Header.PreviousBlockHash}");
+                        throw new InvalidOperationException(
+                            $"Previous block not match previous {blockHash}, network back {blocks.First().Header.PreviousBlockHash}");
                     }
 
                     foreach (var block in blocks)
@@ -86,16 +87,15 @@ namespace AElf.OS.Jobs
                             Logger.LogWarning($"Get null block from peer, request block start: {blockHash}");
                             break;
                         }
-                        Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
+
+                        Logger.LogDebug(
+                            $"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
                         await AttachBlockToChain(block);
                     }
 
                     chain = await BlockchainService.GetChainAsync();
                     peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
-                    if (chain.BestChainHeight >= peerBestChainHeight)
-                    {
-                        break;
-                    }
+                    if (chain.BestChainHeight >= peerBestChainHeight) break;
 
                     var lastBlock = blocks.Last();
                     blockHash = lastBlock.GetHash();
@@ -104,7 +104,7 @@ namespace AElf.OS.Jobs
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Failed to finish block sync job");
+                Logger.LogError(e, "Failed to finish block sync job");
             }
             finally
             {
@@ -116,7 +116,7 @@ namespace AElf.OS.Jobs
         {
             var chain = await BlockchainService.GetChainAsync();
             await BlockchainService.AddBlockAsync(block);
-            var status = await BlockchainService.AttachBlockToChainAsync(chain, block);                        
+            var status = await BlockchainService.AttachBlockToChainAsync(chain, block);
             await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
             return status;
         }

@@ -23,29 +23,28 @@ namespace AElf.Runtime.CSharp.Metadata
         public static bool IsSubclassOf(this TypeReference childTypeRef, TypeDefinition parentTypeDef)
         {
             var childTypeDef = childTypeRef.Resolve();
-            if (childTypeDef == null)
-            {
-                return false;
-            }
+            if (childTypeDef == null) return false;
 
             return childTypeDef.IsSubclassOf(parentTypeDef);
         }
 
         /// <summary>
-        /// Is childTypeDef a subclass of parentTypeDef. Does not test interface inheritance
+        ///     Is childTypeDef a subclass of parentTypeDef. Does not test interface inheritance
         /// </summary>
         /// <param name="childTypeDef"></param>
         /// <param name="parentTypeDef"></param>
         /// <returns></returns>
-        public static bool IsSubclassOf(this TypeDefinition childTypeDef, TypeDefinition parentTypeDef) =>
-            childTypeDef.MetadataToken
-            != parentTypeDef.MetadataToken
-            && childTypeDef
-                .EnumerateBaseClasses()
-                .Any(b => b.MetadataToken == parentTypeDef.MetadataToken && b.Module == parentTypeDef.Module);
+        public static bool IsSubclassOf(this TypeDefinition childTypeDef, TypeDefinition parentTypeDef)
+        {
+            return childTypeDef.MetadataToken
+                   != parentTypeDef.MetadataToken
+                   && childTypeDef
+                       .EnumerateBaseClasses()
+                       .Any(b => b.MetadataToken == parentTypeDef.MetadataToken && b.Module == parentTypeDef.Module);
+        }
 
         /// <summary>
-        /// Does childType inherit from parentInterface
+        ///     Does childType inherit from parentInterface
         /// </summary>
         /// <param name="childType"></param>
         /// <param name="parentInterfaceDef"></param>
@@ -60,8 +59,8 @@ namespace AElf.Runtime.CSharp.Metadata
         }
 
         /// <summary>
-        /// Does the childType directly inherit from parentInterface. Base
-        /// classes of childType are not tested
+        ///     Does the childType directly inherit from parentInterface. Base
+        ///     classes of childType are not tested
         /// </summary>
         /// <param name="childTypeDef"></param>
         /// <param name="parentInterfaceDef"></param>
@@ -77,7 +76,7 @@ namespace AElf.Runtime.CSharp.Metadata
         }
 
         /// <summary>
-        /// Does interface iface0 equal or implement interface iface1
+        ///     Does interface iface0 equal or implement interface iface1
         /// </summary>
         /// <param name="iface0"></param>
         /// <param name="iface1"></param>
@@ -86,28 +85,27 @@ namespace AElf.Runtime.CSharp.Metadata
         {
             Debug.Assert(iface1.IsInterface);
             Debug.Assert(iface0.IsInterface);
-            return (iface0.Module == iface1.Module && iface0.MetadataToken == iface1.MetadataToken) ||
+            return iface0.Module == iface1.Module && iface0.MetadataToken == iface1.MetadataToken ||
                    iface0.DoesAnySubTypeImplementInterface(iface1);
         }
 
 
         public static bool IsAssignableFrom(this TypeReference target, TypeReference source)
-            => target == source
-               || target.MetadataToken == source.MetadataToken
-               || target.Resolve().IsAssignableFrom(source.Resolve());
+        {
+            return target == source
+                   || target.MetadataToken == source.MetadataToken
+                   || target.Resolve().IsAssignableFrom(source.Resolve());
+        }
 
         /// <summary>
-        /// Is source type assignable to target type
+        ///     Is source type assignable to target type
         /// </summary>
         /// <param name="target"></param>
         /// <param name="source"></param>
         /// <returns></returns>
         public static bool IsAssignableFrom(this TypeDefinition target, TypeDefinition source)
         {
-            if (target == null || source == null)
-            {
-                return false;
-            }
+            if (target == null || source == null) return false;
             return target == source
                    || target?.MetadataToken == source?.MetadataToken
                    || source.IsSubclassOf(target)
@@ -115,7 +113,7 @@ namespace AElf.Runtime.CSharp.Metadata
         }
 
         /// <summary>
-        /// Enumerate the current type, it's parent and all the way to the top type
+        ///     Enumerate the current type, it's parent and all the way to the top type
         /// </summary>
         /// <param name="klassType"></param>
         /// <returns></returns>
@@ -124,10 +122,7 @@ namespace AElf.Runtime.CSharp.Metadata
             for (var typeDefinition = klassType;
                 typeDefinition != null;
                 typeDefinition = typeDefinition.BaseType?.Resolve())
-            {
                 yield return typeDefinition;
-            }
         }
-
     }
 }

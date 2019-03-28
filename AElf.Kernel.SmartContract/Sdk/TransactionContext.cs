@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Blockchain.Application;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {
@@ -17,6 +15,7 @@ namespace AElf.Kernel.SmartContract.Sdk
             BlockHeight = 0;
             CallDepth = 0;
         }
+
         public Address Origin { get; set; }
         public Address Miner { get; set; }
         public Hash PreviousBlockHash { get; set; }

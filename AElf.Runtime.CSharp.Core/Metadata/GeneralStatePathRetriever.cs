@@ -14,52 +14,9 @@ namespace AElf.Runtime.CSharp.Metadata
         private readonly Dictionary<MethodDefinition, RepeatedField<DataAccessPath>> _cache =
             new Dictionary<MethodDefinition, RepeatedField<DataAccessPath>>();
 
-        #region properties
-
-        public PropertyMethodIndex PropertyMethodIndex { get; private set; }
-
-        #region modules
-
-        public ModuleDefinition Sdk { get; private set; }
-        public ModuleDefinition AelfCommon { get; private set; }
-        public ModuleDefinition Module { get; private set; }
-
-        #endregion
-
-        #region types
-
-        public TypeDefinition AddressType { get; private set; }
-
-        #region states
-
-        public TypeDefinition StateBase { get; private set; }
-        public TypeDefinition SingletonStateBase { get; private set; }
-        public TypeDefinition StructuredStateBase { get; private set; }
-        public TypeDefinition MappedStateBase { get; private set; }
-        public TypeDefinition ContractReferenceStateBase { get; private set; }
-
-        #endregion
-
-        #region contract related
-
-        // ReSharper disable once InconsistentNaming
-        public TypeDefinition IContext { get; private set; }
-
-        public TypeDefinition ContractStateBase { get; private set; }
-
-        public TypeDefinition ContractBase { get; private set; }
-        public TypeDefinition ContractType => Module.Types.Single(x => x.IsSubclassOf(ContractBase));
-        public TypeDefinition ContractState => Module.Types.Single(x => x.IsSubclassOf(ContractStateBase));
-
-        #endregion
-
-        #endregion
-
-        #endregion
-
         public GeneralStatePathRetriever(IAssemblyResolver resolver, Stream stream)
         {
-            Module = ModuleDefinition.ReadModule(stream, new ReaderParameters()
+            Module = ModuleDefinition.ReadModule(stream, new ReaderParameters
             {
                 AssemblyResolver = resolver
             });
@@ -80,39 +37,18 @@ namespace AElf.Runtime.CSharp.Metadata
                 .SelectMany(s => s.Properties));
         }
 
-        #region IStatePathRetrieverForModule
-
-        public Dictionary<MethodDefinition, RepeatedField<DataAccessPath>> GetPaths()
-        {
-            return ContractType.Methods.ToDictionary(m => m, m => GetPaths(m));
-        }
-
-        public Dictionary<MethodDefinition, RepeatedField<InlineCall>> GetInlineCalls()
-        {
-            return ContractType.Methods.ToDictionary(m => m, m => GetInlineCalls(m));
-        }
-
-        #endregion
-
         public RepeatedField<InlineCall> GetInlineCalls(TypeReference stateType,
             ICollection<MethodReference> referencedMethods)
         {
             if (stateType.IsSubclassOf(SingletonStateBase))
-            {
                 return new SingletonStatePathRetriever(stateType, referencedMethods, this)
                     .GetInlineCalls();
-            }
 
             if (stateType.IsSubclassOf(StructuredStateBase))
-            {
                 return new StructuredStatePathRetriever(stateType, referencedMethods, this)
                     .GetInlineCalls();
-            }
 
-            if (stateType.IsSubclassOf(MappedStateBase))
-            {
-                return new RepeatedField<InlineCall>();
-            }
+            if (stateType.IsSubclassOf(MappedStateBase)) return new RepeatedField<InlineCall>();
 
             throw new Exception("Unable to identify state type.");
         }
@@ -121,22 +57,16 @@ namespace AElf.Runtime.CSharp.Metadata
             ICollection<MethodReference> referencedMethods)
         {
             if (stateType.IsSubclassOf(SingletonStateBase))
-            {
                 return new SingletonStatePathRetriever(stateType, referencedMethods, this)
                     .GetPaths();
-            }
 
             if (stateType.IsSubclassOf(StructuredStateBase))
-            {
                 return new StructuredStatePathRetriever(stateType, referencedMethods, this)
                     .GetPaths();
-            }
 
             if (stateType.IsSubclassOf(MappedStateBase))
-            {
                 return new MappedStatePathRetriever(stateType, referencedMethods, this)
                     .GetPaths();
-            }
 
             throw new Exception("Unable to identify state type.");
         }
@@ -153,11 +83,9 @@ namespace AElf.Runtime.CSharp.Metadata
             var referencedOtherMethodsInContractType = references.Where(DeclaredByContractType)
                 .Select(x => x.Resolve()).Where(definition => !seen.Contains(definition));
             foreach (var definition in referencedOtherMethodsInContractType)
-            {
                 calls.AddRange(GetInlineCalls(definition, seen));
-            }
 
-            return new RepeatedField<InlineCall>() {calls.Distinct()};
+            return new RepeatedField<InlineCall> {calls.Distinct()};
         }
 
         private RepeatedField<DataAccessPath> GetPaths(MethodDefinition method, HashSet<MethodDefinition> seen = null)
@@ -166,23 +94,74 @@ namespace AElf.Runtime.CSharp.Metadata
             seen = seen ?? new HashSet<MethodDefinition>();
             seen.Add(method);
 
-            if (_cache.TryGetValue(method, out var paths))
-            {
-                return paths;
-            }
+            if (_cache.TryGetValue(method, out var paths)) return paths;
 
             var references = new HashSet<MethodReference>(GetReferencedMethods(method));
             paths = GetPaths(ContractState, references);
 
             var referencedOtherMethodsInContractType = references.Where(DeclaredByContractType)
                 .Select(x => x.Resolve()).Where(definition => !seen.Contains(definition));
-            foreach (var definition in referencedOtherMethodsInContractType)
-            {
-                paths.AddRange(GetPaths(definition, seen));
-            }
+            foreach (var definition in referencedOtherMethodsInContractType) paths.AddRange(GetPaths(definition, seen));
 
-            return _cache[method] = new RepeatedField<DataAccessPath>() {paths.Distinct()};
+            return _cache[method] = new RepeatedField<DataAccessPath> {paths.Distinct()};
         }
+
+        #region properties
+
+        public PropertyMethodIndex PropertyMethodIndex { get; }
+
+        #region modules
+
+        public ModuleDefinition Sdk { get; }
+        public ModuleDefinition AelfCommon { get; }
+        public ModuleDefinition Module { get; }
+
+        #endregion
+
+        #region types
+
+        public TypeDefinition AddressType { get; }
+
+        #region states
+
+        public TypeDefinition StateBase { get; }
+        public TypeDefinition SingletonStateBase { get; }
+        public TypeDefinition StructuredStateBase { get; }
+        public TypeDefinition MappedStateBase { get; }
+        public TypeDefinition ContractReferenceStateBase { get; }
+
+        #endregion
+
+        #region contract related
+
+        // ReSharper disable once InconsistentNaming
+        public TypeDefinition IContext { get; }
+
+        public TypeDefinition ContractStateBase { get; }
+
+        public TypeDefinition ContractBase { get; }
+        public TypeDefinition ContractType => Module.Types.Single(x => x.IsSubclassOf(ContractBase));
+        public TypeDefinition ContractState => Module.Types.Single(x => x.IsSubclassOf(ContractStateBase));
+
+        #endregion
+
+        #endregion
+
+        #endregion
+
+        #region IStatePathRetrieverForModule
+
+        public Dictionary<MethodDefinition, RepeatedField<DataAccessPath>> GetPaths()
+        {
+            return ContractType.Methods.ToDictionary(m => m, m => GetPaths(m));
+        }
+
+        public Dictionary<MethodDefinition, RepeatedField<InlineCall>> GetInlineCalls()
+        {
+            return ContractType.Methods.ToDictionary(m => m, m => GetInlineCalls(m));
+        }
+
+        #endregion
 
         #region private methods
 
@@ -194,29 +173,22 @@ namespace AElf.Runtime.CSharp.Metadata
                 return definition.IsGetter || definition.IsSetter;
             });
             foreach (var reference in GetReferencedMethods(method))
-            {
                 if (DeclaredByStateType(reference))
                 {
                     // Method declared in State Type
                     // Only property setter and getter are allowed
-                    if (!isGetterOrSetter(reference))
-                    {
-                        throw new StateTypeDeclaringNonPropertyMethodException(reference);
-                    }
+                    if (!isGetterOrSetter(reference)) throw new StateTypeDeclaringNonPropertyMethodException(reference);
                 }
                 else if (!DeclaredByContractType(reference))
                 {
                     // Method declared in Non-State-and-Contract Type
                     // Cannot operate State Types
                     if (OperatingOnState(reference))
-                    {
                         throw new StateAccessedInNonStateOrContractTypeException(reference);
-                    }
                 }
-                // TODO: Maybe check generic parameters
+            // TODO: Maybe check generic parameters
 
-                // Only contract methods can access state
-            }
+            // Only contract methods can access state
         }
 
         private bool DeclaredByStateType(MethodReference method)
@@ -243,12 +215,8 @@ namespace AElf.Runtime.CSharp.Metadata
             // TODO: Handle interface
             if (!method.HasBody) yield break;
             foreach (var ins in method.Body.Instructions)
-            {
                 if (ins.OpCode == OpCodes.Call || ins.OpCode == OpCodes.Callvirt)
-                {
                     yield return (MethodReference) ins.Operand;
-                }
-            }
         }
 
         #endregion
