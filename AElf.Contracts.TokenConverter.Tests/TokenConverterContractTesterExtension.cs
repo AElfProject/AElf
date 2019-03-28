@@ -9,7 +9,11 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using System.Threading.Tasks;
+using AElf.Common;
+using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
 
 namespace AElf.Contracts.TokenConverter
 {
@@ -52,14 +56,14 @@ namespace AElf.Contracts.TokenConverter
         public static async Task<ByteString> CallTokenConverterMethodAsync(
             this ContractTester<TokenConverterTestAElfModule> starter, string methodName, IMessage input)
         {
-            return await starter.CallContractMethodAsync(starter.GetConsensusContractAddress(),
+            return await starter.CallContractMethodAsync(starter.GetContractAddress(TokenConverterSmartContractAddressNameProvider.Name),
                 methodName, input);
         }
 
         public static async Task<TransactionResult> ExecuteTokenConverterMethodAsync(
             this ContractTester<TokenConverterTestAElfModule> starter, string methodName, IMessage input)
         {
-            return await starter.ExecuteContractWithMiningAsync(starter.GetConsensusContractAddress(),
+            return await starter.ExecuteContractWithMiningAsync(starter.GetContractAddress(TokenConverterSmartContractAddressNameProvider.Name),
                 methodName, input);
         }
     }
