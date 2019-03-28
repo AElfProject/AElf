@@ -104,37 +104,5 @@ namespace AElf.Types.CSharp
 
             throw new Exception($"Not Found parser for type {typeName}");
         }
-
-        //TODO: No call reference, need in future or not?
-        public static Func<object, string> GetTypeFormatter(string typeName, IEnumerable<Type> types = null)
-        {
-            if (_nameToType.TryGetValue(typeName, out var type))
-            {
-                if (ObjectHandlers.TryGetValue(type, out var parser))
-                {
-                    if (type != typeof(bool))
-                    {
-                        // Put all into double quote except boolean type
-                        return o => $@"""{parser(o)}""";
-                    }
-
-                    return o => parser(o).ToLower();
-                }
-            }
-
-            if (types != null)
-            {
-                var injected = GetTypeLookup(types);
-                if (injected.TryGetValue(typeName, out type))
-                {
-                    if (type.IsPbMessageType())
-                    {
-                        return o => JsonFormatter.Default.Format((IMessage) o);
-                    }
-                }
-            }
-
-            throw new InvalidCastException($"Not Found parser for type {typeName}");
-        }
     }
 }

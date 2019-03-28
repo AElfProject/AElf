@@ -15,7 +15,6 @@ namespace AElf.Types.CSharp
     {
         #region generic
 
-        //TODO: Whether need or not in future, method with no reference? Deserialize int, string with error.
         public static object DeserializeToType(this ByteString bs, Type type)
         {
             if (type == typeof(bool))

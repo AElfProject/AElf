@@ -13,6 +13,21 @@ namespace AElf.Types.CSharp.Tests
         [Fact]
         public void Deserialize_From_ByteString_To_Bool()
         {
+            var boolValue = true;
+            var encoder = ReturnTypeHelper.GetEncoder<bool>();
+            var bs = ByteString.CopyFrom(encoder(boolValue));
+            var returnObj = (bool)bs.DeserializeToType(typeof(bool));
+            returnObj.ShouldBeTrue();
+
+            boolValue = false;
+            bs = ByteString.CopyFrom(encoder(boolValue));
+            returnObj = (bool)bs.DeserializeToType(typeof(bool));
+            returnObj.ShouldBeFalse();
+        }
+
+        [Fact]
+        public void Deserialize_From_ByteString_To_BoolPbMessage()
+        {
             var boolValue = new BoolValue(){ Value = true };
             var bs = boolValue.ToByteString();
             var returnObj = (bool)bs.DeserializeToType(typeof(bool));
@@ -23,23 +38,43 @@ namespace AElf.Types.CSharp.Tests
             returnObj = (bool)bs.DeserializeToType(typeof(bool));
             returnObj.ShouldBeFalse();
         }
-
-        [Fact(Skip = "Deserialize data is not correct.")]
+        
+        [Fact]
         public void Deserialize_From_ByteString_To_Int()
+        {
+            var intValue = 36;
+            var encoder = ReturnTypeHelper.GetEncoder<int>();
+            var bs = ByteString.CopyFrom(encoder(intValue));
+            var returnObj = (int)bs.DeserializeToType(typeof(int));
+            returnObj.ShouldBe(intValue);
+        }
+        
+        [Fact]
+        public void Deserialize_From_ByteString_To_IntPbMessage()
         {
             var intValue = new IntValue() { Value = 36 };
             var bs = intValue.ToByteString();
-            var returnObj = (int)bs.DeserializeToType(typeof(int));
-            returnObj.ShouldBe(36);
+            var returnObj = (IntValue)bs.DeserializeToType(typeof(IntValue));
+            returnObj.ShouldBe(intValue);
         }
 
-        [Fact(Skip = "Deserialize data is not correct.")]
+        [Fact]
         public void Deserialize_From_ByteString_To_String()
+        {
+            var stringValue = "test info";
+            var encoder = ReturnTypeHelper.GetEncoder<string>();
+            var bs = ByteString.CopyFrom(encoder(stringValue));
+            var returnObj = (string)bs.DeserializeToType(typeof(string));
+            returnObj.ShouldBe(stringValue);
+        }
+        
+        [Fact]
+        public void Deserialize_From_ByteString_To_StringPbMessage()
         {
             var stringValue = new StringValue() { Value = "test info" };
             var bs = stringValue.ToByteString();
-            var returnObj = (string)bs.DeserializeToType(typeof(string));
-            returnObj.ShouldBe("test info");
+            var returnObj = (StringValue)bs.DeserializeToType(typeof(StringValue));
+            returnObj.ShouldBe(stringValue);
         }
         
         [Fact]

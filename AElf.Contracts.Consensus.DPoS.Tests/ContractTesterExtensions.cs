@@ -695,7 +695,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 return user.PublicKey;
             }
         }
-        public static User GenerateNewUser(this ContractTester<DPoSContractTestAElfModule> starter)
+        public static User GenerateNewUser(this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
             var callKeyPair = CryptoHelpers.GenerateKeyPair();
             var callAddress = Address.FromPublicKey(callKeyPair.PublicKey);
