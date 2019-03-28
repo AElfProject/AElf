@@ -1,3 +1,4 @@
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
@@ -8,6 +9,7 @@ namespace AElf.CrossChain
     public interface IBlockExtraDataExtractor
     {
         CrossChainExtraData ExtractCrossChainExtraData(BlockHeader header);
+        Hash ExtractTransactionStatusMerkleTreeRoot(BlockHeader header);
         ByteString ExtractOtherExtraData(string symbol, BlockHeader header);
     }
 
@@ -24,6 +26,11 @@ namespace AElf.CrossChain
         {
             var bytes = _blockExtraDataService.GetExtraDataFromBlockHeader("CrossChain", header);
             return bytes == ByteString.Empty || bytes == null ? null : CrossChainExtraData.Parser.ParseFrom(bytes);
+        }
+
+        public Hash ExtractTransactionStatusMerkleTreeRoot(BlockHeader header)
+        {
+            return Hash.Parser.ParseFrom(_blockExtraDataService.GetMerkleTreeRootExtraDataForTransactionStatus(header));
         }
 
         public ByteString ExtractOtherExtraData(string symbol, BlockHeader header)

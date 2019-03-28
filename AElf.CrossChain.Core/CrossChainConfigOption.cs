@@ -5,7 +5,7 @@ namespace AElf.CrossChain
 {
     public class CrossChainConfigOption
     {
-        public string ParentChainId { get; set; }
+        public int ParentChainId { get; set; }
         public List<string> ExtraDataSymbols { get; set; }
     }
 }

@@ -76,6 +76,8 @@ ProjectSection(SolutionItems) = preProject
 	scripts\install_protobuf.sh = scripts\install_protobuf.sh
 	scripts\download_chakracore.sh = scripts\download_chakracore.sh
 	scripts\test.sh = scripts\test.sh
+	scripts\upload_coverage.sh = scripts\upload_coverage.sh
+	appveyor.yml = appveyor.yml
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
@@ -254,6 +256,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestKit", "A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken.Test", "AElf.Contracts.MultiToken.Test\AElf.Contracts.MultiToken.Test.csproj", "{A526C0D6-1C3E-4570-96EB-AB784AF17835}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenConverter", "AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj", "{03EC899C-1FA1-4E98-A821-870F72B48082}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.SideChain.Tests", "AElf.Contracts.Consensus.DPoS.SideChain.Tests\AElf.Contracts.Consensus.DPoS.SideChain.Tests.csproj", "{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource.FeeReceiver.Tests", "AElf.Contracts.Resource.FeeReceiver.Tests\AElf.Contracts.Resource.FeeReceiver.Tests.csproj", "{85188AEE-3DCE-4535-850D-B3E69BF84CA7}"
@@ -261,6 +265,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividend.Tests", "AElf.Contracts.Dividend.Tests\AElf.Contracts.Dividend.Tests.csproj", "{20F01527-7A2B-428B-A96D-5C7052A32830}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Tests", "AElf.Kernel.Consensus.Tests\AElf.Kernel.Consensus.Tests.csproj", "{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benches", "benches", "{72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.BenchBase", "AElf.BenchBase\AElf.BenchBase.csproj", "{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Database.Benches", "AElf.Database.Benches\AElf.Database.Benches.csproj", "{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -644,6 +654,10 @@ Global
 		{A526C0D6-1C3E-4570-96EB-AB784AF17835}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A526C0D6-1C3E-4570-96EB-AB784AF17835}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A526C0D6-1C3E-4570-96EB-AB784AF17835}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03EC899C-1FA1-4E98-A821-870F72B48082}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03EC899C-1FA1-4E98-A821-870F72B48082}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03EC899C-1FA1-4E98-A821-870F72B48082}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03EC899C-1FA1-4E98-A821-870F72B48082}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -660,6 +674,14 @@ Global
 		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -749,9 +771,12 @@ Global
 		{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{F4DD898D-0BE8-4873-9532-F1F26DDB3291} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{A526C0D6-1C3E-4570-96EB-AB784AF17835} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{03EC899C-1FA1-4E98-A821-870F72B48082} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{85188AEE-3DCE-4535-850D-B3E69BF84CA7} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{20F01527-7A2B-428B-A96D-5C7052A32830} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
+		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 	EndGlobalSection
 EndGlobal

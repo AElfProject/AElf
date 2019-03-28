@@ -46,14 +46,15 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return DPoSBehaviour.NextRound;
         }
         
-        public override Empty UpdateMainChainConsensus(DPoSHeaderInformation input)
+        public override Empty UpdateMainChainConsensus(ConsensusInformation input)
         {
             // TODO: Only cross chain contract can call UpdateMainChainConsensus method of consensus contract.
             
             // For now we just extract the miner list from main chain consensus information, then update miners list.
-            if(input == null || input == new DPoSHeaderInformation())
+            if(input == null || input.Bytes.IsEmpty)
                 return new Empty();
-            var consensusInformation = input;
+            var consensusInformation = DPoSHeaderInformation.Parser.ParseFrom(input.Bytes);
+            
             if(consensusInformation.Round.TermNumber <= State.TermNumberFromMainChainField.Value)
                 return new Empty();
             Context.LogDebug(() => $"Shared BP of term {consensusInformation.Round.TermNumber.ToInt64Value()}");

@@ -28,7 +28,6 @@ namespace AElf.Kernel.SmartContract.Application
         Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
-
     }
 
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
@@ -44,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
-        
+
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
@@ -106,7 +105,8 @@ namespace AElf.Kernel.SmartContract.Application
             //executive.ContractHash = reg.CodeHash;
             //executive.ContractAddress = address;
             var context =
-                _hostSmartContractBridgeContextService.Create(new SmartContractContext() {ContractAddress = address});
+                _hostSmartContractBridgeContextService.Create(new SmartContractContext()
+                    {ContractAddress = address, RunnerCategory = reg.Category});
             executive.SetHostSmartContractBridgeContext(context);
             return executive;
         }

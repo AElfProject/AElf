@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "common.proto";
 import "kernel.proto";
 import "consensus.proto";
 import "consensus_dpos.proto";
@@ -17,9 +18,11 @@ service ConsensusContract {
     }
     rpc NextRound (Round) returns (google.protobuf.Empty) {
     }
-    rpc UpdateMainChainConsensus (DPoSHeaderInformation) returns (google.protobuf.Empty) {
+    rpc UpdateMainChainConsensus (ConsensusInformation) returns (google.protobuf.Empty) {
     }
     // Views
+    rpc GetCurrentRoundInformation(google.protobuf.Empty) returns (Round) {
+    }
     rpc GetConsensusCommand (PublicKey) returns (ConsensusCommand) {
         option (aelf.is_view) = true;
     }
@@ -35,6 +38,19 @@ service ConsensusContract {
     rpc ValidateConsensusAfterExecution (DPoSHeaderInformation) returns (ValidationResult) {
         option (aelf.is_view) = true;
     }
+    rpc GetCurrentMiners (google.protobuf.Empty) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message MinerList {
+    int64 TermNumber = 1;
+    repeated string PublicKeys = 2;
+    repeated Address Addresses = 3;
+}
+
+message ConsensusInformation{
+    bytes Bytes = 1;
 }
 
 message PublicKey {

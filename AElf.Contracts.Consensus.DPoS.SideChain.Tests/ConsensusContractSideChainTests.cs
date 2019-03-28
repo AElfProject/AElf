@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Kernel;
 using Google.Protobuf;
 using Shouldly;
@@ -53,7 +54,7 @@ namespace AElf.Contracts.DPoS.SideChain
             };
             var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
                 TesterManager.DPoSSideChainContractAddress,
-                "UpdateMainChainConsensus", dposInformation);
+                "UpdateMainChainConsensus", new ConsensusInformation{Bytes = dposInformation.ToByteString()});
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -75,7 +76,7 @@ namespace AElf.Contracts.DPoS.SideChain
             
             var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
                 TesterManager.DPoSSideChainContractAddress,
-                "UpdateMainChainConsensus", dposInformation);
+                "UpdateMainChainConsensus", new ConsensusInformation{Bytes = dposInformation.ToByteString()});
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
@@ -94,7 +95,7 @@ namespace AElf.Contracts.DPoS.SideChain
             
             var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
                 TesterManager.DPoSSideChainContractAddress,
-                "UpdateMainChainConsensus", dposInformation);
+                "UpdateMainChainConsensus", new ConsensusInformation{Bytes = dposInformation.ToByteString()});
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
     }

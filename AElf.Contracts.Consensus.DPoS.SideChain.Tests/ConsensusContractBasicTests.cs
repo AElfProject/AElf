@@ -22,7 +22,7 @@ namespace AElf.Contracts.DPoS.SideChain
         }
 
         [Fact]
-        public async Task NormalBlock_ValidationConsensus_Success()
+        public async Task NormalBlock_Validate_ConsensusBeforeExecution_Success()
         {
             TesterManager.InitialTesters();
 
@@ -38,6 +38,17 @@ namespace AElf.Contracts.DPoS.SideChain
 
             // Assert
             Assert.True(validationResult?.Success);
+        }
+
+        [Fact]
+        public async Task Validation_ConsensusAfterExecution_Success()
+        {
+            TesterManager.InitialTesters();
+            
+            var dposInformation = new DPoSHeaderInformation();
+
+            var validationResult = await TesterManager.Testers[0].ValidateConsensusAfterExecutionAsync(dposInformation);
+            validationResult.Success.ShouldBeTrue();
         }
     }
 }

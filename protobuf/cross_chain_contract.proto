@@ -2,8 +2,6 @@ syntax = "proto3";
 
 import "common.proto";
 import "kernel.proto";
-import "consensus.proto";
-import "consensus_dpos.proto";
 import "aelf_options.proto";
 import "crosschain.proto";
 import "google/protobuf/empty.proto";
@@ -30,9 +28,11 @@ service CrossChainContract {
     }
     rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
     }
-    rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) {
-    }
+
     // Views
+    rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    } 
     rpc CurrentSideChainSerialNumber (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
@@ -66,14 +66,14 @@ service CrossChainContract {
     rpc GetIndexedCrossChainBlockDataByHeight (SInt64Value) returns (CrossChainBlockData) {
         option (aelf.is_view) = true;
     }
-    rpc GetMerklePathByHeight (SInt64Value) returns (MerklePath) {
+    rpc GetBoundParentChainHeightAndMerklePathByHeight (SInt64Value) returns (CrossChainMerkleProofContext) {
         option (aelf.is_view) = true;
     }
 }
 
 message InitializeInput {
-    Address consensusContractAddress = 1;
-    Address tokenContractAddress = 2;
+    Hash tokenContractSystemName = 1;
+    Hash consensusContractSystemName = 2;
     sint32 parentChainId = 3;
 }
 
@@ -84,6 +84,6 @@ message RechargeInput {
 
 message VerifyTransactionInput {
     Hash transactionId = 1;
-    MerklePath merklePath = 2;
+    repeated Hash Path = 2;
     sint64 parentChainHeight = 3;
 }
