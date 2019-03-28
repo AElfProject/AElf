@@ -20,6 +20,8 @@ service ConsensusContract {
     rpc UpdateMainChainConsensus (DPoSInformation) returns (google.protobuf.Empty) {
     }
     // Views
+    rpc GetCurrentRoundInformation(google.protobuf.Empty) returns (Round) {
+    }
     rpc GetConsensusCommand (DPoSTriggerInformation) returns (ConsensusCommand) {
         option (aelf.is_view) = true;
     }

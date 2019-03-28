@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "aelf_options.proto";
+import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Runtime.CSharp.Tests.TestContract";
 
@@ -28,6 +29,8 @@ service TestContract {
     rpc TestComplex2State(Complex2Input) returns (Complex2Output) {
     }
     rpc TestMappedState(ProtobufInput) returns (ProtobufListOutput) {
+    }
+    rpc TestMapped1State(Complex3Input) returns (TradeMessage) {
     }
 }
 
@@ -74,8 +77,18 @@ message Complex2Input {
     Int32Input Int32Data = 2;
 }
 
-message ProtobufListOutput {
-    repeated ProtobufMessage Collection = 1;
+message Complex3Input {
+    string from = 1;
+    string pairA = 2;
+    string to = 3;
+    string pairB = 4;
+    TradeMessage TradeDetails = 5;
+}
+
+message TradeMessage {
+    int64 fromAmount = 1;
+    int64 toAmount = 2;
+    google.protobuf.Timestamp Timestamp = 3;
 }
 
 message ProtobufMessage {
@@ -115,6 +128,10 @@ message BytesOutput {
 
 message ProtobufOutput {
     ProtobufMessage ProtobufValue = 1;
+}
+
+message ProtobufListOutput {
+    repeated ProtobufMessage Collection = 1;
 }
 
 message Complex1Output {
