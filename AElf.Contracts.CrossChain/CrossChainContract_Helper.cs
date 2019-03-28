@@ -6,7 +6,6 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using MinerList = AElf.CrossChain.MinerList;
 
 namespace AElf.Contracts.CrossChain
 {
@@ -100,6 +99,15 @@ namespace AElf.Contracts.CrossChain
         {
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
             // update locked token balance
+            
+            var balance = GetBalance(new GetBalanceInput
+            {
+                Owner = Context.Sender,
+                Symbol = "ELF"
+            });
+
+            Assert(balance > 0);
+            
             TransferFrom(new TransferFromInput
             {
                 From = Context.Sender,
@@ -158,6 +166,13 @@ namespace AElf.Contracts.CrossChain
             State.TokenContract.TransferFrom.Send(input);
         }
 
+        private long GetBalance(GetBalanceInput input)
+        {
+            ValidateContractState(State.TokenContract, State.TokenContractSystemName.Value);
+            var output = State.TokenContract.GetBalance.Call(input);
+            return output.Balance;
+        }
+
         private MinerList GetCurrentMiners()
         {
             ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
@@ -175,7 +190,7 @@ namespace AElf.Contracts.CrossChain
         private void UpdateCurrentMiners(ByteString bytes)
         {
             ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
-            State.ConsensusContract.UpdateMainChainConsensus.Send(ConsensusInformation.Parser.ParseFrom(bytes));
+            State.ConsensusContract.UpdateMainChainConsensus.Send(new ConsensusInformation{Bytes = bytes});
         }
     }
 }

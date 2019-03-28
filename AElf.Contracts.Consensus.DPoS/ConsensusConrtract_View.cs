@@ -154,6 +154,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var currentMiners = State.MinersMap[currentTermNumber.ToInt64Value()];
 
+            if (currentMiners == null)
+                return null;
             var minerList = new MinerList
             {
                 TermNumber = currentMiners.TermNumber

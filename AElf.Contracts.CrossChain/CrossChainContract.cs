@@ -110,8 +110,7 @@ namespace AElf.Contracts.CrossChain
             Context.FireEvent(new SideChainCreationRequested
             {
                 ChainId = chainId,
-                Creator = Context.Sender,
-                MinerList = initialConsensusInfo
+                Creator = Context.Sender
             });
             return new SInt32Value() {Value = chainId};
         }
@@ -137,7 +136,7 @@ namespace AElf.Contracts.CrossChain
                 sideChainInfo.SideChainStatus = SideChainStatus.Active;
                 State.SideChainInfos[chainId] = sideChainInfo;
             }
-
+           
             TransferFrom(new TransferFromInput
             {
                 From = Context.Sender,

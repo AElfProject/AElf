@@ -1,5 +1,6 @@
 using System;
 using AElf.Common;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
@@ -21,7 +22,7 @@ namespace AElf.Contracts.CrossChain
         public MappedState<int, SideChainInfo> SideChainInfos { get; set; }
         public MappedState<int, long> CurrentSideChainHeight { get; set; }
         
-        public MappedState<int, MinerList> SideChainInitialConsensusInfo { get; set; }
+        internal MappedState<int, MinerList> SideChainInitialConsensusInfo { get; set; }
         public MappedState<int, long> IndexingBalance { get; set; }
 
         #endregion
