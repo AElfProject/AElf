@@ -598,7 +598,7 @@ namespace AElf.Contract.CrossChain.Tests
                     FromChainId = chainId,
                     MerklePath = merklePath,
                     ParentChainHeight = parentChainHeight,
-                    TransferTransaction = tx
+                    TransferTransactionBytes = tx.ToByteString()
                 });
             Assert.True(txRes.Status == TransactionResultStatus.Mined);
         }

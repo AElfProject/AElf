@@ -220,6 +220,6 @@ message CrossChainTransferInput{
 message CrossChainReceiveTokenInput{
     int32 fromChainId = 1;
     int64 ParentChainHeight = 2;
-    Transaction TransferTransaction = 3;
+    bytes TransferTransactionBytes = 3;
     MerklePath MerklePath = 4;
 }

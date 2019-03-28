@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -119,7 +120,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
         {
-            var transferTransaction = input.TransferTransaction;
+            var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
             var transferTransactionHash = transferTransaction.GetHash();
 
             Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionHash] == null,
