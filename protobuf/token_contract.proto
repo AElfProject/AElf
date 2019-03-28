@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package token;
+
 import "common.proto";
 import "kernel.proto";
 import "aelf_options.proto";
