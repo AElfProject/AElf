@@ -216,23 +216,26 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private Round GenerateFirstRoundOfNextTerm()
         {
+            Round round;
             if (TryToGetTermNumber(out var termNumber) &&
                 TryToGetRoundNumber(out var roundNumber) &&
                 TryToGetVictories(out var victories) &&
                 TryToGetMiningInterval(out var miningInterval))
             {
-                return victories.GenerateFirstRoundOfNewTerm(miningInterval, Context.CurrentBlockTime, roundNumber,
+                round = victories.GenerateFirstRoundOfNewTerm(miningInterval, Context.CurrentBlockTime, roundNumber,
                     termNumber);
             }
-
-            if (TryToGetCurrentRoundInformation(out var round))
+            else if (TryToGetCurrentRoundInformation(out round))
             {
-                return round.RealTimeMinersInformation.Keys.ToList().ToMiners()
+                round = round.RealTimeMinersInformation.Keys.ToList().ToMiners()
                     .GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), Context.CurrentBlockTime, round.RoundNumber,
                         termNumber);
             }
 
-            return null;
+            TryToGetCurrentAge(out var age);
+            round.BlockchainAge = age;
+
+            return round;
         }
 
         #endregion

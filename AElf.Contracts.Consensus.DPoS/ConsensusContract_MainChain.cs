@@ -50,7 +50,10 @@ namespace AElf.Contracts.Consensus.DPoS
         private bool GenerateNextRoundInformation(Round currentRound, DateTime dateTime,
             Timestamp blockchainStartTimestamp, out Round nextRound)
         {
-            return currentRound.GenerateNextRoundInformation(dateTime, blockchainStartTimestamp, out nextRound);
+            var result = currentRound.GenerateNextRoundInformation(dateTime, blockchainStartTimestamp, out nextRound);
+            TryToGetCurrentAge(out var age);
+            nextRound.BlockchainAge = age;
+            return result;
         }
 
         private void InitialSettings(Round firstRound)
@@ -143,7 +146,8 @@ namespace AElf.Contracts.Consensus.DPoS
             CountMissedTimeSlots();
 
             Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
-            
+            State.DividendContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
             State.DividendContract.KeepWeights.Send(new SInt64Value() {Value = termNumber});
 
             // Update current term number and current round number.
@@ -189,9 +193,8 @@ namespace AElf.Contracts.Consensus.DPoS
             // Update term number lookup. (Using term number to get first round number of related term.)
             AddTermNumberToFirstRoundNumber(input.TermNumber, input.RoundNumber);
 
-            TryToGetCurrentAge(out var blockAge);
             // Update blockchain age of next two rounds.
-            input.BlockchainAge = blockAge;
+            input.BlockchainAge = input.BlockchainAge;
 
             // Update rounds information of next two rounds.
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");

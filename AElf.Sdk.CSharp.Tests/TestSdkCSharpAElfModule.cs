@@ -2,6 +2,7 @@
 using AElf.Common;
 using AElf.Database;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
@@ -23,7 +24,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var services = context.Services;
             
-            services.AddTransient<ISmartContractRunner>(p =>
+            services.AddTransient(p =>
             {
                 var mockExecutive = new Mock<IExecutive>();
                 
@@ -34,6 +35,8 @@ namespace AElf.Sdk.CSharp.Tests
                     .Returns(Task.FromResult(mockExecutive.Object));
                 return mockSmartContractRunner.Object;
             });
+            
+            services.AddSingleton(p => Mock.Of<IAccountService>());
         }
     }
 }
