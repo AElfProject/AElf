@@ -109,7 +109,6 @@ namespace AElf.Types.CSharp
         public FieldInfo FieldInfo { get; }
         public Packer Packer { get; }
 
-        //TODO: Add  GetPacker case [Case]
         private Packer GetPacker(System.Type type)
         {
             string typeName = type.FullName;
