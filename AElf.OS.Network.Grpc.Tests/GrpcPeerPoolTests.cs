@@ -40,5 +40,14 @@ namespace AElf.OS.Network
             
             Assert.False(added);
         }
+        
+        [Fact]
+        public async Task AddPeerAsync_Connect_NotExistPeer_ShouldReturnFalse()
+        {
+            var testIp = "127.0.0.1:6810";
+            var added = await _pool.AddPeerAsync(testIp);
+            
+            Assert.False(added);
+        }
     }
 }

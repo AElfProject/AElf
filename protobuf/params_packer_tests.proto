@@ -12,3 +12,36 @@ message TestParams
     string field6 = 6;
     bytes field7 = 7;
  }
+
+message BoolValue {
+    bool value = 1;
+}
+
+message IntValue {
+    int32 value = 1;
+}
+
+message UIntValue {
+    uint32 value = 1;
+}
+
+message LongValue {
+    int64 value = 1;
+}
+
+message ULongValue {
+    uint64 value = 1;
+}
+
+message StringValue {
+    string value = 1;
+}
+
+message BytesValue {
+    bytes value = 1;
+}
+
+message ComplexValue {
+    IntValue IntData = 1;
+    StringValue StringData = 2;
+}
