@@ -272,6 +272,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.BenchBase", "AElf.Benc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Database.Benches", "AElf.Database.Benches\AElf.Database.Benches.csproj", "{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenConverter.Tests", "AElf.Contracts.TokenConverter.Tests\AElf.Contracts.TokenConverter.Tests.csproj", "{BEF12323-63DD-458D-B6E4-4209752ACA69}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -682,6 +684,10 @@ Global
 		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BEF12323-63DD-458D-B6E4-4209752ACA69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BEF12323-63DD-458D-B6E4-4209752ACA69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BEF12323-63DD-458D-B6E4-4209752ACA69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BEF12323-63DD-458D-B6E4-4209752ACA69}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -778,5 +784,6 @@ Global
 		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
+		{BEF12323-63DD-458D-B6E4-4209752ACA69} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal
