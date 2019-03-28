@@ -5,7 +5,7 @@ import "common.proto";
 import "crosschain.proto";
 
 message RequestCrossChainBlockData {
-    int32 RemoteChainId = 1; // parent(own) chain id
+    int32 FromChainId = 1; // own chain id
     int64 NextHeight = 2;
 }
 
