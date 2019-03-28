@@ -174,67 +174,76 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override ValidationResult ValidateConsensusBeforeExecution(DPoSInformation input)
         {
-            var publicKey = input.SenderPublicKey;
-
-            // Validate the sender.
-            if (TryToGetCurrentRoundInformation(out var currentRound) &&
-                !currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
+            var message = "";
+            try
             {
-                return new ValidationResult {Success = false, Message = "Sender is not a miner."};
-            }
+                var publicKey = input.SenderPublicKey;
 
-            var behaviour = input.Behaviour;
+                // Validate the sender.
+                if (TryToGetCurrentRoundInformation(out var currentRound) &&
+                    !currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
+                {
+                    return new ValidationResult {Success = false, Message = "Sender is not a miner."};
+                }
 
-            var successToGetCurrentRound = currentRound != null;
+                var behaviour = input.Behaviour;
 
-            switch (behaviour)
+                var successToGetCurrentRound = currentRound != null;
+
+                switch (behaviour)
+                {
+                    case DPoSBehaviour.InitialConsensus:
+                        break;
+                    case DPoSBehaviour.UpdateValue:
+                        if (!successToGetCurrentRound)
+                        {
+                            return new ValidationResult
+                                {Success = false, Message = "Failed to get current round information."};
+                        }
+
+                        if (!RoundIdMatched(input.Round))
+                        {
+                            return new ValidationResult {Success = false, Message = "Round Id not match."};
+                        }
+
+                        if (!NewOutValueFilled(input.Round))
+                        {
+                            return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
+                        }
+
+                        break;
+                    case DPoSBehaviour.NextRound:
+                        if (!successToGetCurrentRound)
+                        {
+                            return new ValidationResult
+                                {Success = false, Message = "Failed to get current round information."};
+                        }
+
+                        // None of in values should be filled.
+                        if (!InValueIsNull(input.Round))
+                        {
+                            return new ValidationResult {Success = false, Message = "Incorrect in values."};
+                        }
+
+                        break;
+                    case DPoSBehaviour.NextTerm:
+                        if (!successToGetCurrentRound)
+                        {
+                            return new ValidationResult
+                                {Success = false, Message = "Failed to get current round information."};
+                        }
+
+                        break;
+                    case DPoSBehaviour.Invalid:
+                        return new ValidationResult {Success = false, Message = "Invalid behaviour."};
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }catch(Exception ex)
             {
-                case DPoSBehaviour.InitialConsensus:
-                    break;
-                case DPoSBehaviour.UpdateValue:
-                    if (!successToGetCurrentRound)
-                    {
-                        return new ValidationResult
-                            {Success = false, Message = "Failed to get current round information."};
-                    }
-
-                    if (!RoundIdMatched(input.Round))
-                    {
-                        return new ValidationResult {Success = false, Message = "Round Id not match."};
-                    }
-
-                    if (!NewOutValueFilled(input.Round))
-                    {
-                        return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
-                    }
-
-                    break;
-                case DPoSBehaviour.NextRound:
-                    if (!successToGetCurrentRound)
-                    {
-                        return new ValidationResult
-                            {Success = false, Message = "Failed to get current round information."};
-                    }
-
-                    // None of in values should be filled.
-                    if (!InValueIsNull(input.Round))
-                    {
-                        return new ValidationResult {Success = false, Message = "Incorrect in values."};
-                    }
-
-                    break;
-                case DPoSBehaviour.NextTerm:
-                    if (!successToGetCurrentRound)
-                    {
-                        return new ValidationResult
-                            {Success = false, Message = "Failed to get current round information."};
-                    }
-
-                    break;
-                case DPoSBehaviour.Invalid:
-                    return new ValidationResult {Success = false, Message = "Invalid behaviour."};
-                default:
-                    throw new ArgumentOutOfRangeException();
+                message = ex.ToString();
+                Context.LogDebug(()=> ex.StackTrace);
+                return new ValidationResult{Success = false, Message = message};
             }
 
             return new ValidationResult {Success = true};
