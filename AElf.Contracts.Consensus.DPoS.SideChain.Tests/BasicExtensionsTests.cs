@@ -103,44 +103,68 @@ namespace AElf.Contracts.DPoS.SideChain
             isTimeSlotPassed.ShouldBe(false);
         }
 
+        /// <summary>
+        /// Notes: `ArrangeAbnormalMining` is a method only dealing with **abnormal** mining time arrangement.
+        /// </summary>
         [Fact]
         public void ArrangeAbnormalMiningTimeTest()
         {
-            const int minersCount = 17;
+            const int minersCount = 3;
             const int miningInterval = 4000;
 
             var startTime = DateTime.UtcNow;
 
-            var round = GenerateFirstRound(startTime.ToTimestamp(), minersCount, miningInterval);
+            var firstRound = GenerateFirstRound(startTime.ToTimestamp(), minersCount, miningInterval);
 
-            var firstMiner = round.RealTimeMinersInformation.Values.First();
+            var firstMiner = firstRound.RealTimeMinersInformation.Values.First();
+            var secondMiner = firstRound.RealTimeMinersInformation.Values.First(m => m.Order == 2);
 
-            // If the node hasn't miss his actual time slot.
+            // For first round, the boot miner's order will be 1.
             {
-                var testTime = startTime.AddMilliseconds(-1);
-                var arrangedMiningTime = round.ArrangeAbnormalMiningTime(firstMiner.PublicKey, testTime);
+                // The really expected mining time will depends on miner's order, we don't care ExpectedMiningTime field.
+                var fakeTime = DateTime.MinValue.ToUniversalTime();
+                {
+                    var arrangedMiningTimestamp = firstRound.ArrangeAbnormalMiningTime(firstMiner.PublicKey, fakeTime);
 
-                arrangedMiningTime.ShouldBe(DateTime.MaxValue.ToUniversalTime().ToTimestamp());
+                    firstMiner.Order.ShouldBe(1);
+                    arrangedMiningTimestamp.ShouldBe(fakeTime
+                        .AddMilliseconds(firstRound.TotalMilliseconds() + miningInterval).ToTimestamp());
+                }
+                {
+                    var arrangedMiningTimestamp = firstRound.ArrangeAbnormalMiningTime(secondMiner.PublicKey, fakeTime);
+
+                    secondMiner.Order.ShouldBe(2);
+                    arrangedMiningTimestamp.ShouldBe(fakeTime
+                        .AddMilliseconds(firstRound.TotalMilliseconds() + miningInterval * 2).ToTimestamp());
+                }
             }
 
-            // If this node just missed his time slot.
+            firstRound.GenerateNextRoundInformation(firstRound.GetExpectedEndTime().ToDateTime(), startTime.ToTimestamp(), out var secondRound);
+            var secondRoundStartTime = firstRound.GetExpectedEndTime().ToDateTime().AddMilliseconds(miningInterval);
+            
+            // For second round
             {
-                var testTime = startTime.AddMilliseconds(miningInterval / 2 + 1);
-                var arrangedMiningTime = round.ArrangeAbnormalMiningTime(firstMiner.PublicKey, testTime);
+                // If this node not missed his time slot. Will return 
+                
+                // If this node **just** missed his time slot. (not too much)
+                {
+                    const int offset = 1;
+                    var testTime = secondRoundStartTime.AddMilliseconds(offset);
+                    var arrangedMiningTimestamp = secondRound.ArrangeAbnormalMiningTime(firstMiner.PublicKey, testTime);
 
-                arrangedMiningTime.ShouldBeOneOf(
-                    round.GetExpectedEndTime().ToDateTime().AddMilliseconds(miningInterval * firstMiner.Order).ToTimestamp(),
-                    // If this node is EBP.
-                    round.GetExpectedEndTime().ToDateTime().AddMilliseconds(-miningInterval).ToTimestamp());
+                    arrangedMiningTimestamp.ShouldBe(secondRound.GetExpectedMiningTime(firstMiner.PublicKey));
+                }
             }
+            
+
 
             // If this node noticed he missed his time slot several rounds later.
             {
                 const int missedRoundsCount = 10;
-                var testTime = startTime.AddMilliseconds(1 + round.TotalMilliseconds() * missedRoundsCount);
-                var arrangedMiningTime = round.ArrangeAbnormalMiningTime(firstMiner.PublicKey, testTime);
+                var testTime = secondRoundStartTime.AddMilliseconds(1 + secondRound.TotalMilliseconds() * missedRoundsCount);
+                var arrangedMiningTime = secondRound.ArrangeAbnormalMiningTime(firstMiner.PublicKey, testTime);
 
-                arrangedMiningTime.ShouldBe(round.GetExpectedEndTime(missedRoundsCount).ToDateTime()
+                arrangedMiningTime.ShouldBe(secondRound.GetExpectedEndTime(missedRoundsCount).ToDateTime()
                     .AddMilliseconds(miningInterval * firstMiner.Order).ToTimestamp());
             }
         }

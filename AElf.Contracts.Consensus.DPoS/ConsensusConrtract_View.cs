@@ -8,7 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class ConsensusContract
+    public abstract partial class ConsensusContract
     {
         public override Round GetRoundInformation(SInt64Value input)
         {

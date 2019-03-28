@@ -11,7 +11,7 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.Consensus.DPoS
 {
     // ReSharper disable UnusedMember.Global
-    public partial class ConsensusContract
+    public abstract partial class ConsensusContract
     {
         private long CurrentAge => State.AgeField.Value;
 

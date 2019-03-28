@@ -82,13 +82,6 @@ namespace AElf.Kernel.Consensus.DPoS
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }
 
-        [Fact]
-        public void GetTriggerInformation__ConsensusCommand_Exception()
-        {
-            var consensusInformationGenerationService =
-                GetConsensusInformationGenerationService(DPoSBehaviour.Invalid);
-            Should.Throw<InvalidOperationException>(() => { consensusInformationGenerationService.GetTriggerInformation();}); 
-        }
         private IConsensusInformationGenerationService GetConsensusInformationGenerationService(
             DPoSBehaviour behavior)
         {

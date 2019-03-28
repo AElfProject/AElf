@@ -12,7 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.Consensus.DPoS
 {
     // ReSharper disable InconsistentNaming
-    public partial class ConsensusContract
+    public abstract partial class ConsensusContract
     {
         #region InitialDPoS
 
@@ -278,18 +278,18 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        public bool TryToGetPreviousRoundInformation(out Round roundInformation)
+        public bool TryToGetPreviousRoundInformation(out Round previousRound)
         {
+            previousRound = new Round();
             if (TryToGetRoundNumber(out var roundNumber))
             {
-                roundInformation = State.RoundsMap[(roundNumber - 1).ToInt64Value()];
-                if (roundInformation != null)
+                if (roundNumber < 2)
                 {
-                    return true;
+                    return false;
                 }
+                previousRound = State.RoundsMap[(roundNumber - 1).ToInt64Value()];
+                return !previousRound.IsEmpty();
             }
-
-            roundInformation = new Round();
             return false;
         }
 

@@ -170,13 +170,14 @@ enum DPoSBehaviour {
     UpdateValue = 0;
     NextRound = 1;
     NextTerm = 2;
-    Invalid = 3;
+    ChainNotInitialized = 3;
     UpdateValueWithoutPreviousInValue = 4;
+    Watch = 5;
 }
 
 message DPoSTriggerInformation {
     bytes PublicKey = 1;// A must-have.
     Hash RandomHash = 2;// To calculate In Value.
-    Hash PreviousRandomHash = 3;// Random hash of previous round for validating the miner's signature.
+    Hash PreviousRandomHash = 3;// Random hash of previous round for validation.
     int64 InitialTermNumber = 4;
 }

@@ -85,8 +85,6 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     {
                         PublicKey = PublicKey,
                     };
-                case DPoSBehaviour.Invalid:
-                    throw new InvalidOperationException();
                 default:
                     throw new ArgumentOutOfRangeException();
             }

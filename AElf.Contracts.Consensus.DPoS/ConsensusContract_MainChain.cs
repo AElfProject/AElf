@@ -10,8 +10,62 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class ConsensusContract
+    public abstract partial class ConsensusContract
     {
+        /// <summary>
+        /// Get next consensus behaviour of the caller based on current state.
+        /// This method can be tested by testing GetConsensusCommand.
+        /// </summary>
+        /// <param name="publicKey"></param>
+        /// <param name="dateTime"></param>
+        /// <param name="currentRound">Return current round information to avoid unnecessary database access.</param>
+        /// <returns></returns>
+        private DPoSBehaviour GetBehaviour(string publicKey, DateTime dateTime, out Round currentRound)
+        {
+            currentRound = null;
+
+            if (!TryToGetCurrentRoundInformation(out currentRound))
+            {
+                // This chain not initialized yet.
+                return DPoSBehaviour.ChainNotInitialized;
+            }
+
+            if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
+            {
+                // Provided public key isn't a miner.
+                return DPoSBehaviour.Watch;
+            }
+
+            if (!TryToGetPreviousRoundInformation(out var previousRound) || IsJustChangedTerm(out var termNumber))
+            {
+                // Failed to get previous round information or just changed term.
+                return DPoSBehaviour.UpdateValueWithoutPreviousInValue;
+            }
+
+            if (!currentRound.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound) && minerInRound.OutValue == null)
+            {
+                // If this node not missed his time slot of current round.
+                return DPoSBehaviour.UpdateValue;
+            }
+
+            // If this node missed his time slot, a command of terminating current round will be fired,
+            // and the terminate time will based on the order of this node (to avoid conflicts).
+
+            if (previousRound.IsEmpty())
+            {
+                // No need to check term changeable if there's no previous round information.
+                return DPoSBehaviour.NextRound;
+            }
+
+            Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp),
+                "Failed to get blockchain start timestamp.");
+
+            // Calculate the approvals and make the judgement of changing term.
+            return currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber)
+                ? DPoSBehaviour.NextTerm
+                : DPoSBehaviour.NextRound;
+        }
+        
         // TODO: Remove this.
         public override Empty Initialize(InitializeInput input)
         {

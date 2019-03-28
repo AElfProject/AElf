@@ -20,7 +20,7 @@ service ConsensusContract {
     rpc UpdateMainChainConsensus (DPoSHeaderInformation) returns (google.protobuf.Empty) {
     }
     // Views
-    rpc GetConsensusCommand (DPoSTriggerInformation) returns (ConsensusCommand) {
+    rpc GetConsensusCommand (PublicKey) returns (ConsensusCommand) {
         option (aelf.is_view) = true;
     }
     rpc GetInformationToUpdateConsensus (DPoSTriggerInformation) returns (DPoSHeaderInformation) {
@@ -35,4 +35,8 @@ service ConsensusContract {
     rpc ValidateConsensusAfterExecution (DPoSHeaderInformation) returns (ValidationResult) {
         option (aelf.is_view) = true;
     }
+}
+
+message PublicKey {
+    string hex = 1;
 }

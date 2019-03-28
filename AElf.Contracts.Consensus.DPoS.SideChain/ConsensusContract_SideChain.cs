@@ -7,6 +7,45 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 {
     public partial class ConsensusContract
     {
+        /// <summary>
+        /// Get next consensus behaviour of the caller based on current state.
+        /// This method can be tested by testing GetConsensusCommand.
+        /// </summary>
+        /// <param name="publicKey"></param>
+        /// <param name="dateTime"></param>
+        /// <param name="currentRound">Return current round information to avoid unnecessary database access.</param>
+        /// <returns></returns>
+        private DPoSBehaviour GetBehaviour(string publicKey, DateTime dateTime, out Round currentRound)
+        {
+            currentRound = null;
+
+            if (!TryToGetCurrentRoundInformation(out currentRound))
+            {
+                // This chain not initialized yet.
+                return DPoSBehaviour.ChainNotInitialized;
+            }
+
+            if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
+            {
+                // Provided public key isn't a miner.
+                return DPoSBehaviour.Watch;
+            }
+
+            if (!TryToGetPreviousRoundInformation(out var previousRound))
+            {
+                // Failed to get previous round information or just changed term.
+                return DPoSBehaviour.UpdateValueWithoutPreviousInValue;
+            }
+
+            if (!currentRound.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound) && minerInRound.OutValue == null)
+            {
+                // If this node not missed his time slot of current round.
+                return DPoSBehaviour.UpdateValue;
+            }
+
+            return DPoSBehaviour.NextRound;
+        }
+        
         public override Empty UpdateMainChainConsensus(DPoSHeaderInformation input)
         {
             // TODO: Only cross chain contract can call UpdateMainChainConsensus method of consensus contract.

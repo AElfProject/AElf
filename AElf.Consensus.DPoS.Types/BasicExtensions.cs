@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.SecretSharing;
@@ -12,294 +13,53 @@ namespace AElf.Consensus.DPoS
 {
     public static class BasicExtensions
     {
-        public static ConsensusCommand GetConsensusCommand(this DPoSBehaviour behaviour, Round round,
-            MinerInRound minerInRound, int miningInterval, DateTime dateTime)
+        public static bool IsEmpty(this Round round)
         {
-            var myOrder = round.RealTimeMinersInformation[minerInRound.PublicKey].Order;
-            switch (behaviour)
-            {
-                case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
-                    // If miner of previous order didn't produce block, skip this time slot.
-                    if (myOrder != 1 && round.RealTimeMinersInformation.Values.First(m => m.Order == myOrder - 1).OutValue == null)
-                    {
-                        return new ConsensusCommand
-                        {
-                            NextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval * 2 + miningInterval,
-                            LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                            Hint = new DPoSHint
-                            {
-                                Behaviour = DPoSBehaviour.NextRound
-                            }.ToByteString()
-                        };
-                    }
-                    return new ConsensusCommand
-                    {
-                        NextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval,
-                        LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    };
-                
-                case DPoSBehaviour.UpdateValue:
-                    // If miner of previous order didn't produce block, skip this time slot.
-                    myOrder = round.RealTimeMinersInformation[minerInRound.PublicKey].Order;
-                    if (myOrder != 1 && round.RealTimeMinersInformation.Values.First(m => m.Order == myOrder - 1).OutValue == null)
-                    {
-                        var fakeDateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(-miningInterval);
-                        return new ConsensusCommand
-                        {
-                            NextBlockMiningLeftMilliseconds =
-                                (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, fakeDateTime,
-                                           round.GetMiningInterval()).ToDateTime() - dateTime).TotalMilliseconds,
-                            LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                            Hint = new DPoSHint
-                            {
-                                Behaviour = DPoSBehaviour.NextRound
-                            }.ToByteString()
-                        };
-                    }
-                    var expectedMiningTime = round.GetExpectedMiningTime(minerInRound.PublicKey);
-                    return new ConsensusCommand
-                    {
-                        NextBlockMiningLeftMilliseconds = (int) (expectedMiningTime.ToDateTime() - dateTime)
-                            .TotalMilliseconds,
-                        LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    };
-                case DPoSBehaviour.NextRound:
-                    return new ConsensusCommand
-                    {
-                        NextBlockMiningLeftMilliseconds =
-                            (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
-                                   dateTime).TotalMilliseconds,
-                        LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    };
-                case DPoSBehaviour.NextTerm:
-                    return new ConsensusCommand
-                    {
-                        NextBlockMiningLeftMilliseconds =
-                            (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
-                                   dateTime).TotalMilliseconds,
-                        LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    };
-                case DPoSBehaviour.Invalid:
-                    return new ConsensusCommand
-                    {
-                        NextBlockMiningLeftMilliseconds = int.MaxValue,
-                        LimitMillisecondsOfMiningBlock = int.MaxValue,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    };
-                default:
-                    return new ConsensusCommand
-                    {
-                        NextBlockMiningLeftMilliseconds = int.MaxValue,
-                        LimitMillisecondsOfMiningBlock = int.MaxValue,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = DPoSBehaviour.Invalid
-                        }.ToByteString()
-                    };
-            }
+            return round.RoundId == 0;
         }
 
-        /// <summary>
-        /// This method is only executable when the miners of this round is more than 1.
-        /// </summary>
-        /// <param name="round"></param>
-        /// <returns></returns>
-        public static int GetMiningInterval(this Round round)
+        public static string GetLogs(this Round round, string publicKey)
         {
-            if (round.RealTimeMinersInformation.Count < 2)
+            var logs = new StringBuilder($"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})");
+            foreach (var minerInRound in round.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
             {
-                // Just appoint the mining interval for single miner.
-                return 4000;
-            }
-
-            var firstTwoMiners = round.RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
-                .ToList();
-            var distance =
-                (int) (firstTwoMiners[1].ExpectedMiningTime.ToDateTime() -
-                       firstTwoMiners[0].ExpectedMiningTime.ToDateTime())
-                .TotalMilliseconds;
-            return distance > 0 ? distance : -distance;
-        }
-
-        /// <summary>
-        /// In current DPoS design, each miner produce his block in one time slot, then the extra block producer
-        /// produce a block to terminate current round and confirm the mining order of next round.
-        /// So totally, the time of one round is:
-        /// MiningInterval * MinersCount + MiningInterval.
-        /// </summary>
-        /// <param name="round"></param>
-        /// <param name="miningInterval"></param>
-        /// <returns></returns>                                                
-        public static int TotalMilliseconds(this Round round, int miningInterval = 0)
-        {
-            if (miningInterval == 0)
-            {
-                miningInterval = round.GetMiningInterval();
-            }
-
-            return round.RealTimeMinersInformation.Count * miningInterval + miningInterval;
-        }
-
-        /// <summary>
-        /// Actually the expected mining time of the miner whose order is 1.
-        /// </summary>
-        /// <param name="round"></param>
-        /// <returns></returns>
-        public static DateTime GetStartTime(this Round round)
-        {
-            return round.RealTimeMinersInformation.Values.First(m => m.Order == 1).ExpectedMiningTime.ToDateTime();
-        }
-
-        /// <summary>
-        /// This method for now is able to handle the situation of a miner keeping offline so many rounds,
-        /// by using missedRoundsCount.
-        /// </summary>
-        /// <param name="round"></param>
-        /// <param name="miningInterval"></param>
-        /// <param name="missedRoundsCount"></param>
-        /// <returns></returns>
-        public static Timestamp GetExpectedEndTime(this Round round, int missedRoundsCount = 0, int miningInterval = 0)
-        {
-            if (miningInterval == 0)
-            {
-                miningInterval = round.GetMiningInterval();
-            }
-
-            return round.GetStartTime().AddMilliseconds(round.TotalMilliseconds(miningInterval))
-                // Arrange an ending time if this node missed so many rounds.
-                .AddMilliseconds(missedRoundsCount * round.TotalMilliseconds(miningInterval))
-                .ToTimestamp();
-        }
-
-        /// <summary>
-        /// Simply read the expected mining time of provided public key from round information.
-        /// Do not check this node missed his time slot or not.
-        /// </summary>
-        /// <param name="round"></param>
-        /// <param name="publicKey"></param>
-        /// <returns></returns>
-        public static Timestamp GetExpectedMiningTime(this Round round, string publicKey)
-        {
-            if (round.RealTimeMinersInformation.ContainsKey(publicKey))
-            {
-                return round.RealTimeMinersInformation[publicKey].ExpectedMiningTime;
-            }
-
-            return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
-        }
-
-        /// <summary>
-        /// For now, if current time is behind the end of expected mining time slot,
-        /// we can say this node missed his time slot.
-        /// </summary>
-        /// <param name="round"></param>
-        /// <param name="publicKey"></param>
-        /// <param name="dateTime"></param>
-        /// <param name="minerInRound"></param>
-        /// <returns></returns>
-        public static bool IsTimeSlotPassed(this Round round, string publicKey, DateTime dateTime,
-            out MinerInRound minerInRound)
-        {
-            minerInRound = null;
-            var miningInterval = round.GetMiningInterval();
-            if (round.RealTimeMinersInformation.ContainsKey(publicKey))
-            {
-                minerInRound = round.RealTimeMinersInformation[publicKey];
-                return minerInRound.ExpectedMiningTime.ToDateTime().AddMilliseconds((double) miningInterval / 2) <
-                       dateTime;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// If one node produced block this round or missed his time slot,
-        /// whatever how long he missed, we can give him a consensus command with new time slot
-        /// to produce a block (for terminating current round and start new round).
-        /// The schedule generated by this command will be cancelled
-        /// if this node executed blocks from other nodes.
-        /// 
-        /// Notice:
-        /// This method shouldn't return the expected mining time from round information.
-        /// To prevent this kind of misuse, this method will return a invalid timestamp
-        /// when this node hasn't missed his time slot.
-        /// </summary>
-        /// <returns></returns>
-        public static Timestamp ArrangeAbnormalMiningTime(this Round round, string publicKey, DateTime dateTime,
-            int miningInterval = 0)
-        {
-            if (miningInterval == 0)
-            {
-                miningInterval = round.GetMiningInterval();
-            }
-
-            if (round.RoundNumber == 1)
-            {
-                return dateTime.AddMilliseconds(round.RealTimeMinersInformation.Count * miningInterval)
-                    .ToTimestamp();
-            }
-
-            if (!round.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound) && minerInRound.OutValue == null)
-            {
-                return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
-            }
-
-            if (round.GetExtraBlockProducerInformation().PublicKey == publicKey)
-            {
-                var distance = (round.GetExtraBlockMiningTime() - dateTime).TotalMilliseconds;
-                if (distance > 0)
+                var minerInformation = new StringBuilder("\n");
+                minerInformation.Append($"[{minerInRound.PublicKey.Substring(0, 10)}]");
+                minerInformation.Append(minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "");
+                minerInformation.AppendLine(minerInRound.PublicKey == publicKey
+                    ? "(This Node)"
+                    : "");
+                minerInformation.AppendLine($"Order:\t {minerInRound.Order}");
+                minerInformation.AppendLine(
+                    $"Expect:\t {minerInRound.ExpectedMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
+                minerInformation.AppendLine(
+                    $"Actual:\t {minerInRound.ActualMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
+                minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");
+                if (round.RoundNumber != 1)
                 {
-                    return dateTime.AddMilliseconds(distance).ToTimestamp();
+                    minerInformation.AppendLine($"PreIn:\t {minerInRound.PreviousInValue?.ToHex()}");
                 }
+
+                minerInformation.AppendLine($"Sig:\t {minerInRound.Signature?.ToHex()}");
+                minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
+                minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
+                minerInformation.AppendLine($"Proms:\t {minerInRound.PromisedTinyBlocks}");
+                minerInformation.AppendLine($"NOrder:\t {minerInRound.FinalOrderOfNextRound}");
+
+                logs.Append(minerInformation);
             }
 
-            if (round.RealTimeMinersInformation.ContainsKey(publicKey) && miningInterval > 0)
-            {
-                var distanceToRoundStartTime =
-                    (dateTime - round.GetStartTime()).TotalMilliseconds;
-                var missedRoundsCount = (int) (distanceToRoundStartTime / round.TotalMilliseconds(miningInterval));
-                var expectedEndTime = round.GetExpectedEndTime(missedRoundsCount, miningInterval);
-                return expectedEndTime.ToDateTime().AddMilliseconds(minerInRound.Order * miningInterval).ToTimestamp();
-            }
+            return logs.ToString();
+        }
 
-            // Never do the mining if this node has no privilege to mime or the mining interval is invalid.
-            return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
+        public static Hash CalculateInValue(this Round round, Hash randomHash)
+        {
+            return Hash.FromTwoHashes(Hash.FromMessage(new Int64Value {Value = round.RoundId}), randomHash);
         }
 
         public static MinerInRound GetExtraBlockProducerInformation(this Round round)
         {
             return round.RealTimeMinersInformation.First(bp => bp.Value.IsExtraBlockProducer).Value;
-        }
-
-        public static DateTime GetExtraBlockMiningTime(this Round round, int miningInterval = 0)
-        {
-            if (miningInterval == 0)
-            {
-                miningInterval = round.GetMiningInterval();
-            }
-
-            return round.RealTimeMinersInformation.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value
-                .ExpectedMiningTime.ToDateTime()
-                .AddMilliseconds(miningInterval);
         }
 
         /// <summary>
@@ -309,7 +69,7 @@ namespace AElf.Consensus.DPoS
         /// <param name="round"></param>
         /// <param name="publicKey"></param>
         /// <returns></returns>
-        public static ToUpdate GenerateInformationToUpdateConsensus(this Round round, string publicKey)
+        public static ToUpdate ExtractInformationToUpdateConsensus(this Round round, string publicKey)
         {
             if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
             {
@@ -460,11 +220,6 @@ namespace AElf.Consensus.DPoS
             return true;
         }
 
-        private static Timestamp GetArrangedTimestamp(this Timestamp timestamp, int order, int miningInterval)
-        {
-            return timestamp.ToDateTime().AddMilliseconds(miningInterval * order).ToTimestamp();
-        }
-
         private static int CalculateNextExtraBlockProducerOrder(this Round round)
         {
             var firstPlaceInfo = round.GetFirstPlaceMinerInformation();
@@ -493,10 +248,10 @@ namespace AElf.Consensus.DPoS
                 .FirstOrDefault(m => m.Signature != null);
         }
 
-        public static Hash CalculateSignature(this Round round, Hash inValue)
+        public static Hash CalculateSignature(this Round previousRound, Hash inValue)
         {
             // Check the signatures
-            foreach (var minerInRound in round.RealTimeMinersInformation)
+            foreach (var minerInRound in previousRound.RealTimeMinersInformation)
             {
                 if (minerInRound.Value.Signature == null)
                 {
@@ -505,7 +260,7 @@ namespace AElf.Consensus.DPoS
             }
 
             return Hash.FromTwoHashes(inValue,
-                round.RealTimeMinersInformation.Values.Aggregate(Hash.Empty,
+                previousRound.RealTimeMinersInformation.Values.Aggregate(Hash.Empty,
                     (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
         }
 
@@ -583,35 +338,7 @@ namespace AElf.Consensus.DPoS
             return Hash.FromString(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
         }
 
-        public static bool IsTimeToChangeTerm(this Round round, Round previousRound, DateTime blockchainStartTime,
-            long termNumber)
-        {
-            var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
-            var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
-            var approvalsCount = round.RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null)
-                .Select(m => m.ActualMiningTime)
-                .Count(t => IsTimeToChangeTerm(blockchainStartTime, t.ToDateTime(), termNumber));
-            return approvalsCount >= minimumCount;
-        }
 
-        /// <summary>
-        /// If DaysEachTerm == 7:
-        /// 1, 1, 1 => 0 != 1 - 1 => false
-        /// 1, 2, 1 => 0 != 1 - 1 => false
-        /// 1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
-        /// 1, 9, 2 => 1 != 2 - 1 => false
-        /// 1, 15, 2 => 2 != 2 - 1 => true => term number will be 3.
-        /// </summary>
-        /// <param name="blockchainStartTimestamp"></param>
-        /// <param name="termNumber"></param>
-        /// <param name="blockProducedTimestamp"></param>
-        /// <returns></returns>
-        private static bool IsTimeToChangeTerm(DateTime blockchainStartTimestamp, DateTime blockProducedTimestamp,
-            long termNumber)
-        {
-            return (long) (blockProducedTimestamp - blockchainStartTimestamp).TotalMinutes /
-                   ConsensusDPoSConsts.DaysEachTerm != termNumber - 1;
-        }
 
         public static long GetMinedBlocks(this Round round)
         {

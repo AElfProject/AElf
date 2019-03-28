@@ -7,7 +7,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public partial class ConsensusContract
+    public abstract partial class ConsensusContract
     {
         public bool TryToUpdateTermNumber(long termNumber)
         {
@@ -212,6 +212,14 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             return false;
+        }
+
+        private bool IsJustChangedTerm(out long termNumber)
+        {
+            termNumber = 0;
+            return TryToGetPreviousRoundInformation(out var previousRound) &&
+                   TryToGetTermNumber(out termNumber) &&
+                   previousRound.TermNumber != termNumber;
         }
 
         private Round GenerateFirstRoundOfNextTerm()
