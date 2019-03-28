@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Shouldly;
@@ -31,17 +32,36 @@ namespace AElf
             var testQueue = _taskQueueManager.GetQueue("TestQueue");
             Parallel.For(0, 100, i =>
             {
-                testQueue.Enqueue(() =>
+                testQueue.Enqueue(async () =>
                 {
                     var value = result;
-                    Thread.Sleep(10);
-                    result = value +1;
-                    return null;
+                    result = value + 1;
                 });
             });
-            
-            Thread.Sleep(2000);
+
+            Thread.Sleep(1000);
             result.ShouldBe(101);
+        }
+        
+        [Fact]
+        public void Test_Many_Enqueue()
+        {
+            var testData = new int[3];
+            var testQueueA = _taskQueueManager.GetQueue("TestQueueA");
+            var testQueueB = _taskQueueManager.GetQueue("TestQueueB");
+            var testQueueC = _taskQueueManager.GetQueue("TestQueueC");
+            
+            Parallel.For(0, 100, i =>
+            {
+                testQueueA.Enqueue(async () => { testData[0]++; });
+                testQueueB.Enqueue(async () => { testData[1]++; });
+                testQueueC.Enqueue(async () => { testData[2]++; });
+            });
+
+            Thread.Sleep(1000);
+            testData[0].ShouldBe(100);
+            testData[1].ShouldBe(100);
+            testData[2].ShouldBe(100);
         }
 
         [Fact]
@@ -53,24 +73,19 @@ namespace AElf
 
             Parallel.For(0, 3, i =>
             {
-                testQueue.Enqueue(() =>
+                testQueue.Enqueue(async () =>
                 {
                     var value = result;
-                    Thread.Sleep(1000);
-                    result = value +1;
-                    return null;
+                    Thread.Sleep(500);
+                    result = value + 1;
                 });
             });
             testQueue.Dispose();
             
             Thread.Sleep(2000);
             result.ShouldBe(2);
-            
-            testQueue.Enqueue(() =>
-            {
-                result++;
-                return null;
-            });
+
+            testQueue.Enqueue(async () => { result++; });
             
             Thread.Sleep(2000);
             result.ShouldBe(2);
