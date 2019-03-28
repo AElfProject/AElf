@@ -2,34 +2,37 @@
 
 # Docker quickstart
 
-
 # Manual build & run the sources
 
 This method is not as straightforward as the docker quickstart but is a lot more flexible. If your aim is to develop some dApps it's better you follow these more advanced ways of launching a node. This section will walk you through configuring, running and interacting with an AElf node.
 
-### Generating the nodes account:
-First, if you haven't already done it, clone our [repository](https://github.com/AElfProject/AElf) and stay on the `dev` branch
+Pre-requisite: this guide has a dependency on Redis, so you should install it and run a server. A part from this, only very basic command line knowledge is required and you can just follow the steps.
+
+First, if you haven't already done it, clone our [repository](https://github.com/AElfProject/AElf)
 
 ```bash
 git clone https://github.com/AElfProject/AElf.git aelf
 ```
+Navigate into the newly created **aelf** directory. 
 
-and build the command line tool:
+### Generating the nodes account
+
+Build the command line tool:
 ```bash
 dotnet build AElf.CLI --configuration Release
 ```
 
-Secondly navigate into the **aelf** directory to generate the nodes account (key pair) with AElfs command line tool. For this tutorial we also recommend you alias the cli:
+For readability we recommend you create the following alias:
 
 ```bash
 alias aelf-cli="dotnet AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
 ```
-finally, create the account with the following command:
+Generate an account with the following command:
 
 ```bash
 aelf-cli create
 ```
-Reply "yes" to saving the account into a file, the commands also asks the user for a password, be sure to remember it for later use.
+Reply "yes" to saving the account into a file, the command also asks the user for a password, be sure to remember it for later use.
 
 The output should look like this:
 
@@ -43,19 +46,17 @@ Saving account info to file? (Y/N): y
 ...
     ```
 
-Note that a more detailed section about the cli can be found [here]. The last line should give you the path to the default **data directory**.
+Note that a more detailed section about the cli can be found [here]. 
+The last line should give you the path to the default **data directory**, the command will automatically create the folder for you if it doesn't exist.
 
-### Install Redis:
-You will now need to install Redis as our node needs a key-value database to store the blockchain data.
-
-### Node configuration:
+### Node configuration
 We have one last step before we can run the node, we have to set up some configuration. Navigate into the **AElf.Launcher** directory:
 
 ```bash
 cd AElf.Launcher/
 ```
 
-Open the **appsettings.json** file and edit the following sections:
+This will require the information printed during the creation of the account. Open the **appsettings.json** file and edit the following sections:
 
 The miners account:
 ```json
@@ -65,22 +66,24 @@ The miners account:
     "NodeAccountPassword": "pwrd"
 },
 ```
-The node account field corresponds to the address, this was printed during the account creation, you also have to enter the password.
+The node account field corresponds to the address, you also have to enter the password that you entered earlier.
 
 ```json
 "InitialMiners" : [
     "04d8f8fd19cf9e3f7f84e....5cbc30bb7ccb1cc3105e557"
 ],
 ```
-This is a configuration we use to specify the list of initial miners, for now just configure one, it's the miners public key that was printed during the account creation.
+This is a configuration we use to specify the list of initial miners for the DPoS, for now just configure one, it's the miners public key that was printed during the account creation.
 
 We're now ready to launch the node.
 
-### Launch and test:
+Note that if your redis server is on another host listening on a different port than the default, you will also have to configure this in the **appsettings.json**.
+
+### Launch and test
 Now we build and run the node navigate into the **aelf** directory and build the solution with the following commands:
 
 ```bash
-cd AElf.Launcher/;dotnet build AElf.Launcher.csproj --configuration Release
+dotnet build AElf.Launcher.csproj --configuration Release
 dotnet bin/Release/netcoreapp2.2/AElf.Launcher.dll > aelf-logs.logs &
 cd ..
 ```
