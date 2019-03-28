@@ -9,7 +9,7 @@ import "kernel.proto";
 message SideChainBlockData {
     int64 SideChainHeight = 1;
     Hash BlockHeaderHash = 2;
-    Hash TransactionMKRoot = 3;
+    Hash TransactionMerkleTreeRoot = 3;
     int32 SideChainId = 4;
 }
 
@@ -65,11 +65,16 @@ message SideChainInfo {
 }
 
 message SideChainIdAndHeightDict{
-    map<int32, int64> IdHeighDict = 1;
+    map<int32, int64> IdHeightDict = 1;
 }
 
 message CrossChainBlockData {
     repeated SideChainBlockData SideChainBlockData = 1;
     repeated ParentChainBlockData ParentChainBlockData = 2;
     int64 PreviousBlockHeight = 3;
+}
+
+message CrossChainMerkleProofContext{
+    int64 BoundParentChainHeight = 1;
+    MerklePath MerklePathForParentChainRoot = 2;
 }

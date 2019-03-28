@@ -28,7 +28,7 @@ namespace AElf.CrossChain
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            if (block.Height == CrossChainConsts.GenesisBlockHeight)
+            if (block.Height == KernelConstants.GenesisBlockHeight)
                 return true;
             
             var indexedCrossChainBlockData =
@@ -48,7 +48,7 @@ namespace AElf.CrossChain
         private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, 
             CrossChainExtraData extraData, IBlock block)
         {
-            var txRootHashList = crossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMKRoot).ToList();
+            var txRootHashList = crossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot).ToList();
             var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
             
             // first check identity with the root in header
