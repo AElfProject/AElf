@@ -155,8 +155,6 @@ namespace AElf.Contracts.DPoS.SideChain
                     arrangedMiningTimestamp.ShouldBe(secondRound.GetExpectedMiningTime(firstMiner.PublicKey));
                 }
             }
-            
-
 
             // If this node noticed he missed his time slot several rounds later.
             {

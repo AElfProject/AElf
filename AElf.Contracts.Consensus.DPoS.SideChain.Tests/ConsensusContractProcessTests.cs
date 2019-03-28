@@ -131,7 +131,7 @@ namespace AElf.Contracts.DPoS.SideChain
             TesterManager.InitialTesters();
 
             var roundInput = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
-                .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval);
+                .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval, DateTime.UtcNow);
             await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
                 nameof(ConsensusContract.InitialConsensus), roundInput);
             var roundInfo = await TesterManager.Testers[0].GetCurrentRoundInformation();

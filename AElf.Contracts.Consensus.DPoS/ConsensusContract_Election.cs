@@ -11,12 +11,22 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.Consensus.DPoS
 {
     // ReSharper disable UnusedMember.Global
-    public abstract partial class ConsensusContract
+    public partial class ConsensusContract
     {
         private long CurrentAge => State.AgeField.Value;
 
         public override ActionResult AnnounceElection(Alias input)
         {
+            if (State.DividendContract.Value.Value.IsEmpty)
+            {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
+            }
+            if (State.TokenContract.Value.Value.IsEmpty)
+            {
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+            }
             var alias = input.Value;
             var publicKey = Context.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.

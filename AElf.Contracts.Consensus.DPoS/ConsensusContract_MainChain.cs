@@ -10,7 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public abstract partial class ConsensusContract
+    public partial class ConsensusContract
     {
         /// <summary>
         /// Get next consensus behaviour of the caller based on current state.

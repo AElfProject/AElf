@@ -39,7 +39,7 @@ namespace AElf.Consensus.DPoS
         public static Timestamp ArrangeAbnormalMiningTime(this Round round, string publicKey, DateTime dateTime,
             int miningInterval = 0)
         {
-            if (round.RealTimeMinersInformation.ContainsKey(publicKey))
+            if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
             {
                 return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
             }

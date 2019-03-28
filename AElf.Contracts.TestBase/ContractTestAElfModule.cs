@@ -76,6 +76,7 @@ namespace AElf.Contracts.TestBase
                 o.InitialMiners = miners;
                 o.MiningInterval = 4000;
                 o.IsBootMiner = true;
+                o.StartTimestamp = "2019-01-01 00:00:00";
             });
         }
     }

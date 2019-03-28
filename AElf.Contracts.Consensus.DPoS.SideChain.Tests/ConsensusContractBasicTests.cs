@@ -22,25 +22,6 @@ namespace AElf.Contracts.DPoS.SideChain
         }
 
         [Fact]
-        public async Task NormalBlock_Validate_ConsensusBeforeExecution_Success()
-        {
-            TesterManager.InitialTesters();
-
-            var inValue = Hash.Generate();
-            var triggerInformationForNormalBlock =
-                TesterManager.GetTriggerInformationForNormalBlock(TesterManager.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
-
-            var newInformation =
-                await TesterManager.Testers[1].GetNewConsensusInformationAsync(triggerInformationForNormalBlock);
-
-            // Act
-            var validationResult = await TesterManager.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
-
-            // Assert
-            Assert.True(validationResult?.Success);
-        }
-
-        [Fact]
         public async Task Validation_ConsensusAfterExecution_Success()
         {
             TesterManager.InitialTesters();

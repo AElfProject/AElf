@@ -7,7 +7,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public abstract partial class ConsensusContract
+    public partial class ConsensusContract
     {
         public bool TryToUpdateTermNumber(long termNumber)
         {

@@ -12,7 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.Consensus.DPoS
 {
     // ReSharper disable InconsistentNaming
-    public abstract partial class ConsensusContract
+    public partial class ConsensusContract
     {
         #region InitialDPoS
 

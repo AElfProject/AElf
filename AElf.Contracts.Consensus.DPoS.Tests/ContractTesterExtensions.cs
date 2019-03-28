@@ -181,7 +181,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 Memo = "Set dividends.",
             });
 
-            var context = await starter.InitialChainAsync(
+            await starter.InitialChainAsync(
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
