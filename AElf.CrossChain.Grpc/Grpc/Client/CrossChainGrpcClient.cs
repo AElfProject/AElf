@@ -12,6 +12,8 @@ namespace AElf.CrossChain.Grpc
     public abstract class CrossChainGrpcClient<TResponse> : IGrpcCrossChainClient where TResponse : IResponseIndexingMessage
     {
         protected CrossChainRpc.CrossChainRpcClient Client;
+
+        protected int LocalChainId;
 //        private int _initInterval;
 //        private int _adjustedInterval;
 //        private const int UnavailableConnectionInterval = 1_000;
@@ -154,7 +156,7 @@ namespace AElf.CrossChain.Grpc
             var targetHeight = crossChainDataProducer.GetChainHeightNeeded(remoteChainId);
             var requestData = new RequestCrossChainBlockData
             {
-                RemoteChainId = remoteChainId,
+                FromChainId = LocalChainId,
                 NextHeight = targetHeight
             };
 
@@ -250,8 +252,9 @@ namespace AElf.CrossChain.Grpc
     
     public class GrpcClientForParentChain : CrossChainGrpcClient<ResponseParentChainBlockData>
     {
-        public GrpcClientForParentChain(string uri, string certificate)
+        public GrpcClientForParentChain(string uri, string certificate, int localChainId)
         {
+            LocalChainId = localChainId;
             Client = new CrossChainRpc.CrossChainRpcClient(CreateChannel(uri, certificate));
         }
 

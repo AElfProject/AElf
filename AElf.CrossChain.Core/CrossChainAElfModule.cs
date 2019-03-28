@@ -1,9 +1,12 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -24,7 +27,11 @@ namespace AElf.CrossChain
                  configuration.GetChildren().FirstOrDefault(child => child.Key.Equals("CrossChain"));
              if (crossChainConfiguration == null)
                  return;
-             Configure<CrossChainConfigOption>(crossChainConfiguration);
+             Configure<CrossChainConfigOption>(option =>
+             {
+                 option.ParentChainId = ChainHelpers.ConvertBase58ToChainId(crossChainConfiguration["ParentChainId"]);
+                 option.ExtraDataSymbols = crossChainConfiguration.GetSection("ExtraDataSymbols").Get<List<string>>();
+             });
          }
      }
  }

@@ -1,7 +1,6 @@
 using AElf.Common;
-using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.CrossChain;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.CrossChain
@@ -10,8 +9,6 @@ namespace AElf.Contracts.CrossChain
     {
         public Address Creator { get; set; }
         public int ChainId { get; set; }
-
-        public Miners Miners { get; set; }
     }
 
     public class SideChainCreationRequestApproved : Event

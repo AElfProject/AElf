@@ -21,7 +21,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var blockHeader = new BlockHeader()
             {
-                Height = 1,
+                Height = 2, // no extra data in genesis block
                 BlockExtraDatas = { ByteString.CopyFromUtf8("test1") }
             };
             var queryResult = _blockExtraDataService.GetExtraDataFromBlockHeader("IBlockExtraDataProvider", blockHeader);

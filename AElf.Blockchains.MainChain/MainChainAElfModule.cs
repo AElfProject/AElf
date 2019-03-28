@@ -83,8 +83,14 @@ namespace AElf.Blockchains.MainChain
                 ResourceSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
                 ResourceFeeReceiverSmartContractAddressNameProvider.Name);
+            var crossChainMethodCallList = new SystemTransactionMethodCallList();
+            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize), new AElf.Contracts.CrossChain.InitializeInput
+            {
+                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+            });
             dto.InitializationSmartContracts.AddGenesisSmartContract<CrossChainContract>(
-                CrossChainSmartContractAddressNameProvider.Name);
+                CrossChainSmartContractAddressNameProvider.Name, crossChainMethodCallList);
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
@@ -114,6 +120,11 @@ namespace AElf.Blockchains.MainChain
                 Amount = 2_0000_0000,
                 ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
+            });
+            
+            tokenContractCallList.Add(nameof(TokenContract.InitializeWithContractSystemNames), new TokenContractInitializeInput
+            {
+                CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
             });
 
             //TODO: Maybe should be removed after testing.

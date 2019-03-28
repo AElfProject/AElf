@@ -64,7 +64,7 @@ namespace AElf.CrossChain
             var fakeSideChainBlockData = new SideChainBlockData
             {
                 SideChainHeight = 1,
-                TransactionMKRoot = fakeMerkleTreeRoot1,
+                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
                 SideChainId = chainId
             };
             CreateFakeCacheAndStateData(chainId, fakeSideChainBlockData, block.Height);
@@ -80,7 +80,7 @@ namespace AElf.CrossChain
             var sideChainBlockData = new SideChainBlockData
             {
                 SideChainHeight = 1,
-                TransactionMKRoot = fakeMerkleTreeRoot1,
+                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
                 SideChainId = chainId
             };
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new []{sideChainBlockData});
@@ -101,7 +101,7 @@ namespace AElf.CrossChain
             var fakeSideChainBlockData = new SideChainBlockData
             {
                 SideChainHeight = 1,
-                TransactionMKRoot = fakeMerkleTreeRoot1,
+                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
                 SideChainId = fakeSideChainId
             };
             CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData, 2);
@@ -122,7 +122,7 @@ namespace AElf.CrossChain
             var fakeSideChainBlockData = new SideChainBlockData
             {
                 SideChainHeight = 1,
-                TransactionMKRoot = fakeMerkleTreeRoot1,
+                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
                 SideChainId = fakeSideChainId
             };
             
@@ -130,7 +130,7 @@ namespace AElf.CrossChain
             var fakeSideChainBlockData2 = new SideChainBlockData
             {
                 SideChainHeight = 1,
-                TransactionMKRoot = fakeTxnMerkleTreeRoot2,
+                TransactionMerkleTreeRoot = fakeTxnMerkleTreeRoot2,
                 SideChainId = fakeSideChainId
             };
             
@@ -149,7 +149,7 @@ namespace AElf.CrossChain
             var fakeSideChainBlockData = new SideChainBlockData
             {
                 SideChainHeight = 1,
-                TransactionMKRoot = fakeMerkleTreeRoot1,
+                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
                 SideChainId = fakeSideChainId
             };
             
@@ -177,7 +177,7 @@ namespace AElf.CrossChain
         private Hash ComputeRootHash(IEnumerable<SideChainBlockData> blockInfo)
         {
             return new BinaryMerkleTree()
-                .AddNodes(blockInfo.Select(sideChainBlockData => sideChainBlockData.TransactionMKRoot))
+                .AddNodes(blockInfo.Select(sideChainBlockData => sideChainBlockData.TransactionMerkleTreeRoot))
                 .ComputeRootHash();
         }
 
