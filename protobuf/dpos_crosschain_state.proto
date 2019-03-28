@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+import "common.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.DPoS.SideChain";
+
+service ConsensusContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.DPoS.SideChain.DPoSContractState";
+    // Actions
+    rpc UpdateMainChainConsensus (ConsensusInformation) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetCurrentMiners (google.protobuf.Empty) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message MinerList {
+    int64 TermNumber = 1;
+    repeated string PublicKeys = 2;
+    repeated Address Addresses = 3;
+}
+
+message ConsensusInformation{
+    bytes Bytes = 1;
+}

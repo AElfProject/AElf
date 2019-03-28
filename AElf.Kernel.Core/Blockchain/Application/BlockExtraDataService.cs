@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Common;
 using Google.Protobuf;
@@ -32,6 +33,8 @@ namespace AElf.Kernel.Blockchain.Application
 
         public ByteString GetExtraDataFromBlockHeader(string blockExtraDataProviderSymbol, BlockHeader blockHeader)
         {
+            if (blockHeader.Height == KernelConstants.GenesisBlockHeight)
+                return null;
             for (var i = 0; i < _blockExtraDataProviders.Count; i++)
             {
                 var blockExtraDataProviderName = _blockExtraDataProviders[i].GetType().Name;
@@ -63,12 +66,26 @@ namespace AElf.Kernel.Blockchain.Application
             else
                 blockHeader.BlockExtraDatas[_blockExtraDataProviders.Count] = rootByteString; //reset it since already filled
         }
-        
+
+        /// <summary>
+        /// Extract merkle tree root from header extra data.
+        /// </summary>
+        /// <param name="blockHeader"></param>
+        /// <returns></returns>
+        /// <exception cref="IndexOutOfRangeException">The size of header extra data is incorrect.</exception>
+        public ByteString GetMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader)
+        {
+            var index = blockHeader.Height == KernelConstants.GenesisBlockHeight ? 0 : _blockExtraDataProviders.Count;
+            return blockHeader.BlockExtraDatas[index];
+        }
+
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,
             TransactionResultStatus executionReturnStatus)
         {
-            return Hash.FromTwoHashes(txId, Hash.FromString(executionReturnStatus.ToString()));
+            // combine tx result status
+            var rawBytes = txId.DumpByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
+                .ToArray();
+            return Hash.FromRawBytes(rawBytes);
         }
-        
     }
 }
