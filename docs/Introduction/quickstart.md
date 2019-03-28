@@ -34,12 +34,12 @@ Reply "yes" to saving the account into a file, the commands also asks the user f
 The output should look like this:
 
     ```
-    Your wallet info is :
-    Mnemonic    : ...
-    Private Key : 5a5c8d744ff4f96da62e968d5492f9bfd42e7bb2487da69ac55aeabe7d43a9ef
-    Public Key : 04e768d9d2905df298981f9c32b1e20d5a3df58f20d3bded1e252fbb8be904372d1273d9d485ee46e7da0d94df9cde59744995f9dcdfb74b8053ea4df926ad9ec5
-    Address     : 5MZJC6u1YWjEUwXugPVeDwXuMrikHUPqqysYtr54tjZmxZN
-    Saving account info to file? (Y/N): y
+Your wallet info is :
+Mnemonic    : ...
+Private Key : 5a5c8d744ff4f96da62e968d5492f9bfd42e7bb2487da69ac55aeabe7d43a9ef
+Public Key : 04e768d9d2905df298981f9c32b1e20d5a3df58f20d3bded1e252fbb8be904372d1273d9d485ee46e7da0d94df9cde59744995f9dcdfb74b8053ea4df926ad9ec5
+Address     : 5MZJC6u1YWjEUwXugPVeDwXuMrikHUPqqysYtr54tjZmxZN
+Saving account info to file? (Y/N): y
     ...
     ```
 
@@ -49,42 +49,48 @@ Note that a more detailed section about the cli can be found [here]. The last li
 You will now need to install Redis as our node needs a key-value database to store the blockchain data.
 
 ### Node configuration:
-We have one last step before we can run the node, we have to set up some configuration. For this open the **appsettings.json** file at the root of the cloned AElf folder and edit the following sections:
+We have one last step before we can run the node, we have to set up some configuration. Navigate into the **AElf.Launcher** directory:
+
+```bash
+cd AElf.Launcher/
+```
+
+Open the **appsettings.json** file and edit the following sections:
 
 The miners account:
 ```json
-    "Account": 
-    {
-        "NodeAccount": "ELF_5ta1yvi2dFE...THPHcfxMVLrLB",
-        "NodeAccountPassword": "pwrd"
-    },
+"Account": 
+{
+    "NodeAccount": "ELF_5ta1yvi2dFE...THPHcfxMVLrLB",
+    "NodeAccountPassword": "pwrd"
+},
 ```
 The node account field corresponds to the address, this was printed during the account creation, you also have to enter the password.
 
 ```json
-    "InitialMiners" : [
-      "04d8f8fd19cf9e3f7f84e....5cbc30bb7ccb1cc3105e557"
-    ],
+"InitialMiners" : [
+    "04d8f8fd19cf9e3f7f84e....5cbc30bb7ccb1cc3105e557"
+],
 ```
 This is a configuration we use to specify the list of initial miners, for now just configure one, it's the miners public key that was printed during the account creation.
 
-...
-
 We're now ready to launch the node.
 
-...
-
 ### Launch and test:
-Now we build and run the node navigate into the **aelf** directory and build the solution with the following command:
+Now we build and run the node navigate into the **aelf** directory and build the solution with the following commands:
 
-    ```bash
-    dotnet build AElf.Launcher --configuration Release
-    ```
+```bash
+cd AElf.Launcher/;dotnet build AElf.Launcher.csproj --configuration Release
+dotnet bin/Release/netcoreapp2.2/AElf.Launcher.dll > aelf-logs.logs &
+cd ..
+```
 
-For simplicity alias the executable:
+You now should have a node that's running, to check this run the following command that will query the node for its current block height:
 
-    ```bash
-    alias aelf-cli="dotnet AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
-    ```
+```bash
+aelf-cli get-blk-height -e http://127.0.0.1:1728
+```
+
+
 
 
