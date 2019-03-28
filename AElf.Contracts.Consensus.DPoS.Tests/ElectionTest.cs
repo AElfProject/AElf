@@ -44,7 +44,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Announce_Election_Success()
         {
             // The starter transfer a specific amount of tokens to candidate for further testing.
-            var candidateInformation = GenerateNewUser();
+            var candidateInformation = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInformation, DPoSContractConsts.LockTokenForElection);
             var balance = await Starter.GetBalanceAsync(candidateInformation);
             Assert.Equal(DPoSContractConsts.LockTokenForElection, balance);
@@ -62,7 +62,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Announce_Election_WithoutEnough_Token()
         {
             // The starter transfer not enough token 
-            var candidateInformation = GenerateNewUser();
+            var candidateInformation = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInformation, 50_000L);
             var balance = await Starter.GetBalanceAsync(candidateInformation);
             balance.ShouldBe(50_000L);
@@ -80,7 +80,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Announce_Election_Twice()
         {
             // The starter transfer 200_000L
-            var candidateInfo = GenerateNewUser();
+            var candidateInfo = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection * 2);
 
             // Check balance.
@@ -126,7 +126,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Quit_Election_Success()
         {
             // The starter transfer a specific amount of tokens to candidate for further testing.
-            var candidateInfo = GenerateNewUser();
+            var candidateInfo = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection);
 
             // Check balance.
@@ -172,13 +172,13 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Quit_Election_NoOneAnnounce()
         {
-            var candidateInfo = GenerateNewUser();
+            var candidateInfo = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection);
             var balance = await Starter.GetBalanceAsync(candidateInfo);
             balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
 
             // Didn't announce election, but call quit announce.
-            candidateInfo = GenerateNewUser();
+            candidateInfo = TestUserHelper.GenerateNewUser();
             var notCandidate = Starter.CreateNewContractTester(candidateInfo);
             var result = await notCandidate.QuitElectionAsync();
             result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -191,7 +191,7 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Quit_Election_WithoutAnnounce()
         {
-            var candidateInfo = GenerateNewUser();
+            var candidateInfo = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection);
             var balance = await Starter.GetBalanceAsync(candidateInfo);
             balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
@@ -199,7 +199,7 @@ namespace AElf.Contracts.Consensus.DPoS
             await Starter.GenerateCandidatesAsync(1);
 
             // Didn't announce election, but call quit announce.
-            candidateInfo = GenerateNewUser();
+            candidateInfo = TestUserHelper.GenerateNewUser();
             var notCandidate = Starter.CreateNewContractTester(candidateInfo);
             var result = await notCandidate.QuitElectionAsync();
             result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -234,7 +234,7 @@ namespace AElf.Contracts.Consensus.DPoS
             await Starter.GenerateCandidatesAsync(1);
             var voter = (await Starter.GenerateVotersAsync(1, pocketMoney)).AnyOne();
 
-            var notCandidate = GenerateNewUser();
+            var notCandidate = TestUserHelper.GenerateNewUser();
             var result = await voter.Vote(notCandidate, amount, 100);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains(ContractErrorCode.Message[ContractErrorCode.InvalidOperation]).ShouldBeTrue();
@@ -349,7 +349,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task IsCandidate_Success()
         {
             var candidateLists = await Starter.GenerateCandidatesAsync(2);
-            var nonCandidateInfo = GenerateNewUser();
+            var nonCandidateInfo = TestUserHelper.GenerateNewUser();
             var candidate = Starter.CreateNewContractTester(nonCandidateInfo.KeyPair);
             var candidateResult = Google.Protobuf.WellKnownTypes.BoolValue.Parser.ParseFrom(
                 await candidate.CallContractMethodAsync(
@@ -655,42 +655,6 @@ namespace AElf.Contracts.Consensus.DPoS
                     votingRecordList[0])
                 ).Value;
             getAvailableDividend1.ShouldBe(0);
-        }
-
-        private static User GenerateNewUser()
-        {
-            var callKeyPair = CryptoHelpers.GenerateKeyPair();
-            var callAddress = Address.FromPublicKey(callKeyPair.PublicKey);
-            var callPublicKey = callKeyPair.PublicKey.ToHex();
-
-            return new User
-            {
-                KeyPair = callKeyPair,
-                Address = callAddress,
-                PublicKey = callPublicKey
-            };
-        }
-
-        private struct User
-        {
-            public ECKeyPair KeyPair { get; set; }
-            public Address Address { get; set; }
-            public string PublicKey { get; set; }
-
-            public static implicit operator ECKeyPair(User user)
-            {
-                return user.KeyPair;
-            }
-
-            public static implicit operator Address(User user)
-            {
-                return user.Address;
-            }
-
-            public static implicit operator string(User user)
-            {
-                return user.PublicKey;
-            }
         }
     }
 }

@@ -14,5 +14,6 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         public ProtobufState<ProtobufMessage> ProtoInfo { get; set; }
         
         public MappedState<long, string, ProtobufMessage> Complex3Info { get; set; }
+        public MappedState<string, string, string, string, TradeMessage> Complex4Info { get; set; }
     }
 }

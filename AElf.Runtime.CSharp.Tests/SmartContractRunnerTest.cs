@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel;
 using AElf.Kernel.ABI;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.CSharp.Tests.TestContract;
 using AElf.Types.CSharp;
@@ -74,6 +75,16 @@ namespace AElf.Runtime.CSharp.Tests
             var jsonParameter = (JObject) JsonConvert.DeserializeObject(parameterObj);
             jsonParameter.Count.ShouldBe(1);
             jsonParameter["BoolValue"].ToString().ShouldBe("test string parameter");
+        }
+
+        [Fact]
+        public void Contract_ExtraMetadata()
+        {
+            var contractType = typeof(TestContract.TestContract);
+            var contractMetadataTemplate = Runner.ExtractMetadata(contractType);
+            contractMetadataTemplate.FullName.ShouldBe("AElf.Runtime.CSharp.Tests.TestContract.TestContract");
+            contractMetadataTemplate.ProcessFunctionOrder.Count.ShouldBeGreaterThanOrEqualTo(12);
+            contractMetadataTemplate.ProcessFunctionOrder.Contains("${this}.TestBoolState").ShouldBeTrue();
         }
     }
 }
