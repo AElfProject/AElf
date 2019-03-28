@@ -76,7 +76,7 @@ namespace AElf
                 testQueue.Enqueue(async () =>
                 {
                     var value = result;
-                    Thread.Sleep(500);
+                    Task.Delay(500);
                     result = value + 1;
                 });
             });
