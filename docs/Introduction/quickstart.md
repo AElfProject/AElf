@@ -10,25 +10,25 @@ This method is not as straightforward as the docker quickstart but is a lot more
 ### Generating the nodes account:
 First, if you haven't already done it, clone our [repository](https://github.com/AElfProject/AElf) and stay on the `dev` branch
 
-    ```bash
-    git clone https://github.com/AElfProject/AElf.git aelf
-    ```
+```bash
+git clone https://github.com/AElfProject/AElf.git aelf
+```
 
 and build the command line tool:
-    ```bash
-    dotnet build AElf.CLI --configuration Release
-    ```
+```bash
+dotnet build AElf.CLI --configuration Release
+```
 
 Secondly navigate into the **aelf** directory to generate the nodes account (key pair) with AElfs command line tool. For this tutorial we also recommend you alias the cli:
 
-    ```bash
-    alias aelf-cli="dotnet AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
-    ```
+```bash
+alias aelf-cli="dotnet AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
+```
 finally, create the account with the following command:
 
-    ```bash
-    aelf-cli create
-    ```
+```bash
+aelf-cli create
+```
 Reply "yes" to saving the account into a file, the commands also asks the user for a password, be sure to remember it for later use.
 
 The output should look like this:
@@ -40,7 +40,7 @@ Private Key : 5a5c8d744ff4f96da62e968d5492f9bfd42e7bb2487da69ac55aeabe7d43a9ef
 Public Key : 04e768d9d2905df298981f9c32b1e20d5a3df58f20d3bded1e252fbb8be904372d1273d9d485ee46e7da0d94df9cde59744995f9dcdfb74b8053ea4df926ad9ec5
 Address     : 5MZJC6u1YWjEUwXugPVeDwXuMrikHUPqqysYtr54tjZmxZN
 Saving account info to file? (Y/N): y
-    ...
+...
     ```
 
 Note that a more detailed section about the cli can be found [here]. The last line should give you the path to the default **data directory**.
