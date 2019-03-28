@@ -28,7 +28,6 @@ namespace AElf.Kernel.SmartContract.Application
         Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
-
     }
 
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
@@ -44,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
-        
+
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
@@ -86,7 +85,6 @@ namespace AElf.Kernel.SmartContract.Application
                     !_addressSmartContractRegistrationMappingCache.ContainsKey(address)
                 )
                 {
-                    executive.SetStateProviderFactory(_stateProviderFactory);
                     //executive's registration is from code, not from contract
                     reg = await GetSmartContractRegistrationFromZeroAsync(executive, chainContext, address);
                     _addressSmartContractRegistrationMappingCache.TryAdd(address, reg);
@@ -94,7 +92,6 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
 
-            executive.SetStateProviderFactory(_stateProviderFactory);
             return executive;
         }
 
@@ -108,7 +105,8 @@ namespace AElf.Kernel.SmartContract.Application
             //executive.ContractHash = reg.CodeHash;
             //executive.ContractAddress = address;
             var context =
-                _hostSmartContractBridgeContextService.Create(new SmartContractContext() {ContractAddress = address});
+                _hostSmartContractBridgeContextService.Create(new SmartContractContext()
+                    {ContractAddress = address, RunnerCategory = reg.Category});
             executive.SetHostSmartContractBridgeContext(context);
             return executive;
         }
@@ -195,7 +193,7 @@ namespace AElf.Kernel.SmartContract.Application
                 CallDepth = 0,
             };
             executiveZero.SetDataCache(chainContext.StateCache);
-            await executiveZero.SetTransactionContext(txCtxt).Apply();
+            await executiveZero.SetTransactionContext(txCtxt).ApplyAsync();
             var returnBytes = txCtxt.Trace?.ReturnValue;
             if (returnBytes != null && returnBytes != ByteString.Empty)
             {

@@ -29,6 +29,14 @@ namespace AElf.Sdk.CSharp.Tests
             10.Add(-5).ShouldBe(5);
             Should.Throw<OverflowException>(() => { int.MaxValue.Add(8); });
             Should.Throw<OverflowException>(() => { uint.MaxValue.Add(8); });
+
+            uint number1 = 30;
+            uint number2 = 10;
+            number1.Mul(number2).ShouldBe(300u);
+            Should.Throw<OverflowException>(() => { number1.Mul(uint.MaxValue); });
+
+            number1.Div(number2).ShouldBe(3u);
+            Should.Throw<DivideByZeroException>(() =>{ number1.Div(0u); });
         }
 
         [Fact]

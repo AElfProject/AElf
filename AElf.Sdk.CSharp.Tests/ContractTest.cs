@@ -22,17 +22,13 @@ namespace AElf.Sdk.CSharp.Tests
         public ContractTest()
         {
             StateProvider = GetRequiredService<IStateProviderFactory>().CreateStateProvider();
-
-
-
             BridgeContext = GetRequiredService<IHostSmartContractBridgeContextService>().Create(
                 new SmartContractContext()
                 {
                     ContractAddress = AddressList[0],
                 });
             Contract.InternalInitialize(BridgeContext);
-            Contract.SetStateProvider(StateProvider);
-
+            //Contract.SetStateProvider(StateProvider);
 
             var transactionContext = new TransactionContext()
             {
@@ -44,7 +40,7 @@ namespace AElf.Sdk.CSharp.Tests
             };
 
             BridgeContext.TransactionContext = transactionContext;
-            StateProvider.TransactionContext = transactionContext;
+            //StateProvider.TransactionContext = transactionContext;
         }
 
         [Fact]
@@ -212,7 +208,7 @@ namespace AElf.Sdk.CSharp.Tests
             };
 
             BridgeContext.TransactionContext = transactionContext;
-            StateProvider.TransactionContext = transactionContext;
+            //StateProvider.TransactionContext = transactionContext;
         }
     }
 }

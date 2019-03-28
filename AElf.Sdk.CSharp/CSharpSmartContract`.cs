@@ -10,7 +10,7 @@ namespace AElf.Sdk.CSharp
 {
     public partial class CSharpSmartContract<TContractState> where TContractState : ContractState, new()
     {
-        public ISmartContractBridgeContext Context { get; private set; }
+        public CSharpSmartContractContext Context { get; private set; }
 
         public TContractState State { get; internal set; }
 

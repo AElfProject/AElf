@@ -58,10 +58,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
         public override Empty UpdateValue(ToUpdate input)
         {
-            Assert(TryToGetCurrentRoundInformation(out var currentRound) &&
-                   input.RoundId == currentRound.RoundId, "Round Id not matched.");
-
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
+
+            Assert(input.RoundId == round.RoundId, "Round Id not matched.");
 
             var publicKey = Context.RecoverPublicKey().ToHex();
 

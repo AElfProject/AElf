@@ -4,6 +4,5 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
-    <PackageReference Include="Volo.Abp.Core" Version="0.14.0" />
   </ItemGroup>
 </Project>
