@@ -3,6 +3,8 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <PackageId>AElf.CLI</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
     <Target Name="InstallAElfJS" AfterTargets="BeforeBuild">
         <Exec Command="yarn install" />

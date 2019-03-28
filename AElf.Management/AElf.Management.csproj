@@ -3,6 +3,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>AElf.Management</AssemblyName>
     <RootNamespace>AElf.Management</RootNamespace>
+    <PackageId>AElf.Management</PackageId>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="InfluxData.Net" Version="8.0.1" />
