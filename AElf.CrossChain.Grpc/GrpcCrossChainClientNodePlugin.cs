@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Grpc
             var certificate = LoadCertificate(_grpcCrossChainConfigOption.RemoteParentCertificateFileName);
             return _crossChainGrpcClientController.CreateClient(new GrpcCrossChainCommunicationContext
             {
-                RemoteChainId = ChainHelpers.ConvertBase58ToChainId(_crossChainConfigOption.ParentChainId),
+                RemoteChainId = _crossChainConfigOption.ParentChainId,
                 RemoteIsSideChain = false,
                 TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
                 TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
