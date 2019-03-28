@@ -19,15 +19,7 @@ and build the command line tool:
     dotnet build AElf.CLI --configuration Release
     ```
 
-Secondly navigate into the **aelf** directory to generate the nodes account (key pair) with AElfs command line tool. Before this, it's usefull for you to define the following env variable:
-
-    ```bash
-    export AELF_CLI_DATADIR=<path_to_datadir_folder>
-    ```
-
-this variable is used by our CLI tool, it's usefull to define it now as it will rarely change. This folder is the **data directory**, it will contain (amongst other things) the key we're about to generate.
-
-For this tutorial we also recommend you alias the cli:
+Secondly navigate into the **aelf** directory to generate the nodes account (key pair) with AElfs command line tool. For this tutorial we also recommend you alias the cli:
 
     ```bash
     alias aelf-cli="dotnet AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
@@ -51,12 +43,10 @@ The output should look like this:
     ...
     ```
 
-Note that a more detailed section about the cli can be found [here].
+Note that a more detailed section about the cli can be found [here]. The last line should give you the path to the default **data directory**.
 
 ### Install Redis:
 You will now need to install Redis as our node needs a key-value database to store the blockchain data.
-
-...
 
 ### Node configuration:
 We have one last step before we can run the node, we have to set up some configuration. For this open the **appsettings.json** file at the root of the cloned AElf folder and edit the following sections:
