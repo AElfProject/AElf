@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Jobs;
 using AElf.OS.Network.Events;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.BackgroundJobs;
@@ -9,14 +11,22 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>, ILocalEventHandler<AnnouncementReceivedEventData>
+    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>,
+        ILocalEventHandler<AnnouncementReceivedEventData>
     {
-        public IBackgroundJobManager BackgroundJobManager { get; set; }
         public IBlockchainService BlockchainService { get; set; }
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
 
-        public PeerConnectedEventHandler()
+        private readonly ITaskQueueManager _taskQueueManager;
+
+        private readonly BlockSyncJob _blockSyncJob;
+
+        private const string BlockSyncQueue = "BlockSyncQueue";
+
+        public PeerConnectedEventHandler(IServiceProvider serviceProvider, ITaskQueueManager taskQueueManager)
         {
+            _taskQueueManager = taskQueueManager;
+            _blockSyncJob = serviceProvider.GetRequiredService<BlockSyncJob>();
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
 
@@ -40,15 +50,19 @@ namespace AElf.OS.Handlers
             var chain = await BlockchainService.GetChainAsync();
             if (blockHeight < chain.LastIrreversibleBlockHeight)
             {
-                Logger.LogTrace($"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} form {senderPubKey}, ignore.");
+                Logger.LogTrace(
+                    $"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} form {senderPubKey}, ignore.");
                 return;
             }
 
-            await BackgroundJobManager.EnqueueAsync(new BlockSyncJobArgs
+            _taskQueueManager.GetQueue(BlockSyncQueue).Enqueue(async () =>
             {
-                SuggestedPeerPubKey = senderPubKey,
-                BlockHash = blockHash.ToHex(),
-                BlockHeight = blockHeight
+                await _blockSyncJob.ExecuteAsync(new BlockSyncJobArgs
+                {
+                    SuggestedPeerPubKey = senderPubKey,
+                    BlockHash = blockHash.ToHex(),
+                    BlockHeight = blockHeight
+                });
             });
         }
     }

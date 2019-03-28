@@ -39,15 +39,5 @@ namespace AElf.OS.Handlers
             var jobs = await _jobStore.GetWaitingJobsAsync(MaxJobsToCheck);
             Assert.True(jobs.Count == 0);
         }
-
-        [Fact]
-        public async Task HandleEventAsync_QueuesJob()
-        {
-            var announcement = new PeerNewBlockAnnouncement {BlockHash = Hash.FromString("unlinkable"), BlockHeight = 2};
-            await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1"));
-
-            var jobs = await _jobStore.GetWaitingJobsAsync(MaxJobsToCheck);
-            Assert.True(jobs.Count == 1);
-        }
     }
 }

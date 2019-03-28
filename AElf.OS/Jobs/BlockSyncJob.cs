@@ -9,20 +9,28 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace AElf.OS.Jobs
 {
-    public class BlockSyncJob : AsyncBackgroundJob<BlockSyncJobArgs>
+    public class BlockSyncJob
     {
         private const long InitialSyncLimit = 10;
         public IBlockchainService BlockchainService { get; set; }
         public IBlockchainExecutingService BlockchainExecutingService { get; set; }
         public INetworkService NetworkService { get; set; }
         public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
+        
+        public ILogger<BlockSyncJob> Logger { get; set; }
+
+        public BlockSyncJob()
+        {
+            Logger = NullLogger<BlockSyncJob>.Instance;
+        }
 
         //TODO: Add ExecuteAsync case [Case]
-        protected override async Task ExecuteAsync(BlockSyncJobArgs args)
+        public async Task ExecuteAsync(BlockSyncJobArgs args)
         {
             Logger.LogDebug($"Start block sync job, target height: {args.BlockHeight}, target block hash: {args.BlockHash}, peer: {args.SuggestedPeerPubKey}");
 

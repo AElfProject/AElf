@@ -19,7 +19,7 @@ namespace AElf.OS.Jobs
         [Fact]
         public async Task ExecSyncJob_ShouldSyncChain()
         {
-            _job.Execute(new BlockSyncJobArgs {BlockHeight = 12});
+            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 12});
 
             var chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(15);
@@ -28,7 +28,7 @@ namespace AElf.OS.Jobs
         [Fact]
         public async Task ExecSyncJob_QueryTooMuch_ShouldSyncChain()
         {
-            _job.Execute(new BlockSyncJobArgs {BlockHeight = 25});
+            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 25});
 
             var chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(15);
@@ -37,8 +37,8 @@ namespace AElf.OS.Jobs
         [Fact]
         public async Task ExecSyncJob_RexecutionOfJob_ShouldNotChangeHeight()
         {
-            _job.Execute(new BlockSyncJobArgs {BlockHeight = 3});
-            _job.Execute(new BlockSyncJobArgs {BlockHeight = 3});
+            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 3});
+            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 3});
 
             var chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(15);
@@ -47,8 +47,8 @@ namespace AElf.OS.Jobs
         [Fact]
         public async Task ExecSyncJob_Overlapping_ShouldSyncAllBlocks()
         {
-            _job.Execute(new BlockSyncJobArgs {BlockHeight = 12});
-            _job.Execute(new BlockSyncJobArgs {BlockHeight = 15});
+            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 12});
+            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 15});
 
             var chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(15);

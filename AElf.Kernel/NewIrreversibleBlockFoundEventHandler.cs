@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.BackgroundJobs;
@@ -12,21 +13,25 @@ namespace AElf.Kernel
     public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
         ITransientDependency
     {
-        private readonly IBackgroundJobManager _backgroundJobManager;
+        private const string MergeBlockStateQueue = "MergeBlockStateQueue";
+        private readonly ITaskQueueManager _taskQueueManager;
+        private readonly IBlockchainStateMergingService _blockchainStateMergingService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
-        public NewIrreversibleBlockFoundEventHandler(IBackgroundJobManager backgroundJobManager)
+        public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
+            IBlockchainStateMergingService blockchainStateMergingService)
         {
-            _backgroundJobManager = backgroundJobManager;
+            _taskQueueManager = taskQueueManager;
+            _blockchainStateMergingService = blockchainStateMergingService;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            await _backgroundJobManager.EnqueueAsync(new MergeBlockStateJobArgs
+            _taskQueueManager.GetQueue(MergeBlockStateQueue).Enqueue(async () =>
             {
-                LastIrreversibleBlockHash = eventData.BlockHash.ToHex(),
-                LastIrreversibleBlockHeight = eventData.BlockHeight
+                await _blockchainStateMergingService.MergeBlockStateAsync(eventData.BlockHeight,
+                    eventData.BlockHash);
             });
         }
     }
