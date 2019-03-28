@@ -58,7 +58,7 @@ namespace AElf.Kernel.SmartContract.Application
             blockIndexes.Add(new BlockIndex(lastIrreversibleBlockHash, lastIrreversibleBlockHeight));
 
             Logger.LogTrace(
-                $"Merge lib height: {lastIrreversibleBlockHeight}, lib block hash: {lastIrreversibleBlockHash}, merge count: {blockIndexes.Count}");
+                $"Start merge lib height: {lastIrreversibleBlockHeight}, lib block hash: {lastIrreversibleBlockHash}, merge count: {blockIndexes.Count}");
 
             foreach (var blockIndex in blockIndexes)
             {
