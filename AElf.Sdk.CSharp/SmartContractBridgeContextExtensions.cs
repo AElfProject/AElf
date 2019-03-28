@@ -15,6 +15,26 @@ namespace AElf.Sdk.CSharp
             context.FireLogEvent(logEvent);
         }
 
+        public static void Fire<TEvent>(this CSharpSmartContractContext context, TEvent e) where TEvent : IEvent<TEvent>
+        {
+            var le = new LogEvent()
+            {
+                Address = context.Self
+            };
+
+            foreach (var ee in e.GetIndexed())
+            {
+                var bytes = ee.ToByteArray();
+                if (bytes.Length == 0)
+                {
+                    continue;
+                }
+                le.Topics.Add(ByteString.CopyFrom(Hash.FromRawBytes(bytes).DumpByteArray()));
+            }
+
+            le.Data = e.GetNonIndexed().ToByteString();
+            context.FireLogEvent(le);
+        }
         //TODO: Add SmartContractBridgeContextExtensions test case [Case]
 
         public static T Call<T>(this ISmartContractBridgeContext context, IStateCache stateCache, Address address,
