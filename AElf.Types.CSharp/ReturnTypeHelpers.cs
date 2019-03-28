@@ -263,7 +263,7 @@ namespace AElf.Types.CSharp
                         return default(T);
                     }
 
-                    dynamic o = Activator.CreateInstance<T>();
+                    var o = Activator.CreateInstance<T>(); // dynamic is not needed until now, and it will cause runtime exception with inaccessible types.
                     (o as IMessage).MergeFrom(bytes);
                     return o;
                 };

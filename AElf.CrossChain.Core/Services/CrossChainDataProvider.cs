@@ -34,15 +34,17 @@ namespace AElf.CrossChain
                 preBlockHeight);
             foreach (var idHeight in dict)
             {
+                Logger.LogTrace($"Side chain id {idHeight.Key}");
                 // index only one block from one side chain which could be changed later.
                 // cause take these data before mining, the target height of consumer == height + 1
                 var blockInfo = _crossChainDataConsumer.TryTake(idHeight.Key, idHeight.Value + 1, true);
                 if (blockInfo == null)
                     continue;
-
+                Logger.LogTrace($"With Height {blockInfo.Height}");
                 sideChainBlockData.Add((SideChainBlockData) blockInfo);
             }
 
+            Logger.LogTrace($"Side chain block data count {sideChainBlockData.Count}");
             return sideChainBlockData;
         }
 
