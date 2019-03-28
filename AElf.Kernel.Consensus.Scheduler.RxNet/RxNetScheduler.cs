@@ -32,6 +32,7 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
 
         public void CancelCurrentEvent()
         {
+            Logger.LogDebug("Disposed previous consensus event.");
             _observables?.Dispose();
         }
         public IDisposable Subscribe(int countingMilliseconds, BlockMiningEventData blockMiningEventData)
