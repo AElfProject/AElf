@@ -44,7 +44,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Announce_Election_Success()
         {
             // The starter transfer a specific amount of tokens to candidate for further testing.
-            var candidateInformation = Starter.GenerateNewUser();
+            var candidateInformation = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInformation, DPoSContractConsts.LockTokenForElection);
             var balance = await Starter.GetBalanceAsync(candidateInformation);
             Assert.Equal(DPoSContractConsts.LockTokenForElection, balance);
@@ -62,7 +62,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Announce_Election_WithoutEnough_Token()
         {
             // The starter transfer not enough token 
-            var candidateInformation = Starter.GenerateNewUser();
+            var candidateInformation = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInformation, 50_000L);
             var balance = await Starter.GetBalanceAsync(candidateInformation);
             balance.ShouldBe(50_000L);
@@ -80,7 +80,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Announce_Election_Twice()
         {
             // The starter transfer 200_000L
-            var candidateInfo = Starter.GenerateNewUser();
+            var candidateInfo = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection * 2);
 
             // Check balance.
@@ -126,7 +126,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task Quit_Election_Success()
         {
             // The starter transfer a specific amount of tokens to candidate for further testing.
-            var candidateInfo = Starter.GenerateNewUser();
+            var candidateInfo = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection);
 
             // Check balance.
@@ -172,13 +172,13 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Quit_Election_NoOneAnnounce()
         {
-            var candidateInfo = Starter.GenerateNewUser();
+            var candidateInfo = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection);
             var balance = await Starter.GetBalanceAsync(candidateInfo);
             balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
 
             // Didn't announce election, but call quit announce.
-            candidateInfo = Starter.GenerateNewUser();
+            candidateInfo = TestUserHelper.GenerateNewUser();
             var notCandidate = Starter.CreateNewContractTester(candidateInfo);
             var result = await notCandidate.QuitElectionAsync();
             result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -191,7 +191,7 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Quit_Election_WithoutAnnounce()
         {
-            var candidateInfo = Starter.GenerateNewUser();
+            var candidateInfo = TestUserHelper.GenerateNewUser();
             await Starter.TransferTokenAsync(candidateInfo, DPoSContractConsts.LockTokenForElection);
             var balance = await Starter.GetBalanceAsync(candidateInfo);
             balance.ShouldBe(DPoSContractConsts.LockTokenForElection);
@@ -199,7 +199,7 @@ namespace AElf.Contracts.Consensus.DPoS
             await Starter.GenerateCandidatesAsync(1);
 
             // Didn't announce election, but call quit announce.
-            candidateInfo = Starter.GenerateNewUser();
+            candidateInfo = TestUserHelper.GenerateNewUser();
             var notCandidate = Starter.CreateNewContractTester(candidateInfo);
             var result = await notCandidate.QuitElectionAsync();
             result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -234,7 +234,7 @@ namespace AElf.Contracts.Consensus.DPoS
             await Starter.GenerateCandidatesAsync(1);
             var voter = (await Starter.GenerateVotersAsync(1, pocketMoney)).AnyOne();
 
-            var notCandidate = Starter.GenerateNewUser();
+            var notCandidate = TestUserHelper.GenerateNewUser();
             var result = await voter.Vote(notCandidate, amount, 100);
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains(ContractErrorCode.Message[ContractErrorCode.InvalidOperation]).ShouldBeTrue();
@@ -349,7 +349,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task IsCandidate_Success()
         {
             var candidateLists = await Starter.GenerateCandidatesAsync(2);
-            var nonCandidateInfo = Starter.GenerateNewUser();
+            var nonCandidateInfo = TestUserHelper.GenerateNewUser();
             var candidate = Starter.CreateNewContractTester(nonCandidateInfo.KeyPair);
             var candidateResult = Google.Protobuf.WellKnownTypes.BoolValue.Parser.ParseFrom(
                 await candidate.CallContractMethodAsync(
