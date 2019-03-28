@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "common.proto";
+import "kernel.proto";
 
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
 
