@@ -21,6 +21,7 @@ namespace AElf.OS
 
             Configure<NetworkOptions>(configuration.GetSection("Network"));
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));
+            Configure<BackgroundJobWorkerOptions>(configuration.GetSection("BackgroundJobWorker"));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
