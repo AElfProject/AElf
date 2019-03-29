@@ -12,6 +12,7 @@ using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
+using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
 
@@ -19,6 +20,7 @@ namespace AElf.OS.Network
 {
     public class GrpcServerServiceTests : GrpcNetworkTestBase
     {
+        private IAElfNetworkServer _networkServer;
         private readonly PeerService.PeerServiceBase _service;
         private readonly IBlockchainService _blockchainService;
         private readonly IPeerPool _peerPool;
@@ -26,6 +28,7 @@ namespace AElf.OS.Network
 
         public GrpcServerServiceTests()
         {
+            _networkServer = GetRequiredService<IAElfNetworkServer>();
             _service = GetRequiredService<PeerService.PeerServiceBase>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _peerPool = GetRequiredService<IPeerPool>();
@@ -75,9 +78,9 @@ namespace AElf.OS.Network
             
             await _service.SendTransaction(tx, BuildServerCallContext());
             
-            Assert.NotNull(received?.Transactions);
-            Assert.Equal(1, received.Transactions.Count());
-            Assert.Equal(received.Transactions.First().From, tx.From);
+            received?.Transactions.ShouldNotBeNull();
+            received.Transactions.Count().ShouldBe(1);
+            received.Transactions.First().From.ShouldBe(tx.From);
         }
         
         #endregion Announce and transaction
@@ -157,5 +160,63 @@ namespace AElf.OS.Network
         }
         
         #endregion Disconnect
+
+        #region Other tests
+
+        [Fact]
+        public async Task NetworkServer_StopTest()
+        {
+            await _networkServer.StopAsync();
+
+            var peers = _peerPool.GetPeers(true).Cast<GrpcPeer>();
+
+            foreach (var peer in peers)
+            {
+                peer.IsReady.ShouldBeFalse();
+            }
+        }
+        
+        [Fact]
+        public void GrpcUrl_ParseTest()
+        {
+            //wrong format
+            {
+                string address = "127.0.0.1:8000";
+                var grpcUrl = GrpcUrl.Parse(address);
+
+                grpcUrl.ShouldBeNull();
+            }
+            
+            //correct format
+            {
+                string address = "ipv4:127.0.0.1:8000";
+                var grpcUrl = GrpcUrl.Parse(address);
+                
+                grpcUrl.IpVersion.ShouldBe("ipv4");
+                grpcUrl.IpAddress.ShouldBe("127.0.0.1");
+                grpcUrl.Port.ShouldBe(8000);
+
+                var ipPortFormat = grpcUrl.ToIpPortFormat();
+                ipPortFormat.ShouldBe("127.0.0.1:8000");
+            }
+        }
+        
+        [Fact]
+        public async Task UnaryServerHandler_Success()
+        {
+            var authInterceptor = GetRequiredService<AuthInterceptor>();
+            
+            var continuation = new UnaryServerMethod<string, string>((s, y) => Task.FromResult(s));
+            var metadata = new Metadata
+                {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
+            var context = BuildServerCallContext(metadata);
+            var headerCount = context.RequestHeaders.Count;
+            var result = await authInterceptor.UnaryServerHandler("test", context, continuation);
+            
+            result.ShouldBe("test");
+            context.RequestHeaders.Count.ShouldBeGreaterThan(headerCount);
+        }
+
+        #endregion
     }
 }
