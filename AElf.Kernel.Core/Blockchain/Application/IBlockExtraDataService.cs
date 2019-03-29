@@ -20,5 +20,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         void FillMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader,
             IEnumerable<(Hash, TransactionResultStatus)> blockExecutionReturnSet);
+
+        ByteString GetMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader);
     }
 }

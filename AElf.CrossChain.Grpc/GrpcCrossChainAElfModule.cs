@@ -24,8 +24,8 @@ namespace AElf.CrossChain.Grpc
             if(grpcCrossChainConfiguration == null)
                 return;
             Configure<GrpcCrossChainConfigOption>(grpcCrossChainConfiguration);
-            services.AddTransient<INodePlugin, GrpcCrossChainClientNodePlugin>();
             services.AddTransient<INodePlugin, GrpcCrossChainServerNodePlugin>();
+            services.AddTransient<INodePlugin, GrpcCrossChainClientNodePlugin>();
             services.AddSingleton<ICrossChainServer, CrossChainGrpcServer>();
             services.AddSingleton<GrpcCrossChainClientNodePlugin>();
             var keyStore = new CertificateStore(ApplicationHelper.AppDataPath);

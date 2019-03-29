@@ -242,23 +242,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             {
                 return minerInRound != null ? DPoSBehaviour.UpdateValue : DPoSBehaviour.Invalid;
             }
-
-            // If this node missed his time slot, a command of terminating current round will be fired,
-            // and the terminate time will based on the order of this node (to avoid conflicts).
-
-            // Calculate the approvals and make the judgement of changing term.
-            Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp),
-                "Failed to get blockchain start timestamp.");
-            Assert(TryToGetTermNumber(out var termNumber), "Failed to get term number.");
-            if (round.RoundNumber == 1)
-            {
-                return DPoSBehaviour.NextRound;
-            }
-
-            Assert(TryToGetPreviousRoundInformation(out var previousRound), "Failed to previous round information.");
-            return round.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp, termNumber)
-                ? DPoSBehaviour.NextTerm
-                : DPoSBehaviour.NextRound;
+            return DPoSBehaviour.NextRound;
         }
 
         private string GetLogStringForOneRound(string publicKey)
