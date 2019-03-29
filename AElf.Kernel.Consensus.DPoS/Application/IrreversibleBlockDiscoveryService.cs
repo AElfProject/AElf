@@ -37,7 +37,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             _transactionResultQueryService = transactionResultQueryService;
             _smartContractAddressService = smartContractAddressService;
             LocalEventBus = NullLocalEventBus.Instance;
-            Logger = NullLogger<BestChainFoundEventHandler>.Instance;
+            Logger = NullLogger<IrreversibleBlockDiscoveryService>.Instance;
         }
 
         private void PrepareBloom()
