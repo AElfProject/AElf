@@ -23,12 +23,12 @@ namespace AElf.Sdk.CSharp
 
             foreach (var ee in e.GetIndexed())
             {
-                var bytes = ee.ToByteArray();
-                if (bytes.Length == 0)
+                var byteString = ee.ToByteString();
+                if (byteString.Length == 0)
                 {
                     continue;
                 }
-                le.Indexed.Add(ByteString.CopyFrom(Hash.FromRawBytes(bytes).DumpByteArray()));
+                le.Indexed.Add(byteString);
             }
 
             le.NonIndexed = e.GetNonIndexed().ToByteString();
