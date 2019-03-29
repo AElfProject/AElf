@@ -28,5 +28,6 @@ deploy:
   - provider: script
     script: bash scripts/deploy.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD $NUGET_API_KEY
     skip_cleanup: true
+    branch =~ /(master|foo)/
     on:
       tags: true
