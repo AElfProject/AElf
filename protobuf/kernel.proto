@@ -134,8 +134,9 @@ message ExecutionReturnSet {
 
 message LogEvent {
     Address Address = 1;
-    repeated bytes Topics = 2;
-    bytes Data = 3;
+    string Name = 2;
+    repeated bytes Indexed = 3;
+    bytes NonIndexed = 4;
 }
 
 message TransactionLogEvent {
