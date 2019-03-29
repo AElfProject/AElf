@@ -38,6 +38,8 @@ namespace AElf.WebApp.Application.Chain
         Task<long> GetBlockHeight();
 
         Task<BlockDto> GetBlockInfo(long blockHeight, bool includeTransactions = false);
+
+        Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus();
     }
     
     public class ChainAppService : IChainAppService
@@ -268,6 +270,15 @@ namespace AElf.WebApp.Application.Chain
             }
 
             return blockDto;
+        }
+        
+        public async Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus()
+        {
+            var queued= await _txHub.GetTransactionPoolSizeAsync();
+            return new GetTransactionPoolStatusOutput
+            {
+                Queued = queued
+            };
         }
         
         private async Task<Block> GetBlock(Hash blockHash)
