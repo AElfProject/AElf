@@ -14,16 +14,17 @@ namespace AElf.Sdk.CSharp
             context.FireLogEvent(logEvent);
         }
 
-        public static void Fire<TEvent>(this CSharpSmartContractContext context, TEvent e) where TEvent : IEvent<TEvent>
+        public static void Fire<T>(this CSharpSmartContractContext context, T eventData) where T : IEvent<T>
         {
             var le = new LogEvent()
             {
-                Address = context.Self
+                Address = context.Self,
+                Name = eventData.Descriptor.Name
             };
 
-            foreach (var ee in e.GetIndexed())
+            foreach (var indexed in eventData.GetIndexed())
             {
-                var byteString = ee.ToByteString();
+                var byteString = indexed.ToByteString();
                 if (byteString.Length == 0)
                 {
                     continue;
@@ -31,7 +32,7 @@ namespace AElf.Sdk.CSharp
                 le.Indexed.Add(byteString);
             }
 
-            le.NonIndexed = e.GetNonIndexed().ToByteString();
+            le.NonIndexed = eventData.GetNonIndexed().ToByteString();
             context.FireLogEvent(le);
         }
         //TODO: Add SmartContractBridgeContextExtensions test case [Case]
