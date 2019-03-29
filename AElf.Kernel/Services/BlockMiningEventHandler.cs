@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.SmartContractExecution;
+using AElf.Kernel.SmartContractExecution.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -11,12 +13,17 @@ namespace AElf.Kernel.Miner.Application
 {
     public class BlockMiningEventHandler : ILocalEventHandler<BlockMiningEventData>, ITransientDependency
     {
-        public readonly IMinerService _minerService;
+        private readonly IMinerService _minerService;
+        private readonly IBlockAttachService _blockAttachService;
+        private readonly ITaskQueueManager _taskQueueManager;
         public ILogger<BlockMiningEventHandler> Logger { get; set; }
 
-        public BlockMiningEventHandler(IMinerService minerService)
+        public BlockMiningEventHandler(IMinerService minerService, IBlockAttachService blockAttachService,
+            ITaskQueueManager taskQueueManager)
         {
             _minerService = minerService;
+            _blockAttachService = blockAttachService;
+            _taskQueueManager = taskQueueManager;
             Logger = NullLogger<BlockMiningEventHandler>.Instance;
         }
 
@@ -24,8 +31,11 @@ namespace AElf.Kernel.Miner.Application
         {
             try
             {
-                await _minerService.MineAsync(eventData.PreviousBlockHash, eventData.PreviousBlockHeight,
+                var block = await _minerService.MineAsync(eventData.PreviousBlockHash, eventData.PreviousBlockHeight,
                     eventData.DueTime);
+
+                _blockAttachService.EnqueueAttachBlock(_taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName),
+                    block);
             }
             catch (Exception e)
             {
