@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
@@ -30,7 +31,9 @@ namespace AElf.WebApp.Application.Chain
 
         Task<string[]> BroadcastTransactions(string rawTransactions);
 
-        Task<GetTransactionResultOutput> GetTransactionResult(string transactionId);
+        Task<TransactionResultDto> GetTransactionResult(string transactionId);
+
+        Task<List<TransactionResultDto>> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10);
     }
     
     public class ChainAppService : IChainAppService
@@ -119,7 +122,7 @@ namespace AElf.WebApp.Application.Chain
             return txIds;
         }
         
-        public async Task<GetTransactionResultOutput> GetTransactionResult(string transactionId)
+        public async Task<TransactionResultDto> GetTransactionResult(string transactionId)
         {
             Hash transactionHash;
             try
@@ -134,7 +137,7 @@ namespace AElf.WebApp.Application.Chain
             var transactionResult = await GetTransactionResult(transactionHash);
             var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
 
-            var output = JsonConvert.DeserializeObject<GetTransactionResultOutput>(transactionResult.ToString());
+            var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
                 var block = await GetBlockAtHeight(transactionResult.BlockNumber);
@@ -157,6 +160,64 @@ namespace AElf.WebApp.Application.Chain
             }
             
             return output;
+        }
+
+        public async Task<List<TransactionResultDto>> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10)
+        {
+            if (offset < 0)
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidOffset],Error.InvalidOffset.ToString());
+            }
+
+            if (limit <= 0 || limit > 100)
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidNum],Error.InvalidNum.ToString());
+            }
+
+            Hash realBlockHash;
+            try
+            {
+                realBlockHash = Hash.LoadHex(blockHash);
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash],Error.InvalidBlockHash.ToString());
+            }
+
+            var block = await GetBlock(realBlockHash);
+            if (block == null)
+            {
+                throw new UserFriendlyException(Error.Message[Error.NotFound],Error.NotFound.ToString());
+            }
+
+            var output = new List<TransactionResultDto>();
+            if (offset <= block.Body.Transactions.Count - 1)
+            {
+                limit = Math.Min(limit, block.Body.Transactions.Count - offset);
+                var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, limit);
+                foreach (var hash in transactionHashes)
+                {
+                    var transactionResult = await GetTransactionResult(hash);
+                    var transactionResultDto = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
+                    var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
+                    transactionResultDto.BlockHash = block.GetHash().ToHex();
+
+                    if (transactionResult.Status == TransactionResultStatus.Failed)
+                        transactionResultDto.Error = transactionResult.Error;
+
+                    transactionResultDto.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+                    transactionResultDto.Transaction.Params = ((JObject) JsonConvert.DeserializeObject(await GetTransactionParameters(transaction))).ToString();
+                    transactionResultDto.Status = transactionResult.Status.ToString();
+                    output.Add(transactionResultDto);
+                }
+            }
+
+            return output;
+        }
+        
+        private async Task<Block> GetBlock(Hash blockHash)
+        {
+            return await _blockchainService.GetBlockByHashAsync(blockHash);
         }
         
         private async Task<string> GetTransactionParameters(Transaction tx)

@@ -1,9 +1,6 @@
-using System;
-using AElf.Kernel;
-
 namespace AElf.WebApp.Application.Chain.Dto
 {
-    public class GetTransactionResultOutput
+    public class TransactionResultDto
     {
         public string TransactionId { get; set; }
         
