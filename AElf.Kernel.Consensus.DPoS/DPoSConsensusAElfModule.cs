@@ -31,7 +31,7 @@ namespace AElf.Kernel.Consensus.DPoS
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
-
+            context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();
         }
     }

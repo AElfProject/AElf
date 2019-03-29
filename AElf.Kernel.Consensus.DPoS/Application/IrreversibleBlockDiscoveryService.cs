@@ -22,7 +22,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        public ILogger<BestChainFoundEventHandler> Logger { get; set; }
+        public ILogger<IrreversibleBlockDiscoveryService> Logger { get; set; }
         public ILocalEventBus LocalEventBus { get; set; }
         private Address _contractAddress;
         private IrreversibleBlockFound _interestedEvent;
@@ -36,13 +36,17 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             _blockchainService = blockchainService;
             _transactionResultQueryService = transactionResultQueryService;
             _smartContractAddressService = smartContractAddressService;
-            PrepareBloom();
             LocalEventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<BestChainFoundEventHandler>.Instance;
         }
 
         private void PrepareBloom()
         {
+            if (_bloom != null)
+            {
+                // already prepared
+                return;
+            }
             _contractAddress =
                 _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
             _interestedEvent = new IrreversibleBlockFound();
@@ -52,6 +56,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public async Task<IEnumerable<long>> DiscoverFromBlocksAsync(IEnumerable<Hash> blockIds)
         {
+            PrepareBloom();
             var output = new List<long>();
             foreach (var blockId in blockIds)
             {

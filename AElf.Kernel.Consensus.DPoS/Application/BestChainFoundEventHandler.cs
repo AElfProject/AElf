@@ -31,6 +31,11 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
+            if (eventData.ExecutedBlocks == null)
+            {
+                return;
+            }
+
             var libHeights = await _irreversibleBlockDiscoveryService.DiscoverFromBlocksAsync(eventData.ExecutedBlocks);
             var chain = await _blockchainService.GetChainAsync();
             foreach (var height in libHeights)

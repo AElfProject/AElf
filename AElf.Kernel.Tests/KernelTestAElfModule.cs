@@ -1,5 +1,6 @@
 using AElf.Kernel.ChainController;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool;
@@ -12,6 +13,7 @@ namespace AElf.Kernel
     [DependsOn(
          typeof(KernelAElfModule),
          typeof(ConsensusAElfModule),
+         typeof(DPoSConsensusAElfModule),
          typeof(KernelCoreTestAElfModule),
          typeof(SmartContractTestAElfModule),
          typeof(SmartContractExecutionTestAElfModule),
