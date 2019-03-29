@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.OS.Network.Application;
 using Volo.Abp.Application.Services;
@@ -9,6 +10,8 @@ namespace AElf.WebApp.Application.Net
         Task<bool> AddPeer(string address);
 
         Task<bool> RemovePeer(string address);
+
+        Task<List<string>> GetPeers();
     }
     
     public class NetAppService : INetAppService
@@ -28,6 +31,11 @@ namespace AElf.WebApp.Application.Net
         public async Task<bool> RemovePeer(string address)
         {
             return await _networkService.RemovePeerAsync(address);
+        }
+        
+        public Task<List<string>> GetPeers()
+        {
+            return Task.FromResult(_networkService.GetPeers());
         }
     }
 }
