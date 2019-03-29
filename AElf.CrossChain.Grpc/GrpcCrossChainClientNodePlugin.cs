@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Grpc
             var certificate = LoadCertificate(_grpcCrossChainConfigOption.RemoteParentCertificateFileName);
             return _crossChainGrpcClientController.CreateClient(new GrpcCrossChainCommunicationContext
             {
-                RemoteChainId = ChainHelpers.ConvertBase58ToChainId(_crossChainConfigOption.ParentChainId),
+                RemoteChainId = _crossChainConfigOption.ParentChainId,
                 RemoteIsSideChain = false,
                 TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
                 TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
@@ -44,10 +44,11 @@ namespace AElf.CrossChain.Grpc
 
         public Task HandleEventAsync(GrpcServeNewChainReceivedEvent receivedEventData)
         {
-            return _crossChainGrpcClientController.CreateClient(receivedEventData.CrossChainCommunicationContextDto,
-                LoadCertificate(
-                    ((GrpcCrossChainCommunicationContext) receivedEventData.CrossChainCommunicationContextDto)
-                    .CertificateFileName));
+            GrpcCrossChainCommunicationContext grpcCrossChainCommunicationContext =
+                (GrpcCrossChainCommunicationContext) receivedEventData.CrossChainCommunicationContextDto;
+            grpcCrossChainCommunicationContext.LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort;
+            return _crossChainGrpcClientController.CreateClient(grpcCrossChainCommunicationContext,
+                LoadCertificate(grpcCrossChainCommunicationContext.CertificateFileName));
         }
         public Task HandleEventAsync(BestChainFoundEventData eventData)
         {

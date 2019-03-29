@@ -1,5 +1,7 @@
+using System;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.CSharp.Tests.TestContract
 {
@@ -43,7 +45,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
 
         public override UInt64Output TestUInt64State(UInt64Input input)
         {
-            State.UInt64Info.Value = State.UInt64Info.Value.Sub(input.UInt64Value);
+            State.UInt64Info.Value = State.UInt64Info.Value.Add(input.UInt64Value);
             return new UInt64Output()
             {
                 UInt64Value = State.UInt64Info.Value
@@ -73,11 +75,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
 
         public override ProtobufOutput TestProtobufState(ProtobufInput input)
         {
-            var boolValue = State.ProtoInfo.Value.BoolValue;
-            if (boolValue)
-            {
-                State.ProtoInfo.Value = input.ProtobufValue;
-            }
+            State.ProtoInfo.Value = input.ProtobufValue;
             
             return new ProtobufOutput()
             {
@@ -126,9 +124,32 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
                     input.ProtobufValue.Int64Value;
             }
 
-          return new ProtobufListOutput()
+          return new ProtobufListOutput
           {
+              Collection = { input.ProtobufValue }
           };
+        }
+
+        public override TradeMessage TestMapped1State(Complex3Input input)
+        {
+            var tradeMessage = State.Complex4Info[input.From][input.PairA][input.To][input.PairB];
+            if (tradeMessage == null)
+            {
+                input.TradeDetails.Timestamp = DateTime.UtcNow.ToTimestamp();
+                State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = input.TradeDetails;
+
+                return input.TradeDetails;
+            }
+            else
+            {
+                tradeMessage.FromAmount += input.TradeDetails.FromAmount;
+                tradeMessage.ToAmount += input.TradeDetails.ToAmount;
+                tradeMessage.Timestamp = DateTime.UtcNow.ToTimestamp();
+
+                State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = tradeMessage;
+
+                return tradeMessage;
+            }
         }
     }
 }

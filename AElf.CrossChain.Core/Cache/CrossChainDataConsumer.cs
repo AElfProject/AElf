@@ -24,7 +24,7 @@ namespace AElf.CrossChain.Cache
             return _multiChainBlockInfoCacheProvider.Size;
         }
 
-        public void TryRegisterNewChainCache(int remoteChainId, long chainHeight = CrossChainConsts.GenesisBlockHeight)
+        public void TryRegisterNewChainCache(int remoteChainId, long chainHeight = KernelConstants.GenesisBlockHeight)
         {
             if(!_multiChainBlockInfoCacheProvider.ContainsChain(remoteChainId))
                 _multiChainBlockInfoCacheProvider.AddBlockInfoCache(remoteChainId, new BlockInfoCache(chainHeight));

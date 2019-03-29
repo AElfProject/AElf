@@ -61,6 +61,10 @@ namespace AElf.Contracts.TestBase
         public ECKeyPair KeyPair { get; }
 
         public string PublicKey => KeyPair.PublicKey.ToHex();
+        
+        public long TokenTotalSupply = 1000_000L;
+        public long InitialDividendToken = 200_000L;
+        public long InitialBalanceOfStarter = 800_000L;
 
         public ContractTester() : this(0, null)
         {
@@ -358,9 +362,14 @@ namespace AElf.Contracts.TestBase
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
+            var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
-            return await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
+            var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 DateTime.UtcNow.AddMilliseconds(int.MaxValue));
+            
+            await blockAttachService.AttachBlockAsync(block);
+    
+            return block;
         }
 
         /// <summary>
@@ -509,10 +518,15 @@ namespace AElf.Contracts.TestBase
         /// <returns></returns>
         public Action<List<GenesisSmartContractDto>> GetDefaultContractTypes(Address issuer, out long totalSupply, out long dividend, out long balanceOfStarter)
         {
-            totalSupply = 1000_000L;
-            dividend = 200_000L;
-            balanceOfStarter = 800_000L;
+            totalSupply = TokenTotalSupply;
+            dividend = InitialDividendToken;
+            balanceOfStarter = InitialBalanceOfStarter;
+            
             var callList = new SystemTransactionMethodCallList();
+            callList.Add(nameof(TokenContract.InitializeWithContractSystemNames), new TokenContractInitializeInput
+            {
+                CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
+            });
             callList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",
@@ -520,20 +534,21 @@ namespace AElf.Contracts.TestBase
                 Issuer = issuer,
                 IsBurnable = true,
                 TokenName = "elf token",
-                TotalSupply = totalSupply
+                TotalSupply = TokenTotalSupply
             });
             callList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
             {
                 Symbol = "ELF",
-                Amount = dividend,
+                Amount = InitialDividendToken,
                 ToSystemContractName = DividendsSmartContractAddressNameProvider.Name
             });
             callList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = "ELF",
-                Amount = balanceOfStarter,
+                Amount = InitialBalanceOfStarter,
                 To = GetCallOwnerAddress()
             });
+            
             return list =>
             {
                 list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);

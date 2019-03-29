@@ -152,7 +152,7 @@ namespace AElf.OS.Node.Application
 
             foreach (var nodePlugin in _nodePlugins)
             {
-                var task = nodePlugin.StartAsync(dto.ChainId);
+                await nodePlugin.StartAsync(dto.ChainId);
             }
 
             return context;

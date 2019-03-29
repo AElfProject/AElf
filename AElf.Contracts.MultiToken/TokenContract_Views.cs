@@ -36,8 +36,9 @@ namespace AElf.Contracts.MultiToken
         }
 
         #region ForTests
-
+        /*
         [View]
+        
         public string GetTokenInfo2(string symbol)
         {
             return GetTokenInfo(new GetTokenInfoInput() {Symbol = symbol}).ToString();
@@ -60,7 +61,7 @@ namespace AElf.Contracts.MultiToken
                 Spender = spender
             })?.ToString();
         }
-
+        */
         #endregion
     }
 }
