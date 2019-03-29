@@ -8,12 +8,6 @@ namespace AElf.Sdk.CSharp
 {
     public static class SmartContractBridgeContextExtensions
     {
-        public static void FireEvent<TEvent>(this CSharpSmartContractContext context, TEvent e) where TEvent : Event
-        {
-            var logEvent = EventParser<TEvent>.ToLogEvent(e, context.Self);
-            context.FireLogEvent(logEvent);
-        }
-
         public static void Fire<T>(this CSharpSmartContractContext context, T eventData) where T : IEvent<T>
         {
             context.FireLogEvent(eventData.ToLogEvent(context.Self));
