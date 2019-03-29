@@ -44,7 +44,6 @@ namespace AElf.Contracts.Consensus.DPoS
                         signature = previousRound.CalculateSignature(inValue);
                         if (input.PreviousRandomHash != Hash.Empty)
                         {
-                            Context.LogDebug(() => $"PreRH: {input.PreviousRandomHash.ToHex()}");
                             // If PreviousRandomHash is Hash.Empty, it means the sender unable or unwilling to publish his previous in value.
                             previousInValue = previousRound.CalculateInValue(input.PreviousRandomHash);
                         }
@@ -52,7 +51,9 @@ namespace AElf.Contracts.Consensus.DPoS
 
                     var updatedRound = currentRound.ApplyNormalConsensusData(publicKey.ToHex(), previousInValue,
                         outValue, signature, currentBlockTime);
+
                     ShareAndRecoverInValue(updatedRound, previousRound, inValue, publicKey.ToHex());
+
                     // To publish Out Value.
                     return new DPoSHeaderInformation
                     {
@@ -61,8 +62,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         Behaviour = behaviour,
                     };
                 case DPoSBehaviour.NextRound:
-                    var blockchainStartTimestamp = currentBlockTime.ToTimestamp();
-                    SetBlockchainStartTimestamp(blockchainStartTimestamp);
+                    TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
                     Assert(
                         GenerateNextRoundInformation(currentRound, currentBlockTime, blockchainStartTimestamp,
                             out var nextRound),

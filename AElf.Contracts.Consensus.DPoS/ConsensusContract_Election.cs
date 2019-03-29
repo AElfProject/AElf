@@ -180,8 +180,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var currentRoundNumber = State.CurrentRoundNumberField.Value;
 
             // To make up a VotingRecord instance.
-            var blockchainStartTimestamp =
-                State.BlockchainStartTimestamp.Value ?? Context.CurrentBlockTime.ToTimestamp();
+            TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
 
             var votingRecord = new VotingRecord
             {
@@ -313,7 +312,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     "No permission to withdraw tickets of others."));
 
             // Update voting record map.
-            var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
+            TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
             votingRecord.WithdrawTimestamp =
                 blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
             votingRecord.IsWithdrawn = true;
@@ -388,7 +387,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
 
                 // Update voting record map.
-                var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
+                TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
                 votingRecord.WithdrawTimestamp =
                     blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
                 votingRecord.IsWithdrawn = true;

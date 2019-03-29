@@ -117,6 +117,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public void SetBlockchainStartTimestamp(Timestamp timestamp)
         {
+            Context.LogDebug(() => $"Set start timestamp to {timestamp}");
             State.BlockchainStartTimestamp.Value = timestamp;
         }
 

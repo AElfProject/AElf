@@ -105,9 +105,14 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override Empty NextRound(Round input)
         {
-            if (TryToGetRoundNumber(out var roundNumber))
+            if (TryToGetRoundNumber(out var currentRoundNumber))
             {
-                Assert(roundNumber < input.RoundNumber, "Incorrect round number for next round.");
+                Assert(currentRoundNumber < input.RoundNumber, "Incorrect round number for next round.");
+            }
+
+            if (currentRoundNumber == 1)
+            {
+                SetBlockchainStartTimestamp(input.GetStartTime().ToTimestamp());
             }
 
             // Update the age of this blockchain

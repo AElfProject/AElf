@@ -142,7 +142,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public static async Task InitialChainAndTokenAsync(
             this ContractTester<DPoSContractTestAElfModule> starter, List<ECKeyPair> minersKeyPairs = null,
-            int miningInterval = 4000)
+            int miningInterval = 4000, Timestamp blockchainStartTimestamp = null)
         {
             var dividendMethodCallList = new SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
@@ -181,7 +181,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 Memo = "Set dividends.",
             });
 
-            await starter.InitialCustomizedChainAsync(minersKeyPairs?.Select(m => m.PublicKey.ToHex()).ToList(), miningInterval, null,
+            await starter.InitialCustomizedChainAsync(minersKeyPairs?.Select(m => m.PublicKey.ToHex()).ToList(), miningInterval, blockchainStartTimestamp,
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
@@ -275,7 +275,8 @@ namespace AElf.Contracts.Consensus.DPoS
                             RoundId = round.RoundId,
                             Signature = Hash.Generate(),
                             PromiseTinyBlocks = 1,
-                            ActualMiningTime = DateTime.UtcNow.ToTimestamp()
+                            ActualMiningTime = DateTime.UtcNow.ToTimestamp(),
+                            ProducedBlocks = i + 1
                         });
                     foreach (var otherMiner in miners.Where(m => m.PublicKey != currentMiner.PublicKey))
                     {

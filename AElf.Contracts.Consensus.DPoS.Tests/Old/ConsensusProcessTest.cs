@@ -345,7 +345,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 Testers.Add(tester);
             }
 
-            AsyncHelper.RunSync(() => Testers.RunConsensusAsync(1));
+            AsyncHelper.RunSync(() => Testers.RunConsensusAsync(2));
 
             ConsensusContractAddress = Testers[0].GetConsensusContractAddress();
         }

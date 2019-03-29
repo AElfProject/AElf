@@ -196,7 +196,7 @@ namespace AElf.Consensus.DPoS
             var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
             var approvalsCount = round.RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null)
                 .Select(m => m.ActualMiningTime)
-                .Count(t => IsTimeToChangeTerm(blockchainStartTime, t.ToDateTime(), termNumber));
+                .Count(actual => IsTimeToChangeTerm(blockchainStartTime, actual.ToDateTime(), termNumber));
             return approvalsCount >= minimumCount;
         }
 

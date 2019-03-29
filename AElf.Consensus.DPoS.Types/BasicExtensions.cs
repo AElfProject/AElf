@@ -113,6 +113,7 @@ namespace AElf.Consensus.DPoS
             round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
             if (previousInValue != Hash.Empty)
             {
+                Console.WriteLine("Pre in value updated to: " + previousInValue.ToHex());
                 round.RealTimeMinersInformation[publicKey].PreviousInValue = previousInValue;
             }
 
@@ -156,12 +157,14 @@ namespace AElf.Consensus.DPoS
 
         public static List<MinerInRound> GetMinedMiners(this Round round)
         {
-            return round.RealTimeMinersInformation.Values.Where(m => m.OutValue != null).ToList();
+            // For now only this implementation can support test cases.
+            return round.RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound != 0).ToList();
         }
         
         public static List<MinerInRound> GetNotMinedMiners(this Round round)
         {
-            return round.RealTimeMinersInformation.Values.Where(m => m.OutValue == null).ToList();
+            // For now only this implementation can support test cases.
+            return round.RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound == 0).ToList();
         }
 
         public static bool GenerateNextRoundInformation(this Round currentRound, DateTime dateTime,
@@ -181,9 +184,16 @@ namespace AElf.Consensus.DPoS
             var miningInterval = currentRound.GetMiningInterval();
             nextRound.RoundNumber = currentRound.RoundNumber + 1;
             nextRound.TermNumber = currentRound.TermNumber;
-            nextRound.BlockchainAge =
-                (long) (dateTime - blockchainStartTimestamp.ToDateTime())
-                .TotalMinutes; // TODO: Change to TotalDays after testing.
+            if (currentRound.RoundNumber == 1)
+            {
+                nextRound.BlockchainAge = 1;
+            }
+            else
+            {
+                nextRound.BlockchainAge =
+                    (long) (dateTime - blockchainStartTimestamp.ToDateTime())
+                    .TotalMinutes; // TODO: Change to TotalDays after testing.
+            }
 
             // Set next round miners' information of miners who successfully mined during this round.
             foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.FinalOrderOfNextRound))
@@ -329,8 +339,6 @@ namespace AElf.Consensus.DPoS
 
                 minerInRound.PublicKey = sortedMiners[i];
                 minerInRound.Order = i + 1;
-                // Signatures totally randomized.
-                //minerInRound.Signature = Hash.Generate();
                 minerInRound.ExpectedMiningTime =
                     currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval).ToTimestamp();
                 minerInRound.PromisedTinyBlocks = 1;

@@ -70,6 +70,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp),
                 "Failed to get blockchain start timestamp.");
 
+            Context.LogDebug(() => $"Using start timestamp: {blockchainStartTimestamp}");
             // Calculate the approvals and make the judgement of changing term.
             return currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber)
                 ? DPoSBehaviour.NextTerm
@@ -111,10 +112,10 @@ namespace AElf.Contracts.Consensus.DPoS
             return new Empty();
         }
 
-        private bool GenerateNextRoundInformation(Round currentRound, DateTime dateTime,
+        private bool GenerateNextRoundInformation(Round currentRound, DateTime blockTime,
             Timestamp blockchainStartTimestamp, out Round nextRound)
         {
-            var result = currentRound.GenerateNextRoundInformation(dateTime, blockchainStartTimestamp, out nextRound);
+            var result = currentRound.GenerateNextRoundInformation(blockTime, blockchainStartTimestamp, out nextRound);
             TryToGetCurrentAge(out var age);
             nextRound.BlockchainAge = age;
             return result;
@@ -411,8 +412,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 "Round information not found.");
 
             // Set dividends of related term to Dividends Contract.
-            var minedBlocks = roundInformation.RealTimeMinersInformation.Values.Aggregate<MinerInRound, long>(0,
-                (current, minerInRound) => current + minerInRound.ProducedBlocks);
+            var minedBlocks = roundInformation.GetMinedBlocks();
             State.DividendContract.AddDividends.Send(
                 new AddDividendsInput()
                 {
