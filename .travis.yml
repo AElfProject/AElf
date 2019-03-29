@@ -30,3 +30,5 @@ deploy:
     skip_cleanup: true
     on:
       tags: true
+      condition: os = linux
+      branch: dev
