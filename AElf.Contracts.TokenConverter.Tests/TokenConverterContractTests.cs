@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -8,7 +9,9 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Token;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
 using Nito.AsyncEx;
 using NSubstitute.Exceptions;
 using Org.BouncyCastle.Security;
@@ -63,38 +66,6 @@ namespace AElf.Contracts.TokenConverter
             ManagerKeyPair = CryptoHelpers.GenerateKeyPair();
         }
 
-        private async Task CreatRamToken()
-        {
-            var ceateResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContract.Create), new CreateInput()
-                {
-                    Symbol = "RAM",
-                    Decimals = 2,
-                    IsBurnable = true,
-                    Issuer = Tester.GetCallOwnerAddress(),
-                    TokenName = "Ram Resource",
-                    TotalSupply = 100_0000
-                });
-            ceateResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
-
-        private async Task<TransactionResult> InitializeTokenConverterContract()
-        {
-            //init token converter
-            var input = new InitializeInput
-            {
-                BaseTokenSymbol = "ELF",
-                FeeRateNumerator = 5,
-                FeeRateDenominator = 5,
-                Manager = Address.FromPublicKey(ManagerKeyPair.PublicKey),
-                MaxWeight = 100_0000,
-                TokenContractAddress = TokenContractAddress,
-                FeeReceiverAddress = FeeReceiverContractAddress,
-                Connectors = {ELFConnector, RamConnector}
-            };
-            return await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Initialize), input);
-        }
-
         #region Views Test
 
         [Fact]
@@ -137,7 +108,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 BaseTokenSymbol = "ELF",
                 FeeRateNumerator = 5,
-                FeeRateDenominator = 5,
+                FeeRateDenominator = 1000,
                 Manager = Address.FromPublicKey(ManagerKeyPair.PublicKey),
                 MaxWeight = 1000_0000,
                 TokenContractAddress = TokenContractAddress,
@@ -231,12 +202,12 @@ namespace AElf.Contracts.TokenConverter
             {
                 BaseTokenSymbol = "ELF",
                 FeeRateNumerator = 5,
-                FeeRateDenominator = 5,
+                FeeRateDenominator = 1000,
                 Manager = Address.FromPublicKey(ManagerKeyPair.PublicKey),
                 MaxWeight = 1000_0000,
                 TokenContractAddress = TokenContractAddress,
                 FeeReceiverAddress = FeeReceiverContractAddress,
-                Connectors = { }
+                Connectors = {}
             };
             var connectorsInfo = Connector.Parser.ParseFrom(
                 await Tester.CallTokenConverterMethodAsync(nameof(TokenConverterContract.GetConnector),
@@ -277,6 +248,192 @@ namespace AElf.Contracts.TokenConverter
         {
             await CreatRamToken();
             await InitializeTokenConverterContract();
+            await PrepareToBuyAndSell();
+
+            var buyResult = await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Buy),
+                new BuyInput
+                {
+                    Symbol = RamConnector.Symbol,
+                    Amount = 1000L,
+                    PayLimit = 1010L
+                });
+
+            buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var balanceOfRam = await Tester.GetBalanceAsync(Tester.GetCallOwnerAddress(), RamConnector.Symbol);
+            balanceOfRam.ShouldBe(1000L);
+            
+            var fromConnectorBalance = ELFConnector.VirtualBalance;
+            var fromConnectorWeight = ELFConnector.Weight / 100_0000;
+            var toConnectorBalance = await Tester.GetBalanceAsync(TokenContractAddress, RamConnector.Symbol);
+            var toConnectorWeight = RamConnector.Weight / 100_0000;
+            
+            var amountTopay = BancorHelpers.GetAmountToPayFromReturn(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
+            var fee = Convert.ToInt64(amountTopay*5/1000);
+            
+            var balanceOfFeeReceiver = await Tester.GetBalanceAsync(FeeReceiverContractAddress,"ELF");
+            balanceOfFeeReceiver.ShouldBe(fee);
+        }
+
+        [Fact]
+        public async Task Buy_Failed()
+        {
+            await CreatRamToken();
+            await InitializeTokenConverterContract();
+            await PrepareToBuyAndSell();
+            
+            var buyResultInvalidSymbol = await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Buy),
+                new BuyInput
+                {
+                    Symbol = "ram",
+                    Amount = 1000L,
+                    PayLimit = 1010L
+                });
+            buyResultInvalidSymbol.Status.ShouldBe(TransactionResultStatus.Failed);
+            buyResultInvalidSymbol.Error.Contains("Invalid symbol.").ShouldBeTrue();
+            
+            var buyResultNotExistConnector = await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Buy),
+                new BuyInput
+                {
+                    Symbol = "CPU",
+                    Amount = 1000L,
+                    PayLimit = 1010L
+                });
+            buyResultNotExistConnector.Status.ShouldBe(TransactionResultStatus.Mined);
+            buyResultNotExistConnector.Error.Contains("Can't find connector.").ShouldBeTrue();
+            
+            var buyResultPriceNotGood = await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Buy),
+                new BuyInput
+                {
+                    Symbol = RamConnector.Symbol,
+                    Amount = 1000L,
+                    PayLimit = 1L
+                });
+            buyResultPriceNotGood.Status.ShouldBe(TransactionResultStatus.Mined);
+            buyResultPriceNotGood.Error.Contains("Price not good.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task Sell_Success()
+        {
+            await CreatRamToken();
+            await InitializeTokenConverterContract();
+            await PrepareToBuyAndSell();
+
+            var buyResult = await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Buy),
+                new BuyInput
+                {
+                    Symbol = RamConnector.Symbol,
+                    Amount = 1000L,
+                    PayLimit = 1010L
+                });
+            buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var sellResult =
+                await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Sell), new SellInput
+                {
+                    Symbol = RamConnector.Symbol,
+                    Amount = 1000L,
+                    ReceiveLimit = 900L
+                });
+            sellResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var balanceOfRam = await Tester.GetBalanceAsync(Tester.GetCallOwnerAddress(), RamConnector.Symbol);
+            balanceOfRam.ShouldBe(0L);
+        }
+
+        [Fact]
+        public async Task Sell_Failed()
+        {
+            await CreatRamToken();
+            await InitializeTokenConverterContract();
+            await PrepareToBuyAndSell();
+
+            var buyResult = await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Buy),
+                new BuyInput
+                {
+                    Symbol = RamConnector.Symbol,
+                    Amount = 1000L,
+                    PayLimit = 1010L
+                });
+            buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var sellResultInvalidSymbol =
+                await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Sell), new SellInput
+                {
+                    Symbol = "ram",
+                    Amount = 1000L,
+                    ReceiveLimit = 900L
+                });
+            sellResultInvalidSymbol.Status.ShouldBe(TransactionResultStatus.Failed);
+            sellResultInvalidSymbol.Error.Contains("Invalid symbol.").ShouldBeTrue();
+            
+            var sellResultNotExistConnector = await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Sell),
+                new SellInput()
+                {
+                    Symbol = "CPU",
+                    Amount = 1000L,
+                    ReceiveLimit = 900L
+                });
+            sellResultNotExistConnector.Status.ShouldBe(TransactionResultStatus.Mined);
+            sellResultNotExistConnector.Error.Contains("Can't find connector.").ShouldBeTrue();
+            
+            var sellResultPriceNotGood = await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Sell),
+                new SellInput
+                {
+                    Symbol = RamConnector.Symbol,
+                    Amount = 1000L,
+                    ReceiveLimit = 2000L
+                });
+            sellResultPriceNotGood.Status.ShouldBe(TransactionResultStatus.Mined);
+            sellResultPriceNotGood.Error.Contains("Price not good.").ShouldBeTrue();    
+        }
+
+        #endregion
+        
+        #region Private async
+        private async Task CreatRamToken()
+        {
+            var ceateResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContract.Create), new CreateInput()
+                {
+                    Symbol = RamConnector.Symbol,
+                    Decimals = 2,
+                    IsBurnable = true,
+                    Issuer = Tester.GetCallOwnerAddress(),
+                    TokenName = "Ram Resource",
+                    TotalSupply = 100_0000
+                });
+            ceateResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var issueResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContract.Issue), new IssueInput
+                {
+                    Symbol = RamConnector.Symbol,
+                    Amount = 100_0000L,
+                    Memo="Issue RAM token",
+                    To = TokenContractAddress
+                });
+            issueResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        private async Task<TransactionResult> InitializeTokenConverterContract()
+        {
+            //init token converter
+            var input = new InitializeInput
+            {
+                BaseTokenSymbol = "ELF",
+                FeeRateNumerator = 5,
+                FeeRateDenominator = 1000,
+                Manager = Address.FromPublicKey(ManagerKeyPair.PublicKey),
+                MaxWeight = 100_0000,
+                TokenContractAddress = TokenContractAddress,
+                FeeReceiverAddress = FeeReceiverContractAddress,
+                Connectors = {ELFConnector, RamConnector}
+            };
+            return await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Initialize), input);
+        }
+
+        private async Task PrepareToBuyAndSell()
+        {
             //approve
             var approveTokenResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.Approve), new ApproveInput
@@ -295,25 +452,7 @@ namespace AElf.Contracts.TokenConverter
                     Amount = 2000L,
                 });
             approveFeeResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var buyResult = await Tester.ExecuteTokenConverterMethodAsync(nameof(TokenConverterContract.Buy),
-                new BuyInput
-                {
-                    Symbol = RamConnector.Symbol,
-                    Amount = 1000L,
-                    PayLimit = 1L
-                });
-
-            buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var balanceOfRam = GetBalanceOutput.Parser.ParseFrom(await Tester.CallContractMethodAsync(
-                TokenContractAddress, nameof(TokenContract.GetBalance), new GetBalanceInput
-                {
-                    Symbol = RamConnector.Symbol,
-                    Owner = Tester.GetCallOwnerAddress()
-                }));
-            balanceOfRam.Balance.ShouldBe(1000L);
         }
-
         #endregion
     }
 }

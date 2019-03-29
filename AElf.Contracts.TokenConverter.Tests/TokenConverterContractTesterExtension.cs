@@ -13,6 +13,7 @@ using AElf.Common;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
+using Nito.AsyncEx;
 using Volo.Abp;
 
 namespace AElf.Contracts.TokenConverter
@@ -65,6 +66,19 @@ namespace AElf.Contracts.TokenConverter
         {
             return await starter.ExecuteContractWithMiningAsync(starter.GetContractAddress(TokenConverterSmartContractAddressNameProvider.Name),
                 methodName, input);
+        }
+        
+        public static async Task<long> GetBalanceAsync(this ContractTester<TokenConverterTestAElfModule> starter,
+            Address targetAddress, string symbol)
+        {
+            var bytes = await starter.CallContractMethodAsync(starter.GetContractAddress(TokenSmartContractAddressNameProvider.Name),
+                nameof(TokenContract.GetBalance), new GetBalanceInput
+                {
+                    Owner = targetAddress,
+                    Symbol = symbol
+                });
+            var balanceOutput = GetBalanceOutput.Parser.ParseFrom(bytes);
+            return balanceOutput.Balance;
         }
     }
 }
