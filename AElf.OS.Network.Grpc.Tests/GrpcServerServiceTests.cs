@@ -3,17 +3,23 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
+using Microsoft.Extensions.Options;
+using Moq;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.OS.Network
@@ -25,6 +31,7 @@ namespace AElf.OS.Network
         private readonly IBlockchainService _blockchainService;
         private readonly IPeerPool _peerPool;
         private readonly ILocalEventBus _eventBus;
+        private IAccountService _acc;
 
         public GrpcServerServiceTests()
         {
@@ -33,6 +40,7 @@ namespace AElf.OS.Network
             _blockchainService = GetRequiredService<IBlockchainService>();
             _peerPool = GetRequiredService<IPeerPool>();
             _eventBus = GetRequiredService<ILocalEventBus>();
+            _acc = GetRequiredService<IAccountService>();
         }
 
         private ServerCallContext BuildServerCallContext(Metadata metadata = null)
@@ -163,6 +171,57 @@ namespace AElf.OS.Network
 
         #region Other tests
 
+        [Fact]
+        public async Task Connect_Invalid()
+        {
+            //invalid handshake
+            {
+                var handshake = new Handshake();
+                var metadata = new Metadata
+                    {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
+                var context = BuildServerCallContext(metadata);
+
+                var connectReply = await _service.Connect(handshake, context);
+                connectReply.Err.ShouldBe(AuthError.InvalidHandshake);
+            }
+            
+            //wrong sig
+            {
+                var handshake = await _peerPool.GetHandshakeAsync();
+                handshake.HskData.PublicKey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey);
+                var metadata = new Metadata
+                    {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
+                var context = TestServerCallContext.Create("mock", "127.0.0.1", DateTime.UtcNow.AddHours(1), metadata, CancellationToken.None, 
+                    "ipv4:127.0.0.1:2000", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
+                
+                var connectReply = await _service.Connect(handshake, context);
+                connectReply.Err.ShouldBe(AuthError.WrongSig);
+            }
+            
+            //invalid peer
+            {
+                var handshake = await _peerPool.GetHandshakeAsync();
+                var metadata = new Metadata
+                    {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
+                var context = BuildServerCallContext(metadata);
+
+                var connectReply = await _service.Connect(handshake, context);
+                connectReply.Err.ShouldBe(AuthError.InvalidPeer);
+            }
+            
+            //wrong auth
+            {
+                var handshake = await _peerPool.GetHandshakeAsync();
+                var metadata = new Metadata
+                    {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
+                var context = TestServerCallContext.Create("mock", "127.0.0.1", DateTime.UtcNow.AddHours(1), metadata, CancellationToken.None, 
+                    "ipv4:127.0.0.1:2000", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
+                
+                var connectReply = await _service.Connect(handshake, context);
+                connectReply.Err.ShouldBe(AuthError.WrongAuth);
+            }
+        }
+        
         [Fact]
         public async Task NetworkServer_StopTest()
         {
