@@ -34,6 +34,8 @@ namespace AElf.WebApp.Application.Chain
         Task<TransactionResultDto> GetTransactionResult(string transactionId);
 
         Task<List<TransactionResultDto>> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10);
+
+        Task<long> GetBlockHeight();
     }
     
     public class ChainAppService : IChainAppService
@@ -213,6 +215,12 @@ namespace AElf.WebApp.Application.Chain
             }
 
             return output;
+        }
+        
+        public async Task<long> GetBlockHeight()
+        {
+            var chainContext = await _blockchainService.GetChainAsync();
+            return chainContext.BestChainHeight;
         }
         
         private async Task<Block> GetBlock(Hash blockHash)
