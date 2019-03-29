@@ -104,7 +104,7 @@ namespace AElf.Kernel
                 var logEvent = new LogEvent
                 {
                     Address = Address.FromString("TokenContract"),
-                    Topics = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())}
+                    Indexed = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())}
                 };
                 var transactionResult =
                     _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
@@ -135,7 +135,7 @@ namespace AElf.Kernel
                 var logEvent = new LogEvent
                 {
                     Address = _consensusAddress,
-                    Topics = {ByteString.CopyFrom(Hash.FromString("ErrorEvent").DumpByteArray())}
+                    Indexed = {ByteString.CopyFrom(Hash.FromString("ErrorEvent").DumpByteArray())}
                 };
                 var transactionResult =
                     _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
@@ -165,8 +165,8 @@ namespace AElf.Kernel
                 var logEvent = new LogEvent
                 {
                     Address = _consensusAddress,
-                    Topics = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())},
-                    Data = ByteString.CopyFrom(ParamsPacker.Pack(offset))
+                    Indexed = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())},
+                    NonIndexed = ByteString.CopyFrom(ParamsPacker.Pack(offset))
                 };
                 var transactionResult =
                     _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);

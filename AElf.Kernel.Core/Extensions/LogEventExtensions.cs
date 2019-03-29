@@ -7,7 +7,7 @@ namespace AElf.Kernel
         {
             var bloom = new Bloom();
             bloom.AddValue(logEvent.Address);
-            foreach (var t in logEvent.Topics)
+            foreach (var t in logEvent.Indexed)
             {
                 bloom.AddValue(t.ToByteArray());
             }

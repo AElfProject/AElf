@@ -66,7 +66,7 @@ namespace AElf.Kernel
                     foreach (var contractEvent in result.Logs)
                     {
                         var address = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
-                        if (contractEvent.Address != address || !contractEvent.Topics.Contains(_libTopicFlag))
+                        if (contractEvent.Address != address || !contractEvent.Indexed.Contains(_libTopicFlag))
                             continue;
 
                         var offset = ExtractLibOffset(contractEvent);
@@ -86,7 +86,7 @@ namespace AElf.Kernel
         // TODO: Reimplement this if we can remove Unpack method.
         private long ExtractLibOffset(LogEvent logEvent)
         {
-            return (long) ParamsPacker.Unpack(logEvent.Data.ToByteArray(), new[] {typeof(long)})[0];
+            return (long) ParamsPacker.Unpack(logEvent.NonIndexed.ToByteArray(), new[] {typeof(long)})[0];
         }
     }
 }

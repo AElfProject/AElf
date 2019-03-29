@@ -28,10 +28,10 @@ namespace AElf.Sdk.CSharp
                 {
                     continue;
                 }
-                le.Topics.Add(ByteString.CopyFrom(Hash.FromRawBytes(bytes).DumpByteArray()));
+                le.Indexed.Add(ByteString.CopyFrom(Hash.FromRawBytes(bytes).DumpByteArray()));
             }
 
-            le.Data = e.GetNonIndexed().ToByteString();
+            le.NonIndexed = e.GetNonIndexed().ToByteString();
             context.FireLogEvent(le);
         }
         //TODO: Add SmartContractBridgeContextExtensions test case [Case]

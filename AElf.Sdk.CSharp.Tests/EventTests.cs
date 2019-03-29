@@ -19,8 +19,8 @@ namespace AElf.Sdk.CSharp.Tests
                 NonIndexTransaction = new Transaction { From = Address.Generate(), To = Address.Generate(), MethodName = "Test2" }
             };
             var transactionLog = EventExtension.FireEvent(transactionEvent);
-            transactionLog.Topics.Count.ShouldBe(2);
-            transactionLog.Data.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(transactionEvent.NonIndexTransaction)));
+            transactionLog.Indexed.Count.ShouldBe(2);
+            transactionLog.NonIndexed.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(transactionEvent.NonIndexTransaction)));
 
             var addressEvent = new AddressEvent 
             {
@@ -28,8 +28,8 @@ namespace AElf.Sdk.CSharp.Tests
                 NonIndexAddress = Address.Generate()
             };
             var addressLog = EventExtension.FireEvent(addressEvent);
-            addressLog.Topics.Count.ShouldBe(2);
-            addressLog.Data.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(addressEvent.NonIndexAddress)));
+            addressLog.Indexed.Count.ShouldBe(2);
+            addressLog.NonIndexed.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(addressEvent.NonIndexAddress)));
         }
 
         [Fact]
@@ -41,8 +41,8 @@ namespace AElf.Sdk.CSharp.Tests
                 NonIndexString = "test2"
             };
             var stringLog = EventExtension.FireEvent(stringEvent);
-            stringLog.Topics.Count.ShouldBe(2);
-            stringLog.Data.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(stringEvent.NonIndexString)));
+            stringLog.Indexed.Count.ShouldBe(2);
+            stringLog.NonIndexed.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(stringEvent.NonIndexString)));
         }
 
         [Fact]
@@ -59,8 +59,8 @@ namespace AElf.Sdk.CSharp.Tests
                 NonIndexLong = (long) 48
             };
             var dataLog = EventExtension.FireEvent(dataEvent);
-            dataLog.Topics.Count.ShouldBe(5);
-            dataLog.Data.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(dataEvent.NonIndexInt, dataEvent.NonIndexLong)));
+            dataLog.Indexed.Count.ShouldBe(5);
+            dataLog.NonIndexed.ShouldBe(ByteString.CopyFrom(ParamsPacker.Pack(dataEvent.NonIndexInt, dataEvent.NonIndexLong)));
         }
 
         [Fact]
@@ -79,7 +79,7 @@ namespace AElf.Sdk.CSharp.Tests
                 NonIndexInt = 48
             };
             var multiLog = EventExtension.FireEvent(multiEvent);
-            multiLog.Topics.Count.ShouldBe(6);
+            multiLog.Indexed.Count.ShouldBe(6);
         }
 
         [Fact]

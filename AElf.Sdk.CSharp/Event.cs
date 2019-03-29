@@ -30,17 +30,17 @@ namespace AElf.Sdk.CSharp
 
             var container = _cacheContainer.Value;
 
-            le.Topics.Add(ByteString.CopyFrom(Hash.FromString(container.EventName).DumpByteArray()));
+            le.Indexed.Add(ByteString.CopyFrom(Hash.FromString(container.EventName).DumpByteArray()));
 
             foreach (var indexedField in container.Indexes)
             {
-                le.Topics.Add(ByteString.CopyFrom(
+                le.Indexed.Add(ByteString.CopyFrom(
                     SHA256.Create().ComputeHash(ParamsPacker.Pack(indexedField.Function(e))))
                 );
             }
 
             var nonIndexed = container.NonIndexes.Select(x => x.Function(e)).ToArray();
-            le.Data = ByteString.CopyFrom(ParamsPacker.Pack(nonIndexed));
+            le.NonIndexed = ByteString.CopyFrom(ParamsPacker.Pack(nonIndexed));
             return le;
         }
 

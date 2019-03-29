@@ -14,7 +14,7 @@ namespace AElf.Kernel
             foreach (var le in transactionResult.Logs)
             {
                 bloom.AddValue(le.Address);
-                foreach (var t in le.Topics)
+                foreach (var t in le.Indexed)
                 {
                     bloom.AddValue(t.ToByteArray());
                 }
