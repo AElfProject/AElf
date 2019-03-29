@@ -15,8 +15,8 @@ dotnet publish  AElf.sln -o ~/aelf/
 docker build -t aelf/node:$TAG ~/aelf/.
 docker tag aelf/node:$TAG aelf/node:latest
 docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-#docker push aelf/node:$TAG
-#docker push aelf/node:latest
+docker push aelf/node:$TAG
+docker push aelf/node:latest
 
 
 # publish nuget
@@ -33,5 +33,5 @@ done
 for name  in `ls *.nupkg`;
 do
   echo $name
-  #dotnet nuget push ${name}  -k $NUGET_API_KEY  -s https://api.nuget.org/v3/index.json
+  dotnet nuget push ${name}  -k $NUGET_API_KEY  -s https://api.nuget.org/v3/index.json
 done
