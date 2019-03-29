@@ -71,7 +71,6 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        //TODO: Add StopAsync test case [Case]
         public async Task StopAsync(bool gracefulDisconnect = true)
         {
             try
