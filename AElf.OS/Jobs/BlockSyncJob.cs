@@ -46,12 +46,7 @@ namespace AElf.OS.Jobs
             var chain = await _blockchainService.GetChainAsync();
             try
             {
-                if (args.BlockHeight <= chain.LastIrreversibleBlockHeight)
-                {
-                    return;
-                }
-
-                if (args.BlockHeight < chain.BestChainHeight + 5)
+                if (args.BlockHash != null && args.BlockHeight < chain.BestChainHeight + 5)
                 {
                     var peerBlockHash = args.BlockHash;
                     var peerBlock = await _blockchainService.GetBlockByHashAsync(peerBlockHash);
