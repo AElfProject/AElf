@@ -1,11 +1,25 @@
 #!/bin/bash
+set -ev
 
 TAG=$1
-NUGET_API_KEY=$2
-
-# TODO: verify version
+DOCKER_USERNAME=$2
+DOCKER_PASSWORD=$3
+NUGET_API_KEY=$4
 VERSION=`echo $TAG | cut -b 2-`
 
+
+# publish docker
+# AElf node
+dotnet publish  AElf.sln -o ~/aelf/
+
+docker build -t aelf/node:$TAG ~/aelf/.
+docker tag aelf/node:$TAG aelf/node:latest
+docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+docker push aelf/node:$TAG
+docker push aelf/node:latest
+
+
+# publish nuget
 # build
 for name in `ls -lh | grep ^d | grep AElf |grep -v Test|awk '{print $NF}'`;
 do

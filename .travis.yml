@@ -26,9 +26,7 @@ after_script:
   - ./codecov -f "./results/coverage.opencover.xml" -t $CODECOV_TOKEN
 deploy:
   - provider: script
-    script:
-      - bash scripts/publish_docker.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD
-      - bash scripts/publish_nuget.sh  $TRAVIS_TAG $NUGET_API_KEY
+    script: bash scripts/deploy.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD $NUGET_API_KEY
     skip_cleanup: true
     on:
       tags: true
