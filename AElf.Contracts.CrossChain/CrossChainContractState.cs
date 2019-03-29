@@ -1,5 +1,6 @@
 using System;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.CrossChain;
 using AElf.Kernel;

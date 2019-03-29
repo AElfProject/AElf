@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using AElf.Blockchains.BasicBaseChain;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividend;
@@ -55,7 +56,7 @@ namespace AElf.Blockchains.SideChain
             
             var dividendMethodCallList = new SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                new AElf.Contracts.Dividend.InitializeWithContractSystemNamesInput
+                new InitializeWithContractSystemNamesInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name

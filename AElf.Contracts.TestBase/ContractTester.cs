@@ -40,7 +40,6 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
-using InitializeWithContractSystemNamesInput = AElf.Contracts.Consensus.DPoS.InitializeWithContractSystemNamesInput;
 
 namespace AElf.Contracts.TestBase
 {

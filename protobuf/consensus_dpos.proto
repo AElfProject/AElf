@@ -186,3 +186,87 @@ message DPoSTriggerInformation {
 message CommandInput {
     bytes PublicKey = 1;
 }
+
+message InitializeInput {
+    Address tokenContractAddress = 1;
+    Address dividendsContractAddress = 2;
+    Address consensusContractAddress = 3;
+}
+
+message InitializeWithContractSystemNamesInput {
+    Hash tokenContractSystemName = 1;
+    Hash dividendsContractSystemName = 2;
+    Hash consensusContractSystemName = 3;
+}
+
+message TermInfo {
+    sint64 termNumber = 1;
+    sint64 roundNumber = 2;
+}
+
+message VoteInput {
+    string candidatePublicKey = 1;
+    sint64 amount = 2;
+    sint32 lockTime = 3;
+}
+
+message PageInfo {
+    sint32 start = 1;
+    sint32 length = 2;
+}
+
+message PageableTicketsInfoInput {
+    sint32 start = 1;
+    sint32 length = 2;
+    string publicKey = 3;
+}
+
+message PageableElectionInfoInput {
+    sint32 start = 1;
+    sint32 length = 2;
+    sint32 orderBy = 3;
+}
+
+message Alias {
+    string value = 1;
+}
+
+message PublicKey {
+    string hex = 1;
+}
+
+message FriendlyString {
+    string value = 1;
+}
+
+message MinerList {
+    int64 TermNumber = 1;
+    repeated string PublicKeys = 2;
+    repeated Address Addresses = 3;
+}
+
+message SendDividendsInput {
+    Address to = 1;
+    sint64 amount = 2;
+}
+
+message AddDividendsInput {
+    sint64 termNumber = 1;
+    sint64 dividendsAmount = 2;
+}
+
+message WeightsInfo {
+    sint64 termNumber = 1;
+    sint64 weights = 2;
+}
+
+message VoteInfo {
+    VotingRecord record = 1;
+    sint64 age = 2;
+}
+
+message CheckDividendsInput {
+    sint64 termNumber = 1;
+    sint64 ticketsAmount = 2;
+    sint32 lockTime = 3;
+}

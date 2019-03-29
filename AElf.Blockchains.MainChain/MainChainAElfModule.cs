@@ -60,7 +60,7 @@ namespace AElf.Blockchains.MainChain
 
             var dividendMethodCallList = new SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                new Contracts.Dividend.InitializeWithContractSystemNamesInput
+                new InitializeWithContractSystemNamesInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
@@ -97,7 +97,7 @@ namespace AElf.Blockchains.MainChain
         {
             var consensusMethodCallList = new SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                new Contracts.Consensus.DPoS.InitializeWithContractSystemNamesInput
+                new InitializeWithContractSystemNamesInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name

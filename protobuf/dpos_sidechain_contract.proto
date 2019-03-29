@@ -42,17 +42,3 @@ service ConsensusContract {
         option (aelf.is_view) = true;
     }
 }
-
-message MinerList {
-    int64 TermNumber = 1;
-    repeated string PublicKeys = 2;
-    repeated Address Addresses = 3;
-}
-
-message ConsensusInformation{
-    bytes Bytes = 1;
-}
-
-message PublicKey {
-    string hex = 1;
-}

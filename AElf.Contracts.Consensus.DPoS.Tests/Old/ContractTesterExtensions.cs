@@ -146,7 +146,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var dividendMethodCallList = new SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                new AElf.Contracts.Dividend.InitializeWithContractSystemNamesInput
+                new InitializeWithContractSystemNamesInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name

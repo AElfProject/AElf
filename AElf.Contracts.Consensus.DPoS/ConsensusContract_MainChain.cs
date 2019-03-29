@@ -7,6 +7,8 @@ using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using InitializeInput = AElf.Consensus.DPoS.InitializeInput;
+using InitializeWithContractSystemNamesInput = AElf.Consensus.DPoS.InitializeWithContractSystemNamesInput;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
