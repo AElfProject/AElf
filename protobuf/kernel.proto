@@ -139,11 +139,6 @@ message LogEvent {
     bytes NonIndexed = 4;
 }
 
-message TransactionLogEvent {
-    Hash Transaction = 1;
-    LogEvent LogEvent = 2;
-}
-
 message BlockHeaderList {
     repeated BlockHeader Headers = 1;
 }
