@@ -10,6 +10,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
+using BestChainFoundEventHandler = AElf.Kernel.Consensus.Application.BestChainFoundEventHandler;
 
 namespace AElf.Kernel.Consensus.DPoS
 {

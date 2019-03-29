@@ -29,5 +29,14 @@ namespace AElf.Sdk.CSharp
             le.NonIndexed = eventData.GetNonIndexed().ToByteString();
             return le;
         }
+
+        public static void MergeFrom<T>(this T eventData, LogEvent log) where T : IEvent<T>
+        {
+            foreach (var bs in log.Indexed)
+            {
+                eventData.MergeFrom(bs);    
+            }
+            eventData.MergeFrom(log.NonIndexed);
+        }
     }
 }

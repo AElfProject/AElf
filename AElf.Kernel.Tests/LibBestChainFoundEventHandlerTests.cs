@@ -5,6 +5,7 @@ using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types.CSharp;
 using Google.Protobuf;
@@ -17,7 +18,7 @@ namespace AElf.Kernel
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IBlockchainService _blockchainService;
-        private readonly LibBestChainFoundEventHandler _libBestChainFoundEventHandler;
+        private readonly BestChainFoundEventHandler _bestChainFoundEventHandler;
         private readonly KernelTestHelper _kernelTestHelper;
         
         private readonly Address _consensusAddress = Address.FromString("ConsensusAddress");
@@ -26,7 +27,7 @@ namespace AElf.Kernel
         {
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
-            _libBestChainFoundEventHandler = GetRequiredService<LibBestChainFoundEventHandler>();
+            _bestChainFoundEventHandler = GetRequiredService<BestChainFoundEventHandler>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
 
             _smartContractAddressService.SetAddress(ConsensusSmartContractAddressNameProvider.Name, _consensusAddress);
@@ -44,7 +45,7 @@ namespace AElf.Kernel
                 var currentLibHash = chain.LastIrreversibleBlockHash;
 
                 var eventData = new BestChainFoundEventData();
-                await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -61,7 +62,7 @@ namespace AElf.Kernel
                 {
                     ExecutedBlocks = new List<Hash>()
                 };
-                await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -87,7 +88,7 @@ namespace AElf.Kernel
                     BlockHeight = newBlock.Height,
                     ExecutedBlocks = new List<Hash> {newBlock.GetHash()}
                 };
-                await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -118,7 +119,7 @@ namespace AElf.Kernel
                     BlockHeight = newBlock.Height,
                     ExecutedBlocks = new List<Hash> {newBlock.GetHash()}
                 };
-                await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -149,7 +150,7 @@ namespace AElf.Kernel
                     BlockHeight = newBlock.Height,
                     ExecutedBlocks = new List<Hash> {newBlock.GetHash()}
                 };
-                await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -183,7 +184,7 @@ namespace AElf.Kernel
 
                 var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, 10, chain.LongestChainHash);
 
-                await _libBestChainFoundEventHandler.HandleEventAsync(eventData);
+                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
 
                 LibShouldBe(10, libHash);
             }
