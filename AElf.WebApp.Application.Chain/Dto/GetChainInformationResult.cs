@@ -1,6 +1,6 @@
 namespace AElf.WebApp.Application.Chain.Dto
 {
-    public class GetChainInformationOutput
+    public class GetChainInformationResult
     {
         public string GenesisContractAddress { get; set; }
         
