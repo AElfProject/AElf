@@ -36,26 +36,36 @@ namespace AElf.Contracts.Consensus.DPoS
                 return DPoSBehaviour.Watch;
             }
 
-            if (!TryToGetPreviousRoundInformation(out var previousRound) || IsJustChangedTerm(out var termNumber))
+            var isTimeSlotPassed = currentRound.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound);
+            var ableToGetPreviousRound = TryToGetPreviousRoundInformation(out var previousRound);
+            var isTermJustChanged = IsJustChangedTerm(out var termNumber);
+            if (minerInRound.OutValue == null)
             {
-                // Failed to get previous round information or just changed term.
-                return DPoSBehaviour.UpdateValueWithoutPreviousInValue;
+                if (!ableToGetPreviousRound && minerInRound.Order != 1)
+                {
+                    return DPoSBehaviour.NextRound;
+                }
+
+                if (!ableToGetPreviousRound || isTermJustChanged)
+                {
+                    // Failed to get previous round information or just changed term.
+                    return DPoSBehaviour.UpdateValueWithoutPreviousInValue;
+                }
+
+                if (!isTimeSlotPassed)
+                {
+                    // If this node not missed his time slot of current round.
+                    return DPoSBehaviour.UpdateValue;
+                }
             }
 
-            if (!currentRound.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound) && minerInRound.OutValue == null)
+            if (currentRound.RoundNumber == 1)
             {
-                // If this node not missed his time slot of current round.
-                return DPoSBehaviour.UpdateValue;
+                return DPoSBehaviour.NextRound;
             }
 
             // If this node missed his time slot, a command of terminating current round will be fired,
             // and the terminate time will based on the order of this node (to avoid conflicts).
-
-            if (previousRound.IsEmpty())
-            {
-                // No need to check term changeable if there's no previous round information.
-                return DPoSBehaviour.NextRound;
-            }
 
             Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp),
                 "Failed to get blockchain start timestamp.");
@@ -65,7 +75,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 ? DPoSBehaviour.NextTerm
                 : DPoSBehaviour.NextRound;
         }
-        
+
         // TODO: Remove this.
         public override Empty Initialize(InitializeInput input)
         {
@@ -77,7 +87,7 @@ namespace AElf.Contracts.Consensus.DPoS
             State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
             return new Empty();
         }
-        
+
         public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
         {
             var tokenContractSystemName = input.TokenContractSystemName;
@@ -117,6 +127,7 @@ namespace AElf.Contracts.Consensus.DPoS
             SetRoundNumber(1);
             SetBlockAge(1);
             AddTermNumberToFirstRoundNumber(1, 1);
+            SetBlockchainStartTimestamp(firstRound.GetStartTime().ToTimestamp());
             var miners = firstRound.RealTimeMinersInformation.Keys.ToList().ToMiners(1);
             miners.TermNumber = 1;
             SetMiners(miners);
@@ -125,7 +136,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // TODO: This judgement can be removed with `Initialize` method.
             if (State.DividendContract.Value == null)
             {
-                State.DividendContract.Value = 
+                State.DividendContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);

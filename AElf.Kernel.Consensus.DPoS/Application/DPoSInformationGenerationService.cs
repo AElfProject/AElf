@@ -53,8 +53,13 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
 
-        public IMessage GetTriggerInformation()
+        public IMessage GetTriggerInformation(bool triggerConsensusCommand = false)
         {
+            if (triggerConsensusCommand)
+            {
+                return new CommandInput {PublicKey = PublicKey};
+            }
+            
             if (_controlInformation.ConsensusCommand == null)
             {
                 return new DPoSTriggerInformation

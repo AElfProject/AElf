@@ -23,7 +23,7 @@ service ConsensusContract {
     // Views
     rpc GetCurrentRoundInformation(google.protobuf.Empty) returns (Round) {
     }
-    rpc GetConsensusCommand (PublicKey) returns (ConsensusCommand) {
+    rpc GetConsensusCommand (CommandInput) returns (ConsensusCommand) {
         option (aelf.is_view) = true;
     }
     rpc GetInformationToUpdateConsensus (DPoSTriggerInformation) returns (DPoSHeaderInformation) {

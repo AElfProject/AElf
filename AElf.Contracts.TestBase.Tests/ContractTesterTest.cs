@@ -93,39 +93,6 @@ namespace AElf.Contracts.TestBase.Tests
             Assert.Equal(1, chain2.BestChainHeight);
         }
 
-        [Fact]
-        public async Task AddABlockTest()
-        {
-            var tester1 = new ContractTester<ContractTestAElfModule>();
-            await tester1.InitialChainAsync();
-
-            var tester2 = new ContractTester<ContractTestAElfModule>();
-            await tester2.InitialChainAsync();
-
-            var zeroContractAddress = tester1.GetZeroContractAddress();
-            var tx = await tester1.GenerateTransactionAsync(zeroContractAddress, 
-                "DeploySmartContract",
-                new ContractDeploymentInput()
-                {
-                    Category = SmartContractTestConstants.TestRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
-                });
-
-            var block = await tester1.MineAsync(new List<Transaction> {tx});
-
-            await tester2.ExecuteBlock(block, new List<Transaction> {tx});
-
-            var chain2 = await tester2.GetChainAsync();
-
-            Assert.Equal(2, chain2.BestChainHeight);
-
-            // Check the executing result of txs in new block.
-
-            var txResult = await tester2.GetTransactionResultAsync(tx.GetHash());
-
-            Assert.Equal(TransactionResultStatus.Mined, txResult.Status);
-        }
-
         // TODO: Think about another way to test `CallContractMethodAsync`.
         [Fact]
         public async Task CallContractTest()

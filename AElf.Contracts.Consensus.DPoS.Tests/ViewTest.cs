@@ -174,7 +174,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             //Assert
             historyInfo.PublicKey.ShouldBe(input.Hex);
-            historyInfo.ProducedBlocks.ShouldBeGreaterThanOrEqualTo(1);
+            historyInfo.Terms.Count.ShouldBe(1);
         }
 
         [Fact]

@@ -16,12 +16,12 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
     {
         // This file contains implementations of IConsensusSmartContract.
 
-        public override ConsensusCommand GetConsensusCommand(PublicKey input)
+        public override ConsensusCommand GetConsensusCommand(CommandInput input)
         {
-            Assert(input.Hex != string.Empty, "Invalid public key.");
-            var behaviour = GetBehaviour(input.Hex, Context.CurrentBlockTime, out var currentRound);
-            Context.LogDebug(() => currentRound.GetLogs(input.Hex));
-            return behaviour.GetConsensusCommand(currentRound, input.Hex, Context.CurrentBlockTime);
+            Assert(input.PublicKey.Any(), "Invalid public key.");
+            var behaviour = GetBehaviour(input.PublicKey.ToHex(), Context.CurrentBlockTime, out var currentRound);
+            Context.LogDebug(() => currentRound.GetLogs(input.PublicKey.ToHex(), behaviour));
+            return behaviour.GetConsensusCommand(currentRound, input.PublicKey.ToHex(), Context.CurrentBlockTime);
         }
 
         public override DPoSHeaderInformation GetInformationToUpdateConsensus(DPoSTriggerInformation input)

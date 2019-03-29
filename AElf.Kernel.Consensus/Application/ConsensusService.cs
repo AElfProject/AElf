@@ -36,7 +36,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task TriggerConsensusAsync(ChainContext chainContext)
         {
-            var triggerInformation = _consensusInformationGenerationService.GetTriggerInformation();
+            var triggerInformation = _consensusInformationGenerationService.GetTriggerInformation(true);
             // Upload the consensus command.
             _consensusControlInformation.ConsensusCommand =
                 await _consensusInformationGenerationService.ExecuteContractAsync<ConsensusCommand>(chainContext,

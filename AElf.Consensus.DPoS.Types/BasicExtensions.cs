@@ -18,9 +18,9 @@ namespace AElf.Consensus.DPoS
             return round.RoundId == 0;
         }
 
-        public static string GetLogs(this Round round, string publicKey)
+        public static string GetLogs(this Round round, string publicKey, DPoSBehaviour behaviour)
         {
-            var logs = new StringBuilder($"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})");
+            var logs = new StringBuilder($"\n[Round {round.RoundNumber}](Round Id: {round.RoundId})[Term {round.TermNumber}]");
             foreach (var minerInRound in round.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
             {
                 var minerInformation = new StringBuilder("\n");
@@ -48,6 +48,8 @@ namespace AElf.Consensus.DPoS
 
                 logs.Append(minerInformation);
             }
+
+            logs.AppendLine($"Recent behaviour: {behaviour.ToString()}");
 
             return logs.ToString();
         }
@@ -88,6 +90,7 @@ namespace AElf.Consensus.DPoS
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = round.RoundId,
                 PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
+                ProducedBlocks = minerInRound.ProducedBlocks,
                 ActualMiningTime = minerInRound.ActualMiningTime,
                 SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,
                 TuneOrderInformation = {tuneOrderInformation},
@@ -107,6 +110,7 @@ namespace AElf.Consensus.DPoS
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = dateTime.ToTimestamp();
             round.RealTimeMinersInformation[publicKey].OutValue = outValue;
             round.RealTimeMinersInformation[publicKey].Signature = signature;
+            round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
             if (previousInValue != Hash.Empty)
             {
                 round.RealTimeMinersInformation[publicKey].PreviousInValue = previousInValue;
@@ -150,24 +154,33 @@ namespace AElf.Consensus.DPoS
             return round;
         }
 
-        public static bool GenerateNextRoundInformation(this Round round, DateTime dateTime,
+        public static List<MinerInRound> GetMinedMiners(this Round round)
+        {
+            return round.RealTimeMinersInformation.Values.Where(m => m.OutValue != null).ToList();
+        }
+        
+        public static List<MinerInRound> GetNotMinedMiners(this Round round)
+        {
+            return round.RealTimeMinersInformation.Values.Where(m => m.OutValue == null).ToList();
+        }
+
+        public static bool GenerateNextRoundInformation(this Round currentRound, DateTime dateTime,
             Timestamp blockchainStartTimestamp, out Round nextRound)
         {
             nextRound = new Round();
 
-            // Check: If one miner's OrderOfNextRound isn't 0, his must published his signature.
-            var minersMinedCurrentRound =
-                round.RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound != 0).ToList();
-            if (minersMinedCurrentRound.Any(m => m.Signature == null))
-            {
-                return false;
-            }
+            var minersMinedCurrentRound = currentRound.GetMinedMiners();
+            var minersNotMinedCurrentRound = currentRound.GetNotMinedMiners();
+            var minersCount = currentRound.RealTimeMinersInformation.Count;
+            // TODO: Signature is null means something wrong happened.
+//            if (minersMinedCurrentRound.Any(m => m.Signature == null))
+//            {
+//                return false;
+//            }
 
-            // TODO: Check: No order conflicts for next round.
-
-            var miningInterval = round.GetMiningInterval();
-            nextRound.RoundNumber = round.RoundNumber + 1;
-            nextRound.TermNumber = round.TermNumber;
+            var miningInterval = currentRound.GetMiningInterval();
+            nextRound.RoundNumber = currentRound.RoundNumber + 1;
+            nextRound.TermNumber = currentRound.TermNumber;
             nextRound.BlockchainAge =
                 (long) (dateTime - blockchainStartTimestamp.ToDateTime())
                 .TotalMinutes; // TODO: Change to TotalDays after testing.
@@ -181,15 +194,14 @@ namespace AElf.Consensus.DPoS
                     PublicKey = minerInRound.PublicKey,
                     Order = order,
                     ExpectedMiningTime = dateTime.ToTimestamp().GetArrangedTimestamp(order, miningInterval),
-                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks
+                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
+                    ProducedBlocks = minerInRound.ProducedBlocks,
+                    MissedTimeSlots = minerInRound.MissedTimeSlots
                 };
             }
 
             // Set miners' information of miners missed their time slot in current round.
-            var minersNotMinedCurrentRound =
-                round.RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound == 0).ToList();
-            var minersCount = round.RealTimeMinersInformation.Count;
-            var occupiedOrders = round.RealTimeMinersInformation.Values.Select(m => m.FinalOrderOfNextRound).ToList();
+            var occupiedOrders = minersMinedCurrentRound.Select(m => m.FinalOrderOfNextRound).ToList();
             var ableOrders = Enumerable.Range(1, minersCount).Where(i => !occupiedOrders.Contains(i)).ToList();
             for (var i = 0; i < minersNotMinedCurrentRound.Count; i++)
             {
@@ -201,11 +213,13 @@ namespace AElf.Consensus.DPoS
                     Order = order,
                     ExpectedMiningTime = dateTime.ToTimestamp().GetArrangedTimestamp(order, miningInterval),
                     PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
+                    ProducedBlocks = minerInRound.ProducedBlocks,
+                    MissedTimeSlots = minerInRound.MissedTimeSlots + 1
                 };
             }
 
             // Calculate extra block producer order and set the producer.
-            var extraBlockProducerOrder = round.CalculateNextExtraBlockProducerOrder();
+            var extraBlockProducerOrder = currentRound.CalculateNextExtraBlockProducerOrder();
             var expectedExtraBlockProducer =
                 nextRound.RealTimeMinersInformation.Values.FirstOrDefault(m => m.Order == extraBlockProducerOrder);
             if (expectedExtraBlockProducer == null)

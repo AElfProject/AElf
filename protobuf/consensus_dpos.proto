@@ -17,6 +17,7 @@ message ToUpdate {
     map<string, int32> TuneOrderInformation = 8;
     map<string, bytes> EncryptedInValues = 9;// For others to recover his in value of current round.
     map<string, bytes> DecryptedPreviousInValues = 10;
+    int64 ProducedBlocks = 11;
 }
 
 // The miners public key list for each term.
@@ -180,4 +181,8 @@ message DPoSTriggerInformation {
     Hash RandomHash = 2;// To calculate In Value.
     Hash PreviousRandomHash = 3;// Random hash of previous round for validation.
     int64 InitialTermNumber = 4;
+}
+
+message CommandInput {
+    bytes PublicKey = 1;
 }

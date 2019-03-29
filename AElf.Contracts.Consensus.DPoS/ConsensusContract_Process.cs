@@ -66,21 +66,14 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var publicKey = Context.RecoverPublicKey().ToHex();
 
-            if (round.RoundNumber == 1 && round.RealTimeMinersInformation[publicKey].Order == 1)
-            {
-                SetBlockchainStartTimestamp(input.ActualMiningTime.ToDateTime()
-                    .AddMilliseconds(-round.GetMiningInterval()).ToTimestamp());
-            }
-
             round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
             round.RealTimeMinersInformation[publicKey].OutValue = input.OutValue;
             round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = input.PromiseTinyBlocks;
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
             round.RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             round.RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
-            
-            round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
-
+            round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
+ 
             round.RealTimeMinersInformation[publicKey].EncryptedInValues.Add(input.EncryptedInValues);
             foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
             {
@@ -117,20 +110,13 @@ namespace AElf.Contracts.Consensus.DPoS
                 Assert(roundNumber < input.RoundNumber, "Incorrect round number for next round.");
             }
 
-            var senderPublicKey = Context.RecoverPublicKey().ToHex();
-
-            input.ExtraBlockProducerOfPreviousRound = senderPublicKey;
-
             // Update the age of this blockchain
             State.AgeField.Value = input.BlockchainAge;
 
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
-
-            UpdateHistoryInformation(input);
-
+            //UpdateHistoryInformation(input);
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
-
             TryToFindLIB();
             return new Empty();
         }

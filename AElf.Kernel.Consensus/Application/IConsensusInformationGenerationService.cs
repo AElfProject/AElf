@@ -6,7 +6,7 @@ namespace AElf.Kernel.Consensus.Application
 {
     public interface IConsensusInformationGenerationService
     {
-        IMessage GetTriggerInformation();
+        IMessage GetTriggerInformation(bool triggerConsensusCommand = false);
         IMessage ParseConsensusTriggerInformation(byte[] consensusTriggerInformation);
 
         Task<T> ExecuteContractAsync<T>(IChainContext chainContext, string consensusMethodName,

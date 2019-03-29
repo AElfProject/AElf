@@ -73,6 +73,18 @@ namespace AElf.Consensus.DPoS
                         }.ToByteString()
                     };
                 case DPoSBehaviour.NextRound:
+                    if (round.RoundNumber == 1)
+                    {
+                        return new ConsensusCommand
+                        {
+                            NextBlockMiningLeftMilliseconds = round.RealTimeMinersInformation.Count * miningInterval,
+                            LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
+                            Hint = new DPoSHint
+                            {
+                                Behaviour = behaviour
+                            }.ToByteString()
+                        };
+                    }
                     return new ConsensusCommand
                     {
                         NextBlockMiningLeftMilliseconds =

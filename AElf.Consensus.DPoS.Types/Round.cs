@@ -19,7 +19,7 @@ namespace AElf.Consensus.DPoS
         private byte[] GetCheckableRound(bool isContainPreviousInValue = true)
         {
             var minersInformation = new Dictionary<string, MinerInRound>();
-            foreach (var minerInRound in RealTimeMinersInformation)
+            foreach (var minerInRound in RealTimeMinersInformation.Clone())
             {
                 var checkableMinerInRound = minerInRound.Value.Clone();
                 checkableMinerInRound.ProducedBlocks = 0;

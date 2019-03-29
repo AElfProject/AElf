@@ -49,7 +49,7 @@ namespace AElf.Consensus.DPoS
                 miningInterval = round.GetMiningInterval();
             }
             
-            if (round.RoundNumber == 1)
+            if (round.RoundNumber == 1 && round.RealTimeMinersInformation[publicKey].OutValue == null)
             {
                 var offset = miningInterval * round.RealTimeMinersInformation[publicKey].Order;
                 return dateTime.AddMilliseconds(round.TotalMilliseconds() + offset).ToTimestamp();
@@ -71,8 +71,7 @@ namespace AElf.Consensus.DPoS
 
             if (round.RealTimeMinersInformation.ContainsKey(publicKey) && miningInterval > 0)
             {
-                var distanceToRoundStartTime =
-                    (dateTime - round.GetStartTime()).TotalMilliseconds;
+                var distanceToRoundStartTime = (dateTime - round.GetStartTime()).TotalMilliseconds;
                 var missedRoundsCount = (int) (distanceToRoundStartTime / round.TotalMilliseconds(miningInterval));
                 var expectedEndTime = round.GetExpectedEndTime(missedRoundsCount, miningInterval);
                 return expectedEndTime.ToDateTime().AddMilliseconds(minerInRound.Order * miningInterval).ToTimestamp();

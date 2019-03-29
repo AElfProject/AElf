@@ -51,13 +51,8 @@ namespace AElf.Kernel.Consensus.DPoS
                 GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
             
             var dPoSTriggerInformation = 
-                (DPoSTriggerInformation) _consensusInformationGenerationService.GetTriggerInformation();
-            dPoSTriggerInformation.RandomHash.ShouldNotBeNull();
-            dPoSTriggerInformation.PreviousRandomHash.ShouldBe(Hash.Empty);
-
-            var dPoSTriggerInformation1 =
                 (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation();
-            dPoSTriggerInformation1.PreviousRandomHash.ShouldBe(dPoSTriggerInformation.RandomHash);
+            dPoSTriggerInformation.RandomHash.ShouldNotBeNull();
         }
         
         [Fact]

@@ -27,7 +27,7 @@ namespace AElf.Contracts.Consensus.DPoS
             testers.InitialTesters();
 
             // Act
-            var actual = await testers.Testers[1].GetConsensusCommandAsync();
+            var actual = await testers.Testers[1].GetConsensusCommandAsync(DateTime.UtcNow.ToTimestamp());
 
             // Assert
             Assert.Equal(DPoSBehaviour.UpdateValue, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
@@ -335,22 +335,19 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 var keyPair = CryptoHelpers.GenerateKeyPair();
                 MinersKeyPairs.Add(keyPair);
-                var tester = new ContractTester<DPoSContractTestAElfModule>(ChainId, keyPair);
+            }
 
-                AsyncHelper.RunSync(
-                    () => tester.InitialChainAsync());
+            foreach (var minersKeyPair in MinersKeyPairs)
+            {
+                var tester = new ContractTester<DPoSContractTestAElfModule>(ChainId, minersKeyPair);
+                AsyncHelper.RunSync(() =>
+                    tester.InitialCustomizedChainAsync(MinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList()));
                 Testers.Add(tester);
             }
 
-            ConsensusContractAddress = Testers[0].GetConsensusContractAddress();
-        }
+            AsyncHelper.RunSync(() => Testers.RunConsensusAsync(1));
 
-        public void InitialSingleTester()
-        {
-            SingleTester = new ContractTester<DPoSContractTestAElfModule>(ChainId, CryptoHelpers.GenerateKeyPair());
-            AsyncHelper.RunSync(
-                () => SingleTester.InitialChainAsync());
-            ConsensusContractAddress = SingleTester.GetConsensusContractAddress();
+            ConsensusContractAddress = Testers[0].GetConsensusContractAddress();
         }
     }
 }

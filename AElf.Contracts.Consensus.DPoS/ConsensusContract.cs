@@ -5,18 +5,19 @@ using AElf.Consensus.DPoS;
 using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
     // ReSharper disable UnusedMember.Global
     public partial class ConsensusContract : ConsensusContractContainer.ConsensusContractBase
     {
-        public override ConsensusCommand GetConsensusCommand(PublicKey input)
+        public override ConsensusCommand GetConsensusCommand(CommandInput input)
         {
-            Assert(input.Hex != string.Empty, "Invalid public key.");
-            var behaviour = GetBehaviour(input.Hex, Context.CurrentBlockTime, out var currentRound);
-            Context.LogDebug(() => currentRound.GetLogs(input.Hex));
-            return behaviour.GetConsensusCommand(currentRound, input.Hex, Context.CurrentBlockTime);
+            Assert(input.PublicKey.Any(), "Invalid public key.");
+            var behaviour = GetBehaviour(input.PublicKey.ToHex(), Context.CurrentBlockTime, out var currentRound);
+            Context.LogDebug(() => currentRound.GetLogs(input.PublicKey.ToHex(), behaviour));
+            return behaviour.GetConsensusCommand(currentRound, input.PublicKey.ToHex(), Context.CurrentBlockTime);
         }
 
         public override DPoSHeaderInformation GetInformationToUpdateConsensus(DPoSTriggerInformation input)
@@ -43,6 +44,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         signature = previousRound.CalculateSignature(inValue);
                         if (input.PreviousRandomHash != Hash.Empty)
                         {
+                            Context.LogDebug(() => $"PreRH: {input.PreviousRandomHash.ToHex()}");
                             // If PreviousRandomHash is Hash.Empty, it means the sender unable or unwilling to publish his previous in value.
                             previousInValue = previousRound.CalculateInValue(input.PreviousRandomHash);
                         }
@@ -59,12 +61,15 @@ namespace AElf.Contracts.Consensus.DPoS
                         Behaviour = behaviour,
                     };
                 case DPoSBehaviour.NextRound:
-                    Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp),
-                        "Failed to get blockchain start timestamp.");
+                    var blockchainStartTimestamp = currentBlockTime.ToTimestamp();
+                    SetBlockchainStartTimestamp(blockchainStartTimestamp);
                     Assert(
                         GenerateNextRoundInformation(currentRound, currentBlockTime, blockchainStartTimestamp,
                             out var nextRound),
                         "Failed to generate next round information.");
+                    nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks += 1;
+                    Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
+                    nextRound.ExtraBlockProducerOfPreviousRound = publicKey.ToHex();
                     return new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
@@ -274,6 +279,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 var isContainPreviousInValue = input.Behaviour != DPoSBehaviour.UpdateValueWithoutPreviousInValue;
                 if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
                 {
+                    Context.LogDebug(() => $"Round information of block header:\n{input.Round}");
+                    Context.LogDebug(() => $"Round information of executing result:\n{currentRound}");
                     return new ValidationResult
                     {
                         Success = false, Message = "Current round information is different with consensus extra data."
@@ -281,11 +288,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
             }
 
-            // TODO: Still need to check: ProducedBlocks,
-
             return new ValidationResult {Success = true};
         }
-
-        
     }
 }
