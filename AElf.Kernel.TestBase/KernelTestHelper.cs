@@ -184,7 +184,11 @@ namespace AElf.Kernel
             foreach (var transactionResult in transactionResults)
             {
                 transactionResult.UpdateBloom();
-                bloom.Combine(new[] {new Bloom(transactionResult.Bloom.ToByteArray())});
+                if (transactionResult.Status == TransactionResultStatus.Mined)
+                {
+                    bloom.Combine(new[] {new Bloom(transactionResult.Bloom.ToByteArray())});    
+                }
+
                 await _transactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
             }
             newBlock.Header.Bloom = ByteString.CopyFrom(bloom.Data);

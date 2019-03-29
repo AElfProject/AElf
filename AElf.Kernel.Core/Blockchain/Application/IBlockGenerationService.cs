@@ -80,7 +80,10 @@ namespace AElf.Kernel.Blockchain.Application
                     blockStateSet.Changes[change.Key] = change.Value;
                 }
 
-                bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});
+                if (returnSet.Status == TransactionResultStatus.Mined)
+                {
+                    bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});    
+                }
             }
 
             blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);
