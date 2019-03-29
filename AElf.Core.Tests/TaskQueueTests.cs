@@ -20,8 +20,8 @@ namespace AElf
         public void Test_StartAsync()
         {
             var testQueue = _taskQueueManager.GetQueue("TestQueue");
+                       
             testQueue.StartAsync().ShouldThrow<InvalidOperationException>();
-
             testQueue.StopAsync();
         }
 

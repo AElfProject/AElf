@@ -110,9 +110,8 @@ namespace AElf.OS.Jobs
                             block);
                     }
 
-                    chain = await _blockchainService.GetChainAsync();
                     peerBestChainHeight = await _networkService.GetBestChainHeightAsync();
-                    if (chain.BestChainHeight >= peerBestChainHeight)
+                    if (blocks.Last().Height >= peerBestChainHeight)
                     {
                         break;
                     }

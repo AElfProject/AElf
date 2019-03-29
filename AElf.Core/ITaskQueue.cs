@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Nito.AsyncEx;
+using Volo.Abp.Threading;
 
 namespace AElf
 {
@@ -128,20 +129,10 @@ namespace AElf
             return _taskQueues.GetOrAdd(name, _ =>
             {
                 var q = _serviceProvider.GetService<ITaskQueue>();
-                Task.Factory.StartNew(() => q.StartAsync(), TaskCreationOptions.LongRunning);
+                AsyncHelper.RunSync(() => Task.Factory.StartNew(() => q.StartAsync(), TaskCreationOptions
+                    .LongRunning));
                 return q;
             });
-        }
-    }
-
-    //move to test 
-    public class TaskQueueSamples
-    {
-        public void Test()
-        {
-            var queue=new TaskQueue();
-            var _ = queue.StartAsync();
-            queue.Enqueue(async ()=>{});
         }
     }
 }
