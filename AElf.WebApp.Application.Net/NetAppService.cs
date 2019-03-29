@@ -7,6 +7,8 @@ namespace AElf.WebApp.Application.Net
     public interface INetAppService : IApplicationService
     {
         Task<bool> AddPeer(string address);
+
+        Task<bool> RemovePeer(string address);
     }
     
     public class NetAppService : INetAppService
@@ -21,6 +23,11 @@ namespace AElf.WebApp.Application.Net
         public async Task<bool> AddPeer(string address)
         {
             return await _networkService.AddPeerAsync(address);
+        }
+        
+        public async Task<bool> RemovePeer(string address)
+        {
+            return await _networkService.RemovePeerAsync(address);
         }
     }
 }
