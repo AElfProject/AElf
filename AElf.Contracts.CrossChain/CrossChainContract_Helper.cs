@@ -229,7 +229,7 @@ namespace AElf.Contracts.CrossChain
             return State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
         }
 
-        private Hash GetMerkleTreeRoot(int chainId, int parentChainHeight)
+        private Hash GetMerkleTreeRoot(int chainId, long parentChainHeight)
         {
             if (State.ParentChainId.Value == 0)
             {

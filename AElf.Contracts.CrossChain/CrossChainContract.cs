@@ -250,11 +250,11 @@ namespace AElf.Contracts.CrossChain
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
                 Assert(blockInfo.Root.TransactionStatusMerkleRoot != null,
                     "Parent chain transaction status merkle tree root needed.");
-                var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
-                var parentTxStatusMerkleTreeRoot = State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight];
-                Assert(merkleTreeRoot == null & parentTxStatusMerkleTreeRoot == null,
-                    $"Already indexed parent chain block info at height {parentChainHeight}");
-                State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight] = parentTxStatusMerkleTreeRoot;
+//                var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
+//                var parentTxStatusMerkleTreeRoot = State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight];
+//                Assert(merkleTreeRoot == null & parentTxStatusMerkleTreeRoot == null,
+//                    $"Already indexed parent chain block info at height {parentChainHeight}");
+                State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight] = blockInfo.Root.TransactionStatusMerkleRoot;
                 foreach (var indexedBlockInfo in blockInfo.IndexedMerklePath)
                 {
                     BindParentChainHeight(indexedBlockInfo.Key, parentChainHeight);

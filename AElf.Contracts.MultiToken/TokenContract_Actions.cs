@@ -145,7 +145,8 @@ namespace AElf.Contracts.MultiToken
             var verificationInput = new VerifyTransactionInput
             {
                 TransactionId = transferTransactionHash,
-                ParentChainHeight = input.ParentChainHeight
+                ParentChainHeight = input.ParentChainHeight,
+                VerifiedChainId = input.FromChainId
             };
             verificationInput.Path.AddRange(input.MerklePath);
             if (State.CrossChainContractReferenceState.Value == null)

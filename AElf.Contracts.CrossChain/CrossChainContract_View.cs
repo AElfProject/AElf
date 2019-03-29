@@ -33,14 +33,10 @@ namespace AElf.Contracts.CrossChain
         public override BoolValue VerifyTransaction(VerifyTransactionInput input)
         {
             var parentChainHeight = input.ParentChainHeight;
-            var path = input.Path;
-            var txId = input.TransactionId;
-            var merkleTreeRoot = input.VerifiedChainId == State.ParentChainId.Value
-                ? State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight]
-                : State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
+            var merkleTreeRoot = GetMerkleTreeRoot(input.VerifiedChainId, parentChainHeight);
             Assert(merkleTreeRoot != null,
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
-            var rootCalculated = ComputeRootWithTransactionStatusMerklePath(txId, path);
+            var rootCalculated = ComputeRootWithTransactionStatusMerklePath(input.TransactionId, input.Path);
             
             //Api.Assert((parentRoot??Hash.Empty).Equals(rootCalculated), "Transaction verification Failed");
             return new BoolValue {Value = merkleTreeRoot.Equals(rootCalculated)};
