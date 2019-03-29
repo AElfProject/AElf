@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Shouldly;
@@ -102,11 +103,11 @@ namespace AElf.Kernel
                 var currentLibHash = chain.LastIrreversibleBlockHash;
 
                 var transaction = _kernelTestHelper.GenerateTransaction();
-                var logEvent = new LogEvent
+                var logEvent = new AElf.Contracts.Consensus.DPoS.IrreversibleBlockFound()
                 {
-                    Address = Address.FromString("TokenContract"),
-                    Indexed = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())}
-                };
+                    Offset = 6
+                }.ToLogEvent(Address.FromString("TokenContract"));
+
                 var transactionResult =
                     _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
                 var newBlock = await _kernelTestHelper.AttachBlock(chain.BestChainHeight, chain.LongestChainHash,
@@ -136,7 +137,7 @@ namespace AElf.Kernel
                 var logEvent = new LogEvent
                 {
                     Address = _consensusAddress,
-                    Indexed = {ByteString.CopyFrom(Hash.FromString("ErrorEvent").DumpByteArray())}
+                    Name = "NonExistentEvent"
                 };
                 var transactionResult =
                     _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
@@ -163,12 +164,10 @@ namespace AElf.Kernel
 
                 var transaction = _kernelTestHelper.GenerateTransaction();
                 var offset = 5;
-                var logEvent = new LogEvent
+                var logEvent = new AElf.Contracts.Consensus.DPoS.IrreversibleBlockFound()
                 {
-                    Address = _consensusAddress,
-                    Indexed = {ByteString.CopyFrom(Hash.FromString("LIBFound").DumpByteArray())},
-                    NonIndexed = ByteString.CopyFrom(ParamsPacker.Pack(offset))
-                };
+                    Offset = offset
+                }.ToLogEvent(_consensusAddress);
                 var transactionResult =
                     _kernelTestHelper.GenerateTransactionResult(transaction, TransactionResultStatus.Mined, logEvent);
                 var newBlock = await _kernelTestHelper.AttachBlock(chain.BestChainHeight, chain.BestChainHash,
