@@ -1,3 +1,6 @@
+using System;
+using AElf.Common;
+
 namespace AElf.Kernel
 {
     public static class LogEventExtensions
@@ -7,6 +10,7 @@ namespace AElf.Kernel
         {
             var bloom = new Bloom();
             bloom.AddValue(logEvent.Address);
+            bloom.AddValue(logEvent.Name.GetBytes());
             foreach (var t in logEvent.Indexed)
             {
                 bloom.AddValue(t.ToByteArray());
