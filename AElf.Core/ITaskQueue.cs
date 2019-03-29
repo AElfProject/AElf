@@ -103,8 +103,8 @@ namespace AElf
 
             _defaultTaskQueue = _serviceProvider.GetService<ITaskQueue>();
 
-
-            Task.Factory.StartNew(() => _defaultTaskQueue.StartAsync(), TaskCreationOptions.LongRunning);
+            AsyncHelper.RunSync(() =>
+                Task.Factory.StartNew(() => _defaultTaskQueue.StartAsync(), TaskCreationOptions.LongRunning));
         }
 
         public void Dispose()
