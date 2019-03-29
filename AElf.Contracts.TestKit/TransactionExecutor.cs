@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,9 +31,12 @@ namespace AElf.Contracts.TestKit
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var minerService = _serviceProvider.GetRequiredService<IMinerService>();
+            var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
 
-            await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
+            var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 DateTime.UtcNow.AddMilliseconds(int.MaxValue));
+            
+            await blockAttachService.AttachBlockAsync(block);
         }
 
         public async Task<ByteString> ReadAsync(Transaction transaction)
