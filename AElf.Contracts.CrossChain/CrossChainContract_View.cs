@@ -8,6 +8,8 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
 {
+    // ReSharper disable once PossibleNullReferenceException
+
     public partial class CrossChainContract
     {
         public override CrossChainMerkleProofContext GetBoundParentChainHeightAndMerklePathByHeight(SInt64Value input)
@@ -33,18 +35,16 @@ namespace AElf.Contracts.CrossChain
             var parentChainHeight = input.ParentChainHeight;
             var path = input.Path;
             var txId = input.TransactionId;
-            var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
+            var merkleTreeRoot = input.VerifiedChainId == State.ParentChainId.Value
+                ? State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight]
+                : State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
             Assert(merkleTreeRoot != null,
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
-            var txResultStatusRawBytes =
-                EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
-            var rootCalculated =
-                new MerklePath(path).ComputeRootWith(Hash.FromRawBytes(txId.DumpByteArray().Concat(txResultStatusRawBytes).ToArray()));
+            var rootCalculated = ComputeRootWithTransactionStatusMerklePath(txId, path);
             
             //Api.Assert((parentRoot??Hash.Empty).Equals(rootCalculated), "Transaction verification Failed");
             return new BoolValue {Value = merkleTreeRoot.Equals(rootCalculated)};
         }
-        
         public override SInt32Value GetChainStatus(SInt32Value input)
         {
             var info = State.SideChainInfos[input.Value];

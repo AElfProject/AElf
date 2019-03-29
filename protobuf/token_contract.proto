@@ -219,7 +219,7 @@ message CrossChainTransferInput{
 }
 message CrossChainReceiveTokenInput{
     int32 fromChainId = 1;
-    int64 ParentChainHeight = 2;
-    bytes TransferTransactionBytes = 3;
-    repeated Hash MerklePath = 4;
+    int64 parentChainHeight = 2;
+    bytes transferTransactionBytes = 3;
+    repeated Hash merklePath = 4;
 }

@@ -125,6 +125,10 @@ namespace AElf.CrossChain.Grpc
                 return responseParentChainBlockData;
             
             responseParentChainBlockData.BlockData.Root.CrossChainExtraData = crossChainExtra;
+            var transactionStatusMerkleRoot =
+                _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header);
+            responseParentChainBlockData.BlockData.Root.TransactionStatusMerkleRoot = transactionStatusMerkleRoot;
+
             var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockInfoResult(block);
             var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, remoteSideChainId);
             foreach (var (sideChainHeight, merklePath) in enumerableMerklePath)

@@ -78,12 +78,13 @@ message InitializeInput {
 }
 
 message RechargeInput {
-    sint32 chainId = 1;
+    int32 chainId = 1;
     sint64 amount = 2;
 }
 
 message VerifyTransactionInput {
     Hash transactionId = 1;
-    repeated Hash Path = 2;
+    repeated Hash path = 2;
     sint64 parentChainHeight = 3;
+    int32 verifiedChainId = 4; 
 }
