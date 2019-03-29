@@ -36,7 +36,7 @@ namespace AElf.CrossChain.Grpc
                 option.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
             });
             
-            Configure<CrossChainConfigOption>(option=>option.ParentChainId = "AELF");
+            Configure<CrossChainConfigOption>(option=>option.ParentChainId = ChainHelpers.ConvertBase58ToChainId("AELF"));
             
             services.AddTransient<INodePlugin, GrpcCrossChainClientNodePlugin>();
             services.AddTransient<INodePlugin, GrpcCrossChainServerNodePlugin>();
