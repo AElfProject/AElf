@@ -75,8 +75,9 @@ namespace AElf.Kernel
                         var chain = await _blockchainService.GetChainAsync();
                         var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, chain.BestChainHash);
 
-                        Logger.LogInformation($"Lib setting, block: {block}, tx: {transactionHash}, offset: {offset}");
+                        Logger.LogInformation($"Start setting lib, block: {block}, tx: {transactionHash}, offset: {offset}");
                         await _blockchainService.SetIrreversibleBlockAsync(chain, libHeight, blockHash);
+                        Logger.LogInformation($"Finish setting lib");
                     }
                 }
             }

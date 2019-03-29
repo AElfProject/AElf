@@ -231,6 +231,9 @@ namespace AElf.Kernel.Blockchain.Domain
                 await SetChainBlockLinkAsync(chainBlockLink);
                 chain.LastIrreversibleBlockHash = chainBlockLink.BlockHash;
                 chain.LastIrreversibleBlockHeight = chainBlockLink.Height;
+
+                Logger.LogDebug($"Setting chain lib height: {chainBlockLink.Height}, chain lib hash: {chainBlockLink.BlockHash}");
+
                 await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
             }
         }

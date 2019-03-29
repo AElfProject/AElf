@@ -286,7 +286,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         #region ForTests
-
+        /*
         public void Create2(string symbol, int decimals, bool isBurnable, Address issuer, string tokenName,
             long totalSupply, Address whiteAddress)
         {
@@ -323,7 +323,7 @@ namespace AElf.Contracts.MultiToken
         }
 
 
-
+        */
         #endregion
     }
 }
