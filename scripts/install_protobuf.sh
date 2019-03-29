@@ -12,7 +12,7 @@ else
 fi
 
 if [ $osn == "macosx" ]; then
-    brew install protobuf
+    HOMEBREW_NO_AUTO_UPDATE=1 brew install protobuf
 elif [ $osn == "linux" ]; then
     # Make sure you grab the latest version
     curl -OL https://github.com/google/protobuf/releases/download/v3.7.0/protoc-3.7.0-linux-x86_64.zip
