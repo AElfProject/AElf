@@ -14,8 +14,9 @@ namespace AElf.OS.Handlers
     public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>,
         ILocalEventHandler<AnnouncementReceivedEventData>
     {
-        public IBlockchainService BlockchainService { get; set; }
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
+
+        private readonly IBlockchainService _blockchainService;
 
         private readonly ITaskQueueManager _taskQueueManager;
 
@@ -23,10 +24,12 @@ namespace AElf.OS.Handlers
 
         private const string BlockSyncQueueName = "BlockSyncQueue";
 
-        public PeerConnectedEventHandler(IServiceProvider serviceProvider, ITaskQueueManager taskQueueManager)
+        public PeerConnectedEventHandler(IServiceProvider serviceProvider, ITaskQueueManager taskQueueManager,
+            IBlockchainService blockchainService)
         {
             _taskQueueManager = taskQueueManager;
             _blockSyncJob = serviceProvider.GetRequiredService<BlockSyncJob>();
+            _blockchainService = blockchainService;
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
 
@@ -47,7 +50,7 @@ namespace AElf.OS.Handlers
 
             Logger.LogTrace($"Receive header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
 
-            var chain = await BlockchainService.GetChainAsync();
+            var chain = await _blockchainService.GetChainAsync();
             if (blockHeight < chain.LastIrreversibleBlockHeight)
             {
                 Logger.LogTrace(
@@ -60,7 +63,7 @@ namespace AElf.OS.Handlers
                 await _blockSyncJob.ExecuteAsync(new BlockSyncJobArgs
                 {
                     SuggestedPeerPubKey = senderPubKey,
-                    BlockHash = blockHash.ToHex(),
+                    BlockHash = blockHash,
                     BlockHeight = blockHeight
                 });
             });

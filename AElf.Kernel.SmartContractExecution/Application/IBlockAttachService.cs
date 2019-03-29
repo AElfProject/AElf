@@ -37,10 +37,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger.LogDebug($"Put block in the queue. block: {block}");
             _taskQueueManager.GetQueue(BlockAttachQueueName).Enqueue(async () =>
             {
-                await _blockchainService.AddBlockAsync(block);
-                var chain = await _blockchainService.GetChainAsync();
-                var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
-                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+                var existBlock = await _blockchainService.GetBlockHeaderByHashAsync(block.GetHash());
+                if (existBlock == null)
+                {
+                    await _blockchainService.AddBlockAsync(block);
+                    var chain = await _blockchainService.GetChainAsync();
+                    var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
+                    await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+                }
             });
         }
     }

@@ -17,18 +17,24 @@ namespace AElf.OS.Jobs
     public class BlockSyncJob
     {
         private const long InitialSyncLimit = 10;
-        public IBlockchainService BlockchainService { get; set; }
-        public INetworkService NetworkService { get; set; }
-        public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
+        
+        private readonly IBlockchainService _blockchainService;
+        private readonly INetworkService _networkService;
+        private readonly NetworkOptions _networkOptions;
+        private readonly IBlockAttachService _blockAttachService;
         
         public ILogger<BlockSyncJob> Logger { get; set; }
 
-        private readonly IBlockAttachService _blockAttachService;
-
-        public BlockSyncJob(IBlockAttachService blockAttachService)
+        public BlockSyncJob(IBlockAttachService blockAttachService,
+            IOptionsSnapshot<NetworkOptions> networkOptions,
+            IBlockchainService blockchainService,
+            INetworkService networkService)
         {
             Logger = NullLogger<BlockSyncJob>.Instance;
+            _networkOptions = networkOptions.Value;
 
+            _blockchainService = blockchainService;
+            _networkService = networkService;
             _blockAttachService = blockAttachService;
         }
 
@@ -37,20 +43,25 @@ namespace AElf.OS.Jobs
         {
             Logger.LogDebug($"Start block sync job, target height: {args.BlockHeight}, target block hash: {args.BlockHash}, peer: {args.SuggestedPeerPubKey}");
 
-            var chain = await BlockchainService.GetChainAsync();
+            var chain = await _blockchainService.GetChainAsync();
             try
             {
-                if (!args.BlockHash.IsNullOrEmpty() && args.BlockHeight - chain.BestChainHeight < 5)
+                if (args.BlockHeight <= chain.LastIrreversibleBlockHeight)
                 {
-                    var peerBlockHash = Hash.LoadHex(args.BlockHash);
-                    var peerBlock = await BlockchainService.GetBlockByHashAsync(peerBlockHash);
+                    return;
+                }
+
+                if (args.BlockHeight < chain.BestChainHeight + 5)
+                {
+                    var peerBlockHash = args.BlockHash;
+                    var peerBlock = await _blockchainService.GetBlockByHashAsync(peerBlockHash);
                     if (peerBlock != null)
                     {
                         Logger.LogDebug($"Block {peerBlock} already know.");
                         return;
                     }
 
-                    peerBlock = await NetworkService.GetBlockByHashAsync(peerBlockHash, args.SuggestedPeerPubKey);
+                    peerBlock = await _networkService.GetBlockByHashAsync(peerBlockHash, args.SuggestedPeerPubKey);
                     if (peerBlock == null)
                     {
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
@@ -58,24 +69,20 @@ namespace AElf.OS.Jobs
                     }
                     _blockAttachService.AttachBlock(peerBlock);
                     return;
-//                    if (!status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
-//                    {
-//                        return;
-//                    }
                 }
 
                 var blockHash = chain.LastIrreversibleBlockHash;
                 Logger.LogDebug($"Trigger sync blocks from peers, lib height: {chain.LastIrreversibleBlockHeight}, lib block hash: {blockHash}");
 
                 var blockHeight = chain.LastIrreversibleBlockHeight;
-                var count = NetworkOptions.Value.BlockIdRequestCount;
-                var peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
+                var count = _networkOptions.BlockIdRequestCount;
+                var peerBestChainHeight = await _networkService.GetBestChainHeightAsync();
                 while (true)
                 {
                     Logger.LogDebug($"Request blocks start with {blockHash}");
                     
                     var peer = peerBestChainHeight - blockHeight > InitialSyncLimit ? null : args.SuggestedPeerPubKey;
-                    var blocks = await NetworkService.GetBlocksAsync(blockHash, blockHeight, count, peer);
+                    var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, count, peer);
 
                     if (blocks == null || !blocks.Any())
                     {
@@ -102,8 +109,8 @@ namespace AElf.OS.Jobs
                         _blockAttachService.AttachBlock(block);
                     }
 
-                    chain = await BlockchainService.GetChainAsync();
-                    peerBestChainHeight = await NetworkService.GetBestChainHeightAsync();
+                    chain = await _blockchainService.GetChainAsync();
+                    peerBestChainHeight = await _networkService.GetBestChainHeightAsync();
                     if (chain.BestChainHeight >= peerBestChainHeight)
                     {
                         break;
