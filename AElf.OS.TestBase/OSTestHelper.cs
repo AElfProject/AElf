@@ -16,6 +16,7 @@ using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types.SmartContract;
@@ -38,7 +39,7 @@ namespace AElf.OS
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
-        private readonly IStaticChainInformationProvider _staticChainInformationProvider;
+        private readonly IBlockAttachService _blockAttachService;
         
         /// <summary>
         /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
@@ -61,7 +62,7 @@ namespace AElf.OS
             IBlockchainService blockchainService,
             ITxHub txHub,
             ISmartContractAddressService smartContractAddressService,
-            IStaticChainInformationProvider staticChainInformationProvider,
+            IBlockAttachService blockAttachService,
             IOptionsSnapshot<ChainOptions> chainOptions)
         {
             _chainOptions = chainOptions.Value;
@@ -71,7 +72,7 @@ namespace AElf.OS
             _minerService = minerService;
             _blockchainService = blockchainService;
             _smartContractAddressService = smartContractAddressService;
-            _staticChainInformationProvider = staticChainInformationProvider;
+            _blockAttachService = blockAttachService;
             _txHub = txHub;
 
             BestBranchBlockList = new List<Block>();
@@ -159,7 +160,7 @@ namespace AElf.OS
         {
             if (previousBlockHash == null || previousBlockHeight == 0)
             {
-                var chain = _blockchainService.GetChainAsync().Result;
+                var chain = await _blockchainService.GetChainAsync();
                 previousBlockHash = chain.BestChainHash;
                 previousBlockHeight = chain.BestChainHeight;
             }
@@ -167,6 +168,8 @@ namespace AElf.OS
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
                 DateTime.UtcNow.AddMilliseconds(4000));
 
+            await _blockAttachService.AttachBlockAsync(block);
+                
             return block;
         }
         
