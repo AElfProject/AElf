@@ -24,6 +24,8 @@ namespace AElf.WebApp.Application.Chain
         Task<byte[]> GetFileDescriptorSet(string address);
 
         Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction);
+
+        Task<string[]> BroadcastTransactions(string rawTransactions);
     }
     
     public class ChainAppService : IChainAppService
@@ -94,6 +96,13 @@ namespace AElf.WebApp.Application.Chain
             {
                 TransactionId = txIds[0]
             };
+        }
+        
+        public async Task<string[]> BroadcastTransactions(string rawTransactions)
+        {
+            var txIds = await PublishTransactionsAsync(rawTransactions.Split(","));
+            
+            return txIds;
         }
         
         private async Task<string[]> PublishTransactionsAsync(string[] rawTransactions)
