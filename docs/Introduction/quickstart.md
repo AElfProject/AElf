@@ -1,7 +1,5 @@
 # QuickStart
 
-# Docker quickstart
-
 # Manual build & run the sources
 
 This method is not as straightforward as the docker quickstart but is a lot more flexible. If your aim is to develop some dApps it's better you follow these more advanced ways of launching a node. This section will walk you through configuring, running and interacting with an AElf node.
