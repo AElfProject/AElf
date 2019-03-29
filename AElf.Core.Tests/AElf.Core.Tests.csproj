@@ -2,12 +2,12 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
+        <RootNamespace>AElf</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.BenchBase\AElf.BenchBase.csproj" />
-      <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
-      <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
+      <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
 
     <ItemGroup>
