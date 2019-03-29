@@ -15,23 +15,23 @@ dotnet publish  AElf.sln -o ~/aelf/
 docker build -t aelf/node:$TAG ~/aelf/.
 docker tag aelf/node:$TAG aelf/node:latest
 docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-docker push aelf/node:$TAG
-docker push aelf/node:latest
+#docker push aelf/node:$TAG
+#docker push aelf/node:latest
 
 
 # publish nuget
 # build
-for name in `ls -lh | grep ^d | grep AElf |grep -v Test|awk '{print $NF}'`;
+for name in `ls -lh | grep ^d | grep AElf |grep -v Tests|awk '{print $NF}'`;
 do
-  dotnet build ${name}/${name}.csproj --configuration Release -P:Version=${VERSION} -P:Authors=AElf -o ../
+	if [ -f $name/$name.csproj ] && [ 1 -eq $(grep -c "GeneratePackageOnBuild"  ${name}/${name}.csproj) ];then
+	    dotnet build ${name}/${name}.csproj --configuration Release -P:Version=${VERSION} -P:Authors=llyyss -o ../
+	fi
 done
-
-dotnet build AElf.Contracts.TestKit/AElf.Contracts.TestKit.csproj --configuration Release -P:Version=${VERSION} -P:Authors=AElf -o ../
 
 
 # push
 for name  in `ls *.nupkg`;
 do
   echo $name
-  dotnet nuget push ${name}  -k $NUGET_API_KEY  -s https://api.nuget.org/v3/index.json
+  #dotnet nuget push ${name}  -k $NUGET_API_KEY  -s https://api.nuget.org/v3/index.json
 done
