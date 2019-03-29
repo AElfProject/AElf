@@ -200,7 +200,7 @@ namespace AElf.Contracts.TokenConverter
             }
         }
 
-        [Fact(Skip = "")]
+        [Fact(Skip = "Manager account can't set connector")]
         public async Task Set_Connector_Success()
         {
             await InitializeTokenConverterContract();
@@ -224,7 +224,7 @@ namespace AElf.Contracts.TokenConverter
             ramNewInfo.IsPurchaseEnabled.ShouldBeFalse();
         }
 
-        [Fact(Skip = "")]
+        [Fact(Skip = "Manager account can't set connector")]
         public async Task NullConnectors_Set_Connector()
         {
             var input = new InitializeInput
@@ -272,7 +272,7 @@ namespace AElf.Contracts.TokenConverter
             result.Error.Contains("Only manager can perform this action.").ShouldBeTrue();
         }
 
-        [Fact(Skip = "")]
+        [Fact(Skip = "GetBalance got exception")]
         public async Task Buy_Success()
         {
             await CreatRamToken();
