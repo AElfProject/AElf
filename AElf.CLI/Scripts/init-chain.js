@@ -1,6 +1,6 @@
 (function () {
     function getContractZero(cRes) {
-        var addressZero = cRes.BasicContractZero;
+        var addressZero = cRes.GenesisContractAddress;
         if (typeof addressZero === 'undefined') {
             addressZero = cRes['AElf.Contracts.Genesis'];
         }
@@ -22,15 +22,14 @@
         }
         return aelf.chain.contractAt(crossChainAddress, _account);
     }
-    
+
     if (aelf.isConnected()) {
         console.log("connect...");
-
-        var cRes = aelf.chain.connectChain();
+        var cRes = aelf.chain.getChainInformation();
         chain = {
             contractZero: getContractZero(cRes),
             // authorizationContract: getAuthorization(cRes),
-            crossChainContract: getCrossChain(cRes)
+            // crossChainContract: getCrossChain(cRes)
         };
     }
 })();

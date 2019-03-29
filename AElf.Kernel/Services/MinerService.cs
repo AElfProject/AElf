@@ -86,11 +86,6 @@ namespace AElf.Kernel.Services
                                   $"previous: {block.Header.PreviousBlockHash}, " +
                                   $"transactions: {block.Body.TransactionsCount}");
 
-            await _blockchainService.AddBlockAsync(block);
-            var chain = await _blockchainService.GetChainAsync();
-            var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
-            await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
-
             await SignBlockAsync(block);
             // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
             //await _txHub.OnNewBlock(block);
