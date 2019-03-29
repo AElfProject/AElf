@@ -1,14 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.WebApp.Application.Chain
 {
@@ -19,6 +22,8 @@ namespace AElf.WebApp.Application.Chain
         Task<string> Call(string rawTransaction);
 
         Task<byte[]> GetFileDescriptorSet(string address);
+
+        Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction);
     }
     
     public class ChainAppService : IChainAppService
@@ -27,6 +32,8 @@ namespace AElf.WebApp.Application.Chain
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         public ILogger<ChainAppService> Logger { get; set; }
+        
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public ChainAppService(IBlockchainService blockchainService,
             ISmartContractAddressService smartContractAddressService,
@@ -38,6 +45,7 @@ namespace AElf.WebApp.Application.Chain
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             
             Logger = NullLogger<ChainAppService>.Instance;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
         
         public Task<GetChainInformationOutput> GetChainInformation()
@@ -79,6 +87,47 @@ namespace AElf.WebApp.Application.Chain
             }
         }
         
+        public async Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction)
+        {
+            var txIds = await PublishTransactionsAsync(new []{rawTransaction});
+            return new BroadcastTransactionOutput
+            {
+                TransactionId = txIds[0]
+            };
+        }
+        
+        private async Task<string[]> PublishTransactionsAsync(string[] rawTransactions)
+        {
+            var txIds = new string[rawTransactions.Length];
+            var transactions = new List<Transaction>();
+            for (var i = 0; i < rawTransactions.Length; i++)
+            {
+                Transaction transaction;
+                try
+                {
+                    var hexString = ByteArrayHelpers.FromHexString(rawTransactions[i]);
+                    transaction = Transaction.Parser.ParseFrom(hexString);
+                }
+                catch
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
+                }
+
+                if (!transaction.VerifySignature())
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
+                }
+
+                transactions.Add(transaction);
+                txIds[i] = transaction.GetHash().ToHex();
+            }
+
+            await LocalEventBus.PublishAsync(new TransactionsReceivedEvent()
+            {
+                Transactions = transactions
+            });
+            return txIds;
+        }
         
         private async Task<byte[]> GetFileDescriptorSetAsync(Address address)
         {
