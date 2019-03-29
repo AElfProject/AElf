@@ -589,21 +589,18 @@ namespace AElf.Contract.CrossChain.Tests
             var indexingTx = await GenerateTransactionAsync(CrossChainContractAddress,
                 CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
             await MineAsync(new List<Transaction> {indexingTx});
-            
-            var txRes = await ExecuteContractWithMiningAsync(
-                TokenContractAddress,
-                nameof(TokenContract.CrossChainReceiveToken),
-                new CrossChainReceiveTokenInput
-                {
-                    FromChainId = chainId,
-                    MerklePath = merklePath,
-                    ParentChainHeight = parentChainHeight,
-                    TransferTransactionBytes = tx.ToByteString()
-                });
+            var crossChainReceiveTokenInput = new CrossChainReceiveTokenInput
+            {
+                FromChainId = chainId,
+                ParentChainHeight = parentChainHeight,
+                TransferTransactionBytes = tx.ToByteString()
+            };
+            crossChainReceiveTokenInput.MerklePath.AddRange(merklePath.Path);
+            var txRes = await ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContract.CrossChainReceiveToken), crossChainReceiveTokenInput);
             Assert.True(txRes.Status == TransactionResultStatus.Mined);
         }
         
-
         #endregion
     }
 }

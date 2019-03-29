@@ -123,6 +123,7 @@ namespace AElf.Contracts.MultiToken
             var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
             var transferTransactionHash = transferTransaction.GetHash();
 
+            Context.LogDebug(() => $"transferTransactionHash == {transferTransactionHash}");
             Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionHash] == null,
                 "Token already claimed.");
             
@@ -131,6 +132,10 @@ namespace AElf.Contracts.MultiToken
             var amount = crossChainTransferInput.Amount;
             var receivingAddress = crossChainTransferInput.To;
             var targetChainId = crossChainTransferInput.ToChainId;
+
+            Context.LogDebug(() =>
+                $"symbol == {symbol}, amount == {amount}, receivingAddress == {receivingAddress}, targetChainId == {targetChainId}");
+            
             Assert(receivingAddress.Equals(Context.Sender) && targetChainId == Context.ChainId,
                 "Unable to receive cross chain token.");
             AssertValidToken(symbol, amount);
@@ -142,7 +147,10 @@ namespace AElf.Contracts.MultiToken
                 TransactionId = transferTransactionHash,
                 ParentChainHeight = input.ParentChainHeight
             };
-            verificationInput.Path.AddRange(input.MerklePath.Path);
+            verificationInput.Path.AddRange(input.MerklePath);
+            if (State.CrossChainContractReferenceState.Value == null)
+                State.CrossChainContractReferenceState.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.CrossChainContractSystemName.Value);
             var verificationResult =
                 State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Verification failed.");

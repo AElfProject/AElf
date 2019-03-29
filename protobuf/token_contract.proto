@@ -221,5 +221,5 @@ message CrossChainReceiveTokenInput{
     int32 fromChainId = 1;
     int64 ParentChainHeight = 2;
     bytes TransferTransactionBytes = 3;
-    MerklePath MerklePath = 4;
+    repeated Hash MerklePath = 4;
 }
