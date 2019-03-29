@@ -16,24 +16,7 @@ namespace AElf.Sdk.CSharp
 
         public static void Fire<T>(this CSharpSmartContractContext context, T eventData) where T : IEvent<T>
         {
-            var le = new LogEvent()
-            {
-                Address = context.Self,
-                Name = eventData.Descriptor.Name
-            };
-
-            foreach (var indexed in eventData.GetIndexed())
-            {
-                var byteString = indexed.ToByteString();
-                if (byteString.Length == 0)
-                {
-                    continue;
-                }
-                le.Indexed.Add(byteString);
-            }
-
-            le.NonIndexed = eventData.GetNonIndexed().ToByteString();
-            context.FireLogEvent(le);
+            context.FireLogEvent(eventData.ToLogEvent(context.Self));
         }
         //TODO: Add SmartContractBridgeContextExtensions test case [Case]
 
