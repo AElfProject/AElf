@@ -7,15 +7,18 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp;
 using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Chain
 {
     public interface IChainAppService : IApplicationService
     {
-        Task<WebAppOutput<GetChainInformationResult>> GetChainInformation();
+        Task<GetChainInformationOutput> GetChainInformation();
 
-        Task<WebAppOutput<string>> Call(string rawTransaction);
+        Task<string> Call(string rawTransaction);
+
+        Task<byte[]> GetFileDescriptorSet(string address);
     }
     
     public class ChainAppService : IChainAppService
@@ -37,40 +40,56 @@ namespace AElf.WebApp.Application.Chain
             Logger = NullLogger<ChainAppService>.Instance;
         }
         
-        public Task<WebAppOutput<GetChainInformationResult>> GetChainInformation()
+        public Task<GetChainInformationOutput> GetChainInformation()
         {
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
 
-            return Task.FromResult(new WebAppOutput<GetChainInformationResult>
+            return Task.FromResult(new GetChainInformationOutput
             {
-                Result = new GetChainInformationResult
-                {
-                    GenesisContractAddress = basicContractZero?.GetFormatted(),
-                    ChainId = ChainHelpers.ConvertChainIdToBase58(_blockchainService.GetChainId())
-                }
+                GenesisContractAddress = basicContractZero?.GetFormatted(),
+                ChainId = ChainHelpers.ConvertChainIdToBase58(_blockchainService.GetChainId())
             });
         }
 
-        public async Task<WebAppOutput<string>> Call(string rawTransaction)
+        public async Task<string> Call(string rawTransaction)
         {
             try
             {
                 var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
                 var response = await CallReadOnly(transaction);
-                return new WebAppOutput<string>
-                {
-                    Result = response?.ToHex()
-                };
+                return response?.ToHex();
             }
             catch
             {
-                return new WebAppOutput<string>
-                {
-                    Code = Error.InvalidTransaction,
-                    Message = Error.Message[Error.InvalidTransaction]
-                };
+                throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
             }
+        }
+        
+        public async Task<byte[]> GetFileDescriptorSet(string address)
+        {
+            try
+            {
+                var result = await GetFileDescriptorSetAsync(Address.Parse(address));
+                return result;
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            }
+        }
+        
+        
+        private async Task<byte[]> GetFileDescriptorSetAsync(Address address)
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var chainContext = new ChainContext()
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+
+            return await _transactionReadOnlyExecutionService.GetFileDescriptorSetAsync(chainContext, address);
         }
         
         private async Task<byte[]> CallReadOnly(Transaction tx)
