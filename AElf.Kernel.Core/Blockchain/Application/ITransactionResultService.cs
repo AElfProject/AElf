@@ -91,7 +91,6 @@ namespace AElf.Kernel.Blockchain.Application
             var blockHash = eventData.BlockHash;
             while (true)
             {
-                var chain = await _blockchainService.GetChainAsync();
                 var block = await _blockchainService.GetBlockByHashAsync(blockHash);
 
                 var preMiningHash = block.Header.GetPreMiningHash();
