@@ -18,15 +18,18 @@ namespace AElf.OS.Jobs
     {
         private const long InitialSyncLimit = 10;
         public IBlockchainService BlockchainService { get; set; }
-        public IBlockchainExecutingService BlockchainExecutingService { get; set; }
         public INetworkService NetworkService { get; set; }
         public IOptionsSnapshot<NetworkOptions> NetworkOptions { get; set; }
         
         public ILogger<BlockSyncJob> Logger { get; set; }
 
-        public BlockSyncJob()
+        private readonly IBlockAttachService _blockAttachService;
+
+        public BlockSyncJob(IBlockAttachService blockAttachService)
         {
             Logger = NullLogger<BlockSyncJob>.Instance;
+
+            _blockAttachService = blockAttachService;
         }
 
         //TODO: Add ExecuteAsync case [Case]
@@ -53,11 +56,12 @@ namespace AElf.OS.Jobs
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
                         return;
                     }
-                    var status = await AttachBlockToChain(peerBlock);
-                    if (!status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
-                    {
-                        return;
-                    }
+                    _blockAttachService.AttachBlock(peerBlock);
+                    return;
+//                    if (!status.HasFlag(BlockAttachOperationStatus.NewBlockNotLinked))
+//                    {
+//                        return;
+//                    }
                 }
 
                 var blockHash = chain.LastIrreversibleBlockHash;
@@ -95,7 +99,7 @@ namespace AElf.OS.Jobs
                             break;
                         }
                         Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
-                        await AttachBlockToChain(block);
+                        _blockAttachService.AttachBlock(block);
                     }
 
                     chain = await BlockchainService.GetChainAsync();
@@ -118,15 +122,6 @@ namespace AElf.OS.Jobs
             {
                 Logger.LogDebug($"Finishing block sync job, longest chain height: {chain.LongestChainHeight}");
             }
-        }
-
-        private async Task<BlockAttachOperationStatus> AttachBlockToChain(Block block)
-        {
-            var chain = await BlockchainService.GetChainAsync();
-            await BlockchainService.AddBlockAsync(block);
-            var status = await BlockchainService.AttachBlockToChainAsync(chain, block);                        
-            await BlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
-            return status;
         }
     }
 }

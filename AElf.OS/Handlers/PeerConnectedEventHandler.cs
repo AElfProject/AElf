@@ -21,7 +21,7 @@ namespace AElf.OS.Handlers
 
         private readonly BlockSyncJob _blockSyncJob;
 
-        private const string BlockSyncQueue = "BlockSyncQueue";
+        private const string BlockSyncQueueName = "BlockSyncQueue";
 
         public PeerConnectedEventHandler(IServiceProvider serviceProvider, ITaskQueueManager taskQueueManager)
         {
@@ -55,7 +55,7 @@ namespace AElf.OS.Handlers
                 return;
             }
 
-            _taskQueueManager.GetQueue(BlockSyncQueue).Enqueue(async () =>
+            _taskQueueManager.GetQueue(BlockSyncQueueName).Enqueue(async () =>
             {
                 await _blockSyncJob.ExecuteAsync(new BlockSyncJobArgs
                 {

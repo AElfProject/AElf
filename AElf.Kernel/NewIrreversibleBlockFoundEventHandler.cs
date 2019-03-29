@@ -13,7 +13,7 @@ namespace AElf.Kernel
     public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
         ITransientDependency
     {
-        private const string MergeBlockStateQueue = "MergeBlockStateQueue";
+        private const string MergeBlockStateQueueName = "MergeBlockStateQueue";
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainStateMergingService _blockchainStateMergingService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
@@ -28,7 +28,7 @@ namespace AElf.Kernel
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            _taskQueueManager.GetQueue(MergeBlockStateQueue).Enqueue(async () =>
+            _taskQueueManager.GetQueue(MergeBlockStateQueueName).Enqueue(async () =>
             {
                 await _blockchainStateMergingService.MergeBlockStateAsync(eventData.BlockHeight,
                     eventData.BlockHash);
