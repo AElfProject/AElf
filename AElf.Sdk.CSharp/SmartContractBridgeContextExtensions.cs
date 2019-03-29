@@ -15,7 +15,7 @@ namespace AElf.Sdk.CSharp
         //TODO: Add SmartContractBridgeContextExtensions test case [Case]
 
         public static T Call<T>(this ISmartContractBridgeContext context, IStateCache stateCache, Address address,
-            string methodName, IMessage message)
+            string methodName, IMessage message) where T:IMessage<T>, new()
         {
             return context.Call<T>(stateCache, address, methodName, ConvertToByteString(message));
         }
@@ -32,9 +32,9 @@ namespace AElf.Sdk.CSharp
             context.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
                 ConvertToByteString(message));
         }
-        
+
         public static T Call<T>(this CSharpSmartContractContext context, IStateCache stateCache, Address address,
-            string methodName, IMessage message)
+            string methodName, IMessage message) where T : IMessage<T>, new()
         {
             return context.Call<T>(stateCache, address, methodName, ConvertToByteString(message));
         }

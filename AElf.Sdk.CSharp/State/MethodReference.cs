@@ -2,7 +2,7 @@ using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
 {
-    public class MethodReference<TInput, TOutput> where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
+    public class MethodReference<TInput, TOutput> where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
     {
         private readonly ContractReferenceState _parent;
         private readonly string _name;
