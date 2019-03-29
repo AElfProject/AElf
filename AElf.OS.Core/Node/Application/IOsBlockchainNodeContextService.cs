@@ -181,11 +181,10 @@ namespace AElf.OS.Node.Application
                 }.ToByteString()
             };
         }
-
-        //TODO: StopAsync need case cover [Case]
+        
         public async Task StopAsync(OsBlockchainNodeContext blockchainNodeContext)
         {
-            await _networkServer.StopAsync();
+            await _networkServer.StopAsync(false);
 
             await _blockchainNodeContextService.StopAsync(blockchainNodeContext.BlockchainNodeContext);
 
