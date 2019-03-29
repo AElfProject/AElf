@@ -40,6 +40,8 @@ namespace AElf.WebApp.Application.Chain
         Task<BlockDto> GetBlockInfo(long blockHeight, bool includeTransactions = false);
 
         Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus();
+
+        Task<ChainStatusDto> GetChainStatus();
     }
     
     public class ChainAppService : IChainAppService
@@ -235,7 +237,6 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
 
-            // TODO: Create DTO Exntension for Block
             var blockDto = new BlockDto
             {
                 BlockHash = blockInfo.GetHash().ToHex(),
@@ -278,6 +279,38 @@ namespace AElf.WebApp.Application.Chain
             return new GetTransactionPoolStatusOutput
             {
                 Queued = queued
+            };
+        }
+        
+        public async Task<ChainStatusDto> GetChainStatus()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var branches = JsonConvert.DeserializeObject<Dictionary<string,long>>(chain.Branches.ToString());
+            var formattedNotLinkedBlocks = new List<NotLinkedBlockDto>();
+
+            foreach (var notLinkedBlock in chain.NotLinkedBlocks)
+            {
+                var block = await this.GetBlock(Hash.LoadHex(notLinkedBlock.Value));
+                formattedNotLinkedBlocks.Add(new NotLinkedBlockDto
+                    {
+                        BlockHash = block.GetHash().ToHex(),
+                        Height = block.Height,
+                        PreviousBlockHash = block.Header.PreviousBlockHash.ToHex()
+                    }
+                );
+            }
+
+            return new ChainStatusDto()
+            {
+                Branches = branches,
+                NotLinkedBlocks = formattedNotLinkedBlocks,
+                LongestChainHeight = chain.LongestChainHeight,
+                LongestChainHash = chain.LongestChainHash?.ToHex(),
+                GenesisBlockHash = chain.GenesisBlockHash.ToHex(),
+                LastIrreversibleBlockHash = chain.LastIrreversibleBlockHash?.ToHex(),
+                LastIrreversibleBlockHeight = chain.LastIrreversibleBlockHeight,
+                BestChainHash = chain.BestChainHash?.ToHex(),
+                BestChainHeight = chain.BestChainHeight
             };
         }
         
