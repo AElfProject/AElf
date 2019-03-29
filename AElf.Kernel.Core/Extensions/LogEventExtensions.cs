@@ -1,5 +1,3 @@
-using System;
-using AElf.Common;
 
 namespace AElf.Kernel
 {
