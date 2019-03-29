@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.Extensions.Logging;
@@ -42,6 +43,8 @@ namespace AElf.WebApp.Application.Chain
         Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus();
 
         Task<ChainStatusDto> GetChainStatus();
+
+        Task<BlockStateDto> GetBlockState(string blockHash);
     }
     
     public class ChainAppService : IChainAppService
@@ -52,6 +55,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly ITxHub _txHub;
+        public IStateStore<BlockStateSet> _blockStateSets;
         public ILogger<ChainAppService> Logger { get; set; }
         
         public ILocalEventBus LocalEventBus { get; set; }
@@ -61,7 +65,8 @@ namespace AElf.WebApp.Application.Chain
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ITransactionManager transactionManager,
             ITransactionResultQueryService transactionResultQueryService,
-            ITxHub txHub
+            ITxHub txHub,
+            IStateStore<BlockStateSet> blockStateSets
             )
         {
             _blockchainService = blockchainService;
@@ -70,6 +75,7 @@ namespace AElf.WebApp.Application.Chain
             _transactionManager = transactionManager;
             _transactionResultQueryService = transactionResultQueryService;
             _txHub = txHub;
+            _blockStateSets = blockStateSets;
             
             Logger = NullLogger<ChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -312,6 +318,14 @@ namespace AElf.WebApp.Application.Chain
                 BestChainHash = chain.BestChainHash?.ToHex(),
                 BestChainHeight = chain.BestChainHeight
             };
+        }
+        
+        public async Task<BlockStateDto> GetBlockState(string blockHash)
+        {
+            var blockState = await _blockStateSets.GetAsync(blockHash);
+            if (blockState == null)
+                throw new UserFriendlyException(Error.Message[Error.NotFound],Error.NotFound.ToString());
+            return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
         }
         
         private async Task<Block> GetBlock(Hash blockHash)
