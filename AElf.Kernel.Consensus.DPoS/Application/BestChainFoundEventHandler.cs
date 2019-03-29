@@ -14,36 +14,16 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     // ReSharper disable InconsistentNaming
     public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
     {
-        private readonly IBlockchainService _blockchainService;
         private readonly IIrreversibleBlockDiscoveryService _irreversibleBlockDiscoveryService;
-        public ILogger<BestChainFoundEventHandler> Logger { get; set; }
-        public ILocalEventBus LocalEventBus { get; set; }
 
-        public BestChainFoundEventHandler(IBlockchainService blockchainService,
-            IIrreversibleBlockDiscoveryService irreversibleBlockDiscoveryService)
+        public BestChainFoundEventHandler(IIrreversibleBlockDiscoveryService irreversibleBlockDiscoveryService)
         {
             _irreversibleBlockDiscoveryService = irreversibleBlockDiscoveryService;
-            _blockchainService = blockchainService;
-            LocalEventBus = NullLocalEventBus.Instance;
-            Logger = NullLogger<BestChainFoundEventHandler>.Instance;
         }
-
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            if (eventData.ExecutedBlocks == null)
-            {
-                return;
-            }
-
-            var libHeights = await _irreversibleBlockDiscoveryService.DiscoverFromBlocksAsync(eventData.ExecutedBlocks);
-            var chain = await _blockchainService.GetChainAsync();
-            foreach (var height in libHeights)
-            {
-                var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, height, chain.BestChainHash);
-
-                await _blockchainService.SetIrreversibleBlockAsync(chain, height, blockHash);
-            }
+            await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(eventData.ExecutedBlocks);
         }
     }
 }

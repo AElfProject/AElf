@@ -10,6 +10,7 @@ using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
@@ -78,5 +79,13 @@ namespace AElf.Kernel.Consensus.DPoS
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddTransient<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
         }
+    }
+    
+    [DependsOn(
+        typeof(KernelTestAElfModule),
+        typeof(KernelCoreWithChainTestAElfModule),
+        typeof(DPoSConsensusAElfModule))]
+    public class LibTestModule : AElfModule
+    {
     }
 }

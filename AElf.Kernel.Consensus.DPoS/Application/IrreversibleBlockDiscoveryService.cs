@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -14,7 +15,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 {
     public interface IIrreversibleBlockDiscoveryService
     {
-        Task<IEnumerable<long>> DiscoverFromBlocksAsync(IEnumerable<Hash> blockIds);
+        Task DiscoverAndSetIrreversibleAsync(IEnumerable<Hash> blockIds);
     }
 
     public class IrreversibleBlockDiscoveryService : IIrreversibleBlockDiscoveryService
@@ -47,6 +48,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 // already prepared
                 return;
             }
+
             _contractAddress =
                 _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
             _interestedEvent = new IrreversibleBlockFound();
@@ -54,9 +56,15 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             _bloom = _logEvent.GetBloom();
         }
 
-        public async Task<IEnumerable<long>> DiscoverFromBlocksAsync(IEnumerable<Hash> blockIds)
+        public async Task DiscoverAndSetIrreversibleAsync(IEnumerable<Hash> blockIds)
         {
             PrepareBloom();
+            var heights = await DiscoverIrreversibleHeights(blockIds);
+            await SetIrreversibleAsync(heights);
+        }
+
+        private async Task<IEnumerable<long>> DiscoverIrreversibleHeights(IEnumerable<Hash> blockIds)
+        {
             var output = new List<long>();
             foreach (var blockId in blockIds)
             {
@@ -105,6 +113,17 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             }
 
             return output;
+        }
+
+        private async Task SetIrreversibleAsync(IEnumerable<long> heights)
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            foreach (var height in heights)
+            {
+                var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, height, chain.BestChainHash);
+
+                await _blockchainService.SetIrreversibleBlockAsync(chain, height, blockHash);
+            }
         }
     }
 }

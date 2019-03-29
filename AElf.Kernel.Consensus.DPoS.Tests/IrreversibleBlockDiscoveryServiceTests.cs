@@ -1,34 +1,30 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
-using AElf.Types.CSharp;
-using Google.Protobuf;
+using AElf.TestBase;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Consensus.DPoS
 {
-    public class LibBestChainFoundEventHandlerTests : KernelWithChainTestBase
+    public class IrreversibleBlockDiscoveryServiceTests : AElfIntegratedTest<LibTestModule>
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IBlockchainService _blockchainService;
-        private readonly BestChainFoundEventHandler _bestChainFoundEventHandler;
+        private readonly IIrreversibleBlockDiscoveryService _irreversibleBlockDiscoveryService;
         private readonly KernelTestHelper _kernelTestHelper;
         
         private readonly Address _consensusAddress = Address.FromString("ConsensusAddress");
 
-        public LibBestChainFoundEventHandlerTests()
+        public IrreversibleBlockDiscoveryServiceTests()
         {
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
-            _bestChainFoundEventHandler = GetRequiredService<BestChainFoundEventHandler>();
+            _irreversibleBlockDiscoveryService = GetRequiredService<IIrreversibleBlockDiscoveryService>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
 
             _smartContractAddressService.SetAddress(ConsensusSmartContractAddressNameProvider.Name, _consensusAddress);
@@ -45,25 +41,7 @@ namespace AElf.Kernel
                 var currentLibHeight = chain.LastIrreversibleBlockHeight;
                 var currentLibHash = chain.LastIrreversibleBlockHash;
 
-                var eventData = new BestChainFoundEventData();
-                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
-
-                LibShouldBe(currentLibHeight, currentLibHash);
-            }
-
-            {
-                // Empty event 
-                //             BestChainHeight: 11
-                // LastIrreversibleBlockHeight: 5
-                var chain = await _blockchainService.GetChainAsync();
-                var currentLibHeight = chain.LastIrreversibleBlockHeight;
-                var currentLibHash = chain.LastIrreversibleBlockHash;
-
-                var eventData = new BestChainFoundEventData
-                {
-                    ExecutedBlocks = new List<Hash>()
-                };
-                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
+                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(new List<Hash>());
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -83,13 +61,8 @@ namespace AElf.Kernel
                     List<Transaction> {transaction}, new List<TransactionResult> {transactionResult});
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
-                var eventData = new BestChainFoundEventData
-                {
-                    BlockHash = newBlock.GetHash(),
-                    BlockHeight = newBlock.Height,
-                    ExecutedBlocks = new List<Hash> {newBlock.GetHash()}
-                };
-                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
+                var executedBlocks = new List<Hash> {newBlock.GetHash()};
+                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(executedBlocks);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -114,13 +87,8 @@ namespace AElf.Kernel
                     new List<Transaction> {transaction}, new List<TransactionResult> {transactionResult});
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
-                var eventData = new BestChainFoundEventData
-                {
-                    BlockHash = newBlock.GetHash(),
-                    BlockHeight = newBlock.Height,
-                    ExecutedBlocks = new List<Hash> {newBlock.GetHash()}
-                };
-                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
+                var executedBlocks = new List<Hash> {newBlock.GetHash()};
+                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(executedBlocks);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -145,13 +113,8 @@ namespace AElf.Kernel
                     new List<Transaction> {transaction}, new List<TransactionResult> {transactionResult});
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
-                var eventData = new BestChainFoundEventData
-                {
-                    BlockHash = newBlock.GetHash(),
-                    BlockHeight = newBlock.Height,
-                    ExecutedBlocks = new List<Hash> {newBlock.GetHash()}
-                };
-                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
+                var executedBlocks = new List<Hash> {newBlock.GetHash()};
+                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(executedBlocks);
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -174,16 +137,10 @@ namespace AElf.Kernel
                     new List<Transaction> {transaction}, new List<TransactionResult> {transactionResult});
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
-                var eventData = new BestChainFoundEventData
-                {
-                    BlockHash = newBlock.GetHash(),
-                    BlockHeight = newBlock.Height,
-                    ExecutedBlocks = new List<Hash> {newBlock.GetHash()}
-                };
-
                 var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, 10, chain.LongestChainHash);
 
-                await _bestChainFoundEventHandler.HandleEventAsync(eventData);
+                var executedBlocks = new List<Hash> {newBlock.GetHash()};
+                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(executedBlocks);
 
                 LibShouldBe(10, libHash);
             }
