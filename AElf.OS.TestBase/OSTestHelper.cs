@@ -39,7 +39,7 @@ namespace AElf.OS
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
-        private readonly IBlockchainExecutingService _blockchainExecutingService;
+        private readonly IBlockAttachService _blockAttachService;
         
         /// <summary>
         /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
@@ -62,7 +62,7 @@ namespace AElf.OS
             IBlockchainService blockchainService,
             ITxHub txHub,
             ISmartContractAddressService smartContractAddressService,
-            IBlockchainExecutingService blockchainExecutingService,
+            IBlockAttachService blockAttachService,
             IOptionsSnapshot<ChainOptions> chainOptions)
         {
             _chainOptions = chainOptions.Value;
@@ -72,7 +72,7 @@ namespace AElf.OS
             _minerService = minerService;
             _blockchainService = blockchainService;
             _smartContractAddressService = smartContractAddressService;
-            _blockchainExecutingService = blockchainExecutingService;
+            _blockAttachService = blockAttachService;
             _txHub = txHub;
 
             BestBranchBlockList = new List<Block>();
@@ -167,11 +167,8 @@ namespace AElf.OS
 
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
                 DateTime.UtcNow.AddMilliseconds(4000));
-            
-            await _blockchainService.AddBlockAsync(block);
-            var chainInfo = await _blockchainService.GetChainAsync();
-            var status = await _blockchainService.AttachBlockToChainAsync(chainInfo, block);
-            await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chainInfo, status);
+
+            await _blockAttachService.AttachBlockAsync(block);
                 
             return block;
         }

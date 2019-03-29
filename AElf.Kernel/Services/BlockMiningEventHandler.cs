@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.EventMessages;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -14,12 +15,15 @@ namespace AElf.Kernel.Miner.Application
     {
         private readonly IMinerService _minerService;
         private readonly IBlockAttachService _blockAttachService;
+        private readonly ITaskQueueManager _taskQueueManager;
         public ILogger<BlockMiningEventHandler> Logger { get; set; }
 
-        public BlockMiningEventHandler(IMinerService minerService, IBlockAttachService blockAttachService)
+        public BlockMiningEventHandler(IMinerService minerService, IBlockAttachService blockAttachService,
+            ITaskQueueManager taskQueueManager)
         {
             _minerService = minerService;
             _blockAttachService = blockAttachService;
+            _taskQueueManager = taskQueueManager;
             Logger = NullLogger<BlockMiningEventHandler>.Instance;
         }
 
@@ -30,7 +34,8 @@ namespace AElf.Kernel.Miner.Application
                 var block = await _minerService.MineAsync(eventData.PreviousBlockHash, eventData.PreviousBlockHeight,
                     eventData.DueTime);
 
-                _blockAttachService.AttachBlock(block);
+                _blockAttachService.EnqueueAttachBlock(_taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName),
+                    block);
             }
             catch (Exception e)
             {

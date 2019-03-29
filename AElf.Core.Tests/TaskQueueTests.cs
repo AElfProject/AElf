@@ -26,7 +26,7 @@ namespace AElf
         }
 
         [Fact]
-        public void Test_Enqueue()
+        public async Task Test_Enqueue()
         {
             var result = 1;
             var testQueue = _taskQueueManager.GetQueue("TestQueue");
@@ -39,12 +39,12 @@ namespace AElf
                 });
             });
 
-            Thread.Sleep(1000);
+            await Task.Delay(100);
             result.ShouldBe(101);
         }
         
         [Fact]
-        public void Test_Many_Enqueue()
+        public async Task Test_Many_Enqueue()
         {
             var testData = new int[3];
             var testQueueA = _taskQueueManager.GetQueue("TestQueueA");
@@ -58,14 +58,14 @@ namespace AElf
                 testQueueC.Enqueue(async () => { testData[2]++; });
             });
 
-            Thread.Sleep(1000);
+            await Task.Delay(100);
             testData[0].ShouldBe(100);
             testData[1].ShouldBe(100);
             testData[2].ShouldBe(100);
         }
 
         [Fact]
-        public void Test_Dispose()
+        public async Task Test_Dispose()
         {
             var result = 1;
             
@@ -76,18 +76,18 @@ namespace AElf
                 testQueue.Enqueue(async () =>
                 {
                     var value = result;
-                    await Task.Delay(1000);
+                    await Task.Delay(100);
                     result = value + 1;
                 });
             });
             testQueue.Dispose();
             
-            Thread.Sleep(2000);
+            await Task.Delay(300);
             result.ShouldBe(2);
 
             testQueue.Enqueue(async () => { result++; });
             
-            Thread.Sleep(2000);
+            await Task.Delay(100);
             result.ShouldBe(2);
         }
         

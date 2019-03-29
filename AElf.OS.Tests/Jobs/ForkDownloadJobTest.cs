@@ -21,6 +21,8 @@ namespace AElf.OS.Jobs
         {
             await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 12});
 
+            await Task.Delay(500);
+            
             var chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(15);
         }
@@ -30,6 +32,8 @@ namespace AElf.OS.Jobs
         {
             await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 25});
 
+            await Task.Delay(500);
+            
             var chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(15);
         }
@@ -40,6 +44,8 @@ namespace AElf.OS.Jobs
             await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 3});
             await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 3});
 
+            await Task.Delay(500);
+            
             var chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(15);
         }
@@ -50,6 +56,8 @@ namespace AElf.OS.Jobs
             await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 12});
             await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 15});
 
+            await Task.Delay(500);
+            
             var chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(15);
         }

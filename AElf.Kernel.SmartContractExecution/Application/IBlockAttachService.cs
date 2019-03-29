@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using Microsoft.Extensions.Logging;
@@ -9,44 +8,43 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public interface IBlockAttachService
     {
-        void AttachBlock(Block block);
+        Task AttachBlockAsync(Block block);
     }
 
     public class BlockAttachService : IBlockAttachService, ITransientDependency
-    {      
+    {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
-        private readonly ITaskQueueManager _taskQueueManager;
-        
         public ILogger<BlockAttachService> Logger { get; set; }
 
-        private const string BlockAttachQueueName = "BlockAttachQueue";
-
-        public BlockAttachService(IBlockchainService blockchainService, 
-            IBlockchainExecutingService blockchainExecutingService, 
-            ITaskQueueManager taskQueueManager)
+        public BlockAttachService(IBlockchainService blockchainService,
+            IBlockchainExecutingService blockchainExecutingService)
         {
             _blockchainService = blockchainService;
             _blockchainExecutingService = blockchainExecutingService;
-            _taskQueueManager = taskQueueManager;
-            
+
             Logger = NullLogger<BlockAttachService>.Instance;
         }
 
-        public void AttachBlock(Block block)
+        public async Task AttachBlockAsync(Block block)
         {
-            Logger.LogDebug($"Put block in the queue. block: {block}");
-            _taskQueueManager.GetQueue(BlockAttachQueueName).Enqueue(async () =>
+            var existBlock = await _blockchainService.GetBlockHeaderByHashAsync(block.GetHash());
+            if (existBlock == null)
             {
-                var existBlock = await _blockchainService.GetBlockHeaderByHashAsync(block.GetHash());
-                if (existBlock == null)
-                {
-                    await _blockchainService.AddBlockAsync(block);
-                    var chain = await _blockchainService.GetChainAsync();
-                    var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
-                    await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
-                }
-            });
+                await _blockchainService.AddBlockAsync(block);
+                var chain = await _blockchainService.GetChainAsync();
+                var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
+                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+            }
+        }
+    }
+
+    public static class BlockAttachServiceExtensions
+    {
+        public static void EnqueueAttachBlock(this IBlockAttachService blockAttachService, ITaskQueue taskQueue,
+            Block block)
+        {
+            taskQueue.Enqueue(async () => { await blockAttachService.AttachBlockAsync(block); });
         }
     }
 }

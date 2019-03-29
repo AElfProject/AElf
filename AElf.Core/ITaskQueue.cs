@@ -102,7 +102,8 @@ namespace AElf
 
             _defaultTaskQueue = _serviceProvider.GetService<ITaskQueue>();
 
-            var _ = _defaultTaskQueue.StartAsync();
+
+            Task.Factory.StartNew(() => _defaultTaskQueue.StartAsync(), TaskCreationOptions.LongRunning);
         }
 
         public void Dispose()
@@ -127,7 +128,7 @@ namespace AElf
             return _taskQueues.GetOrAdd(name, _ =>
             {
                 var q = _serviceProvider.GetService<ITaskQueue>();
-                q.StartAsync();
+                Task.Factory.StartNew(() => q.StartAsync(), TaskCreationOptions.LongRunning);
                 return q;
             });
         }

@@ -5,6 +5,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
@@ -22,13 +23,15 @@ namespace AElf.OS.Jobs
         private readonly INetworkService _networkService;
         private readonly NetworkOptions _networkOptions;
         private readonly IBlockAttachService _blockAttachService;
+        private readonly ITaskQueueManager _taskQueueManager;
         
         public ILogger<BlockSyncJob> Logger { get; set; }
 
         public BlockSyncJob(IBlockAttachService blockAttachService,
             IOptionsSnapshot<NetworkOptions> networkOptions,
             IBlockchainService blockchainService,
-            INetworkService networkService)
+            INetworkService networkService,
+            ITaskQueueManager taskQueueManager)
         {
             Logger = NullLogger<BlockSyncJob>.Instance;
             _networkOptions = networkOptions.Value;
@@ -36,6 +39,7 @@ namespace AElf.OS.Jobs
             _blockchainService = blockchainService;
             _networkService = networkService;
             _blockAttachService = blockAttachService;
+            _taskQueueManager = taskQueueManager;
         }
 
         //TODO: Add ExecuteAsync case [Case]
@@ -62,7 +66,8 @@ namespace AElf.OS.Jobs
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
                         return;
                     }
-                    _blockAttachService.AttachBlock(peerBlock);
+                    _blockAttachService.EnqueueAttachBlock(_taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName),
+                        peerBlock);
                     return;
                 }
 
@@ -101,7 +106,8 @@ namespace AElf.OS.Jobs
                             break;
                         }
                         Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
-                        _blockAttachService.AttachBlock(block);
+                        _blockAttachService.EnqueueAttachBlock(_taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName),
+                            block);
                     }
 
                     chain = await _blockchainService.GetChainAsync();

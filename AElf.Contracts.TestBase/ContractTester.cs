@@ -362,15 +362,12 @@ namespace AElf.Contracts.TestBase
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
-            var blockchainExecutingService = Application.ServiceProvider.GetRequiredService<IBlockchainExecutingService>();
+            var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 DateTime.UtcNow.AddMilliseconds(int.MaxValue));
             
-            await blockchainService.AddBlockAsync(block);
-            var chain = await blockchainService.GetChainAsync();
-            var status = await blockchainService.AttachBlockToChainAsync(chain, block);
-            await blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+            await blockAttachService.AttachBlockAsync(block);
     
             return block;
         }
