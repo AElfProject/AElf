@@ -23,15 +23,16 @@ before_script:
   - bash scripts/install_chakracore.sh 1_11_1
 script:
   - bash scripts/build.sh
-  - bash scripts/test.sh
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then bash scripts/test.sh          ; fi
 after_script:
   - curl -s https://codecov.io/bash > codecov
   - chmod +x codecov
-  - ./codecov -f "./results/coverage.opencover.xml" -t $CODECOV_TOKEN
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./codecov -f "./results/coverage.opencover.xml" -t $CODECOV_TOKEN          ; fi 
 deploy:
   - provider: script
     script: bash scripts/deploy.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD
     skip_cleanup: true
     on:
       tags: true
+      condition: os = linux
       
