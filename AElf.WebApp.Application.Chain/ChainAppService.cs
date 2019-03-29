@@ -36,6 +36,8 @@ namespace AElf.WebApp.Application.Chain
         Task<List<TransactionResultDto>> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10);
 
         Task<long> GetBlockHeight();
+
+        Task<BlockDto> GetBlockInfo(long blockHeight, bool includeTransactions = false);
     }
     
     public class ChainAppService : IChainAppService
@@ -221,6 +223,51 @@ namespace AElf.WebApp.Application.Chain
         {
             var chainContext = await _blockchainService.GetChainAsync();
             return chainContext.BestChainHeight;
+        }
+        
+        public async Task<BlockDto> GetBlockInfo(long blockHeight, bool includeTransactions = false)
+        {
+            var blockInfo = await GetBlockAtHeight(blockHeight);
+            if (blockInfo == null)
+            {
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            }
+
+            // TODO: Create DTO Exntension for Block
+            var blockDto = new BlockDto
+            {
+                BlockHash = blockInfo.GetHash().ToHex(),
+                Header = new BlockHeaderDto
+                {
+                    PreviousBlockHash = blockInfo.Header.PreviousBlockHash.ToHex(),
+                    MerkleTreeRootOfTransactions = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
+                    MerkleTreeRootOfWorldState = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
+                    Extra = blockInfo.Header.BlockExtraDatas.ToString(),
+                    Height = blockInfo.Header.Height.ToString(),
+                    Time = blockInfo.Header.Time.ToDateTime(),
+                    ChainId = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
+                    Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex()
+                },
+                Body = new BlockBodyDto()
+                {
+                    TransactionsCount = blockInfo.Body.TransactionsCount,
+                    Transactions = new List<string>()
+                }
+            };
+
+            if (includeTransactions)
+            {
+                var transactions = blockInfo.Body.Transactions;
+                var txs = new List<string>();
+                foreach (var txHash in transactions)
+                {
+                    txs.Add(txHash.ToHex());
+                }
+
+                blockDto.Body.Transactions = txs;
+            }
+
+            return blockDto;
         }
         
         private async Task<Block> GetBlock(Hash blockHash)
