@@ -23,6 +23,7 @@ namespace AElf.Kernel.Consensus.DPoS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+
             context.Services.AddAssemblyOf<DPoSConsensusAElfModule>();
 
             context.Services.AddScoped<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();
@@ -33,6 +34,11 @@ namespace AElf.Kernel.Consensus.DPoS
             context.Services.AddSingleton<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
             context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();
+            
+            var configuration = context.Services.GetConfiguration();
+
+            Configure<DPoSOptions>(configuration.GetSection("Consensus"));
+
         }
     }
 }
