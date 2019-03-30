@@ -23,6 +23,7 @@
       <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
       <ProjectReference Include="..\AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
       <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
       <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />

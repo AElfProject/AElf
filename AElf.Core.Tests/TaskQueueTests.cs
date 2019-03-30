@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NSubstitute.ExceptionExtensions;
 using Shouldly;
 using Xunit;
 
@@ -22,7 +23,9 @@ namespace AElf
             var testQueue = _taskQueueManager.GetQueue("TestQueue");
                        
             testQueue.StartAsync().ShouldThrow<InvalidOperationException>();
+            
             testQueue.StopAsync();
+            Assert.Throws<InvalidOperationException>(() => testQueue.Enqueue(async () => {  }));
         }
 
         [Fact]
@@ -39,7 +42,8 @@ namespace AElf
                 });
             });
 
-            await Task.Delay(100);
+            testQueue.Dispose();
+            
             result.ShouldBe(101);
         }
         
@@ -58,7 +62,10 @@ namespace AElf
                 testQueueC.Enqueue(async () => { testData[2]++; });
             });
 
-            await Task.Delay(100);
+            testQueueA.Dispose();
+            testQueueB.Dispose();
+            testQueueC.Dispose();
+            
             testData[0].ShouldBe(100);
             testData[1].ShouldBe(100);
             testData[2].ShouldBe(100);
@@ -82,13 +89,9 @@ namespace AElf
             });
             testQueue.Dispose();
             
-            await Task.Delay(300);
-            result.ShouldBe(2);
+            result.ShouldBe(4);
 
-            testQueue.Enqueue(async () => { result++; });
-            
-            await Task.Delay(100);
-            result.ShouldBe(2);
+            Assert.Throws<ObjectDisposedException>(() => testQueue.Enqueue(async () => { result++; }));
         }
         
         [Fact]

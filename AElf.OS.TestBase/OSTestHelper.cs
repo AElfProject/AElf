@@ -21,6 +21,7 @@ using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types.SmartContract;
 using AElf.OS.Node.Application;
+using AElf.OS.Node.Domain;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -39,7 +40,10 @@ namespace AElf.OS
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
+        private readonly IStaticChainInformationProvider _staticChainInformationProvider;
         private readonly IBlockAttachService _blockAttachService;
+        
+        private OsBlockchainNodeContext _blockchainNodeCtxt;
         
         /// <summary>
         /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
@@ -112,6 +116,11 @@ namespace AElf.OS
             chain = await _blockchainService.GetChainAsync();
             await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
                 BestBranchBlockList[4].GetHash());
+        }
+
+        public async Task DisposeMock()
+        {
+            await StopNode();
         }
 
         public async Task<Transaction> GenerateTransferTransaction()
@@ -210,7 +219,12 @@ namespace AElf.OS
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name, callList);
 
-            await _osBlockchainNodeContextService.StartAsync(dto);
+            _blockchainNodeCtxt = await _osBlockchainNodeContextService.StartAsync(dto);
+        }
+
+        private async Task StopNode()
+        {
+            await _osBlockchainNodeContextService.StopAsync(_blockchainNodeCtxt);
         }
 
         private async Task<List<Block>> AddBestBranch()

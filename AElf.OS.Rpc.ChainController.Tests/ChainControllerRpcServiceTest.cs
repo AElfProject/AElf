@@ -125,12 +125,24 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             // Generate a transaction
             var chain = await _blockchainService.GetChainAsync();
-            var transaction = await GenerateViewTransaction(chain, "Symbol", new Empty());
-            var transactionHash = transaction.GetHash();
+            var transaction = await GenerateViewTransaction(chain, nameof(TokenContract.GetTokenInfo), 
+                new GetTokenInfoInput
+                {
+                    Symbol = "ELF"
+                });
 
             var response = await JsonCallAsJObject("/chain", "Call",
                 new {rawTransaction = transaction.ToByteArray().ToHex()});
-            response["result"].ToString().ShouldBe("");
+            var resultString = response["result"].ToString();
+            resultString.ShouldNotBeNullOrEmpty();
+            
+            //var decode = ReturnTypeHelper.GetDecoder<TokenInfo>();
+            //var result = decode(Convert.FromBase64String(resultString));
+            
+            var bs = ByteString.FromBase64(resultString);
+            
+            var tokenInfo = TokenInfo.Parser.ParseFrom(bs);
+            //var tokenInfo = bs.DeserializeToPbMessage<TokenInfo>();
         }
 
         [Fact]
@@ -628,7 +640,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
 
             var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
-                _smartContractAddressService.GetAddressByContractName(Hash.FromString(typeof(TokenContract).FullName)),
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                 method, input);
             
             var signature =

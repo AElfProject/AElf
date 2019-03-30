@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.SmartContract.Domain;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Blockchain.Application
@@ -25,7 +26,7 @@ namespace AElf.Kernel.Blockchain.Application
         Task<Block> GenerateBlockBeforeExecutionAsync(GenerateBlockDto generateBlockDto);
 
         Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
-            IEnumerable<ExecutionReturnSet> blockExecutionReturnSet);
+            List<ExecutionReturnSet> blockExecutionReturnSet);
     }
 
     public class BlockGenerationService : IBlockGenerationService
@@ -64,8 +65,9 @@ namespace AElf.Kernel.Blockchain.Application
         }
 
         public async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
-            IEnumerable<ExecutionReturnSet> blockExecutionReturnSet)
+            List<ExecutionReturnSet> blockExecutionReturnSet)
         {
+            var bloom = new Bloom();
             var blockStateSet = new BlockStateSet
             {
                 BlockHeight = blockHeader.Height,
@@ -77,8 +79,14 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     blockStateSet.Changes[change.Key] = change.Value;
                 }
+
+                if (returnSet.Status == TransactionResultStatus.Mined)
+                {
+                    bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});    
+                }
             }
-            
+
+            blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);
             var merkleTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
             blockHeader.MerkleTreeRootOfWorldState = merkleTreeRootOfWorldState;
             

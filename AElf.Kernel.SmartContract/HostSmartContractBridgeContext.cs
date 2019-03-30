@@ -99,6 +99,7 @@ namespace AElf.Kernel.SmartContract
         }
 
         public T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args)
+            where T : IMessage<T>, new()
         {
             TransactionTrace trace = AsyncHelper.RunSync(async () =>
             {
@@ -124,8 +125,9 @@ namespace AElf.Kernel.SmartContract
                 throw new ContractCallException(trace.StdErr);
             }
 
-            var decoder = ReturnTypeHelper.GetDecoder<T>();
-            return decoder(trace.ReturnValue.ToByteArray());
+            var obj = new T();
+            obj.MergeFrom(trace.ReturnValue);
+            return obj;
         }
 
         public void SendInline(Address toAddress, string methodName, ByteString args)

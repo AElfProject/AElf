@@ -107,7 +107,7 @@ namespace AElf.Contracts.CrossChain
                                            Address.FromPublicKey(ByteArrayHelpers.FromHexString(p)).ToString())));
             Context.LogDebug(() => $"TermNumber {initialConsensusInfo.TermNumber}");
             // Event is not used for now.
-            Context.FireEvent(new SideChainCreationRequested
+            Context.Fire(new CreationRequested()
             {
                 ChainId = chainId,
                 Creator = Context.Sender
@@ -188,7 +188,7 @@ namespace AElf.Contracts.CrossChain
             UnlockTokenAndResource(info);
             info.SideChainStatus = SideChainStatus.Terminated;
             State.SideChainInfos[chainId] = info;
-            Context.FireEvent(new SideChainDisposal
+            Context.Fire(new Disposed()
             {
                 ChainId = chainId
             });

@@ -11,12 +11,6 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
             var balanceOfReceiver = State.Balances[to];
             State.Balances[from] = balanceOfSender.Sub(amount);
             State.Balances[to] = balanceOfReceiver.Add(amount);
-            Context.FireEvent(new Transferred()
-            {
-                From = from,
-                To = to,
-                Amount = amount
-            });
         }
     }
 }

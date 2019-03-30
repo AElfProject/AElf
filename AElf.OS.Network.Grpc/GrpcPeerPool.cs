@@ -47,8 +47,6 @@ namespace AElf.OS.Network.Grpc
 
             return await DialAsync(address);
         }
-
-        //TODO: Add DialAsync test case [Case]
         private async Task<bool> DialAsync(string ipAddress)
         {
             Logger.LogTrace($"Attempting to reach {ipAddress}.");
