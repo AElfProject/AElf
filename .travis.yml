@@ -30,7 +30,14 @@ after_script:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./codecov -f "./results/coverage.opencover.xml" -t $CODECOV_TOKEN          ; fi 
 deploy:
   - provider: script
-    script: bash scripts/deploy.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD $NUGET_API_KEY
+    script: bash scripts/deploy_docker.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD
+    skip_cleanup: true
+    on:
+      tags: true
+      condition: os = linux
+      branch: dev
+  - provider: script
+    script: bash scripts/deploy_nuget.sh $TRAVIS_TAG $NUGET_API_KEY
     skip_cleanup: true
     on:
       tags: true
