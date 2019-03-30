@@ -98,6 +98,20 @@ You now should have a node that's running, to check this run the following comma
 aelf-cli get-blk-height -e http://127.0.0.1:1728
 ```
 
+### Launch and test
 
+To stop the node you can simply find and kill the process with:
 
+```bash
+ps -f | grep  [A]Elf.Launcher.dll | awk '{print $2}'
+```
+
+If needed you should also clean your redis database, with either of the following commands:
+
+```bash
+redis-cli FLUSHALL (clears all dbs)
+```
+```bash
+redis-cli -n <database_number> FLUSHDB (clear a specified db)
+```
 
