@@ -28,6 +28,8 @@ namespace AElf.OS
     )]
     public class OSCoreWithChainTestAElfModule : AElfModule
     {
+        private OSTestHelper _osTestHelper;
+
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IPeerPool>(o =>
@@ -71,8 +73,13 @@ namespace AElf.OS
         }
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
-            AsyncHelper.RunSync(() => osTestHelper.MockChain());
+            _osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
+            AsyncHelper.RunSync(() => _osTestHelper.MockChain());
+        }
+
+        public override void OnApplicationShutdown(ApplicationShutdownContext context)
+        {
+            AsyncHelper.RunSync(() => _osTestHelper.DisposeMock());
         }
     }
 }

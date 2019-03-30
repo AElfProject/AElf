@@ -6,7 +6,7 @@ namespace AElf.OS.Jobs
     public class BlockSyncJobArgs
     {
         public long BlockHeight { get; set; }
-        public string BlockHash { get; set; }
+        public Hash BlockHash { get; set; }
         
         /// <summary>
         /// leave it empty when you do not care get the block from which peer
