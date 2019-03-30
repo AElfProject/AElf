@@ -60,49 +60,6 @@ namespace AElf.Contracts.TokenConverter
             IsVirtualBalanceEnabled = false
         };
 
-        private async Task DeployContractsAsync()
-        {
-            {
-                // TokenContract
-                var result = await ContractZeroTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
-                {
-                    Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
-                });
-                TokenContractAddress = result.Output;
-                TokenContractTester =
-                    GetTester<TokenContractContainer.TokenContractTester>(TokenContractAddress, DefaultSenderKeyPair);
-
-                await TokenContractTester.Create.SendAsync(new CreateInput()
-                {
-                    Symbol = "ELF",
-                    Decimals = 2,
-                    IsBurnable = true,
-                    TokenName = "elf token",
-                    TotalSupply = 1000_0000L,
-                    Issuer = DefaultSender
-                });
-                await TokenContractTester.Issue.SendAsync(new IssueInput()
-                {
-                    Symbol = "ELF",
-                    Amount = 1000_000L,
-                    To = DefaultSender,
-                    Memo = "Set for token converter."
-                });
-            }
-            {
-                // TokenConverterContract
-                var result = await ContractZeroTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
-                {
-                    Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenConverterContract).Assembly.Location))
-                });
-                TokenConverterContractAddress = result.Output;
-                DefaultTester = GetTester<TokenConverterContractContainer.TokenConverterContractTester>(
-                    TokenConverterContractAddress, DefaultSenderKeyPair);
-            }
-        }
-
         #region Views Test
 
         [Fact]
@@ -384,6 +341,7 @@ namespace AElf.Contracts.TokenConverter
                 })).TransactionResult;
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
+            //Balance of before Sell
             var balanceOfFeeReceiver = (await TokenContractTester.GetBalance.CallAsync(new GetBalanceInput()
             {
                 Owner = FeeReceiverAddress,
@@ -516,10 +474,53 @@ namespace AElf.Contracts.TokenConverter
         #endregion
 
         #region Private Task
+        
+        private async Task DeployContractsAsync()
+        {
+            {
+                // TokenContract
+                var result = await ContractZeroTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                });
+                TokenContractAddress = result.Output;
+                TokenContractTester =
+                    GetTester<TokenContractContainer.TokenContractTester>(TokenContractAddress, DefaultSenderKeyPair);
+
+                await TokenContractTester.Create.SendAsync(new CreateInput()
+                {
+                    Symbol = "ELF",
+                    Decimals = 2,
+                    IsBurnable = true,
+                    TokenName = "elf token",
+                    TotalSupply = 1000_0000L,
+                    Issuer = DefaultSender
+                });
+                await TokenContractTester.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = "ELF",
+                    Amount = 1000_000L,
+                    To = DefaultSender,
+                    Memo = "Set for token converter."
+                });
+            }
+            {
+                // TokenConverterContract
+                var result = await ContractZeroTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenConverterContract).Assembly.Location))
+                });
+                TokenConverterContractAddress = result.Output;
+                DefaultTester = GetTester<TokenConverterContractContainer.TokenConverterContractTester>(
+                    TokenConverterContractAddress, DefaultSenderKeyPair);
+            }
+        }
 
         private async Task CreateRamToken()
         {
-            var ceateResult = (await TokenContractTester.Create.SendAsync(
+            var createResult = (await TokenContractTester.Create.SendAsync(
                 new CreateInput()
                 {
                     Symbol = RamConnector.Symbol,
@@ -529,7 +530,7 @@ namespace AElf.Contracts.TokenConverter
                     TokenName = "Ram Resource",
                     TotalSupply = 100_0000L
                 })).TransactionResult;
-            ceateResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            createResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var issueResult = (await TokenContractTester.Issue.SendAsync(
                 new IssueInput
