@@ -104,12 +104,19 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         // TODO: Remove this method after testing.
+        /// <summary>
+        /// Initial miners can set blockchain age manually.
+        /// For testing.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty SetBlockchainAge(SInt64Value input)
         {
             var age = input.Value;
-//            Assert(Context.RecoverPublicKey().ToHex() == State.StarterPublicKey.Value,
-//                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
-//                    "No permission to change blockchain age."));
+            TryToGetRoundInformation(1, out var firstRound);
+            Assert(firstRound.RealTimeMinersInformation.Keys.Contains(Context.RecoverPublicKey().ToHex()),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
+                    "No permission to change blockchain age."));
             State.AgeField.Value = age;
             return new Empty();
         }
@@ -267,6 +274,18 @@ namespace AElf.Contracts.Consensus.DPoS
             // Update rounds information of next two rounds.
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 
+            if (State.DividendContract.Value == null)
+            {
+                var termInfo = new TermInfo
+                {
+                    RoundNumber = input.RoundNumber - 1,
+                    TermNumber = input.TermNumber - 1
+                };
+                SnapshotForTerm(termInfo);
+                SnapshotForMiners(termInfo);
+                SendDividends(termInfo);
+            }
+
             Context.LogDebug(() => $"Changing term number to {input.TermNumber}");
             TryToFindLIB();
             return new Empty();
@@ -278,7 +297,7 @@ namespace AElf.Contracts.Consensus.DPoS
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override ActionResult SnapshotForTerm(TermInfo input)
+        public ActionResult SnapshotForTerm(TermInfo input)
         {
             var snapshotTermNumber = input.TermNumber;
             var lastRoundNumber = input.RoundNumber;
@@ -343,7 +362,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public override ActionResult SnapshotForMiners(TermInfo input)
+        public ActionResult SnapshotForMiners(TermInfo input)
         {
             var lastRoundNumber = input.RoundNumber;
             var previousTermNumber = input.TermNumber;
@@ -406,7 +425,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public override ActionResult SendDividends(TermInfo input)
+        public ActionResult SendDividends(TermInfo input)
         {
             var lastRoundNumber = input.RoundNumber;
             var dividendsTermNumber = input.TermNumber;

@@ -55,6 +55,8 @@ namespace AElf.Contracts.Consensus.DPoS
         protected List<ECKeyPair> VotersKeyPairs =>
             SampleECKeyPairs.KeyPairs.Skip(MinersCount + CandidatesCount).Take(VotersCount).ToList();
 
+        protected DateTime BlockchainStartTime => DateTime.Parse("2019-04-01 00:00:00.000").ToUniversalTime();
+
         public DPoSTestBase()
         {
             // Deploy useful contracts.
@@ -89,10 +91,12 @@ namespace AElf.Contracts.Consensus.DPoS
                     })).Output;
         }
 
-        protected async Task ChangeRound()
+        protected async Task ChangeRound(long nextRoundNumber = 2)
         {
             var currentRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
-            currentRound.GenerateNextRoundInformation(DateTime.UtcNow, DateTime.UtcNow.ToTimestamp(),
+            var expectedStartTime = BlockchainStartTime.GetRoundExpectedStartTime(
+                currentRound.TotalMilliseconds(MiningInterval), nextRoundNumber);
+            currentRound.GenerateNextRoundInformation(expectedStartTime, BlockchainStartTime.ToTimestamp(),
                 out var nextRound);
             await BootMiner.NextRound.SendAsync(nextRound);
         }
@@ -123,7 +127,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(
-                    MiningInterval, DateTime.UtcNow));
+                    MiningInterval, BlockchainStartTime));
             return consensusMethodCallList;
         }
 

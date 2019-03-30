@@ -176,23 +176,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 case DPoSBehaviour.NextTerm:
                     Assert(TryToGetRoundNumber(out var roundNumber), "Failed to get current round number.");
                     Assert(TryToGetTermNumber(out var termNumber), "Failed to get current term number.");
-                    var nextTermTx = GenerateTransaction("NextTerm", round);
-                    if (State.DividendContract.Value == null)
-                    {
-                        // If dividend contract not deployed.
-                        return new TransactionList {Transactions = {nextTermTx}};
-                    }
                     return new TransactionList
                     {
                         Transactions =
                         {
-                            nextTermTx,
-                            GenerateTransaction(nameof(SnapshotForMiners),
-                                new TermInfo {TermNumber = termNumber, RoundNumber = roundNumber}),
-                            GenerateTransaction(nameof(SnapshotForTerm),
-                                new TermInfo {TermNumber = termNumber, RoundNumber = roundNumber}),
-                            GenerateTransaction(nameof(SendDividends),
-                                new TermInfo {TermNumber = termNumber, RoundNumber = roundNumber}),
+                            GenerateTransaction(nameof(NextTerm), round)
                         }
                     };
                 default:

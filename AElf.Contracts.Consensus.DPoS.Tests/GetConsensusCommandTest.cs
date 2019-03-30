@@ -66,6 +66,17 @@ namespace AElf.Contracts.Consensus.DPoS
             // Check second round information.
             var secondRound = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             secondRound.RoundNumber.ShouldBe(2);
+
+            var expectedMiningTime = secondRound.RealTimeMinersInformation[minerKeyPair.PublicKey.ToHex()]
+                .ExpectedMiningTime.ToDateTime();
+            var roundStartTime =
+                BlockchainStartTime.GetRoundExpectedStartTime(secondRound.TotalMilliseconds(MiningInterval), 2);
+            var expectedLeftMilliseconds = (expectedMiningTime - roundStartTime).Milliseconds;
+
+            var command = await miner.GetConsensusCommand.CallAsync(new CommandInput
+                {PublicKey = ByteString.CopyFrom(minerKeyPair.PublicKey)});
+            command.NextBlockMiningLeftMilliseconds.ShouldBe(expectedLeftMilliseconds);
+            
         }
     }
 }

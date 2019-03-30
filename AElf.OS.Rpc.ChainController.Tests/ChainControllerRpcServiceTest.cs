@@ -193,8 +193,8 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseTransactionIds.Count.ShouldBe(2);
 
             var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
-            responseTransactionIds[0].ToString().ShouldBe(existTransaction.Transactions[0].GetHash().ToHex());
-            responseTransactionIds[1].ToString().ShouldBe(existTransaction.Transactions[1].GetHash().ToHex());
+            responseTransactionIds[0].ToString().ShouldBeOneOf(existTransaction.Transactions[0].GetHash().ToHex(), existTransaction.Transactions[1].GetHash().ToHex());
+            responseTransactionIds[1].ToString().ShouldBeOneOf(existTransaction.Transactions[0].GetHash().ToHex(), existTransaction.Transactions[1].GetHash().ToHex());
 
             response = await JsonCallAsJObject("/chain", "GetTransactionPoolStatus");
             response["result"]["Queued"].ShouldBe(2);

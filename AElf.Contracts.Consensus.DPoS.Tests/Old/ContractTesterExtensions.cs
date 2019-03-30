@@ -354,46 +354,13 @@ namespace AElf.Contracts.Consensus.DPoS
             var nextTermTx = await miners.AnyOne().GenerateTransactionAsync(
                 miners.AnyOne().GetConsensusContractAddress(),
                 nameof(ConsensusContract.NextTerm), nextRound);
-            var snapshotForMinersTx = await miners.AnyOne().GenerateTransactionAsync(
-                miners.AnyOne().GetConsensusContractAddress(),
-                nameof(ConsensusContract.SnapshotForMiners),
-                new TermInfo()
-                {
-                    TermNumber = termNumber,
-                    RoundNumber = round.RoundNumber
-                });
-            var snapshotForTermTx = await miners.AnyOne().GenerateTransactionAsync(
-                miners.AnyOne().GetConsensusContractAddress(),
-                nameof(ConsensusContract.SnapshotForTerm),
-                new TermInfo()
-                {
-                    TermNumber = termNumber,
-                    RoundNumber = round.RoundNumber
-                });
-            var sendDividendsTx = await miners.AnyOne().GenerateTransactionAsync(
-                miners.AnyOne().GetConsensusContractAddress(),
-                nameof(ConsensusContract.SendDividends),
-                new TermInfo()
-                {
-                    TermNumber = termNumber, RoundNumber = round.RoundNumber
-                });
 
-            var txs = new List<Transaction> {nextTermTx, snapshotForMinersTx, snapshotForTermTx, sendDividendsTx};
             var extraBlockMiner = miners.First(m => m.PublicKey == extraBlockProducer.PublicKey);
-            var block = await extraBlockMiner.MineAsync(txs);
-
-            foreach (var transaction in txs)
-            {
-                var transactionResult = await extraBlockMiner.GetTransactionResultAsync(transaction.GetHash());
-                if (transactionResult.Status != TransactionResultStatus.Mined)
-                {
-                    throw new Exception($"Failed to execute {transaction.MethodName} tx. {transactionResult.Error}");
-                }
-            }
+            var block = await extraBlockMiner.MineAsync(new List<Transaction> {nextTermTx});
 
             foreach (var otherMiner in miners.Where(m => m.PublicKey != extraBlockProducer.PublicKey))
             {
-                await otherMiner.ExecuteBlock(block, txs);
+                await otherMiner.ExecuteBlock(block, new List<Transaction> {nextTermTx});
             }
 
             return miners.First(m => m.PublicKey == extraBlockProducer.PublicKey);

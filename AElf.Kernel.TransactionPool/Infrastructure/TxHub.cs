@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -24,7 +25,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTransactions =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
 
-        private Dictionary<Hash, TransactionReceipt> _validated = new Dictionary<Hash, TransactionReceipt>();
+        private ConcurrentDictionary<Hash, TransactionReceipt> _validated = new ConcurrentDictionary<Hash, TransactionReceipt>();
 
         private Dictionary<long, Dictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
             new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
@@ -149,7 +150,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _expiredByExpiryBlock = new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
             _invalidatedByBlock = new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
             _futureByBlock = new Dictionary<long, Dictionary<Hash, TransactionReceipt>>();
-            _validated = new Dictionary<Hash, TransactionReceipt>();
+            _validated = new ConcurrentDictionary<Hash, TransactionReceipt>();
         }
 
         private void AddToRespectiveCurrentCollection(TransactionReceipt receipt)
@@ -166,7 +167,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     AddToCollection(_invalidatedByBlock, receipt);
                     break;
                 case RefBlockStatus.RefBlockValid:
-                    _validated.Add(receipt.TransactionId, receipt);
+                    _validated.TryAdd(receipt.TransactionId, receipt);
                     break;
             }
         }

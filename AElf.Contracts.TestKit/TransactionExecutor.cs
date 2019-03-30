@@ -56,5 +56,21 @@ namespace AElf.Contracts.TestKit
 
             return transactionTrace.ReturnValue;
         }
+
+        public async Task<ByteString> ReadAsync(Transaction transaction, DateTime currentBlockTime)
+        {
+            var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
+            var transactionReadOnlyExecutionService =
+                _serviceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
+
+            var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
+            var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
+            {
+                BlockHash = preBlock.GetHash(),
+                BlockHeight = preBlock.Height
+            }, transaction, currentBlockTime);
+
+            return transactionTrace.ReturnValue;
+        }
     }
 }
