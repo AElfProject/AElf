@@ -215,7 +215,7 @@ message TokenContractInitializeInput {
 
 message CrossChainTransferInput {
     Address to = 1;
-    string symbol = 2;
+    TokenInfo tokenInfo = 2;
     sint64 amount = 3;
     string memo = 4;
     int32 toChainId = 5;
@@ -223,9 +223,9 @@ message CrossChainTransferInput {
 
 message CrossChainReceiveTokenInput {
     int32 fromChainId = 1;
-    int64 ParentChainHeight = 2;
-    bytes TransferTransactionBytes = 3;
-    MerklePath MerklePath = 4;
+    int64 parentChainHeight = 2;
+    bytes transferTransactionBytes = 3;
+    repeated Hash merklePath = 4;
 }
 
 // Events
