@@ -248,10 +248,13 @@ namespace AElf.Contracts.CrossChain
                 var target = currentHeight != 0 ? currentHeight + 1 : KernelConstants.GenesisBlockHeight;
                 Assert(target == parentChainHeight,
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
-
-                var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
-                Assert(merkleTreeRoot == null,
-                    $"Already written parent chain block info at height {parentChainHeight}");
+                Assert(blockInfo.Root.TransactionStatusMerkleRoot != null,
+                    "Parent chain transaction status merkle tree root needed.");
+//                var merkleTreeRoot = State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
+//                var parentTxStatusMerkleTreeRoot = State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight];
+//                Assert(merkleTreeRoot == null & parentTxStatusMerkleTreeRoot == null,
+//                    $"Already indexed parent chain block info at height {parentChainHeight}");
+                State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight] = blockInfo.Root.TransactionStatusMerkleRoot;
                 foreach (var indexedBlockInfo in blockInfo.IndexedMerklePath)
                 {
                     BindParentChainHeight(indexedBlockInfo.Key, parentChainHeight);
@@ -265,7 +268,7 @@ namespace AElf.Contracts.CrossChain
                 }
 
                 State.CurrentParentChainHeight.Value = parentChainHeight;
-               
+                
                 if (blockInfo.Root.CrossChainExtraData != null)
                     State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
                         blockInfo.Root.CrossChainExtraData.SideChainTransactionsRoot;
@@ -336,7 +339,6 @@ namespace AElf.Contracts.CrossChain
                 //binaryMerkleTree.AddNode(blockInfo.TransactionMKRoot);
                 //indexedSideChainBlockInfoResult.SideChainBlockData.Add(blockInfo);
             }
-
             return indexedSideChainBlockData;
             //State.IndexedSideChainBlockInfoResult[height] = indexedSideChainBlockInfoResult;
 

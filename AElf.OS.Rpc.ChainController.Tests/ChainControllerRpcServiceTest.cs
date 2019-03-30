@@ -5,31 +5,20 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Common.Application;
-using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Runtime.CSharp;
-using AElf.Types.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.Reflection;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Newtonsoft.Json.Linq;
 using Shouldly;
-using Volo.Abp.Threading;
-using Volo.Abp.Validation;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -193,8 +182,8 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseTransactionIds.Count.ShouldBe(2);
 
             var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
-            responseTransactionIds[0].ToString().ShouldBe(existTransaction.Transactions[0].GetHash().ToHex());
-            responseTransactionIds[1].ToString().ShouldBe(existTransaction.Transactions[1].GetHash().ToHex());
+            existTransaction.Transactions.Select(x=>x.GetHash().ToHex()).ShouldContain(responseTransactionIds[0].ToString());
+            existTransaction.Transactions.Select(x=>x.GetHash().ToHex()).ShouldContain(responseTransactionIds[1].ToString());
 
             response = await JsonCallAsJObject("/chain", "GetTransactionPoolStatus");
             response["result"]["Queued"].ShouldBe(2);
