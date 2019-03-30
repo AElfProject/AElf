@@ -110,7 +110,7 @@ namespace AElf.Contracts.Genesis
 
             Context.DeployContract(contractAddress, reg, name);
 
-            Context.FireEvent(new ContractHasBeenDeployed()
+            Context.Fire(new ContractDeployed()
             {
                 CodeHash = codeHash,
                 Address = contractAddress,
@@ -166,7 +166,7 @@ namespace AElf.Contracts.Genesis
 
             Context.UpdateContract(contractAddress, reg, null);
 
-            Context.FireEvent(new ContractCodeHasBeenUpdated()
+            Context.Fire(new CodeUpdated()
             {
                 Address = contractAddress,
                 OldCodeHash = oldCodeHash,
@@ -187,7 +187,7 @@ namespace AElf.Contracts.Genesis
             var oldOwner = info.Owner;
             info.Owner = input.NewOwner;
             State.ContractInfos[contractAddress] = info;
-            Context.FireEvent(new OwnerHasBeenChanged
+            Context.Fire(new OwnerChanged
             {
                 Address = contractAddress,
                 OldOwner = oldOwner,
