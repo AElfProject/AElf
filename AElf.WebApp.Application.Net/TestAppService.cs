@@ -38,6 +38,11 @@ namespace AElf.WebApp.Application.Net
         {
             return new Transaction() {To = address};
         }
+        
+        public async Task<Transaction> GetRandomTransactionAsync()
+        {
+            return new Transaction() {To = Address.Generate()};
+        }
 
         [HttpPost]
         public async Task<PeerTestDto> UpdateOneAsync(PeerTestDto input)
