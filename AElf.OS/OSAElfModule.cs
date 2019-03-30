@@ -1,23 +1,20 @@
 ﻿using System;
 using AElf.Common.Application;
-using AElf.CrossChain.Grpc;
 using AElf.Cryptography;
+using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Handlers;
 using AElf.OS.Jobs;
 using AElf.OS.Network.Grpc;
-using AElf.OS.Rpc.ChainController;
-using AElf.OS.Rpc.Net;
-using AElf.OS.Rpc.Wallet;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS
 {
     [DependsOn(
+        typeof(KernelAElfModule),
         typeof(CoreOSAElfModule),
-        typeof(GrpcNetworkModule),
-        typeof(GrpcCrossChainAElfModule)
+        typeof(GrpcNetworkModule)
     )]
     public class OSAElfModule : AElfModule
     {
