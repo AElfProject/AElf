@@ -19,8 +19,11 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             const long age = 100L;
             var starter = new ContractTester<DPoSContractTestAElfModule>();
-            await starter.InitialChainAndTokenAsync();
-            await starter.ExecuteConsensusContractMethodWithMiningAsync(
+            var initialMiners = Enumerable.Range(0, 3).Select(_ => CryptoHelpers.GenerateKeyPair())
+                .ToList();
+            await starter.InitialChainAndTokenAsync(initialMiners);
+            var initialMiner = starter.CreateNewContractTester(initialMiners[0]);
+            await initialMiner.ExecuteConsensusContractMethodWithMiningAsync(
                 nameof(ConsensusContract.SetBlockchainAge),
                 new SInt64Value(){Value = age});
 

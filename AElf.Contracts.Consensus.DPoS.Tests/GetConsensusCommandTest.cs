@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
@@ -28,7 +29,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
-        public async Task FirstRoundTest()
+        public async Task First_Round_Test()
         {
             // In first round, boot node will get a consensus command of UpdateValueWithoutPreviousInValue behaviour
             {
@@ -56,27 +57,67 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
-        public async Task NormalTest()
+        public async Task Normal_Round_First_Miner_Test()
         {
             await ChangeRound();
 
-            var minerKeyPair = InitialMinersKeyPairs[1];
-            var miner = GetConsensusContractTester(minerKeyPair);
-            
             // Check second round information.
-            var secondRound = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
+            var secondRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
             secondRound.RoundNumber.ShouldBe(2);
+
+            var firstMinerInSecondRound =
+                secondRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).PublicKey;
+
+            var secondRoundStartTime =
+                BlockchainStartTime.GetRoundExpectedStartTime(secondRound.TotalMilliseconds(MiningInterval), 2);
+            
+            var minerKeyPair = InitialMinersKeyPairs.First(k => k.PublicKey.ToHex() == firstMinerInSecondRound);
+            var miner = GetConsensusContractTester(minerKeyPair);
 
             var expectedMiningTime = secondRound.RealTimeMinersInformation[minerKeyPair.PublicKey.ToHex()]
                 .ExpectedMiningTime.ToDateTime();
-            var roundStartTime =
-                BlockchainStartTime.GetRoundExpectedStartTime(secondRound.TotalMilliseconds(MiningInterval), 2);
-            var expectedLeftMilliseconds = (expectedMiningTime - roundStartTime).Milliseconds;
-
-            var command = await miner.GetConsensusCommand.CallAsync(new CommandInput
-                {PublicKey = ByteString.CopyFrom(minerKeyPair.PublicKey)});
-            command.NextBlockMiningLeftMilliseconds.ShouldBe(expectedLeftMilliseconds);
             
+            // Normal block
+            {
+                // Set current time as the start time of 2rd round.
+                BlockTimeProvider.SetBlockTime(secondRoundStartTime);
+                
+
+                var leftMilliseconds = (int) (expectedMiningTime - secondRoundStartTime).TotalMilliseconds;
+
+                var command = await miner.GetConsensusCommand.CallAsync(new CommandInput
+                    {PublicKey = ByteString.CopyFrom(minerKeyPair.PublicKey)});
+                command.NextBlockMiningLeftMilliseconds.ShouldBe(leftMilliseconds);
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval);
+                command.Hint.ShouldBe(new DPoSHint {Behaviour = DPoSBehaviour.UpdateValue}
+                    .ToByteArray());
+            }
+
+            // Extra block
+            {
+                // Pretend the miner passed his time slot.
+                var fakeTime = expectedMiningTime.AddMilliseconds(MiningInterval);
+                BlockTimeProvider.SetBlockTime(fakeTime);
+                
+                var extraBlockMiningTime = secondRound.GetExpectedEndTime().ToDateTime().AddMilliseconds(MiningInterval);
+                var leftMilliseconds = (int) (extraBlockMiningTime - fakeTime).TotalMilliseconds;
+                
+                var command = await miner.GetConsensusCommand.CallAsync(new CommandInput
+                    {PublicKey = ByteString.CopyFrom(minerKeyPair.PublicKey)});
+                if (secondRound.GetExtraBlockProducerInformation().PublicKey == minerKeyPair.PublicKey.ToHex())
+                {
+                    // If this node is EBP
+                    command.NextBlockMiningLeftMilliseconds.ShouldBe(
+                        (int) (secondRound.GetExtraBlockMiningTime() - fakeTime).TotalMilliseconds);
+                }
+                else
+                {
+                    command.NextBlockMiningLeftMilliseconds.ShouldBe(leftMilliseconds);
+                }
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval);
+                command.Hint.ShouldBe(new DPoSHint {Behaviour = DPoSBehaviour.NextRound}
+                    .ToByteArray());
+            }
         }
     }
 }

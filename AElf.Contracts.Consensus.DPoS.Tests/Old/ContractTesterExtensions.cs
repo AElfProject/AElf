@@ -181,7 +181,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 Memo = "Set dividends.",
             });
 
-            await starter.InitialCustomizedChainAsync(minersKeyPairs?.Select(m => m.PublicKey.ToHex()).ToList(), miningInterval, blockchainStartTimestamp,
+            await starter.InitialCustomizedChainAsync(minersKeyPairs?.Select(m => m.PublicKey.ToHex()).ToList(),
+                miningInterval, blockchainStartTimestamp,
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.

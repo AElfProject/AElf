@@ -81,7 +81,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var testers = new ConsensusTesters();
             testers.InitialTesters();
-
+            
             var inValue = Hash.Generate();
             var triggerInformationForNormalBlock =
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);

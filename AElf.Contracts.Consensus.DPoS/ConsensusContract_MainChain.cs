@@ -274,7 +274,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Update rounds information of next two rounds.
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 
-            if (State.DividendContract.Value == null)
+            if (State.DividendContract.Value != null)
             {
                 var termInfo = new TermInfo
                 {
