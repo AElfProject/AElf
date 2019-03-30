@@ -10,6 +10,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Grpc.Core.Logging;
@@ -52,7 +53,6 @@ namespace AElf.OS.Network.Grpc
         /// clients authentication information. When receiving this call, protocol dictates you send the client your auth
         /// information. The response says whether or not you can connect.
         /// </summary>
-        //TODO: Add Connect test case [Case]
         public override async Task<ConnectReply> Connect(Handshake handshake, ServerCallContext context)
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection request.");
@@ -60,7 +60,16 @@ namespace AElf.OS.Network.Grpc
             if (handshake?.HskData == null)
                 return new ConnectReply { Err = AuthError.InvalidHandshake };
             
+            //verify signature
+            var validData = await _accountService.VerifySignatureAsync(handshake.Sig.ToByteArray(), 
+                Hash.FromMessage(handshake.HskData).ToByteArray(), handshake.HskData.PublicKey.ToByteArray());
+            if (!validData)
+                return new ConnectReply { Err = AuthError.WrongSig };
+            
             var peer = GrpcUrl.Parse(context.Peer);
+            if(peer == null)
+                return new ConnectReply { Err = AuthError.InvalidPeer };
+            
             var peerAddress = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
 
             Logger.LogDebug($"Attempting to create channel to {peerAddress}");
