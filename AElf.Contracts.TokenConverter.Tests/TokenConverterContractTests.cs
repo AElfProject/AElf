@@ -290,13 +290,13 @@ namespace AElf.Contracts.TokenConverter
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             //Verify the outcome of the transaction
-            var balanceOfRam = (await TokenContractTester.GetBalance.CallAsync(
+            var balanceOfTesterRam = (await TokenContractTester.GetBalance.CallAsync(
                 new GetBalanceInput()
                 {
                     Owner = DefaultSender,
                     Symbol = RamConnector.Symbol
                 })).Balance;
-            balanceOfRam.ShouldBe(1000L);
+            balanceOfTesterRam.ShouldBe(1000L);
             
             var balanceOfElfToken = (await TokenContractTester.GetBalance.CallAsync(
                 new GetBalanceInput()
@@ -327,7 +327,7 @@ namespace AElf.Contracts.TokenConverter
                     Owner = DefaultSender,
                     Symbol = "ELF"
                 })).Balance;
-            balanceOfRamToken.ShouldBe(100_0000L - amountToPay - fee);
+            balanceOfTesterToken.ShouldBe(100_0000L - amountToPay - fee);
             
         }
 
@@ -399,24 +399,73 @@ namespace AElf.Contracts.TokenConverter
                     Owner = TokenContractAddress,
                     Symbol = "ELF"
                 })).Balance;
+            
+            var balanceOfTesterToken = (await TokenContractTester.GetBalance.CallAsync(
+                new GetBalanceInput()
+                {
+                    Owner = DefaultSender,
+                    Symbol = "ELF"
+                })).Balance;
            
+            //check the price and fee
+            var toConnectorBalance = ELFConnector.VirtualBalance + balanceOfElfToken;
+            var toConnectorWeight = ELFConnector.Weight / 100_0000;
+            var fromConnectorBalance= (await TokenContractTester.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = TokenContractAddress,
+                Symbol = RamConnector.Symbol
+            })).Balance;
+            var fromConnectorWeight = RamConnector.Weight / 100_0000;
+            
+            var amountToReceive = BancorHelpers.GetReturnFromPaid(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
+            var fee = Convert.ToInt64(amountToReceive * 5 / 1000);
             
             var sellResult =(await DefaultTester.Sell.SendAsync(new SellInput
                 {
                     Symbol = RamConnector.Symbol,
                     Amount = 1000L,
-                    ReceiveLimit = 900L
+                    ReceiveLimit = amountToReceive - fee - 10L 
                 })).TransactionResult;
             sellResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var balanceOfRam = (await TokenContractTester.GetBalance.CallAsync(new GetBalanceInput()
+            
+            //Verify the outcome of the transaction
+            var balanceOfTesterRam = (await TokenContractTester.GetBalance.CallAsync(new GetBalanceInput()
                 {
                     Owner = DefaultSender,
                     Symbol = RamConnector.Symbol
                 })).Balance;
-            balanceOfRam.ShouldBe(0L);
+            balanceOfTesterRam.ShouldBe(0L);
             
-//            var balanceOfFeeReceiverAfterSell = await Tester.GetBalanceAsync(FeeReceiverContractAddress,"ELF");
-//            balanceOfFeeReceiverAfterSell.ShouldBe(fee+balanceOfFeeReceiver); 
+            var balanceOfFeeReceiverAfterSell = (await TokenContractTester.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = FeeReceiverAddress,
+                Symbol = "ELF"
+            })).Balance;
+            balanceOfFeeReceiverAfterSell.ShouldBe(fee+balanceOfFeeReceiver); 
+            
+            var balanceOfElfTokenAfterSell = (await TokenContractTester.GetBalance.CallAsync(
+                new GetBalanceInput()
+                {
+                    Owner = TokenContractAddress,
+                    Symbol = "ELF"
+                })).Balance;
+            balanceOfElfTokenAfterSell.ShouldBe(balanceOfElfToken + amountToReceive - fee);
+
+            var balanceOfRamToken = (await TokenContractTester.GetBalance.CallAsync(
+                new GetBalanceInput()
+                {
+                    Owner = TokenContractAddress,
+                    Symbol = RamConnector.Symbol
+                })).Balance;
+            balanceOfRamToken.ShouldBe(100_0000L);
+            
+            var balanceOfTesterTokenAfterSell = (await TokenContractTester.GetBalance.CallAsync(
+                new GetBalanceInput()
+                {
+                    Owner = DefaultSender,
+                    Symbol = "ELF"
+                })).Balance;
+            balanceOfTesterTokenAfterSell.ShouldBe(balanceOfTesterToken+ amountToReceive - fee);
         }
 
         [Fact]
