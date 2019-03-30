@@ -16,10 +16,12 @@ using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Kernel.Types.SmartContract;
 using AElf.OS.Node.Application;
+using AElf.OS.Node.Domain;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -39,6 +41,9 @@ namespace AElf.OS
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
+        private readonly IBlockAttachService _blockAttachService;
+        
+        private OsBlockchainNodeContext _blockchainNodeCtxt;
         
         /// <summary>
         /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
@@ -61,7 +66,7 @@ namespace AElf.OS
             IBlockchainService blockchainService,
             ITxHub txHub,
             ISmartContractAddressService smartContractAddressService,
-            IStaticChainInformationProvider staticChainInformationProvider,
+            IBlockAttachService blockAttachService,
             IOptionsSnapshot<ChainOptions> chainOptions)
         {
             _chainOptions = chainOptions.Value;
@@ -71,7 +76,7 @@ namespace AElf.OS
             _minerService = minerService;
             _blockchainService = blockchainService;
             _smartContractAddressService = smartContractAddressService;
-            _staticChainInformationProvider = staticChainInformationProvider;
+            _blockAttachService = blockAttachService;
             _txHub = txHub;
 
             BestBranchBlockList = new List<Block>();
@@ -111,6 +116,11 @@ namespace AElf.OS
             chain = await _blockchainService.GetChainAsync();
             await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
                 BestBranchBlockList[4].GetHash());
+        }
+
+        public async Task DisposeMock()
+        {
+            await StopNode();
         }
 
         public async Task<Transaction> GenerateTransferTransaction()
@@ -159,7 +169,7 @@ namespace AElf.OS
         {
             if (previousBlockHash == null || previousBlockHeight == 0)
             {
-                var chain = _blockchainService.GetChainAsync().Result;
+                var chain = await _blockchainService.GetChainAsync();
                 previousBlockHash = chain.BestChainHash;
                 previousBlockHeight = chain.BestChainHeight;
             }
@@ -167,6 +177,8 @@ namespace AElf.OS
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
                 DateTime.UtcNow.AddMilliseconds(4000));
 
+            await _blockAttachService.AttachBlockAsync(block);
+                
             return block;
         }
         
@@ -207,7 +219,12 @@ namespace AElf.OS
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name, callList);
 
-            await _osBlockchainNodeContextService.StartAsync(dto);
+            _blockchainNodeCtxt = await _osBlockchainNodeContextService.StartAsync(dto);
+        }
+
+        private async Task StopNode()
+        {
+            await _osBlockchainNodeContextService.StopAsync(_blockchainNodeCtxt);
         }
 
         private async Task<List<Block>> AddBestBranch()

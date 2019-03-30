@@ -11,6 +11,7 @@ using AElf.OS.Rpc.Wallet;
 using AElf.Runtime.CSharp;
 using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
 using AElf.RuntimeSetup;
+using AElf.WebApp.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.AspNetCore;
 using Volo.Abp.Modularity;
@@ -22,7 +23,6 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
-        
         typeof(CSharpRuntimeAElfModule),
         typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
@@ -31,8 +31,10 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),
         typeof(NetRpcAElfModule),
+        typeof(RuntimeSetupAElfModule),
         
-        typeof(RuntimeSetupAElfModule)
+        //web api module
+        typeof(WebWebAppAElfModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule<BasicBaseChainAElfModule>
     {

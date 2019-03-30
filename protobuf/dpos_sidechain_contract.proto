@@ -42,3 +42,9 @@ service ConsensusContract {
         option (aelf.is_view) = true;
     }
 }
+
+// Events
+message IrreversibleBlockFound {
+    option (aelf.is_event) = true;
+    sint64 offset = 1;
+}

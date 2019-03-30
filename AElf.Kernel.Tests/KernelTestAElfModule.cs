@@ -1,5 +1,6 @@
 using AElf.Kernel.ChainController;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool;

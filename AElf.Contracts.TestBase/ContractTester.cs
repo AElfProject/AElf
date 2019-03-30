@@ -422,9 +422,14 @@ namespace AElf.Contracts.TestBase
             var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var minerService = Application.ServiceProvider.GetRequiredService<IMinerService>();
+            var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
-            return await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
+            var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 DateTime.UtcNow.AddMilliseconds(int.MaxValue));
+            
+            await blockAttachService.AttachBlockAsync(block);
+    
+            return block;
         }
 
         /// <summary>

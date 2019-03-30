@@ -270,3 +270,4 @@ message CheckDividendsInput {
     sint64 ticketsAmount = 2;
     sint32 lockTime = 3;
 }
+

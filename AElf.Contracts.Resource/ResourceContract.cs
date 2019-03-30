@@ -129,11 +129,6 @@ namespace AElf.Contracts.Resource
             var cvt = State.Converters[rt];
             cvt.ResBalance = cvt.ResBalance.Add(delta);
             State.Converters[rt] = cvt;
-            Context.FireEvent(new ResourceIssued()
-            {
-                ResourceType = Standardized(resourceType),
-                IssuedAmount = delta
-            });
             return new Empty();
         }
 
@@ -177,13 +172,6 @@ namespace AElf.Contracts.Resource
                 });
             }
 
-            Context.FireEvent(new ResourceBought()
-            {
-                ResourceType = Standardized(resourceType),
-                Buyer = Context.Sender,
-                PaidElf = paidElf,
-                ReceivedResource = payout
-            });
             return new Empty();
         }
 
@@ -227,13 +215,6 @@ namespace AElf.Contracts.Resource
                 });
             }
 
-            Context.FireEvent(new ResourceSold()
-            {
-                ResourceType = Standardized(resourceType),
-                Seller = Context.Sender,
-                PaidResource = resToSell,
-                ReceivedElf = elfToReceive
-            });
             return new Empty();
         }
 
@@ -253,12 +234,6 @@ namespace AElf.Contracts.Resource
             // Increase locked amount
             var key = new UserResourceKey(Context.Sender, rt);
             State.LockedUserResources[key] = State.LockedUserResources[key].Add(amount);
-            Context.FireEvent(new ResourceLocked()
-            {
-                ResourceType = Standardized(resourceType),
-                User = Context.Sender,
-                Amount = amount
-            });
             return new Empty();
         }
 
@@ -282,12 +257,6 @@ namespace AElf.Contracts.Resource
             // Reduce locked amount
             var key = new UserResourceKey(userAddress, rt);
             State.LockedUserResources[key] = State.LockedUserResources[key].Sub(amount);
-            Context.FireEvent(new ResourceUnlocked()
-            {
-                ResourceType = Standardized(resourceType),
-                User = userAddress,
-                Amount = amount
-            });
             return new Empty();
         }
 

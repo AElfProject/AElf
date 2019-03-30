@@ -182,12 +182,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var receipt = new TransactionReceipt(transaction);
                 if (_allTransactions.ContainsKey(receipt.TransactionId))
                 {
+                    Logger.LogWarning($"Transaction already exists in TxPool");
                     continue;
                 }
 
                 var txn = await _transactionManager.GetTransaction(receipt.TransactionId);
                 if (txn != null)
                 {
+                    Logger.LogWarning($"Transaction already exists in TxStore");
                     continue;
                 }
 

@@ -42,7 +42,7 @@ namespace AElf.Contracts.Consensus.DPoS
         
         protected Address TokenContractAddress { get; set; }
 
-        protected ConsensusContractContainer.ConsensusContractTester BootMiner =>
+        internal ConsensusContractContainer.ConsensusContractTester BootMiner =>
             GetTester<ConsensusContractContainer.ConsensusContractTester>(ConsensusContractAddress, BootMinerKeyPair);
         
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs.First();
@@ -97,17 +97,17 @@ namespace AElf.Contracts.Consensus.DPoS
             await BootMiner.NextRound.SendAsync(nextRound);
         }
 
-        protected BasicContractZeroContainer.BasicContractZeroTester GetContractZeroTester(ECKeyPair keyPair)
+        internal BasicContractZeroContainer.BasicContractZeroTester GetContractZeroTester(ECKeyPair keyPair)
         {
             return GetTester<BasicContractZeroContainer.BasicContractZeroTester>(ContractZeroAddress, keyPair);
         }
         
-        protected ConsensusContractContainer.ConsensusContractTester GetConsensusContractTester(ECKeyPair keyPair)
+        internal ConsensusContractContainer.ConsensusContractTester GetConsensusContractTester(ECKeyPair keyPair)
         {
             return GetTester<ConsensusContractContainer.ConsensusContractTester>(ConsensusContractAddress, keyPair);
         }
         
-        protected DividendContractContainer.DividendContractTester GetDividendContractTester(ECKeyPair keyPair)
+        internal DividendContractContainer.DividendContractTester GetDividendContractTester(ECKeyPair keyPair)
         {
             return GetTester<DividendContractContainer.DividendContractTester>(DividendContractAddress, keyPair);
         }

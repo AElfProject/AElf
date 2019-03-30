@@ -112,7 +112,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var candidates = State.CandidatesField.Value;
             result.CandidatesNumber = candidates.PublicKeys.Count;
 
-            var take = Math.Min(result.CandidatesNumber - startIndex, length - startIndex);
+            var take = Math.Min(result.CandidatesNumber - startIndex, length);
             foreach (var candidate in candidates.PublicKeys.Skip(startIndex).Take(take))
             {
                 var historyInformation = State.HistoryMap[candidate.ToStringValue()];
@@ -244,7 +244,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var tickets = GetTicketsInformation(publicKey);
 
             var count = tickets.VotingRecords.Count;
-            var take = Math.Min(length - startIndex, count - startIndex);
+            var take = Math.Min(count - startIndex, length);
 
             var result = new Tickets
             {
@@ -275,7 +275,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var notWithdrawnVotingRecords = tickets.VotingRecords.Where(vr => !vr.IsWithdrawn).ToList();
             var count = notWithdrawnVotingRecords.Count;
-            var take = Math.Min(length - startIndex, count - startIndex);
+            var take = Math.Min(count - startIndex, length);
 
             var result = new Tickets
             {
@@ -331,7 +331,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
             }
 
-            var take = Math.Min(length - startIndex, histories.Values.Count - startIndex);
+            var take = Math.Min(histories.Values.Count - startIndex, length);
             result.Values.AddRange(histories.Values.Skip(startIndex).Take(take));
             result.HistoriesNumber = histories.Values.Count;
 
@@ -356,50 +356,28 @@ namespace AElf.Contracts.Consensus.DPoS
             var startIndex = input.Start;
             var length = input.Length;
             var orderBy = input.OrderBy;
-            if (orderBy == 0)
+            
+            var publicKeys = State.CandidatesField.Value.PublicKeys;
+            length = length == 0 ? publicKeys.Count : length;
+            
+            var dict = new Dictionary<string, Tickets>();
+            var take = Math.Min(publicKeys.Count - startIndex, length);
+            foreach (var publicKey in publicKeys.Skip(startIndex).Take(take))
             {
-                var publicKeys = State.CandidatesField.Value.PublicKeys;
-                if (length == 0)
+                var tickets = State.TicketsMap[publicKey.ToStringValue()];
+                if (tickets != null)
                 {
-                    length = publicKeys.Count;
+                    dict.Add(publicKey, tickets);
                 }
-
-                var dict = new Dictionary<string, Tickets>();
-                var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
-                foreach (var publicKey in publicKeys.Skip(startIndex).Take(take))
-                {
-                    var tickets = State.TicketsMap[publicKey.ToStringValue()];
-                    if (tickets != null)
-                    {
-                        dict.Add(publicKey, tickets);
-                    }
-                }
-
+            }
+            
+            if (orderBy == 0)
                 return new TicketsDictionary
                 {
                     Maps = {dict}
                 };
-            }
 
             if (orderBy == 1)
-            {
-                var publicKeys = State.CandidatesField.Value.PublicKeys;
-                if (length == 0)
-                {
-                    length = publicKeys.Count;
-                }
-
-                var dict = new Dictionary<string, Tickets>();
-                foreach (var publicKey in publicKeys)
-                {
-                    var tickets = State.TicketsMap[publicKey.ToStringValue()];
-                    if (tickets != null)
-                    {
-                        dict.Add(publicKey, tickets);
-                    }
-                }
-
-                var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
                 return new TicketsDictionary
                 {
                     Maps =
@@ -408,27 +386,8 @@ namespace AElf.Contracts.Consensus.DPoS
                             .ToDictionary(p => p.Key, p => p.Value)
                     }
                 };
-            }
 
             if (orderBy == 2)
-            {
-                var publicKeys = State.CandidatesField.Value.PublicKeys;
-                if (length == 0)
-                {
-                    length = publicKeys.Count;
-                }
-
-                var dict = new Dictionary<string, Tickets>();
-                foreach (var publicKey in publicKeys)
-                {
-                    var tickets = State.TicketsMap[publicKey.ToStringValue()];
-                    if (tickets != null)
-                    {
-                        dict.Add(publicKey, tickets);
-                    }
-                }
-
-                var take = Math.Min(length - startIndex, publicKeys.Count - startIndex);
                 return new TicketsDictionary
                 {
                     Maps =
@@ -437,7 +396,6 @@ namespace AElf.Contracts.Consensus.DPoS
                             .ToDictionary(p => p.Key, p => p.Value)
                     }
                 };
-            }
 
             return new TicketsDictionary();
         }

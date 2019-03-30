@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Jobs;
 using AElf.OS.Network.Events;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.BackgroundJobs;
@@ -9,14 +11,23 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>, ILocalEventHandler<AnnouncementReceivedEventData>
+    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>,
+        ILocalEventHandler<AnnouncementReceivedEventData>
     {
-        public IBackgroundJobManager BackgroundJobManager { get; set; }
-        public IBlockchainService BlockchainService { get; set; }
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
 
-        public PeerConnectedEventHandler()
+        private readonly IBlockchainService _blockchainService;
+
+        private readonly ITaskQueueManager _taskQueueManager;
+
+        private readonly BlockSyncJob _blockSyncJob;
+
+        public PeerConnectedEventHandler(IServiceProvider serviceProvider, ITaskQueueManager taskQueueManager,
+            IBlockchainService blockchainService)
         {
+            _taskQueueManager = taskQueueManager;
+            _blockSyncJob = serviceProvider.GetRequiredService<BlockSyncJob>();
+            _blockchainService = blockchainService;
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
 
@@ -37,18 +48,22 @@ namespace AElf.OS.Handlers
 
             Logger.LogTrace($"Receive header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
 
-            var chain = await BlockchainService.GetChainAsync();
+            var chain = await _blockchainService.GetChainAsync();
             if (blockHeight < chain.LastIrreversibleBlockHeight)
             {
-                Logger.LogTrace($"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} form {senderPubKey}, ignore.");
+                Logger.LogTrace(
+                    $"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} form {senderPubKey}, ignore.");
                 return;
             }
 
-            await BackgroundJobManager.EnqueueAsync(new BlockSyncJobArgs
+            _taskQueueManager.GetQueue(OSConsts.BlockSyncQueueName).Enqueue(async () =>
             {
-                SuggestedPeerPubKey = senderPubKey,
-                BlockHash = blockHash.ToHex(),
-                BlockHeight = blockHeight
+                await _blockSyncJob.ExecuteAsync(new BlockSyncJobArgs
+                {
+                    SuggestedPeerPubKey = senderPubKey,
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
+                });
             });
         }
     }

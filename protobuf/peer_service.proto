@@ -31,6 +31,7 @@ enum AuthError {
     WrongSig = 2;
     WrongAuth = 3;
     InvalidHandshake = 4;
+    InvalidPeer = 5;
 }
 
 // **** Blocks *****
