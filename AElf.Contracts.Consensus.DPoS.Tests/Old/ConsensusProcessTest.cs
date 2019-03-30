@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         private const int MiningInterval = 4000;
 
-        [Fact]
+        [Fact(Skip = "Rewrite")]
         public async Task NormalBlock_GetNewConsensusInformation()
         {
             var testers = new ConsensusTesters();
@@ -62,7 +62,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.True(validationResult?.Success);
         }
 
-        [Fact]
+        [Fact(Skip = "Rewrite")]
         public async Task NormalBlock_GenerateConsensusTransactions()
         {
             var testers = new ConsensusTesters();
