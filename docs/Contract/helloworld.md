@@ -1,10 +1,10 @@
-This tutorial will guide you through the steps to create and deploy a very simple contract in C#.  
+This tutorial will guide you through the steps to create and deploy a simple contract in C#.  
 
-First, note that most of the steps involve the command line, but if you’re a C# developer and you recognize these steps you can use Visual Studio/Rider or any other IDE that supports csproj and nugget packages feel free to use them.
+First, note that most of the steps involve the command line, but if you’re a C# developer and you recognize these steps you can use Visual Studio/Rider or any other IDE that supports csproj and nugget packages, feel free to use them.
 
-This tutorial assumes that you have already built the **aelf command line tool** and **node executable** (if not please follow this []).
+This tutorial assumes that you have already built the **aelf command line tool** and **node executable** (if not please follow [this](/Introduction/quickstart.md) guide).
 
-Create a new directory and navigate into it:
+Open a terminal and create a new directory and navigate into it:
 ```bash
 mkdir test-aelf; cd test-aelf/
 ```
@@ -18,13 +18,13 @@ Add reference to the sdk:
 ```bash
 dotnet add test-aelf.csproj package AElf.Sdk.CSharp
 ```
-Create the following files:
+Execute the following command to create the files we need to implement the contract:
 ```bash
-touch Protobuf/Proto/hello_world.proto HelloWorldContract.cs HelloWorldContractState.cs
+mkdir -p Protobuf/Proto;touch Protobuf/Proto/hello_world.proto HelloWorldContract.cs HelloWorldContractState.cs
 ```
-Copy the following dependency:
+Copy the following dependencies from the **protobuf** folder located at the root of your aelf folder:
 ```bash
-cp ~/Programming/aelf/AELF/protobuf/aelf_options.proto Protobuf/Proto/
+cp ~/path/to/aelf/protobuf/aelf_options.proto Protobuf/Proto/
 ```
 
 Open the folder with your favorite editor, paste the following in Hello_world.proto:
@@ -83,10 +83,31 @@ namespace Demo.HelloWorldContract
 
 Every contract can have a state and for this you need to define a class derived from ContractState. This will be explained more in detail in later tutorials because our HelloWorld contract doesn’t need it.
 
-We have implemented a custom plugin to generate the service code from the proto definitions. You will need to copy it from the clonned repo to the current directory:cp path/to/aelfrepo/scripts/contract_csharp_plugin_osx .
+We have implemented a custom plugin to generate the service code from the proto definitions. You will need to copy it from the clonned repo to the current directory:
+
+For macos:
+```bash
+cp path/to/aelfrepo/scripts/contract_csharp_plugin_osx .
+```
+
+For Linux:
+```bash
+cp path/to/aelfrepo/scripts/contract_csharp_plugin_linux .
+```
+
+Create the folder for the generated files:
+```bash
+mkdir ./Protobuf/Generated
+```
+
 Execute the following command to generate the C# files:
 ```bash
 protoc --proto_path=./Protobuf/Proto --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs --contract_out=./Protobuf/Generated --plugin=protoc-gen-contract=contract_csharp_plugin_osx hello_world.proto
+```
+
+This example also has a dependency on Protobuf so we need to add the depency:
+```bash
+dotnet add package Google.Protobuf
 ```
 
 Build the project:
@@ -94,10 +115,25 @@ Build the project:
 dotnet build test-aelf.csproj
 ```
 
-Start the node
+Open another terminal and navigate to AElfs root directory then enter **AElf.Launcher** to run the node:
 
-//todo
-Start the CLI and execute the following command.
-dotnet AElf.CLI.dll deploy 0 AElf.Contracts.xxxx -a xxx -p xxx
+```bash
+cd AElf.Launcher/
+dotnet bin/Release/netcoreapp2.2/AElf.Launcher.dll
+```
+
+In the previous terminal, alias the cli:
+
+```bash
+alias aelf-cli="dotnet path/to/aelf/AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
+```
+
+Start the CLI and execute the following command, note that here we explicitly specify the datadir (the directory where you keep your keys).
+
+```bash
+aelf-cli deploy 0 bin/Debug/netstandard2.0/test-aelf.dll -a 4Mjy1siZA5TBkky2FLsDQ93QcSi3DuySjd1AzVfpjTHNBuc -e http://127.0.0.1:1728 -d path/to/datadir
+```
+
+
 
 

@@ -135,6 +135,3 @@ Aelf.version // eg. 2.1.10
 - [Node.js](https://nodejs.org)
 - npm
 
-## About Versionning
-
-https://semver.org/

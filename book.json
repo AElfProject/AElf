@@ -3,12 +3,5 @@
     "title": "",
     "structure": {
         "summary": "main-structure.md"
-    },
-    "plugins": ["insert-logo-link"],
-    "pluginsConfig": {
-        "insert-logo-link": {
-            "src": "/logo.png",
-            "url": "https://aelf.io/"
-        }
     }
 }
