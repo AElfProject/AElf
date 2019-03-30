@@ -52,7 +52,7 @@ namespace AElf.WebApp.Application.Net
 
         public async Task<List<string>> GetPeers()
         {
-            return _networkService.GetPeers();
+            return _networkService.GetPeerIpList();
         }
     }
 }

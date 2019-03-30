@@ -286,6 +286,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Cha
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Net", "AElf.WebApp.Application.Net\AElf.WebApp.Application.Net.csproj", "{623C86D3-E93D-404D-8BBD-440BC73D445B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Consensus.DPos", "AElf.OS.Consensus.DPos\AElf.OS.Consensus.DPos.csproj", "{788482AC-4654-4BBD-BF2C-F32800F32E99}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -720,6 +722,10 @@ Global
 		{623C86D3-E93D-404D-8BBD-440BC73D445B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{623C86D3-E93D-404D-8BBD-440BC73D445B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{623C86D3-E93D-404D-8BBD-440BC73D445B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{788482AC-4654-4BBD-BF2C-F32800F32E99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{788482AC-4654-4BBD-BF2C-F32800F32E99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{788482AC-4654-4BBD-BF2C-F32800F32E99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{788482AC-4654-4BBD-BF2C-F32800F32E99}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -822,5 +828,6 @@ Global
 		{C047419C-8A70-4533-90E4-1FAE52C141AD} = {13B37500-5DF4-4C64-BD57-2CA6A619596A}
 		{139042C5-1BB4-4673-92DE-13A9584B3009} = {13B37500-5DF4-4C64-BD57-2CA6A619596A}
 		{623C86D3-E93D-404D-8BBD-440BC73D445B} = {13B37500-5DF4-4C64-BD57-2CA6A619596A}
+		{788482AC-4654-4BBD-BF2C-F32800F32E99} = {BC510DE7-274F-4C8B-BCBB-A9E18627ED05}
 	EndGlobalSection
 EndGlobal
