@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using AElf.Blockchains.BasicBaseChain;
 using AElf.Common;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividend;
@@ -54,29 +53,10 @@ namespace AElf.Blockchains.SideChain
                 ZeroSmartContract = typeof(BasicContractZero)
             };
             
-            var dividendMethodCallList = new SystemTransactionMethodCallList();
-            dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                new InitializeWithContractSystemNamesInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
-                });
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
 
-            dto.InitializationSmartContracts
-                .AddConsensusSmartContract<Contracts.Consensus.DPoS.SideChain.ConsensusContract>();
-
-            var zeroContractAddress = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
-                .GetZeroSmartContractAddress();
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
-                DividendsSmartContractAddressNameProvider.Name, dividendMethodCallList);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
-                TokenSmartContractAddressNameProvider.Name,
-                GenerateTokenInitializationCallList(zeroContractAddress,
-                    context.ServiceProvider.GetService<IOptions<DPoSOptions>>().Value.InitialMiners));
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
-                ResourceSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
-                ResourceFeeReceiverSmartContractAddressNameProvider.Name);
+                TokenSmartContractAddressNameProvider.Name, GenerateTokenInitializationCallList());
             
             var crossChainOption = context.ServiceProvider.GetService<IOptionsSnapshot<CrossChainConfigOption>>()
                 .Value;
@@ -96,52 +76,13 @@ namespace AElf.Blockchains.SideChain
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
         }
 
-        private SystemTransactionMethodCallList GenerateTokenInitializationCallList(Address issuer,
-            List<string> tokenReceivers)
+        private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
-            const string symbol = "ELF";
             var tokenContractCallList = new SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
-            {
-                Symbol = symbol,
-                Decimals = 2,
-                IsBurnable = true,
-                TokenName = "elf token",
-                TotalSupply = 10_0000_0000,
-                // Set the contract zero address as the issuer temporarily.
-                Issuer = issuer,
-                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
-            });
-
-            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
-            {
-                Symbol = symbol,
-                Amount = 2_0000_0000,
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
-                Memo = "Set dividends.",
-            });
-            
             tokenContractCallList.Add(nameof(TokenContract.InitializeWithContractSystemNames), new TokenContractInitializeInput
             {
                 CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
             });
-
-            //TODO: Maybe should be removed after testing.
-            foreach (var tokenReceiver in tokenReceivers)
-            {
-                tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
-                {
-                    Symbol = symbol,
-                    Amount = 8_0000_0000 / tokenReceivers.Count,
-                    To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(tokenReceiver)),
-                    Memo = "Set initial miner's balance.",
-                });
-            }
-
-            // Set fee pool address to dividend contract address.
-            tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
-                DividendsSmartContractAddressNameProvider.Name);
-
             return tokenContractCallList;
         }
 
