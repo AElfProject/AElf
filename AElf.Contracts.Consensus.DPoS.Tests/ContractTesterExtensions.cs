@@ -1,23 +1,21 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.Dividend;
-using AElf.Contracts.TestBase;
-using AElf.Contracts.MultiToken;
-using AElf.Cryptography;
-using AElf.Kernel;
-using System;
-using System.Linq;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Dividend;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestBase;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -148,7 +146,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var dividendMethodCallList = new SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                new AElf.Contracts.Dividend.InitializeWithContractSystemNamesInput
+                new Dividend.InitializeWithContractSystemNamesInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
@@ -382,23 +380,16 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     TermNumber = termNumber, RoundNumber = round.RoundNumber
                 });
-
-            var txs = new List<Transaction> {nextTermTx, snapshotForMinersTx, snapshotForTermTx, sendDividendsTx};
             var extraBlockMiner = miners.First(m => m.PublicKey == extraBlockProducer.PublicKey);
-            var block = await extraBlockMiner.MineAsync(txs);
-
-            foreach (var transaction in txs)
-            {
-                var transactionResult = await extraBlockMiner.GetTransactionResultAsync(transaction.GetHash());
-                if (transactionResult.Status != TransactionResultStatus.Mined)
-                {
-                    throw new Exception($"Failed to execute {transaction.MethodName} tx. {transactionResult.Error}");
-                }
-            }
+            var block1 = await extraBlockMiner.MineAsync(new List<Transaction> {nextTermTx});
+            var block2 = await extraBlockMiner.MineAsync(new List<Transaction>
+                {snapshotForMinersTx, snapshotForTermTx, sendDividendsTx});
 
             foreach (var otherMiner in miners.Where(m => m.PublicKey != extraBlockProducer.PublicKey))
             {
-                await otherMiner.ExecuteBlock(block, txs);
+                await otherMiner.ExecuteBlock(block1, new List<Transaction> {nextTermTx});
+                await otherMiner.ExecuteBlock(block2, new List<Transaction>
+                    {snapshotForMinersTx, snapshotForTermTx, sendDividendsTx});
             }
 
             return miners.First(m => m.PublicKey == extraBlockProducer.PublicKey);
