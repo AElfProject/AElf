@@ -58,19 +58,11 @@ namespace AElf.Blockchains.MainChain
             var zeroContractAddress = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
                 .GetZeroSmartContractAddress();
 
-            var dividendMethodCallList = new SystemTransactionMethodCallList();
-            dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                new InitializeWithContractSystemNamesInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
-                });
-            
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
                 GenerateConsensusInitializationCallList(dposOptions));
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
-                DividendsSmartContractAddressNameProvider.Name, dividendMethodCallList);
+                DividendsSmartContractAddressNameProvider.Name, GenerateDividendInitializationCallList());
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name,
                 GenerateTokenInitializationCallList(zeroContractAddress,
@@ -106,6 +98,18 @@ namespace AElf.Blockchains.MainChain
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
                     DateTime.Parse(dposOptions.StartTimestamp).ToUniversalTime()));
             return consensusMethodCallList;
+        }
+        
+        private SystemTransactionMethodCallList GenerateDividendInitializationCallList()
+        {
+            var dividendMethodCallList = new SystemTransactionMethodCallList();
+            dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
+                new InitializeWithContractSystemNamesInput
+                {
+                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+                });
+            return dividendMethodCallList;
         }
 
         private SystemTransactionMethodCallList GenerateTokenInitializationCallList(Address issuer,

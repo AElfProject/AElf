@@ -77,7 +77,8 @@ namespace AElf.Consensus.DPoS
                     {
                         return new ConsensusCommand
                         {
-                            NextBlockMiningLeftMilliseconds = round.RealTimeMinersInformation.Count * miningInterval,
+                            NextBlockMiningLeftMilliseconds =
+                                round.RealTimeMinersInformation.Count * miningInterval + myOrder * miningInterval,
                             LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
                             Hint = new DPoSHint
                             {
@@ -85,6 +86,7 @@ namespace AElf.Consensus.DPoS
                             }.ToByteString()
                         };
                     }
+
                     return new ConsensusCommand
                     {
                         NextBlockMiningLeftMilliseconds =
