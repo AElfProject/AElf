@@ -44,8 +44,15 @@ namespace AElf.Consensus.DPoS
                 case DPoSBehaviour.UpdateValue:
                     // If miner of previous order didn't produce block, skip this time slot.
                     myOrder = round.RealTimeMinersInformation[minerInRound.PublicKey].Order;
-                    if (myOrder != 1 &&
-                        round.RealTimeMinersInformation.Values.First(m => m.Order == myOrder - 1).OutValue == null)
+                    var previousMinerMissedHisTimeSlot =
+                        myOrder != 1 && round.RealTimeMinersInformation.Values.First(m => m.Order == myOrder - 1)
+                            .OutValue == null;
+                    var previousTwoMinersMissedHisTimeSlot = myOrder > 2 &&
+                                                             round.RealTimeMinersInformation.Values
+                                                                 .First(m => m.Order == myOrder - 1).OutValue == null &&
+                                                             round.RealTimeMinersInformation.Values
+                                                                 .First(m => m.Order == myOrder - 2).OutValue == null;
+                    if (previousMinerMissedHisTimeSlot && !previousTwoMinersMissedHisTimeSlot)
                     {
                         var fakeDateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(-miningInterval);
                         return new ConsensusCommand

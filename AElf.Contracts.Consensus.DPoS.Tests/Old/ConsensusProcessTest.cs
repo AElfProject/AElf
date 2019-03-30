@@ -21,20 +21,6 @@ namespace AElf.Contracts.Consensus.DPoS
         private const int MiningInterval = 4000;
 
         [Fact]
-        public async Task NormalBlock_GetConsensusCommand()
-        {
-            var testers = new ConsensusTesters();
-            testers.InitialTesters();
-
-            // Act
-            var actual = await testers.Testers[1].GetConsensusCommandAsync(DateTime.UtcNow.ToTimestamp());
-
-            // Assert
-            Assert.Equal(DPoSBehaviour.UpdateValue, DPoSHint.Parser.ParseFrom(actual.Hint).Behaviour);
-            Assert.True(actual.NextBlockMiningLeftMilliseconds != MiningInterval);
-        }
-
-        [Fact]
         public async Task NormalBlock_GetNewConsensusInformation()
         {
             var testers = new ConsensusTesters();
