@@ -65,6 +65,9 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         private async Task<IEnumerable<long>> DiscoverIrreversibleHeights(IEnumerable<Hash> blockIds)
         {
+            //TODO: do not need check in order 
+            //BODY: 1,2,3..... should check 5,4,3,2...., if 4 is LIB, set 2,3,4 as LIB 
+            
             var output = new List<long>();
             foreach (var blockId in blockIds)
             {

@@ -5,20 +5,38 @@ using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Consensus.DPos
 {
     public class DPosAnnouncementReceivedEventDataHandler : ILocalEventHandler<AnnouncementReceivedEventData>
     {
-        public DPosAnnouncementReceivedEventDataHandler()
+        private ITaskQueueManager _taskQueueManager;
+        private IDPosLastLastIrreversibleBlockDiscoveryService _dPosLastLastIrreversibleBlockDiscoveryService;
+
+        public DPosAnnouncementReceivedEventDataHandler(ITaskQueueManager taskQueueManager,
+            IDPosLastLastIrreversibleBlockDiscoveryService dPosLastLastIrreversibleBlockDiscoveryService)
         {
+            _taskQueueManager = taskQueueManager;
+            _dPosLastLastIrreversibleBlockDiscoveryService = dPosLastLastIrreversibleBlockDiscoveryService;
         }
 
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            throw new System.NotImplementedException();
-        }
+            var hash = _dPosLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockHash(
+                eventData.SenderPubKey);
 
+            if (hash != null)
+            {
+                _taskQueueManager.Enqueue(() =>
+                {
+                    
+                    //TODO: should call set LIB
+                    return Task.CompletedTask;
+                });
+            }
+            
+        }
     }
 
 
@@ -26,50 +44,47 @@ namespace AElf.OS.Consensus.DPos
     {
         Hash FindLastLastIrreversibleBlockHash(string senderPubKey);
     }
-    
-    public class DPosLastLastIrreversibleBlockDiscoveryService : IDPosLastLastIrreversibleBlockDiscoveryService, ISingletonDependency
+
+    public class DPosLastLastIrreversibleBlockDiscoveryService : IDPosLastLastIrreversibleBlockDiscoveryService,
+        ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
-        
-        
 
         public DPosLastLastIrreversibleBlockDiscoveryService(IPeerPool peerPool)
         {
             _peerPool = peerPool;
+            //LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public Hash FindLastLastIrreversibleBlockHash(string senderPubKey)
         {
             var senderPeer = _peerPool.FindPeerByPublicKey(senderPubKey);
-            
+
+            if (senderPeer == null)
+                return null;
+
+            var orderedBlocks = senderPeer.RecentBlockHeightAndHashMappings.OrderBy(p => p.Key).ToList();
+
             var peers = _peerPool.GetPeers();
 
             if (peers.Count == 0)
                 return null;
 
-            var orderedBlocks = senderPeer.RecentBlockHeightAndHashMappings.OrderBy(p => p.Key).ToList();
-
             foreach (var block in orderedBlocks)
             {
-                var a = peers.Where(p =>
+                var peersHadBlockAmount = peers.Where(p =>
                 {
                     p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
                     return hash == block.Value;
-                });
-            }
-            
-            var peerGroup = peers.GroupBy(p => p.CurrentBlockHash).Select(p => new
-            {
-                Count = p.Count(),
-                Hash = p.First().CurrentBlockHash,
-                Height = p.First().CurrentBlockHeight
-            }).OrderByDescending(p => p.Count).First();
+                }).Count();
 
-            //TODO: get params from DPOS consensus service 
-            if (peerGroup.Count > 13)
-            {
-                
+                //TODO: get value from DPOS consensus service
+                if (peersHadBlockAmount > 12)
+                {
+                    return block.Value;
+                }
             }
+
 
             return null;
         }
