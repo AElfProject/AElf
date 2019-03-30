@@ -49,8 +49,9 @@ namespace AElf.Kernel.SmartContract.Sdk
         void DeployContract(Address address, SmartContractRegistration registration, Hash name);
 
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
-        
-        T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args);
+
+        T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args)
+            where T : IMessage<T>, new();
         
         void SendInline(Address toAddress, string methodName, ByteString args);
 

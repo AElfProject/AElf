@@ -126,7 +126,7 @@ namespace AElf.Kernel
             {
                 transactionResult.Logs.Add(logEvent);
             }
-
+            transactionResult.UpdateBloom();
             return transactionResult;
         }
 
@@ -180,14 +180,22 @@ namespace AElf.Kernel
 
             var newBlock = GenerateBlock(previousBlockHeight, previousBlockHash, transactions);
 
+            var bloom = new Bloom();
+            foreach (var transactionResult in transactionResults)
+            {
+                transactionResult.UpdateBloom();
+                if (transactionResult.Status == TransactionResultStatus.Mined)
+                {
+                    bloom.Combine(new[] {new Bloom(transactionResult.Bloom.ToByteArray())});    
+                }
+
+                await _transactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
+            }
+            newBlock.Header.Bloom = ByteString.CopyFrom(bloom.Data);
+
             await _blockchainService.AddBlockAsync(newBlock);
             var chain = await _blockchainService.GetChainAsync();
             await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
-
-            foreach (var transactionResult in transactionResults)
-            {
-                await _transactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
-            }
 
             return newBlock;
         }

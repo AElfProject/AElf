@@ -87,3 +87,17 @@ message VerifyTransactionInput {
     repeated Hash Path = 2;
     sint64 parentChainHeight = 3;
 }
+
+// Events
+message CreationRequested
+{
+    option (aelf.is_event) = true;
+    Address creator = 1;
+    sint32 chainId = 2;
+}
+
+message Disposed
+{
+    option (aelf.is_event) = true;
+    sint32 chainId = 1;
+}
