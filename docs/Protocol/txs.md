@@ -28,7 +28,7 @@ This is the protobuf definition we use to serialize Transactions. Some important
 
 Note that the **From** is not currently useful because we derive it from the signature.
 
-In the js sdk theres multiple methods to work with transactions. One important method is the **getTransaction** method that will build a transaction and return the serialized version:
+In the js sdk theres multiple methods to work with transactions. One important method is the **getTransaction** method that will build a transaction object for you:
 
 ```js
 import Aelf from 'aelf-sdk';
@@ -37,11 +37,15 @@ var rawTxn = proto.getTransaction('65dDNxzcd35jESiidFXN5JV8Z7pCwaFnepuYQToNefSgq
 
 this will build the transaction to the contract at address "65dDNxzcd35jESiidFXN5JV8Z7pCwaFnepuYQToNefSgqk9" that will call SomeMethod with encoded params. The params are serialized by the following function:
 
-
-
-
-The last thing you will need to do is to sign the transaction:
+Next you will need to sign the transaction:
 ```js
 import Aelf from 'aelf-sdk';
 var txn = Aelf.wallet.signTransaction(rawTxn, wallet.keyPair);
 ```
+
+And finally, serialize the
+```js
+tx = proto.Transaction.encode(tx).finish();
+```
+
+For the full process check out "ContractMethod.prototype.toPayload".
