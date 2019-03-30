@@ -41,13 +41,16 @@ namespace AElf
                     _cancellationTokenSource.Cancel();
                 }
 
-                WaitHandle.WaitAny(new[] {_cancellationTokenSource.Token.WaitHandle});
+                if (_queue.Count > 0)
+                    Task.WaitAny(_queue.Completion);
                 _cancellationTokenSource.Dispose();
             }
         }
 
         public void Enqueue(Func<Task> task)
         {
+            if (_cancellationTokenSource.Token.IsCancellationRequested)
+                throw new InvalidOperationException("cannot enqueue into a stopped queue");
             _queue.Post(task);
         }
 
@@ -72,7 +75,8 @@ namespace AElf
 
                 if (_cancellationTokenSource.Token.IsCancellationRequested)
                 {
-                    _queue.Complete();
+                    if (_queue.Count == 0)
+                        _queue.Complete();
                 }
             }
         }
