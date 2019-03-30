@@ -65,7 +65,11 @@ namespace AElf.OS.Consensus.DPos
 
             var orderedBlocks = senderPeer.RecentBlockHeightAndHashMappings.OrderBy(p => p.Key).ToList();
 
-            var peers = _peerPool.GetPeers();
+
+            //TODO: should get from DPos Consensus service
+            var pubkeyList = new string[] { };
+            
+            var peers = _peerPool.GetPeers().Where(p=>pubkeyList.Contains( p.PubKey )).ToList();
 
             if (peers.Count == 0)
                 return null;
