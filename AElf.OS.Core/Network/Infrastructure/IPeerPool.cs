@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 
 namespace AElf.OS.Network.Infrastructure
 {
@@ -20,5 +21,6 @@ namespace AElf.OS.Network.Infrastructure
         Task<IPeer> RemovePeerAsync(string remotePubKey, bool sendDisconnect);
 
         Task<Handshake> GetHandshakeAsync();
+
     }
 }
