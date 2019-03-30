@@ -98,7 +98,7 @@ You now should have a node that's running, to check this run the following comma
 aelf-cli get-blk-height -e http://127.0.0.1:1728
 ```
 
-### Launch and test
+### Cleanup
 
 To stop the node you can simply find and kill the process with:
 
