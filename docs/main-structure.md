@@ -13,7 +13,7 @@
 * [Multitoken contract](multitoken/contract.md)
 * [Smart contracts](Contract/contracts.md)
     * [Hello World](Contract/helloworld.md)
-    * [Architecure](Contract/archi.md)
+    * [Architecture](Contract/archi.md)
     * [Best practices](Contract/bp.md)
 * [Wallet and block explorer](WalletAndExplorer/wallet.md)
 * [Architecture](protocol/protocol.md)
