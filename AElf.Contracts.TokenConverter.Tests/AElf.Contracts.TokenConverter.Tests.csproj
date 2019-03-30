@@ -13,7 +13,31 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <Content Include="..\protobuf\aelf_options.proto">
+        <Link>Protobuf/Proto/aelf_options.proto</Link>
+      </Content>
+      <Content Include="..\protobuf\common.proto">
+        <Link>Protobuf/Proto/common.proto</Link>
+      </Content>
+      <Content Include="..\protobuf\token_contract.proto">
+        <Link>Protobuf/Proto/token_contract.proto</Link>
+      </Content>
+      <Content Include="..\protobuf\token_converter_contract.proto">
+        <Link>Protobuf/Proto/token_converter_contract.proto</Link>
+      </Content>
+    </ItemGroup>
+
+    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_tester.sh basic_contract_zero.proto token_contract.proto token_converter_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\scripts\generate_contract_tester.bat basic_contract_zero.proto token_contract.proto token_converter_contract.proto" />
+    </Target>
+    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Compile Include="./Protobuf/Generated/*.cs" />
+        </ItemGroup>
+    </Target>
 </Project>
