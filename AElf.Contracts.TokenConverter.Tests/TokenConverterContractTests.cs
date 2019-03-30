@@ -1,46 +1,20 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.TestKit;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Application;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 
 namespace AElf.Contracts.TokenConverter
 {
-    public class TokenConverterContractTests : ContractTestBase<TokenConverterTestModule>
+    public class TokenConverterContractTests : TokenConverterTestBase
     {
-        private ISmartContractAddressService ContractAddressService =>
-            Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
+        private string _nativeSymbol = "ELF";
 
-        private Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
-
-        internal BasicContractZeroContainer.BasicContractZeroTester ContractZeroTester =>
-            GetTester<BasicContractZeroContainer.BasicContractZeroTester>(ContractZeroAddress, DefaultSenderKeyPair);
-
-        internal TokenContractContainer.TokenContractTester TokenContractTester;
-        internal TokenConverterContractContainer.TokenConverterContractTester DefaultTester;
-        private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        private Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        private ECKeyPair FeeReceiverKeyPair { get; } = SampleECKeyPairs.KeyPairs[10];
-        public Address FeeReceiverAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
-        private ECKeyPair ManagerKeyPair { get; } = SampleECKeyPairs.KeyPairs[11];
-        private Address ManagerAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
-        private ECKeyPair FoundationKeyPair { get; } = SampleECKeyPairs.KeyPairs[12];
-
-        private Address BasicZeroContractAddress;
-        private Address TokenContractAddress;
-        private Address TokenConverterContractAddress;
-
+        private string _ramSymbol = "RAM";
+        
         //init connector
         private Connector ELFConnector = new Connector
         {
@@ -98,7 +72,7 @@ namespace AElf.Contracts.TokenConverter
             //init token converter
             var input = new InitializeInput
             {
-                BaseTokenSymbol = "ELF",
+                BaseTokenSymbol = _nativeSymbol,
                 FeeRateNumerator = 5,
                 FeeRateDenominator = 1000,
                 Manager = ManagerAddress,
@@ -223,12 +197,7 @@ namespace AElf.Contracts.TokenConverter
             //check the price and fee
             var fromConnectorBalance = ELFConnector.VirtualBalance;
             var fromConnectorWeight = ELFConnector.Weight / 100_0000;
-            var toConnectorBalance = (await TokenContractTester.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = TokenConverterContractAddress,
-                Symbol = RamConnector.Symbol
-            })).Balance;
-
+            var toConnectorBalance = await GetBalanceAsync(_ramSymbol, TokenConverterContractAddress);
             var toConnectorWeight = RamConnector.Weight / 100_0000;
             
             var amountToPay = BancorHelpers.GetAmountToPayFromReturn(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
@@ -244,43 +213,19 @@ namespace AElf.Contracts.TokenConverter
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             //Verify the outcome of the transaction
-            var balanceOfTesterRam = (await TokenContractTester.GetBalance.CallAsync(
-                new GetBalanceInput()
-                {
-                    Owner = DefaultSender,
-                    Symbol = RamConnector.Symbol
-                })).Balance;
+            var balanceOfTesterRam = await GetBalanceAsync(_ramSymbol,DefaultSender);
             balanceOfTesterRam.ShouldBe(1000L);
-            
-            var balanceOfElfToken = (await TokenContractTester.GetBalance.CallAsync(
-                new GetBalanceInput()
-                {
-                    Owner = TokenConverterContractAddress,
-                    Symbol = "ELF"
-                })).Balance;
+
+            var balanceOfElfToken = await GetBalanceAsync(_nativeSymbol,TokenConverterContractAddress);
             balanceOfElfToken.ShouldBe(amountToPay);
 
-            var balanceOfFeeReceiver = (await TokenContractTester.GetBalance.CallAsync(new GetBalanceInput()
-                {
-                    Owner = FeeReceiverAddress,
-                    Symbol = "ELF"
-                })).Balance;
+            var balanceOfFeeReceiver = await GetBalanceAsync(_nativeSymbol,FeeReceiverAddress);
             balanceOfFeeReceiver.ShouldBe(fee);
 
-            var balanceOfRamToken = (await TokenContractTester.GetBalance.CallAsync(
-                new GetBalanceInput()
-                {
-                    Owner = TokenConverterContractAddress,
-                    Symbol = RamConnector.Symbol
-                })).Balance;
+            var balanceOfRamToken = await GetBalanceAsync(_ramSymbol,TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L - 1000L);
-            
-            var balanceOfTesterToken = (await TokenContractTester.GetBalance.CallAsync(
-                new GetBalanceInput()
-                {
-                    Owner = DefaultSender,
-                    Symbol = "ELF"
-                })).Balance;
+
+            var balanceOfTesterToken = await GetBalanceAsync(_nativeSymbol,DefaultSender);
             balanceOfTesterToken.ShouldBe(100_0000L - amountToPay - fee);
             
         }
@@ -341,35 +286,15 @@ namespace AElf.Contracts.TokenConverter
                 })).TransactionResult;
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
-            //Balance of before Sell
-            var balanceOfFeeReceiver = (await TokenContractTester.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = FeeReceiverAddress,
-                Symbol = "ELF"
-            })).Balance;
-            
-            var balanceOfElfToken = (await TokenContractTester.GetBalance.CallAsync(
-                new GetBalanceInput()
-                {
-                    Owner = TokenConverterContractAddress,
-                    Symbol = "ELF"
-                })).Balance;
-            
-            var balanceOfTesterToken = (await TokenContractTester.GetBalance.CallAsync(
-                new GetBalanceInput()
-                {
-                    Owner = DefaultSender,
-                    Symbol = "ELF"
-                })).Balance;
+            //Balance  before Sell
+            var balanceOfFeeReceiver = await GetBalanceAsync(_nativeSymbol, FeeReceiverAddress);
+            var balanceOfElfToken = await GetBalanceAsync(_nativeSymbol,TokenConverterContractAddress);
+            var balanceOfTesterToken = await GetBalanceAsync(_nativeSymbol,DefaultSender);
            
             //check the price and fee
             var toConnectorBalance = ELFConnector.VirtualBalance + balanceOfElfToken;
             var toConnectorWeight = ELFConnector.Weight / 100_0000;
-            var fromConnectorBalance= (await TokenContractTester.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = TokenConverterContractAddress,
-                Symbol = RamConnector.Symbol
-            })).Balance;
+            var fromConnectorBalance = await GetBalanceAsync(_ramSymbol,TokenConverterContractAddress);
             var fromConnectorWeight = RamConnector.Weight / 100_0000;
             
             var amountToReceive = BancorHelpers.GetReturnFromPaid(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
@@ -384,42 +309,19 @@ namespace AElf.Contracts.TokenConverter
             sellResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             //Verify the outcome of the transaction
-            var balanceOfTesterRam = (await TokenContractTester.GetBalance.CallAsync(new GetBalanceInput()
-                {
-                    Owner = DefaultSender,
-                    Symbol = RamConnector.Symbol
-                })).Balance;
+            var balanceOfTesterRam = await GetBalanceAsync(_ramSymbol, DefaultSender);
             balanceOfTesterRam.ShouldBe(0L);
-            
-            var balanceOfFeeReceiverAfterSell = (await TokenContractTester.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = FeeReceiverAddress,
-                Symbol = "ELF"
-            })).Balance;
-            balanceOfFeeReceiverAfterSell.ShouldBe(fee+balanceOfFeeReceiver); 
-            
-            var balanceOfElfTokenAfterSell = (await TokenContractTester.GetBalance.CallAsync(
-                new GetBalanceInput()
-                {
-                    Owner = TokenConverterContractAddress,
-                    Symbol = "ELF"
-                })).Balance;
+
+            var balanceOfFeeReceiverAfterSell = await GetBalanceAsync(_nativeSymbol,FeeReceiverAddress);
+            balanceOfFeeReceiverAfterSell.ShouldBe(fee+balanceOfFeeReceiver);
+
+            var balanceOfElfTokenAfterSell = await GetBalanceAsync(_nativeSymbol, TokenConverterContractAddress);
             balanceOfElfTokenAfterSell.ShouldBe(balanceOfElfToken-amountToReceive);
 
-            var balanceOfRamToken = (await TokenContractTester.GetBalance.CallAsync(
-                new GetBalanceInput()
-                {
-                    Owner = TokenConverterContractAddress,
-                    Symbol = RamConnector.Symbol
-                })).Balance;
+            var balanceOfRamToken = await GetBalanceAsync(_ramSymbol,TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L);
-            
-            var balanceOfTesterTokenAfterSell = (await TokenContractTester.GetBalance.CallAsync(
-                new GetBalanceInput()
-                {
-                    Owner = DefaultSender,
-                    Symbol = "ELF"
-                })).Balance;
+
+            var balanceOfTesterTokenAfterSell = await GetBalanceAsync(_nativeSymbol, DefaultSender);
             balanceOfTesterTokenAfterSell.ShouldBe(balanceOfTesterToken + (amountToReceive - fee));
         }
 
@@ -475,49 +377,6 @@ namespace AElf.Contracts.TokenConverter
 
         #region Private Task
         
-        private async Task DeployContractsAsync()
-        {
-            {
-                // TokenContract
-                var result = await ContractZeroTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
-                {
-                    Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
-                });
-                TokenContractAddress = result.Output;
-                TokenContractTester =
-                    GetTester<TokenContractContainer.TokenContractTester>(TokenContractAddress, DefaultSenderKeyPair);
-
-                await TokenContractTester.Create.SendAsync(new CreateInput()
-                {
-                    Symbol = "ELF",
-                    Decimals = 2,
-                    IsBurnable = true,
-                    TokenName = "elf token",
-                    TotalSupply = 1000_0000L,
-                    Issuer = DefaultSender
-                });
-                await TokenContractTester.Issue.SendAsync(new IssueInput()
-                {
-                    Symbol = "ELF",
-                    Amount = 1000_000L,
-                    To = DefaultSender,
-                    Memo = "Set for token converter."
-                });
-            }
-            {
-                // TokenConverterContract
-                var result = await ContractZeroTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
-                {
-                    Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenConverterContract).Assembly.Location))
-                });
-                TokenConverterContractAddress = result.Output;
-                DefaultTester = GetTester<TokenConverterContractContainer.TokenConverterContractTester>(
-                    TokenConverterContractAddress, DefaultSenderKeyPair);
-            }
-        }
-
         private async Task CreateRamToken()
         {
             var createResult = (await TokenContractTester.Create.SendAsync(
