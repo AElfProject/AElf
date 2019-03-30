@@ -7,6 +7,7 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.BenchBase\AElf.BenchBase.csproj" />
       <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
+      <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
 
     <ItemGroup>

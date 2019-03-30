@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
+using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Asn1.X509;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -35,6 +37,13 @@ namespace AElf.Contracts.MultiToken
                 State.LockWhiteLists[input.Symbol][address] = true;
             }
             
+            return new Empty();
+        }
+
+        public override Empty InitializeWithContractSystemNames(TokenContractInitializeInput input)
+        {
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            State.CrossChainContractSystemName.Value = input.CrossChainContractSystemName;
             return new Empty();
         }
         
@@ -96,6 +105,53 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        
+        public override Empty CrossChainTransfer(CrossChainTransferInput input)
+        {
+            AssertValidToken(input.Symbol, input.Amount);
+            var burnInput = new BurnInput
+            {
+                Amount = input.Amount,
+                Symbol = input.Symbol
+            };
+            Burn(burnInput);
+            return new Empty();
+        }
+
+        public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
+        {
+            var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
+            var transferTransactionHash = transferTransaction.GetHash();
+
+            Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionHash] == null,
+                "Token already claimed.");
+            
+            var crossChainTransferInput = CrossChainTransferInput.Parser.ParseFrom(transferTransaction.Params.ToByteArray());
+            var symbol = crossChainTransferInput.Symbol;
+            var amount = crossChainTransferInput.Amount;
+            var receivingAddress = crossChainTransferInput.To;
+            var targetChainId = crossChainTransferInput.ToChainId;
+            Assert(receivingAddress.Equals(Context.Sender) && targetChainId == Context.ChainId,
+                "Unable to receive cross chain token.");
+            AssertValidToken(symbol, amount);
+            if (State.CrossChainContractReferenceState.Value == null)
+                State.CrossChainContractReferenceState.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.CrossChainContractSystemName.Value);
+            var verificationInput = new VerifyTransactionInput
+            {
+                TransactionId = transferTransactionHash,
+                ParentChainHeight = input.ParentChainHeight
+            };
+            verificationInput.Path.AddRange(input.MerklePath.Path);
+            var verificationResult =
+                State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
+            Assert(verificationResult.Value, "Verification failed.");
+            State.VerifiedCrossChainTransferTransaction[transferTransactionHash] = input;
+            var balanceOfReceiver = State.Balances[receivingAddress][symbol];
+            State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);
+            return new Empty();
+        }
+        
         public override Empty Lock(LockInput input)
         {
             AssertLockAddress(input.Symbol, input.To);
@@ -222,7 +278,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         #region ForTests
-
+        /*
         public void Create2(string symbol, int decimals, bool isBurnable, Address issuer, string tokenName,
             long totalSupply, Address whiteAddress)
         {
@@ -259,7 +315,7 @@ namespace AElf.Contracts.MultiToken
         }
 
 
-
+        */
         #endregion
     }
 }

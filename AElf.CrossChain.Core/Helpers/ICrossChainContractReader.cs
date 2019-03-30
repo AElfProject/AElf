@@ -94,7 +94,7 @@ namespace AElf.CrossChain
                 nameof(CrossChainContractMethodNames.GetSideChainIdAndHeight),
                 new Empty());
             var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash, blockHeight);
-            return new Dictionary<int, long>(dict.IdHeighDict);
+            return new Dictionary<int, long>(dict.IdHeightDict);
         }
 
         public async Task<Dictionary<int, long>> GetAllChainsIdAndHeightAsync(Hash blockHash, long blockHeight)
@@ -103,7 +103,7 @@ namespace AElf.CrossChain
                 nameof(CrossChainContractMethodNames.GetAllChainsIdAndHeight),
                 new Empty());
             var dict = await ReadByTransactionAsync<SideChainIdAndHeightDict>(readOnlyTransaction, blockHash, blockHeight);
-            return dict == null ? null : new Dictionary<int, long>(dict.IdHeighDict);
+            return dict == null ? null : new Dictionary<int, long>(dict.IdHeightDict);
         }
 
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)

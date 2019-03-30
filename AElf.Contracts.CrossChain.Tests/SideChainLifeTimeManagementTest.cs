@@ -128,8 +128,7 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.True(status == TransactionResultStatus.Failed);
         }
         
-        //TODO: fix the cross chain test case
-        [Fact(Skip = "After change to token name provider, it failed")]
+        [Fact]
         public async Task Request_SideChain_Creation_Twice()
         {
             await InitializeCrossChainContract();
@@ -140,7 +139,7 @@ namespace AElf.Contract.CrossChain.Tests
             {
                 SideChainStatus = SideChainStatus.Apply,
                 ContractCode = ByteString.Empty,
-                IndexingPrice = lockedTokenAmount,
+                IndexingPrice = 1,
                 Proposer = CrossChainContractTestHelper.GetAddress(),
                 LockedTokenAmount = lockedTokenAmount
             };
@@ -318,7 +317,7 @@ namespace AElf.Contract.CrossChain.Tests
             var rawDict = SideChainIdAndHeightDict.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.GetAllChainsIdAndHeight),
                 new Empty()));
-            var dict = new Dictionary<int, long>(rawDict.IdHeighDict);
+            var dict = new Dictionary<int, long>(rawDict.IdHeightDict);
             Assert.True(dict.ContainsKey(chainId));
         }
         

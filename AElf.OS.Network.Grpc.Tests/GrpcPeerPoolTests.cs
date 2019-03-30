@@ -2,6 +2,8 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
 using AElf.OS.Network.Grpc;
+using Grpc.Core;
+using Shouldly;
 using Xunit;
 
 namespace AElf.OS.Network
@@ -48,6 +50,33 @@ namespace AElf.OS.Network
             var added = await _pool.AddPeerAsync(testIp);
             
             Assert.False(added);
+        }
+
+        [Fact]
+        public void IsAuthenticatePeer_Success()
+        {
+            var result = _pool.IsAuthenticatePeer(GrpcTestConstants.FakePubKey);
+            result.ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task GetHandshakeAsync()
+        {
+            var handshake = await _pool.GetHandshakeAsync();
+            handshake.ShouldNotBeNull();
+            handshake.HskData.Version.ShouldBe(KernelConstants.ProtocolVersion);
+        }
+
+        [Fact]
+        public async Task RemovePeerByAddress()
+        {
+            var channel = new Channel(TestIp, ChannelCredentials.Insecure);
+            var client = new PeerService.PeerServiceClient(channel);
+            _pool.AddPeer(new GrpcPeer(channel, client, _testPubKey, TestIp));
+            _pool.FindPeerByAddress(TestIp).ShouldNotBeNull();
+
+            await _pool.RemovePeerByAddressAsync(TestIp);
+            _pool.FindPeerByAddress(TestIp).ShouldBeNull();
         }
     }
 }

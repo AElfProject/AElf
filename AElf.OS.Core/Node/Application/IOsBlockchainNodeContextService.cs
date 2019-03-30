@@ -152,7 +152,7 @@ namespace AElf.OS.Node.Application
 
             foreach (var nodePlugin in _nodePlugins)
             {
-                var task = nodePlugin.StartAsync(dto.ChainId);
+                await nodePlugin.StartAsync(dto.ChainId);
             }
 
             return context;
@@ -181,11 +181,10 @@ namespace AElf.OS.Node.Application
                 }.ToByteString()
             };
         }
-
-        //TODO: StopAsync need case cover [Case]
+        
         public async Task StopAsync(OsBlockchainNodeContext blockchainNodeContext)
         {
-            await _networkServer.StopAsync();
+            await _networkServer.StopAsync(false);
 
             await _blockchainNodeContextService.StopAsync(blockchainNodeContext.BlockchainNodeContext);
 
