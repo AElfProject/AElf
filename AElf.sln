@@ -254,7 +254,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestKit", "AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj", "{F4DD898D-0BE8-4873-9532-F1F26DDB3291}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken.Test", "AElf.Contracts.MultiToken.Test\AElf.Contracts.MultiToken.Test.csproj", "{A526C0D6-1C3E-4570-96EB-AB784AF17835}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken.Tests", "AElf.Contracts.MultiToken.Tests\AElf.Contracts.MultiToken.Tests.csproj", "{A526C0D6-1C3E-4570-96EB-AB784AF17835}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenConverter", "AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj", "{03EC899C-1FA1-4E98-A821-870F72B48082}"
 EndProject
