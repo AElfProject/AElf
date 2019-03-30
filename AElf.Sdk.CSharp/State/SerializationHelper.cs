@@ -88,7 +88,7 @@ namespace AElf.Sdk.CSharp.State
                 return Encoding.UTF8.GetBytes((string) value);
             }
 
-            if (type.IsPbMessageType())
+            if (typeof(IMessage).IsAssignableFrom(type))
             {
                 var v = (IMessage) value;
                 return v.ToByteArray();
@@ -119,7 +119,7 @@ namespace AElf.Sdk.CSharp.State
                 return (T) (object) Encoding.UTF8.GetString(bytes);
             }
 
-            if (type.IsPbMessageType())
+            if (typeof(IMessage).IsAssignableFrom(type))
             {
                 var instance = (IMessage) Activator.CreateInstance(type);
                 instance.MergeFrom(bytes);
