@@ -7,33 +7,20 @@ os:
   - linux
   - osx
 osx_image: xcode9.4
-cache:
-  yarn: true 
-  directories:
-    - $HOME/.nuget/packages
-    - $HOME/.chakracore
-before_install:
-  - bash scripts/install_protobuf.sh
-  - nvm install node
-  - npm install -g yarn
-install:
-  - export DOTNET_CLI_TELEMETRY_OPTOUT=1
-before_script:
-  - export LD_LIBRARY_PATH=$HOME/.chakracore/1_11_1/:$LD_LIBRARY_PATH
-  - bash scripts/install_chakracore.sh 1_11_1
-script:
-  - bash scripts/build.sh
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then bash scripts/test.sh          ; fi
-after_script:
-  - curl -s https://codecov.io/bash > codecov
-  - chmod +x codecov
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./codecov -f "./results/coverage.opencover.xml" -t $CODECOV_TOKEN          ; fi 
+
 deploy:
   - provider: script
     script: 
-      bash scripts/deploy_docker.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD && bash scripts/deploy_nuget.sh $TRAVIS_TAG $NUGET_API_KEY
+      bash scripts/deploy_myget.sh
     skip_cleanup: true
     on:
       tags: true
-      condition: os = linux
-      branch: dev
+      condition: $TRAVIS_BRANCH = dev AND $TRAVIS_TAG = true
+  - provider: script
+    script:
+      bash scripts/deploy_docker.sh;
+      bash scripts/deploy_nuget.sh
+    on:
+      tags: true
+      all_branches: true
+      condition: $TRAVIS_BRANCH =~ ^master|release-*$
