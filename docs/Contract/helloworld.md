@@ -134,6 +134,47 @@ Start the CLI and execute the following command, note that here we explicitly sp
 aelf-cli deploy 0 bin/Debug/netstandard2.0/test-aelf.dll -a 4Mjy1siZA5TBkky2FLsDQ93QcSi3DuySjd1AzVfpjTHNBuc -e http://127.0.0.1:1728 -d path/to/datadir
 ```
 
+The specified account will be the owner of the contract, he will be the only one that can update the code of the contract and he also has the options of changing the owner of the contract.
+
+The return of the deploy command will give you the transaction ID that you can use to retrieve its status:
+```bash
+TransactionId is: ab435790a62abd6a669d002d56771b27bb683a73ce46de0f389ec045e4f3405c
+```
+
+Verify the result:
+```bash
+aelf-cli get-tx-result ab435790a62abd6a669d002d56771b27bb683a73ce46de0f389ec045e4f3405c -e http://127.0.0.1:1728 
+```
+
+In the result you should see the following: 
+```bash 
+"TransactionId": "ab435790a62abd6a669d002d56771b27bb683a73ce46de0f389ec045e4f3405c",
+"Status": "Mined",
+"Logs": [
+"ReadableReturnValue": "\"4QjhKLWacRXrQYpT7rzf74k5XZFCx8yF3X7FXbzKD4wwEo6\"",
+],
+```
+
+The status of this deployement should be "Mined" and with this result you will be able to call the contract by its address: "4QjhKLWacRXrQYpT7rzf74k5XZFCx8yF3X7FXbzKD4wwEo6". The following command will call the contract with empty parameter ('{}').
+
+```bash
+aelf-cli call 4QjhKLWacRXrQYpT7rzf74k5XZFCx8yF3X7FXbzKD4wwEo6 Hello '{}' -a 4Mjy1siZA5TBkky2FLsDQ93QcSi3DuySjd1AzVfpjTHNBuc -p password -e http://127.0.0.1:1728
+```
+
+The **-p** option here specifies the key to the specified account, it's necessary as this call will create a transaction. The command should return the following:
+
+```bash
+{
+    Value: "Hello world!"
+}
+```
+
+This is all for this introduction to smart contracts, more complete examples will be comming soon.
+
+
+
+
+
 
 
 

@@ -17,7 +17,7 @@ Navigate into the newly created **aelf** directory.
 
 Build the command line tool:
 ```bash
-dotnet build AElf.CLI --configuration Release
+dotnet build AElf.CLI/AElf.CLI.csproj --configuration Release
 ```
 
 For readability we recommend you create the following alias:
@@ -25,6 +25,12 @@ For readability we recommend you create the following alias:
 ```bash
 alias aelf-cli="dotnet AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
 ```
+
+The next command will export your datadir, this can be anywhere you want:
+```bash
+export AELF_CLI_DATADIR=~/.local/share/aelf
+```
+
 Generate an account with the following command:
 
 ```bash
