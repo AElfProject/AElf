@@ -62,12 +62,12 @@ The `create` command doesn't have command specific options besides the four comm
     export AELF_CLI_DATADIR=~/.local/share/aelf
     ```
 
- 1. The `--endpoint` option is the rpc endpoint that we are going to connect to. If you are always connecting to a particular endpoint, you can set the default value using environment variable as well:
+2. The `--endpoint` option is the rpc endpoint that we are going to connect to. If you are always connecting to a particular endpoint, you can set the default value using environment variable as well:
     ```bash
     export AELF_CLI_ENDPOINT=http://localhost:1234
     ```
 
-1. The `--account` option suggests the account to be used for interacting with the chain. If you are always using the same account, you can set the default value using environment variable.
+3. The `--account` option suggests the account to be used for interacting with the chain. If you are always using the same account, you can set the default value using environment variable.
 
     ```bash
     export AELF_CLI_ACCOUNT=ELF_2jzk2xXHdru6oCGiSyy6mqxTtkWyFbdgBkmrPwNnT5Higm6Tum
@@ -76,7 +76,7 @@ The `create` command doesn't have command specific options besides the four comm
 
     Please take note that not all commands require these options. For example, if you are not sending transactions to the chain, `--account` is not required.
 
-1. As the private keys are encrypted in the `.ak` file, a password is required for unlocking the account. User will be prompted to enter the password for the commands requiring account. However, you can also provide the password by the option `--password`. But we don't recommend to do it this way.
+As the private keys are encrypted in the `.ak` file, a password is required for unlocking the account. User will be prompted to enter the password for the commands requiring account. However, you can also provide the password by the option `--password`. But we don't recommend to do it this way.
 
 ## Examples
 1. Create an account
