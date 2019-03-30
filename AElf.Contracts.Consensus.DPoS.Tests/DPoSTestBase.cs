@@ -37,6 +37,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         protected async Task InitialConsensus()
         {
+            
         }
     }
 }
