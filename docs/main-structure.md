@@ -9,7 +9,7 @@
     * [Transactions](Protocol/txs.md)
     * [Election](Protocol/election.md)
     * [Economic system](Protocol/eco.md)
-    * [Side chains](Protocol/sidechains.md)
+    * [Side chains](Protocol/sidecains.md)
 * [Multitoken contract](multitoken/contract.md)
 * [Smart contracts](Contract/contracts.md)
     * [Hello World](Contract/helloworld.md)
