@@ -15,14 +15,9 @@ namespace AElf.Contracts.MultiToken
     {
         public override Empty Create(CreateInput input)
         {
-            Assert(!string.IsNullOrEmpty(input.Symbol) & input.Symbol.All(IsValidSymbolChar),
-                "Invalid symbol.");
-            Assert(!string.IsNullOrEmpty(input.TokenName), "Invalid token name.");
-            Assert(input.TotalSupply > 0, "Invalid total supply.");
-            Assert(input.Issuer != null, "Invalid issuer address.");
             var existing = State.TokenInfos[input.Symbol];
             Assert(existing == null || existing == new TokenInfo(), "Token already exists.");
-            State.TokenInfos[input.Symbol] = new TokenInfo()
+            RegisterTokenInfo(new TokenInfo
             {
                 Symbol = input.Symbol,
                 TokenName = input.TokenName,
@@ -30,7 +25,7 @@ namespace AElf.Contracts.MultiToken
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable
-            };
+            });
 
             foreach (var address in input.LockWhiteList)
             {
@@ -108,11 +103,11 @@ namespace AElf.Contracts.MultiToken
         
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
-            AssertValidToken(input.Symbol, input.Amount);
+            AssertValidToken(input.TokenInfo.Symbol, input.Amount);
             var burnInput = new BurnInput
             {
                 Amount = input.Amount,
-                Symbol = input.Symbol
+                Symbol = input.TokenInfo.Symbol
             };
             Burn(burnInput);
             return new Empty();
@@ -128,7 +123,7 @@ namespace AElf.Contracts.MultiToken
                 "Token already claimed.");
             
             var crossChainTransferInput = CrossChainTransferInput.Parser.ParseFrom(transferTransaction.Params.ToByteArray());
-            var symbol = crossChainTransferInput.Symbol;
+            var symbol = crossChainTransferInput.TokenInfo.Symbol;
             var amount = crossChainTransferInput.Amount;
             var receivingAddress = crossChainTransferInput.To;
             var targetChainId = crossChainTransferInput.ToChainId;
@@ -138,7 +133,6 @@ namespace AElf.Contracts.MultiToken
             
             Assert(receivingAddress.Equals(Context.Sender) && targetChainId == Context.ChainId,
                 "Unable to receive cross chain token.");
-            AssertValidToken(symbol, amount);
             if (State.CrossChainContractReferenceState.Value == null)
                 State.CrossChainContractReferenceState.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.CrossChainContractSystemName.Value);
@@ -155,6 +149,12 @@ namespace AElf.Contracts.MultiToken
             var verificationResult =
                 State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Verification failed.");
+            
+            // Create token if it doesnt exist.
+            var existing = State.TokenInfos[symbol];
+            if(existing == null)
+                RegisterTokenInfo(crossChainTransferInput.TokenInfo);
+
             State.VerifiedCrossChainTransferTransaction[transferTransactionHash] = input;
             var balanceOfReceiver = State.Balances[receivingAddress][symbol];
             State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);

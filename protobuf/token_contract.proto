@@ -212,7 +212,7 @@ message TokenContractInitializeInput {
 }
 message CrossChainTransferInput{
     Address to = 1;
-    string symbol = 2;
+    TokenInfo tokenInfo = 2;
     sint64 amount = 3;
     string memo = 4;
     int32 toChainId = 5;
