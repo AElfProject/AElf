@@ -47,11 +47,12 @@ namespace AElf.Contracts.TokenConverter
             Assert(input.FeeReceiverAddress != null, "Fee receiver address required.");
             Assert(IsValidSymbol(input.BaseTokenSymbol), "Base token symbol is invalid.");
             Assert(input.MaxWeight > 0, "Invalid MaxWeight.");
-            Assert(State.TokenContractReference.Value == null, "Already initialized.");
-            State.TokenContractReference.Value = input.TokenContractAddress;
+            Assert(State.TokenContract.Value == null, "Already initialized.");
+            State.TokenContract.Value = input.TokenContractAddress;
             State.FeeReceiverAddress.Value = input.FeeReceiverAddress;
             State.BaseTokenSymbol.Value = input.BaseTokenSymbol;
             State.MaxWeight.Value = input.MaxWeight;
+            State.Manager.Value = input.Manager;
             var index = State.ConnectorCount.Value;
             foreach (var connector in input.Connectors)
             {
