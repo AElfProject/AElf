@@ -2,6 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Kernel.SmartContractExecution.Akka</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,6 +17,7 @@
     <ItemGroup>
         <PackageReference Include="Akka.Cluster" Version="1.3.12" />
         <PackageReference Include="Akka.Serialization.Hyperion" Version="1.3.12-beta" />
-        <PackageReference Include="Akka" Version="1.3.12" />    </ItemGroup>
+        <PackageReference Include="Akka" Version="1.3.12" />
+    </ItemGroup>
 
 </Project>
