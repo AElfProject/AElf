@@ -4,17 +4,17 @@ namespace AElf.WebApp.Application.Chain
 {
     public static class Error
     {
-        public const long NotFound = 20001;
-        public const long InvalidAddress = 20002;
-        public const long InvalidBlockHash = 20003;
-        public const long InvalidTransactionId = 20004;
-        public const long InvalidProposalId = 20005;
-        public const long InvalidOffset = 20006;
-        public const long InvalidNum = 20007;
-        public const long InvalidTransaction = 20008;
-        public const long CannotBroadcastTransaction = 20009;
+        public const int NotFound = 20001;
+        public const int InvalidAddress = 20002;
+        public const int InvalidBlockHash = 20003;
+        public const int InvalidTransactionId = 20004;
+        public const int InvalidProposalId = 20005;
+        public const int InvalidOffset = 20006;
+        public const int InvalidNum = 20007;
+        public const int InvalidTransaction = 20008;
+        public const int CannotBroadcastTransaction = 20009;
 
-        public static readonly Dictionary<long, string> Message = new Dictionary<long, string>
+        public static readonly Dictionary<int, string> Message = new Dictionary<int, string>
         {
             {NotFound, "Not found"},
             {InvalidAddress, "Invalid address format"},
