@@ -77,6 +77,9 @@ ProjectSection(SolutionItems) = preProject
 	scripts\test.sh = scripts\test.sh
 	scripts\upload_coverage.sh = scripts\upload_coverage.sh
 	appveyor.yml = appveyor.yml
+	scripts\deploy_myget.sh = scripts\deploy_myget.sh
+	scripts\deploy_nuget.sh = scripts\deploy_nuget.sh
+	scripts\deploy_docker.sh = scripts\deploy_docker.sh
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
