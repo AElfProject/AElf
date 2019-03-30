@@ -50,7 +50,7 @@ Saving account info to file? (Y/N): y
 ...
     ```
 
-Note that a more detailed section about the cli can be found [Command line interface](../cli/cli.md). 
+Note that a more detailed section about the cli can be found [command line interface](../cli/cli.md). 
 The last line should give you the path to the default **data directory**, the command will automatically create the folder for you if it doesn't exist.
 
 ### Node configuration
