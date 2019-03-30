@@ -1,5 +1,6 @@
 ﻿using System;
 using AElf.Common;
+using AElf.CrossChain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Modularity;
@@ -32,6 +33,7 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(WalletRpcModule),
         typeof(NetRpcAElfModule),
         typeof(RuntimeSetupAElfModule),
+        typeof(GrpcCrossChainAElfModule),
         
         //web api module
         typeof(WebWebAppAElfModule)

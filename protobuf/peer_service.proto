@@ -16,6 +16,8 @@ service PeerService {
     rpc Connect (Handshake) returns (ConnectReply) {}
     
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
+    
+    rpc GetConnectedPeers(PeersRequest) returns (PeersResponse){}
 }
 
 // **** Connection *****
@@ -69,4 +71,13 @@ message BlockReply {
 
 message VoidReply {
 }
+
+message PeersRequest{
+    
+}
+
+message PeersResponse{
+    repeated string IpList = 1;
+}
+
 
