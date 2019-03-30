@@ -9,12 +9,15 @@ namespace AElf.OS.Network.Infrastructure
     {
         string PeerIpAddress { get; }
         string PubKey { get; }
-        Hash CurrentBlockHash { get; set; }
-        long CurrentBlockHeight { get; set; }
-        
+        Hash CurrentBlockHash { get; }
+        long CurrentBlockHeight { get; }
+        IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+
+        void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement);
+
         Task SendDisconnectAsync();
         Task StopAsync();
-        
+
         Task AnnounceAsync(PeerNewBlockAnnouncement an);
         Task SendTransactionAsync(Transaction tx);
         Task<Block> RequestBlockAsync(Hash hash);

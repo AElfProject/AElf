@@ -197,5 +197,10 @@ namespace AElf.OS.Network.Application
                 : _peerPool.GetPeers().OrderByDescending(p => p.CurrentBlockHeight).FirstOrDefault();
             return Task.FromResult(peer?.CurrentBlockHeight ?? 0);
         }
+
+        /*public async Task<Hash> FindLastLastIrreversibleBlockHash()
+        {
+            var peers = _peerPool.GetPeers();
+        }*/
     }
 }

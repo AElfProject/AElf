@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -13,7 +15,7 @@ namespace AElf.OS.Network.Grpc
     public class GrpcPeer : IPeer
     {
         public event EventHandler DisconnectionEvent;
-        
+
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
 
@@ -24,11 +26,15 @@ namespace AElf.OS.Network.Grpc
         {
             get { return _channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready; }
         }
-        
-        public Hash CurrentBlockHash { get; set; }
-        public long CurrentBlockHeight { get; set; }
+
+        public Hash CurrentBlockHash { get; private set; }
+        public long CurrentBlockHeight { get; private set; }
         public string PeerIpAddress { get; }
         public string PubKey { get; }
+
+        public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+
+        private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string pubKey, string peerIpAddress)
         {
@@ -38,23 +44,26 @@ namespace AElf.OS.Network.Grpc
             PeerIpAddress = peerIpAddress;
 
             PubKey = pubKey;
+
+            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
+            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
         }
 
         public async Task<Block> RequestBlockAsync(Hash hash)
         {
-            var blockRequest = new BlockRequest { Hash = hash };
-            
-            var blockReply = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest), 
+            var blockRequest = new BlockRequest {Hash = hash};
+
+            var blockReply = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest),
                 $"Block request for {hash} failed.");
-            
+
             return blockReply?.Block;
         }
 
         public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
         {
-            var blockRequest = new BlocksRequest { PreviousBlockHash = firstHash, Count = count };
-            
-            var list = await RequestAsync(_client, c => c.RequestBlocksAsync(blockRequest), 
+            var blockRequest = new BlocksRequest {PreviousBlockHash = firstHash, Count = count};
+
+            var list = await RequestAsync(_client, c => c.RequestBlocksAsync(blockRequest),
                 $"Get blocks for {{ first: {firstHash}, count: {count} }} failed.");
 
             if (list == null)
@@ -65,7 +74,7 @@ namespace AElf.OS.Network.Grpc
 
         public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
-            await RequestAsync(_client, c => c.AnnounceAsync(header), 
+            await RequestAsync(_client, c => c.AnnounceAsync(header),
                 $"Bcast announce for {header.BlockHash} failed.");
         }
 
@@ -74,7 +83,7 @@ namespace AElf.OS.Network.Grpc
             await RequestAsync(_client, c => c.SendTransactionAsync(tx),
                 $"Bcast tx for {tx.GetHash()} failed.");
         }
-        
+
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
             Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func, string errorMessage)
         {
@@ -102,12 +111,13 @@ namespace AElf.OS.Network.Grpc
                 DisconnectionEvent?.Invoke(this, EventArgs.Empty);
                 return;
             }
-                
+
             if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
             {
                 Task.Run(async () =>
                 {
-                    await _channel.TryWaitForStateChangedAsync(_channel.State, DateTime.UtcNow.AddSeconds(NetworkConsts.DefaultPeerDialTimeout));
+                    await _channel.TryWaitForStateChangedAsync(_channel.State,
+                        DateTime.UtcNow.AddSeconds(NetworkConsts.DefaultPeerDialTimeout));
 
                     // Either we connected again or the state change wait timed out.
                     if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
@@ -135,9 +145,20 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
+        public void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement)
+        {
+            CurrentBlockHeight = peerNewBlockAnnouncement.BlockHeight;
+            CurrentBlockHash = peerNewBlockAnnouncement.BlockHash;
+            _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
+            while (_recentBlockHeightAndHashMappings.Count > 10)
+            {
+                _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
+            }
+        }
+
         public async Task SendDisconnectAsync()
         {
-            await _client.DisconnectAsync(new DisconnectReason { Why = DisconnectReason.Types.Reason.Shutdown });
+            await _client.DisconnectAsync(new DisconnectReason {Why = DisconnectReason.Types.Reason.Shutdown});
         }
 
         public override string ToString()

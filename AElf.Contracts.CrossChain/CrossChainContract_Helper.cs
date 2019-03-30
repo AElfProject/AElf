@@ -1,9 +1,12 @@
+using System.Collections.Generic;
+using System.Linq;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
+using AElf.Types.CSharp.Utils;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -82,6 +85,22 @@ namespace AElf.Contracts.CrossChain
             State.ChildHeightToParentChainHeight[childHeight] = parentHeight;
         }
 
+
+        private Hash ComputeRootWithTransactionStatusMerklePath(Hash txId, IEnumerable<Hash> path)
+        {
+            var txResultStatusRawBytes =
+                EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
+            return new MerklePath(path).ComputeRootWith(
+                Hash.FromRawBytes(txId.DumpByteArray().Concat(txResultStatusRawBytes).ToArray()));
+        }
+
+        private Hash ComputeRootWirhMultiHash(IEnumerable<Hash> nodes)
+        {
+            var binaryMerkleTree = new BinaryMerkleTree();
+            binaryMerkleTree.AddNodes(nodes);
+            return binaryMerkleTree.ComputeRootHash();
+        }
+        
         /// <summary>
         /// Record merkle path of self chain block, which is from parent chain. 
         /// </summary>
@@ -191,6 +210,36 @@ namespace AElf.Contracts.CrossChain
         {
             ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
             State.ConsensusContract.UpdateMainChainConsensus.Send(new ConsensusInformation{Bytes = bytes});
+        }
+        
+        private Hash GetParentChainMerkleTreeRoot(long parentChainHeight)
+        {
+            return State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight];
+        }
+        
+        private Hash GetSideChainMerkleTreeRoot(long parentChainHeight)
+        {
+            var indexedSideChainData = State.IndexedCrossChainBlockData[parentChainHeight];
+            return ComputeRootWirhMultiHash(
+                indexedSideChainData.SideChainBlockData.Select(d => d.TransactionMerkleTreeRoot));
+        }
+        
+        private Hash GetCousinChainMerkleTreeRoot(long parentChainHeight)
+        {
+            return State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
+        }
+
+        private Hash GetMerkleTreeRoot(int chainId, long parentChainHeight)
+        {
+            if (State.ParentChainId.Value == 0)
+            {
+                // Local is main chain
+                return GetSideChainMerkleTreeRoot(parentChainHeight);
+            }
+
+            return chainId != State.ParentChainId.Value
+                ? GetCousinChainMerkleTreeRoot(parentChainHeight)
+                : GetParentChainMerkleTreeRoot(parentChainHeight);
         }
     }
 }
