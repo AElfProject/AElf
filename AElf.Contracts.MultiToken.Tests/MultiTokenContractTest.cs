@@ -92,7 +92,8 @@ namespace AElf.Contracts.MultiToken
                     To = Tester.GetCallOwnerAddress(),
                     Memo = "Issue token to starter himself."
                 });
-            await Tester.MineAsync(new List<Transaction> {tx, issueTx});
+            await Tester.MineAsync(new List<Transaction> {tx});
+            await Tester.MineAsync(new List<Transaction> {issueTx});
             var result = GetBalanceOutput.Parser.ParseFrom(await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance),
                 new GetBalanceInput
                 {
