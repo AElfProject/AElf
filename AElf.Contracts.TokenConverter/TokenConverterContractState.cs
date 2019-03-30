@@ -8,7 +8,6 @@ namespace AElf.Contracts.TokenConverter
 {
     public class TokenConverterContractState : ContractState
     {
-        internal TokenContractContainer.TokenContractReferenceState TokenContractReference { get; set; }
         public Int32State ConnectorCount { get; set; }
         public StringState BaseTokenSymbol { get; set; }
         public Int64State FeeRateNumerator { get; set; }
