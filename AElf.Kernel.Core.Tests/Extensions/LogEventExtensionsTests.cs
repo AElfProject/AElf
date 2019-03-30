@@ -14,7 +14,7 @@ namespace AElf.Kernel.Extensions
             var logEvent = new LogEvent()
             {
                 Address = address,
-                Topics =
+                Indexed =
                 {
                     ByteString.CopyFromUtf8("event1")
                 }
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Extensions
             var logEvent1 = new LogEvent()
             {
                 Address = address,
-                Topics =
+                Indexed =
                 {
                     ByteString.CopyFromUtf8("event1"),
                     ByteString.CopyFromUtf8("event2"),

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package zero;
+
 import "common.proto";
 import "kernel.proto";
 import "aelf_options.proto";
@@ -40,3 +42,27 @@ service BasicContractZero {
     }
 }
 
+// Events
+message ContractDeployed
+{
+    option (aelf.is_event) = true;
+    Address creator = 1 [(aelf.is_indexed) = true];
+    Hash codeHash = 2 [(aelf.is_indexed) = true];
+    Address address = 3;
+}
+
+message CodeUpdated
+{
+    option (aelf.is_event) = true;
+    Address address = 1 [(aelf.is_indexed) = true];
+    Hash oldCodeHash = 2;
+    Hash newCodeHash = 3;
+}
+
+message OwnerChanged
+{
+    option (aelf.is_event) = true;
+    Address address = 1 [(aelf.is_indexed) = true];
+    Address oldOwner = 2;
+    Address newOwner = 3;
+}

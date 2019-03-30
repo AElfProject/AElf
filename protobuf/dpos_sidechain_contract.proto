@@ -52,3 +52,9 @@ message MinerList {
 message ConsensusInformation{
     bytes Bytes = 1;
 }
+
+// Events
+message IrreversibleBlockFound {
+    option (aelf.is_event) = true;
+    sint64 offset = 1;
+}

@@ -149,7 +149,7 @@ namespace AElf.Contracts.TestBase.Tests
                     Owner = tester.GetCallOwnerAddress(),
                 });
 
-            var balanceOutput = bytes.DeserializeToPbMessage<GetBalanceOutput>();
+            var balanceOutput = GetBalanceOutput.Parser.ParseFrom(bytes);
 
             Assert.Equal(0L, balanceOutput.Balance);
         }

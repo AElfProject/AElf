@@ -8,6 +8,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
+using Approved = AElf.Contracts.MultiToken.Messages.Approved;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -203,7 +204,7 @@ namespace AElf.Contracts.MultiToken
             AssertValidToken(input.Symbol, input.Amount);
             State.Allowances[Context.Sender][input.Spender][input.Symbol] =
                 State.Allowances[Context.Sender][input.Spender][input.Symbol].Add(input.Amount);
-            Context.FireEvent(new Approved()
+            Context.Fire(new Approved()
             {
                 Owner = Context.Sender,
                 Spender = input.Spender,
@@ -219,7 +220,7 @@ namespace AElf.Contracts.MultiToken
             var oldAllowance = State.Allowances[Context.Sender][input.Spender][input.Symbol];
             var amountOrAll = Math.Min(input.Amount, oldAllowance);
             State.Allowances[Context.Sender][input.Spender][input.Symbol] = oldAllowance.Sub(amountOrAll);
-            Context.FireEvent(new UnApproved()
+            Context.Fire(new UnApproved()
             {
                 Owner = Context.Sender,
                 Spender = input.Spender,
@@ -237,7 +238,7 @@ namespace AElf.Contracts.MultiToken
             Assert(existingBalance >= input.Amount, "Burner doesn't own enough balance.");
             State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
-            Context.FireEvent(new Burned()
+            Context.Fire(new Burned()
             {
                 Burner = Context.Sender,
                 Symbol = input.Symbol,

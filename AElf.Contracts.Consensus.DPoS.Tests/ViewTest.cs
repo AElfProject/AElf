@@ -58,8 +58,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
                 var roundInformation = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                     nameof(ConsensusContract.GetRoundInformation), input);
-                var round = roundInformation.DeserializeToPbMessage<Round>();
-                round.ShouldBeNull();
+                var round = Round.Parser.ParseFrom(roundInformation);
+                round.ShouldBe(new Round());
             }
 
             //query with result
@@ -70,7 +70,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 };
                 var roundInformation = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                     nameof(ConsensusContract.GetRoundInformation), input);
-                var round = roundInformation.DeserializeToPbMessage<Round>();
+                var round = Round.Parser.ParseFrom(roundInformation);
                 round.ShouldNotBeNull();
                 round.RoundNumber.ShouldBe(1);
                 round.RealTimeMinersInformation.Count.ShouldBe(3);
@@ -82,7 +82,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var roundInformation = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetCurrentRoundNumber), new Empty());
-            var roundNumber = roundInformation.DeserializeToPbMessage<SInt64Value>();
+            var roundNumber = SInt64Value.Parser.ParseFrom(roundInformation);
             roundNumber.ShouldNotBeNull();
             roundNumber.Value.ShouldBe(1);
         }

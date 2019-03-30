@@ -26,10 +26,12 @@ namespace Aelf {
       byte[] descriptorData = global::System.Convert.FromBase64String(
         string.Concat(
           "ChJhZWxmX29wdGlvbnMucHJvdG8SBGFlbGYaIGdvb2dsZS9wcm90b2J1Zi9k",
-          "ZXNjcmlwdG9yLnByb3RvOkAKCnN0YXRlX3R5cGUSHy5nb29nbGUucHJvdG9i",
-          "dWYuU2VydmljZU9wdGlvbnMYxcQOIAEoCVIJc3RhdGVUeXBlOjkKB2lzX3Zp",
-          "ZXcSHi5nb29nbGUucHJvdG9idWYuTWV0aG9kT3B0aW9ucxjr9hQgASgIUgZp",
-          "c1ZpZXc="));
+          "ZXNjcmlwdG9yLnByb3RvOjcKDGNzaGFycF9zdGF0ZRIfLmdvb2dsZS5wcm90",
+          "b2J1Zi5TZXJ2aWNlT3B0aW9ucxjFxA4gASgJOjEKB2lzX3ZpZXcSHi5nb29n",
+          "bGUucHJvdG9idWYuTWV0aG9kT3B0aW9ucxjr9hQgASgIOjMKCGlzX2V2ZW50",
+          "Eh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGIOeMyABKAg6MwoK",
+          "aXNfaW5kZXhlZBIdLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE9wdGlvbnMYmZMh",
+          "IAEoCA=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { pbr::FileDescriptor.DescriptorProtoFileDescriptor, },
           new pbr::GeneratedClrTypeInfo(null, null));

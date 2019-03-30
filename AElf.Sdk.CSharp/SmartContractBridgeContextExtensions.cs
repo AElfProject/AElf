@@ -1,22 +1,21 @@
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types.CSharp;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp
 {
     public static class SmartContractBridgeContextExtensions
     {
-        public static void FireEvent<TEvent>(this CSharpSmartContractContext context, TEvent e) where TEvent : Event
+        public static void Fire<T>(this CSharpSmartContractContext context, T eventData) where T : IEvent<T>
         {
-            var logEvent = EventParser<TEvent>.ToLogEvent(e, context.Self);
-            context.FireLogEvent(logEvent);
+            context.FireLogEvent(eventData.ToLogEvent(context.Self));
         }
-
         //TODO: Add SmartContractBridgeContextExtensions test case [Case]
 
         public static T Call<T>(this ISmartContractBridgeContext context, IStateCache stateCache, Address address,
-            string methodName, IMessage message)
+            string methodName, IMessage message) where T:IMessage<T>, new()
         {
             return context.Call<T>(stateCache, address, methodName, ConvertToByteString(message));
         }
@@ -33,9 +32,9 @@ namespace AElf.Sdk.CSharp
             context.SendVirtualInline(fromVirtualAddress, toAddress, methodName,
                 ConvertToByteString(message));
         }
-        
+
         public static T Call<T>(this CSharpSmartContractContext context, IStateCache stateCache, Address address,
-            string methodName, IMessage message)
+            string methodName, IMessage message) where T : IMessage<T>, new()
         {
             return context.Call<T>(stateCache, address, methodName, ConvertToByteString(message));
         }
