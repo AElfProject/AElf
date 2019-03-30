@@ -74,18 +74,19 @@ service CrossChainContract {
 message InitializeInput {
     Hash tokenContractSystemName = 1;
     Hash consensusContractSystemName = 2;
-    sint32 parentChainId = 3;
+    int32 parentChainId = 3;
 }
 
 message RechargeInput {
-    sint32 chainId = 1;
+    int32 chainId = 1;
     sint64 amount = 2;
 }
 
 message VerifyTransactionInput {
     Hash transactionId = 1;
-    repeated Hash Path = 2;
+    repeated Hash path = 2;
     sint64 parentChainHeight = 3;
+    int32 verifiedChainId = 4; 
 }
 
 // Events
@@ -93,11 +94,11 @@ message CreationRequested
 {
     option (aelf.is_event) = true;
     Address creator = 1;
-    sint32 chainId = 2;
+    int32 chainId = 2;
 }
 
 message Disposed
 {
     option (aelf.is_event) = true;
-    sint32 chainId = 1;
+    int32 chainId = 1;
 }
