@@ -254,3 +254,9 @@ message MinerList {
     repeated string PublicKeys = 2;
     repeated Address Addresses = 3;
 }
+
+// Events
+message IrreversibleBlockFound {
+    option (aelf.is_event) = true;
+    sint64 offset = 1;
+}
