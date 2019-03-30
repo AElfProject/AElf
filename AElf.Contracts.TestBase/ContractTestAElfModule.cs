@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
-using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Application;
@@ -17,7 +15,6 @@ using AElf.Runtime.CSharp;
 using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Volo.Abp.EventBus.Local;
 using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.TestBase
@@ -65,7 +62,7 @@ namespace AElf.Contracts.TestBase
                 return mockService.Object;
             });
             
-            Configure<DPoSOptions>(o =>
+            Configure<DPoSOptions>(o => 
             {
                 var miners = new List<string>();
                 for (var i = 0; i < 3; i++)

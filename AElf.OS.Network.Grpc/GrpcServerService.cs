@@ -132,8 +132,8 @@ namespace AElf.OS.Network.Grpc
             var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
             if (peerInPool != null)
             {
-                peerInPool.CurrentBlockHash = an.BlockHash;
-                peerInPool.CurrentBlockHeight = an.BlockHeight;
+                peerInPool.HandlerRemoteAnnounce(an);
+                
             }
 
             Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
