@@ -80,6 +80,7 @@ ProjectSection(SolutionItems) = preProject
 	scripts\deploy_myget.sh = scripts\deploy_myget.sh
 	scripts\deploy_nuget.sh = scripts\deploy_nuget.sh
 	scripts\deploy_docker.sh = scripts\deploy_docker.sh
+	scripts\deploy_myget_daily.sh = scripts\deploy_myget_daily.sh
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
