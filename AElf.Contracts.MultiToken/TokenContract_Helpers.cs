@@ -45,5 +45,15 @@ namespace AElf.Contracts.MultiToken
             var symbolState = State.LockWhiteLists[symbol];
             Assert(symbolState != null && symbolState[address], "Not in white list.");
         }
+
+        private void RegisterTokenInfo(TokenInfo tokenInfo)
+        {
+            Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) & tokenInfo.Symbol.All(IsValidSymbolChar),
+                "Invalid symbol.");
+            Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Invalid token name.");
+            Assert(tokenInfo.TotalSupply > 0, "Invalid total supply.");
+            Assert(tokenInfo.Issuer != null, "Invalid issuer address.");
+            State.TokenInfos[tokenInfo.Symbol] = tokenInfo;
+        }
     }
 }

@@ -1,18 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.Dividend;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 
 namespace AElf.Contracts.MultiToken
@@ -23,12 +14,6 @@ namespace AElf.Contracts.MultiToken
             this ContractTester<MultiTokenContractTestAElfModule> contractTester)
         {
             return contractTester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
-        }
-
-        public static Address GetDividendsContractAddress(
-            this ContractTester<MultiTokenContractTestAElfModule> contractTester)
-        {
-            return contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name);
         }
 
         public static async Task TransferTokenAsync(this ContractTester<MultiTokenContractTestAElfModule> starter, Address to,

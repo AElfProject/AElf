@@ -2,15 +2,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Xunit;
 using Shouldly;
@@ -18,7 +16,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Contracts.MultiToken
 {
-    public sealed class MultiTokenContractTest : ContractTestBase<MultiTokenContractTestAElfModule>
+    public sealed class MultiTokenContractTest : MultiTokenContractTestBase
     {
         private readonly ECKeyPair _spenderKeyPair;
         private Address BasicZeroContractAddress { get; set; }
@@ -94,7 +92,8 @@ namespace AElf.Contracts.MultiToken
                     To = Tester.GetCallOwnerAddress(),
                     Memo = "Issue token to starter himself."
                 });
-            await Tester.MineAsync(new List<Transaction> {tx, issueTx});
+            await Tester.MineAsync(new List<Transaction> {tx});
+            await Tester.MineAsync(new List<Transaction> {issueTx});
             var result = GetBalanceOutput.Parser.ParseFrom(await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance),
                 new GetBalanceInput
                 {
@@ -522,6 +521,26 @@ namespace AElf.Contracts.MultiToken
                 var resultGet = GetMethodFeeOutput.Parser.ParseFrom(resultGetBytes);
                 resultGet.Fee.ShouldBe(10L);
             }
+        }
+
+        [Fact]
+        public async Task Set_FeePoolAddress()
+        {
+            await Initialize_TokenContract();
+
+            var transactionResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContract.SetFeePoolAddress),
+                DividendsSmartContractAddressNameProvider.Name);
+            
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            //set again
+            transactionResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContract.SetFeePoolAddress),
+                DividendsSmartContractAddressNameProvider.Name);
+            
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.Contains("Fee pool address already set.").ShouldBeTrue();
         }
     }
 }
