@@ -109,29 +109,28 @@ namespace AElf.OS.Rpc.ChainController.Tests
             existTransaction.Transactions[0].GetHash().ShouldBe(transactionHash);
         }
 
-        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1105")]
+        [Fact]
         public async Task Call_ReadOnly_Success()
         {
             // Generate a transaction
             var chain = await _blockchainService.GetChainAsync();
-            var transaction = await GenerateViewTransaction(chain, nameof(TokenContract.GetTokenInfo), 
-                new GetTokenInfoInput
-                {
-                    Symbol = "ELF"
-                });
+            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
+            var transaction = new Transaction
+            {
+                From = Address.Generate(),
+                To = basicContractZero,
+                MethodName = "GetContractInfo",
+                Params = basicContractZero.ToByteString()
+            };
 
             var response = await JsonCallAsJObject("/chain", "Call",
                 new {rawTransaction = transaction.ToByteArray().ToHex()});
             var resultString = response["result"].ToString();
             resultString.ShouldNotBeNullOrEmpty();
-            
-            //var decode = ReturnTypeHelper.GetDecoder<TokenInfo>();
-            //var result = decode(Convert.FromBase64String(resultString));
-            
-            var bs = ByteString.FromBase64(resultString);
-            
-            var tokenInfo = TokenInfo.Parser.ParseFrom(bs);
-            //var tokenInfo = bs.DeserializeToPbMessage<TokenInfo>();
+
+            var bs = ByteArrayHelpers.FromHexString(resultString);
+            var contractInfo = ContractInfo.Parser.ParseFrom(bs);
+            contractInfo.ShouldNotBeNull();
         }
 
         [Fact]
@@ -241,7 +240,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             responseErrorMessage.Contains("Token already exists.").ShouldBeTrue();
         }
         
-        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1083")]
+        [Fact]
         public async Task Get_NotExisted_TransactionResult()
         {
             // Generate a transaction
@@ -622,21 +621,6 @@ namespace AElf.OS.Rpc.ChainController.Tests
             }
             
             return transactionList;
-        }
-
-        private async Task<Transaction> GenerateViewTransaction(Chain chain, string method, IMessage input)
-        {
-            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
-
-            var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
-                method, input);
-            
-            var signature =
-                    CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
-                transaction.Sigs.Add(ByteString.CopyFrom(signature));
-
-            return transaction;
         }
     }
 }
