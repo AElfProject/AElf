@@ -10,7 +10,7 @@ namespace AElf.WebApp.Application.Chain
         public const int InvalidTransactionId = 20004;
         public const int InvalidProposalId = 20005;
         public const int InvalidOffset = 20006;
-        public const int InvalidNum = 20007;
+        public const int InvalidLimit = 20007;
         public const int InvalidTransaction = 20008;
         public const int CannotBroadcastTransaction = 20009;
 
@@ -22,7 +22,7 @@ namespace AElf.WebApp.Application.Chain
             {InvalidTransactionId, "Invalid Transaction id format"},
             {InvalidProposalId, "Invalid proposal id format"},
             {InvalidOffset, "Offset must greater than or equal to 0"},
-            {InvalidNum, "Num must between 0 and 100"},
+            {InvalidLimit, "Limit must between 0 and 100"},
             {InvalidTransaction, "Invalid transaction information"},
             {CannotBroadcastTransaction, "Sync still in progress, cannot broadcast transactions"}
         };

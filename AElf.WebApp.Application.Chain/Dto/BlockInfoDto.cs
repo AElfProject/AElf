@@ -29,7 +29,7 @@ namespace AElf.WebApp.Application.Chain.Dto
         
         public string Extra { get; set; }
         
-        public string Height { get; set; }
+        public long Height { get; set; }
         
         public DateTime Time { get; set; }
         
