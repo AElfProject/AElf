@@ -17,7 +17,7 @@ using Xunit;
 
 namespace AElf.Contracts.MultiToken
 {
-    public class LockTest
+    public class LockTest : MultiTokenContractTestBase
     {
         private ContractTester<MultiTokenContractTestAElfModule> Starter { get; set; }
 
