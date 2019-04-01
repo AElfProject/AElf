@@ -145,11 +145,19 @@ namespace AElf.Cryptography
 
         public static byte[] Ecdh(byte[] privateKey, byte[] publicKey)
         {
-            var usablePublicKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-            Secp256K1.PublicKeyParse(usablePublicKey, publicKey);
-            var ecdhKey = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
-            Secp256K1.Ecdh(ecdhKey, usablePublicKey, privateKey);
-            return ecdhKey;
+            try
+            {
+                Lock.AcquireWriterLock(Timeout.Infinite);
+                var usablePublicKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
+                Secp256K1.PublicKeyParse(usablePublicKey, publicKey);
+                var ecdhKey = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
+                Secp256K1.Ecdh(ecdhKey, usablePublicKey, privateKey);
+                return ecdhKey;
+            }
+            finally
+            {
+                Lock.ReleaseWriterLock();
+            }
         }
 
         /// <summary>

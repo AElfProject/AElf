@@ -78,7 +78,7 @@ namespace AElf.Contracts.Consensus.DPoS
             foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
             {
                 round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
-                    .Add(decryptedPreviousInValue.Key, decryptedPreviousInValue.Value);
+                    .Add(publicKey, decryptedPreviousInValue.Value);
             }
 
             foreach (var tuneOrder in input.TuneOrderInformation)

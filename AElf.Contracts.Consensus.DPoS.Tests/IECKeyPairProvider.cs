@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public ECKeyPair GetECKeyPair()
         {
-            return _keyPair ?? CryptoHelpers.GenerateKeyPair();
+            return _keyPair;
         }
     }
 }

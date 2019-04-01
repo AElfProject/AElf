@@ -82,6 +82,14 @@ namespace AElf.Consensus.DPoS
                 .Where(m => m.FinalOrderOfNextRound != m.SupposedOrderOfNextRound)
                 .ToDictionary(m => m.PublicKey, m => m.FinalOrderOfNextRound);
 
+            var decryptedPreviousInValues = round.RealTimeMinersInformation.Values.Where(v =>
+                    v.PublicKey != publicKey && v.DecryptedPreviousInValues.ContainsKey(publicKey))
+                .ToDictionary(info => info.PublicKey, info => info.DecryptedPreviousInValues[publicKey]);
+
+            var recoveredPreviousInValues = round.RealTimeMinersInformation.Values
+                .Where(v => v.OutValue == null && v.PreviousInValue != null)
+                .ToDictionary(info => info.PublicKey, info => info.PreviousInValue);
+
             var minerInRound = round.RealTimeMinersInformation[publicKey];
             return new ToUpdate
             {
@@ -95,7 +103,8 @@ namespace AElf.Consensus.DPoS
                 SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,
                 TuneOrderInformation = {tuneOrderInformation},
                 EncryptedInValues = {minerInRound.EncryptedInValues},
-                DecryptedPreviousInValues = {minerInRound.DecryptedPreviousInValues}
+                DecryptedPreviousInValues = {decryptedPreviousInValues},
+                RecoveredPreviousInValues = {recoveredPreviousInValues}
             };
         }
 

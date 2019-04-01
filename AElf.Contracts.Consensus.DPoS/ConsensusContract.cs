@@ -96,10 +96,14 @@ namespace AElf.Contracts.Consensus.DPoS
             minimumCount = minimumCount == 0 ? 1 : minimumCount;
 
             var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToHex(), minimumCount, minersCount);
-            ;
             foreach (var pair in round.RealTimeMinersInformation.OrderBy(m => m.Value.Order))
             {
                 var currentPublicKey = pair.Key;
+
+                if (currentPublicKey == publicKey)
+                {
+                    continue;
+                }
 
                 // Encrypt every secret share with other miner's public key, then fill own EncryptedInValues field.
                 var plainMessage = Encoding.UTF8.GetBytes(secretShares[pair.Value.Order - 1]);
@@ -107,14 +111,13 @@ namespace AElf.Contracts.Consensus.DPoS
                 var encryptedInValue = Context.EncryptMessage(receiverPublicKey, plainMessage);
                 round.RealTimeMinersInformation[publicKey].EncryptedInValues
                     .Add(currentPublicKey, ByteString.CopyFrom(encryptedInValue));
-                
+
                 if (previousRound.RoundId == 0 || round.TermNumber != previousRound.TermNumber)
                 {
                     continue;
                 }
 
-                var previousRoundMinersInformation = previousRound.RealTimeMinersInformation;
-                var encryptedInValues = previousRoundMinersInformation[currentPublicKey].EncryptedInValues;
+                var encryptedInValues = previousRound.RealTimeMinersInformation[currentPublicKey].EncryptedInValues;
                 if (encryptedInValues.Any())
                 {
                     var interestingMessage = encryptedInValues[publicKey];
@@ -131,14 +134,16 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
 
                 Context.LogDebug(() => "Now it's enough to recover previous in values.");
-                
+
                 // Try to recover others' previous in value.
                 var orders = pair.Value.DecryptedPreviousInValues.Select((t, i) =>
-                    previousRound.RealTimeMinersInformation.Values
-                        .First(m => m.PublicKey == pair.Value.DecryptedPreviousInValues.Keys.ToList()[i]).Order).ToList();
+                        previousRound.RealTimeMinersInformation.Values
+                            .First(m => m.PublicKey == pair.Value.DecryptedPreviousInValues.Keys.ToList()[i]).Order)
+                    .ToList();
 
                 var previousInValue = Hash.LoadHex(SecretSharingHelper.DecodeSecret(
-                    pair.Value.DecryptedPreviousInValues.Values.ToList().Select(s => s.ToByteArray().ToHex()).ToList(),
+                    pair.Value.DecryptedPreviousInValues.Values.ToList()
+                        .Select(s => Encoding.UTF8.GetString(s.ToByteArray())).ToList(),
                     orders, minimumCount));
                 round.RealTimeMinersInformation[pair.Key].PreviousInValue = previousInValue;
             }
@@ -215,7 +220,8 @@ namespace AElf.Contracts.Consensus.DPoS
                     {Success = false, Message = "Failed to get current round information."};
             }
 
-            if (input.Round.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound > 0).Distinct().Count() !=
+            if (input.Round.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound > 0).Distinct()
+                    .Count() !=
                 input.Round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null))
             {
                 return new ValidationResult

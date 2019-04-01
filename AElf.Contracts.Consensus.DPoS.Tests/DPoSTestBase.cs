@@ -65,6 +65,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public DPoSTestBase()
         {
+            ECKeyPairProvider.SetECKeyPair(BootMinerKeyPair);
             // Deploy useful contracts.
             ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)
                 .DeploySystemSmartContract.SendAsync(

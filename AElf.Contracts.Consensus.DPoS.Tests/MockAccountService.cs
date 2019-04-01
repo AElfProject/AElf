@@ -5,11 +5,14 @@ using AElf.Kernel.Account.Application;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public class AccountService : IAccountService
+    /// <summary>
+    /// Really need this service to provide key pairs during dpos consensus testing.
+    /// </summary>
+    public class MockAccountService : IAccountService
     {
         private readonly IECKeyPairProvider _ecKeyPairProvider;
 
-        public AccountService(IECKeyPairProvider ecKeyPairProvider)
+        public MockAccountService(IECKeyPairProvider ecKeyPairProvider)
         {
             _ecKeyPairProvider = ecKeyPairProvider;
         }
@@ -39,7 +42,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public async Task<byte[]> DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
         {
-            return CryptoHelpers.DecryptMessage(senderPublicKey, _ecKeyPairProvider.GetECKeyPair().PublicKey,
+            return CryptoHelpers.DecryptMessage(senderPublicKey, _ecKeyPairProvider.GetECKeyPair().PrivateKey,
                 cipherMessage);
         }
     }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,8 +19,8 @@ namespace AElf.Contracts.Consensus.DPoS
     /// </summary>
     public class InValueRecoveryTest : DPoSTestBase
     {
-        public int MinimumCount => (int) (MinersCount * 2d / 3);
-        
+        private int MinimumCount => (int) (MinersCount * 2d / 3);
+
         [Fact]
         public async Task<Dictionary<string, DPoSTriggerInformation>> GenerateEncryptedMessagesTest()
         {
@@ -37,7 +38,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
 
                 ECKeyPairProvider.SetECKeyPair(currentKeyPair);
-                
+
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
 
                 var tester = GetConsensusContractTester(currentKeyPair);
@@ -46,23 +47,23 @@ namespace AElf.Contracts.Consensus.DPoS
                 var encryptedInValues = headerInformation.Round.RealTimeMinersInformation[minerInRound.PublicKey]
                     .EncryptedInValues;
 
-                encryptedInValues.Count.ShouldBe(MinersCount);
+                encryptedInValues.Count.ShouldBe(MinersCount - 1);
                 foreach (var (key, value) in encryptedInValues)
                 {
                     InitialMinersKeyPairs.Select(p => p.PublicKey.ToHex()).ShouldContain(key);
                     value.ShouldNotBeEmpty();
                 }
 
-                // Update consensus information to make sure next miner can mine his block.
+                // Update consensus information.
                 var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.PublicKey);
                 await tester.UpdateValue.SendAsync(toUpdate);
             }
-            
+
             var updatedRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
             foreach (var minerInRound in updatedRound.RealTimeMinersInformation.Values)
             {
-                minerInRound.EncryptedInValues.Count.ShouldBe(MinersCount);
+                minerInRound.EncryptedInValues.Count.ShouldBe(MinersCount - 1);
             }
 
             return triggers;
@@ -90,10 +91,10 @@ namespace AElf.Contracts.Consensus.DPoS
                     Encoding.UTF8.GetBytes(secrets[initial++]));
                 encryptedValues.Add(keyPair.PublicKey.ToHex(), encryptedMessage);
             }
-            
+
             // Check encrypted values.
             encryptedValues.Count.ShouldBe(MinersCount - 1);
-            
+
             // Others try to recover.
             foreach (var keyPair in othersKeyPairs)
             {
@@ -104,7 +105,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
                 if (decryptedValues.Count >= MinimumCount)
                 {
-                    decryptResult = SecretSharingHelper.DecodeSecret(decryptedValues.Values.Select(v => Encoding.UTF8.GetString(v)).ToList(),
+                    decryptResult = SecretSharingHelper.DecodeSecret(
+                        decryptedValues.Values.Select(v => Encoding.UTF8.GetString(v)).ToList(),
                         Enumerable.Range(1, MinimumCount).ToList(), MinimumCount);
                     break;
                 }
@@ -119,9 +121,9 @@ namespace AElf.Contracts.Consensus.DPoS
             var previousTriggers = await GenerateEncryptedMessagesTest();
 
             await ChangeRound();
-            
+
             var currentRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
-            
+
             var randomHashes = Enumerable.Range(0, MinersCount).Select(_ => Hash.Generate()).ToList();
             var triggers = Enumerable.Range(0, MinersCount).Select(i => new DPoSTriggerInformation
             {
@@ -130,19 +132,26 @@ namespace AElf.Contracts.Consensus.DPoS
                 PreviousRandomHash = previousTriggers[InitialMinersKeyPairs[i].PublicKey.ToHex()].RandomHash
             }).ToDictionary(t => t.PublicKey.ToHex(), t => t);
 
-            foreach (var minerInRound in currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
+            // Just `MinimumCount + 1` miners produce blocks.
+            foreach (var minerInRound in currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order).Take(MinimumCount + 1))
             {
                 var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
 
                 ECKeyPairProvider.SetECKeyPair(currentKeyPair);
 
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
-                
+
                 var tester = GetConsensusContractTester(currentKeyPair);
-                var headerInformation =
-                    await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]);
-                var updatedRound = headerInformation.Round;
+                var headerInformation = await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]);
+                
+                // Update consensus information.
+                var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.PublicKey);
+                await tester.UpdateValue.SendAsync(toUpdate);
             }
+
+            // But in values all filled.
+            var secondRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
+            secondRound.RealTimeMinersInformation.Values.Count(v => v.PreviousInValue != null).ShouldBe(MinersCount);
         }
     }
 }
