@@ -26,11 +26,22 @@ message Proposal {
     Address Proposer = 6;
 }
 
+message CheckProposalOutput{
+    Proposal Proposal = 1;
+    ProposalStatus Status = 2;
+    bool CanBeReleased = 3;
+}
+
 enum ProposalStatus {
-    ToBeDecided = 0;
-    Decided = 1;
-    Released = 2;
-    Expired = 3;
+    Active = 0;
+    Released = 1;
+    Expired = 2;
+}
+
+message ProposalInfo{
+    Hash proposalHash = 1;
+    Proposal Proposal = 2;
+    bool IsRelease = 3;
 }
 
 message Approved {

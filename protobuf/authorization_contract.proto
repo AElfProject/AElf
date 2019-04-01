@@ -3,6 +3,7 @@ syntax = "proto3";
 import "common.proto";
 import "auth.proto";
 import "aelf_options.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.Authorization";
@@ -16,12 +17,12 @@ service AuthorizationContract {
     }
     rpc SayYes (Approval) returns (google.protobuf.BoolValue) {
     }
-    rpc Release (Hash) returns (Hash) {
+    rpc Release (Hash) returns (google.protobuf.Empty) {
     }
     // Views
-    rpc GetProposal (Hash) returns (Proposal) {
-        option (aelf.is_view) = true;
+    rpc GetProposal(Hash) returns (CheckProposalOutput) {
     }
+    
     rpc GetAuthorization (Address) returns (Authorization) {
         option (aelf.is_view) = true;
     }

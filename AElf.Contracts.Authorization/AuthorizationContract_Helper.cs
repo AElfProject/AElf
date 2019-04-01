@@ -15,9 +15,9 @@ namespace AElf.Contracts.Authorization
             return new Miners {PublicKeys = {round.RealTimeMinersInformation.Keys}};
         }
 
-        private void Send<TInput>(Address address, string methodName, TInput args) where TInput : IMessage<TInput>
+        private void Send(Address address, string methodName, ByteString @params)
         {
-            Context.SendInline(address, methodName, args?.ToByteString() ?? ByteString.Empty);
+            Context.SendInline(address, methodName, @params);
         }
     }
 }

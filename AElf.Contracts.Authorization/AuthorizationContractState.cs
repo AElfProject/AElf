@@ -12,7 +12,9 @@ namespace AElf.Contracts.Authorization
     {
         internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract { get; set; }
         public MappedState<Address, Kernel.Authorization> MultiSig { get; set; }
-        public MappedState<Hash, Proposal> Proposals { get; set; }
+        public MappedState<Hash, ProposalInfo> Proposals { get; set; }
+        
+        public MappedState<Hash, SInt64Value> ReleasedBlockHeight { get; set; }
         public MappedState<Hash, Approved> Approved { get; set; }
     }
 }
