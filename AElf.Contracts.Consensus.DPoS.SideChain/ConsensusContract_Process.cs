@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS.SideChain
@@ -28,6 +29,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             input.BlockchainAge = 1;
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
+
             return new Empty();
         }
 
@@ -64,28 +66,34 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             var publicKey = Context.RecoverPublicKey().ToHex();
 
-            if (round.RoundNumber != 1)
-            {
-                round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
-            }
-
+            round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
             round.RealTimeMinersInformation[publicKey].OutValue = input.OutValue;
-
-            round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
-
             round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = input.PromiseTinyBlocks;
-
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
-
             round.RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             round.RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
+            round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
+ 
+            round.RealTimeMinersInformation[publicKey].EncryptedInValues.Add(input.EncryptedInValues);
+            foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
+            {
+                round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
+                    .Add(publicKey, decryptedPreviousInValue.Value);
+            }
+
+            foreach (var recoveredPreviousInValue in input.RecoveredPreviousInValues)
+            {
+                round.RealTimeMinersInformation[recoveredPreviousInValue.Key].PreviousInValue =
+                    recoveredPreviousInValue.Value;
+            }
 
             foreach (var tuneOrder in input.TuneOrderInformation)
             {
+                Context.LogDebug(() => $"Will tune {tuneOrder.Key} order from {round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound} to {tuneOrder.Value}");
                 round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
             }
 
-            // One cannot publish his in value sometime, like in his first round.
+            // For first round of each term, no one need to publish in value.
             if (input.PreviousInValue != Hash.Empty)
             {
                 round.RealTimeMinersInformation[publicKey].PreviousInValue = input.PreviousInValue;
@@ -103,27 +111,31 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
         public override Empty NextRound(Round input)
         {
-            if (TryToGetRoundNumber(out var roundNumber))
+            if (TryToGetRoundNumber(out var currentRoundNumber))
             {
-                Assert(roundNumber < input.RoundNumber, "Incorrect round number for next round.");
+                Assert(currentRoundNumber < input.RoundNumber, "Incorrect round number for next round.");
             }
 
-            var senderPublicKey = Context.RecoverPublicKey().ToHex();
-
-            input.ExtraBlockProducerOfPreviousRound = senderPublicKey;
+            if (currentRoundNumber == 1)
+            {
+                SetBlockchainStartTimestamp(input.GetStartTime().ToTimestamp());
+            }
 
             // Update the age of this blockchain
             State.AgeField.Value = input.BlockchainAge;
 
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
-
-            UpdateHistoryInformation(input);
-
+            //UpdateHistoryInformation(input);
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
-
             TryToFindLIB();
             return new Empty();
+        }
+        
+        public void SetBlockchainStartTimestamp(Timestamp timestamp)
+        {
+            Context.LogDebug(() => $"Set start timestamp to {timestamp}");
+            State.BlockchainStartTimestamp.Value = timestamp;
         }
 
         private bool TryToUpdateRoundNumber(long roundNumber)
@@ -264,18 +276,18 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return false;
         }
 
-        public bool TryToGetPreviousRoundInformation(out Round roundInformation)
+        public bool TryToGetPreviousRoundInformation(out Round previousRound)
         {
+            previousRound = new Round();
             if (TryToGetRoundNumber(out var roundNumber))
             {
-                roundInformation = State.RoundsMap[(roundNumber - 1).ToInt64Value()];
-                if (roundInformation != null)
+                if (roundNumber < 2)
                 {
-                    return true;
+                    return false;
                 }
+                previousRound = State.RoundsMap[(roundNumber - 1).ToInt64Value()];
+                return !previousRound.IsEmpty();
             }
-
-            roundInformation = new Round();
             return false;
         }
 

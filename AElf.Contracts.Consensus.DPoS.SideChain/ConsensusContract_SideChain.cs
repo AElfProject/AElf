@@ -32,16 +32,27 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 return DPoSBehaviour.Watch;
             }
 
-            if (!TryToGetPreviousRoundInformation(out var previousRound))
+            var isTimeSlotPassed = currentRound.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound);
+            var ableToGetPreviousRound = TryToGetPreviousRoundInformation(out _);
+            if (minerInRound.OutValue == null)
             {
-                // Failed to get previous round information or just changed term.
-                return DPoSBehaviour.UpdateValueWithoutPreviousInValue;
-            }
+                if (!ableToGetPreviousRound && minerInRound.Order != 1 &&
+                    currentRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).OutValue == null)
+                {
+                    return DPoSBehaviour.NextRound;
+                }
 
-            if (!currentRound.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound) && minerInRound.OutValue == null)
-            {
-                // If this node not missed his time slot of current round.
-                return DPoSBehaviour.UpdateValue;
+                if (!ableToGetPreviousRound)
+                {
+                    // Failed to get previous round information or just changed term.
+                    return DPoSBehaviour.UpdateValueWithoutPreviousInValue;
+                }
+
+                if (!isTimeSlotPassed)
+                {
+                    // If this node not missed his time slot of current round.
+                    return DPoSBehaviour.UpdateValue;
+                }
             }
 
             return DPoSBehaviour.NextRound;
