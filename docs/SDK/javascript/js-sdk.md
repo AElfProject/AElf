@@ -8,17 +8,17 @@ You can find
 ## Usage
 
 ```js
-Aelf, Aelf.wallet, Aelf.pbjs, Aelf.pbUtils, Aelf.version
+AElf, AElf.wallet, AElf.pbjs, AElf.pbUtils, AElf.version
 ```
 
 ### basic
 
 ```js
-import Aelf from 'aelf-sdk';
+import AElf from 'aelf-sdk';
 
 // host, timeout, user, password, headers
-const aelf = new Aelf(
-    new Aelf.providers.HttpProvider(
+const aelf = new AElf(
+    new AElf.providers.HttpProvider(
         host, // https://127.0.0.1:8000/chain
         timeout, // 300
         user, // hzz780
@@ -60,10 +60,10 @@ aelf.chain.contractAtAsync(contractAddress, wallet, (err, result) => {
 Additionally you can set a provider using aelf.setProvider()
 
 ```js
-import Aelf from 'aelf-sdk';
+import AElf from 'aelf-sdk';
 
-const aelf = new Aelf(new Aelf.providers.HttpProvider('https://127.0.0.1:8000/chain'));
-aelf.setProvider(new Aelf.providers.HttpProvider('https://127.0.0.1:8010/chain'));
+const aelf = new AElf(new AElf.providers.HttpProvider('https://127.0.0.1:8000/chain'));
+aelf.setProvider(new AElf.providers.HttpProvider('https://127.0.0.1:8010/chain'));
 ```
 
 ### wallet
@@ -71,9 +71,9 @@ aelf.setProvider(new Aelf.providers.HttpProvider('https://127.0.0.1:8010/chain')
 base on bip39.
 
 ```js
-import Aelf from 'aelf-sdk';
+import AElf from 'aelf-sdk';
 
-Aelf.wallet.createNewWallet();
+AElf.wallet.createNewWallet();
 // wallet.AESDecrypto            wallet.AESEncrypto            wallet.bip39
 // wallet.createNewWallet        wallet.getWalletByMnemonic    wallet.getWalletByPrivateKey
 // wallet.sign                   wallet.signTransaction
@@ -121,8 +121,8 @@ Some basic methods ofthe sdk AElf. For more information, please see the code in 
 ### version
 
 ```js
-import Aelf from 'aelf-sdk';
-Aelf.version // eg. 2.1.10
+import AElf from 'aelf-sdk';
+AElf.version // eg. 2.1.10
 ```
 
 ## Contributing

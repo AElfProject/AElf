@@ -1,20 +1,20 @@
-<a name="module_Aelf/wallet"></a>
+<a name="module_AElf/wallet"></a>
 
-## Aelf/wallet
+## AElf/wallet
 wallet module.
 
 
-* [Aelf/wallet](#module_Aelf/wallet)
-    * [AESEncrypto(input, password)](#exp_module_Aelf/wallet--AESEncrypto) ⇒ <code>string</code> ⏏
-    * [AESDecrypto(input, password)](#exp_module_Aelf/wallet--AESDecrypto) ⇒ <code>string</code> ⏏
-    * [createNewWallet()](#exp_module_Aelf/wallet--createNewWallet) ⇒ <code>Object</code> ⏏
-    * [getAddressFromPubKey(pubKey)](#exp_module_Aelf/wallet--getAddressFromPubKey) ⇒ <code>string</code> ⏏
-    * [getWalletByMnemonic(mnemonic)](#exp_module_Aelf/wallet--getWalletByMnemonic) ⇒ <code>Object</code> ⏏
-    * [getWalletByPrivateKey(privateKey)](#exp_module_Aelf/wallet--getWalletByPrivateKey) ⇒ <code>Object</code> ⏏
-    * [signTransaction(rawTxn, keyPair)](#exp_module_Aelf/wallet--signTransaction) ⇒ <code>Object</code> ⏏
-    * [sign(hexTxn, keyPair)](#exp_module_Aelf/wallet--sign) ⇒ <code>Buffer</code> ⏏
+* [AElf/wallet](#module_AElf/wallet)
+    * [AESEncrypto(input, password)](#exp_module_AElf/wallet--AESEncrypto) ⇒ <code>string</code> ⏏
+    * [AESDecrypto(input, password)](#exp_module_AElf/wallet--AESDecrypto) ⇒ <code>string</code> ⏏
+    * [createNewWallet()](#exp_module_AElf/wallet--createNewWallet) ⇒ <code>Object</code> ⏏
+    * [getAddressFromPubKey(pubKey)](#exp_module_AElf/wallet--getAddressFromPubKey) ⇒ <code>string</code> ⏏
+    * [getWalletByMnemonic(mnemonic)](#exp_module_AElf/wallet--getWalletByMnemonic) ⇒ <code>Object</code> ⏏
+    * [getWalletByPrivateKey(privateKey)](#exp_module_AElf/wallet--getWalletByPrivateKey) ⇒ <code>Object</code> ⏏
+    * [signTransaction(rawTxn, keyPair)](#exp_module_AElf/wallet--signTransaction) ⇒ <code>Object</code> ⏏
+    * [sign(hexTxn, keyPair)](#exp_module_AElf/wallet--sign) ⇒ <code>Buffer</code> ⏏
 
-<a name="exp_module_Aelf/wallet--AESEncrypto"></a>
+<a name="exp_module_AElf/wallet--AESEncrypto"></a>
 
 ### AESEncrypto(input, password) ⇒ <code>string</code> ⏏
 Advanced Encryption Standard need crypto-js
@@ -34,7 +34,7 @@ const AESEncryptoPrivateKey = aelf.wallet.AESEncrypto('123', '123');
 const AESEncryptoMnemonic = alef.wallet.AESEncrypto('hello world', '123');
 // AESEncryptoMnemonic = U2FsdGVkX19gCjHzYmoY5FGZA1ArXG+eGZIR77dK2GE=
 ```
-<a name="exp_module_Aelf/wallet--AESDecrypto"></a>
+<a name="exp_module_AElf/wallet--AESDecrypto"></a>
 
 ### AESDecrypto(input, password) ⇒ <code>string</code> ⏏
 Decrypt any encrypted information you want to decrypt
@@ -54,7 +54,7 @@ const AESDecryptoPrivateKey = aelf.wallet.AESDecrypto('U2FsdGVkX18+tvF7t4rhGOi5c
 const AESDecryptoMnemonic = aelf.wallet.AESDecrypto('U2FsdGVkX19gCjHzYmoY5FGZA1ArXG+eGZIR77dK2GE=', '123');
 // AESDecryptoMnemonic = "hello world"
 ```
-<a name="exp_module_Aelf/wallet--createNewWallet"></a>
+<a name="exp_module_AElf/wallet--createNewWallet"></a>
 
 ### createNewWallet() ⇒ <code>Object</code> ⏏
 create a wallet
@@ -73,7 +73,7 @@ const wallet = aelf.wallet.createNewWallet();
 //     xPrivateKey: "475f7c475"
 // }
 ```
-<a name="exp_module_Aelf/wallet--getAddressFromPubKey"></a>
+<a name="exp_module_AElf/wallet--getAddressFromPubKey"></a>
 
 ### getAddressFromPubKey(pubKey) ⇒ <code>string</code> ⏏
 the same as in C#
@@ -90,7 +90,7 @@ the same as in C#
 const pubKey = wallet.keyPair.getPublic();
 const address = aelf.wallet.getAddressFromPubKey(pubKey);
 ```
-<a name="exp_module_Aelf/wallet--getWalletByMnemonic"></a>
+<a name="exp_module_AElf/wallet--getWalletByMnemonic"></a>
 
 ### getWalletByMnemonic(mnemonic) ⇒ <code>Object</code> ⏏
 create a wallet by mnemonic
@@ -106,7 +106,7 @@ create a wallet by mnemonic
 ```js
 const mnemonicWallet = aelf.wallet.getWalletByMnemonic('hallo world');
 ```
-<a name="exp_module_Aelf/wallet--getWalletByPrivateKey"></a>
+<a name="exp_module_AElf/wallet--getWalletByPrivateKey"></a>
 
 ### getWalletByPrivateKey(privateKey) ⇒ <code>Object</code> ⏏
 create a wallet by private key
@@ -122,7 +122,7 @@ create a wallet by private key
 ```js
 const privateKeyWallet = aelf.wallet.getWalletByPrivateKey('123');
 ```
-<a name="exp_module_Aelf/wallet--signTransaction"></a>
+<a name="exp_module_AElf/wallet--signTransaction"></a>
 
 ### signTransaction(rawTxn, keyPair) ⇒ <code>Object</code> ⏏
 sign a transaction
@@ -161,7 +161,7 @@ const signWallet = aelf.wallet.signTransaction(rawTxn, wallet.keyPair);
 //     }
 //  }
 ```
-<a name="exp_module_Aelf/wallet--sign"></a>
+<a name="exp_module_AElf/wallet--sign"></a>
 
 ### sign(hexTxn, keyPair) ⇒ <code>Buffer</code> ⏏
 just sign
