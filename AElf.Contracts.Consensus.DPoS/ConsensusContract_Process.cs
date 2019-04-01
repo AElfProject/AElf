@@ -81,6 +81,12 @@ namespace AElf.Contracts.Consensus.DPoS
                     .Add(publicKey, decryptedPreviousInValue.Value);
             }
 
+            foreach (var recoveredPreviousInValue in input.RecoveredPreviousInValues)
+            {
+                round.RealTimeMinersInformation[recoveredPreviousInValue.Key].PreviousInValue =
+                    recoveredPreviousInValue.Value;
+            }
+
             foreach (var tuneOrder in input.TuneOrderInformation)
             {
                 Context.LogDebug(() => $"Will tune {tuneOrder.Key} order from {round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound} to {tuneOrder.Value}");
