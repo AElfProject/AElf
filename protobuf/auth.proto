@@ -20,9 +20,9 @@ message Reviewer
 message Proposal {
     Address MultiSigAccount = 1;
     string Name = 2;
-    bytes TxnData = 3;
-    google.protobuf.Timestamp ExpiredTime = 4;
-    ProposalStatus Status = 5;
+    Address ToAddress = 3;
+    bytes Params = 4;
+    google.protobuf.Timestamp ExpiredTime = 5;
     Address Proposer = 6;
 }
 

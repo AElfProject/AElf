@@ -108,8 +108,8 @@ namespace AElf.Contracts.Authorization
             Assert(
                 proposal.Name != null
                 && proposal.MultiSigAccount != null
-                && proposal.TxnData != null
-                && proposal.Status == ProposalStatus.ToBeDecided
+                && proposal.ToAddress != null
+                && proposal.Params != null
                 && proposal.Proposer != null, "Invalid proposal.");
             DateTime timestamp = proposal.ExpiredTime.ToDateTime();
 
