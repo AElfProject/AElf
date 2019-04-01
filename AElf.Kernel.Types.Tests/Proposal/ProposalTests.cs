@@ -19,7 +19,7 @@ namespace AElf.Kernel.Types.Tests
                 MultiSigAccount = Address.Generate(),
                 Name = "proposal test",
                 Proposer = Address.Generate(),
-                TxnData = ByteString.CopyFrom(Hash.Generate().DumpByteArray()) 
+//                TxnData = ByteString.CopyFrom(Hash.Generate().DumpByteArray()) 
             };
             
             var hash = proposal.GetHash();

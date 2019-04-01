@@ -17,22 +17,14 @@ namespace AElf.Contracts.CrossChain
         private Hash Propose(string proposalName, int waitingPeriod, Address fromAddress,
             Address targetAddress, string invokingMethod, IMessage input)
         {
-            // packed txn
-            byte[] txnData = new Transaction
-            {
-                From = fromAddress,
-                To = targetAddress,
-                MethodName = invokingMethod,
-                Params = input.ToByteString(),
-            }.ToByteArray();
             var expiredTime = Context.CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime();
             Proposal proposal = new Proposal
             {
                 MultiSigAccount = fromAddress,
-                Name = proposalName,
-                TxnData = ByteString.CopyFrom(txnData),
+                Name = invokingMethod,
+                ToAddress = Context.Self,
                 ExpiredTime = Timestamp.FromDateTime(expiredTime),
-                Status = ProposalStatus.ToBeDecided,
+                Params = input.ToByteString(),
                 Proposer = Context.Sender
             };
             //State.AuthorizationContract.Propose(proposal);
