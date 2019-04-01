@@ -145,6 +145,11 @@ namespace AElf.Contracts.Consensus.DPoS
                     pair.Value.DecryptedPreviousInValues.Values.ToList()
                         .Select(s => Encoding.UTF8.GetString(s.ToByteArray())).ToList(),
                     orders, minimumCount));
+                if (round.RealTimeMinersInformation[pair.Key].PreviousInValue != null &&
+                    round.RealTimeMinersInformation[pair.Key].PreviousInValue != previousInValue)
+                {
+                    Context.LogDebug(() => "Different previous in value.");
+                }
                 round.RealTimeMinersInformation[pair.Key].PreviousInValue = previousInValue;
             }
         }

@@ -43,7 +43,7 @@ namespace AElf.OS.Account
 
         public async Task<byte[]> EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
         {
-            return CryptoHelpers.EncryptMessage((await GetAccountKeyPairAsync()).PrivateKey, receiverPublicKey,
+             return CryptoHelpers.EncryptMessage((await GetAccountKeyPairAsync()).PrivateKey, receiverPublicKey,
                 plainMessage);
         }
 
