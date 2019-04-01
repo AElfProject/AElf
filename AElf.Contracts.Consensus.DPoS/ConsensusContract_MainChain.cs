@@ -43,7 +43,8 @@ namespace AElf.Contracts.Consensus.DPoS
             var isTermJustChanged = IsJustChangedTerm(out var termNumber);
             if (minerInRound.OutValue == null)
             {
-                if (!ableToGetPreviousRound && minerInRound.Order != 1)
+                if (!ableToGetPreviousRound && minerInRound.Order != 1 &&
+                    currentRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).OutValue == null)
                 {
                     return DPoSBehaviour.NextRound;
                 }

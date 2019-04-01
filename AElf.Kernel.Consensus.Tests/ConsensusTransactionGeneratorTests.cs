@@ -17,7 +17,7 @@ namespace AElf.Kernel.Consensus
             _systemTransactionGenerator = GetRequiredService<ISystemTransactionGenerator>();
         }
 
-        [Fact]
+        [Fact(Skip = "Obsolete")]
         public void GenerateTransactions()
         {
             var address = Address.Generate();

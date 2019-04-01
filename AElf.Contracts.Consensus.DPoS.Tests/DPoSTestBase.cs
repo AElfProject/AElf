@@ -37,6 +37,9 @@ namespace AElf.Contracts.Consensus.DPoS
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
         
+        protected IECKeyPairProvider ECKeyPairProvider =>
+            Application.ServiceProvider.GetRequiredService<IECKeyPairProvider>();
+        
         protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
 
         protected Address ConsensusContractAddress { get; set; }
