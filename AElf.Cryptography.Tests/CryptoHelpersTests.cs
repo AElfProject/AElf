@@ -1,7 +1,9 @@
+using System;
 using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 using AElf.Common;
+using AElf.Database.RedisProtocol;
 using Secp256k1Net;
 using Xunit;
 using Shouldly;
@@ -55,16 +57,21 @@ namespace AElf.Cryptography.Tests
         {
             var alice = CryptoHelpers.GenerateKeyPair();
             var bob = CryptoHelpers.GenerateKeyPair();
+            var sam = CryptoHelpers.GenerateKeyPair();
 
             // Alice want to transmit plain text "aelf" to Bob.
 
-            var plainText = Encoding.UTF8.GetBytes("aelf");
+            var plainText = Encoding.UTF8.GetBytes(Hash.Generate().ToHex());
             var cipherText = CryptoHelpers.EncryptMessage(alice.PrivateKey, bob.PublicKey, plainText);
 
             // Bob decrypt the message.
             var decrypt = CryptoHelpers.DecryptMessage(alice.PublicKey, bob.PrivateKey, cipherText);
-
             Assert.True(decrypt.BytesEqual(plainText));
+
+            // Sam can't decrypt this message.
+            var func = new Func<byte[]>(() => CryptoHelpers.DecryptMessage(alice.PublicKey, sam.PrivateKey,
+                cipherText));
+            Assert.Throws<VirgilCryptoException>(func);
         }
 
         [Fact]

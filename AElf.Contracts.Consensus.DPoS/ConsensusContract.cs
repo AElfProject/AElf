@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Cryptography.SecretSharing;
@@ -101,9 +102,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 var currentPublicKey = pair.Key;
 
                 // Encrypt every secret share with other miner's public key, then fill own EncryptedInValues field.
-                var plainMessage = ByteString.FromBase64(secretShares[pair.Value.Order - 1]);
-                var encryptedInValue = Context.EncryptMessage(ByteArrayHelpers.FromHexString(currentPublicKey),
-                    plainMessage.ToByteArray());
+                var plainMessage = Encoding.UTF8.GetBytes(secretShares[pair.Value.Order - 1]);
+                var receiverPublicKey = ByteArrayHelpers.FromHexString(currentPublicKey);
+                var encryptedInValue = Context.EncryptMessage(receiverPublicKey, plainMessage);
                 round.RealTimeMinersInformation[publicKey].EncryptedInValues
                     .Add(currentPublicKey, ByteString.CopyFrom(encryptedInValue));
                 
@@ -113,11 +114,13 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
 
                 var previousRoundMinersInformation = previousRound.RealTimeMinersInformation;
-                if (previousRoundMinersInformation[currentPublicKey].EncryptedInValues.Any())
+                var encryptedInValues = previousRoundMinersInformation[currentPublicKey].EncryptedInValues;
+                if (encryptedInValues.Any())
                 {
+                    var interestingMessage = encryptedInValues[publicKey];
+                    var senderPublicKey = ByteArrayHelpers.FromHexString(currentPublicKey);
                     // Decrypt every miner's secret share then add a result to other miner's DecryptedInValues field.
-                    var decryptedInValue = Context.DecryptMessage(ByteArrayHelpers.FromHexString(currentPublicKey),
-                        previousRoundMinersInformation[currentPublicKey].EncryptedInValues[publicKey].ToByteArray());
+                    var decryptedInValue = Context.DecryptMessage(senderPublicKey, interestingMessage.ToByteArray());
                     round.RealTimeMinersInformation[pair.Key].DecryptedPreviousInValues
                         .Add(publicKey, ByteString.CopyFrom(decryptedInValue));
                 }

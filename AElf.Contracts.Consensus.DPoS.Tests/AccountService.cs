@@ -26,21 +26,21 @@ namespace AElf.Contracts.Consensus.DPoS
             return recoverResult && publicKey.BytesEqual(recoverPublicKey);
         }
 
-        public Task<byte[]> GetPublicKeyAsync()
+        public async Task<byte[]> GetPublicKeyAsync()
         {
-            return Task.FromResult(_ecKeyPairProvider.GetECKeyPair().PublicKey);
+            return _ecKeyPairProvider.GetECKeyPair().PublicKey;
         }
 
-        public Task<byte[]> EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
+        public async Task<byte[]> EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
         {
-            return Task.FromResult(CryptoHelpers.EncryptMessage(_ecKeyPairProvider.GetECKeyPair().PrivateKey,
-                receiverPublicKey, plainMessage));
+            return CryptoHelpers.EncryptMessage(_ecKeyPairProvider.GetECKeyPair().PrivateKey, receiverPublicKey,
+                plainMessage);
         }
 
-        public Task<byte[]> DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
+        public async Task<byte[]> DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
         {
-            return Task.FromResult(CryptoHelpers.DecryptMessage(senderPublicKey,
-                _ecKeyPairProvider.GetECKeyPair().PublicKey, cipherMessage));
+            return CryptoHelpers.DecryptMessage(senderPublicKey, _ecKeyPairProvider.GetECKeyPair().PublicKey,
+                cipherMessage);
         }
     }
 }
