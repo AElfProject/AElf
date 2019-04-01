@@ -26,5 +26,5 @@
     * [Chain](RPC/chain.md)
 * [SDK reference](SDK/js.md)
     * [JS SDK](SDK/javascript/js-sdk.md)
-        * [Aelf API](SDK/javascript/Aelf.md)
-        * [Aelf.wallet API](SDK/javascript/Wallet.md)
+        * [AElf API](SDK/javascript/AElf.md)
+        * [AElf.wallet API](SDK/javascript/Wallet.md)
