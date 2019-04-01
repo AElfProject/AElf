@@ -31,7 +31,7 @@ namespace AElf.CrossChain.Grpc
             {
                 var mockService = new Mock<IBlockchainService>();
                 mockService.Setup(m=>m.GetChainAsync())
-                    .Returns(Task.FromResult<Chain>(new Chain
+                    .Returns(Task.FromResult(new Chain
                     {
                         LastIrreversibleBlockHeight = 10
                     }));
@@ -53,6 +53,22 @@ namespace AElf.CrossChain.Grpc
                 
                 return mockService.Object;
             });
+
+            services.AddTransient(o =>
+            {
+                var mockService = new Mock<ICrossChainContractReader>();
+                mockService.Setup(m => m.GetIndexedCrossChainBlockDataAsync(It.IsAny<Hash>(), It.IsAny<int>()))
+                    .Returns(Task.FromResult(new CrossChainBlockData
+                    {
+                        PreviousBlockHeight = 8,
+                        SideChainBlockData = {},
+                        ParentChainBlockData = {}
+
+                    }));
+
+                return mockService.Object;
+            });
+            
             services.AddSingleton<CrossChainRpc.CrossChainRpcBase, CrossChainGrpcServerBase>();
         }
     }

@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common;
+using AElf.Kernel.SmartContract.Application;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
@@ -13,12 +15,15 @@ namespace AElf.CrossChain.Grpc
     public class GrpcServerTests : GrpcCrossChainServerTestBase
     {
         private CrossChainRpc.CrossChainRpcBase CrossChainGrpcServer;
+        private ISmartContractAddressService _smartContractAddressService;
 
         public GrpcServerTests()
         {
             CrossChainGrpcServer = GetRequiredService<CrossChainRpc.CrossChainRpcBase>();
+            _smartContractAddressService = GetRequiredService<SmartContractAddressService>();
+            _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name, Address.Generate());
         }
-
+        
         [Fact]
         public async Task RequestIndexingParentChain()
         {

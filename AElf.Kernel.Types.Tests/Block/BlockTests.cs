@@ -52,6 +52,18 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
+        public void BlockBody_Hash_Test()
+        {
+            var block = CreateBlock(Hash.Generate(), 0, 10);
+            var hash = block.Body.GetHashWithoutCache();
+            hash.ShouldNotBeNull();
+
+            var hash1 = block.Body.GetHashWithoutCache();
+            hash.ShouldNotBeNull();
+            hash.ShouldBe(hash1);
+        }
+        
+        [Fact]
         public void BlockTest()
         {
             var block = CreateBlock(Hash.Generate(), 1234, 10);
@@ -104,6 +116,7 @@ namespace AElf.Kernel.Types.Tests
             block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
 
             block.Body.BlockHeader = block.Header.GetHash();
+            block.Body.BinaryMerkleTree.Root = Hash.Empty;
             var transactionItems = GenerateFakeTransactions(3);
             block.Body.TransactionList.AddRange(transactionItems.Item1);
             block.Body.Transactions.AddRange(transactionItems.Item2);
