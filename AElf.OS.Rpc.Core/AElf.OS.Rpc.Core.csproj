@@ -2,6 +2,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>AElf.OS.Rpc</RootNamespace>
+    <PackageId>AElf.OS.Rpc.Core</PackageId>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Anemonis.AspNetCore.JsonRpc" Version="1.14.1" />

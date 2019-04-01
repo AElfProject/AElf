@@ -1,30 +1,23 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Modularity;
-using AElf.WebApp.Application;
+using AElf.WebApp.Application.Chain;
+using AElf.WebApp.Application.Net;
 using Google.Protobuf;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Swashbuckle.AspNetCore.Swagger;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
-using Volo.Abp.Authorization.Permissions;
 using Volo.Abp.Modularity;
-using Volo.Abp.Threading;
-using System.Collections.Generic;
-using System.Net.Http.Headers;
-using AElf.WebApp.Application.Chain;
-using AElf.WebApp.Application.Kernel;
-using AElf.WebApp.Application.Net;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.Extensions.Primitives;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace AElf.WebApp.Web
 {
@@ -43,19 +36,17 @@ namespace AElf.WebApp.Web
             ConfigureSwaggerServices(context.Services);
 
 
-            context.Services.Configure<MvcOptions>(options => { });
+            context.Services.Configure<MvcOptions>(options =>
+            {
+                options.InputFormatters.Add(new ProtobufInputFormatter());
+                options.OutputFormatters.Add(new ProtobufOutputFormatter());
+                
+            });
 
             context.Services.AddMvc().AddJsonOptions(options =>
             {
                 options.SerializerSettings.Converters.Add(new ProtoMessageConverter());
             });
-
-
-            /*services.Configure<MvcOptions>(options =>
-            {
-                options.InputFormatters.Add(new ProtobufInputFormatter());
-                options.OutputFormatters.Add(new ProtobufOutputFormatter());
-            });*/
         }
 
         private void ConfigureAutoApiControllers()
@@ -126,9 +117,16 @@ namespace AElf.WebApp.Web
 
     // Thanks to https://tero.teelahti.fi/using-google-proto3-with-aspnet-mvc/
     // The input formatter reading request body and mapping it to given data object.
-    /*public class ProtobufInputFormatter : InputFormatter
+    public class ProtobufInputFormatter : InputFormatter
     {
-        static MediaTypeHeaderValue protoMediaType = MediaTypeHeaderValue.Parse("application/x-protobuf");
+        static MediaTypeHeaderValue protoMediaType =
+            MediaTypeHeaderValue.Parse((StringSegment) "application/x-protobuf");
+
+
+        public ProtobufInputFormatter()
+        {
+            SupportedMediaTypes.Add(protoMediaType);
+        }
 
         public override bool CanRead(InputFormatterContext context)
         {
@@ -162,15 +160,22 @@ namespace AElf.WebApp.Web
         }
     }
 
-// The output object mapping returned object to Protobuf-serialized response body.
+    // The output object mapping returned object to Protobuf-serialized response body.
     public class ProtobufOutputFormatter : OutputFormatter
     {
-        static MediaTypeHeaderValue protoMediaType = MediaTypeHeaderValue.Parse("application/x-protobuf");
+        static MediaTypeHeaderValue protoMediaType =
+            MediaTypeHeaderValue.Parse((StringSegment) "application/x-protobuf");
+
+        public ProtobufOutputFormatter()
+        {
+            SupportedMediaTypes.Add(protoMediaType);
+        }
 
         public override bool CanWriteResult(OutputFormatterCanWriteContext context)
         {
-            StringSegment seg;
-            if (context.Object == null || !context.ContentType.IsSubsetOf(protoMediaType))
+            MediaTypeHeaderValue.TryParse(context.ContentType, out var parsedContentType);
+
+            if (context.Object == null || parsedContentType == null || !parsedContentType.IsSubsetOf(protoMediaType))
             {
                 return false;
             }
@@ -192,7 +197,7 @@ namespace AElf.WebApp.Web
 
             return response.Body.WriteAsync(serialized, 0, serialized.Length);
         }
-    }*/
+    }
 
 
     //Thanks to https://medium.com/google-cloud/making-newtonsoft-json-and-protocol-buffers-play-nicely-together-fe92079cc91c
@@ -208,9 +213,9 @@ namespace AElf.WebApp.Web
         /// an object of a given type.
         /// </summary>
         /// <returns>True if the objectType is a Protocol Message.</returns>
-        public override bool CanConvert(System.Type objectType)
+        public override bool CanConvert(Type objectType)
         {
-            return typeof(Google.Protobuf.IMessage)
+            return typeof(IMessage)
                 .IsAssignableFrom(objectType);
         }
 
@@ -221,7 +226,7 @@ namespace AElf.WebApp.Web
         /// <param name="objectType">The Protocol Message type.</param>
         /// <returns>An instance of objectType.</returns>
         public override object ReadJson(JsonReader reader,
-            System.Type objectType, object existingValue,
+            Type objectType, object existingValue,
             JsonSerializer serializer)
         {
             // The only way to find where this json object begins and ends is by
@@ -235,7 +240,7 @@ namespace AElf.WebApp.Web
             // And let protobuf's parser parse the text.
             IMessage message = (IMessage) Activator
                 .CreateInstance(objectType);
-            return Google.Protobuf.JsonParser.Default.Parse(text,
+            return JsonParser.Default.Parse(text,
                 message.Descriptor);
         }
 
@@ -246,7 +251,7 @@ namespace AElf.WebApp.Web
             JsonSerializer serializer)
         {
             // Let Protobuf's JsonFormatter do all the work.
-            writer.WriteRawValue(Google.Protobuf.JsonFormatter.Default
+            writer.WriteRawValue(JsonFormatter.Default
                 .Format((IMessage) value));
         }
     }

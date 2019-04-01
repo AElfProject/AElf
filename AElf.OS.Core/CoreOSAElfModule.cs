@@ -1,5 +1,4 @@
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
 using AElf.Modularity;
 using AElf.OS.Network;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +19,6 @@ namespace AElf.OS
             context.Services.AddAssemblyOf<CoreOSAElfModule>();
 
             Configure<NetworkOptions>(configuration.GetSection("Network"));
-            Configure<DPoSOptions>(configuration.GetSection("Consensus"));
             Configure<BackgroundJobWorkerOptions>(configuration.GetSection("BackgroundJobWorker"));
         }
 

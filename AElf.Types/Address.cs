@@ -52,6 +52,7 @@ namespace AElf.Common
             return new Address(TakeByAddressLength(name.CalculateHash()));
         }
 
+        //TODO: move to test project
         /// <summary>
         /// Only used in tests to generate random addresses.
         /// </summary>

@@ -3,6 +3,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>AElf.Kernel</RootNamespace>
     <LangVersion>latest</LangVersion>
+    <PackageId>AElf.Kernel.Core</PackageId>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;DEBUG;NETSTANDARD2_0</DefineConstants>

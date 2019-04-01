@@ -71,13 +71,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{F136
 ProjectSection(SolutionItems) = preProject
 	.travis.yml = .travis.yml
 	scripts\build.sh = scripts\build.sh
-	scripts\deploy.sh = scripts\deploy.sh
 	scripts\install_chakracore.sh = scripts\install_chakracore.sh
 	scripts\install_protobuf.sh = scripts\install_protobuf.sh
 	scripts\download_chakracore.sh = scripts\download_chakracore.sh
 	scripts\test.sh = scripts\test.sh
 	scripts\upload_coverage.sh = scripts\upload_coverage.sh
 	appveyor.yml = appveyor.yml
+	scripts\deploy_myget.sh = scripts\deploy_myget.sh
+	scripts\deploy_nuget.sh = scripts\deploy_nuget.sh
+	scripts\deploy_docker.sh = scripts\deploy_docker.sh
+	scripts\deploy_myget_daily.sh = scripts\deploy_myget_daily.sh
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
@@ -254,7 +257,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestKit", "AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj", "{F4DD898D-0BE8-4873-9532-F1F26DDB3291}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken.Test", "AElf.Contracts.MultiToken.Test\AElf.Contracts.MultiToken.Test.csproj", "{A526C0D6-1C3E-4570-96EB-AB784AF17835}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken.Tests", "AElf.Contracts.MultiToken.Tests\AElf.Contracts.MultiToken.Tests.csproj", "{A526C0D6-1C3E-4570-96EB-AB784AF17835}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenConverter", "AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj", "{03EC899C-1FA1-4E98-A821-870F72B48082}"
 EndProject

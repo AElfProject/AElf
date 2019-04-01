@@ -7,6 +7,11 @@ namespace AElf.Kernel
 {
     public partial class BlockHeader: IBlockHeader
     {
+        partial void OnConstruction()
+        {
+            Bloom = ByteString.CopyFrom(new Bloom().Data);
+        }
+
         private Hash _blockHash;
         
         public BlockHeader(Hash preBlockHash)

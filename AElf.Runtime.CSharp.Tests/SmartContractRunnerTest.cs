@@ -43,39 +43,6 @@ namespace AElf.Runtime.CSharp.Tests
 
             executive.SetMaxCallDepth(3);
         }
-        
-        //TODO: GetJsonStringOfParameters cannot deserialize Protobuf to string message correctly. Please refer below two test cases result.
-        [Fact(Skip = "Not passed due to convert json string with some special string value.")]
-        public async Task Get_JsonString_From_StringInput()
-        {
-            var executive = await Runner.RunAsync(Reg);
-            //TestStringState parameter
-            var byteString = ByteString.CopyFrom(ParamsPacker.Pack(new StringInput
-            {
-                StringValue = "test string parameter"
-            }));
-            var parameterObj = executive.GetJsonStringOfParameters(nameof(TestContract.TestContract.TestStringState), byteString.ToByteArray());
-            parameterObj.ShouldNotBeNull();
-            var jsonParameter = (JObject) JsonConvert.DeserializeObject(parameterObj);
-            jsonParameter.Count.ShouldBe(1);
-            jsonParameter["StringValue"].ToString().ShouldBe("test string parameter");
-        }
-
-        [Fact(Skip = "Not passed due to convert json from bool value return empty.")]
-        public async Task Get_JsonString_From_BoolInput()
-        {
-            var executive = await Runner.RunAsync(Reg);
-            //TestBoolState parameter
-            var byteString = ByteString.CopyFrom(ParamsPacker.Pack(new BoolInput()
-            {
-                BoolValue = true
-            }));
-            var parameterObj = executive.GetJsonStringOfParameters(nameof(TestContract.TestContract.TestBoolState), byteString.ToByteArray());
-            parameterObj.ShouldNotBeNull();
-            var jsonParameter = (JObject) JsonConvert.DeserializeObject(parameterObj);
-            jsonParameter.Count.ShouldBe(1);
-            jsonParameter["BoolValue"].ToString().ShouldBe("test string parameter");
-        }
 
         [Fact]
         public void Contract_ExtraMetadata()

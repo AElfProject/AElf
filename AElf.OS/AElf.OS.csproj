@@ -2,10 +2,12 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.OS</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.CrossChain.Grpc\AElf.CrossChain.Grpc.csproj" />
+        <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
         <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
         <ProjectReference Include="..\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj" />
         <ProjectReference Include="..\AElf.OS.Rpc.ChainController\AElf.OS.Rpc.ChainController.csproj" />

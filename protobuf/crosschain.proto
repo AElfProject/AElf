@@ -32,6 +32,7 @@ message ParentChainBlockRootInfo
     int64 ParentChainHeight = 1;
     CrossChainExtraData CrossChainExtraData = 2;
     int32 ParentChainId = 3;
+    Hash TransactionStatusMerkleRoot = 4;
 }
 
 message CrossChainExtraData{

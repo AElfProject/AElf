@@ -47,11 +47,15 @@ namespace AElf.Contracts.TokenConverter
             Assert(input.FeeReceiverAddress != null, "Fee receiver address required.");
             Assert(IsValidSymbol(input.BaseTokenSymbol), "Base token symbol is invalid.");
             Assert(input.MaxWeight > 0, "Invalid MaxWeight.");
-            Assert(State.TokenContractReference.Value == null, "Already initialized.");
-            State.TokenContractReference.Value = input.TokenContractAddress;
+            Assert(State.TokenContract.Value == null, "Already initialized.");
+            State.TokenContract.Value = input.TokenContractAddress;
             State.FeeReceiverAddress.Value = input.FeeReceiverAddress;
             State.BaseTokenSymbol.Value = input.BaseTokenSymbol;
             State.MaxWeight.Value = input.MaxWeight;
+            State.Manager.Value = input.Manager;
+            State.FeeRateNumerator.Value = input.FeeRateNumerator;
+            State.FeeRateDenominator.Value = input.FeeRateDenominator;
+            
             var index = State.ConnectorCount.Value;
             foreach (var connector in input.Connectors)
             {
@@ -150,32 +154,31 @@ namespace AElf.Contracts.TokenConverter
             // Pay fee
             if (fee > 0)
             {
-                State.TokenContract.TransferFrom.Send(
-                    new TransferFromInput()
+                State.TokenContract.Transfer.Send(
+                    new TransferInput()
                     {
                         Symbol = State.BaseTokenSymbol.Value,
-                        From = Context.Sender,
                         To = State.FeeReceiverAddress.Value,
                         Amount = fee
                     });
             }
 
             // Transafer base token
-            State.TokenContract.TransferFrom.Send(
-                new TransferFromInput()
+            State.TokenContract.Transfer.Send(
+                new TransferInput()
                 {
                     Symbol = State.BaseTokenSymbol.Value,
-                    From = Context.Sender,
-                    To = Context.Self,
+                    To = Context.Sender,
                     Amount = amountToReceiveLessFee
                 });
 
             // Transafer sold token
-            State.TokenContract.Transfer.Send(
-                new TransferInput()
+            State.TokenContract.TransferFrom.Send(
+                new TransferFromInput()
                 {
                     Symbol = input.Symbol,
-                    To = Context.Sender,
+                    From = Context.Sender,
+                    To = Context.Self,
                     Amount = input.Amount
                 });
             return new Empty();
