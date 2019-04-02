@@ -2,7 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using AElf.BenchBase;
+using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Consensus.DPoS.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
 using Google.Protobuf.WellKnownTypes;
@@ -17,6 +21,8 @@ namespace AElf.Kernel.SmartContractExecution.Benches
     {
         private IBlockExecutingService _blockExecutingService;
         private IBlockchainService _blockchainService;
+        private IChainManager _chainManager;
+        private IBlockchainStateMergingService _blockchainStateMergingService;
         private OSTestHelper _osTestHelper;
 
         private List<Transaction> _transactions;
@@ -35,6 +41,8 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
+            _chainManager = GetRequiredService<IChainManager>();
+            _blockchainStateMergingService = GetRequiredService<IBlockchainStateMergingService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             
             _counter = context.GetCounter("TestCounter");
@@ -63,7 +71,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
                 }
             });
         }
-        
+
         [NBenchFact]
         [PerfBenchmark(NumberOfIterations = 5, RunMode = RunMode.Iterations,
             RunTimeMilliseconds = 1000, TestMode = TestMode.Test)]
@@ -72,6 +80,16 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         {
             AsyncHelper.RunSync(() => _blockExecutingService.ExecuteBlockAsync(_block.Header, _transactions));
             _counter.Increment();
+        }
+
+        [PerfCleanup]
+        public void Cleanup()
+        {
+            AsyncHelper.RunSync(async () =>
+            {
+                var chain = await _blockchainService.GetChainAsync();
+                await _blockchainService.SetBestChainAsync(chain, _block.Height, _block.GetHash());
+            });
         }
     }
 }

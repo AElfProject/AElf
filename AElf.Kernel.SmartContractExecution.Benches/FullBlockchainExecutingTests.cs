@@ -28,6 +28,8 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         {
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new XunitTraceListener(output));
+            
+            SetTestOutputHelper(output);
         }
         
         [PerfSetup]
@@ -96,41 +98,6 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         public void GetBlockByHashTest()
         {
             AsyncHelper.RunSync(() => _blockchainService.GetBlockByHashAsync(_block.GetHash()));
-            _counter.Increment();
-        }
-        
-        [NBenchFact]
-        [PerfBenchmark(NumberOfIterations = 5, RunMode = RunMode.Iterations,
-            RunTimeMilliseconds = 1000, TestMode = TestMode.Test)]
-        [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, .0d)]
-        public void ExecuteBlock()
-        {
-            AsyncHelper.RunSync(async () =>
-            {
-                var chain = await _blockchainService.GetChainAsync();
-                //var blockLinks = await _chainManager.GetNotExecutedBlocks(chain.LongestChainHash);
-                var blockLink = await _chainManager.GetChainBlockLinkAsync(_block.GetHash());
-                var linkedBlock = await _blockchainService.GetBlockByHashAsync(blockLink.BlockHash);
-                await _blockExecutingService.ExecuteBlockAsync(linkedBlock.Header, linkedBlock.Body.TransactionList);
-                await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess);
-                
-                await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
-            });
-            _counter.Increment();
-        }
-
-        [NBenchFact]
-        [PerfBenchmark(NumberOfIterations = 5, RunMode = RunMode.Iterations,
-            RunTimeMilliseconds = 1000, TestMode = TestMode.Test)]
-        [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, .0d)]
-        public void SetBestChainTest()
-        {
-            AsyncHelper.RunSync(async () =>
-            {
-                var chain = await _blockchainService.GetChainAsync(); 
-                
-                await _blockchainService.SetBestChainAsync(chain, _block.Height, _block.GetHash());
-            });
             _counter.Increment();
         }
     }
