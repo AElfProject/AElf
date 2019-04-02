@@ -53,9 +53,9 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             Logger = NullLogger<DPoSInformationGenerationService>.Instance;
         }
 
-        public IMessage GetTriggerInformation(bool triggerConsensusCommand = false)
+        public IMessage GetTriggerInformation(TriggerType triggerType)
         {
-            if (triggerConsensusCommand)
+            if (triggerType == TriggerType.ConsensusCommand)
             {
                 return new CommandInput {PublicKey = PublicKey};
             }
@@ -72,16 +72,22 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             if (Hint.Behaviour == DPoSBehaviour.UpdateValue ||
                 Hint.Behaviour == DPoSBehaviour.UpdateValueWithoutPreviousInValue)
             {
-                return new DPoSTriggerInformation
+                var trigger = new DPoSTriggerInformation
                 {
                     PublicKey = PublicKey,
                     RandomHash = RandomHash,
                     PreviousRandomHash = _latestRandomHash,
                     Behaviour = Hint.Behaviour
                 };
+
+                if (triggerType == TriggerType.BlockHeaderExtraData)
+                {
+                    _latestRandomHash = RandomHash;
+                }
+
+                return trigger;
             }
 
-            _latestRandomHash = Hash.Empty;
             return new DPoSTriggerInformation
             {
                 PublicKey = PublicKey,
@@ -114,7 +120,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         {
             return (await ExecuteContractAsync<DPoSHeaderInformation>(chainContext,
                 ConsensusConsts.GetInformationToUpdateConsensus,
-                GetTriggerInformation(), nextMiningTime)).ToByteArray();
+                GetTriggerInformation(TriggerType.BlockHeaderExtraData), nextMiningTime)).ToByteArray();
         }
     }
 }

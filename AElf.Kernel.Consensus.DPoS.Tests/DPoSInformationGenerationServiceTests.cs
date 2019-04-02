@@ -40,7 +40,7 @@ namespace AElf.Kernel.Consensus.DPoS
         public void GetTriggerInformation_ConsensusCommand_IsNull()
         {
             var dPoSTriggerInformation =
-                (DPoSTriggerInformation) _consensusInformationGenerationService.GetTriggerInformation();
+                (DPoSTriggerInformation) _consensusInformationGenerationService.GetTriggerInformation(TriggerType.ConsensusCommand);
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(_accountService.GetPublicKeyAsync().Result.ToHex());
         }
 
@@ -51,7 +51,7 @@ namespace AElf.Kernel.Consensus.DPoS
                 GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
             
             var dPoSTriggerInformation = 
-                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation();
+                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType.ConsensusCommand);
             dPoSTriggerInformation.RandomHash.ShouldNotBeNull();
         }
         
@@ -61,7 +61,7 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextRound);
             
-            var dPoSTriggerInformation = (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation();
+            var dPoSTriggerInformation = (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType.ConsensusCommand);
             var publicKey = AsyncHelper.RunSync(()=> _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }
@@ -72,7 +72,7 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextTerm);
             
-            var dPoSTriggerInformation = (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation();
+            var dPoSTriggerInformation = (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType.ConsensusCommand);
             var publicKey = AsyncHelper.RunSync(()=> _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }

@@ -39,6 +39,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     if (TryToGetPreviousRoundInformation(out var previousRound) && !IsJustChangedTerm(out _))
                     {
                         signature = previousRound.CalculateSignature(inValue);
+                        LogVerbose($"Previous random hash: {input.PreviousRandomHash.ToHex()}");
                         if (input.PreviousRandomHash != Hash.Empty)
                         {
                             // If PreviousRandomHash is Hash.Empty, it means the sender unable or unwilling to publish his previous in value.

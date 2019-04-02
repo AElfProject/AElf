@@ -34,9 +34,11 @@ namespace AElf.Kernel.Consensus
             services.AddTransient(o =>
             {
                 var mockService = new Mock<IConsensusInformationGenerationService>();
-                mockService.Setup(m => m.GetTriggerInformation(false)).Returns(
+                mockService.Setup(m => m.GetTriggerInformation(TriggerType.ConsensusTransactions)).Returns(
                     dposTriggerInformation);
-                mockService.Setup(m => m.GetTriggerInformation(true)).Returns(
+                mockService.Setup(m => m.GetTriggerInformation(TriggerType.BlockHeaderExtraData)).Returns(
+                    dposTriggerInformation);
+                mockService.Setup(m => m.GetTriggerInformation(TriggerType.ConsensusCommand)).Returns(
                     new CommandInput {PublicKey = ByteString.CopyFrom(ecKeyPair.PublicKey)});
                 mockService.Setup(m => m.ParseConsensusTriggerInformation(It.IsAny<byte[]>())).Returns(
                     dposTriggerInformation);
