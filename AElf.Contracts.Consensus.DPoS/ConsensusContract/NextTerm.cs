@@ -3,157 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.Dividend;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
-using InitializeInput = AElf.Consensus.DPoS.InitializeInput;
-using InitializeWithContractSystemNamesInput = AElf.Consensus.DPoS.InitializeWithContractSystemNamesInput;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-        /// <summary>
-        /// Get next consensus behaviour of the caller based on current state.
-        /// This method can be tested by testing GetConsensusCommand.
-        /// </summary>
-        /// <param name="publicKey"></param>
-        /// <param name="dateTime"></param>
-        /// <param name="currentRound">Return current round information to avoid unnecessary database access.</param>
-        /// <returns></returns>
-        private DPoSBehaviour GetBehaviour(string publicKey, DateTime dateTime, out Round currentRound)
-        {
-            currentRound = null;
-
-            if (!TryToGetCurrentRoundInformation(out currentRound))
-            {
-                // This chain not initialized yet.
-                return DPoSBehaviour.ChainNotInitialized;
-            }
-
-            if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
-            {
-                // Provided public key isn't a miner.
-                return DPoSBehaviour.Watch;
-            }
-
-            var isTimeSlotPassed = currentRound.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound);
-            var ableToGetPreviousRound = TryToGetPreviousRoundInformation(out var previousRound);
-            var isTermJustChanged = IsJustChangedTerm(out var termNumber);
-            if (minerInRound.OutValue == null)
-            {
-                if (!ableToGetPreviousRound && minerInRound.Order != 1 &&
-                    currentRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).OutValue == null)
-                {
-                    return DPoSBehaviour.NextRound;
-                }
-
-                if (!ableToGetPreviousRound || isTermJustChanged)
-                {
-                    // Failed to get previous round information or just changed term.
-                    return DPoSBehaviour.UpdateValueWithoutPreviousInValue;
-                }
-
-                if (!isTimeSlotPassed)
-                {
-                    // If this node not missed his time slot of current round.
-                    return DPoSBehaviour.UpdateValue;
-                }
-            }
-
-            if (currentRound.RoundNumber == 1)
-            {
-                return DPoSBehaviour.NextRound;
-            }
-
-            // If this node missed his time slot, a command of terminating current round will be fired,
-            // and the terminate time will based on the order of this node (to avoid conflicts).
-
-            Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp),
-                "Failed to get blockchain start timestamp.");
-
-            Context.LogDebug(() => $"Using start timestamp: {blockchainStartTimestamp}");
-            // Calculate the approvals and make the judgement of changing term.
-            return currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber)
-                ? DPoSBehaviour.NextTerm
-                : DPoSBehaviour.NextRound;
-        }
-
-        // TODO: Remove this.
-        public override Empty Initialize(InitializeInput input)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.TokenContract.Value = input.TokenContractAddress;
-            // TODO: dividends -> dividend
-            State.DividendContract.Value = input.DividendsContractAddress;
-            State.Initialized.Value = true;
-            State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
-            return new Empty();
-        }
-
-        public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
-        {
-            var tokenContractSystemName = input.TokenContractSystemName;
-            var dividendContractSystemName = input.DividendsContractSystemName;
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-            State.TokenContractSystemName.Value = tokenContractSystemName;
-            State.DividendContractSystemName.Value = dividendContractSystemName;
-            State.Initialized.Value = true;
-            return new Empty();
-        }
-
-        // TODO: Remove this method after testing.
-        /// <summary>
-        /// Initial miners can set blockchain age manually.
-        /// For testing.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public override Empty SetBlockchainAge(SInt64Value input)
-        {
-            var age = input.Value;
-            TryToGetRoundInformation(1, out var firstRound);
-            Assert(firstRound.RealTimeMinersInformation.Keys.Contains(Context.RecoverPublicKey().ToHex()),
-                ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
-                    "No permission to change blockchain age."));
-            State.AgeField.Value = age;
-            return new Empty();
-        }
-
-        private bool GenerateNextRoundInformation(Round currentRound, DateTime blockTime,
-            Timestamp blockchainStartTimestamp, out Round nextRound)
-        {
-            var result = currentRound.GenerateNextRoundInformation(blockTime, blockchainStartTimestamp, out nextRound);
-            TryToGetCurrentAge(out var age);
-            nextRound.BlockchainAge = age;
-            return result;
-        }
-
-        private void InitialSettings(Round firstRound)
-        {
-            // Do some initializations.
-            SetTermNumber(1);
-            SetRoundNumber(1);
-            SetBlockAge(1);
-            AddTermNumberToFirstRoundNumber(1, 1);
-            SetBlockchainStartTimestamp(firstRound.GetStartTime().ToTimestamp());
-            var miners = firstRound.RealTimeMinersInformation.Keys.ToList().ToMiners(1);
-            miners.TermNumber = 1;
-            SetMiners(miners);
-            SetMiningInterval(firstRound.GetMiningInterval());
-
-            // TODO: This judgement can be removed with `Initialize` method.
-            if (State.DividendContract.Value == null)
-            {
-                State.DividendContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
-                State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
-            }
-        }
-
         private void UpdateHistoryInformation(Round round)
         {
             var senderPublicKey = Context.RecoverPublicKey().ToHex();
@@ -264,13 +120,14 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             // Update miners list.
-            SetMiners(input.RealTimeMinersInformation.Keys.ToList().ToMiners(input.TermNumber));
+            Assert(SetMiners(input.RealTimeMinersInformation.Keys.ToList().ToMiners(input.TermNumber)),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed, "Failed to update miners list."));
 
             // Update term number lookup. (Using term number to get first round number of related term.)
-            AddTermNumberToFirstRoundNumber(input.TermNumber, input.RoundNumber);
+            State.TermToFirstRoundMap[input.TermNumber.ToInt64Value()] = input.RoundNumber.ToInt64Value();
 
-            // Update blockchain age of next two rounds.
-            input.BlockchainAge = input.BlockchainAge;
+            // Update blockchain age of new term.
+            UpdateBlockchainAge(input.BlockchainAge);
 
             // Update rounds information of next two rounds.
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
@@ -282,9 +139,15 @@ namespace AElf.Contracts.Consensus.DPoS
                     RoundNumber = input.RoundNumber - 1,
                     TermNumber = input.TermNumber - 1
                 };
-                SnapshotForTerm(termInfo);
-                SnapshotForMiners(termInfo);
-                SendDividends(termInfo);
+                Assert(SnapshotForTerm(termInfo).Success,
+                    ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed,
+                        $"Failed to take snapshot of term {termInfo.TermNumber}"));
+                Assert(SnapshotForMiners(termInfo).Success,
+                    ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed,
+                        $"Failed to take snapshot of miners of term {termInfo.TermNumber}"));
+                Assert(SendDividends(termInfo).Success,
+                    ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed,
+                        $"Failed to send dividends of term {termInfo.TermNumber}"));
             }
 
             Context.LogDebug(() => $"Changing term number to {input.TermNumber}");
@@ -298,7 +161,7 @@ namespace AElf.Contracts.Consensus.DPoS
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public ActionResult SnapshotForTerm(TermInfo input)
+        private ActionResult SnapshotForTerm(TermInfo input)
         {
             var snapshotTermNumber = input.TermNumber;
             var lastRoundNumber = input.RoundNumber;
@@ -363,7 +226,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult SnapshotForMiners(TermInfo input)
+        private ActionResult SnapshotForMiners(TermInfo input)
         {
             var lastRoundNumber = input.RoundNumber;
             var previousTermNumber = input.TermNumber;
@@ -426,7 +289,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        public ActionResult SendDividends(TermInfo input)
+        private ActionResult SendDividends(TermInfo input)
         {
             var lastRoundNumber = input.RoundNumber;
             var dividendsTermNumber = input.TermNumber;

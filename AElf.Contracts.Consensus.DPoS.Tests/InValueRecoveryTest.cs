@@ -133,7 +133,8 @@ namespace AElf.Contracts.Consensus.DPoS
             }).ToDictionary(t => t.PublicKey.ToHex(), t => t);
 
             // Just `MinimumCount + 1` miners produce blocks.
-            foreach (var minerInRound in currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order).Take(MinimumCount + 1))
+            foreach (var minerInRound in currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order)
+                .Take(MinimumCount + 1))
             {
                 var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
 
@@ -142,8 +143,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
 
                 var tester = GetConsensusContractTester(currentKeyPair);
-                var headerInformation = await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]);
-                
+                var headerInformation =
+                    await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]);
+
                 // Update consensus information.
                 var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.PublicKey);
                 await tester.UpdateValue.SendAsync(toUpdate);
@@ -152,6 +154,8 @@ namespace AElf.Contracts.Consensus.DPoS
             // But in values all filled.
             var secondRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
             secondRound.RealTimeMinersInformation.Values.Count(v => v.PreviousInValue != null).ShouldBe(MinersCount);
+
+            // TODO: Check previous in value published by miner himself is same with it recovered by others.
         }
     }
 }

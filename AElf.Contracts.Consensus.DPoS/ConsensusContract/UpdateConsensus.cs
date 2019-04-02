@@ -10,17 +10,8 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    // ReSharper disable UnusedMember.Global
-    public partial class ConsensusContract : ConsensusContractContainer.ConsensusContractBase
+    public partial class ConsensusContract
     {
-        public override ConsensusCommand GetConsensusCommand(CommandInput input)
-        {
-            Assert(input.PublicKey.Any(), "Invalid public key.");
-            var behaviour = GetBehaviour(input.PublicKey.ToHex(), Context.CurrentBlockTime, out var currentRound);
-            Context.LogDebug(() => currentRound.GetLogs(input.PublicKey.ToHex(), behaviour));
-            return behaviour.GetConsensusCommand(currentRound, input.PublicKey.ToHex(), Context.CurrentBlockTime);
-        }
-
         public override DPoSHeaderInformation GetInformationToUpdateConsensus(DPoSTriggerInformation input)
         {
             // Some basic checks.
@@ -63,10 +54,8 @@ namespace AElf.Contracts.Consensus.DPoS
                         Behaviour = behaviour,
                     };
                 case DPoSBehaviour.NextRound:
-                    TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
                     Assert(
-                        GenerateNextRoundInformation(currentRound, currentBlockTime, blockchainStartTimestamp,
-                            out var nextRound),
+                        GenerateNextRoundInformation(currentRound, currentBlockTime, out var nextRound),
                         "Failed to generate next round information.");
                     nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks += 1;
                     Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
@@ -153,6 +142,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 round.RealTimeMinersInformation[pair.Key].PreviousInValue = previousInValue;
             }
         }
+        
+        private bool GenerateNextRoundInformation(Round currentRound, DateTime blockTime, out Round nextRound)
+        {
+            TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
+            var result = currentRound.GenerateNextRoundInformation(blockTime, blockchainStartTimestamp, out nextRound);
+            nextRound.BlockchainAge = CurrentAge;
+            return result;
+        }
 
         public override TransactionList GenerateConsensusTransactions(DPoSTriggerInformation input)
         {
@@ -184,8 +181,6 @@ namespace AElf.Contracts.Consensus.DPoS
                         }
                     };
                 case DPoSBehaviour.NextTerm:
-                    Assert(TryToGetRoundNumber(out var roundNumber), "Failed to get current round number.");
-                    Assert(TryToGetTermNumber(out var termNumber), "Failed to get current term number.");
                     return new TransactionList
                     {
                         Transactions =
@@ -196,98 +191,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        public override ValidationResult ValidateConsensusBeforeExecution(DPoSHeaderInformation input)
-        {
-            var publicKey = input.SenderPublicKey;
-
-            // Validate the sender.
-            if (TryToGetCurrentRoundInformation(out var currentRound) &&
-                !currentRound.RealTimeMinersInformation.ContainsKey(publicKey.ToHex()))
-            {
-                return new ValidationResult {Success = false, Message = "Sender is not a miner."};
-            }
-
-            // Validate the time slots.
-            var timeSlotsCheckResult = input.Round.CheckTimeSlots();
-            if (!timeSlotsCheckResult.Success)
-            {
-                return timeSlotsCheckResult;
-            }
-
-            var behaviour = input.Behaviour;
-
-            // Try to get current round information (for further validation).
-            if (currentRound == null)
-            {
-                return new ValidationResult
-                    {Success = false, Message = "Failed to get current round information."};
-            }
-
-            if (input.Round.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound > 0).Distinct()
-                    .Count() !=
-                input.Round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null))
-            {
-                return new ValidationResult
-                    {Success = false, Message = "Invalid FinalOrderOfNextRound."};
-            }
-
-            switch (behaviour)
-            {
-                case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
-                case DPoSBehaviour.UpdateValue:
-                    // Need to check round id when updating current round information.
-                    // This can tell the miner current block 
-                    if (!RoundIdMatched(input.Round))
-                    {
-                        return new ValidationResult {Success = false, Message = "Round Id not match."};
-                    }
-
-                    // Only one Out Value should be filled.
-                    // TODO: Miner can only update his information.
-                    if (!NewOutValueFilled(input.Round.RealTimeMinersInformation.Values))
-                    {
-                        return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
-                    }
-
-                    break;
-                case DPoSBehaviour.NextRound:
-                    // None of in values should be filled.
-                    if (!InValueIsNull(input.Round))
-                    {
-                        return new ValidationResult {Success = false, Message = "Incorrect in values."};
-                    }
-
-                    break;
-                case DPoSBehaviour.NextTerm:
-                    break;
-                case DPoSBehaviour.Watch:
-                    return new ValidationResult {Success = false, Message = "Sender is not a miner."};
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            return new ValidationResult {Success = true};
-        }
-
-        public override ValidationResult ValidateConsensusAfterExecution(DPoSHeaderInformation input)
-        {
-            if (TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                var isContainPreviousInValue = input.Behaviour != DPoSBehaviour.UpdateValueWithoutPreviousInValue;
-                if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
-                {
-                    Context.LogDebug(() => $"Round information of block header:\n{input.Round}");
-                    Context.LogDebug(() => $"Round information of executing result:\n{currentRound}");
-                    return new ValidationResult
-                    {
-                        Success = false, Message = "Current round information is different with consensus extra data."
-                    };
-                }
-            }
-
-            return new ValidationResult {Success = true};
         }
     }
 }

@@ -14,9 +14,9 @@ service ConsensusContract {
     option (aelf.csharp_state) = "AElf.Contracts.Consensus.DPoS.DPoSContractState";
     // Actions
     // -> MainChain
-    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    rpc InitialDPoSContract (InitialDPoSContractInput) returns (google.protobuf.Empty) {
     }
-    rpc InitializeWithContractSystemNames (InitializeWithContractSystemNamesInput) returns (google.protobuf.Empty) {
+    rpc ConfigStrategy (DPoSStrategyInput) returns (google.protobuf.Empty) {
     }
     rpc SetBlockchainAge (SInt64Value) returns (google.protobuf.Empty) {
     }
