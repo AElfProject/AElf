@@ -43,5 +43,5 @@
     * [JS SDK](SDK/javascript/js-sdk.md)
         * [AElf API](SDK/javascript/AElf.md)
         * [AElf.wallet API](SDK/javascript/Wallet.md)
-* [Resources]
+* [Resources](Resources/resources.md)
     * [Wallet and Block Explorer](Resources/walletAndExplorer.md)
