@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,23 +16,24 @@ namespace AElf.Kernel.Infrastructure
     public class StoreKeyPrefixProvider<T> : IStoreKeyPrefixProvider<T>
         where T : IMessage<T>, new()
     {
+        private static readonly string _typeName = typeof(T).Name;
+
         public string GetStoreKeyPrefix()
         {
-            return typeof(T).Name;
+            return _typeName;
         }
     }
-    
+
     public class FastStoreKeyPrefixProvider<T> : IStoreKeyPrefixProvider<T>
         where T : IMessage<T>, new()
     {
-
         private readonly string _prefix;
-            
+
         public FastStoreKeyPrefixProvider(string prefix)
         {
             _prefix = prefix;
         }
-        
+
         public string GetStoreKeyPrefix()
         {
             return _prefix;
@@ -39,10 +41,9 @@ namespace AElf.Kernel.Infrastructure
     }
 
 
-
     public abstract class KeyValueStoreBase<TKeyValueDbContext, T> : IKeyValueStore<T>
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
-        where T : IMessage<T>, new()
+        where T : class, IMessage<T>, new()
     {
         private readonly TKeyValueDbContext _keyValueDbContext;
 

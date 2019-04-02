@@ -71,7 +71,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     Logger.LogError(e,
                         $"Exception while merge state {chainStateInfo} for block {blockIndex}");
-                    break;
+                    throw;
                 }
             }
         }
