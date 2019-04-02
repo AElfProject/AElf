@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
 using AElf.Cryptography.Certificate;
 using Grpc.Core;
+using Moq;
 using Shouldly;
 using Xunit;
 
@@ -28,9 +29,15 @@ namespace AElf.CrossChain.Grpc
         }
 
         [Fact]
-        public async Task StartIndexingRequest()
+        public async Task ParentChainClient_StartIndexingRequest_WithException()
         {
-            //var result = await parentClient.StartIndexingRequest(0, _crossChainDataProducer);
+            await Assert.ThrowsAsync<RpcException>(()=>parentClient.StartIndexingRequest(0, _crossChainDataProducer));  
+        }
+        
+        [Fact]
+        public async Task SideChainClient_StartIndexingRequest_WithException()
+        {
+            await Assert.ThrowsAsync<RpcException>(()=>sideClient.StartIndexingRequest(0, _crossChainDataProducer));
         }
 
         [Fact]
@@ -58,7 +65,7 @@ namespace AElf.CrossChain.Grpc
             var keyStore = _certificateStore.LoadKeyStore("test");
             var cert = _certificateStore.LoadCertificate("test");
             var keyCert = new KeyCertificatePair(cert, keyStore);
-
+            
             _server.StartAsync(Host, 2000, keyCert).Wait();
             
             string uri = $"{Host}:{ListenPort}";

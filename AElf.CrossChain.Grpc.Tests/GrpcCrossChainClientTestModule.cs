@@ -5,8 +5,10 @@ using AElf.Cryptography.Certificate;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
+using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain.Grpc
@@ -85,32 +87,7 @@ eAkW/Qv4MEnbgaq97yC2lPkyrd19N2fh5oBT
                 return mockService.Object;
             });
 
-            services.AddTransient(o =>
-            {
-                var mockService = new Mock<FullBlockchainService>();
-                mockService.Setup(m => m.GetChainAsync())
-                    .Returns(Task.FromResult(new Chain
-                    {
-                        LastIrreversibleBlockHeight = 16,
-                        BestChainHash = Hash.Generate(),
-                        Id = 0
-                    }));
-                mockService.Setup(m =>
-                        m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
-                    .Returns(Task.FromResult(Hash.Generate()));
-
-                mockService.Setup(m => m.GetBlockByHashAsync(It.IsAny<Hash>()))
-                    .Returns(Task.FromResult(new Block
-                    {
-                        Height = 16,
-                        Header = new BlockHeader(),
-                        Body = new BlockBody()
-                    }));
-
-                return mockService.Object;
-            });
-            
-            services.AddTransient<ICrossChainServer, CrossChainGrpcServer>();
+            services.AddSingleton<ICrossChainServer, CrossChainGrpcServer>();
         }
     }
 }
