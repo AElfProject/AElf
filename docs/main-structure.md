@@ -5,7 +5,7 @@
     * [Running a node](Introduction/quickstart.md)
 * [Command line interface](cli/cli.md)
     * [Introduction](cli/intro.md)
-    * [Methods](cli/methods.md)
+    * [Commands](cli/methods.md)
 * [AElf protocol](Protocol/protocol.md)
     * [Addresses](Protocol/addresses.md)
     * [Transactions](Protocol/txs.md)
