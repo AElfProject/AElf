@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+    <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
