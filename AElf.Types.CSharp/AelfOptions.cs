@@ -26,12 +26,13 @@ namespace Aelf {
       byte[] descriptorData = global::System.Convert.FromBase64String(
         string.Concat(
           "ChJhZWxmX29wdGlvbnMucHJvdG8SBGFlbGYaIGdvb2dsZS9wcm90b2J1Zi9k",
-          "ZXNjcmlwdG9yLnByb3RvOjcKDGNzaGFycF9zdGF0ZRIfLmdvb2dsZS5wcm90",
-          "b2J1Zi5TZXJ2aWNlT3B0aW9ucxjFxA4gASgJOjEKB2lzX3ZpZXcSHi5nb29n",
-          "bGUucHJvdG9idWYuTWV0aG9kT3B0aW9ucxjr9hQgASgIOjMKCGlzX2V2ZW50",
-          "Eh8uZ29vZ2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGIOeMyABKAg6MwoK",
-          "aXNfaW5kZXhlZBIdLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE9wdGlvbnMYmZMh",
-          "IAEoCA=="));
+          "ZXNjcmlwdG9yLnByb3RvOi8KBGJhc2USHy5nb29nbGUucHJvdG9idWYuU2Vy",
+          "dmljZU9wdGlvbnMYqekeIAMoCTo3Cgxjc2hhcnBfc3RhdGUSHy5nb29nbGUu",
+          "cHJvdG9idWYuU2VydmljZU9wdGlvbnMYxukeIAEoCToxCgdpc192aWV3Eh4u",
+          "Z29vZ2xlLnByb3RvYnVmLk1ldGhvZE9wdGlvbnMYkfEeIAEoCDozCghpc19l",
+          "dmVudBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxi0hwMgASgI",
+          "OjMKCmlzX2luZGV4ZWQSHS5nb29nbGUucHJvdG9idWYuRmllbGRPcHRpb25z",
+          "GPHRHiABKAg="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { pbr::FileDescriptor.DescriptorProtoFileDescriptor, },
           new pbr::GeneratedClrTypeInfo(null, null));
