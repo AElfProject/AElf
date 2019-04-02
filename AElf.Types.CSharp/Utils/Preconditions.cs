@@ -20,7 +20,6 @@ using System;
 
 namespace AElf.Types.CSharp.Utils
 {
-    //TODO: Add Preconditions test cases [Case]
     public class Preconditions
     {
         /// <summary>

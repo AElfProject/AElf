@@ -8,10 +8,12 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 using Moq;
 using Newtonsoft.Json;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Sdk.CSharp.Tests
@@ -84,7 +86,7 @@ namespace AElf.Sdk.CSharp.Tests
             Assert.Equal(0, state.Int64State.Value);
             Assert.Equal(0U, state.UInt64State.Value);
             Assert.Equal("", state.StringState.Value);
-            Assert.Empty(state.BytesState.Value);
+            Assert.Null(state.BytesState.Value);
             Assert.Equal("", state.StructuredState.StringState.Value);
             Assert.Equal("", state.MappedState[GetValue<Address>()][GetValue<Address>()]);
         }
@@ -102,9 +104,8 @@ namespace AElf.Sdk.CSharp.Tests
             Assert.Equal(GetValue<string>(), state.MappedState[GetValue<Address>()][GetValue<Address>()]);
         }
 
-        /*
         [Fact]
-        public async Task State_Test()
+        public void State_Test()
         {
             var path = new StatePath();
             path.Path.Add(ByteString.CopyFromUtf8("dummy_address"));
@@ -112,17 +113,7 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 Provider = new Mock<IStateProvider>().Object,
                 Path = path,
-                Context = new Context()
-                {
-                    TransactionContext = new TransactionContext()
-                    {
-                        Transaction = new Transaction()
-                        {
-                            From = Address.FromString("from"),
-                            To = Address.FromString("to")
-                        }
-                    }
-                }
+                Context = new Mock<ISmartContractBridgeContext>().Object
             };
 
             // Initial default value
@@ -138,45 +129,50 @@ namespace AElf.Sdk.CSharp.Tests
             // Clear values
             state.Clear();
             AssertDefault(state);
-
-            // Set changes to StateManager
-            await stateManager.PipelineSetAsync(
-                changes.ToDictionary(x => x.Key, x => x.Value.CurrentValue.ToByteArray()));
-
-            // Need to clear again as AssertDefault reloaded values that have not been committed
-            state.Clear();
-            AssertValues(state);
-
-            state.ElfToken.Value = Address.FromString("elf");
-            state.ElfToken.Action0();
-            state.ElfToken.Action1(1);
-            state.ElfToken.Action2(1, 2);
-            var inlines = state.Context.TransactionContext.Trace.InlineTransactions;
-            Assert.Equal(inlines, new[]
-            {
-                new Transaction()
-                {
-                    From = Address.FromString("from"),
-                    To = Address.FromString("elf"),
-                    MethodName = "Action0",
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack())
-                },
-                new Transaction()
-                {
-                    From = Address.FromString("from"),
-                    To = Address.FromString("elf"),
-                    MethodName = "Action1",
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(1))
-                },
-                new Transaction()
-                {
-                    From = Address.FromString("from"),
-                    To = Address.FromString("elf"),
-                    MethodName = "Action2",
-                    Params = ByteString.CopyFrom(ParamsPacker.Pack(1, 2))
-                },
-            });
         }
-        */
+
+        [Fact]
+        public void Func_And_Action_ExtensionTest()
+        {
+            var state = new MockContractState()
+            {
+                ElfToken = new ElfTokenContractReference
+                {
+                    Action0 = () => { },
+                    Action1 = (x) => { },
+                    Action2 = (x, y) => { },
+
+                    Func1 = () => true,
+                    Func2 = (x) => false,
+                    Func3 = (x, y) => x + y
+                }
+            };
+
+            //func test
+            var func1 = state.ElfToken.Func1.GetType();
+            func1.IsFunc().ShouldBeTrue();
+            func1.IsAction().ShouldBeFalse();
+
+            var func2 = state.ElfToken.Func2.GetType();
+            func2.IsFunc().ShouldBeTrue();
+            func2.IsAction().ShouldBeFalse();
+
+            var func3 = state.ElfToken.Func3.GetType();
+            func3.IsFunc().ShouldBeTrue();
+            func3.IsAction().ShouldBeFalse();
+            
+            //action test
+            var action0 = state.ElfToken.Action0.GetType();
+            action0.IsAction().ShouldBeTrue();
+            action0.IsFunc().ShouldBeFalse();
+            
+            var action1 = state.ElfToken.Action1.GetType();
+            action1.IsAction().ShouldBeTrue();
+            action1.IsFunc().ShouldBeFalse();
+            
+            var action2 = state.ElfToken.Action2.GetType();
+            action2.IsAction().ShouldBeTrue();
+            action2.IsFunc().ShouldBeFalse();
+        } 
     }
 }

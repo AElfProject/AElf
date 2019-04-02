@@ -38,5 +38,10 @@ namespace AElf.CrossChain.Grpc
         {
             await _grpcCrossChainServerNodePlugin.ShutdownAsync();
         }
+
+        public override void Dispose()
+        {
+            _grpcCrossChainServerNodePlugin?.ShutdownAsync().Wait();
+        }
     }
 }
