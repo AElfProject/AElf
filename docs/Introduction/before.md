@@ -21,3 +21,14 @@ You also need to install protobuf compiler https://developers.google.com/protoco
 #JS 
 
 The js sdk requires NPM.
+
+//TODO: osx or linux may need command lines
+
+osx
+```
+brew install protobuf
+brew install nodejs
+brew install npm 
+npm -i n 
+.....
+```
