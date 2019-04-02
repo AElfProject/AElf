@@ -19,7 +19,12 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var publicKey = input.PublicKey;
             var currentBlockTime = Context.CurrentBlockTime;
-            var behaviour = GetBehaviour(publicKey.ToHex(), currentBlockTime, out var currentRound);
+            var behaviour = input.Behaviour;
+
+            Assert(TryToGetCurrentRoundInformation(out var currentRound),
+                ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed,
+                    "Failed to get current round information."));
+
             switch (behaviour)
             {
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:

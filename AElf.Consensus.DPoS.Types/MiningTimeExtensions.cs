@@ -154,7 +154,7 @@ namespace AElf.Consensus.DPoS
         }
         
         /// <summary>
-        /// For now, if current time is behind the end of expected mining time slot,
+        /// For now, if current time is behind the half of expected mining time slot,
         /// we can say this node missed his time slot.
         /// </summary>
         /// <param name="round"></param>

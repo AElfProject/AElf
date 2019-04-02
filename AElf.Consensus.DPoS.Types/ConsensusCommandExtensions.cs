@@ -117,7 +117,7 @@ namespace AElf.Consensus.DPoS
                             Behaviour = behaviour
                         }.ToByteString()
                     };
-                case DPoSBehaviour.ChainNotInitialized:
+                case DPoSBehaviour.Nothing:
                     return new ConsensusCommand
                     {
                         NextBlockMiningLeftMilliseconds = int.MaxValue,
@@ -134,7 +134,7 @@ namespace AElf.Consensus.DPoS
                         LimitMillisecondsOfMiningBlock = int.MaxValue,
                         Hint = new DPoSHint
                         {
-                            Behaviour = DPoSBehaviour.ChainNotInitialized
+                            Behaviour = DPoSBehaviour.Nothing
                         }.ToByteString()
                     };
             }

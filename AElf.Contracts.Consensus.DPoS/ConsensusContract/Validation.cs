@@ -72,8 +72,8 @@ namespace AElf.Contracts.Consensus.DPoS
                     break;
                 case DPoSBehaviour.NextTerm:
                     break;
-                case DPoSBehaviour.Watch:
-                    return new ValidationResult {Success = false, Message = "Sender is not a miner."};
+                case DPoSBehaviour.Nothing:
+                    return new ValidationResult {Success = false, Message = "Invalid behaviour"};
                 default:
                     throw new ArgumentOutOfRangeException();
             }

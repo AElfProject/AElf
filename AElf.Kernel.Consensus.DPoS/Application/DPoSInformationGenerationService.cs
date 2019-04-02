@@ -59,40 +59,34 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             {
                 return new CommandInput {PublicKey = PublicKey};
             }
-            
+
             if (_controlInformation.ConsensusCommand == null)
             {
                 return new DPoSTriggerInformation
                 {
-                    PublicKey = PublicKey
+                    PublicKey = PublicKey,
+                    Behaviour = DPoSBehaviour.UpdateValue
                 };
             }
 
-            switch (Hint.Behaviour)
+            if (Hint.Behaviour == DPoSBehaviour.UpdateValue ||
+                Hint.Behaviour == DPoSBehaviour.UpdateValueWithoutPreviousInValue)
             {
-                case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
-                case DPoSBehaviour.UpdateValue:
-                    if (_latestRandomHash == Hash.Empty)
-                    {
-                        _latestRandomHash = RandomHash;
-                    }
-
-                    return new DPoSTriggerInformation
-                    {
-                        PublicKey = PublicKey,
-                        RandomHash = RandomHash,
-                        PreviousRandomHash = _latestRandomHash
-                    };
-                case DPoSBehaviour.NextRound:
-                case DPoSBehaviour.NextTerm:
-                    _latestRandomHash = Hash.Empty;
-                    return new DPoSTriggerInformation
-                    {
-                        PublicKey = PublicKey,
-                    };
-                default:
-                    throw new ArgumentOutOfRangeException();
+                return new DPoSTriggerInformation
+                {
+                    PublicKey = PublicKey,
+                    RandomHash = RandomHash,
+                    PreviousRandomHash = _latestRandomHash,
+                    Behaviour = Hint.Behaviour
+                };
             }
+
+            _latestRandomHash = Hash.Empty;
+            return new DPoSTriggerInformation
+            {
+                PublicKey = PublicKey,
+                Behaviour = Hint.Behaviour
+            };
         }
 
         public IMessage ParseConsensusTriggerInformation(byte[] consensusTriggerInformation)

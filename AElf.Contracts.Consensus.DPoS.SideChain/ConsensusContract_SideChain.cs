@@ -20,16 +20,9 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         {
             currentRound = null;
 
-            if (!TryToGetCurrentRoundInformation(out currentRound))
+            if (!TryToGetCurrentRoundInformation(out currentRound) || !currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
             {
-                // This chain not initialized yet.
-                return DPoSBehaviour.ChainNotInitialized;
-            }
-
-            if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
-            {
-                // Provided public key isn't a miner.
-                return DPoSBehaviour.Watch;
+                return DPoSBehaviour.Nothing;
             }
 
             var isTimeSlotPassed = currentRound.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound);

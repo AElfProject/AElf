@@ -31,26 +31,26 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             currentRound = null;
 
-            if (!TryToGetCurrentRoundInformation(out currentRound))
+            if (!TryToGetCurrentRoundInformation(out currentRound) ||
+                !currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
             {
-                // This chain not initialized yet.
-                return DPoSBehaviour.ChainNotInitialized;
+                LogVerbose("Consensus information not initialized or this node isn't a miner.");
+                return DPoSBehaviour.Nothing;
             }
 
-            if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
-            {
-                // Provided public key isn't a miner.
-                return DPoSBehaviour.Watch;
-            }
-
-            var isTimeSlotPassed = currentRound.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound);
             var ableToGetPreviousRound = TryToGetPreviousRoundInformation(out var previousRound);
             var isTermJustChanged = IsJustChangedTerm(out var termNumber);
+            var isTimeSlotPassed = currentRound.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound);
             if (minerInRound.OutValue == null)
             {
+                // Current miner didn't produce block in current round.
+
                 if (!ableToGetPreviousRound && minerInRound.Order != 1 &&
                     currentRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).OutValue == null)
                 {
+                    // In first round, if block of boot node not executed, don't produce block to
+                    // avoid forks creating.
+                    LogVerbose("Will wait to produce extra block because first block of boot miner didn't executed.");
                     return DPoSBehaviour.NextRound;
                 }
 
@@ -67,20 +67,25 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
             }
 
+            // If this node missed his time slot, a command of terminating current round will be fired,
+            // and the terminate time will based on the order of this node (to avoid conflicts).
+
+            // In first round, the blockchain start timestamp is incorrect.
+            // We can return NextRound directly.
             if (currentRound.RoundNumber == 1)
             {
                 return DPoSBehaviour.NextRound;
             }
 
-            // If this node missed his time slot, a command of terminating current round will be fired,
-            // and the terminate time will based on the order of this node (to avoid conflicts).
-
             Assert(TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp),
                 "Failed to get blockchain start timestamp.");
 
             Context.LogDebug(() => $"Using start timestamp: {blockchainStartTimestamp}");
+
             // Calculate the approvals and make the judgement of changing term.
-            return currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber)
+            var changeTerm =
+                currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber);
+            return changeTerm
                 ? DPoSBehaviour.NextTerm
                 : DPoSBehaviour.NextRound;
         }
