@@ -38,15 +38,15 @@ namespace AElf.OS.Rpc
                 });
         }
 
-        protected virtual async Task<T> GetResponseAsObjectAsync<T>(string url,
-            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
-        {
-            var strResponse = await GetResponseAsStringAsync(url, expectedStatusCode);
-            return JsonConvert.DeserializeObject<T>(strResponse, new JsonSerializerSettings
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
-            });
-        }
+//        protected virtual async Task<T> GetResponseAsObjectAsync<T>(string url,
+//            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+//        {
+//            var strResponse = await GetResponseAsStringAsync(url, expectedStatusCode);
+//            return JsonConvert.DeserializeObject<T>(strResponse, new JsonSerializerSettings
+//            {
+//                ContractResolver = new CamelCasePropertyNamesContractResolver()
+//            });
+//        }
 
         protected virtual async Task<string> GetResponseAsStringAsync(string url,
             HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
@@ -100,9 +100,9 @@ namespace AElf.OS.Rpc
         }
 
         // ReSharper disable once IntroduceOptionalParameters.Global
-        protected JsonContent(string content, Encoding encoding) : this(content, encoding, null)
-        {
-        }
+//        protected JsonContent(string content, Encoding encoding) : this(content, encoding, null)
+//        {
+//        }
 
         protected JsonContent(string content, Encoding encoding, string mediaType) : base(content, encoding, mediaType)
         {
