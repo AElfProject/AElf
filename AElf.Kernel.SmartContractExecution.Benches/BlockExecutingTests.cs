@@ -15,9 +15,9 @@ namespace AElf.Kernel.SmartContractExecution.Benches
 {
     public class BlockExecutingTests : BenchBaseTest<ExecutionBenchAElfModule>
     {
-        private readonly IBlockExecutingService _blockExecutingService;
-        private readonly IBlockchainService _blockchainService;
-        private readonly OSTestHelper _osTestHelper;
+        private IBlockExecutingService _blockExecutingService;
+        private IBlockchainService _blockchainService;
+        private OSTestHelper _osTestHelper;
 
         private List<Transaction> _transactions;
         private Block _block;
@@ -28,15 +28,15 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         {
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new XunitTraceListener(output));
-            
-            _blockchainService = GetRequiredService<IBlockchainService>();
-            _blockExecutingService = GetRequiredService<IBlockExecutingService>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
         }
         
         [PerfSetup]
         public void Setup(BenchmarkContext context)
         {
+            _blockchainService = GetRequiredService<IBlockchainService>();
+            _blockExecutingService = GetRequiredService<IBlockExecutingService>();
+            _osTestHelper = GetRequiredService<OSTestHelper>();
+            
             _counter = context.GetCounter("TestCounter");
 
             AsyncHelper.RunSync(async () =>
