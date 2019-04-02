@@ -1,4 +1,5 @@
 using AElf.Contracts.TestBase;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
 using Microsoft.Extensions.DependencyInjection;

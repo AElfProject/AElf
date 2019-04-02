@@ -159,8 +159,6 @@ namespace AElf.Contracts.Consensus.DPoS
             // But in values all filled.
             var secondRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
             secondRound.RealTimeMinersInformation.Values.Count(v => v.PreviousInValue != null).ShouldBe(MinersCount);
-
-            // TODO: Check previous in value published by miner himself is same with it recovered by others.
         }
     }
 }
