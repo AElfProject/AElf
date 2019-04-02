@@ -11,7 +11,7 @@ namespace AElf.CrossChain.Grpc
     public class GrpcClientTests : GrpcCrossChainClientTestBase
     {
         private const string Host = "localhost";
-        private const int ListenPort = 2000;
+        private const int ListenPort = 2200;
         private GrpcClientForParentChain parentClient;
         private GrpcClientForSideChain sideClient;
         
@@ -43,7 +43,7 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task ParentChainClient_TryHandShakeAsync()
         {
-            var result = await parentClient.TryHandShakeAsync(0, 2000);
+            var result = await parentClient.TryHandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
 
             parentClient = new GrpcClientForParentChain("localhost:3000", "test", 0);
@@ -53,7 +53,7 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task SideChainClient_TryHandShakeAsync()
         {
-            var result = await sideClient.TryHandShakeAsync(0, 2000);
+            var result = await sideClient.TryHandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
 
             sideClient = new GrpcClientForSideChain("localhost:3000", "test");
@@ -66,11 +66,16 @@ namespace AElf.CrossChain.Grpc
             var cert = _certificateStore.LoadCertificate("test");
             var keyCert = new KeyCertificatePair(cert, keyStore);
             
-            _server.StartAsync(Host, 2000, keyCert).Wait();
+            _server.StartAsync(Host, ListenPort, keyCert).Wait();
             
             string uri = $"{Host}:{ListenPort}";
             parentClient = new GrpcClientForParentChain(uri, cert, 0);
             sideClient = new GrpcClientForSideChain(uri, cert);
+        }
+
+        public override void Dispose()
+        {
+            _server?.Dispose();
         }
     }
 }

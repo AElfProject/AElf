@@ -71,7 +71,7 @@ namespace AElf.CrossChain.Grpc
         {
             var request = new IndexingHandShake
             {
-                ListeningPort = 2000,
+                ListeningPort = 2100,
                 ChainId = 0
             };
             var context = BuildServerCallContext();
@@ -85,7 +85,7 @@ namespace AElf.CrossChain.Grpc
         {
             var meta = metadata ?? new Metadata();
             return TestServerCallContext.Create("mock", null, DateTime.UtcNow.AddHours(1), meta, CancellationToken.None, 
-                "ipv4:127.0.0.1:2000", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
+                "ipv4:127.0.0.1:2100", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
         }
     }
 }
