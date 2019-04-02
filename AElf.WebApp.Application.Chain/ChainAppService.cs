@@ -161,6 +161,12 @@ namespace AElf.WebApp.Application.Chain
             if (transactionResult.Status == TransactionResultStatus.Failed)
                 output.Error = transactionResult.Error;
 
+            if (transactionResult.Status == TransactionResultStatus.NotExisted)
+            {
+                output.Status = transactionResult.Status.ToString();
+                return output;
+            }
+
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             var p = await GetTransactionParameters(transaction);
             try
@@ -185,7 +191,7 @@ namespace AElf.WebApp.Application.Chain
 
             if (limit <= 0 || limit > 100)
             {
-                throw new UserFriendlyException(Error.Message[Error.InvalidNum],Error.InvalidNum.ToString());
+                throw new UserFriendlyException(Error.Message[Error.InvalidLimit],Error.InvalidLimit.ToString());
             }
 
             Hash realBlockHash;
@@ -252,7 +258,7 @@ namespace AElf.WebApp.Application.Chain
                     MerkleTreeRootOfTransactions = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                     MerkleTreeRootOfWorldState = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
                     Extra = blockInfo.Header.BlockExtraDatas.ToString(),
-                    Height = blockInfo.Header.Height.ToString(),
+                    Height = blockInfo.Header.Height,
                     Time = blockInfo.Header.Time.ToDateTime(),
                     ChainId = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
                     Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex()
