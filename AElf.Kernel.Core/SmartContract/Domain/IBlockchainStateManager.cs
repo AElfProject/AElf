@@ -25,7 +25,6 @@ namespace AElf.Kernel.SmartContract.Domain
     {
         private readonly IStateStore<VersionedState> _versionedStates;
         private readonly IStateStore<BlockStateSet> _blockStateSets;
-
         private readonly IStateStore<ChainStateInfo> _chainStateInfoCollection;
 
         private readonly int _chainId;
