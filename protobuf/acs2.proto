@@ -11,6 +11,7 @@ service MetadataProvidingContract {
     }
     // Views
     rpc GetMetadata (GetMetadataInput) returns (GetMetadataOutput) {
+        option (aelf.is_view) = true;
     }
 
 }
