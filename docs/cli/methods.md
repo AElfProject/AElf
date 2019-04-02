@@ -1,19 +1,21 @@
 ## CLI commands
 
-### Commun commands
+### Commun options
+
+As seen previously, the following options can be set for all commands:
 
 ```bash
--d, --datadir        The directory that contains the files. Default from env variable: AELF_CLI_DATADIR
--e, --endpoint       The endpoint for the rpc service. Default from env variable: AELF_CLI_ENDPOINT
--a, --account        The account to be used to interact with the blockchain. Default from env variable: AELF_CLI_ACCOUNT
+-d, --datadir        The directory that contains the files. (AELF_CLI_DATADIR)
+-e, --endpoint       The endpoint for the rpc service. (AELF_CLI_ENDPOINT)
+-a, --account        The account to be used to interact with the blockchain. (AELF_CLI_ACCOUNT)
 -p, --password       The password for unlocking the account.
 ```
 
-### console - Open the interactive console.
+### console - open an interactive console.
 
 This is a special command that you can use to start an interactive session in Javascript.
 
-### create - Create a new account.
+### create - create a new account.
 
 This command will walk you through the process of creating a key-pair. You can decide to save this keypair to the disk. For most scenarios you would reply "yes" because if you don't the key will not be retrievable later. If you reply "yes" to saving to the disk, the command will create a .ak file in your **datadir**. This .ak file will contain the encrypted keypair. It's encrypted by a password, so be sure to remember it if you need to use this key.
 
@@ -38,7 +40,7 @@ Account info has been saved to "~/.local/share/aelf/keys/232pnSP16kYHHKhtp9JjEds
 
 The command prints both the private and public key as well as the AElf address associated with this key pair. Finally, you'll be able to verify the path where the key-pair is stored.
 
-### deploy - Deploy a smart contract.
+### deploy - deploy a smart contract.
 
 ```bash 
 aelf-cli create <category> <code>
@@ -47,7 +49,7 @@ aelf-cli create <category> <code>
 Category    Required. Obsolete. The category of the contract to be deployed.
 CodeFile    Required. The compiled contract code file of the contract to be deployed.
 
-### send - Send a transaction to a contract.
+### send - send a transaction to a contract.
 
 ```bash 
 aelf-cli send <address> <method> <method-input>
@@ -57,7 +59,7 @@ address       Required. The address of the contract.
 method        (optional) The particular method of the contract.
 method-input  (optional) The input for the method in json format.
 
-### call - Send a transaction to a contract.
+### call - send a transaction to a contract.
 
 ```bash 
 aelf-cli call <address> <method> <method-input>
@@ -67,14 +69,14 @@ address       Required. The address of the contract.
 method        (optional) The particular method of the contract.
 method-input  (optional) The input for the method in json format.
 
-### get-tx-result - Get a transaction result.
+### get-tx-result - get a transaction result.
 
 ```bash 
 aelf-cli get-tx-result <tx-hash>
 ```
 tx-hash      Required. The tx hash to query.
 
-### get-blk-height - Get the block height.
+### get-blk-height - get the block height.
 
 This command get the current height of the best chain.
 
@@ -88,7 +90,7 @@ aelf-cli get-blk-height
 > 27
 ```
 
-### get-blk-info - Get the block info for a block height.
+### get-blk-info - get the block info by block height.
 
 ```bash 
 aelf-cli get-blk-info <height> <include-txs>
@@ -98,9 +100,11 @@ height           Required. The height of the block to query.
 include-txs      Whether to include transactions.
 
 Example:
+```bash 
+aelf-cli get-blk-info 27 true
+```
 
 ```json 
-aelf-cli get-blk-info 27 true
 {
   "BlockHash": "a81f4f5edab4172d232d1ff9b8536d58d420474cbb30a00e12726abff57c624e",
   "Header": {
@@ -122,4 +126,4 @@ aelf-cli get-blk-info 27 true
 }
 ```
 
-This has returned information about the block, because the include-txs option was set to true, we can also see the ids of the transaction ids or the transactions that where included in the block.
+This has returned information about the block and because the include-txs option was set to true, we can also see the ids of the transaction ids or the transactions that where included in the block.
