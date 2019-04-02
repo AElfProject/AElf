@@ -56,16 +56,9 @@ namespace AElf.CrossChain.Grpc
 
             services.AddTransient(o =>
             {
-                var mockService = new Mock<ICrossChainContractReader>();
-                mockService.Setup(m => m.GetIndexedCrossChainBlockDataAsync(It.IsAny<Hash>(), It.IsAny<int>()))
-                    .Returns(Task.FromResult(new CrossChainBlockData
-                    {
-                        PreviousBlockHeight = 8,
-                        SideChainBlockData = {},
-                        ParentChainBlockData = {}
-
-                    }));
-
+                var mockService = new Mock<IBlockExtraDataExtractor>();
+                mockService.Setup(m=>m.ExtractTransactionStatusMerkleTreeRoot(It.IsAny<BlockHeader>()))
+                    .Returns(Hash.Generate);
                 return mockService.Object;
             });
             

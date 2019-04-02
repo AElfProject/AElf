@@ -25,12 +25,26 @@ namespace AElf.CrossChain.Grpc
         }
         
         [Fact]
-        public async Task RequestIndexingParentChain()
+        public async Task RequestIndexingParentChain_WithoutExtraData()
         {
             var requestData = new RequestCrossChainBlockData
             {
                 FromChainId = 0,
                 NextHeight = 15
+            };
+
+            IServerStreamWriter<ResponseParentChainBlockData> responseStream = Mock.Of<IServerStreamWriter<ResponseParentChainBlockData>>();
+            var context = BuildServerCallContext();
+            await CrossChainGrpcServer.RequestIndexingParentChain(requestData, responseStream, context);
+        }
+        
+        [Fact]
+        public async Task RequestIndexingParentChain_WithExtraData()
+        {
+            var requestData = new RequestCrossChainBlockData
+            {
+                FromChainId = 0,
+                NextHeight = 9
             };
 
             IServerStreamWriter<ResponseParentChainBlockData> responseStream = Mock.Of<IServerStreamWriter<ResponseParentChainBlockData>>();
