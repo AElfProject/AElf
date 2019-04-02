@@ -6,11 +6,15 @@ import "common.proto";
 import "kernel.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
+import "acs1.proto";
+import "acs2.proto";
 
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
 
 service TokenContract {
     option (aelf.csharp_state) = "AElf.Contracts.MultiToken.TokenContractState";
+    option (aelf.base) = "acs1.proto";
+    option (aelf.base) = "acs2.proto";
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
@@ -40,8 +44,6 @@ service TokenContract {
     }
     rpc ClaimTransactionFees (ClaimTransactionFeesInput) returns (google.protobuf.Empty) {
     }
-    rpc SetMethodFee (SetMethodFeeInput) returns (google.protobuf.Empty) {
-    }
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) {
@@ -58,9 +60,6 @@ service TokenContract {
     rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
         option (aelf.is_view) = true;
     }
-    rpc GetMethodFee (GetMethodFeeInput) returns (GetMethodFeeOutput) {
-    }
-
 }
 
 message TokenInfo {
@@ -165,20 +164,6 @@ message ChargeTransactionFeesInput {
 message ClaimTransactionFeesInput {
     string symbol = 1;
     sint64 height = 2;
-}
-
-message GetMethodFeeInput {
-    string method = 1;
-}
-
-message GetMethodFeeOutput {
-    string method = 1;
-    sint64 fee = 2;
-}
-
-message SetMethodFeeInput {
-    string method = 1;
-    sint64 fee = 2;
 }
 
 message GetTokenInfoInput {
