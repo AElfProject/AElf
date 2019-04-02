@@ -1,6 +1,6 @@
 ## Introduction to the CLI
 
-We briefly presented AElfs command line tool in the [Getting started](../quickstart.md) section. We discovered that AElf.CLI is the client program used for interacting with a node via RPC calls. You can use it sending transactions or querying for the chains state. It also serves as a wallet program to manage your accounts (keys).
+We briefly presented AElfs command line tool in the [getting started](../quickstart.md) section. We discovered that AElf.CLI is the client program used for interacting with a node via RPC calls. You can use it for sending transactions, querying the chains state... It also serves as a wallet program to manage your accounts (keys).
 
 ## Build
 
@@ -8,16 +8,16 @@ Navigate to AElfs directory:
 ```bash
 dotnet build AElf.CLI --configuration Release
 ```
-To use the tool just run it with `dotnet` like:
+To use the cli just run it with `dotnet` like:
 ```bash
 dotnet AElf.CLI.dll <command> <option1> <option2>
 ```
 
-The \<command\> element here refers to any of the available commands, to list them just run the **dll** without providing any arguments: ```dotnet AElf.CLI.dll```. The \<options\> element refer to the arguments to give to the command. For more about the commands and their options you can refere to the full [command reference](methods.md) of this section.
+The **command** element here refers to any of the available commands, to list them just run the **dll** without providing any arguments: ```dotnet AElf.CLI.dll```. The **options** element refer to the arguments to give to the command. For more about the commands and their options you can refere to the full [command reference](methods.md) of this section.
 
 ## Interactive
 
-CLI is built on top of the js library [aelf.js](https://github.com/AElfProject/aelf-sdk.js), so besides using the standard commands directly, you can also use interactive mode where you can use javascript to interact with the chain. The ```console``` commands will start your session:
+CLI is built on top of the js library [aelf.js](https://github.com/AElfProject/aelf-sdk.js), so besides using the standard commands directly, you can also use the interactive mode where you can use javascript to interact with the chain. The ```console``` commands will start your session:
 
 ```bash
 dotnet AElf.CLI.dll console --endpoint=http://localhost:1234 -a 2jzk2xXHdru6oCGiSyy6mqxTtkWyFbdgBkmrPwNnT5Higm6Tum
