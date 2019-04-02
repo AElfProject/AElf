@@ -72,5 +72,10 @@ namespace AElf.CrossChain.Grpc
             //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
             await Assert.ThrowsAsync<NotImplementedException>(()=>_grpcCrossChainClientNodePlugin.ShutdownAsync()); 
         }
+
+        public override void Dispose()
+        {
+            _grpcCrossChainServerNodePlugin?.ShutdownAsync().Wait();
+        }
     }
 }
