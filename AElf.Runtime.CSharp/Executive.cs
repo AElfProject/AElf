@@ -23,6 +23,7 @@ namespace AElf.Runtime.CSharp
         private readonly Type _contractType;
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
+        private readonly IReadOnlyList<ServiceDescriptor> _descriptors;
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
@@ -57,6 +58,13 @@ namespace AElf.Runtime.CSharp
             return ssd.GetCallHandlers();
         }
 
+        private IReadOnlyList<ServiceDescriptor> GetDescriptors(Assembly assembly)
+        {
+            var prop = FindContractContainer(assembly).GetProperty("Descriptors",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            return (IReadOnlyList<ServiceDescriptor>) prop.GetValue(null, null);
+        }
+
         public Executive(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
         {
             _contractAssembly = assembly;
@@ -65,6 +73,7 @@ namespace AElf.Runtime.CSharp
             _contractInstance = Activator.CreateInstance(_contractType);
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
             _callHandlers = GetHandlers(assembly);
+            _descriptors = GetDescriptors(assembly);
         }
 
         public IExecutive SetMaxCallDepth(int maxCallDepth)
@@ -237,9 +246,7 @@ namespace AElf.Runtime.CSharp
 
         public byte[] GetFileDescriptorSet()
         {
-            var prop = FindContractContainer(_contractAssembly).GetProperty("Descriptor",
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            var descriptor = (ServiceDescriptor) prop.GetValue(null, null);
+            var descriptor = _descriptors.Last();
             var output = new FileDescriptorSet();
             output.File.AddRange(GetSelfAndDependency(descriptor.File).Select(x => x.SerializedData));
             return output.ToByteArray();
