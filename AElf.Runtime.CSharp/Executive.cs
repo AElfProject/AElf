@@ -24,6 +24,7 @@ namespace AElf.Runtime.CSharp
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
         private readonly IReadOnlyList<ServiceDescriptor> _descriptors;
+        private readonly ServerServiceDefinition _serverServiceDefinition;
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
@@ -50,19 +51,11 @@ namespace AElf.Runtime.CSharp
             return contractBase.DeclaringType;
         }
 
-        private ReadOnlyDictionary<string, IServerCallHandler> GetHandlers(Assembly assembly)
+        private ServerServiceDefinition GetServerServiceDefinition(Assembly assembly)
         {
             var methodInfo = FindContractContainer(assembly).GetMethod("BindService",
                 new[] {FindContractBaseType(assembly)});
-            var ssd = methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
-            return ssd.GetCallHandlers();
-        }
-
-        private IReadOnlyList<ServiceDescriptor> GetDescriptors(Assembly assembly)
-        {
-            var prop = FindContractContainer(assembly).GetProperty("Descriptors",
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            return (IReadOnlyList<ServiceDescriptor>) prop.GetValue(null, null);
+            return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
         public Executive(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
@@ -72,8 +65,9 @@ namespace AElf.Runtime.CSharp
             _contractType = FindContractType(assembly);
             _contractInstance = Activator.CreateInstance(_contractType);
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
-            _callHandlers = GetHandlers(assembly);
-            _descriptors = GetDescriptors(assembly);
+            _serverServiceDefinition = GetServerServiceDefinition(assembly);
+            _callHandlers = _serverServiceDefinition.GetCallHandlers();
+            _descriptors = _serverServiceDefinition.GetDescriptors();
         }
 
         public IExecutive SetMaxCallDepth(int maxCallDepth)
