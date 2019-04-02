@@ -142,7 +142,7 @@ namespace AElf.OS.Network.Grpc
             if (remotePubKey == localPubKey)
                 return false;
 
-            return true;
+            return FindPeerByPublicKey(remotePubKey) == null;
         }
 
         public bool AddPeer(IPeer peer)
