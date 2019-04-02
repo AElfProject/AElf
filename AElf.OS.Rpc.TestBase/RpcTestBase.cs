@@ -37,7 +37,8 @@ namespace AElf.OS.Rpc
                         .SetMinimumLevel(LogLevel.Information);
                 });
         }
-
+        
+// No Get method in our rpc service, comment those methods for testing coverage.
 //        protected virtual async Task<T> GetResponseAsObjectAsync<T>(string url,
 //            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
 //        {
@@ -48,20 +49,20 @@ namespace AElf.OS.Rpc
 //            });
 //        }
 
-        protected virtual async Task<string> GetResponseAsStringAsync(string url,
-            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
-        {
-            var response = await GetResponseAsync(url, expectedStatusCode);
-            return await response.Content.ReadAsStringAsync();
-        }
+//        protected virtual async Task<string> GetResponseAsStringAsync(string url,
+//            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+//        {
+//            var response = await GetResponseAsync(url, expectedStatusCode);
+//            return await response.Content.ReadAsStringAsync();
+//        }
 
-        protected virtual async Task<HttpResponseMessage> GetResponseAsync(string url,
-            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
-        {
-            var response = await Client.GetAsync(url);
-            response.StatusCode.ShouldBe(expectedStatusCode);
-            return response;
-        }
+//        protected virtual async Task<HttpResponseMessage> GetResponseAsync(string url,
+//            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+//        {
+//            var response = await Client.GetAsync(url);
+//            response.StatusCode.ShouldBe(expectedStatusCode);
+//            return response;
+//        }
 
         public async Task<HttpResponseMessage> JsonCallAsync(string path, string method, object @params = null,
             object id = null)
