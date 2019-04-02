@@ -9,8 +9,10 @@
 * [AElf protocol](Protocol/protocol.md)
     * [Addresses](Protocol/addresses.md)
     * [Transactions](Protocol/txs.md)
-* [Multitoken contract](multitoken/contract.md)
+    * [Blocks](Protocol/blocks.md)
+<!-- * [Multitoken contract](multitoken/contract.md) -->
 * [Smart contracts](Contract/contracts.md)
+    * [Introduction](Contract/intro.md)
     * [Architecture](Contract/archi.md)
     * [Service](Contract/service.md)
     * [Event](Contract/events.md)
@@ -29,6 +31,9 @@
     * [Resource system](publicchain/resources.md)
     * [Authority contract](publicchain/auth.md)
     * [Multilevel chain system](publicchain/multilvlchain.md)
+* [Architecture](Architecture/architecture.md)
+    * [Introduction](Architecture/introduction.md)
+    * [Implementations](Architecture/implementations.md)
 * [Performance](perf/perf.md)
 * [DevOps](devops/devops.md)
 * [RPC api reference](RPC/main.md)
@@ -38,3 +43,5 @@
     * [JS SDK](SDK/javascript/js-sdk.md)
         * [AElf API](SDK/javascript/AElf.md)
         * [AElf.wallet API](SDK/javascript/Wallet.md)
+* [Resources]
+    * [Wallet and Block Explorer](Resources/walletAndExplorer.md)
