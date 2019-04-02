@@ -75,7 +75,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     return new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
-                        Round = GenerateFirstRoundOfNextTerm(),
+                        Round = GenerateFirstRoundOfNextTerm(publicKey.ToHex()),
                         Behaviour = behaviour
                     };
                 default:

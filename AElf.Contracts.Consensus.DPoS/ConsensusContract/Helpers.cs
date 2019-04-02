@@ -225,7 +225,7 @@ namespace AElf.Contracts.Consensus.DPoS
                    previousRound.TermNumber != termNumber;
         }
 
-        private Round GenerateFirstRoundOfNextTerm()
+        private Round GenerateFirstRoundOfNextTerm(string senderPublicKey)
         {
             Round round;
             if (TryToGetTermNumber(out var termNumber) &&
@@ -245,7 +245,6 @@ namespace AElf.Contracts.Consensus.DPoS
 
             round.BlockchainAge = CurrentAge;
 
-            var senderPublicKey = Context.RecoverPublicKey().ToHex();
             round.RealTimeMinersInformation[senderPublicKey].ProducedBlocks = 1;
 
             return round;
