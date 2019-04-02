@@ -18,7 +18,7 @@ namespace AElf.OS.Jobs
     public class BlockSyncJob
     {
         private const long InitialSyncLimit = 10;
-        private const int MaxSyncJob = 1000;
+        private const int BlockSyncJobLimit = 200;
 
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
@@ -83,7 +83,7 @@ namespace AElf.OS.Jobs
                 {
                     // Limit block sync job count, control memory usage
                     chain = await _blockchainService.GetChainAsync();
-                    if (chain.BestChainHeight < blockHeight - MaxSyncJob)
+                    if (chain.BestChainHeight < blockHeight - BlockSyncJobLimit)
                     {
                         Logger.LogWarning($"Pause sync task and wait for synced block to be processed, best chain height: {chain.BestChainHeight}");
                         break;
