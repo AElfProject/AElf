@@ -6,7 +6,6 @@ import "aelf_options.proto";
 import "google/protobuf/empty.proto";
 
 service MetadataProvidingContract {
-    option (aelf.base) = "acs1.proto";
     // Actions
     rpc SetMetadata (SetMetadataInput) returns (google.protobuf.Empty) {
     }
