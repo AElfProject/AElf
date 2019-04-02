@@ -34,8 +34,8 @@
       </Content></ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_base.sh acs1.proto acs2.proto; ../scripts/generate_contract_reference.sh basic_contract_zero.proto crosschain_token_state.proto; ../scripts/generate_contract_code.sh token_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\scripts\generate_contract_base.bat acs1.proto acs2.proto &amp; ..\scripts\generate_contract_reference.bat basic_contract_zero.proto crosschain_token_state.proto &amp; ..\scripts\generate_contract_code.bat token_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_base.sh acs1.proto acs2.proto; ../scripts/generate_contract_reference.sh basic_contract_zero.proto crosschain.proto cross_chain_contract.proto; ../scripts/generate_contract_code.sh token_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\scripts\generate_contract_base.bat acs1.proto acs2.proto &amp; ..\scripts\generate_contract_reference.bat basic_contract_zero.proto crosschain.proto cross_chain_contract.proto &amp; ..\scripts\generate_contract_code.bat token_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
