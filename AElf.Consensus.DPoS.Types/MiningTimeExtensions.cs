@@ -49,11 +49,11 @@ namespace AElf.Consensus.DPoS
                 miningInterval = round.GetMiningInterval();
             }
             
-            if (round.RoundNumber == 1 && round.RealTimeMinersInformation[publicKey].OutValue == null)
-            {
-                var offset = miningInterval * round.RealTimeMinersInformation[publicKey].Order;
-                return dateTime.AddMilliseconds(round.TotalMilliseconds() + offset).ToTimestamp();
-            }
+//            if (round.RoundNumber == 1 && round.RealTimeMinersInformation[publicKey].OutValue == null)
+//            {
+//                var offset = miningInterval * round.RealTimeMinersInformation[publicKey].Order;
+//                return dateTime.AddMilliseconds(round.TotalMilliseconds() + offset).ToTimestamp();
+//            }
 
             if (!round.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound) && minerInRound.OutValue == null)
             {

@@ -18,7 +18,7 @@ message ToUpdate {
     map<string, bytes> EncryptedInValues = 9;// For others to recover his in value of current round.
     map<string, bytes> DecryptedPreviousInValues = 10;
     int64 ProducedBlocks = 11;
-    map<string, Hash> RecoveredPreviousInValues = 12;
+    map<string, Hash> MinersPreviousInValues = 12;
 }
 
 // The miners public key list for each term.

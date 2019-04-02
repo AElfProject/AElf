@@ -81,7 +81,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     .Add(publicKey, decryptedPreviousInValue.Value);
             }
 
-            foreach (var recoveredPreviousInValue in input.RecoveredPreviousInValues)
+            foreach (var recoveredPreviousInValue in input.MinersPreviousInValues)
             {
                 round.RealTimeMinersInformation[recoveredPreviousInValue.Key].PreviousInValue =
                     recoveredPreviousInValue.Value;

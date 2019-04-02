@@ -31,7 +31,7 @@ namespace AElf.Contracts.Consensus.DPoS
             round.RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             round.RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
             round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
- 
+
             round.RealTimeMinersInformation[publicKey].EncryptedInValues.Add(input.EncryptedInValues);
             foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
             {
@@ -39,18 +39,30 @@ namespace AElf.Contracts.Consensus.DPoS
                     .Add(publicKey, decryptedPreviousInValue.Value);
             }
 
-            foreach (var recoveredPreviousInValue in input.RecoveredPreviousInValues)
+            foreach (var previousInValue in input.MinersPreviousInValues)
             {
-                round.RealTimeMinersInformation[recoveredPreviousInValue.Key].PreviousInValue =
-                    recoveredPreviousInValue.Value;
+                if (previousInValue.Key == publicKey)
+                {
+                    continue;
+                }
+
+                var filledValue = round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue;
+                if (filledValue != null && filledValue != previousInValue.Value)
+                {
+                    Context.LogDebug(() => $"Something wrong happened to previous in value of {previousInValue.Key}.");
+                }
+
+                round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;
             }
 
             foreach (var tuneOrder in input.TuneOrderInformation)
             {
-                Context.LogDebug(() => $"Will tune {tuneOrder.Key} order from {round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound} to {tuneOrder.Value}");
+                LogVerbose(
+                    $"Will tune {tuneOrder.Key} order from {round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound} to {tuneOrder.Value}");
                 round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
             }
 
+            LogVerbose($"Previous in value published by {publicKey} himself is {input.PreviousInValue.ToHex()}");
             // For first round of each term, no one need to publish in value.
             if (input.PreviousInValue != Hash.Empty)
             {
@@ -77,6 +89,10 @@ namespace AElf.Contracts.Consensus.DPoS
             if (currentRoundNumber == 1)
             {
                 SetBlockchainStartTimestamp(input.GetStartTime().ToTimestamp());
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }
 
             // Update the age of this blockchain
@@ -158,9 +174,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     return false;
                 }
+
                 previousRound = State.RoundsMap[(roundNumber - 1).ToInt64Value()];
                 return !previousRound.IsEmpty();
             }
+
             return false;
         }
 

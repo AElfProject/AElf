@@ -22,7 +22,6 @@ namespace AElf.Consensus.DPoS
             foreach (var minerInRound in RealTimeMinersInformation.Clone())
             {
                 var checkableMinerInRound = minerInRound.Value.Clone();
-                checkableMinerInRound.DecryptedPreviousInValues.Clear();
                 checkableMinerInRound.EncryptedInValues.Clear();
                 if (!isContainPreviousInValue)
                 {

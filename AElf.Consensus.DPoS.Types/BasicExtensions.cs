@@ -31,9 +31,9 @@ namespace AElf.Consensus.DPoS
                     : "");
                 minerInformation.AppendLine($"Order:\t {minerInRound.Order}");
                 minerInformation.AppendLine(
-                    $"Expect:\t {minerInRound.ExpectedMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
+                    $"Expect:\t {minerInRound.ExpectedMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,ffffff}");
                 minerInformation.AppendLine(
-                    $"Actual:\t {minerInRound.ActualMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,fff}");
+                    $"Actual:\t {minerInRound.ActualMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,ffffff}");
                 minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");
                 if (round.RoundNumber != 1)
                 {
@@ -86,9 +86,9 @@ namespace AElf.Consensus.DPoS
                     v.PublicKey != publicKey && v.DecryptedPreviousInValues.ContainsKey(publicKey))
                 .ToDictionary(info => info.PublicKey, info => info.DecryptedPreviousInValues[publicKey]);
 
-            var recoveredPreviousInValues = round.RealTimeMinersInformation.Values
-                .Where(v => v.OutValue == null && v.PreviousInValue != null)
-                .ToDictionary(info => info.PublicKey, info => info.PreviousInValue);
+            var minersPreviousInValues =
+                round.RealTimeMinersInformation.Values.Where(info => info.PreviousInValue != null).ToDictionary(info => info.PublicKey,
+                    info => info.PreviousInValue);
 
             var minerInRound = round.RealTimeMinersInformation[publicKey];
             return new ToUpdate
@@ -104,7 +104,7 @@ namespace AElf.Consensus.DPoS
                 TuneOrderInformation = {tuneOrderInformation},
                 EncryptedInValues = {minerInRound.EncryptedInValues},
                 DecryptedPreviousInValues = {decryptedPreviousInValues},
-                RecoveredPreviousInValues = {recoveredPreviousInValues}
+                MinersPreviousInValues = {minersPreviousInValues}
             };
         }
 
@@ -184,11 +184,6 @@ namespace AElf.Consensus.DPoS
             var minersMinedCurrentRound = currentRound.GetMinedMiners();
             var minersNotMinedCurrentRound = currentRound.GetNotMinedMiners();
             var minersCount = currentRound.RealTimeMinersInformation.Count;
-            // TODO: Signature is null means something wrong happened.
-//            if (minersMinedCurrentRound.Any(m => m.Signature == null))
-//            {
-//                return false;
-//            }
 
             var miningInterval = currentRound.GetMiningInterval();
             nextRound.RoundNumber = currentRound.RoundNumber + 1;

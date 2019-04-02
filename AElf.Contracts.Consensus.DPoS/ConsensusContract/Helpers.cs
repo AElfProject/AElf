@@ -245,6 +245,9 @@ namespace AElf.Contracts.Consensus.DPoS
 
             round.BlockchainAge = CurrentAge;
 
+            var senderPublicKey = Context.RecoverPublicKey().ToHex();
+            round.RealTimeMinersInformation[senderPublicKey].ProducedBlocks = 1;
+
             return round;
         }
 

@@ -14,9 +14,13 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var behaviour = GetBehaviour(input.PublicKey.ToHex(), Context.CurrentBlockTime, out var currentRound);
 
-            Context.LogDebug(() => currentRound.GetLogs(input.PublicKey.ToHex(), behaviour));
+            var command = behaviour.GetConsensusCommand(currentRound, input.PublicKey.ToHex(), Context.CurrentBlockTime,
+                State.IsTimeSlotSkippable.Value);
 
-            return behaviour.GetConsensusCommand(currentRound, input.PublicKey.ToHex(), Context.CurrentBlockTime);
+            Context.LogDebug(() =>
+                currentRound.GetLogs(input.PublicKey.ToHex(), DPoSHint.Parser.ParseFrom(command.Hint).Behaviour));
+
+            return command;
         }
 
         /// <summary>
@@ -43,7 +47,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var isTimeSlotPassed = currentRound.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound);
             if (minerInRound.OutValue == null)
             {
-                // Current miner didn't produce block in current round.
+                // Current miner hasn't produce block in current round before.
 
                 if (!ableToGetPreviousRound && minerInRound.Order != 1 &&
                     currentRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).OutValue == null)

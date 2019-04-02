@@ -52,6 +52,8 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert(TryToAddRoundInformation(firstRound),
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed, "Failed to add round information."));
 
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+
             return new Empty();
         }
 

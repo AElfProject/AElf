@@ -78,9 +78,6 @@ namespace AElf.Contracts.Consensus.DPoS
             CountMissedTimeSlots();
 
             Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
-            State.DividendContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
-            State.DividendContract.KeepWeights.Send(new SInt64Value() {Value = termNumber});
 
             // Update current term number and current round number.
             Assert(TryToUpdateTermNumber(input.TermNumber), "Failed to update term number.");
@@ -134,6 +131,10 @@ namespace AElf.Contracts.Consensus.DPoS
 
             if (State.DividendContract.Value != null)
             {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
+                State.DividendContract.KeepWeights.Send(new SInt64Value {Value = termNumber});
+
                 var termInfo = new TermInfo
                 {
                     RoundNumber = input.RoundNumber - 1,
