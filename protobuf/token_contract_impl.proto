@@ -2,10 +2,7 @@ syntax = "proto3";
 
 package tokenimpl;
 
-import "common.proto";
-import "kernel.proto";
 import "aelf_options.proto";
-import "google/protobuf/empty.proto";
 import "acs1.proto";
 import "acs2.proto";
 import "token_contract.proto";
