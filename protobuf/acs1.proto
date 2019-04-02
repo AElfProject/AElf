@@ -5,7 +5,7 @@ package acs1;
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
 
-service FeeChangedContract {
+service FeeChargedContract {
     // Actions
     rpc SetMethodFee (SetMethodFeeInput) returns (google.protobuf.Empty) {
     }
