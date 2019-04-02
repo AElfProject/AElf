@@ -17,6 +17,7 @@ install:
 #  - cmd: dir c:\
   - cmd: unzip c:\protoc-3.7.0-win64.zip  -d c:\protoc\
   - cmd: set PATH=%PATH%;c:\protoc\bin\
+  - cmd: c:\projects\aelf\scripts\download_binary.bat
 
   
 build_script:
