@@ -5,7 +5,7 @@ MYGET_API_KEY=$2
 
 # days since 1970-1-1 as build version
 BUILD_VERSION=`expr $(date +%s) / 86400`
-VERSION=${VERSION_PREFIX}.${BUILD_VERSION}
+VERSION=${VERSION_PREFIX}-${BUILD_VERSION}
 
 for name in `ls -lh | grep ^d | grep AElf | grep -v Tests| awk '{print $NF}'`;
 do
