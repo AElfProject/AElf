@@ -5,5 +5,5 @@ protoc --proto_path=../protobuf ^
 --csharp_opt=file_extension=.g.cs ^
 --contract_opt=nocontract ^
 --contract_out=internal_access:./Protobuf/Generated ^
---plugin=protoc-gen-contract="%scriptdir%contract_csharp_plugin.exe" ^
+--plugin=protoc-gen-contract=contract_csharp_plugin.exe ^
 %*

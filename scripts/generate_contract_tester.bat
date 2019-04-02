@@ -6,5 +6,5 @@ protoc --proto_path=../protobuf ^
 --contract_opt=tester ^
 --contract_opt=internal_access ^
 --contract_out=./Protobuf/Generated ^
---plugin=protoc-gen-contract="%scriptdir%contract_csharp_plugin.exe" ^
+--plugin=protoc-gen-contract=contract_csharp_plugin.exe ^
 %*
