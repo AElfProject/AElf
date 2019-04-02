@@ -63,7 +63,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         protected DateTime BlockchainStartTime => DateTime.Parse("2019-04-01 00:00:00.000").ToUniversalTime();
 
-        public DPoSTestBase()
+        protected void InitializeContracts(DPoSStrategyInput input = null)
         {
             ECKeyPairProvider.SetECKeyPair(BootMinerKeyPair);
             // Deploy useful contracts.
@@ -74,7 +74,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         Category = KernelConstants.DefaultRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ConsensusContract).Assembly.Location)),
                         Name = ConsensusSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateConsensusInitializationCallList()
+                        TransactionMethodCallList = GenerateConsensusInitializationCallList(input)
                     })).Output;
 
             DividendContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)
@@ -122,12 +122,12 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return GetTester<DividendContractContainer.DividendContractTester>(DividendContractAddress, keyPair);
         }
-        
-        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList()
+
+        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSStrategyInput input = null)
         {
             var consensusMethodCallList = new SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                new InitializeWithContractSystemNamesInput
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
+                new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
@@ -135,14 +135,21 @@ namespace AElf.Contracts.Consensus.DPoS
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(
                     MiningInterval, BlockchainStartTime));
+            consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
+                input ?? new DPoSStrategyInput
+                {
+                    IsTimeSlotSkippable = true,
+                    IsBlockchainAgeSettable = true,
+                    IsVerbose = false
+                });
             return consensusMethodCallList;
         }
 
         private SystemTransactionMethodCallList GenerateDividendInitializationCallList()
         {
             var dividendMethodCallList = new SystemTransactionMethodCallList();
-            dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                new InitializeWithContractSystemNamesInput
+            dividendMethodCallList.Add(nameof(DividendContract.InitializeDividendContract),
+                new InitialDividendContractInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name

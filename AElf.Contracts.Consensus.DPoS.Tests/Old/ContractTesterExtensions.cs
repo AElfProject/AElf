@@ -143,8 +143,8 @@ namespace AElf.Contracts.Consensus.DPoS
             int miningInterval = 4000, Timestamp blockchainStartTimestamp = null)
         {
             var dividendMethodCallList = new SystemTransactionMethodCallList();
-            dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                new InitializeWithContractSystemNamesInput
+            dividendMethodCallList.Add(nameof(DividendContract.InitializeDividendContract),
+                new InitialDividendContractInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
@@ -167,7 +167,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 20,
                 ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
-                Memo = "Issue ",
+                Memo = "Issue elf token."
             });
 
             // For testing.
@@ -176,7 +176,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 80,
                 To = starter.GetCallOwnerAddress(),
-                Memo = "Set dividends.",
+                Memo = "Set dividends."
             });
 
             await starter.InitialCustomizedChainAsync(minersKeyPairs?.Select(m => m.PublicKey.ToHex()).ToList(),

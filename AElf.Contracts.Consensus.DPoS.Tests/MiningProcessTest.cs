@@ -8,10 +8,6 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public class MiningProcessTest : DPoSTestBase
     {
-        [Fact]
-        public void Test()
-        {
-            
-        }
+        
     }
 }

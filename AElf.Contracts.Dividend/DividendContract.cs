@@ -12,18 +12,7 @@ namespace AElf.Contracts.Dividend
 {
     public partial class DividendContract : DividendContractContainer.DividendContractBase
     {
-        // TODO: Remove this.
-        public override Empty Initialize(InitializeInput input)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.ConsensusContract.Value = input.ConsensusContractAddress;
-            State.TokenContract.Value = input.TokenContractAddress;
-            State.Initialized.Value = true;
-            State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
-            return new Empty();
-        }
-        
-        public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
+        public override Empty InitializeDividendContract(InitialDividendContractInput input)
         {
             var consensusContractAddress = input.ConsensusContractSystemName;
             var tokenContractSystemName = input.TokenContractSystemName;

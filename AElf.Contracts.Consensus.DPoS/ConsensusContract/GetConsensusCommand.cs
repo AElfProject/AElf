@@ -13,7 +13,9 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert(input.PublicKey.Any(), "Invalid public key.");
 
             var behaviour = GetBehaviour(input.PublicKey.ToHex(), Context.CurrentBlockTime, out var currentRound);
+
             Context.LogDebug(() => currentRound.GetLogs(input.PublicKey.ToHex(), behaviour));
+
             return behaviour.GetConsensusCommand(currentRound, input.PublicKey.ToHex(), Context.CurrentBlockTime);
         }
 

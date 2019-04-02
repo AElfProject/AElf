@@ -11,9 +11,7 @@ option csharp_namespace = "AElf.Contracts.Dividend";
 service DividendContract {
     option (aelf.csharp_state) = "AElf.Contracts.Dividend.DividendsContractState";
     // Actions
-    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
-    }
-    rpc InitializeWithContractSystemNames (InitializeWithContractSystemNamesInput) returns (google.protobuf.Empty) {
+    rpc InitializeDividendContract (InitialDividendContractInput) returns (google.protobuf.Empty) {
     }
     rpc SendDividends (SendDividendsInput) returns (google.protobuf.Empty) {
     }

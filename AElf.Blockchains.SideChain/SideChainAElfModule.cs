@@ -79,7 +79,7 @@ namespace AElf.Blockchains.SideChain
         private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
             var tokenContractCallList = new SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.InitializeWithContractSystemNames), new TokenContractInitializeInput
+            tokenContractCallList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
             {
                 CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
             });

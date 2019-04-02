@@ -32,21 +32,24 @@ namespace AElf.Contracts.Consensus.DPoS
 
             State.IsStrategyConfigured.Value = true;
 
+            LogVerbose("Consensus log level: Verbose");
+            LogVerbose($"Is blockchain age settable: {input.IsBlockchainAgeSettable}");
+            LogVerbose($"Is time slot skippable: {input.IsTimeSlotSkippable}");
+
             return new Empty();
         }
 
-        public override Empty InitialConsensus(Round input)
+        public override Empty InitialConsensus(Round firstRound)
         {
-            Assert(input.RoundNumber == 1,
+            Assert(firstRound.RoundNumber == 1,
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidField, "Invalid round number."));
 
-            Assert(input.RealTimeMinersInformation.Any(),
+            Assert(firstRound.RealTimeMinersInformation.Any(),
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.InvalidField, "No miner in input data."));
 
-            InitialSettings(input);
+            InitialSettings(firstRound);
 
-
-            Assert(TryToAddRoundInformation(input),
+            Assert(TryToAddRoundInformation(firstRound),
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed, "Failed to add round information."));
 
             return new Empty();
@@ -67,6 +70,8 @@ namespace AElf.Contracts.Consensus.DPoS
                     "No permission to change blockchain age."));
             // Don't use `UpdateBlockchainAge` here. Because in testing, we can set blockchain age for free.
             State.AgeField.Value = input.Value;
+
+            LogVerbose($"{Context.RecoverPublicKey().ToHex()} set blockchain age to {input.Value}");
 
             return new Empty();
         }

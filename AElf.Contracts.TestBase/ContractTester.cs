@@ -241,8 +241,8 @@ namespace AElf.Contracts.TestBase
         private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions)
         {
             var consensusMethodCallList = new SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                new InitializeWithContractSystemNamesInput
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
+                new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
@@ -257,8 +257,8 @@ namespace AElf.Contracts.TestBase
             int miningInterval, Timestamp startTimestamp)
         {
             var consensusMethodCallList = new SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                new InitializeWithContractSystemNamesInput
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
+                new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
@@ -599,7 +599,7 @@ namespace AElf.Contracts.TestBase
             balanceOfStarter = InitialBalanceOfStarter;
 
             var callList = new SystemTransactionMethodCallList();
-            callList.Add(nameof(TokenContract.InitializeWithContractSystemNames), new TokenContractInitializeInput
+            callList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
             {
                 CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
             });

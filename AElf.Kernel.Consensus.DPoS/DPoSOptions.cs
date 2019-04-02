@@ -12,5 +12,8 @@ namespace AElf.Kernel.Consensus.DPoS
         public bool IsBootMiner { get; set; }
         public string StartTimestamp { get; set; }
         public long InitialTermNumber { get; set; }
+        public bool Verbose { get; set; }
+        public bool IsBlockchainAgeSettable { get; set; }
+        public bool IsTimeSlotSkippable { get; set; }
     }
 }

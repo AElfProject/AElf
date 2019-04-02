@@ -21,6 +21,11 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         private int MinimumCount => (int) (MinersCount * 2d / 3);
 
+        public InValueRecoveryTest()
+        {
+            InitializeContracts();
+        }
+
         [Fact]
         public async Task<Dictionary<string, DPoSTriggerInformation>> GenerateEncryptedMessagesTest()
         {

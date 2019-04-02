@@ -14,6 +14,11 @@ namespace AElf.Contracts.Consensus.DPoS
     /// </summary>
     public class GetConsensusCommandTest : DPoSTestBase
     {
+        public GetConsensusCommandTest()
+        {
+            InitializeContracts();
+        }
+
         /// <summary>
         /// For now the information of first round will be filled in first block,
         /// which means this information should exist before mining process starting.

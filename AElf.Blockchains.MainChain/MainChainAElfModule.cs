@@ -88,23 +88,31 @@ namespace AElf.Blockchains.MainChain
         private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions)
         {
             var consensusMethodCallList = new SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitializeWithContractSystemNames),
-                new InitializeWithContractSystemNamesInput
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
+                new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name,
+                    LockTokenForElection = 10_0000
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
                     DateTime.Parse(dposOptions.StartTimestamp).ToUniversalTime()));
+            consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
+                new DPoSStrategyInput
+                {
+                    IsBlockchainAgeSettable = dposOptions.IsBlockchainAgeSettable,
+                    IsTimeSlotSkippable = dposOptions.IsTimeSlotSkippable,
+                    IsVerbose = dposOptions.Verbose
+                });
             return consensusMethodCallList;
         }
         
         private SystemTransactionMethodCallList GenerateDividendInitializationCallList()
         {
             var dividendMethodCallList = new SystemTransactionMethodCallList();
-            dividendMethodCallList.Add(nameof(DividendContract.InitializeWithContractSystemNames),
-                new InitializeWithContractSystemNamesInput
+            dividendMethodCallList.Add(nameof(DividendContract.InitializeDividendContract),
+                new InitialDividendContractInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
@@ -116,6 +124,7 @@ namespace AElf.Blockchains.MainChain
             List<string> tokenReceivers)
         {
             const string symbol = "ELF";
+            const int totalSupply = 10_0000_0000;
             var tokenContractCallList = new SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
@@ -123,7 +132,7 @@ namespace AElf.Blockchains.MainChain
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
-                TotalSupply = 10_0000_0000,
+                TotalSupply = totalSupply,
                 // Set the contract zero address as the issuer temporarily.
                 Issuer = issuer,
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
@@ -132,7 +141,7 @@ namespace AElf.Blockchains.MainChain
             tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
             {
                 Symbol = symbol,
-                Amount = 2_0000_0000,
+                Amount = (long) (totalSupply * 0.2),
                 ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
@@ -143,7 +152,7 @@ namespace AElf.Blockchains.MainChain
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {
                     Symbol = symbol,
-                    Amount = 8_0000_0000 / tokenReceivers.Count,
+                    Amount = (long) (totalSupply * 0.8) / tokenReceivers.Count,
                     To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(tokenReceiver)),
                     Memo = "Set initial miner's balance.",
                 });
