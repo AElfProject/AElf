@@ -87,7 +87,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     Behaviour = Hint.Behaviour
                 };
 
-                if (triggerType == _firstTriggerType)
+                if (triggerType != _firstTriggerType)
                 {
                     _latestRandomHash = RandomHash;
                 }
