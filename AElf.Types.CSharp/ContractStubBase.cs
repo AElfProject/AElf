@@ -2,9 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace AElf.Types.CSharp
 {
-    public class ContractTesterBase
+    public class ContractStubBase
     {
         [SuppressMessage("ReSharper", "InconsistentNaming")]
-        public ITestMethodFactory __factory { get; set; }
+        public IMethodStubFactory __factory { get; set; }
     }
 }

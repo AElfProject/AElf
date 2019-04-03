@@ -27,21 +27,30 @@ namespace AElf.Types.CSharp
         public TOutput Output { get; set; }
     }
 
-    public sealed class TestMethod<TInput, TOutput> where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
+    public interface IMethodStub<TInput, TOutput> where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
     {
+        Method<TInput, TOutput> Method { get; }
+        Func<TInput, Task<IExecutionResult<TOutput>>> SendAsync { get; }
+        Func<TInput, Task<TOutput>> CallAsync { get; }
+    }
+
+    public sealed class MethodStub<TInput, TOutput> : IMethodStub<TInput, TOutput> where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
+    {
+        public Method<TInput, TOutput> Method { get; }
         public Func<TInput, Task<IExecutionResult<TOutput>>> SendAsync { get; }
         public Func<TInput, Task<TOutput>> CallAsync { get; }
 
-        public TestMethod(Func<TInput, Task<IExecutionResult<TOutput>>> sendAsync, Func<TInput, Task<TOutput>> callAsync)
+        public MethodStub(Method<TInput, TOutput> method, Func<TInput, Task<IExecutionResult<TOutput>>> sendAsync, Func<TInput, Task<TOutput>> callAsync)
         {
+            Method = method;
             SendAsync = sendAsync;
             CallAsync = callAsync;
         }
     }
 
-    public interface ITestMethodFactory
+    public interface IMethodStubFactory
     {
-        TestMethod<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
+        IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>;
     }
 }

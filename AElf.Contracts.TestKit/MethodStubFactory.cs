@@ -13,7 +13,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.TestKit
 {
-    public class TestMethodFactory : ITestMethodFactory, ITransientDependency
+    public class MethodStubFactory : IMethodStubFactory, ITransientDependency
     {
         public ECKeyPair KeyPair { get; set; } = CryptoHelpers.GenerateKeyPair();
 
@@ -25,7 +25,7 @@ namespace AElf.Contracts.TestKit
         private readonly ITransactionExecutor _transactionExecutor;
         private readonly ITransactionResultService _transactionResultService;
 
-        public TestMethodFactory(IServiceProvider serviceProvider)
+        public MethodStubFactory(IServiceProvider serviceProvider)
         {
             _refBlockInfoProvider = serviceProvider.GetRequiredService<IRefBlockInfoProvider>();
             _transactionExecutor = serviceProvider.GetRequiredService<ITransactionExecutor>();
@@ -33,7 +33,7 @@ namespace AElf.Contracts.TestKit
         }
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]
-        public TestMethod<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
+        public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
         {
             async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
@@ -74,7 +74,7 @@ namespace AElf.Contracts.TestKit
                 return method.ResponseMarshaller.Deserializer(returnValue.ToByteArray());
             }
 
-            return new TestMethod<TInput, TOutput>(SendAsync, CallAsync);
+            return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync);
         }
     }
 }
