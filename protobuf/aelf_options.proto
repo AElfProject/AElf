@@ -14,6 +14,10 @@ import "google/protobuf/descriptor.proto";
 // 5 - ServiceOptions
 // 6 - MethodOptions
 
+extend google.protobuf.FileOptions {
+    optional string identity = 500001;
+}
+
 extend google.protobuf.ServiceOptions {
     repeated string base = 505001;
     optional string csharp_state = 505030;
