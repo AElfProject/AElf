@@ -8,7 +8,7 @@ namespace AElf.Contracts.TestKit
 {
     public interface IContractTesterFactory
     {
-        T Create<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractTesterBase, new();
+        T Create<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new();
     }
 
     public class ContractTesterFactory : IContractTesterFactory, ITransientDependency
@@ -20,11 +20,11 @@ namespace AElf.Contracts.TestKit
             _serviceProvider = serviceProvider;
         }
 
-        public T Create<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractTesterBase, new()
+        public T Create<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
         {
             return new T()
             {
-                __factory = new TestMethodFactory(_serviceProvider)
+                __factory = new MethodStubFactory(_serviceProvider)
                 {
                     ContractAddress = contractAddress,
                     KeyPair = senderKey

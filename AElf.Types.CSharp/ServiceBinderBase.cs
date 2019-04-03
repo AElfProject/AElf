@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using Google.Protobuf.Reflection;
 
 namespace AElf.Types.CSharp
 {
@@ -39,6 +40,11 @@ namespace AElf.Types.CSharp
             UnaryServerMethod<TRequest, TResponse> handler)
                 where TRequest : class
                 where TResponse : class
+        {
+            throw new NotImplementedException();
+        }
+
+        public virtual void AddDescriptor(ServiceDescriptor descriptor)
         {
             throw new NotImplementedException();
         }
