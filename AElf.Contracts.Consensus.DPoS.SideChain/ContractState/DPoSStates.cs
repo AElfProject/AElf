@@ -12,7 +12,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
     {
         public BoolState Initialized { get; set; }
 
-
         /// <summary>
         /// Current round number.
         /// </summary>
@@ -62,18 +61,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         public MappedState<Int64Value, Miners> MinersMap { get; set; }
 
         /// <summary>
-        /// Tickets of each address (public key).
-        /// public key hex value -> tickets information
-        /// </summary>
-        public MappedState<StringValue, Tickets> TicketsMap { get; set; }
-
-        /// <summary>
-        /// Snapshots of all terms.
-        /// term number -> snapshot
-        /// </summary>
-        public MappedState<Int64Value, TermSnapshot> SnapshotMap { get; set; }
-
-        /// <summary>
         /// Aliases of candidates.
         /// candidate public key hex value -> alias
         /// </summary>
@@ -86,41 +73,8 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         public MappedState<StringValue, StringValue> AliasesLookupMap { get; set; }
 
         /// <summary>
-        /// Histories of all candidates
-        /// candidate public key hex value -> history information
-        /// </summary>
-        public MappedState<StringValue, CandidateInHistory> HistoryMap { get; set; }
-
-        /// <summary>
-        /// blockchain age -> first round number.
-        /// </summary>
-        public MappedState<Int64Value, Int64Value> AgeToRoundNumberMap { get; set; }
-
-        /// <summary>
-        /// Keep tracking of the count of votes.
-        /// </summary>
-        public Int64State VotesCountField { get; set; }
-
-        /// <summary>
-        /// Keep tracking of the count of tickets.
-        /// </summary>
-        public Int64State TicketsCountField { get; set; }
-
-        /// <summary>
-        /// Whether 2/3 of miners mined in current term.
-        /// </summary>
-        public BoolState TwoThirdsMinersMinedCurrentTermField { get; set; }
-
-        /// <summary>
-        /// Transaction Id -> Voting Record.
-        /// </summary>
-        public MappedState<Hash, VotingRecord> VotingRecordsMap { get; set; }
-
-        /// <summary>
         /// Term Number -> First Round Number of this term.
         /// </summary>
         public MappedState<Int64Value, Int64Value> TermToFirstRoundMap { get; set; }
-
-        public Int64State TermNumberFromMainChainField { get; set; }
     }
 }

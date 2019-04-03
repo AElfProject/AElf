@@ -14,6 +14,8 @@ service ConsensusContract {
     // Actions
     rpc InitialConsensus (Round) returns (google.protobuf.Empty) {
     }
+    rpc ConfigStrategy (DPoSStrategyInput) returns (google.protobuf.Empty) {
+    }
     rpc UpdateValue (ToUpdate) returns (google.protobuf.Empty) {
     }
     rpc NextRound (Round) returns (google.protobuf.Empty) {

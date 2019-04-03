@@ -14,48 +14,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
     // ReSharper disable InconsistentNaming
     public partial class ConsensusContract
     {
-        #region InitialDPoS
-
-        public override Empty InitialConsensus(Round input)
-        {
-            Assert(input.RoundNumber == 1, "Incorrect round information: invalid round number.");
-
-            Assert(input.RealTimeMinersInformation.Any(), "Incorrect round information: no miner.");
-
-            InitialSettings(input);
-
-            SetAliases(input);
-
-            input.BlockchainAge = 1;
-
-            Assert(TryToAddRoundInformation(input), "Failed to add round information.");
-
-            return new Empty();
-        }
-
-        private void SetAliases(Round round)
-        {
-            var index = 0;
-            var aliases = DPoSContractConsts.InitialMinersAliases.Split(',');
-            foreach (var publicKey in round.RealTimeMinersInformation.Keys)
-            {
-                if (index >= aliases.Length)
-                    return;
-
-                var alias = aliases[index];
-                SetAlias(publicKey, alias);
-                index++;
-            }
-        }
-
-        public void SetAlias(string publicKey, string alias)
-        {
-            State.AliasesMap[publicKey.ToStringValue()] = alias.ToStringValue();
-            State.AliasesLookupMap[alias.ToStringValue()] = publicKey.ToStringValue();
-        }
-
-        #endregion
-
         #region UpdateValue
 
         public override Empty UpdateValue(ToUpdate input)
@@ -73,7 +31,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             round.RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             round.RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
             round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
- 
+
             round.RealTimeMinersInformation[publicKey].EncryptedInValues.Add(input.EncryptedInValues);
             foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
             {
@@ -81,18 +39,30 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     .Add(publicKey, decryptedPreviousInValue.Value);
             }
 
-            foreach (var recoveredPreviousInValue in input.MinersPreviousInValues)
+            foreach (var previousInValue in input.MinersPreviousInValues)
             {
-                round.RealTimeMinersInformation[recoveredPreviousInValue.Key].PreviousInValue =
-                    recoveredPreviousInValue.Value;
+                if (previousInValue.Key == publicKey)
+                {
+                    continue;
+                }
+
+                var filledValue = round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue;
+                if (filledValue != null && filledValue != previousInValue.Value)
+                {
+                    Context.LogDebug(() => $"Something wrong happened to previous in value of {previousInValue.Key}.");
+                }
+
+                round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;
             }
 
             foreach (var tuneOrder in input.TuneOrderInformation)
             {
-                Context.LogDebug(() => $"Will tune {tuneOrder.Key} order from {round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound} to {tuneOrder.Value}");
+                LogVerbose(
+                    $"Will tune {tuneOrder.Key} order from {round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound} to {tuneOrder.Value}");
                 round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
             }
 
+            LogVerbose($"Previous in value published by {publicKey} himself is {input.PreviousInValue.ToHex()}");
             // For first round of each term, no one need to publish in value.
             if (input.PreviousInValue != Hash.Empty)
             {
@@ -116,13 +86,8 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 Assert(currentRoundNumber < input.RoundNumber, "Incorrect round number for next round.");
             }
 
-            if (currentRoundNumber == 1)
-            {
-                SetBlockchainStartTimestamp(input.GetStartTime().ToTimestamp());
-            }
-
             // Update the age of this blockchain
-            State.AgeField.Value = input.BlockchainAge;
+            UpdateBlockchainAge(input.BlockchainAge);
 
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
             //UpdateHistoryInformation(input);
@@ -130,12 +95,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
             TryToFindLIB();
             return new Empty();
-        }
-        
-        public void SetBlockchainStartTimestamp(Timestamp timestamp)
-        {
-            Context.LogDebug(() => $"Set start timestamp to {timestamp}");
-            State.BlockchainStartTimestamp.Value = timestamp;
         }
 
         private bool TryToUpdateRoundNumber(long roundNumber)
@@ -151,85 +110,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         }
 
         #endregion
-
-        public void TryToFindLIB()
-        {
-            if (CalculateLIB(out var offset))
-            {
-                Context.LogDebug(() => $"LIB found, offset is {offset}");
-                Context.Fire(new IrreversibleBlockFound()
-                {
-                    Offset = offset
-                });
-            }
-        }
-
-        private bool CalculateLIB(out long offset)
-        {
-            offset = 0;
-
-            if (TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                var currentRoundMiners = currentRound.RealTimeMinersInformation;
-
-                var minersCount = currentRoundMiners.Count;
-
-                var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
-
-                if (minersCount == 1)
-                {
-                    // Single node will set every previous block as LIB.
-                    offset = 1;
-                    return true;
-                }
-
-                var validMinersOfCurrentRound = currentRoundMiners.Values.Where(m => m.OutValue != null).ToList();
-                var validMinersCountOfCurrentRound = validMinersOfCurrentRound.Count;
-
-                var senderPublicKey = Context.RecoverPublicKey().ToHex();
-                if (validMinersCountOfCurrentRound >= minimumCount)
-                {
-                    offset = minimumCount;
-                    return true;
-                }
-
-                // Current round is not enough to find LIB.
-
-                var publicKeys = new HashSet<string>(validMinersOfCurrentRound.Select(m => m.PublicKey));
-
-                if (TryToGetPreviousRoundInformation(out var previousRound))
-                {
-                    var preRoundMiners = previousRound.RealTimeMinersInformation.Values.OrderByDescending(m => m.Order)
-                        .Select(m => m.PublicKey).ToList();
-
-                    var traversalBlocksCount = publicKeys.Count;
-
-                    for (var i = 0; i < minersCount; i++)
-                    {
-                        if (++traversalBlocksCount > minersCount)
-                        {
-                            return false;
-                        }
-
-                        var miner = preRoundMiners[i];
-
-                        if (previousRound.RealTimeMinersInformation[miner].OutValue != null)
-                        {
-                            if (!publicKeys.Contains(miner))
-                                publicKeys.Add(miner);
-                        }
-
-                        if (publicKeys.Count >= minimumCount)
-                        {
-                            offset = minimumCount;
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
 
         private bool TryToAddRoundInformation(Round round)
         {
@@ -285,9 +165,11 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 {
                     return false;
                 }
+
                 previousRound = State.RoundsMap[(roundNumber - 1).ToInt64Value()];
                 return !previousRound.IsEmpty();
             }
+
             return false;
         }
 

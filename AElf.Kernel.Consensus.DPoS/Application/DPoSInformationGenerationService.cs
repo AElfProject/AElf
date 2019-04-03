@@ -26,6 +26,8 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         private readonly ConsensusControlInformation _controlInformation;
 
+        private TriggerType _firstTriggerType;
+
         private Hash RandomHash
         {
             get
@@ -60,6 +62,11 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 return new CommandInput {PublicKey = PublicKey};
             }
 
+            if(_firstTriggerType == default)
+            {
+                _firstTriggerType = triggerType;
+            }
+
             if (_controlInformation.ConsensusCommand == null)
             {
                 return new DPoSTriggerInformation
@@ -80,7 +87,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     Behaviour = Hint.Behaviour
                 };
 
-                if (triggerType == TriggerType.BlockHeaderExtraData)
+                if (triggerType == _firstTriggerType)
                 {
                     _latestRandomHash = RandomHash;
                 }

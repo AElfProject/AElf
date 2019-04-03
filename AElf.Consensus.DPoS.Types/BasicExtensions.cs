@@ -122,7 +122,6 @@ namespace AElf.Consensus.DPoS
             round.RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
             if (previousInValue != Hash.Empty)
             {
-                Console.WriteLine("Pre in value updated to: " + previousInValue.ToHex());
                 round.RealTimeMinersInformation[publicKey].PreviousInValue = previousInValue;
             }
 
