@@ -1,4 +1,3 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
@@ -314,6 +313,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool.Benches", "AElf.Kernel.TransactionPool.Benches\AElf.Kernel.TransactionPool.Benches.csproj", "{03B1222C-F06F-47BB-97BE-ED440D944FB9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core.Benches", "AElf.Kernel.Core.Benches\AElf.Kernel.Core.Benches.csproj", "{7FF22A28-9057-4A69-91A6-7F2E93EBF092}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Net.Tests", "AElf.WebApp.Application.Net.Tests\AElf.WebApp.Application.Net.Tests.csproj", "{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Benches", "AElf.Kernel.SmartContractExecution.Benches\AElf.Kernel.SmartContractExecution.Benches.csproj", "{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}"
 EndProject
@@ -771,6 +772,10 @@ Global
 		{7FF22A28-9057-4A69-91A6-7F2E93EBF092}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FF22A28-9057-4A69-91A6-7F2E93EBF092}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FF22A28-9057-4A69-91A6-7F2E93EBF092}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -883,6 +888,7 @@ Global
 		{825D2222-C5A1-43E4-9269-DC1E9B132601} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 		{03B1222C-F06F-47BB-97BE-ED440D944FB9} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 		{7FF22A28-9057-4A69-91A6-7F2E93EBF092} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
+		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1} = {7190E4AA-10F9-419B-B2A2-A4A745787B3A}
 		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 	EndGlobalSection
 EndGlobal
