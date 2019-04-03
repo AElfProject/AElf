@@ -23,19 +23,15 @@ namespace AElf.Contracts.TestKit
 
         public async Task ExecuteAsync(Transaction transaction)
         {
-            var txHub = _serviceProvider.GetRequiredService<ITxHub>();
-            await txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
-            {
-                Transactions = new List<Transaction> {transaction}
-            });
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            var minerService = _serviceProvider.GetRequiredService<IMinerService>();
+            var minerService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
+                new List<Transaction> {transaction},
                 DateTime.UtcNow.AddMilliseconds(int.MaxValue));
-            
+
             await blockAttachService.AttachBlockAsync(block);
         }
 
