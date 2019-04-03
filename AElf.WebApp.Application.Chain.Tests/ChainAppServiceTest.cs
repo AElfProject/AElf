@@ -434,9 +434,15 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task Query_NonExist_Api_Failed()
         {
-            var response = await GetResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/chain/TestMethod",
+            var getResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/chain/TestMethod",
                 HttpStatusCode.NotFound);
-            response.ShouldBeNull();
+            getResponse.ShouldBeNull();
+            var postResponse = await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/chain/TestMethod",new Dictionary<string, string>(),
+                HttpStatusCode.NotFound);
+            postResponse.ShouldBeNull();
+            var deleteResponse = await DeleteResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/chain/TestMethod",
+                HttpStatusCode.NotFound);
+            deleteResponse.ShouldBeNull();
         }
         
         [Fact]
