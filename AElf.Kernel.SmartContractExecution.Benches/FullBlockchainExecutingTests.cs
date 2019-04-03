@@ -16,7 +16,6 @@ namespace AElf.Kernel.SmartContractExecution.Benches
     {
         private IBlockchainService _blockchainService;
         private IBlockchainExecutingService _blockchainExecutingService;
-        private IBlockExecutingService _blockExecutingService;
         private IChainManager _chainManager;
         private OSTestHelper _osTestHelper;
         
@@ -37,7 +36,6 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockchainExecutingService = GetRequiredService<IBlockchainExecutingService>();
-            _blockExecutingService = GetRequiredService<IBlockExecutingService>();
             _chainManager = GetRequiredService<IChainManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             

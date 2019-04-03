@@ -21,8 +21,6 @@ namespace AElf.Kernel.SmartContractExecution.Benches
     {
         private IBlockExecutingService _blockExecutingService;
         private IBlockchainService _blockchainService;
-        private IChainManager _chainManager;
-        private IBlockchainStateMergingService _blockchainStateMergingService;
         private OSTestHelper _osTestHelper;
 
         private List<Transaction> _transactions;
@@ -43,8 +41,6 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
-            _chainManager = GetRequiredService<IChainManager>();
-            _blockchainStateMergingService = GetRequiredService<IBlockchainStateMergingService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             
             _counter = context.GetCounter("TestCounter");

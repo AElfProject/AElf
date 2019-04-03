@@ -5,6 +5,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.SmartContractExecution.Benches
 {
     [DependsOn(
+        typeof(BenchBaseAElfModule),
         typeof(OSCoreWithChainTestAElfModule)
     )]
     public class ExecutionBenchAElfModule: BenchBaseAElfModule
