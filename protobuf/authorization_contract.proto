@@ -11,6 +11,8 @@ option csharp_namespace = "AElf.Contracts.Authorization";
 service AuthorizationContract {
     option (aelf.csharp_state) = "AElf.Contracts.Authorization.AuthorizationContractState";
     // Actions
+    rpc Initialize(AuthorizationContractInitializationInput) returns (google.protobuf.Empty){        
+    }    
     rpc CreateMultiSigAccount (Authorization) returns (Address) {
     }
     rpc Propose (Proposal) returns (Hash) {
@@ -20,7 +22,7 @@ service AuthorizationContract {
     rpc Release (Hash) returns (google.protobuf.Empty) {
     }
     // Views
-    rpc GetProposal(Hash) returns (CheckProposalOutput) {
+    rpc GetProposal(Hash) returns (GetProposalOutput) {
     }
     
     rpc GetAuthorization (Address) returns (Authorization) {
@@ -29,4 +31,17 @@ service AuthorizationContract {
     rpc IsMultiSigAccount (Address) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
+}
+
+message AuthorizationContractInitializationInput{
+    Address genesis = 1;
+    Address director =2;
+    Hash tokenContractSystemName = 3;
+    Hash consensusContractSystemName = 4;
+}
+
+message GetProposalOutput{
+    Proposal proposal = 1;
+    ProposalStatus status = 2;
+    bool canBeReleased = 3;
 }

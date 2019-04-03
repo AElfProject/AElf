@@ -44,6 +44,17 @@ namespace AElf.Contracts.Authorization
 
         #region Actions
 
+        public override Empty Initialize(AuthorizationContractInitializationInput input)
+        {
+            Assert(State.Initialized.Value, "Already initialized.");
+            State.Genesis.Value = Context.GetZeroSmartContractAddress();
+            State.Director.Value = input.Director ?? Context.GetZeroSmartContractAddress();
+            State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
+            State.TokenContractSystemName.Value = input.TokenContractSystemName;
+            State.Initialized.Value = true;
+            return new Empty();
+        }
+
         public override Address CreateMultiSigAccount(Kernel.Authorization input)
         {
             var authorization = input;
@@ -162,14 +173,14 @@ namespace AElf.Contracts.Authorization
             return new Empty();
         }
 
-        public override CheckProposalOutput GetProposal(Hash input)
+        public override GetProposalOutput GetProposal(Hash input)
         {
             var proposalHash = input;
             var proposalInfo = State.Proposals[proposalHash];
             Assert(proposalInfo != null, "Not found proposal.");
 
             var proposal = proposalInfo.Proposal;
-            var result = new CheckProposalOutput
+            var result = new GetProposalOutput
             {
                 Proposal = proposal,
                 CanBeReleased = false

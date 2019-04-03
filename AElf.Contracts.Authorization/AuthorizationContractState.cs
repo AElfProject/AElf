@@ -16,5 +16,12 @@ namespace AElf.Contracts.Authorization
         
         public MappedState<Hash, SInt64Value> ReleasedBlockHeight { get; set; }
         public MappedState<Hash, Approved> Approved { get; set; }
+        
+        public SingletonState<Address> Genesis { get; set; }
+        public SingletonState<Address> Director { get; set; }
+        
+        public SingletonState<Hash> ConsensusContractSystemName { get; set; }
+        public SingletonState<Hash> TokenContractSystemName { get; set; }
+        public BoolState Initialized { get; set; }
     }
 }

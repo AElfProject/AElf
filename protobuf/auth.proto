@@ -3,16 +3,30 @@ syntax = "proto3";
 option csharp_namespace = "AElf.Kernel";
 import "common.proto";
 import "google/protobuf/timestamp.proto";
-message Authorization
-{
-    Address MultiSigAccount = 1;
-    uint32 ExecutionThreshold = 2;
-    uint32 ProposerThreshold = 3;
-    repeated Reviewer Reviewers = 4;
+
+message AssociationAuth{
+    int32 ExecutionThreshold = 1;
+    int32 ProposerThreshold = 2;
+    repeated Reviewer Reviewers = 3;
 }
 
-message Reviewer
-{
+message ReferendumAuth {
+    int32 VoterCountThreshold = 1;
+    int64 VoteAmountThreshold = 2;
+    string VoteSymbol = 3;
+}
+
+message ParliamentAuth {
+    repeated bytes ProposerWhiteList = 1;
+    ParliamentAuthRule Rule =2;
+}
+
+enum ParliamentAuthRule{
+    MAJORITY = 0;
+    TwoThirds = 1;
+}
+
+message Reviewer {
     bytes PubKey = 1;
     uint32 Weight = 2;
 }
@@ -26,20 +40,14 @@ message Proposal {
     Address Proposer = 6;
 }
 
-message CheckProposalOutput{
-    Proposal Proposal = 1;
-    ProposalStatus Status = 2;
-    bool CanBeReleased = 3;
-}
-
 enum ProposalStatus {
     Active = 0;
     Released = 1;
     Expired = 2;
 }
 
-message ProposalInfo{
-    Hash proposalHash = 1;
+message ProposalInfo {
+    Hash ProposalHash = 1;
     Proposal Proposal = 2;
     bool IsRelease = 3;
 }
@@ -49,8 +57,18 @@ message Approved {
     repeated Approval Approvals = 5;
 }
 
-message Approval
-{
+message Approval {
     Hash ProposalHash = 1;
     bytes Signature = 2;
+}
+
+enum AuthPolicyType {
+    ANY = 0;
+    ALL = 1;
+}
+
+message AuthPolicy {
+    AssociationAuth Association = 1;
+    ReferendumAuth Referendum = 2;
+    ParliamentAuth Parliament = 3;
 }
