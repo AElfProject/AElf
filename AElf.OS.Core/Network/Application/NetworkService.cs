@@ -34,7 +34,7 @@ namespace AElf.OS.Network.Application
             return await _peerPool.RemovePeerByAddressAsync(address);
         }
 
-        public List<string> GetPeers()
+        public List<string> GetPeerIpList()
         {
             return _peerPool.GetPeers(true).Select(p => p.PeerIpAddress).ToList();
         }
@@ -198,9 +198,5 @@ namespace AElf.OS.Network.Application
             return Task.FromResult(peer?.CurrentBlockHeight ?? 0);
         }
 
-        /*public async Task<Hash> FindLastLastIrreversibleBlockHash()
-        {
-            var peers = _peerPool.GetPeers();
-        }*/
     }
 }

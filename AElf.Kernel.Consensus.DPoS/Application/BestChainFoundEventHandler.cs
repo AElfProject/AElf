@@ -23,6 +23,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
+            //TODO: should call in task queue
             await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(eventData.ExecutedBlocks);
         }
     }

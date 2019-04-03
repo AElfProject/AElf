@@ -133,7 +133,6 @@ namespace AElf.OS.Network.Grpc
             if (peerInPool != null)
             {
                 peerInPool.HandlerRemoteAnnounce(an);
-                
             }
 
             Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");

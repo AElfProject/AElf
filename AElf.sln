@@ -314,6 +314,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Net
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Benches", "AElf.Kernel.SmartContractExecution.Benches\AElf.Kernel.SmartContractExecution.Benches.csproj", "{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Consensus.DPos", "AElf.OS.Consensus.DPos\AElf.OS.Consensus.DPos.csproj", "{788482AC-4654-4BBD-BF2C-F32800F32E99}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -768,6 +770,10 @@ Global
 		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{788482AC-4654-4BBD-BF2C-F32800F32E99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{788482AC-4654-4BBD-BF2C-F32800F32E99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{788482AC-4654-4BBD-BF2C-F32800F32E99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{788482AC-4654-4BBD-BF2C-F32800F32E99}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -876,5 +882,6 @@ Global
 		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1} = {7190E4AA-10F9-419B-B2A2-A4A745787B3A}
 		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 		{E2399D77-4A00-45AB-910C-2545C6B2E7AD} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{788482AC-4654-4BBD-BF2C-F32800F32E99} = {BC510DE7-274F-4C8B-BCBB-A9E18627ED05}
 	EndGlobalSection
 EndGlobal
