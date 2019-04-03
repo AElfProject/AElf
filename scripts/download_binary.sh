@@ -13,7 +13,7 @@ fi
 
 plugin="${scriptdir}/contract_csharp_plugin"
 
-version="v1.0.0"
+version="v1.0.1"
 
 if [[ ! -f ${plugin} ]]; then
     if [ $osn == "macosx" ]; then
