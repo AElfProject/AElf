@@ -105,7 +105,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1227")]
+        [Fact]
         public async Task FeeReceiver_Burn()
         {
             //Give FeeReceiver address some token for burn operation

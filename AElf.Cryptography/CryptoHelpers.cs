@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -20,6 +21,8 @@ using Org.BouncyCastle.Security;
 using Secp256k1Net;
 using Virgil.Crypto;
 using ECParameters = AElf.Cryptography.ECDSA.ECParameters;
+
+[assembly: InternalsVisibleTo("AElf.Cryptography.Tests")]
 
 namespace AElf.Cryptography
 {
@@ -163,7 +166,7 @@ namespace AElf.Cryptography
         /// <summary>
         /// Returns a byte array of the specified length, filled with random bytes.
         /// </summary>
-        public static byte[] RandomFill(int count)
+        internal static byte[] RandomFill(int count)
         {
             var rnd = new Random();
             var random = new byte[count];
