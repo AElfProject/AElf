@@ -30,7 +30,7 @@ namespace AElf.Contracts.TestKit
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 new List<Transaction> {transaction},
-                DateTime.UtcNow.AddMilliseconds(int.MaxValue));
+                DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
 
             await blockAttachService.AttachBlockAsync(block);
         }
@@ -40,6 +40,7 @@ namespace AElf.Contracts.TestKit
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
             var transactionReadOnlyExecutionService =
                 _serviceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
+            var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
 
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
@@ -48,7 +49,7 @@ namespace AElf.Contracts.TestKit
                     BlockHeight = preBlock.Height
                 },
                 transaction,
-                DateTime.UtcNow);
+                blockTimeProvider.GetBlockTime());
 
             return transactionTrace.ReturnValue;
         }

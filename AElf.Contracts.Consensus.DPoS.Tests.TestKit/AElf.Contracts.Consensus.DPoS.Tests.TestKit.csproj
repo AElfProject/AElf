@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+
+        <IsPackable>false</IsPackable>
+
+        <RootNamespace>AElf.Contracts.Consensus.DPoS</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+        <PackageReference Include="Shouldly" Version="3.0.2" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
+      <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="..\protobuf\aelf_options.proto">
+            <Link>Protobuf/Proto/aelf_options.proto</Link>
+        </Content>
+        <Content Include="..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+        </Content>
+        <Content Include="..\protobuf\common.proto">
+            <Link>Protobuf/Proto/common.proto</Link>
+        </Content>
+        <Content Include="..\protobuf\consensus.proto">
+            <Link>Protobuf/Proto/consensus.proto</Link>
+        </Content>
+        <Content Include="..\protobuf\consensus_dpos.proto">
+            <Link>Protobuf/Proto/consensus_dpos.proto</Link>
+        </Content>
+        <Content Include="..\protobuf\dividend_contract.proto">
+            <Link>Protobuf/Proto/dividend_contract.proto</Link>
+        </Content>
+        <Content Include="..\protobuf\dpos_contract.proto">
+            <Link>Protobuf/Proto/dpos_contract.proto</Link>
+        </Content>
+        <Content Include="..\protobuf\kernel.proto">
+            <Link>Protobuf/Proto/kernel.proto</Link>
+        </Content>
+    </ItemGroup>
+    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_stub.sh dpos_contract.proto basic_contract_zero.proto dividend_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\scripts\generate_contract_stub.bat dpos_contract.proto basic_contract_zero.proto dividend_contract.proto" />
+    </Target>
+    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Compile Include="./Protobuf/Generated/*.cs" />
+        </ItemGroup>
+    </Target>
+
+</Project>

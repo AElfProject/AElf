@@ -40,7 +40,8 @@ namespace AElf.Kernel.Services
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime time)
+        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime dateTime,
+            TimeSpan timeSpan)
         {
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
             var pending = new List<Transaction>();
@@ -55,7 +56,7 @@ namespace AElf.Kernel.Services
                                   $"best chain hash {previousBlockHash}.");
             }
 
-            return await _miningService.MineAsync(previousBlockHash, previousBlockHeight, pending, time);
+            return await _miningService.MineAsync(previousBlockHash, previousBlockHeight, pending, dateTime, timeSpan);
         }
     }
 
@@ -116,13 +117,13 @@ namespace AElf.Kernel.Services
         /// Generate block
         /// </summary>
         /// <returns></returns>
-        private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight)
+        private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight, DateTime expectedMiningTime)
         {
             var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
             {
                 PreviousBlockHash = preBlockHash,
                 PreviousBlockHeight = preBlockHeight,
-                BlockTime = DateTime.UtcNow
+                BlockTime = expectedMiningTime
             });
             return block;
         }
@@ -134,16 +135,16 @@ namespace AElf.Kernel.Services
         }
 
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight,
-            List<Transaction> transactions, DateTime time)
+            List<Transaction> transactions, DateTime blockTime, TimeSpan timeSpan)
         {
-            var block = await GenerateBlock(previousBlockHash, previousBlockHeight);
+            var block = await GenerateBlock(previousBlockHash, previousBlockHeight, blockTime);
             var systemTransactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
 
             var pending = transactions;
 
             using (var cts = new CancellationTokenSource())
             {
-                cts.CancelAfter(time - DateTime.UtcNow);
+                cts.CancelAfter(timeSpan);
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
             }

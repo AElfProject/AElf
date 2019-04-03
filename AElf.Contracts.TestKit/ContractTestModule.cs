@@ -40,6 +40,7 @@ namespace AElf.Contracts.TestKit
             context.Services.AddTransient(o => Mock.Of<IAccountService>());
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
             context.Services.AddTransient<ITransactionExecutor, TransactionExecutor>();
+            context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
         }
 
         public int ChainId { get; } = 500;

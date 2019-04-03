@@ -55,7 +55,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 Logger.LogWarning(
                     $"Attempting to retrieve executable transactions while best chain records don't macth.");
-                return new ExecutableTransactionSet()
+                return new ExecutableTransactionSet
                 {
                     PreviousBlockHash = _bestChainHash,
                     PreviousBlockHeight = _bestChainHeight

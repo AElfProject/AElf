@@ -31,9 +31,12 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             var byteString = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
             if (byteString.IsEmpty)
                 return true;
-            
-            var result = await _consensusService.ValidateConsensusBeforeExecutionAsync(block.Header.PreviousBlockHash,
-                block.Height - 1, byteString.ToByteArray());
+
+            var result = await _consensusService.ValidateConsensusBeforeExecutionAsync(new ChainContext
+            {
+                BlockHash = block.Header.PreviousBlockHash,
+                BlockHeight = block.Height - 1
+            }, byteString.ToByteArray());
             return result;
         }
 
@@ -53,8 +56,11 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             if (byteString.IsEmpty)
                 return true;
             
-            var result = await _consensusService.ValidateConsensusAfterExecutionAsync(block.Header.PreviousBlockHash,
-                block.Height - 1, byteString.ToByteArray());
+            var result = await _consensusService.ValidateConsensusAfterExecutionAsync(new ChainContext
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            }, byteString.ToByteArray());
             return result;
         }
     }

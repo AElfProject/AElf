@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -307,6 +307,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.TestBase", "AElf.WebApp.Application.TestBase\AElf.WebApp.Application.TestBase.csproj", "{89992897-D2C2-48BE-959B-6E996E82F87F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Chain.Tests", "AElf.WebApp.Application.Chain.Tests\AElf.WebApp.Application.Chain.Tests.csproj", "{899AC6DB-FD44-4E7B-89DB-5400891AC80A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.Tests.TestKit", "AElf.Contracts.Consensus.DPoS.Tests.TestKit\AElf.Contracts.Consensus.DPoS.Tests.TestKit.csproj", "{E2399D77-4A00-45AB-910C-2545C6B2E7AD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Net.Tests", "AElf.WebApp.Application.Net.Tests\AElf.WebApp.Application.Net.Tests.csproj", "{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}"
 EndProject
@@ -762,6 +764,10 @@ Global
 		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -869,5 +875,6 @@ Global
 		{899AC6DB-FD44-4E7B-89DB-5400891AC80A} = {7190E4AA-10F9-419B-B2A2-A4A745787B3A}
 		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1} = {7190E4AA-10F9-419B-B2A2-A4A745787B3A}
 		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
+		{E2399D77-4A00-45AB-910C-2545C6B2E7AD} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal
