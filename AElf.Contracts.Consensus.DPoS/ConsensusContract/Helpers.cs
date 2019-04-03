@@ -32,8 +32,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private void UpdateBlockchainAge(long age)
         {
-            Assert(State.AgeField.Value <= age,
-                ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed, "Cannot decrease blockchain age."));
+            //Assert(State.AgeField.Value <= age,
+                //ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed, "Cannot decrease blockchain age."));
             State.AgeField.Value = age;
         }
 

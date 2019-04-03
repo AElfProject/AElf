@@ -23,8 +23,9 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact(Skip = "Rewrite")]
         public async Task NormalBlock_GetNewConsensusInformation()
         {
+            var startTime = DateTime.UtcNow.ToTimestamp();
             var testers = new ConsensusTesters();
-            testers.InitialTesters();
+            testers.InitialTesters(startTime);
 
             var inValue = Hash.Generate();
             var outValue = Hash.FromMessage(inValue);
@@ -45,8 +46,9 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task NormalBlock_ValidationConsensus_Success()
         {
+            var startTime = DateTime.UtcNow.ToTimestamp();
             var testers = new ConsensusTesters();
-            testers.InitialTesters();
+            testers.InitialTesters(startTime);
 
             var inValue = Hash.Generate();
             var triggerInformationForNormalBlock =
@@ -65,8 +67,9 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact(Skip = "Rewrite")]
         public async Task NormalBlock_GenerateConsensusTransactions()
         {
+            var startTime = DateTime.UtcNow.ToTimestamp();
             var testers = new ConsensusTesters();
-            testers.InitialTesters();
+            testers.InitialTesters(startTime);
             
             var inValue = Hash.Generate();
             var triggerInformationForNormalBlock =
@@ -84,8 +87,9 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task NextRound_GetConsensusCommand()
         {
+            var startTime = DateTime.UtcNow.ToTimestamp();
             var testers = new ConsensusTesters();
-            testers.InitialTesters();
+            testers.InitialTesters(startTime);
 
             // Act
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 1).ToTimestamp();
@@ -100,8 +104,9 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task NextRound_GetNewConsensusInformation()
         {
+            var startTime = DateTime.UtcNow.ToTimestamp();
             var testers = new ConsensusTesters();
-            testers.InitialTesters();
+            testers.InitialTesters(startTime);
 
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000).ToTimestamp();
             var triggerInformationForNextRoundOrTerm =
@@ -118,8 +123,9 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task NextRound_GenerateConsensusTransactions()
         {
+            var startTime = DateTime.UtcNow.ToTimestamp();
             var testers = new ConsensusTesters();
-            testers.InitialTesters();
+            testers.InitialTesters(startTime);
 
             var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000).ToTimestamp();
             var triggerInformationForNextRoundOrTerm =
@@ -287,7 +293,8 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey)),
                 PreviousRandomHash = previousRandomHash,
-                RandomHash = randomHash
+                RandomHash = randomHash,
+                Behaviour = DPoSBehaviour.UpdateValue
             };
         }
 
@@ -296,6 +303,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new DPoSTriggerInformation
             {
                 PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey)),
+                Behaviour = DPoSBehaviour.NextRound
             };
         }
     }
@@ -315,7 +323,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public Address ConsensusContractAddress { get; set; }
 
-        public void InitialTesters()
+        public void InitialTesters(Timestamp blockchainStartTime)
         {
             for (var i = 0; i < MinersCount; i++)
             {
@@ -327,7 +335,8 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 var tester = new ContractTester<DPoSContractTestAElfModule>(ChainId, minersKeyPair);
                 AsyncHelper.RunSync(() =>
-                    tester.InitialCustomizedChainAsync(MinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList()));
+                    tester.InitialCustomizedChainAsync(MinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList(), 4000,
+                        blockchainStartTime));
                 Testers.Add(tester);
             }
 

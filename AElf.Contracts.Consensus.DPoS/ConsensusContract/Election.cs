@@ -17,12 +17,12 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override ActionResult AnnounceElection(Alias input)
         {
-            if (State.DividendContract.Value.Value.IsEmpty)
+            if (State.DividendContract.Value == null)
             {
                 State.DividendContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
             }
-            if (State.TokenContract.Value.Value.IsEmpty)
+            if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);

@@ -471,8 +471,11 @@ namespace AElf.Contracts.Consensus.DPoS
                         Symbol = "ELF"
                     }));
                 announceElectionTxs.Add(await starter.GenerateTransactionAsync(starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.AnnounceElection),
-                    candidateKeyPair, new Alias() {Value = $"{i}"}));
+                    nameof(ConsensusContract.AnnounceElection), candidateKeyPair,
+                    new Alias
+                    {
+                        Value = $"{candidateKeyPair.PublicKey.ToHex().Substring(0, DPoSContractConsts.AliasLimit)}"
+                    }));
                 candidatesKeyPairs.Add(candidateKeyPair);
             }
 

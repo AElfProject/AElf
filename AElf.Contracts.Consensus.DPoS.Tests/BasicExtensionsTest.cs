@@ -103,7 +103,6 @@ namespace AElf.Contracts.Consensus.DPoS
             isTimeSlotPassed.ShouldBe(false);
         }
 
-        // TODO: Need further test.
         [Fact]
         public void ArrangeAbnormalMiningTimeTest()
         {

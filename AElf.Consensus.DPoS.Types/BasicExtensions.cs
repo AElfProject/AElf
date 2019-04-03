@@ -364,8 +364,6 @@ namespace AElf.Consensus.DPoS
             return Hash.FromString(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
         }
 
-
-
         public static long GetMinedBlocks(this Round round)
         {
             return round.RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
