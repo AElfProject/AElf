@@ -103,11 +103,15 @@ namespace AElf.Runtime.CSharp
         {
             await ExecuteMainTransaction();
 //            MaybeInsertFeeTransaction();
-            foreach (var executivePlugin in _executivePlugins)
+            if (CurrentTransactionContext.CallDepth == 0)
             {
-                // TODO: Change executive plugin to use this executive
+                // Plugin should only apply to top level transaction
+                foreach (var executivePlugin in _executivePlugins)
+                {
+                    // TODO: Change executive plugin to use this executive
 //                executivePlugin.AfterApply(_contractInstance, 
 //                    _hostSmartContractBridgeContext, ExecuteReadOnlyHandler);
+                }                
             }
         }
 
