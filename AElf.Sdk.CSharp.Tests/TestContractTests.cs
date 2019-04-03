@@ -30,8 +30,7 @@ namespace AElf.Sdk.CSharp.Tests
                 {
                     ContractAddress = AddressList[0],
                 });
-            Contract.InternalInitialize(BridgeContext);
-
+            
             var transactionContext = new TransactionContext()
             {
                 Transaction = new Transaction()
@@ -42,6 +41,8 @@ namespace AElf.Sdk.CSharp.Tests
             };
 
             BridgeContext.TransactionContext = transactionContext;
+            
+            Contract.InternalInitialize(BridgeContext);
         }
 
         [Fact]
@@ -254,6 +255,24 @@ namespace AElf.Sdk.CSharp.Tests
             tradeMessage.Timestamp.ShouldNotBeNull();
             tradeMessage.FromAmount.ShouldBe(100);
             tradeMessage.ToAmount.ShouldBe(758);
+        }
+        
+        [Fact]
+        public void SendVirtualInline_Test()
+        {
+            BridgeContext.SendVirtualInline(Hash.Generate(), Address.Generate(), "TestMethod", new CustomContract.StringInput
+            {
+                StringValue = "test send virtual inline"
+            });
+        }
+
+        [Fact]
+        public void SendInline_Test()
+        {
+            BridgeContext.SendInline(Address.Generate(), "TestMethod", new CustomContract.StringInput
+            {
+                StringValue = "test send inline"
+            });
         }
     }
 }

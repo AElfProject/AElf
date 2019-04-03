@@ -25,6 +25,10 @@ namespace AElf.Kernel.Types.Tests
 
             var hashByte = blockHeader.GetHashBytes();
             hashByte.ShouldNotBe(null);
+
+            var hash1 = blockHeader.GetHashWithoutCache();
+            hash1.ShouldNotBeNull();
+            hash1.ShouldBe(hash);
         }
 
         [Fact]
@@ -52,6 +56,20 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
+        public void BlockIndex_Test()
+        {
+            var blockIndex = new BlockIndex();
+            blockIndex.Hash = Hash.Empty;
+            blockIndex.Height = 1L;
+            
+            var blockIndex1 = new BlockIndex(Hash.Empty, 1L);
+            
+            blockIndex.ToString().ShouldBe(blockIndex1.ToString());
+            blockIndex.ToString().Contains(Hash.Empty.ToString()).ShouldBeTrue();
+            blockIndex.ToString().Contains("1").ShouldBeTrue();
+        }
+
+        [Fact]
         public void BlockBody_Hash_Test()
         {
             var block = CreateBlock(Hash.Generate(), 0, 10);
@@ -71,6 +89,9 @@ namespace AElf.Kernel.Types.Tests
 
             var hash = block.GetHash();
             hash.ShouldNotBe(null);
+
+            var hash1 = block.GetHashWithoutCache();
+            hash.ShouldBe(hash1);
 
             var hashBytes = block.GetHashBytes();
             hashBytes.ShouldNotBe(null);
