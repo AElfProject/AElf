@@ -18,14 +18,14 @@ using Xunit;
 
 namespace AElf.Kernel.Consensus.DPoS
 {
-    public class DPoSInformationGenerationServiceTests: DPoSConsensusTestBase
+    public class DPoSInformationGenerationServiceTests : DPoSConsensusTestBase
     {
         private readonly IAccountService _accountService;
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ECKeyPair _minerKeyPair;
-        
+
         public DPoSInformationGenerationServiceTests()
         {
             _minerKeyPair = CryptoHelpers.GenerateKeyPair();
@@ -40,7 +40,8 @@ namespace AElf.Kernel.Consensus.DPoS
         public void GetTriggerInformation_ConsensusCommand_IsNull()
         {
             var dPoSTriggerInformation =
-                (CommandInput) _consensusInformationGenerationService.GetTriggerInformation(TriggerType.ConsensusCommand);
+                (CommandInput) _consensusInformationGenerationService.GetTriggerInformation(
+                    TriggerType.ConsensusCommand);
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(_accountService.GetPublicKeyAsync().Result.ToHex());
         }
 
@@ -49,31 +50,36 @@ namespace AElf.Kernel.Consensus.DPoS
         {
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
-            
-            var dPoSTriggerInformation = 
-                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType.ConsensusCommand);
+
+            var dPoSTriggerInformation =
+                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
+                    .ConsensusCommand);
             dPoSTriggerInformation.RandomHash.ShouldNotBeNull();
         }
-        
+
         [Fact(Skip = "Need to rewrite")]
         public void GetTriggerInformation__ConsensusCommand_NextRound()
         {
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextRound);
-            
-            var dPoSTriggerInformation = (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType.ConsensusCommand);
-            var publicKey = AsyncHelper.RunSync(()=> _accountService.GetPublicKeyAsync());
+
+            var dPoSTriggerInformation =
+                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
+                    .ConsensusCommand);
+            var publicKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }
-        
+
         [Fact(Skip = "Need to rewrite")]
         public void GetTriggerInformation__ConsensusCommand_NextTerm()
         {
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextTerm);
-            
-            var dPoSTriggerInformation = (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType.ConsensusCommand);
-            var publicKey = AsyncHelper.RunSync(()=> _accountService.GetPublicKeyAsync());
+
+            var dPoSTriggerInformation =
+                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
+                    .ConsensusCommand);
+            var publicKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }
 
@@ -87,7 +93,7 @@ namespace AElf.Kernel.Consensus.DPoS
                     Hint = ByteString.CopyFrom(new DPoSHint
                     {
                         Behaviour = behavior
-                    }.ToByteArray()) 
+                    }.ToByteArray())
                 }
             };
 
@@ -95,4 +101,4 @@ namespace AElf.Kernel.Consensus.DPoS
                 _transactionReadOnlyExecutionService);
         }
     }
-]
+}
