@@ -48,8 +48,8 @@
     </Content>
   </ItemGroup>
   <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-    <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_tester.sh basic_contract_zero.proto" />
-    <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\scripts\generate_contract_tester.bat basic_contract_zero.proto" />
+    <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_stub.sh basic_contract_zero.proto" />
+    <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\scripts\generate_contract_stub.bat basic_contract_zero.proto" />
   </Target>
   <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
     <ItemGroup>

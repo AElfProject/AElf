@@ -25,7 +25,6 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
-        typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
 
         //TODO: should move to OSAElfModule

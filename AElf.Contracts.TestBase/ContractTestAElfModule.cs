@@ -22,7 +22,6 @@ namespace AElf.Contracts.TestBase
     [Obsolete("Deprecated. Use AElf.Contracts.TestKit for contract testing.")]
     [DependsOn(
         typeof(CSharpRuntimeAElfModule),
-        typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule),
         typeof(KernelTestAElfModule)
     )]

@@ -38,13 +38,4 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
         }
     }
-
-    public static class BlockAttachServiceExtensions
-    {
-        public static void EnqueueAttachBlock(this IBlockAttachService blockAttachService, ITaskQueue taskQueue,
-            Block block)
-        {
-            taskQueue.Enqueue(async () => { await blockAttachService.AttachBlockAsync(block); });
-        }
-    }
 }
