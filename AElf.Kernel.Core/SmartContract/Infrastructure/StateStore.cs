@@ -45,10 +45,10 @@ namespace AElf.Kernel.SmartContract.Infrastructure
 
         public async Task<T> GetAsync(string key)
         {
-            /*if (_cache.TryGetValue(key, out var item))
+            if (_cache.TryGetValue(key, out var item))
             {
                 return item;
-            }*/
+            }
 
             _toBeCleanedKeys.Enqueue(key);
             while (_toBeCleanedKeys.Count > 100)
