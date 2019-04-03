@@ -2,40 +2,36 @@ using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 
 namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
 {
-    public class MethodStubFactory:IMethodStubFactory
+    public class MethodStubFactory : IMethodStubFactory
     {
-        private readonly Func<Transaction, TransactionTrace> _readOnlyExecutor;
-        private readonly Address _selfAddress;
+        private readonly IHostSmartContractBridgeContext _context;
 
-        public MethodStubFactory(Func<Transaction, TransactionTrace> readOnlyExecutor, Address selfAddress)
+        public MethodStubFactory(IHostSmartContractBridgeContext context)
         {
-            _readOnlyExecutor = readOnlyExecutor;
-            _selfAddress = selfAddress;
+            _context = context;
         }
-        public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method) where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
+
+        public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
+            where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {
             async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
             {
                 throw new NotSupportedException();
             }
 
+            var context = _context;
+
             async Task<TOutput> CallAsync(TInput input)
             {
-                var transaction = new Transaction()
-                {
-                    From = Address.Zero,
-                    To = _selfAddress,
-                    MethodName = method.Name,
-                    Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
-                };
-                var trace = _readOnlyExecutor(transaction);
-                var returnValue = trace.ReturnValue;
-                return method.ResponseMarshaller.Deserializer(returnValue.ToByteArray());
+                return _context.Call<TOutput>(context.StateProvider.Cache, context.Self, method.Name,
+                    input.ToByteString());
             }
 
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync);

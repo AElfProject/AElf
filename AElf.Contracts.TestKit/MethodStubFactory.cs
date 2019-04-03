@@ -34,7 +34,7 @@ namespace AElf.Contracts.TestKit
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
-            where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
+            where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {
             async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
             {

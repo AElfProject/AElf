@@ -8,6 +8,6 @@ namespace AElf.Kernel.SmartContract.Infrastructure
 {
     public interface IExecutivePlugin
     {
-        void AfterApply(ServerServiceDefinition definition, IHostSmartContractBridgeContext context, Func<Transaction, TransactionTrace> readOnlyExecutor);
+        void PostMain(IHostSmartContractBridgeContext context, ServerServiceDefinition definition);
     }
 }

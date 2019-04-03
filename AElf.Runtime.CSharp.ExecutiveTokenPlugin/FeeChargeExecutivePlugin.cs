@@ -26,8 +26,7 @@ namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
             return binder.GetDescriptors().Any(service => service.File.GetIndentity() == "acs1");
         }
 
-        //TODO: Add FeeChargeExecutivePlugin->AfterApply test case [Case]
-        public void AfterApply(ServerServiceDefinition definition, IHostSmartContractBridgeContext context, Func<Transaction, TransactionTrace> readOnlyExecutor)
+        public void PostMain(IHostSmartContractBridgeContext context, ServerServiceDefinition definition)
         {
             if (!IsAcs1(definition))
             {
@@ -36,7 +35,7 @@ namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
 
             var stub = new FeeChargedContractContainer.FeeChargedContractStub()
             {
-                __factory = new MethodStubFactory(readOnlyExecutor, context.Self)
+                __factory = new MethodStubFactory(context)
             };
 
             var fee = stub.GetMethodFee.CallAsync(new GetMethodFeeInput()
@@ -50,7 +49,11 @@ namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
                 To = context.GetContractAddressByName(
                     TokenSmartContractAddressNameProvider.Name),
                 MethodName = nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees),
-                Params = new ChargeTransactionFeesInput(){Amount = fee, Symbol = "ELF"}.ToByteString() // Temporary hardcode
+                Params = new ChargeTransactionFeesInput()
+                {
+                    Amount = fee,
+                    Symbol = "ELF" // Temporary hardcode symbol
+                }.ToByteString()
             });
         }
     }

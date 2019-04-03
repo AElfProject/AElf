@@ -20,7 +20,6 @@ namespace AElf.Contracts.TestKit
 {
     [DependsOn(
         typeof(CSharpRuntimeAElfModule),
-        typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule),
         typeof(KernelTestAElfModule)
     )]
