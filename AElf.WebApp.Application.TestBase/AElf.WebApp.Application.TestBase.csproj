@@ -10,7 +10,6 @@
 
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.6.0" />
-        <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />

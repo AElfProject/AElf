@@ -21,7 +21,6 @@ namespace AElf.Kernel
             return _blockBodyHash;
         }
 
-        //TODO: Add GetHash test case [Case]
         /// <inheritdoc/>
         public Hash GetHash()
         {
