@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package acs1;
+
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+
+option (aelf.identity) = "acs1";
+
+service FeeChargedContract {
+    // Actions
+    rpc SetMethodFee (SetMethodFeeInput) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetMethodFee (GetMethodFeeInput) returns (GetMethodFeeOutput) {
+        option (aelf.is_view) = true;
+    }
+
+}
+
+message GetMethodFeeInput {
+    string method = 1;
+}
+
+message GetMethodFeeOutput {
+    string method = 1;
+    sint64 fee = 2;
+}
+
+message SetMethodFeeInput {
+    string method = 1;
+    sint64 fee = 2;
+}
+
+// Events
+message MethodFeeSet {
+    option (aelf.is_event) = true;
+    string method = 1;
+    sint64 oldFee = 2;
+    sint64 newFee = 3;
+}
