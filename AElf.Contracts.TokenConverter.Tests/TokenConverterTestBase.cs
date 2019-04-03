@@ -26,12 +26,12 @@ namespace AElf.Contracts.TokenConverter
         
         protected Address TokenConverterContractAddress;
         
-        internal BasicContractZeroContainer.BasicContractZeroTester ContractZeroTester =>
-            GetTester<BasicContractZeroContainer.BasicContractZeroTester>(ContractZeroAddress, DefaultSenderKeyPair);
+        internal BasicContractZeroContainer.BasicContractZeroStub ContractZeroStub =>
+            GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, DefaultSenderKeyPair);
 
-        internal TokenContractContainer.TokenContractTester TokenContractTester;
+        internal TokenContractContainer.TokenContractStub TokenContractStub;
         
-        internal TokenConverterContractContainer.TokenConverterContractTester DefaultTester;
+        internal TokenConverterContractContainer.TokenConverterContractStub DefaultStub;
         
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
@@ -45,16 +45,16 @@ namespace AElf.Contracts.TokenConverter
         {
             {
                 // TokenContract
-                var result = await ContractZeroTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
+                var result = await ContractZeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput()
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
                 });
                 TokenContractAddress = result.Output;
-                TokenContractTester =
-                    GetTester<TokenContractContainer.TokenContractTester>(TokenContractAddress, DefaultSenderKeyPair);
+                TokenContractStub =
+                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
-                await TokenContractTester.Create.SendAsync(new CreateInput()
+                await TokenContractStub.Create.SendAsync(new CreateInput()
                 {
                     Symbol = "ELF",
                     Decimals = 2,
@@ -63,7 +63,7 @@ namespace AElf.Contracts.TokenConverter
                     TotalSupply = 1000_0000L,
                     Issuer = DefaultSender
                 });
-                await TokenContractTester.Issue.SendAsync(new IssueInput()
+                await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
                     Symbol = "ELF",
                     Amount = 1000_000L,
@@ -73,20 +73,20 @@ namespace AElf.Contracts.TokenConverter
             }
             {
                 // TokenConverterContract
-                var result = await ContractZeroTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
+                var result = await ContractZeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput()
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenConverterContract).Assembly.Location))
                 });
                 TokenConverterContractAddress = result.Output;
-                DefaultTester = GetTester<TokenConverterContractContainer.TokenConverterContractTester>(
+                DefaultStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, DefaultSenderKeyPair);
             }
         }
 
         protected async Task<long> GetBalanceAsync(string symbol, Address owner)
         {
-            var balanceResult = await TokenContractTester.GetBalance.CallAsync(
+            var balanceResult = await TokenContractStub.GetBalance.CallAsync(
                 new GetBalanceInput()
                 {
                     Owner = owner,

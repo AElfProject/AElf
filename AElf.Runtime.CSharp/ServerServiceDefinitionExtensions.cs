@@ -18,6 +18,7 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Google.Protobuf.Reflection;
 
 namespace AElf.Types.CSharp
 {
@@ -33,11 +34,19 @@ namespace AElf.Types.CSharp
             return binder.GetCallHandlers();
         }
 
+        internal static IReadOnlyList<ServiceDescriptor> GetDescriptors(this ServerServiceDefinition serviceDefinition)
+        {
+            var binder = new DefaultServiceBinder();
+            serviceDefinition.BindService(binder);
+            return binder.GetDescriptors();
+        }
+
         /// <summary>
         /// Helper for converting <c>ServerServiceDefinition</c> to server call handlers.
         /// </summary>
         private class DefaultServiceBinder : ServiceBinderBase
         {
+            readonly List<ServiceDescriptor> descriptors = new List<ServiceDescriptor>();
             readonly Dictionary<string, IServerCallHandler> callHandlers = new Dictionary<string, IServerCallHandler>();
 
             internal ReadOnlyDictionary<string, IServerCallHandler> GetCallHandlers()
@@ -45,11 +54,21 @@ namespace AElf.Types.CSharp
                 return new ReadOnlyDictionary<string, IServerCallHandler>(this.callHandlers);
             }
 
+            internal IReadOnlyList<ServiceDescriptor> GetDescriptors()
+            {
+                return descriptors.AsReadOnly();
+            }
+
             public override void AddMethod<TRequest, TResponse>(
                 Method<TRequest, TResponse> method,
                 UnaryServerMethod<TRequest, TResponse> handler)
             {
                 callHandlers.Add(method.Name, ServerCalls.UnaryCall(method, handler));
+            }
+
+            public override void AddDescriptor(ServiceDescriptor descriptor)
+            {
+                descriptors.Add(descriptor);
             }
         }
     }

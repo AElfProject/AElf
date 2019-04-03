@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Contracts.Authorization;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividend;
@@ -28,7 +26,6 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -135,12 +132,12 @@ namespace AElf.Contracts.TestBase
             KeyPair = keyPair;
         }
 
-        private ContractTester(IAbpApplicationWithInternalServiceProvider application, int chainId)
-        {
-            application.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
-
-            Application = application;
-        }
+//        private ContractTester(IAbpApplicationWithInternalServiceProvider application, int chainId)
+//        {
+//            application.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
+//
+//            Application = application;
+//        }
 
         /// <summary>
         /// Use default chain id.
@@ -228,20 +225,20 @@ namespace AElf.Contracts.TestBase
             await osBlockchainNodeContextService.StartAsync(dto);
         }
 
-        /// <summary>
-        /// Use randomized ECKeyPair.
-        /// </summary>
-        /// <param name="chainId"></param>
-        public ContractTester(int chainId)
-        {
-            Application =
-                AbpApplicationFactory.Create<TContractTestAElfModule>(options =>
-                {
-                    options.UseAutofac();
-                    options.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
-                });
-            Application.Initialize();
-        }
+//        /// <summary>
+//        /// Use randomized ECKeyPair.
+//        /// </summary>
+//        /// <param name="chainId"></param>
+//        public ContractTester(int chainId)
+//        {
+//            Application =
+//                AbpApplicationFactory.Create<TContractTestAElfModule>(options =>
+//                {
+//                    options.UseAutofac();
+//                    options.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
+//                });
+//            Application.Initialize();
+//        }
 
         /// <summary>
         /// Same chain, different key pair.
@@ -253,21 +250,21 @@ namespace AElf.Contracts.TestBase
             return new ContractTester<TContractTestAElfModule>(Application, keyPair);
         }
 
-        /// <summary>
-        /// Same key pair, different chain.
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <returns></returns>
-        public ContractTester<TContractTestAElfModule> CreateNewContractTester(int chainId)
-        {
-            return new ContractTester<TContractTestAElfModule>(Application, chainId);
-        }
-
-        public async Task<byte[]> GetPublicKeyAsync()
-        {
-            var accountService = Application.ServiceProvider.GetRequiredService<IAccountService>();
-            return await accountService.GetPublicKeyAsync();
-        }
+//        /// <summary>
+//        /// Same key pair, different chain.
+//        /// </summary>
+//        /// <param name="chainId"></param>
+//        /// <returns></returns>
+//        public ContractTester<TContractTestAElfModule> CreateNewContractTester(int chainId)
+//        {
+//            return new ContractTester<TContractTestAElfModule>(Application, chainId);
+//        }
+//
+//        public async Task<byte[]> GetPublicKeyAsync()
+//        {
+//            var accountService = Application.ServiceProvider.GetRequiredService<IAccountService>();
+//            return await accountService.GetPublicKeyAsync();
+//        }
 
         public Address GetContractAddress(Hash name)
         {
@@ -561,9 +558,9 @@ namespace AElf.Contracts.TestBase
             };
         }
 
-        public Task<TResult> InitialChainAndTokenAsync<TResult>()
-        {
-            throw new NotImplementedException();
-        }
+//        public Task<TResult> InitialChainAndTokenAsync<TResult>()
+//        {
+//            throw new NotImplementedException();
+//        }
     }
 }

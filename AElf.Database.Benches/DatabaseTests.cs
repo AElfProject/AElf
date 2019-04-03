@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.BenchBase;
+using Microsoft.Extensions.Logging;
 using NBench;
 using Pro.NBench.xUnit.XunitExtensions;
 using Volo.Abp.Threading;
@@ -16,6 +17,10 @@ namespace AElf.Database.Benches
         {
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new XunitTraceListener(output));
+            
+            SetTestOutputHelper(output);
+            
+            GetService<ILogger<DatabaseTests>>().LogWarning("Hello");
         }
         
 
@@ -35,6 +40,8 @@ namespace AElf.Database.Benches
 
             _memoryDatabase = _dbContext.Database;
             _memoryDatabase.SetAsync("hello", _testBytes);
+            
+            
         }
 
         [NBenchFact]

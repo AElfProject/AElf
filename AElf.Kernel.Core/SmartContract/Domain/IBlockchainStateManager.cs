@@ -11,7 +11,6 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Domain
 {
-
     public interface IBlockchainStateManager
     {
         //Task<VersionedState> GetVersionedStateAsync(Hash blockHash,long blockHeight, string key);
@@ -24,14 +23,14 @@ namespace AElf.Kernel.SmartContract.Domain
     public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
     {
         private readonly IStateStore<VersionedState> _versionedStates;
-        private readonly IStateStore<BlockStateSet> _blockStateSets;
-
+        private readonly INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
         private readonly IStateStore<ChainStateInfo> _chainStateInfoCollection;
 
         private readonly int _chainId;
 
         public BlockchainStateManager(IStateStore<VersionedState> versionedStates,
-            IStateStore<BlockStateSet> blockStateSets, IStateStore<ChainStateInfo> chainStateInfoCollection,
+            INotModifiedCachedStateStore<BlockStateSet> blockStateSets,
+            IStateStore<ChainStateInfo> chainStateInfoCollection,
             IOptionsSnapshot<ChainOptions> options)
         {
             _versionedStates = versionedStates;

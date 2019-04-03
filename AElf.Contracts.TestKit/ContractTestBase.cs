@@ -9,7 +9,7 @@ namespace AElf.Contracts.TestKit
     public class ContractTestBase<TContractTestAElfModule> : AElfIntegratedTest<TContractTestAElfModule>
         where TContractTestAElfModule : ContractTestModule
     {
-        public T GetTester<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractTesterBase, new()
+        public T GetTester<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
         {
             var factory = Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
             return factory.Create<T>(contractAddress, senderKey);
