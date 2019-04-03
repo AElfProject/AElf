@@ -35,12 +35,7 @@ namespace AElf.Kernel.TransactionPool.Benches
 
             AsyncHelper.RunSync(async () =>
             {
-                _transactions = new List<Transaction>();
-                for (int i = 0; i < 1000; i++)
-                {
-                    var transaction = await _osTestHelper.GenerateTransferTransaction();
-                    _transactions.Add(transaction);
-                }
+                _transactions = await _osTestHelper.GenerateTransferTransactions(1000);
             });
         }
 
