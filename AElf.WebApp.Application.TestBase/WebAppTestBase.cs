@@ -83,5 +83,30 @@ namespace AElf.WebApp.Application
             response.StatusCode.ShouldBe(expectedStatusCode);
             return response;
         }
+        
+        protected async Task<T> DeleteResponseAsObjectAsync<T>(string url,
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+        {
+            var strResponse = await DeleteResponseAsStringAsync(url, expectedStatusCode);
+            return JsonConvert.DeserializeObject<T>(strResponse, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
+        }
+
+        protected async Task<string> DeleteResponseAsStringAsync(string url,
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+        {
+            var response = await DeleteResponseAsync(url, expectedStatusCode);
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        protected async Task<HttpResponseMessage> DeleteResponseAsync(string url,
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+        {
+            var response = await Client.DeleteAsync(url);
+            response.StatusCode.ShouldBe(expectedStatusCode);
+            return response;
+        }
     }
 }
