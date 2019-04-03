@@ -41,8 +41,10 @@ namespace AElf.Contracts.Consensus.DPoS
             // The starter initial chain and tokens.
             Starter = new ContractTester<DPoSContractTestAElfModule>();
 
-            MinersKeyPairs = Enumerable.Range(0, MinersCount).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
-            AsyncHelper.RunSync(() => Starter.InitialChainAndTokenAsync(MinersKeyPairs, MiningInterval));
+            MinersKeyPairs = Enumerable.Range(0, MinersCount - 1).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
+            // Enable Start to use SetBlockchainAge method.
+            MinersKeyPairs.Add(Starter.KeyPair);
+            AsyncHelper.RunSync(() => Starter.InitialChainAndTokenAsync(MinersKeyPairs));
             MinerList = Enumerable.Range(0, MinersCount)
                 .Select(i => Starter.CreateNewContractTester(MinersKeyPairs[i])).ToList();
         }
@@ -175,7 +177,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             //Assert
             historyInfo.PublicKey.ShouldBe(input.Hex);
-            historyInfo.ProducedBlocks.ShouldBeGreaterThanOrEqualTo(1);
+            historyInfo.Terms.Count.ShouldBe(1);
         }
 
         [Fact]
@@ -187,12 +189,12 @@ namespace AElf.Contracts.Consensus.DPoS
             historyDictionaryInfo.Maps.Count.ShouldBe(0);
             historyDictionaryInfo.CandidatesNumber.ShouldBe(0);
         }
-        
+
         [Fact]
         public async Task Get_CandidateInHistoryDictionary_With_Candidate()
         {
             await PrepareConsensusWithCandidateEnvironment();
-            
+
             var bytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetCandidatesHistoryInfo), new Empty());
             var historyDictionaryInfo = CandidateInHistoryDictionary.Parser.ParseFrom(bytes);
@@ -204,7 +206,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task GetPageableCandidatesHistoryInfo_Success()
         {
             await PrepareConsensusWithCandidateEnvironment();
-            
+
             var input = new PageInfo()
             {
                 Length = 2,
@@ -222,7 +224,7 @@ namespace AElf.Contracts.Consensus.DPoS
             historyDictionaryInfo = CandidateInHistoryDictionary.Parser.ParseFrom(bytes);
             historyDictionaryInfo.CandidatesNumber.ShouldBe(MinersCount);
             historyDictionaryInfo.Maps.Count.ShouldBeGreaterThanOrEqualTo(input.Length);
-            
+
             input.Start = 2;
             bytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetPageableCandidatesHistoryInfo), input);
@@ -266,14 +268,14 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task GetPageableElectionInfo()
         {
             await PrepareConsensusWithCandidateEnvironment();
-            
+
             var input = new PageableElectionInfoInput
             {
                 Length = 3,
                 OrderBy = 0,
                 Start = 0
             };
-            
+
             //OrderBy = 0 default
             {
                 var bytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
@@ -281,11 +283,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 var electionsInfo = TicketsDictionary.Parser.ParseFrom(bytes);
                 electionsInfo.Maps.Count.ShouldBe(MinersCount);
             }
-            
+
             //OrderBy = 1  ascending
             {
                 input.OrderBy = 1;
-                
+
                 var bytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                     nameof(ConsensusContract.GetPageableElectionInfo), input);
                 var electionsInfo = TicketsDictionary.Parser.ParseFrom(bytes);
@@ -295,14 +297,15 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     tickets.Add(electionInfo.ObtainedTickets);
                 }
+
                 tickets[0].ShouldBeLessThanOrEqualTo(tickets[1]);
                 tickets[1].ShouldBeLessThanOrEqualTo(tickets[2]);
             }
-        
+
             //OrderBy = 2 descending
             {
                 input.OrderBy = 2;
-                
+
                 var bytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                     nameof(ConsensusContract.GetPageableElectionInfo), input);
                 var electionsInfo = TicketsDictionary.Parser.ParseFrom(bytes);
@@ -312,13 +315,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     tickets.Add(electionInfo.ObtainedTickets);
                 }
+
                 tickets[0].ShouldBeGreaterThanOrEqualTo(tickets[1]);
                 tickets[1].ShouldBeGreaterThanOrEqualTo(tickets[2]);
             }
             //OrderBy = others
             {
                 input.OrderBy = 10;
-                
+
                 var bytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                     nameof(ConsensusContract.GetPageableElectionInfo), input);
                 var electionsInfo = TicketsDictionary.Parser.ParseFrom(bytes);
@@ -387,7 +391,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public async Task QueryAlias()
         {
             var candidates = await PrepareConsensusWithCandidateEnvironment();
-            
+
             var input = new PublicKey
             {
                 Hex = candidates[0].PublicKey
@@ -395,14 +399,14 @@ namespace AElf.Contracts.Consensus.DPoS
             var bytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.QueryAlias), input);
             var alias = Alias.Parser.ParseFrom(bytes);
-            alias.Value.ShouldBe("0");
+            alias.Value.ShouldBe(candidates[0].PublicKey.Substring(0, DPoSContractConsts.AliasLimit));
         }
 
         [Fact(Skip = "Not implemented talked with Yiqi.")]
         public async Task GetTermNumberByRoundNumber()
         {
             await PrepareConsensusWithCandidateEnvironment();
-            
+
             var input = new SInt64Value()
             {
                 Value = 1
@@ -415,7 +419,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var roundBytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetCurrentRoundNumber), new Empty());
             var currentRoundNumber = SInt64Value.Parser.ParseFrom(roundBytes).Value;
-            
+
             var termBytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetCurrentTermNumber), new Empty());
             var currentTermNumber = SInt64Value.Parser.ParseFrom(termBytes).Value;
@@ -435,11 +439,8 @@ namespace AElf.Contracts.Consensus.DPoS
             var bytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.QueryAliasesInUse), new Empty());
             var stringList = StringList.Parser.ParseFrom(bytes);
-            
+
             stringList.Values.Count.ShouldBe(3);
-            stringList.Values.Contains("0").ShouldBeTrue();
-            stringList.Values.Contains("1").ShouldBeTrue();
-            stringList.Values.Contains("2").ShouldBeTrue();
         }
 
         [Fact]
@@ -460,14 +461,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 var bytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                     nameof(ConsensusContract.QueryMinedBlockCountInCurrentTerm), input);
                 count = SInt64Value.Parser.ParseFrom(bytes);
-                
-                if(count.Value > 0)
+
+                if (count.Value > 0)
                     break;
             }
-            
+
             count.Value.ShouldBeGreaterThanOrEqualTo(1L);
         }
-        
+
         [Fact]
         public async Task Query_Tickets_Info()
         {
@@ -479,7 +480,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 nameof(ConsensusContract.GetBlockchainAge),
                 new Empty())).Value;
             await MinerList.ChangeTermAsync(MiningInterval);
-            await Starter.SetBlockchainAgeAsync(_blockAge + 180);
+            await Starter.SetBlockchainAgeAsync(_blockAge + 200);
 
             //Check duration day 
             var getDurationDays1 = SInt64Value.Parser.ParseFrom(await Starter.CallContractMethodAsync(
@@ -687,7 +688,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             //vote to candidates.
             var voteTxs = new List<Transaction>();
-            
+
             foreach (var candidate in candidates)
             {
                 voteTxs.Add(await voter.GenerateTransactionAsync(
@@ -697,7 +698,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         CandidatePublicKey = candidate.PublicKey,
                         Amount = new Random(DateTime.Now.Millisecond).Next(50, 100),
-                        LockTime = new Random(DateTime.Now.Millisecond).Next(10, 100)*10
+                        LockTime = new Random(DateTime.Now.Millisecond).Next(10, 100) * 10
                     }));
             }
 

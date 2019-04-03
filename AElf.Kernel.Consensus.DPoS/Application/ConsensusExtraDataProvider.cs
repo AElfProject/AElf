@@ -24,7 +24,11 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 return null;
             }
 
-            var consensusInformation = await _consensusService.GetNewConsensusInformationAsync();
+            var consensusInformation = await _consensusService.GetInformationToUpdateConsensusAsync(new ChainContext
+            {
+                BlockHash = blockHeader.PreviousBlockHash, 
+                BlockHeight = blockHeader.Height - 1
+            });
 
             return consensusInformation == null ? ByteString.Empty : ByteString.CopyFrom(consensusInformation);
         }

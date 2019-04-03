@@ -178,10 +178,12 @@ namespace AElf.Kernel.SmartContract.Application
                 MethodName = "GetSmartContractRegistrationByAddress",
                 Params = address.ToByteString()
             };
-            var trace = new TransactionTrace()
+
+            var trace = new TransactionTrace
             {
                 TransactionId = transaction.GetHash()
             };
+            Console.WriteLine(trace.ToString());
 
             var txCtxt = new TransactionContext
             {
@@ -192,6 +194,8 @@ namespace AElf.Kernel.SmartContract.Application
                 Trace = trace,
                 CallDepth = 0,
             };
+            Console.WriteLine(txCtxt.ToString());
+
             executiveZero.SetDataCache(chainContext.StateCache);
             await executiveZero.SetTransactionContext(txCtxt).ApplyAsync();
             var returnBytes = txCtxt.Trace?.ReturnValue;

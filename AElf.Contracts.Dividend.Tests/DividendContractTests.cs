@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -37,18 +38,18 @@ namespace AElf.Contracts.Dividend
         [Fact]
         public async Task Initialize_Test()
         {
-            var input = new InitializeInput
+            var input = new InitialDividendContractInput
             {
-                ConsensusContractAddress = ConsensusContractAddress,
-                TokenContractAddress = TokenContractAddress
+                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
             };
             var transactionResult = await Tester.ExecuteContractWithMiningAsync(DividendContractAddress,
-                nameof(DividendContract.Initialize), input);
+                nameof(DividendContract.InitializeDividendContract), input);
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             transactionResult = await Tester.ExecuteContractWithMiningAsync(DividendContractAddress,
-                nameof(DividendContract.Initialize), input);
+                nameof(DividendContract.InitializeDividendContract), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }

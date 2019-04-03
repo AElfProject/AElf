@@ -11,7 +11,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Miner.Application
 {
-    public class BlockMiningEventHandler : ILocalEventHandler<BlockMiningEventData>, ITransientDependency
+    public class BlockMiningEventHandler : ILocalEventHandler<ConsensusRequestMiningEventData>, ITransientDependency
     {
         private readonly IMinerService _minerService;
         private readonly IBlockAttachService _blockAttachService;
@@ -27,12 +27,12 @@ namespace AElf.Kernel.Miner.Application
             Logger = NullLogger<BlockMiningEventHandler>.Instance;
         }
 
-        public async Task HandleEventAsync(BlockMiningEventData eventData)
+        public async Task HandleEventAsync(ConsensusRequestMiningEventData eventData)
         {
             try
             {
                 var block = await _minerService.MineAsync(eventData.PreviousBlockHash, eventData.PreviousBlockHeight,
-                    eventData.DueTime);
+                    eventData.BlockTime, eventData.TimeSpan);
 
                 _taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName).Enqueue(async () => await _blockAttachService.AttachBlockAsync(block));
             }
