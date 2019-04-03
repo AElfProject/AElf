@@ -81,6 +81,18 @@ ProjectSection(SolutionItems) = preProject
 	scripts\deploy_nuget.sh = scripts\deploy_nuget.sh
 	scripts\deploy_docker.sh = scripts\deploy_docker.sh
 	scripts\deploy_myget_daily.sh = scripts\deploy_myget_daily.sh
+	scripts\download_binary.bat = scripts\download_binary.bat
+	scripts\download_binary.sh = scripts\download_binary.sh
+	scripts\generate_contract_base.bat = scripts\generate_contract_base.bat
+	scripts\generate_contract_code.bat = scripts\generate_contract_code.bat
+	scripts\generate_contract_code.sh = scripts\generate_contract_code.sh
+	scripts\generate_contract_reference.bat = scripts\generate_contract_reference.bat
+	scripts\generate_contract_reference.sh = scripts\generate_contract_reference.sh
+	scripts\generate_event_only.bat = scripts\generate_event_only.bat
+	scripts\generate_event_only.sh = scripts\generate_event_only.sh
+	scripts\generate_contract_base.sh = scripts\generate_contract_base.sh
+	scripts\generate_contract_stub.bat = scripts\generate_contract_stub.bat
+	scripts\generate_contract_stub.sh = scripts\generate_contract_stub.sh
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
@@ -129,6 +141,8 @@ ProjectSection(SolutionItems) = preProject
 	protobuf\descriptor_equivalent.proto = protobuf\descriptor_equivalent.proto
 	protobuf\test_contract.proto = protobuf\test_contract.proto
 	protobuf\token_contract_messages.proto = protobuf\token_contract_messages.proto
+	protobuf\acs1.proto = protobuf\acs1.proto
+	protobuf\acs2.proto = protobuf\acs2.proto
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool", "AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"
@@ -300,6 +314,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool.Benches", "AElf.Kernel.TransactionPool.Benches\AElf.Kernel.TransactionPool.Benches.csproj", "{03B1222C-F06F-47BB-97BE-ED440D944FB9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core.Benches", "AElf.Kernel.Core.Benches\AElf.Kernel.Core.Benches.csproj", "{7FF22A28-9057-4A69-91A6-7F2E93EBF092}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Benches", "AElf.Kernel.SmartContractExecution.Benches\AElf.Kernel.SmartContractExecution.Benches.csproj", "{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -755,6 +771,10 @@ Global
 		{7FF22A28-9057-4A69-91A6-7F2E93EBF092}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7FF22A28-9057-4A69-91A6-7F2E93EBF092}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7FF22A28-9057-4A69-91A6-7F2E93EBF092}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -863,5 +883,6 @@ Global
 		{825D2222-C5A1-43E4-9269-DC1E9B132601} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 		{03B1222C-F06F-47BB-97BE-ED440D944FB9} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 		{7FF22A28-9057-4A69-91A6-7F2E93EBF092} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
+		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 	EndGlobalSection
 EndGlobal

@@ -39,7 +39,6 @@ namespace AElf.TestLauncher
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),
-        typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
 
         //TODO: should move to OSAElfModule

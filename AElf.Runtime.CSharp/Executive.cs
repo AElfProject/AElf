@@ -23,6 +23,8 @@ namespace AElf.Runtime.CSharp
         private readonly Type _contractType;
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
+        private readonly IReadOnlyList<ServiceDescriptor> _descriptors;
+        private readonly ServerServiceDefinition _serverServiceDefinition;
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
@@ -49,12 +51,11 @@ namespace AElf.Runtime.CSharp
             return contractBase.DeclaringType;
         }
 
-        private ReadOnlyDictionary<string, IServerCallHandler> GetHandlers(Assembly assembly)
+        private ServerServiceDefinition GetServerServiceDefinition(Assembly assembly)
         {
             var methodInfo = FindContractContainer(assembly).GetMethod("BindService",
                 new[] {FindContractBaseType(assembly)});
-            var ssd = methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
-            return ssd.GetCallHandlers();
+            return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
         public Executive(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
@@ -64,7 +65,9 @@ namespace AElf.Runtime.CSharp
             _contractType = FindContractType(assembly);
             _contractInstance = Activator.CreateInstance(_contractType);
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
-            _callHandlers = GetHandlers(assembly);
+            _serverServiceDefinition = GetServerServiceDefinition(assembly);
+            _callHandlers = _serverServiceDefinition.GetCallHandlers();
+            _descriptors = _serverServiceDefinition.GetDescriptors();
         }
 
         public IExecutive SetMaxCallDepth(int maxCallDepth)
@@ -99,12 +102,13 @@ namespace AElf.Runtime.CSharp
         public async Task ApplyAsync()
         {
             await ExecuteMainTransaction();
-//            MaybeInsertFeeTransaction();
-            foreach (var executivePlugin in _executivePlugins)
+            if (CurrentTransactionContext.CallDepth == 0)
             {
-                // TODO: Change executive plugin to use this executive
-//                executivePlugin.AfterApply(_contractInstance, 
-//                    _hostSmartContractBridgeContext, ExecuteReadOnlyHandler);
+                // Plugin should only apply to top level transaction
+                foreach (var plugin in _executivePlugins)
+                {
+                    plugin.PostMain(_hostSmartContractBridgeContext, _serverServiceDefinition);
+                }                
             }
         }
 
@@ -237,9 +241,7 @@ namespace AElf.Runtime.CSharp
 
         public byte[] GetFileDescriptorSet()
         {
-            var prop = FindContractContainer(_contractAssembly).GetProperty("Descriptor",
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            var descriptor = (ServiceDescriptor) prop.GetValue(null, null);
+            var descriptor = _descriptors.Last();
             var output = new FileDescriptorSet();
             output.File.AddRange(GetSelfAndDependency(descriptor.File).Select(x => x.SerializedData));
             return output.ToByteArray();

@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using Google.Protobuf.Reflection;
 
 namespace AElf.Types.CSharp
 {
@@ -29,10 +30,12 @@ namespace AElf.Types.CSharp
     public class ServerServiceDefinition
     {
         readonly IReadOnlyList<Action<ServiceBinderBase>> addMethodActions;
+        readonly IReadOnlyList<Action<ServiceBinderBase>> addDescriptorActions;
 
-        internal ServerServiceDefinition(List<Action<ServiceBinderBase>> addMethodActions)
+        internal ServerServiceDefinition(List<Action<ServiceBinderBase>> addMethodActions, List<Action<ServiceBinderBase>> addDescriptorActions)
         {
             this.addMethodActions = addMethodActions.AsReadOnly();
+            this.addDescriptorActions = addDescriptorActions.AsReadOnly();
         }
 
         /// <summary>
@@ -43,6 +46,11 @@ namespace AElf.Types.CSharp
             foreach (var addMethodAction in addMethodActions)
             {
                 addMethodAction(serviceBinder);
+            }
+
+            foreach (var addDescriptorAction in addDescriptorActions)
+            {
+                addDescriptorAction(serviceBinder);
             }
         }
 
@@ -64,6 +72,7 @@ namespace AElf.Types.CSharp
             readonly Dictionary<string, object> duplicateDetector = new Dictionary<string, object>();
             // for each AddMethod call, we store an action that will later register the method and handler with ServiceBinderBase
             readonly List<Action<ServiceBinderBase>> addMethodActions = new List<Action<ServiceBinderBase>>();
+            readonly List<Action<ServiceBinderBase>> addDescriptorActions = new List<Action<ServiceBinderBase>>();
 
             /// <summary>
             /// Creates a new instance of builder.
@@ -91,13 +100,22 @@ namespace AElf.Types.CSharp
                 return this;
             }
 
+            public Builder AddDescriptors(IEnumerable<ServiceDescriptor> descriptors)
+            {
+                foreach (var descriptor in descriptors)
+                {
+                    addDescriptorActions.Add((serviceBinder) => serviceBinder.AddDescriptor(descriptor));
+                }
+                return this;
+            }
+
             /// <summary>
             /// Creates an immutable <c>ServerServiceDefinition</c> from this builder.
             /// </summary>
             /// <returns>The <c>ServerServiceDefinition</c> object.</returns>
             public ServerServiceDefinition Build()
             {
-                return new ServerServiceDefinition(addMethodActions);
+                return new ServerServiceDefinition(addMethodActions, addDescriptorActions);
             }
         }
     }

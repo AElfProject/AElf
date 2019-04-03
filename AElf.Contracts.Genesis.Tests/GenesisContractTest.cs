@@ -21,14 +21,14 @@ namespace AElf.Contracts.Genesis
         private ISmartContractAddressService ContractAddressService =>
             Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
         private Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
-        internal BasicContractZeroContainer.BasicContractZeroTester DefaultTester =>
-            GetTester<BasicContractZeroContainer.BasicContractZeroTester>(ContractZeroAddress, DefaultSenderKeyPair);
+        internal BasicContractZeroContainer.BasicContractZeroStub DefaultTester =>
+            GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, DefaultSenderKeyPair);
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs.First();
         private Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         private ECKeyPair AnotherUserKeyPair => SampleECKeyPairs.KeyPairs.Last();
         private Address AnotherUser => Address.FromPublicKey(AnotherUserKeyPair.PublicKey);
-        internal BasicContractZeroContainer.BasicContractZeroTester AnotherTester =>
-            GetTester<BasicContractZeroContainer.BasicContractZeroTester>(ContractZeroAddress, AnotherUserKeyPair);
+        internal BasicContractZeroContainer.BasicContractZeroStub AnotherTester =>
+            GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, AnotherUserKeyPair);
 
         [Fact]
         public async Task<Address> Deploy_SmartContracts()

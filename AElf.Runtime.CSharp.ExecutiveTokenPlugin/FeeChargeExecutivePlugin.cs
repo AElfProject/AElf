@@ -1,6 +1,12 @@
 using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Acs1;
+using AElf.Common;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.Token;
 using AElf.Kernel.Types.SmartContract;
@@ -13,27 +19,41 @@ namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
 {
     public class FeeChargeExecutivePlugin : IExecutivePlugin, ITransientDependency
     {
-        //TODO: Add FeeChargeExecutivePlugin->AfterApply test case [Case]
-        public void AfterApply(IHostSmartContractBridgeContext context,
-            Func<string, IMessage, IMessage> executeReadOnlyHandler)
+        public static bool IsAcs1(ServerServiceDefinition definition)
         {
-            /*if (!(smartContract is IFeeChargedContract) || context.TransactionContext.CallDepth > 0)
+            var binder = new DefaultServiceBinder();
+            definition.BindService(binder);
+            return binder.GetDescriptors().Any(service => service.File.GetIndentity() == "acs1");
+        }
+
+        public void PostMain(IHostSmartContractBridgeContext context, ServerServiceDefinition definition)
+        {
+            if (!IsAcs1(definition))
             {
                 return;
-            }*/
+            }
 
-            var fee = (Int64Value) executeReadOnlyHandler(nameof(IFeeChargedContract.GetMethodFee),
-                new StringValue() {Value = context.TransactionContext.Transaction.MethodName});
+            var stub = new FeeChargedContractContainer.FeeChargedContractStub()
+            {
+                __factory = new MethodStubFactory(context)
+            };
 
+            var fee = stub.GetMethodFee.CallAsync(new GetMethodFeeInput()
+            {
+                Method = context.TransactionContext.Transaction.MethodName
+            }).Result.Fee;
 
             context.TransactionContext.Trace.InlineTransactions.Add(new Transaction()
             {
                 From = context.TransactionContext.Transaction.From,
                 To = context.GetContractAddressByName(
                     TokenSmartContractAddressNameProvider.Name),
-                MethodName =
-                    "ChargeTransactionFees", // TODO: Use `nameof`, maybe need to add a ref or an interface for token contract.
-                Params = fee.ToByteString()
+                MethodName = nameof(TokenContractContainer.TokenContractStub.ChargeTransactionFees),
+                Params = new ChargeTransactionFeesInput()
+                {
+                    Amount = fee,
+                    Symbol = "ELF" // Temporary hardcode symbol
+                }.ToByteString()
             });
         }
     }

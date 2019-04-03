@@ -282,3 +282,7 @@ results/coverage.json
 results/coverage.opencover.xml
 
 aelf.js
+
+scripts/contract_csharp_plugin
+scripts/contract_csharp_plugin.exe
+
