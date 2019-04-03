@@ -4,11 +4,7 @@ option csharp_namespace = "AElf.Kernel";
 import "common.proto";
 import "google/protobuf/timestamp.proto";
 
-message AssociationAuth{
-    int32 ExecutionThreshold = 1;
-    int32 ProposerThreshold = 2;
-    repeated Reviewer Reviewers = 3;
-}
+
 
 message ReferendumAuth {
     int32 VoterCountThreshold = 1;
@@ -24,11 +20,6 @@ message ParliamentAuth {
 enum ParliamentAuthRule{
     MAJORITY = 0;
     TwoThirds = 1;
-}
-
-message Reviewer {
-    bytes PubKey = 1;
-    uint32 Weight = 2;
 }
 
 message Proposal {
@@ -49,7 +40,7 @@ enum ProposalStatus {
 message ProposalInfo {
     Hash ProposalHash = 1;
     Proposal Proposal = 2;
-    bool IsRelease = 3;
+    bool IsReleased = 3;
 }
 
 message Approved {
@@ -62,13 +53,13 @@ message Approval {
     bytes Signature = 2;
 }
 
-enum AuthPolicyType {
-    ANY = 0;
-    ALL = 1;
-}
+//enum AuthPolicyType {
+//    ANY = 0;
+//    ALL = 1;
+//}
 
-message AuthPolicy {
-    AssociationAuth Association = 1;
-    ReferendumAuth Referendum = 2;
-    ParliamentAuth Parliament = 3;
-}
+//message AuthPolicy {
+//    AssociationAuth Association = 1;
+//    ReferendumAuth Referendum = 2;
+//    ParliamentAuth Parliament = 3;
+//}
