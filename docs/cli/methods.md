@@ -1,5 +1,7 @@
 ## CLI commands
 
+This page is a reference fo the metods that are available on the command line interface. Each example will execute the cli with the **aelf-cli** command, this simply implies that we have aliased the dotnet command to this command.
+
 ### Commun options
 
 As seen previously, the following options can be set for all commands:
@@ -10,10 +12,6 @@ As seen previously, the following options can be set for all commands:
 -a, --account        The account to be used to interact with the blockchain. (AELF_CLI_ACCOUNT)
 -p, --password       The password for unlocking the account.
 ```
-
-### console - open an interactive console.
-
-This is a special command that you can use to start an interactive session in Javascript.
 
 ### create - create a new account.
 
@@ -43,11 +41,11 @@ The command prints both the private and public key as well as the AElf address a
 ### deploy - deploy a smart contract.
 
 ```bash 
-aelf-cli create <category> <code>
+aelf-cli deploy <category> <code>
 ```
 
-Category    Required. Obsolete. The category of the contract to be deployed.
-CodeFile    Required. The compiled contract code file of the contract to be deployed.
+Category    Required. Obsolete. The category of the contract to be deployed.  
+CodeFile    Required. The compiled contract code file of the contract to be deployed.  
 
 ### send - send a transaction to a contract.
 
@@ -55,9 +53,9 @@ CodeFile    Required. The compiled contract code file of the contract to be depl
 aelf-cli send <address> <method> <method-input>
 ```
 
-address       Required. The address of the contract.
-method        (optional) The particular method of the contract.
-method-input  (optional) The input for the method in json format.
+address       Required. The address of the contract.  
+method        (optional) The particular method of the contract.  
+method-input  (optional) The input for the method in json format.  
 
 ### call - send a transaction to a contract.
 
@@ -65,16 +63,56 @@ method-input  (optional) The input for the method in json format.
 aelf-cli call <address> <method> <method-input>
 ```
 
-address       Required. The address of the contract.
-method        (optional) The particular method of the contract.
-method-input  (optional) The input for the method in json format.
+address       Required. The address of the contract.  
+method        (optional) The particular method of the contract.  
+method-input  (optional) The input for the method in json format.  
 
 ### get-tx-result - get a transaction result.
 
 ```bash 
 aelf-cli get-tx-result <tx-hash>
 ```
-tx-hash      Required. The tx hash to query.
+tx-hash      Required. The tx hash to query.  
+
+Example:
+```bash 
+aelf-cli get-tx-result ab435790a62abd6a669d002d56771b27bb683a73ce46de0f389ec045e4f3405c
+```
+
+```json 
+{
+  "TransactionId": "ab435790a62abd6a669d002d56771b27bb683a73ce46de0f389ec045e4f3405c",
+  "Status": "Mined",
+  "Logs": [
+    {
+      "Address": "61W3AF3Voud7cLY2mejzRuZ4WEN8mrDMioA9kZv3H8taKxF",
+      "Topics": [
+        "74jhIkU9AGdD4KiVZQ36ybk+DNGNQ8t080m5LJvw11w="
+      ]
+    }
+  ],
+  "Bloom": "AAAAAAAAAAA...AAAAAAA==",
+  "ReturnValue": "Ch6WzxG27vCo8tf5vmRTkv5T+0sZ81O8yYQQ+HqZhlQ=",
+  "BlockNumber": "61",
+  "ReadableReturnValue": "\"4QjhKLWacRXrQYpT7rzf74k5XZFCx8yF3X7FXbzKD4wwEo6\"",
+  "BlockHash": "2f7d7667c1d13e0f59c26e5d5b839ff53d426a624ce501b4960b99206390c445",
+  "Transaction": {
+    "From": "2WuYWjzZTs55vxjFnCmKskwwVGsweS8RRX1XeEWJcB96oiz",
+    "To": "61W3AF3Voud7cLY2mejzRuZ4WEN8mrDMioA9kZv3H8taKxF",
+    "RefBlockNumber": "59",
+    "RefBlockPrefix": "oBm5cw==",
+    "MethodName": "DeploySmartContract",
+    "Params": {
+      "code": "TVAAAAAAAAAAAAA...AAAAAAAAA="
+    },
+    "Sigs": [
+      "aZG5lanA3i7DGB2LmZcILNAJQHDOOl+TAi9gxycQqo0DjWxklAe4kKvjy/qHQQa4uc6QgWuCbsv7FfMUfkzNVgA="
+    ]
+  }
+}
+```
+
+This shows the transaction result of a smart contract deployement transaction. It return a json with the transaction itself, the return value of the called method (the address of the contract in this case), the status and the hash of the block it was included in (if any).
 
 ### get-blk-height - get the block height.
 
@@ -96,8 +134,8 @@ aelf-cli get-blk-height
 aelf-cli get-blk-info <height> <include-txs>
 ```
 
-height           Required. The height of the block to query.
-include-txs      Whether to include transactions.
+height           Required. The height of the block to query.  
+include-txs      Whether to include transactions.  
 
 Example:
 ```bash 
@@ -127,3 +165,46 @@ aelf-cli get-blk-info 27 true
 ```
 
 This has returned information about the block and because the include-txs option was set to true, we can also see the ids of the transaction ids or the transactions that where included in the block.
+
+### console - open an interactive console.
+
+This is a special command that you can use to start an interactive session where you can use javascript to interact with the chain. Type 'exit' to stop the session.
+
+```bash
+> dotnet AElf.CLI.dll console
+Unlocking account ...
+Enter the password: 
+Welcome to aelf interactive console. Type exit to terminate the program. Type dir to list objects.
+The following objects exist:
+_account             _assignToUnderscore  _config                              
+_fromString          _getArrayLength      _getOwnProperty                       
+_getOwnPropertyNames _repeatedCalls       _requestor                            
+_saveAccount         _toString            aelf                                  
+Aelf                 chain                console                               
+crypto               global               require                               
+timer                                                                           
+> contract = aelf.chain.contractAt('2UEEa5yiFhuh6JDfTGrbAFqoqzbKkY4Vk9YZDXAdw16wkMw', _account)
+> contract.Transfer('2PfhDg55pgKYbnC7UEenbqDyB7DHRTE3G4ZWtyUZQsssq6H', 100)
+{                                                                                 
+    TransactionId: "c3960811955c7ca60ba290e70ec15d4af16132d5762d2844ee0b867f00d233e1"      
+}                                                                               
+> aelf.chain.getTxResult('44b095410987db499f657455564bc7f4e0fdfe61cf892df9cf5cc1b27c416333')
+{                                                                                 
+  BlockNumber: "300",                                                                       
+  Bloom: "AAAAAAAAAAAAAAAAA...AAAAAAAAAwAAAAAAAA==",
+  Logs: [{
+      Address: "2UEEa5yiFhuh6JDfTGrbAFqoqzbKkY4Vk9YZDXAdw16wkMw",
+      Data: "CJBO",
+      Topics: ["lQq/YqdzlvDN+TAzeSw3dD6sJAK31hfxN9hS6rkOjBw=",         
+               "7sOpl2DV7eC6lP3+2ZonpGB2Ve+jvzBjou8EJ3XTMQg=",                        
+               "tG1zXS1F39BW0KbnAXgkhAnvKs2JyUpoyLh/NAdv83c="]
+     }],
+  Status: "Mined",
+  TransactionId: "7caaf3f287e91b380c6cdec47461f4ba435b5bd461e8abd93df3cc623f1efb94"                                              
+}   
+> contract.BalanceOf('ELF_ZGJpxsrpucqBQLKQmUAh27hyD5NNYFLLoBqAjEkZWbdAiDYC6')
+"64"                                                                              
+> 0x64
+100                                                                             
+> exit
+```
