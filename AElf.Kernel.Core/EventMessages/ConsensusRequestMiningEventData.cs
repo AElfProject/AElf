@@ -8,15 +8,16 @@ namespace AElf.Kernel.EventMessages
     {
         public Hash PreviousBlockHash { get; }
         public long PreviousBlockHeight { get; }
-        public DateTime DueTime => DateTime.UtcNow.AddMilliseconds(TimeoutMilliseconds);
-        public int TimeoutMilliseconds { get; }
+        public TimeSpan TimeSpan { get; }
+        public DateTime BlockTime { get; }
 
-        public ConsensusRequestMiningEventData(Hash previousBlockHash, long previousBlockHeight,
-            int timeoutMilliseconds)
+        public ConsensusRequestMiningEventData(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime,
+            TimeSpan timeSpan)
         {
             PreviousBlockHash = previousBlockHash;
             PreviousBlockHeight = previousBlockHeight;
-            TimeoutMilliseconds = timeoutMilliseconds;
+            BlockTime = blockTime;
+            TimeSpan = timeSpan;
         }
     }
 }

@@ -25,9 +25,8 @@ namespace AElf.Kernel
             var chain = await _chainService.GetChainAsync();
             var hash = chain.BestChainHash;
             var height = chain.BestChainHeight;
-            var time = DateTime.UtcNow.Add(TimeSpan.FromMinutes(1));
 
-            var block = await _minerService.MineAsync(hash, height, time);
+            var block = await _minerService.MineAsync(hash, height, DateTime.UtcNow, TimeSpan.FromMinutes(1));
             block.ShouldNotBeNull();
             block.Body.TransactionList.Count.ShouldBe(1);
             block.Header.Sig.ShouldNotBeNull();

@@ -98,6 +98,12 @@ namespace AElf.Kernel.Blockchain.Application
                 return false;
             }
 
+            // TODO: Time span maybe configurable.
+            if (block.Header.Time.ToDateTime() - DateTime.UtcNow > TimeSpan.FromMilliseconds(2000))
+            {
+                return false;
+            }
+
             return true;
         }
 

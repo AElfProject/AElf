@@ -45,9 +45,13 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogDebug($"Updated consensus command: {_consensusControlInformation.ConsensusCommand}");
             
             // Initial consensus scheduler.
-            var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash, chainContext.BlockHeight,
-                _consensusControlInformation.ConsensusCommand.LimitMillisecondsOfMiningBlock);
+            var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
+                chainContext.BlockHeight,
+                _consensusControlInformation.ConsensusCommand.ExpectedMiningTime.ToDateTime(),
+                TimeSpan.FromMilliseconds(_consensusControlInformation.ConsensusCommand
+                    .LimitMillisecondsOfMiningBlock));
             _consensusScheduler.CancelCurrentEvent();
+            // TODO: Remove NextBlockMiningLeftMilliseconds.
             _consensusScheduler.NewEvent(_consensusControlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds,
                 blockMiningEventData);
 

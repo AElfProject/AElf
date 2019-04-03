@@ -32,7 +32,7 @@ namespace AElf.Kernel.Miner.Application
             try
             {
                 var block = await _minerService.MineAsync(eventData.PreviousBlockHash, eventData.PreviousBlockHeight,
-                    eventData.DueTime);
+                    eventData.BlockTime, eventData.TimeSpan);
 
                 _blockAttachService.EnqueueAttachBlock(_taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName),
                     block);

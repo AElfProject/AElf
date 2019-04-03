@@ -23,6 +23,7 @@ namespace AElf.Consensus.DPoS
             var minerInRound = round.RealTimeMinersInformation[publicKey];
             var miningInterval = round.GetMiningInterval();
             var myOrder = round.RealTimeMinersInformation[minerInRound.PublicKey].Order;
+            var expectedMiningTime = round.RealTimeMinersInformation[minerInRound.PublicKey].ExpectedMiningTime;
 
             var previousMinerMissedHisTimeSlot = myOrder != 1 &&
                                                  round.RealTimeMinersInformation.Values
@@ -37,12 +38,10 @@ namespace AElf.Consensus.DPoS
 
             var firstMinerOfCurrentRound =
                 round.RealTimeMinersInformation.Values.FirstOrDefault(m => m.OutValue != null);
-            
+
             switch (behaviour)
             {
                 case DPoSBehaviour.UpdateValueWithoutPreviousInValue:
-
-                    
                     // Two reasons of `UpdateValueWithoutPreviousInValue` behaviour:
                     // 1. 1st round of 1st term.
                     // 2. Term changed in current round.
@@ -61,6 +60,7 @@ namespace AElf.Consensus.DPoS
                             // If someone produced block in current round before.
                             return new ConsensusCommand
                             {
+                                ExpectedMiningTime = expectedMiningTime,
                                 NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
                                 LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
                                 Hint = new DPoSHint
@@ -72,6 +72,7 @@ namespace AElf.Consensus.DPoS
 
                         return new ConsensusCommand
                         {
+                            ExpectedMiningTime = expectedMiningTime,
                             NextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval * 2 + miningInterval,
                             LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
                             Hint = new DPoSHint
@@ -83,6 +84,7 @@ namespace AElf.Consensus.DPoS
 
                     return new ConsensusCommand
                     {
+                        ExpectedMiningTime = expectedMiningTime,
                         NextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval,
                         LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
                         Hint = new DPoSHint
@@ -97,6 +99,7 @@ namespace AElf.Consensus.DPoS
                     {
                         return new ConsensusCommand
                         {
+                            ExpectedMiningTime = expectedMiningTime,
                             NextBlockMiningLeftMilliseconds =
                                 (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, round.GetExtraBlockMiningTime(),
                                            round.GetMiningInterval()).ToDateTime() - dateTime).TotalMilliseconds,
@@ -108,9 +111,9 @@ namespace AElf.Consensus.DPoS
                         };
                     }
 
-                    var expectedMiningTime = round.GetExpectedMiningTime(minerInRound.PublicKey);
                     return new ConsensusCommand
                     {
+                        ExpectedMiningTime = expectedMiningTime,
                         NextBlockMiningLeftMilliseconds = (int) (expectedMiningTime.ToDateTime() - dateTime)
                             .TotalMilliseconds,
                         LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
@@ -124,6 +127,7 @@ namespace AElf.Consensus.DPoS
                     {
                         return new ConsensusCommand
                         {
+                            ExpectedMiningTime = expectedMiningTime,
                             NextBlockMiningLeftMilliseconds =
                                 round.RealTimeMinersInformation.Count * miningInterval + myOrder * miningInterval,
                             LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
@@ -136,6 +140,7 @@ namespace AElf.Consensus.DPoS
 
                     return new ConsensusCommand
                     {
+                        ExpectedMiningTime = expectedMiningTime,
                         NextBlockMiningLeftMilliseconds =
                             (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
                                    dateTime).TotalMilliseconds,
@@ -148,6 +153,7 @@ namespace AElf.Consensus.DPoS
                 case DPoSBehaviour.NextTerm:
                     return new ConsensusCommand
                     {
+                        ExpectedMiningTime = expectedMiningTime,
                         NextBlockMiningLeftMilliseconds =
                             (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
                                    dateTime).TotalMilliseconds,
@@ -160,6 +166,7 @@ namespace AElf.Consensus.DPoS
                 default:
                     return new ConsensusCommand
                     {
+                        ExpectedMiningTime = expectedMiningTime,
                         NextBlockMiningLeftMilliseconds = int.MaxValue,
                         LimitMillisecondsOfMiningBlock = int.MaxValue,
                         Hint = new DPoSHint

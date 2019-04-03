@@ -46,10 +46,10 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public static async Task<DPoSHeaderInformation> GetInformationToUpdateConsensusAsync(
             this ContractTester<DPoSContractTestAElfModule> tester,
-            DPoSTriggerInformation triggerInformation)
+            DPoSTriggerInformation triggerInformation, DateTime dateTime)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
-                ConsensusConsts.GetInformationToUpdateConsensus, triggerInformation);
+                ConsensusConsts.GetInformationToUpdateConsensus, triggerInformation, dateTime);
             return DPoSHeaderInformation.Parser.ParseFrom(bytes);
         }
 

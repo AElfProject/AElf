@@ -73,12 +73,13 @@ namespace AElf.Contracts.Consensus.DPoS
                         Behaviour = behaviour
                     };
                 case DPoSBehaviour.NextTerm:
-                    return new DPoSHeaderInformation
+                    var information = new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = GenerateFirstRoundOfNextTerm(publicKey.ToHex()),
                         Behaviour = behaviour
                     };
+                    return information;
                 default:
                     return new DPoSHeaderInformation();
             }
