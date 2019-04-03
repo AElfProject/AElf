@@ -1,6 +1,6 @@
 ## Transactions
 
-Transactions are used to call contract methods 
+Transactions utlimatly are what will change the state of the blockchain, by calling methods on contracts. A transaction is either sent to the node via RPC or received from the network. The following message describes the structure of a transaction:
 
 ```Proto
 option csharp_namespace = "AElf.Kernel";
