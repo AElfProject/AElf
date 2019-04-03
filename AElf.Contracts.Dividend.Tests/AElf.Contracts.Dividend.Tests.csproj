@@ -16,9 +16,4 @@
       <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
       <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
     </ItemGroup>
-    <ItemGroup>
-      <Reference Include="AElf.Consensus.DPoS.Types, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>bin\Debug\netcoreapp2.2\AElf.Consensus.DPoS.Types.dll</HintPath>
-      </Reference>
-    </ItemGroup>
 </Project>
