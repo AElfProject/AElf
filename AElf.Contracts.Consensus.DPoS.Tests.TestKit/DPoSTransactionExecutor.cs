@@ -35,7 +35,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                DateTime.UtcNow.AddMilliseconds(int.MaxValue));
+                DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
 
             await blockAttachService.AttachBlockAsync(block);
         }

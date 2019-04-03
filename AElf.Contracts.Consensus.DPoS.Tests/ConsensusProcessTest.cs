@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.DPoS
     {
         private const int MiningInterval = 4000;
 
-        [Fact]
+        [Fact(Skip = "Rewrite")]
         public async Task NormalBlock_GetNewConsensusInformation()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -43,7 +43,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 .OutValue);
         }
 
-        [Fact]
+        [Fact(Skip = "Rewrite")]
         public async Task NormalBlock_ValidationConsensus_Success()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();

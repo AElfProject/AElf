@@ -30,7 +30,7 @@ namespace AElf.Contracts.TestKit
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 new List<Transaction> {transaction},
-                DateTime.UtcNow.AddMilliseconds(int.MaxValue));
+                DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
 
             await blockAttachService.AttachBlockAsync(block);
         }

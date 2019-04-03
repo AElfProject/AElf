@@ -425,7 +425,7 @@ namespace AElf.Contracts.TestBase
             var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                DateTime.UtcNow.AddMilliseconds(int.MaxValue));
+                DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
             
             await blockAttachService.AttachBlockAsync(block);
     
