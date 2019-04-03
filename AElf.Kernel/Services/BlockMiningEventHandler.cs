@@ -34,8 +34,7 @@ namespace AElf.Kernel.Miner.Application
                 var block = await _minerService.MineAsync(eventData.PreviousBlockHash, eventData.PreviousBlockHeight,
                     eventData.DueTime);
 
-                _blockAttachService.EnqueueAttachBlock(_taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName),
-                    block);
+                _taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName).Enqueue(async () => await _blockAttachService.AttachBlockAsync(block));
             }
             catch (Exception e)
             {

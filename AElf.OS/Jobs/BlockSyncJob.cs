@@ -1,10 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
@@ -67,9 +64,7 @@ namespace AElf.OS.Jobs
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
                         return;
                     }
-
-                    _blockAttachService.EnqueueAttachBlock(_taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName),
-                        peerBlock);
+                    _taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName).Enqueue( async () => await _blockAttachService.AttachBlockAsync(peerBlock));
                     return;
                 }
 
@@ -117,7 +112,7 @@ namespace AElf.OS.Jobs
                         }
 
                         Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
-                        _blockAttachService.EnqueueAttachBlock(_taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName), block);
+                        _taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName).Enqueue( async () => await _blockAttachService.AttachBlockAsync(block));
                     }
 
                     peerBestChainHeight = await _networkService.GetBestChainHeightAsync();
