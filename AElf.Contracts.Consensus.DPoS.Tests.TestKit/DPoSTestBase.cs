@@ -48,8 +48,8 @@ namespace AElf.Contracts.Consensus.DPoS
         
         protected Address TokenContractAddress { get; set; }
 
-        internal ConsensusContractContainer.ConsensusContractTester BootMiner =>
-            GetTester<ConsensusContractContainer.ConsensusContractTester>(ConsensusContractAddress, BootMinerKeyPair);
+        internal ConsensusContractContainer.ConsensusContractStub BootMiner =>
+            GetTester<ConsensusContractContainer.ConsensusContractStub>(ConsensusContractAddress, BootMinerKeyPair);
         
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs.First();
 
@@ -68,14 +68,13 @@ namespace AElf.Contracts.Consensus.DPoS
             ECKeyPairProvider.SetECKeyPair(BootMinerKeyPair);
             // Deploy useful contracts.
             ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)
-                .DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.DefaultRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ConsensusContract).Assembly.Location)),
-                        Name = ConsensusSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateConsensusInitializationCallList(input)
-                    })).Output;
+                .DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput
+                {
+                    Category = KernelConstants.DefaultRunnerCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ConsensusContract).Assembly.Location)),
+                    Name = ConsensusSmartContractAddressNameProvider.Name,
+                    TransactionMethodCallList = GenerateConsensusInitializationCallList(input)
+                })).Output;
 
             DividendContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)
                 .DeploySystemSmartContract.SendAsync(
@@ -108,19 +107,19 @@ namespace AElf.Contracts.Consensus.DPoS
             await BootMiner.NextRound.SendAsync(nextRound);
         }
 
-        internal BasicContractZeroContainer.BasicContractZeroTester GetContractZeroTester(ECKeyPair keyPair)
+        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
         {
-            return GetTester<BasicContractZeroContainer.BasicContractZeroTester>(ContractZeroAddress, keyPair);
+            return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
         }
         
-        internal ConsensusContractContainer.ConsensusContractTester GetConsensusContractTester(ECKeyPair keyPair)
+        internal ConsensusContractContainer.ConsensusContractStub GetConsensusContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ConsensusContractContainer.ConsensusContractTester>(ConsensusContractAddress, keyPair);
+            return GetTester<ConsensusContractContainer.ConsensusContractStub>(ConsensusContractAddress, keyPair);
         }
         
-        internal DividendContractContainer.DividendContractTester GetDividendContractTester(ECKeyPair keyPair)
+        internal DividendContractContainer.DividendContractStub GetDividendContractTester(ECKeyPair keyPair)
         {
-            return GetTester<DividendContractContainer.DividendContractTester>(DividendContractAddress, keyPair);
+            return GetTester<DividendContractContainer.DividendContractStub>(DividendContractAddress, keyPair);
         }
 
         private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSStrategyInput input = null)
