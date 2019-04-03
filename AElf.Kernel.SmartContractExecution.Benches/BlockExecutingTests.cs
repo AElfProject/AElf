@@ -34,6 +34,8 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         {
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new XunitTraceListener(output));
+            
+            SetTestOutputHelper(output);
         }
         
         [PerfSetup]
@@ -80,16 +82,6 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         {
             AsyncHelper.RunSync(() => _blockExecutingService.ExecuteBlockAsync(_block.Header, _transactions));
             _counter.Increment();
-        }
-
-        [PerfCleanup]
-        public void Cleanup()
-        {
-            AsyncHelper.RunSync(async () =>
-            {
-                var chain = await _blockchainService.GetChainAsync();
-                await _blockchainService.SetBestChainAsync(chain, _block.Height, _block.GetHash());
-            });
         }
     }
 }
