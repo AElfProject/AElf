@@ -16,6 +16,17 @@ namespace AElf.Kernel.SmartContractExecution
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+        }
+    }
+    
+    [DependsOn(
+        typeof(SmartContractExecutionAElfModule),
+        typeof(KernelCoreTestAElfModule)
+    )]
+    public class FunctionMetadataTestAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
             var services = context.Services;
             
             var functionMetadata = new FunctionMetadata(new HashSet<string>(){"test1", "test2"}, new HashSet<Resource>()

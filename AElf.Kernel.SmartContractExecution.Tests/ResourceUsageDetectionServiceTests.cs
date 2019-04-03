@@ -7,7 +7,7 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution
 {
-    public class ResourceUsageDetectionServiceTests : SmartContractExecutionTestBase
+    public class ResourceUsageDetectionServiceTests : FunctionMetadataTestBase
     {
         private IResourceUsageDetectionService _resourceUsageDetectionService;
 

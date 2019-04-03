@@ -26,4 +26,8 @@ namespace AElf.Kernel.SmartContractExecution
     {
         
     }
+
+    public class FunctionMetadataTestBase : AElfIntegratedTest<FunctionMetadataTestAElfModule>
+    {
+    }
 }
