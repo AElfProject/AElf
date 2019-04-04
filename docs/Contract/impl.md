@@ -49,17 +49,23 @@ The following option, presented previously, defines which type the contract will
 option (aelf.csharp_state) = "AElf.Contracts.MultiToken.TokenContractState";
 ```
 
-State definition:
+This class needs to be created by the implementor of the smart contract and has to inherite the **ContractState** class of the C# SDK.
 
 ```csharp
 public class TokenContractState : ContractState
-    {
-        public MappedState<string, TokenInfo> TokenInfos { get; set; }
-        public MappedState<Address, string, long> Balances { get; set; }\
-    }
+{
+    public MappedState<string, TokenInfo> TokenInfos { get; set; }
+    public MappedState<Address, string, long> Balances { get; set; }
+}
 ```
 
-Usage with State variable.
+An instance of this class is accessible through the smart contracts base class with the **State** variable. In our case this will give access to the TokenInfos and Balances **MappedState**.
+
+#### State types
+
+More on states.
+
+### Using the context
 
 #### Assertions 
 
