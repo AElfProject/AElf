@@ -24,7 +24,7 @@
 * [Public chain ecosystem](publicchain/publicchain.md)
     * [Introduction](publicchain/intro.md)
     * [Architecture](publicchain/archi.md)
-    * [DPoS Consensus](publicchain/dpos.md)
+    * [AElf consensus](publicchain/dpos.md)
     * [Crosschain tokens](publicchain/crosschainmultitok.md)
     * [Resource system](publicchain/resources.md)
     * [Authority contract](publicchain/auth.md)
