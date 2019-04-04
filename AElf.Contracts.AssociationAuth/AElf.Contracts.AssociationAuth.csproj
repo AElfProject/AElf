@@ -10,9 +10,6 @@
         <Content Include="..\protobuf\common.proto">
             <Link>Protobuf/Proto/common.proto</Link>
         </Content>
-        <Content Include="..\protobuf\dpos_contract.proto">
-            <Link>Protobuf/Proto/dpos_contract.proto</Link>
-        </Content>
         <Content Include="..\protobuf\association_auth_contract.proto">
             <Link>Protobuf/Proto/association_auth_contract.proto</Link>
         </Content>

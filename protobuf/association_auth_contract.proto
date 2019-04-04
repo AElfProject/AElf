@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+import "common.proto";
+import "auth.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.AssociationAuth";
+
+service AssociationAuthContract {
+    option (aelf.csharp_state) = "AElf.Contracts.AssociationAuth.AssociationAuthState";
+    // Actions
+    rpc Initialize(AssociationAuthContractInitializationInput) returns (google.protobuf.Empty){
+    }
+    rpc UpdateAssociation(Association) returns (google.protobuf.Empty){
+    }
+    
+    rpc Propose (Proposal) returns (Hash) {
+    }
+    rpc SayYes (Approval) returns (google.protobuf.BoolValue) {
+    }
+    rpc Release (Hash) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetProposal(Hash) returns (GetProposalOutput) {
+    }
+    rpc GetAssociation (google.protobuf.Empty) returns (Association) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message Association{
+    int32 ExecutionThreshold = 1;
+    int32 ProposerThreshold = 2;
+    repeated Reviewer Reviewers = 3;
+}
+
+message Reviewer {
+    bytes PubKey = 1;
+    int32 Weight = 2;
+}
+
+message AssociationAuthContractInitializationInput{
+    Address director = 1;
+    Hash tokenContractSystemName = 2;
+    Hash committeeContractSystemName = 3;
+}
+
+message GetProposalOutput{
+    Proposal proposal = 1;
+    ProposalStatus status = 2;
+    bool canBeReleased = 3;
+}
