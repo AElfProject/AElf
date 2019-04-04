@@ -4,11 +4,10 @@ Smart contracts in AElf are spread across the Kernel, the runtim and the SDK. Th
 
 ### Smart contract interactions
 
- * bridge context and host
- * contract and chain interactions
- * executive
- * smart contract context 
- * transaction context
+* bridge context and host
+* contract and chain interactions
+* executive
+* smart contract context
 
 ### Runtime
 
