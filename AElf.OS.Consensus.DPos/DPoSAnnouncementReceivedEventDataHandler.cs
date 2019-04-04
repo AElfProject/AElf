@@ -41,12 +41,20 @@ namespace AElf.OS.Consensus.DPos
                 _taskQueueManager.GetQueue(DPoSConsts.LIBSettingQueueName).Enqueue(async () =>
                 {
                     var chain = await _blockchainService.GetChainAsync();
-                    var irreversibleBlockHeight =
-                        (await _blockchainService.GetBlockByHashAsync(irreversibleBlockHash)).Height;
-                    for (var height = chain.LastIrreversibleBlockHeight + 1; height < irreversibleBlockHeight; height++)
+                    var block = await _blockchainService.GetBlockByHashAsync(irreversibleBlockHash);
+                    if (block == null)
                     {
-                        await _blockchainService.SetIrreversibleBlockAsync(chain, irreversibleBlockHeight,
-                            irreversibleBlockHash);
+                        return;
+                    }
+                    for (var height = chain.LastIrreversibleBlockHeight + 1; height < block.Height; height++)
+                    {
+                        var hash = await _blockchainService.GetBlockHashByHeightAsync(chain, height,
+                            chain.BestChainHash);
+                        if (hash == null)
+                        {
+                            return;
+                        }
+                        await _blockchainService.SetIrreversibleBlockAsync(chain, height, hash);
                     }
                 });
             }
