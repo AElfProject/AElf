@@ -171,22 +171,22 @@ namespace AElf.CrossChain
         /// <summary>
         /// This method returns cross chain data.
         /// </summary>
-        /// <param name="previousBlockHash"></param>
-        /// <param name="previousBlockHeight"></param>
+        /// <param name="currentBlockHash"></param>
+        /// <param name="currentBlockHeight"></param>
         /// <returns></returns>
-        public async Task<CrossChainBlockData> GetCrossChainBlockDataForMiningAsync(Hash previousBlockHash, long previousBlockHeight)
+        public async Task<CrossChainBlockData> GetCrossChainBlockDataForMiningAsync(Hash currentBlockHash, long currentBlockHeight)
         {
             // todo: lib event handler
-            var sideChainBlockData = await GetSideChainBlockDataAsync(previousBlockHash, previousBlockHeight);
-            var parentChainBlockData = await GetParentChainBlockDataAsync(previousBlockHash, previousBlockHeight);
+            var sideChainBlockData = await GetSideChainBlockDataAsync(currentBlockHash, currentBlockHeight);
+            var parentChainBlockData = await GetParentChainBlockDataAsync(currentBlockHash, currentBlockHeight);
 
             if (sideChainBlockData.Count == 0 && parentChainBlockData.Count == 0)
                 return null;
             var crossChainBlockData = new CrossChainBlockData();
             crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
             crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
-            crossChainBlockData.PreviousBlockHeight = previousBlockHeight;
-            _indexedCrossChainBlockData[previousBlockHash] = crossChainBlockData;
+            crossChainBlockData.PreviousBlockHeight = currentBlockHeight;
+            _indexedCrossChainBlockData[currentBlockHash] = crossChainBlockData;
             Logger.LogTrace($"IndexedCrossChainBlockData count {_indexedCrossChainBlockData.Count}");
             return crossChainBlockData;
         }

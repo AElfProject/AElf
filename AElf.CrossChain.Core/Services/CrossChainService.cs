@@ -55,7 +55,7 @@ namespace AElf.CrossChain
 
         public async Task<CrossChainBlockData> GetNewCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
         {
-            return await _crossChainDataProvider.GetNewCrossChainBlockDataAsync(previousBlockHash, previousBlockHeight);
+            return await _crossChainDataProvider.GetCrossChainBlockDataForMiningAsync(previousBlockHash, previousBlockHeight);
         }
 
         public CrossChainBlockData GetCrossChainBlockDataFilledInBlock(Hash previousBlockHash, long previousBlockHeight)
