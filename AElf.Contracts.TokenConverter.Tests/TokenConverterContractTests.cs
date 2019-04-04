@@ -20,7 +20,7 @@ namespace AElf.Contracts.TokenConverter
         {
             Symbol = "ELF",
             VirtualBalance = 100_0000,
-            Weight = 100_0000,
+            Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = true
         };
@@ -29,7 +29,7 @@ namespace AElf.Contracts.TokenConverter
         {
             Symbol = "RAM",
             VirtualBalance = 0,
-            Weight = 100_0000,
+            Weight = "0.5",
             IsPurchaseEnabled = true,
             IsVirtualBalanceEnabled = false
         };
@@ -42,7 +42,7 @@ namespace AElf.Contracts.TokenConverter
             await DeployContractsAsync();
             await InitializeTokenConverterContract();
             //GetConnector
-            var ramConnectorInfo = await DefaultStub.GetConnector.CallAsync(new TokenId
+            var ramConnectorInfo = await DefaultStub.GetConnector.CallAsync(new TokenSymbol()
             {
                 Symbol = RamConnector.Symbol
             });
@@ -73,10 +73,8 @@ namespace AElf.Contracts.TokenConverter
             var input = new InitializeInput
             {
                 BaseTokenSymbol = _nativeSymbol,
-                FeeRateNumerator = 5,
-                FeeRateDenominator = 1000,
-                Manager = ManagerAddress,
-                MaxWeight = 1000_0000,
+                FeeRate = "0.005",
+                ManagerAddress = ManagerAddress,
                 TokenContractAddress = TokenContractAddress,
                 FeeReceiverAddress = FeeReceiverAddress,
                 Connectors = {RamConnector}
@@ -106,16 +104,16 @@ namespace AElf.Contracts.TokenConverter
                 result.Error.Contains("Base token symbol is invalid.").ShouldBeTrue();
             }
             //Invalid MaxWeight
-            {
-                input.BaseTokenSymbol = "ELF";
-                input.MaxWeight = 0;
-                var result = (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
-                result.Status.ShouldBe(TransactionResultStatus.Failed);
-                result.Error.Contains("Invalid MaxWeight.").ShouldBeTrue();
-            }
+//            {
+//                input.BaseTokenSymbol = "ELF";
+//                input.MaxWeight = 0;
+//                var result = (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
+//                result.Status.ShouldBe(TransactionResultStatus.Failed);
+//                result.Error.Contains("Invalid MaxWeight.").ShouldBeTrue();
+//            }
             //Invalid symbol
             {
-                input.MaxWeight = 1000_0000;
+                input.BaseTokenSymbol = "ELF";
                 RamConnector.Symbol = "ram";
                 var result = (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -142,30 +140,32 @@ namespace AElf.Contracts.TokenConverter
             var setConnectResult = await testerForManager.SetConnector.SendAsync(new Connector
             {
                 Symbol = "RAM",
+                Weight = "0.5",
                 VirtualBalance = 0,
                 IsPurchaseEnabled = false,
                 IsVirtualBalanceEnabled = false
             });
             setConnectResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var ramNewInfo = await testerForManager.GetConnector.CallAsync(new TokenId
+            var ramNewInfo = await testerForManager.GetConnector.CallAsync(new TokenSymbol()
             {
                 Symbol = "RAM"
             });
             ramNewInfo.IsPurchaseEnabled.ShouldBeFalse();
             
-            var connectorsInfo = await DefaultStub.GetConnector.CallAsync(new TokenId {Symbol = "CPU"});
+            var connectorsInfo = await DefaultStub.GetConnector.CallAsync(new TokenSymbol() {Symbol = "CPU"});
             connectorsInfo.Symbol.ShouldBeEmpty();
 
             //add Connector
             var result = (await testerForManager.SetConnector.SendAsync(new Connector
             {
                 Symbol = "CPU",
+                Weight = "0.5",
                 VirtualBalance = 0,
                 IsPurchaseEnabled = true,
                 IsVirtualBalanceEnabled = false
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Mined);
-            var cpuInfo = await DefaultStub.GetConnector.CallAsync(new TokenId {Symbol = "CPU"});
+            var cpuInfo = await DefaultStub.GetConnector.CallAsync(new TokenSymbol() {Symbol = "CPU"});
             cpuInfo.Symbol.ShouldBe("CPU");
         }
 
@@ -196,9 +196,9 @@ namespace AElf.Contracts.TokenConverter
             
             //check the price and fee
             var fromConnectorBalance = ELFConnector.VirtualBalance;
-            var fromConnectorWeight = ELFConnector.Weight / 100_0000;
+            var fromConnectorWeight = decimal.Parse(ELFConnector.Weight);
             var toConnectorBalance = await GetBalanceAsync(_ramSymbol, TokenConverterContractAddress);
-            var toConnectorWeight = RamConnector.Weight / 100_0000;
+            var toConnectorWeight = decimal.Parse(RamConnector.Weight);
             
             var amountToPay = BancorHelpers.GetAmountToPayFromReturn(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
             var fee = Convert.ToInt64(amountToPay * 5 / 1000);
@@ -293,9 +293,9 @@ namespace AElf.Contracts.TokenConverter
            
             //check the price and fee
             var toConnectorBalance = ELFConnector.VirtualBalance + balanceOfElfToken;
-            var toConnectorWeight = ELFConnector.Weight / 100_0000;
+            var toConnectorWeight = decimal.Parse(ELFConnector.Weight);
             var fromConnectorBalance = await GetBalanceAsync(_ramSymbol,TokenConverterContractAddress);
-            var fromConnectorWeight = RamConnector.Weight / 100_0000;
+            var fromConnectorWeight = decimal.Parse(RamConnector.Weight);
             
             var amountToReceive = BancorHelpers.GetReturnFromPaid(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
             var fee = Convert.ToInt64(amountToReceive * 5 / 1000);
@@ -408,10 +408,8 @@ namespace AElf.Contracts.TokenConverter
             var input = new InitializeInput
             {
                 BaseTokenSymbol = "ELF",
-                FeeRateNumerator = 5L,
-                FeeRateDenominator = 1000L,
-                Manager = Address.FromPublicKey(ManagerKeyPair.PublicKey),
-                MaxWeight = 100_0000,
+                FeeRate = "0.005",
+                ManagerAddress = Address.FromPublicKey(ManagerKeyPair.PublicKey),
                 TokenContractAddress = TokenContractAddress,
                 FeeReceiverAddress = FeeReceiverAddress,
                 Connectors = {ELFConnector, RamConnector}
