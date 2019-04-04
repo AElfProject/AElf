@@ -98,7 +98,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             {
                 {"rawTransaction", "0a200a1e4604ccbdaa377fd7022b56436b99309e8b71cc5d78e909d271dbd1aeee6412200a1eaaa58b6cf58d4ef337f6dc55b701fd57d622015a3548a91a4e40892aa355180b220436957f93320c476574546f6b656e496e666f3a060a04454c46324a416246d781d80759d8ae6bb895b17203a3c9d4e89f083d7d89d9b6cbbf1c67ded52e134108fc8b3646f6549313868ce3e68a7117815cc0c2107ef1a986430a12ba002"}
             };
-            var response = await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/chain/call",paramters,HttpStatusCode.Forbidden);
+            var response = await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/chain/call",paramters,expectedStatusCode: HttpStatusCode.Forbidden);
             
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
@@ -135,7 +135,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             var response =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/chain/broadcastTransaction",
-                    parameters, HttpStatusCode.Forbidden);
+                    parameters, expectedStatusCode: HttpStatusCode.Forbidden);
 
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
@@ -153,7 +153,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"rawTransaction",transaction.ToByteArray().ToHex()}
             };
             var response = await PostResponseAsObjectAsync<WebAppErrorResponse>(
-                "/api/chain/chain/broadcastTransaction", parameters, HttpStatusCode.Forbidden);
+                "/api/chain/chain/broadcastTransaction", parameters, expectedStatusCode: HttpStatusCode.Forbidden);
 
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
@@ -252,7 +252,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             var fakeTransactionId = "FakeTransactionId";
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/chain/transactionResult/{fakeTransactionId}", HttpStatusCode.Forbidden);           
+                $"/api/chain/chain/transactionResult/{fakeTransactionId}", expectedStatusCode: HttpStatusCode.Forbidden);           
 
             response.Error.Code.ShouldBe(Error.InvalidTransactionId.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransactionId]);
@@ -292,7 +292,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var blockHash = block.GetHash().ToHex();
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
                 $"/api/chain/chain/transactionsResult?blockHash={blockHash}&offset=0&limit=10",
-                HttpStatusCode.Forbidden);
+                expectedStatusCode: HttpStatusCode.Forbidden);
 
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
@@ -309,20 +309,20 @@ namespace AElf.WebApp.Application.Chain.Tests
             
             var response1 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
                 $"/api/chain/chain/transactionsResult?blockHash={blockHash}&offset=-3&limit=10",
-                HttpStatusCode.Forbidden);
+                expectedStatusCode: HttpStatusCode.Forbidden);
             
             response1.Error.Code.ShouldBe(Error.InvalidOffset.ToString());
             response1.Error.Message.Contains("Offset must greater than or equal to 0").ShouldBeTrue();
             
             var response2 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
                 $"/api/chain/chain/transactionsResult?blockHash={blockHash}&offset=0&limit=-5",
-                HttpStatusCode.Forbidden);
+                expectedStatusCode: HttpStatusCode.Forbidden);
             response2.Error.Code.ShouldBe(Error.InvalidLimit.ToString());
             response2.Error.Message.Contains("Limit must between 0 and 100").ShouldBeTrue();
             
             var response3 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
                 $"/api/chain/chain/transactionsResult?blockHash={blockHash}&offset=0&limit=120",
-                HttpStatusCode.Forbidden);
+                expectedStatusCode: HttpStatusCode.Forbidden);
             response3.Error.Code.ShouldBe(Error.InvalidLimit.ToString());
             response3.Error.Message.Contains("Limit must between 0 and 100").ShouldBeTrue();
         }
@@ -363,7 +363,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
                 "/api/chain/chain/blockInfo?blockHeight=100",
-                HttpStatusCode.Forbidden);
+                expectedStatusCode: HttpStatusCode.Forbidden);
 
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
@@ -435,13 +435,13 @@ namespace AElf.WebApp.Application.Chain.Tests
         public async Task Query_NonExist_Api_Failed()
         {
             var getResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/chain/TestMethod",
-                HttpStatusCode.NotFound);
+                expectedStatusCode: HttpStatusCode.NotFound);
             getResponse.ShouldBeNull();
             var postResponse = await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/chain/TestMethod",new Dictionary<string, string>(),
-                HttpStatusCode.NotFound);
+                expectedStatusCode: HttpStatusCode.NotFound);
             postResponse.ShouldBeNull();
             var deleteResponse = await DeleteResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/chain/TestMethod",
-                HttpStatusCode.NotFound);
+                expectedStatusCode: HttpStatusCode.NotFound);
             deleteResponse.ShouldBeNull();
         }
         
@@ -467,13 +467,13 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             var addressInfo = Address.Generate().GetFormatted();
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/chain/fileDescriptorSet?address={addressInfo}", HttpStatusCode.Forbidden);
+                $"/api/chain/chain/fileDescriptorSet?address={addressInfo}", expectedStatusCode: HttpStatusCode.Forbidden);
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
 
             addressInfo = "invalid address";
             var response1 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/chain/fileDescriptorSet?address={addressInfo}", HttpStatusCode.Forbidden);
+                $"/api/chain/chain/fileDescriptorSet?address={addressInfo}", expectedStatusCode: HttpStatusCode.Forbidden);
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response1.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
         }
