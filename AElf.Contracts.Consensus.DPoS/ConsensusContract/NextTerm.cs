@@ -292,10 +292,17 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private ActionResult SendDividends(TermInfo input)
         {
+            LogVerbose("Entered SendDividends");
+            State.DividendContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
+            LogVerbose("Set Dividend Contract State.");
+
             var lastRoundNumber = input.RoundNumber;
             var dividendsTermNumber = input.TermNumber;
             Assert(TryToGetRoundInformation(lastRoundNumber, out var roundInformation),
                 "Round information not found.");
+
+            LogVerbose($"Got current round information: {roundInformation}");
 
             // Set dividends of related term to Dividends Contract.
             var minedBlocks = roundInformation.GetMinedBlocks();
@@ -306,37 +313,35 @@ namespace AElf.Contracts.Consensus.DPoS
                     DividendsAmount = GetDividendsForVoters(minedBlocks)
                 });
 
-            long totalVotes = 0;
-            long totalReappointment = 0;
-            var continualAppointmentDict = new Dictionary<string, long>();
+            LogVerbose($"Added dividends of term {input.TermNumber}");
+
+            var ticketsDict = roundInformation.RealTimeMinersInformation
+                .Select(m => State.TicketsMap[m.Key.ToStringValue()] ?? new Tickets {PublicKey = m.Key})
+                .ToDictionary(t => t.PublicKey, t => t);
+
+            var historyDict = roundInformation.RealTimeMinersInformation
+                .Select(m => State.HistoryMap[m.Key.ToStringValue()] ?? new CandidateInHistory {PublicKey = m.Key})
+                .ToDictionary(h => h.PublicKey, h => h);
+
+            var totalVotes = ticketsDict.Values.Sum(t => t.ObtainedTickets);
+            var totalReappointment = historyDict.Values.Sum(h => h.ContinualAppointmentCount);
+            
             foreach (var minerInRound in roundInformation.RealTimeMinersInformation)
             {
-                if (TryToGetTicketsInformation(minerInRound.Key, out var candidateTickets))
-                {
-                    totalVotes += candidateTickets.ObtainedTickets;
-                }
-
-                if (TryToGetMinerHistoryInformation(minerInRound.Key, out var candidateInHistory))
-                {
-                    totalReappointment += candidateInHistory.ContinualAppointmentCount;
-
-                    continualAppointmentDict.Add(minerInRound.Key, candidateInHistory.ContinualAppointmentCount);
-                }
-
-                // Transfer dividends for actual miners. (The miners list based on last round of current term.)
+                // Transfer dividends for actual miners. (The miners list based on last round of old term.)
                 var amount = GetDividendsForEveryMiner(minedBlocks) +
                              (totalVotes == 0
                                  ? 0
-                                 : GetDividendsForTicketsCount(minedBlocks) * candidateTickets.ObtainedTickets /
+                                 : GetDividendsForTicketsCount(minedBlocks) * ticketsDict[minerInRound.Key].ObtainedTickets /
                                    totalVotes) +
                              (totalReappointment == 0
                                  ? 0
                                  : GetDividendsForReappointment(minedBlocks) *
-                                   continualAppointmentDict[minerInRound.Key] /
+                                   historyDict[minerInRound.Key].ContinualAppointmentCount /
                                    totalReappointment);
 
                 State.DividendContract.SendDividends.Send(
-                    new SendDividendsInput()
+                    new SendDividendsInput
                     {
                         To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(minerInRound.Key)),
                         Amount = amount
@@ -350,7 +355,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     var backupCount = (long) backups.Count;
                     var amount = backupCount == 0 ? 0 : GetDividendsForBackupNodes(minedBlocks) / backupCount;
                     State.DividendContract.SendDividends.Send(
-                        new SendDividendsInput()
+                        new SendDividendsInput
                         {
                             To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
                             Amount = amount
