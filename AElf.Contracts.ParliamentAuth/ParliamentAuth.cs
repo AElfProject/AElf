@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
-using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -32,7 +31,7 @@ namespace AElf.Contracts.ParliamentAuth
 
             Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
 
-            Hash hash = proposal.GetHash();
+            Hash hash = Hash.FromMessage(proposal);
             var existing = State.Proposals[hash];
             Assert(existing == null, "Proposal already created.");
 
@@ -62,14 +61,14 @@ namespace AElf.Contracts.ParliamentAuth
             var proposal = proposalInfo.Proposal;
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(), 
                 "Expired proposal.");
-            byte[] toSig = proposal.GetHash().DumpByteArray();
+            byte[] toSig = Hash.FromMessage(proposal).DumpByteArray();
             byte[] pubKey = Context.RecoverPublicKey(approval.Signature.ToByteArray(), toSig);
             Assert(pubKey != null && Context.RecoverPublicKey().SequenceEqual(pubKey), "Invalid approval.");
             var representatives = GetRepresentatives();
             Assert(representatives.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)),
                 "Not authorized approval.");
 
-            CheckSignature(proposal.GetHash().DumpByteArray(), approval.Signature.ToByteArray());
+            CheckSignature(toSig, approval.Signature.ToByteArray());
             approved = approved ?? new Approved();
             approved.Approvals.Add(approval);
             State.Approved[hash] = approved;

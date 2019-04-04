@@ -15,4 +15,7 @@
         <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Proposal" />
+    </ItemGroup>
 </Project>

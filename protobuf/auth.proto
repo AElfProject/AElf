@@ -3,23 +3,3 @@ syntax = "proto3";
 option csharp_namespace = "AElf.Kernel";
 import "common.proto";
 import "google/protobuf/timestamp.proto";
-
-message Proposal {
-    Address MultiSigAccount = 1;
-    string Name = 2;
-    Address ToAddress = 3;
-    bytes Params = 4;
-    google.protobuf.Timestamp ExpiredTime = 5;
-    Address Proposer = 6;
-}
-
-enum ProposalStatus {
-    Active = 0;
-    Released = 1;
-    Expired = 2;
-}
-
-message Approval {
-    Hash ProposalHash = 1;
-    bytes Signature = 2;
-}
