@@ -25,7 +25,7 @@ namespace AElf.Contracts.AssociationAuth
         public override Empty Initialize(AssociationAuthContractInitializationInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            State.CommitteeContractSystemName.Value = input.CommitteeContractSystemName;
+            State.ParliamentAuthContractSystemName.Value = input.ParliamentAuthContractSystemName;
             State.Owner.Value = input.Director;
             State.Initialized.Value = true;
             return new Empty();

@@ -43,8 +43,7 @@ message Reviewer {
 
 message AssociationAuthContractInitializationInput{
     Address director = 1;
-    Hash tokenContractSystemName = 2;
-    Hash committeeContractSystemName = 3;
+    Hash parliamentAuthContractSystemName = 2;
 }
 
 message ProposalInfo {
@@ -57,4 +56,9 @@ message GetProposalOutput{
     Proposal proposal = 1;
     ProposalStatus status = 2;
     bool canBeReleased = 3;
+}
+
+message Approved {
+    Hash ProposalHash = 1;
+    repeated Approval Approvals = 5;
 }
