@@ -56,10 +56,10 @@ namespace AElf.Kernel.Consensus.DPoS
             context.Services.AddTransient(builder =>
             {
                 var consensusService = new Mock<IConsensusService>();
-                consensusService.Setup(m=>m.ValidateConsensusBeforeExecutionAsync(It.IsAny<Hash>(), It.IsAny<long>(),
+                consensusService.Setup(m=>m.ValidateConsensusBeforeExecutionAsync(It.IsAny<ChainContext>(),
                         It.IsAny<byte[]>()))
                     .Returns(Task.FromResult(true));
-                consensusService.Setup(m=>m.ValidateConsensusAfterExecutionAsync(It.IsAny<Hash>(), It.IsAny<long>(),
+                consensusService.Setup(m=>m.ValidateConsensusAfterExecutionAsync(It.IsAny<ChainContext>(),
                         It.IsAny<byte[]>()))
                     .Returns(Task.FromResult(true));
                 

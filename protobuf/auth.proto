@@ -4,10 +4,12 @@ option csharp_namespace = "AElf.Kernel";
 import "common.proto";
 import "google/protobuf/timestamp.proto";
 
-message ReferendumAuth {
-    int32 VoterCountThreshold = 1;
-    int64 VoteAmountThreshold = 2;
-    string VoteSymbol = 3;
+message Authorization
+{
+    Address MultiSigAccount = 1;
+    uint32 ExecutionThreshold = 2;
+    uint32 ProposerThreshold = 3;
+    repeated Reviewer Reviewers = 4;
 }
 
 message ParliamentAuth {

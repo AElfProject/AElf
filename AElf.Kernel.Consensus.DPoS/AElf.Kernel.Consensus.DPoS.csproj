@@ -9,6 +9,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Consensus.DPoS.Types\AElf.Consensus.DPoS.Types.csproj" />
+      <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler.FluentScheduler\AElf.Kernel.Consensus.Scheduler.FluentScheduler.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />

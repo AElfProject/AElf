@@ -1,10 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
@@ -18,13 +15,14 @@ namespace AElf.OS.Jobs
     public class BlockSyncJob
     {
         private const long InitialSyncLimit = 10;
-        
+        private const int BlockSyncJobLimit = 200;
+
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
         private readonly NetworkOptions _networkOptions;
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITaskQueueManager _taskQueueManager;
-        
+
         public ILogger<BlockSyncJob> Logger { get; set; }
 
         public BlockSyncJob(IBlockAttachService blockAttachService,
@@ -66,8 +64,7 @@ namespace AElf.OS.Jobs
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
                         return;
                     }
-                    _blockAttachService.EnqueueAttachBlock(_taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName),
-                        peerBlock);
+                    _taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName).Enqueue( async () => await _blockAttachService.AttachBlockAsync(peerBlock));
                     return;
                 }
 
@@ -79,8 +76,16 @@ namespace AElf.OS.Jobs
                 var peerBestChainHeight = await _networkService.GetBestChainHeightAsync();
                 while (true)
                 {
+                    // Limit block sync job count, control memory usage
+                    chain = await _blockchainService.GetChainAsync();
+                    if (chain.BestChainHeight < blockHeight - BlockSyncJobLimit)
+                    {
+                        Logger.LogWarning($"Pause sync task and wait for synced block to be processed, best chain height: {chain.BestChainHeight}");
+                        break;
+                    }
+
                     Logger.LogDebug($"Request blocks start with {blockHash}");
-                    
+
                     var peer = peerBestChainHeight - blockHeight > InitialSyncLimit ? null : args.SuggestedPeerPubKey;
                     var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, count, peer);
 
@@ -105,9 +110,9 @@ namespace AElf.OS.Jobs
                             Logger.LogWarning($"Get null block from peer, request block start: {blockHash}");
                             break;
                         }
+
                         Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
-                        _blockAttachService.EnqueueAttachBlock(_taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName),
-                            block);
+                        _taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName).Enqueue( async () => await _blockAttachService.AttachBlockAsync(block));
                     }
 
                     peerBestChainHeight = await _networkService.GetBestChainHeightAsync();

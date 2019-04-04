@@ -125,8 +125,15 @@ namespace AElf.OS.Rpc.ChainController
             }
 
             var transactionResult = await this.GetTransactionResult(transactionHash);
+            if (transactionResult.Status == TransactionResultStatus.NotExisted)
+                return new JObject
+                {
+                    ["TransactionId"] = transactionId,
+                    ["Status"] = nameof(TransactionResultStatus.NotExisted)
+                };
+            
             var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
-
+            
             var response = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {

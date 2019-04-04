@@ -1,9 +1,11 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Node.Infrastructure;
 using Microsoft.Extensions.Options;
+using Shouldly;
 using Xunit;
 
 namespace AElf.CrossChain.Grpc
@@ -68,6 +70,12 @@ namespace AElf.CrossChain.Grpc
         public async Task Client_Shutdown_Test()
         {
             //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
+            await Assert.ThrowsAsync<NotImplementedException>(()=>_grpcCrossChainClientNodePlugin.ShutdownAsync()); 
+        }
+
+        public override void Dispose()
+        {
+            _grpcCrossChainServerNodePlugin?.ShutdownAsync().Wait();
         }
     }
 }

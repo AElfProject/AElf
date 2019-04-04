@@ -59,8 +59,8 @@ namespace AElf.Kernel.TransactionPool.Domain
         public async Task GetReceipt_Test()
         {
             var randomHash = Hash.Generate();
-            var transactionRecepit = await _transactionReceiptManager.GetReceiptAsync(randomHash);
-            transactionRecepit.ShouldBe(null);
+            var transactionReceipt0 = await _transactionReceiptManager.GetReceiptAsync(randomHash);
+            transactionReceipt0.ShouldBe(null);
 
             var transactionReceipt = GenerateTransactionReceipts(1)[0];
 
@@ -69,6 +69,23 @@ namespace AElf.Kernel.TransactionPool.Domain
 
             result.ShouldBe(transactionReceipt);
         }
+
+        [Fact]
+        public async Task Receipt_Executable_Test()
+        {
+            var transactionReceipt = GenerateTransactionReceipts(1)[0];
+
+            await _transactionReceiptManager.AddOrUpdateReceiptAsync(transactionReceipt);
+            var result = await _transactionReceiptManager.GetReceiptAsync(transactionReceipt.TransactionId);
+            
+            result.IsExecutable.ShouldBeFalse();
+
+            result.SignatureStatus = SignatureStatus.SignatureValid;
+            result.RefBlockStatus = RefBlockStatus.RefBlockValid;
+            result.TransactionStatus = TransactionStatus.UnknownTransactionStatus;
+            result.IsExecutable.ShouldBeTrue();
+        }
+        
 
         private List<TransactionReceipt> GenerateTransactionReceipts(int count)
         {

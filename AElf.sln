@@ -1,5 +1,4 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -81,6 +80,18 @@ ProjectSection(SolutionItems) = preProject
 	scripts\deploy_nuget.sh = scripts\deploy_nuget.sh
 	scripts\deploy_docker.sh = scripts\deploy_docker.sh
 	scripts\deploy_myget_daily.sh = scripts\deploy_myget_daily.sh
+	scripts\download_binary.bat = scripts\download_binary.bat
+	scripts\download_binary.sh = scripts\download_binary.sh
+	scripts\generate_contract_base.bat = scripts\generate_contract_base.bat
+	scripts\generate_contract_code.bat = scripts\generate_contract_code.bat
+	scripts\generate_contract_code.sh = scripts\generate_contract_code.sh
+	scripts\generate_contract_reference.bat = scripts\generate_contract_reference.bat
+	scripts\generate_contract_reference.sh = scripts\generate_contract_reference.sh
+	scripts\generate_event_only.bat = scripts\generate_event_only.bat
+	scripts\generate_event_only.sh = scripts\generate_event_only.sh
+	scripts\generate_contract_base.sh = scripts\generate_contract_base.sh
+	scripts\generate_contract_stub.bat = scripts\generate_contract_stub.bat
+	scripts\generate_contract_stub.sh = scripts\generate_contract_stub.sh
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
@@ -129,6 +140,8 @@ ProjectSection(SolutionItems) = preProject
 	protobuf\descriptor_equivalent.proto = protobuf\descriptor_equivalent.proto
 	protobuf\test_contract.proto = protobuf\test_contract.proto
 	protobuf\token_contract_messages.proto = protobuf\token_contract_messages.proto
+	protobuf\acs1.proto = protobuf\acs1.proto
+	protobuf\acs2.proto = protobuf\acs2.proto
 	protobuf\association_auth_contract.proto = protobuf\association_auth_contract.proto
 	protobuf\parliament_auth_contract.proto = protobuf\parliament_auth_contract.proto
 EndProjectSection
@@ -300,6 +313,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AssociationAuth", "AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj", "{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ParliamentAuth", "AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj", "{E2F3E423-3593-458B-999A-4371B7B2B192}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.Tests.TestKit", "AElf.Contracts.Consensus.DPoS.Tests.TestKit\AElf.Contracts.Consensus.DPoS.Tests.TestKit.csproj", "{E2399D77-4A00-45AB-910C-2545C6B2E7AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Net.Tests", "AElf.WebApp.Application.Net.Tests\AElf.WebApp.Application.Net.Tests.csproj", "{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Benches", "AElf.Kernel.SmartContractExecution.Benches\AElf.Kernel.SmartContractExecution.Benches.csproj", "{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -751,6 +770,18 @@ Global
 		{E2F3E423-3593-458B-999A-4371B7B2B192}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2F3E423-3593-458B-999A-4371B7B2B192}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2F3E423-3593-458B-999A-4371B7B2B192}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -858,5 +889,8 @@ Global
 		{899AC6DB-FD44-4E7B-89DB-5400891AC80A} = {7190E4AA-10F9-419B-B2A2-A4A745787B3A}
 		{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{E2F3E423-3593-458B-999A-4371B7B2B192} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1} = {7190E4AA-10F9-419B-B2A2-A4A745787B3A}
+		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
+		{E2399D77-4A00-45AB-910C-2545C6B2E7AD} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
@@ -28,6 +29,7 @@ namespace AElf.Kernel.SmartContract
                 return mockSmartContractRunner.Object;
             });
 
+            services.AddSingleton(p => Mock.Of<IAccountService>());
         }
     }
 }

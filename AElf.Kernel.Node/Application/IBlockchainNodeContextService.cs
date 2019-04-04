@@ -70,8 +70,6 @@ namespace AElf.Kernel.Node.Application
             await _smartContractAddressUpdateService.UpdateSmartContractAddressesAsync(
                 await _blockchainService.GetBlockHeaderByHashAsync(chain.BestChainHash));
 
-            await _consensusService.TriggerConsensusAsync();
-
             return context;
         }
 

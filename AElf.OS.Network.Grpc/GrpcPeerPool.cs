@@ -139,7 +139,6 @@ namespace AElf.OS.Network.Grpc
         public bool IsAuthenticatePeer(string remotePubKey)
         {
             string localPubKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
-            
             if (remotePubKey == localPubKey)
                 return false;
 

@@ -2,6 +2,7 @@ using System;
 using AElf.Sdk.CSharp.State;
 using AElf.Common;
 using AElf.Sdk.CSharp;
+using JetBrains.Annotations;
 
 namespace AElf.Sdk.CSharp.Tests
 {
@@ -15,6 +16,11 @@ namespace AElf.Sdk.CSharp.Tests
         public Action Action0 { get; set; }
         public Action<int> Action1 { get; set; }
         public Action<int, int> Action2 { get; set; }
+        
+        public Func<bool> Func1 { get; set; }
+        public Func<int, bool> Func2 { get; set; }
+        public Func<int, int, int> Func3 { get; set; }
+             
     }
 
     public class MockContractState : ContractState

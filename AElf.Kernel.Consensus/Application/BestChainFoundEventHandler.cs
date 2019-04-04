@@ -18,7 +18,11 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            await _consensusService.TriggerConsensusAsync();
+            await _consensusService.TriggerConsensusAsync(new ChainContext
+            {
+                BlockHash = eventData.BlockHash,
+                BlockHeight = eventData.BlockHeight
+            });
         }
     }
 }
