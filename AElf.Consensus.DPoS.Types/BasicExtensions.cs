@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AElf.Common;
-using AElf.Cryptography;
-using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Consensus.DPoS
@@ -139,7 +136,6 @@ namespace AElf.Consensus.DPoS
 
             foreach (var orderConflictedMiner in conflicts)
             {
-                Console.WriteLine("Detected conflict miner: " + orderConflictedMiner.PublicKey);
                 // Though multiple conflicts should be wrong, we can still arrange their orders of next round.
 
                 for (var i = supposedOrderOfNextRound + 1; i < minersCount * 2; i++)
@@ -147,8 +143,6 @@ namespace AElf.Consensus.DPoS
                     var maybeNewOrder = i > minersCount ? i % minersCount : i;
                     if (round.RealTimeMinersInformation.Values.All(m => m.FinalOrderOfNextRound != maybeNewOrder))
                     {
-                        Console.WriteLine(
-                            $"Try to tune order from {round.RealTimeMinersInformation[orderConflictedMiner.PublicKey].FinalOrderOfNextRound} to {maybeNewOrder}");
                         round.RealTimeMinersInformation[orderConflictedMiner.PublicKey].FinalOrderOfNextRound =
                             maybeNewOrder;
                         break;

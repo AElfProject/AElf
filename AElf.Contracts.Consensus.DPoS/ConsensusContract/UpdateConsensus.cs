@@ -73,10 +73,12 @@ namespace AElf.Contracts.Consensus.DPoS
                         Behaviour = behaviour
                     };
                 case DPoSBehaviour.NextTerm:
+                    var firstRoundOfNextTerm = GenerateFirstRoundOfNextTerm(publicKey.ToHex());
+                    Assert(firstRoundOfNextTerm != new Round(), "Failed to generate new round information.");
                     var information = new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
-                        Round = GenerateFirstRoundOfNextTerm(publicKey.ToHex()),
+                        Round = firstRoundOfNextTerm,
                         Behaviour = behaviour
                     };
                     return information;
