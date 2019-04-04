@@ -91,13 +91,7 @@ namespace AElf.Contracts.ParliamentAuth
 
             // check approvals
             Assert(CheckApprovals(proposalId), "Not authorized to release.");
-
-            // check and append signatures to packed txn
-            // check authorization of proposal
-            //var proposedTxn = CheckAndFillTxnData(proposal, approved);
-            // send deferred transaction
-            //Context.SendDeferredTransaction(proposedTxn);
-            
+           
             // temporary method to calculate virtual hash 
             var virtualHash = Hash.FromMessage(proposal.ToAddress);
             Context.SendVirtualInline(virtualHash, proposal.ToAddress, proposal.Name, proposal.Params);

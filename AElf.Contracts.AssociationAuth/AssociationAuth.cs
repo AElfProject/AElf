@@ -38,30 +38,6 @@ namespace AElf.Contracts.AssociationAuth
             State.Association.Value = input;
             return new Empty();
         }
-        
-//        public override Address CreateMultiSigAccount(AssociationAuth input)
-//        {
-//            var authorization = input;
-//            Assert(authorization.Reviewers.Count > 0 && authorization.Reviewers.All(r => r.PubKey.Length > 0),
-//                "Invalid authorization for multi signature.");
-//            Address multiSigAccount = authorization.MultiSigAccount ??
-//                                      Address.FromPublicKey(authorization.ToByteArray().ToArray());
-//            var existing = State.MultiSig[multiSigAccount];
-//            Assert(existing == null, "MultiSigAccount already existed.");
-//            uint accumulatedWeights =
-//                authorization.Reviewers.Aggregate<Reviewer, uint>(0, (weights, r) => weights + r.Weight);
-//
-//            // Weight accumulation should be more than authorization execution threshold.
-//            Assert(accumulatedWeights >= authorization.ExecutionThreshold, "Invalid authorization.");
-//
-//            // At least one reviewer can propose.
-//            bool canBeProposed = authorization.Reviewers.Any(r => r.Weight >= authorization.ProposerThreshold);
-//            Assert(canBeProposed, "Invalid authorization.");
-//
-//            authorization.MultiSigAccount = multiSigAccount;
-//            State.MultiSig[multiSigAccount] = authorization;
-//            return multiSigAccount;
-//        }
 
         public override Hash Propose(Proposal input)
         {
@@ -183,32 +159,6 @@ namespace AElf.Contracts.AssociationAuth
         }
         #endregion
 
-//        public override BoolValue IsMultiSigAccount(Address input)
-//        {
-//            var address = input;
-//            var authorization = State.MultiSig[address];
-//            if (address.Equals(Context.Genesis) || authorization != null)
-//            {
-//                return new BoolValue() {Value = true};
-//            }
-//
-//            return new BoolValue() {Value = false};
-//        }
-
-//        private Transaction CheckAndFillTxnData(Proposal proposal, Approved approved)
-//        {
-//            // fill txn data 
-//            var proposedTxn = GetPendingTxn(proposal.TxnData.ToByteArray());
-//            foreach (var approval in approved.Approvals)
-//            {
-//                proposedTxn.Sigs.Add(approval.Signature);
-//            }
-//
-//            proposedTxn.RefBlockNumber = Context.CurrentHeight;
-//            proposedTxn.RefBlockPrefix = ByteString.CopyFrom(Context.PreviousBlockHash.Value.ToByteArray());
-//            return proposedTxn;
-//        }
-
         private void CheckProposerAuthority(Address proposer)
         {
             // Proposal should not be from multi sig account.
@@ -256,19 +206,5 @@ namespace AElf.Contracts.AssociationAuth
             var senderPublicKey = Context.RecoverPublicKey();
             Assert(recoveredPublicKey.SequenceEqual(senderPublicKey), "Incorrect signature");
         }
-
-
-//        private void CheckTxnData(Address msigAddress, byte[] txnData)
-//        {
-//            var proposedTxn = GetPendingTxn(txnData);
-//            Assert(proposedTxn.From.Equals(msigAddress),
-//                "From address in proposed transaction is not valid multisig account.");
-//            Assert(proposedTxn.Sigs.Count == 0, "Invalid signatures in proposed transaction.");
-//        }
-//
-//        private uint SystemThreshold(uint reviewerCount)
-//        {
-//            return reviewerCount * 2 / 3;
-//        }
     }
 }
