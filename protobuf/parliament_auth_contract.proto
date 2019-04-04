@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+import "common.proto";
+import "auth.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.ParliamentAuth";
+
+service ParliamentAuthContract {
+    option (aelf.csharp_state) = "AElf.Contracts.ParliamentAuth.ParliamentAuthState";
+    // Actions
+    rpc Initialize(ParliamentAuthInitializationInput) returns (google.protobuf.Empty){
+    }
+    rpc Propose (Proposal) returns (Hash) {
+    }
+    rpc SayYes (Approval) returns (google.protobuf.BoolValue) {
+    }
+    rpc Release (Hash) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetProposal(Hash) returns (GetProposalOutput) {
+    }
+}
+
+message ParliamentAuthInitializationInput{
+    Hash consensusContractSystemName = 1;
+}
+
+message ProposalInfo {
+    Hash proposalHash = 1;
+    Proposal proposal = 2;
+    bool isReleased = 3;
+}
+
+message GetProposalOutput{
+    Proposal proposal = 1;
+    ProposalStatus status = 2;
+    bool canBeReleased = 3;
+}
+
+message Approved {
+    Hash ProposalHash = 1;
+    repeated Approval Approvals = 5;
+}
+
+message Representative{
+    bytes PubKey = 1;
+    int32 Weight = 2;
+}

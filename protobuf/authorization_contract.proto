@@ -13,7 +13,7 @@ service AuthorizationContract {
     // Actions
     rpc Initialize(AuthorizationContractInitializationInput) returns (google.protobuf.Empty){        
     }    
-    rpc CreateMultiSigAccount (Authorization) returns (Address) {
+    rpc CreateMultiSigAccount (Association) returns (Address) {
     }
     rpc Propose (Proposal) returns (Hash) {
     }
@@ -25,12 +25,23 @@ service AuthorizationContract {
     rpc GetProposal(Hash) returns (GetProposalOutput) {
     }
     
-    rpc GetAuthorization (Address) returns (Authorization) {
+    rpc GetAssociation (Address) returns (Association) {
         option (aelf.is_view) = true;
     }
     rpc IsMultiSigAccount (Address) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
+}
+
+message Association{
+    int32 ExecutionThreshold = 1;
+    int32 ProposerThreshold = 2;
+    repeated Reviewer Reviewers = 3;
+}
+
+message Reviewer {
+    bytes PubKey = 1;
+    uint32 Weight = 2;
 }
 
 message AuthorizationContractInitializationInput{

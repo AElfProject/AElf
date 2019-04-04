@@ -4,8 +4,6 @@ option csharp_namespace = "AElf.Kernel";
 import "common.proto";
 import "google/protobuf/timestamp.proto";
 
-
-
 message ReferendumAuth {
     int32 VoterCountThreshold = 1;
     int64 VoteAmountThreshold = 2;
@@ -35,17 +33,6 @@ enum ProposalStatus {
     Active = 0;
     Released = 1;
     Expired = 2;
-}
-
-message ProposalInfo {
-    Hash ProposalHash = 1;
-    Proposal Proposal = 2;
-    bool IsReleased = 3;
-}
-
-message Approved {
-    Hash ProposalHash = 1;
-    repeated Approval Approvals = 5;
 }
 
 message Approval {
