@@ -25,7 +25,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     LimitMillisecondsOfMiningBlock = int.MaxValue, NextBlockMiningLeftMilliseconds = int.MaxValue
                 };
             }
-            
+
             Assert(currentRound != null && currentRound.RoundId != 0, "Consensus not initialized.");
 
             var command = behaviour.GetConsensusCommand(currentRound, input.PublicKey.ToHex(), Context.CurrentBlockTime,

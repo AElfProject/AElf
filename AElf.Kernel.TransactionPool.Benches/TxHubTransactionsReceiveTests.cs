@@ -1,27 +1,25 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using AElf.BenchBase;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using NBench;
 using Pro.NBench.xUnit.XunitExtensions;
 using Volo.Abp.Threading;
 using Xunit.Abstractions;
 
-namespace AElf.Kernel.SmartContractExecution.Benches
+namespace AElf.Kernel.TransactionPool.Benches
 {
-    public class BlockAttachTests: BenchBaseTest<ExecutionBenchAElfModule>
+    public class TxHubTransactionsReceiveTests : BenchBaseTest<TransactionPoolBenchAElfModule>
     {
-        private IBlockchainService _blockchainService;
-        private IBlockAttachService _blockAttachService;
+        private ITxHub _txHub;
         private OSTestHelper _osTestHelper;
         
         private Counter _counter;
+
+        private List<Transaction> _transactions;
         
-        private Block _block;
-        
-        public BlockAttachTests(ITestOutputHelper output)
+        public TxHubTransactionsReceiveTests(ITestOutputHelper output)
         {
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new XunitTraceListener(output));
@@ -30,29 +28,30 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         [PerfSetup]
         public void Setup(BenchmarkContext context)
         {
-            _blockchainService = GetRequiredService<IBlockchainService>();
-            _blockAttachService = GetRequiredService<IBlockAttachService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
-            
+            _txHub = GetRequiredService<ITxHub>();
+                
             _counter = context.GetCounter("TestCounter");
 
             AsyncHelper.RunSync(async () =>
             {
-                var chain = await _blockchainService.GetChainAsync();
-
-                var transactions = await _osTestHelper.GenerateTransferTransactions(1000);
-
-                _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+                _transactions = await _osTestHelper.GenerateTransferTransactions(1000);
             });
         }
-        
+
         [NBenchFact]
         [PerfBenchmark(NumberOfIterations = 5, RunMode = RunMode.Iterations,
             RunTimeMilliseconds = 1000, TestMode = TestMode.Test)]
         [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, .0d)]
-        public void AttachBlockTest()
+        public void HandleTransactionsReceivedTest()
         {
-            AsyncHelper.RunSync(() => _blockAttachService.AttachBlockAsync(_block));
+            AsyncHelper.RunSync(async () =>
+            {
+                await _txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+                {
+                    Transactions = _transactions
+                });
+            });
             _counter.Increment();
         }
     }
