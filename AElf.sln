@@ -130,6 +130,7 @@ ProjectSection(SolutionItems) = preProject
 	protobuf\test_contract.proto = protobuf\test_contract.proto
 	protobuf\token_contract_messages.proto = protobuf\token_contract_messages.proto
 	protobuf\association_auth_contract.proto = protobuf\association_auth_contract.proto
+	protobuf\parliament_auth_contract.proto = protobuf\parliament_auth_contract.proto
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool", "AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"
@@ -297,6 +298,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Chain.Tests", "AElf.WebApp.Application.Chain.Tests\AElf.WebApp.Application.Chain.Tests.csproj", "{899AC6DB-FD44-4E7B-89DB-5400891AC80A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AssociationAuth", "AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj", "{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ParliamentAuth", "AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj", "{E2F3E423-3593-458B-999A-4371B7B2B192}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -744,6 +747,10 @@ Global
 		{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2F3E423-3593-458B-999A-4371B7B2B192}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2F3E423-3593-458B-999A-4371B7B2B192}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2F3E423-3593-458B-999A-4371B7B2B192}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2F3E423-3593-458B-999A-4371B7B2B192}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -850,5 +857,6 @@ Global
 		{89992897-D2C2-48BE-959B-6E996E82F87F} = {7190E4AA-10F9-419B-B2A2-A4A745787B3A}
 		{899AC6DB-FD44-4E7B-89DB-5400891AC80A} = {7190E4AA-10F9-419B-B2A2-A4A745787B3A}
 		{8F64B1AB-51AD-4BCC-AE60-27E7FD3E56D9} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{E2F3E423-3593-458B-999A-4371B7B2B192} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 	EndGlobalSection
 EndGlobal
