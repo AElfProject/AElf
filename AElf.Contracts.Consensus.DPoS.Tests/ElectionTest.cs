@@ -34,7 +34,8 @@ namespace AElf.Contracts.Consensus.DPoS
             // The starter initial chain and tokens.
             Starter = new ContractTester<DPoSContractTestAElfModule>();
 
-            var minersKeyPairs = Enumerable.Range(0, MinersCount).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
+            var minersKeyPairs = Enumerable.Range(0, MinersCount - 1).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
+            minersKeyPairs.Add(Starter.KeyPair);
             AsyncHelper.RunSync(() => Starter.InitialChainAndTokenAsync(minersKeyPairs, MiningInterval));
             Miners = Enumerable.Range(0, MinersCount)
                 .Select(i => Starter.CreateNewContractTester(minersKeyPairs[i])).ToList();

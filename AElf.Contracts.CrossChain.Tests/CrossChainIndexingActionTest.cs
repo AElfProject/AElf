@@ -284,6 +284,31 @@ namespace AElf.Contract.CrossChain.Tests
                 new Empty())).Value;
             Assert.True(parentChainHeight == height);
         }
+
+        [Fact]
+        public async Task RechargeForSideChain()
+        {
+            var parentChainId = 123;
+            var sideChainId = await InitAndCreateSideChain(parentChainId);
+            
+            var rechargeInput = new RechargeInput()
+            {
+                ChainId = sideChainId,
+                Amount = 100_000L
+            };
+            
+            //without enough token
+            var transactionResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress, nameof(CrossChainContract.Recharge),
+                rechargeInput);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.Contains("Insufficient allowance").ShouldBeTrue();
+            
+            //with enough token
+            await ApproveBalance(100_000L);
+            transactionResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress, nameof(CrossChainContract.Recharge),
+                rechargeInput);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
         
         #endregion
 
@@ -527,7 +552,47 @@ namespace AElf.Contract.CrossChain.Tests
             var verified = BoolValue.Parser.ParseFrom(txRes.ReturnValue).Value;
             Assert.True(verified);
         }
-       
+
+        [Fact]
+        public async Task CurrentSideChainSerialNumber()
+        {
+            var parentChainId = 123;
+            var lockedToken = 100_000L;
+            await InitAndCreateSideChain(parentChainId, lockedToken);
+            
+            var serialNumber = SInt64Value.Parser.ParseFrom(
+                await Tester.CallContractMethodAsync(CrossChainContractAddress,
+                    nameof(CrossChainContract.CurrentSideChainSerialNumber),
+                    new Empty())).Value;
+            serialNumber.ShouldBeGreaterThanOrEqualTo(0);
+        }
+
+        [Fact]
+        public async Task LockedToken_Verification()
+        {
+            var parentChainId = 123;
+            var lockedToken = 100_000L;
+            var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            
+            var lockedToken1 = SInt64Value.Parser.ParseFrom(
+                await Tester.CallContractMethodAsync(CrossChainContractAddress,
+                    nameof(CrossChainContract.LockedToken),
+                    new SInt32Value
+                    {
+                        Value = sideChainId
+                    })).Value;
+            lockedToken1.ShouldBe(lockedToken);
+            
+            var address = Address.Parser.ParseFrom(
+                await CallContractMethodAsync(CrossChainContractAddress,
+                    nameof(CrossChainContract.LockedAddress),
+                    new SInt32Value
+                    {
+                        Value = sideChainId
+                    }));
+            address.ShouldBe(Address.FromPublicKey(Tester.KeyPair.PublicKey));
+        }
+        
         #endregion
 
         #region Cross chain transfer.

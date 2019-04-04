@@ -55,6 +55,7 @@ namespace AElf.Kernel
                 Bloom = Bloom,
                 BlockExtraDatas = {BlockExtraDatas}
             };
+            // TODO: Remove this judgement.
             if (Height > KernelConstants.GenesisBlockHeight)
                 rawBlock.Time = Time?.Clone();
 

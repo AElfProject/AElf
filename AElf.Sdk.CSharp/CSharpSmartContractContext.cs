@@ -104,5 +104,15 @@ namespace AElf.Sdk.CSharp
         {
             return _smartContractBridgeContextImplementation.GetZeroSmartContractAddress();
         }
+        
+        public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
+        {
+            return _smartContractBridgeContextImplementation.EncryptMessage(receiverPublicKey, plainMessage);
+        }
+
+        public byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
+        {
+            return _smartContractBridgeContextImplementation.DecryptMessage(senderPublicKey, cipherMessage);
+        }
     }
 }

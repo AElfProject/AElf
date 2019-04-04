@@ -17,6 +17,16 @@ namespace AElf.Contracts.Consensus.DPoS
 
         public override ActionResult AnnounceElection(Alias input)
         {
+            if (State.DividendContract.Value == null)
+            {
+                State.DividendContract.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.DividendContractSystemName.Value);
+            }
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+            }
             var alias = input.Value;
             var publicKey = Context.RecoverPublicKey().ToHex();
             // A voter cannot join the election before all his voting record expired.
@@ -170,7 +180,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var currentRoundNumber = State.CurrentRoundNumberField.Value;
 
             // To make up a VotingRecord instance.
-            var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value ?? DateTime.UtcNow.ToTimestamp();
+            TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
 
             var votingRecord = new VotingRecord
             {
@@ -302,7 +312,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     "No permission to withdraw tickets of others."));
 
             // Update voting record map.
-            var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
+            TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
             votingRecord.WithdrawTimestamp =
                 blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
             votingRecord.IsWithdrawn = true;
@@ -377,7 +387,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
 
                 // Update voting record map.
-                var blockchainStartTimestamp = State.BlockchainStartTimestamp.Value;
+                TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
                 votingRecord.WithdrawTimestamp =
                     blockchainStartTimestamp.ToDateTime().AddMinutes(CurrentAge).ToTimestamp();
                 votingRecord.IsWithdrawn = true;

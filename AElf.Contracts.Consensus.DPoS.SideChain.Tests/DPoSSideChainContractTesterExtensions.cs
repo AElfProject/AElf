@@ -21,9 +21,7 @@ namespace AElf.Contracts.DPoS.SideChain
         {
             var triggerInformation = new DPoSTriggerInformation
             {
-                Timestamp = timestamp ?? DateTime.UtcNow.ToTimestamp(),
-                PublicKey = tester.KeyPair.PublicKey.ToHex(),
-                IsBootMiner = true,
+                PublicKey = ByteString.CopyFrom(tester.KeyPair.PublicKey),
             };
             var bytes = await tester.CallContractMethodAsync(
                 tester.GetConsensusContractAddress(), // Usually the second contract is consensus contract.
@@ -32,13 +30,13 @@ namespace AElf.Contracts.DPoS.SideChain
             return ConsensusCommand.Parser.ParseFrom(bytes);
         }
         
-        public static async Task<DPoSInformation> GetNewConsensusInformationAsync(
+        public static async Task<DPoSHeaderInformation> GetNewConsensusInformationAsync(
             this ContractTester<DPoSSideChainTestAElfModule> tester,
             DPoSTriggerInformation triggerInformation)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
-                ConsensusConsts.GetNewConsensusInformation, triggerInformation);
-            return DPoSInformation.Parser.ParseFrom(bytes);
+                ConsensusConsts.GetInformationToUpdateConsensus, triggerInformation);
+            return DPoSHeaderInformation.Parser.ParseFrom(bytes);
         }
         
         public static async Task<List<Transaction>> GenerateConsensusTransactionsAsync(
@@ -77,7 +75,7 @@ namespace AElf.Contracts.DPoS.SideChain
         
         public static async Task<ValidationResult> ValidateConsensusBeforeExecutionAsync(
             this ContractTester<DPoSSideChainTestAElfModule> tester,
-            DPoSInformation information)
+            DPoSHeaderInformation information)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
                 ConsensusConsts.ValidateConsensusBeforeExecution, information);
@@ -85,8 +83,7 @@ namespace AElf.Contracts.DPoS.SideChain
         }
         
         public static async Task<ValidationResult> ValidateConsensusAfterExecutionAsync(
-            this ContractTester<DPoSSideChainTestAElfModule> tester,
-            DPoSInformation information)
+            this ContractTester<DPoSSideChainTestAElfModule> tester, DPoSHeaderInformation information)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
                 ConsensusConsts.ValidateConsensusAfterExecution, information);

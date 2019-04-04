@@ -14,19 +14,13 @@ service ConsensusContract {
     option (aelf.csharp_state) = "AElf.Contracts.Consensus.DPoS.DPoSContractState";
     // Actions
     // -> MainChain
-    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    rpc InitialDPoSContract (InitialDPoSContractInput) returns (google.protobuf.Empty) {
     }
-    rpc InitializeWithContractSystemNames (InitializeWithContractSystemNamesInput) returns (google.protobuf.Empty) {
+    rpc ConfigStrategy (DPoSStrategyInput) returns (google.protobuf.Empty) {
     }
     rpc SetBlockchainAge (SInt64Value) returns (google.protobuf.Empty) {
     }
     rpc NextTerm (Round) returns (google.protobuf.Empty) {
-    }
-    rpc SnapshotForTerm (TermInfo) returns (ActionResult) {
-    }
-    rpc SnapshotForMiners (TermInfo) returns (ActionResult) {
-    }
-    rpc SendDividends (TermInfo) returns (ActionResult) {
     }
     // -> Election
     rpc AnnounceElection (Alias) returns (ActionResult) {
@@ -53,19 +47,19 @@ service ConsensusContract {
     rpc GetLIBOffset (google.protobuf.Empty) returns (SInt64Value) {
     }
     // Views
-    rpc GetConsensusCommand (DPoSTriggerInformation) returns (ConsensusCommand) {
+    rpc GetConsensusCommand (CommandInput) returns (ConsensusCommand) {
         option (aelf.is_view) = true;
     }
-    rpc GetNewConsensusInformation (DPoSTriggerInformation) returns (DPoSInformation) {
+    rpc GetInformationToUpdateConsensus (DPoSTriggerInformation) returns (DPoSHeaderInformation) {
         option (aelf.is_view) = true;
     }
     rpc GenerateConsensusTransactions (DPoSTriggerInformation) returns (TransactionList) {
         option (aelf.is_view) = true;
     }
-    rpc ValidateConsensusBeforeExecution (DPoSInformation) returns (ValidationResult) {
+    rpc ValidateConsensusBeforeExecution (DPoSHeaderInformation) returns (ValidationResult) {
         option (aelf.is_view) = true;
     }
-    rpc ValidateConsensusAfterExecution (DPoSInformation) returns (ValidationResult) {
+    rpc ValidateConsensusAfterExecution (DPoSHeaderInformation) returns (ValidationResult) {
         option (aelf.is_view) = true;
     }
     rpc GetRoundInformation (SInt64Value) returns (Round) {
@@ -197,62 +191,6 @@ service ConsensusContract {
     rpc QueryAliasesInUseToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
-}
-
-message InitializeInput {
-    Address tokenContractAddress = 1;
-    Address dividendsContractAddress = 2;
-}
-
-message InitializeWithContractSystemNamesInput {
-    Hash tokenContractSystemName = 1;
-    Hash dividendsContractSystemName = 2;
-}
-
-message TermInfo {
-    sint64 termNumber = 1;
-    sint64 roundNumber = 2;
-}
-
-message VoteInput {
-    string candidatePublicKey = 1;
-    sint64 amount = 2;
-    sint32 lockTime = 3;
-}
-
-message PageInfo {
-    sint32 start = 1;
-    sint32 length = 2;
-}
-
-message PageableTicketsInfoInput {
-    sint32 start = 1;
-    sint32 length = 2;
-    string publicKey = 3;
-}
-
-message PageableElectionInfoInput {
-    sint32 start = 1;
-    sint32 length = 2;
-    sint32 orderBy = 3;
-}
-
-message Alias {
-    string value = 1;
-}
-
-message PublicKey {
-    string hex = 1;
-}
-
-message FriendlyString {
-    string value = 1;
-}
-
-message MinerList {
-    int64 TermNumber = 1;
-    repeated string PublicKeys = 2;
-    repeated Address Addresses = 3;
 }
 
 // Events

@@ -38,9 +38,9 @@ namespace AElf.Kernel.Core.Benches
         [PerfBenchmark(NumberOfIterations = 5, RunMode = RunMode.Iterations,
             RunTimeMilliseconds = 1000, TestMode = TestMode.Test)]
         [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, .0d)]
-        public void MergeBlockStateTest()
+        public void VerifySignatureTest()
         {
-            _transaction.VerifySignature();;
+            _transaction.VerifySignature();
             _counter.Increment();
         }
     }

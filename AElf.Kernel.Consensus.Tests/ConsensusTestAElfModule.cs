@@ -28,21 +28,23 @@ namespace AElf.Kernel.Consensus
 
             var dposTriggerInformation = new DPoSTriggerInformation()
             {
-                PublicKey = ecKeyPair.PublicKey.ToHex(),
+                PublicKey = ByteString.CopyFrom(ecKeyPair.PublicKey),
                 InitialTermNumber = 1,
-                IsBootMiner = true,
-                MiningInterval = 4000
             };
             services.AddTransient(o =>
-                {
-                    var mockService = new Mock<IConsensusInformationGenerationService>();
-                    mockService.Setup(m=>m.GetTriggerInformation()).Returns(
-                        dposTriggerInformation);
-                    mockService.Setup( m=>m.ConvertBlockExtraData(It.IsAny<byte[]>())).Returns(
-                        dposTriggerInformation);
-                    
-                    return mockService.Object;
-                });
+            {
+                var mockService = new Mock<IConsensusInformationGenerationService>();
+                mockService.Setup(m => m.GetTriggerInformation(TriggerType.ConsensusTransactions)).Returns(
+                    dposTriggerInformation);
+                mockService.Setup(m => m.GetTriggerInformation(TriggerType.BlockHeaderExtraData)).Returns(
+                    dposTriggerInformation);
+                mockService.Setup(m => m.GetTriggerInformation(TriggerType.ConsensusCommand)).Returns(
+                    new CommandInput {PublicKey = ByteString.CopyFrom(ecKeyPair.PublicKey)});
+                mockService.Setup(m => m.ParseConsensusTriggerInformation(It.IsAny<byte[]>())).Returns(
+                    dposTriggerInformation);
+
+                return mockService.Object;
+            });
             
             services.AddTransient(o =>
             {
@@ -66,7 +68,7 @@ namespace AElf.Kernel.Consensus
             {
                 var mockService = new Mock<ITransactionReadOnlyExecutionService>();
                 mockService.Setup(m=>m.ExecuteAsync(It.IsAny<IChainContext>(), 
-                        It.Is<Transaction>(t => t.MethodName == ConsensusConsts.GetNewConsensusInformation), 
+                        It.Is<Transaction>(t => t.MethodName == ConsensusConsts.GetInformationToUpdateConsensus), 
                         It.IsAny<DateTime>()))
                     .Returns(Task.FromResult(new TransactionTrace()
                     {

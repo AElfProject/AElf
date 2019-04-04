@@ -9,7 +9,35 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-        public bool TryToUpdateTermNumber(long termNumber)
+        private void SetInitialMinersAliases(IEnumerable<string> publicKeys)
+        {
+            var index = 0;
+            var aliases = DPoSContractConsts.InitialMinersAliases.Split(',');
+            foreach (var publicKey in publicKeys)
+            {
+                if (index >= aliases.Length)
+                    return;
+
+                var alias = aliases[index];
+                SetAlias(publicKey, alias);
+                index++;
+            }
+        }
+        
+        private void SetAlias(string publicKey, string alias)
+        {
+            State.AliasesMap[publicKey.ToStringValue()] = alias.ToStringValue();
+            State.AliasesLookupMap[alias.ToStringValue()] = publicKey.ToStringValue();
+        }
+
+        private void UpdateBlockchainAge(long age)
+        {
+            //Assert(State.AgeField.Value <= age,
+                //ContractErrorCode.GetErrorMessage(ContractErrorCode.AttemptFailed, "Cannot decrease blockchain age."));
+            State.AgeField.Value = age;
+        }
+
+        private bool TryToUpdateTermNumber(long termNumber)
         {
             var oldTermNumber = State.CurrentTermNumberField.Value;
             if (termNumber != 1 && oldTermNumber + 1 != termNumber)
@@ -100,27 +128,18 @@ namespace AElf.Contracts.Consensus.DPoS
             return backups.Any();
         }
 
-        public void SetTermNumber(long termNumber)
+        private void SetTermNumber(long termNumber)
         {
             State.CurrentTermNumberField.Value = termNumber;
         }
 
-        public void SetRoundNumber(long roundNumber)
+        private void SetBlockchainStartTimestamp(Timestamp timestamp)
         {
-            State.CurrentRoundNumberField.Value = roundNumber;
-        }
-
-        private void SetBlockAge(long blockAge)
-        {
-            State.AgeField.Value = blockAge;
-        }
-
-        public void SetBlockchainStartTimestamp(Timestamp timestamp)
-        {
+            Context.LogDebug(() => $"Set start timestamp to {timestamp}");
             State.BlockchainStartTimestamp.Value = timestamp;
         }
 
-        public void AddOrUpdateMinerHistoryInformation(CandidateInHistory historyInformation)
+        private void AddOrUpdateMinerHistoryInformation(CandidateInHistory historyInformation)
         {
             State.HistoryMap[historyInformation.PublicKey.ToStringValue()] = historyInformation;
         }
@@ -135,22 +154,6 @@ namespace AElf.Contracts.Consensus.DPoS
             State.SnapshotMap[snapshot.TermNumber.ToInt64Value()] = snapshot;
         }
 
-        public void SetMiningInterval(int miningInterval)
-        {
-            State.MiningIntervalField.Value = miningInterval;
-        }
-
-        public bool AddTermNumberToFirstRoundNumber(long termNumber, long firstRoundNumber)
-        {
-            var ri = State.TermToFirstRoundMap[termNumber.ToInt64Value()];
-            if (ri != null)
-            {
-                return false;
-            }
-
-            State.TermToFirstRoundMap[termNumber.ToInt64Value()] = firstRoundNumber.ToInt64Value();
-            return true;
-        }
 
         public bool SetMiners(Miners miners, bool gonnaReplaceSomeone = false)
         {
@@ -214,23 +217,37 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        private Round GenerateFirstRoundOfNextTerm()
+        private bool IsJustChangedTerm(out long termNumber)
         {
+            termNumber = 0;
+            return TryToGetPreviousRoundInformation(out var previousRound) &&
+                   TryToGetTermNumber(out termNumber) &&
+                   previousRound.TermNumber != termNumber;
+        }
+
+        private Round GenerateFirstRoundOfNextTerm(string senderPublicKey)
+        {
+            Round round;
             if (TryToGetTermNumber(out var termNumber) &&
                 TryToGetRoundNumber(out var roundNumber) &&
                 TryToGetVictories(out var victories) &&
                 TryToGetMiningInterval(out var miningInterval))
             {
-                return victories.GenerateFirstRoundOfNewTerm(miningInterval, roundNumber, termNumber);
+                round = victories.GenerateFirstRoundOfNewTerm(miningInterval, Context.CurrentBlockTime, roundNumber,
+                    termNumber);
             }
-
-            if (TryToGetCurrentRoundInformation(out var round))
+            else if (TryToGetCurrentRoundInformation(out round))
             {
-                return round.RealTimeMinersInformation.Keys.ToList().ToMiners()
-                    .GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), round.RoundNumber, termNumber);
+                round = round.RealTimeMinersInformation.Keys.ToList().ToMiners()
+                    .GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), Context.CurrentBlockTime, round.RoundNumber,
+                        termNumber);
             }
 
-            return null;
+            round.BlockchainAge = CurrentAge;
+
+            round.RealTimeMinersInformation[senderPublicKey].ProducedBlocks = 1;
+
+            return round;
         }
 
         #endregion
@@ -267,6 +284,14 @@ namespace AElf.Contracts.Consensus.DPoS
             var round = GetCurrentRoundInformation(new Empty());
             return round.RealTimeMinersInformation.Count;
             //return 17 + (DateTime.UtcNow.Year - 2019) * 2;
+        }
+
+        private void LogVerbose(string log)
+        {
+            if (State.IsVerbose.Value)
+            {
+                Context.LogDebug(() => log);
+            }
         }
     }
 }

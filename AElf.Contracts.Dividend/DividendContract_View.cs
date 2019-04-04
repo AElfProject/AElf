@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Dividend
@@ -19,7 +17,7 @@ namespace AElf.Contracts.Dividend
         /// <returns></returns>
         public override SInt64Value GetTermDividends(SInt64Value input)
         {
-            return new SInt64Value() {Value = State.DividendsMap[input.Value]};
+            return new SInt64Value {Value = State.DividendsMap[input.Value]};
         }
 
         /// <summary>
@@ -29,7 +27,7 @@ namespace AElf.Contracts.Dividend
         /// <returns></returns>
         public override SInt64Value GetTermTotalWeights(SInt64Value input)
         {
-            return new SInt64Value() {Value = State.TotalWeightsMap[input.Value]};
+            return new SInt64Value {Value = State.TotalWeightsMap[input.Value]};
         }
 
         public override SInt64Value GetLatestRequestDividendsTermNumber(VotingRecord input)
@@ -37,12 +35,12 @@ namespace AElf.Contracts.Dividend
             var termNumber = State.LastRequestedDividendsMap[input.TransactionId];
             if (termNumber != 0)
             {
-                return new SInt64Value()
+                return new SInt64Value
                 {
                     Value = termNumber
                 };
             }
-            return new SInt64Value(){Value = input.TermNumber};
+            return new SInt64Value {Value = input.TermNumber};
         }
 
         public override SInt64Value GetAvailableDividends(VotingRecord input)
@@ -57,7 +55,7 @@ namespace AElf.Contracts.Dividend
                 start = lastRequestTermNumber + 1;
             }
 
-            var voteInfo = new VoteInfo()
+            var voteInfo = new VoteInfo
             {
                 Record = votingRecord,
                 Age = State.ConsensusContract.GetBlockchainAge.Call(new Empty()).Value
@@ -78,13 +76,13 @@ namespace AElf.Contracts.Dividend
                 }
             }
 
-            return new SInt64Value() {Value = dividends};
+            return new SInt64Value {Value = dividends};
         }
 
         public override SInt64Value GetExpireTermNumber(VoteInfo input)
         {
             var termNumber = input.Record.TermNumber + GetDurationDays(input).Value / ConsensusDPoSConsts.DaysEachTerm;
-            return new SInt64Value() {Value = termNumber};
+            return new SInt64Value {Value = termNumber};
         }
 
         public override SInt64Value GetDurationDays(VoteInfo input)
@@ -95,16 +93,16 @@ namespace AElf.Contracts.Dividend
             var totalLockDays = 0L;
             foreach (var d in votingRecord.LockDaysList)
             {
-                totalLockDays += (long) d;
+                totalLockDays += d;
             }
 
-            return new SInt64Value() {Value = Math.Min(days, totalLockDays)};
+            return new SInt64Value {Value = Math.Min(days, totalLockDays)};
         }
 
         public override SInt64Value GetAllAvailableDividends(PublicKey input)
         {
             var ticketsInformation = State.ConsensusContract.GetTicketsInformation.Call(
-                new Consensus.DPoS.PublicKey()
+                new PublicKey
                 {
                     Hex = input.Hex
                 });
@@ -117,7 +115,7 @@ namespace AElf.Contracts.Dividend
                 .Where(vr => vr.From == input.Hex)
                 .Aggregate<VotingRecord, long>(0,
                     (current, votingRecord) => current + GetAvailableDividends(votingRecord).Value);
-            return new SInt64Value() {Value = dividends};
+            return new SInt64Value {Value = dividends};
         }
 
         public override SInt64Value CheckDividends(CheckDividendsInput input)
@@ -139,7 +137,7 @@ namespace AElf.Contracts.Dividend
                 {
                     var weights = VotingRecord.CalculateWeight(ticketsAmount, lockTime) * totalDividends /
                            totalWeights;
-                    return new SInt64Value() {Value = weights};
+                    return new SInt64Value {Value = weights};
                 }
             }
 
@@ -160,7 +158,7 @@ namespace AElf.Contracts.Dividend
             var lockTimes = new List<int> {30, 180, 365, 730, 1095};
             foreach (var lockTime in lockTimes)
             {
-                result.Values.Add(CheckDividends(new CheckDividendsInput()
+                result.Values.Add(CheckDividends(new CheckDividendsInput
                 {
                     TermNumber = termNumber,
                     TicketsAmount = ticketsAmount,
@@ -173,7 +171,7 @@ namespace AElf.Contracts.Dividend
 
         public override FriendlyString CheckDividendsOfPreviousTermToFriendlyString(Empty input)
         {
-            return new FriendlyString() {Value = CheckDividendsOfPreviousTerm(input).ToString()};
+            return new FriendlyString {Value = CheckDividendsOfPreviousTerm(input).ToString()};
         }
     }
 }

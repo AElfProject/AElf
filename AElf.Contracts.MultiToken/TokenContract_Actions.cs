@@ -36,7 +36,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty InitializeWithContractSystemNames(TokenContractInitializeInput input)
+        public override Empty InitializeTokenContract(IntializeTokenContractInput input)
         {
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.CrossChainContractSystemName.Value = input.CrossChainContractSystemName;
