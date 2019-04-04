@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -14,34 +16,35 @@ namespace AElf.OS.Consensus.DPos
 {
     public class DPoSAnnouncementReceivedEventDataHandler : ILocalEventHandler<AnnouncementReceivedEventData>
     {
-        private ITaskQueueManager _taskQueueManager;
-        private IDPoSLastLastIrreversibleBlockDiscoveryService _idpoSLastLastIrreversibleBlockDiscoveryService;
+        private readonly ITaskQueueManager _taskQueueManager;
+        private readonly IDPoSLastLastIrreversibleBlockDiscoveryService _idpoSLastLastIrreversibleBlockDiscoveryService;
+        private readonly IBlockchainService _blockchainService;
 
         public DPoSAnnouncementReceivedEventDataHandler(ITaskQueueManager taskQueueManager,
-            IDPoSLastLastIrreversibleBlockDiscoveryService idpoSLastLastIrreversibleBlockDiscoveryService)
+            IDPoSLastLastIrreversibleBlockDiscoveryService idpoSLastLastIrreversibleBlockDiscoveryService,
+            IBlockchainService blockchainService)
         {
             _taskQueueManager = taskQueueManager;
             _idpoSLastLastIrreversibleBlockDiscoveryService = idpoSLastLastIrreversibleBlockDiscoveryService;
+            _blockchainService = blockchainService;
         }
 
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            var hash = _idpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockHashAsync(
+            var hash = await _idpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockHashAsync(
                 eventData.SenderPubKey);
 
             if (hash != null)
             {
-                _taskQueueManager.Enqueue(() =>
+                _taskQueueManager.GetQueue(DPoSConsts.LIBSettingQueueName).Enqueue( async () =>
                 {
-                    
-                    //TODO: should call set LIB
-                    return Task.CompletedTask;
+                    var chain = await _blockchainService.GetChainAsync();
+                    var height = (await _blockchainService.GetBlockByHashAsync(hash)).Height;
+                    await _blockchainService.SetIrreversibleBlockAsync(chain, height, hash);
                 });
             }
-            
         }
     }
-
 
     public interface IDPoSLastLastIrreversibleBlockDiscoveryService
     {
@@ -76,10 +79,10 @@ namespace AElf.OS.Consensus.DPos
             var chain = await _blockchainService.GetChainAsync();
             var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
             var currentMiners = await _dpoSInformationProvider.GetCurrentMiners(chainContext);
-            
+
             var pubkeyList = currentMiners.PublicKeys;
-            
-            var peers = _peerPool.GetPeers().Where(p=>pubkeyList.Contains( p.PubKey )).ToList();
+
+            var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.PubKey)).ToList();
 
             if (peers.Count == 0)
                 return null;
@@ -92,12 +95,13 @@ namespace AElf.OS.Consensus.DPos
                     return hash == block.Value;
                 }).Count();
 
-                if (peersHadBlockAmount > (int) (pubkeyList.Count * 2d / 3) + 1)
+                Console.WriteLine(11111111111111);
+                var sureAmount = (int) (pubkeyList.Count * 2d / 3) + 1;
+                if (peersHadBlockAmount > sureAmount)
                 {
                     return block.Value;
                 }
             }
-
 
             return null;
         }

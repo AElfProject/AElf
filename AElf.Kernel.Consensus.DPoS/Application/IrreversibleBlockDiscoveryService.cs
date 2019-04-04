@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
@@ -32,8 +33,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public IrreversibleBlockDiscoveryService(IBlockchainService blockchainService,
             ITransactionResultQueryService transactionResultQueryService,
-            ISmartContractAddressService smartContractAddressService,
-            IDPoSInformationProvider dpoSInformationProvider)
+            ISmartContractAddressService smartContractAddressService)
         {
             _blockchainService = blockchainService;
             _transactionResultQueryService = transactionResultQueryService;
@@ -66,15 +66,19 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         private async Task<IEnumerable<long>> DiscoverIrreversibleHeights(IEnumerable<Hash> blockIds)
         {
-            //TODO: do not need check in order 
-            //BODY: 1,2,3..... should check 5,4,3,2...., if 4 is LIB, set 2,3,4 as LIB 
-            
             var output = new List<long>();
-            foreach (var blockId in blockIds)
+            var blocks = blockIds.ToList().Select(async id => await _blockchainService.GetBlockByHashAsync(id))
+                .Select(b => b.Result).ToList();
+            if (!blocks.Any())
             {
-                Logger.LogTrace($"Check event for block {blockId}");
+                return output;
+            }
 
-                var block = await _blockchainService.GetBlockByHashAsync(blockId);
+            var startBlockHeight = blocks.First().Height;
+            foreach (var block in blocks.OrderByDescending(b => b.Height))
+            {
+                Logger.LogTrace($"Check event for block {block.GetHash()} - {block.Height}");
+
                 if (!_bloom.IsIn(new Bloom(block.Header.Bloom.ToByteArray())))
                 {
                     // No interested event in the block
@@ -111,7 +115,10 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         message.MergeFrom(log);
 
                         var offset = message.Offset;
-                        output.Add(block.Height - offset);
+                        output.AddRange(Enumerable
+                            .Range((int) startBlockHeight, (int) (block.Height - startBlockHeight) + 1)
+                            .Select(h => h - offset));
+                        return output;
                     }
                 }
             }

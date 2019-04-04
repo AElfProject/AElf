@@ -14,17 +14,21 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     // ReSharper disable InconsistentNaming
     public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
     {
+        private readonly ITaskQueueManager _taskQueueManager;
         private readonly IIrreversibleBlockDiscoveryService _irreversibleBlockDiscoveryService;
 
-        public BestChainFoundEventHandler(IIrreversibleBlockDiscoveryService irreversibleBlockDiscoveryService)
+        public BestChainFoundEventHandler(IIrreversibleBlockDiscoveryService irreversibleBlockDiscoveryService, ITaskQueueManager taskQueueManager)
         {
             _irreversibleBlockDiscoveryService = irreversibleBlockDiscoveryService;
+            _taskQueueManager = taskQueueManager;
         }
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            //TODO: should call in task queue
-            await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(eventData.ExecutedBlocks);
+            _taskQueueManager.GetQueue(DPoSConsts.LIBSettingQueueName).Enqueue(async () =>
+            {
+                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(eventData.ExecutedBlocks);
+            });
         }
     }
 }

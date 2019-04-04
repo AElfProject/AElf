@@ -35,7 +35,7 @@ namespace AElf.Kernel.Consensus.DPoS
             context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
             context.Services.AddSingleton<IDPoSInformationProvider, DPoSInformationProvider>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();
-            
+
             var configuration = context.Services.GetConfiguration();
 
             Configure<DPoSOptions>(configuration.GetSection("Consensus"));

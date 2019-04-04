@@ -1,8 +1,6 @@
-using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Modularity;
-using Volo.Abp;
-using Volo.Abp.BackgroundJobs;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS.Consensus.DPos
@@ -11,5 +9,12 @@ namespace AElf.OS.Consensus.DPos
     // ReSharper disable once InconsistentNaming
     public class DPoSConsensusOSAElfModule : AElfModule<DPoSConsensusOSAElfModule>
     {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddSingleton<DPoSAnnouncementReceivedEventDataHandler>();
+            context.Services
+                .AddSingleton<IDPoSLastLastIrreversibleBlockDiscoveryService,
+                    DPoSLastLastIrreversibleBlockDiscoveryService>();
+        }
     }
 }
