@@ -10,28 +10,26 @@ namespace AElf.Kernel.Consensus.Application
         /// To trigger the consensus scheduler at the starting of current node.
         /// </summary>
         /// <returns></returns>
-        Task TriggerConsensusAsync();
-        
+        Task TriggerConsensusAsync(ChainContext chainContext);
+
         /// <summary>
         /// To validate the consensus information extracted from block header extra data.
         /// </summary>
-        /// <param name="preBlockHash"></param>
-        /// <param name="preBlockHeight"></param>
+        /// <param name="chainContext"></param>
         /// <param name="consensusExtraData">Extract from block header.</param>
         /// <returns></returns>
-        Task<bool> ValidateConsensusBeforeExecutionAsync(Hash preBlockHash, long preBlockHeight,
+        Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,
             byte[] consensusExtraData);
-        
+
         /// <summary>
         /// To validate the consensus information extracted from block header extra data.
         /// </summary>
-        /// <param name="preBlockHash"></param>
-        /// <param name="preBlockHeight"></param>
+        /// <param name="chainContext"></param>
         /// <param name="consensusExtraData">Extract from block header.</param>
         /// <returns></returns>
-        Task<bool> ValidateConsensusAfterExecutionAsync(Hash preBlockHash, long preBlockHeight,
+        Task<bool> ValidateConsensusAfterExecutionAsync(ChainContext chainContext,
             byte[] consensusExtraData);
-        
+
         /// <summary>
         /// After the execution of consensus transactions, the new consensus
         /// information will emerge from consensus contract.
@@ -39,12 +37,12 @@ namespace AElf.Kernel.Consensus.Application
         /// data of new block.
         /// </summary>
         /// <returns></returns>
-        Task<byte[]> GetNewConsensusInformationAsync();
-        
+        Task<byte[]> GetInformationToUpdateConsensusAsync(ChainContext chainContext);
+
         /// <summary>
         /// Generate consensus transactions from consensus contract.
         /// </summary>
         /// <returns></returns>
-        Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync();
+        Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext);
     }
 }

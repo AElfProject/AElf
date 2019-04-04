@@ -22,7 +22,6 @@ namespace AElf.Contracts.TestBase
     [Obsolete("Deprecated. Use AElf.Contracts.TestKit for contract testing.")]
     [DependsOn(
         typeof(CSharpRuntimeAElfModule),
-        typeof(ExecutiveTokenPluginCSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule),
         typeof(KernelTestAElfModule)
     )]
@@ -73,6 +72,7 @@ namespace AElf.Contracts.TestBase
                 o.InitialMiners = miners;
                 o.MiningInterval = 4000;
                 o.IsBootMiner = true;
+                o.StartTimestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
             });
         }
     }

@@ -9,7 +9,6 @@ using AElf.Kernel.SmartContract;
 
 namespace AElf.Kernel.SmartContractExecution
 {
-    // TODO: ResourceUsageDetectionService no cases covered [Case]
     public class ResourceUsageDetectionService : IResourceUsageDetectionService
     {
         private IFunctionMetadataService _functionMetadataService;

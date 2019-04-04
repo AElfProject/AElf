@@ -23,19 +23,15 @@ namespace AElf.Contracts.TestKit
 
         public async Task ExecuteAsync(Transaction transaction)
         {
-            var txHub = _serviceProvider.GetRequiredService<ITxHub>();
-            await txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
-            {
-                Transactions = new List<Transaction> {transaction}
-            });
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            var minerService = _serviceProvider.GetRequiredService<IMinerService>();
+            var minerService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                DateTime.UtcNow.AddMilliseconds(int.MaxValue));
-            
+                new List<Transaction> {transaction},
+                DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
+
             await blockAttachService.AttachBlockAsync(block);
         }
 
@@ -44,6 +40,7 @@ namespace AElf.Contracts.TestKit
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
             var transactionReadOnlyExecutionService =
                 _serviceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
+            var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
 
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
@@ -52,7 +49,7 @@ namespace AElf.Contracts.TestKit
                     BlockHeight = preBlock.Height
                 },
                 transaction,
-                DateTime.UtcNow);
+                blockTimeProvider.GetBlockTime());
 
             return transactionTrace.ReturnValue;
         }

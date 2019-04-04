@@ -12,7 +12,7 @@ using Approved = AElf.Contracts.MultiToken.Messages.Approved;
 
 namespace AElf.Contracts.MultiToken
 {
-    public partial class TokenContract : TokenContractContainer.TokenContractBase
+    public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
         public override Empty Create(CreateInput input)
         {
@@ -36,7 +36,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty InitializeWithContractSystemNames(TokenContractInitializeInput input)
+        public override Empty InitializeTokenContract(IntializeTokenContractInput input)
         {
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.CrossChainContractSystemName.Value = input.CrossChainContractSystemName;

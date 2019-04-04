@@ -15,12 +15,13 @@ namespace AElf.Kernel.Consensus.Application
             _consensusService = consensusService;
         }
         
-        public void GenerateTransactions(Address @from, long preBlockHeight, Hash previousBlockHash,
+        public void GenerateTransactions(Address from, long preBlockHeight, Hash previousBlockHash,
             ref List<Transaction> generatedTransactions)
         {
             generatedTransactions.AddRange(
                 AsyncHelper.RunSync(() =>
-                    _consensusService.GenerateConsensusTransactionsAsync()));
+                    _consensusService.GenerateConsensusTransactionsAsync(new ChainContext
+                        {BlockHash = previousBlockHash, BlockHeight = preBlockHeight})));
         }
     }
 }

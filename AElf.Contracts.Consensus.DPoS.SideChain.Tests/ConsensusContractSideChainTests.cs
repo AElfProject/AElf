@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -31,7 +32,7 @@ namespace AElf.Contracts.DPoS.SideChain
             TesterManager.InitialTesters();
             
             //input = new DPoSInformation()
-            var dposInformation = new DPoSInformation();
+            var dposInformation = new DPoSHeaderInformation();
             var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
                 TesterManager.DPoSSideChainContractAddress,
                 "UpdateMainChainConsensus", dposInformation);
@@ -45,11 +46,11 @@ namespace AElf.Contracts.DPoS.SideChain
             TesterManager.InitialTesters();
             
             //term number < main chain term number
-            var dposInformation = new DPoSInformation
+            var dposInformation = new DPoSHeaderInformation
             {
                 Behaviour = DPoSBehaviour.NextRound,
                 Round = new Round(),
-                SenderPublicKey = TesterManager.MinersKeyPairs[0].PublicKey.ToHex()
+                SenderPublicKey = ByteString.CopyFrom(TesterManager.MinersKeyPairs[0].PublicKey)
             };
             var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
                 TesterManager.DPoSSideChainContractAddress,
@@ -63,14 +64,14 @@ namespace AElf.Contracts.DPoS.SideChain
         {
             TesterManager.InitialTesters();
             
-            var dposInformation = new DPoSInformation
+            var dposInformation = new DPoSHeaderInformation
             {
                 Behaviour = DPoSBehaviour.NextRound,
                 Round = new Round()
                 {
                     TermNumber = 2
                 },
-                SenderPublicKey = TesterManager.MinersKeyPairs[0].PublicKey.ToHex()
+                SenderPublicKey = ByteString.CopyFrom(TesterManager.MinersKeyPairs[0].PublicKey)
             };
             
             var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
@@ -84,12 +85,12 @@ namespace AElf.Contracts.DPoS.SideChain
         {
             TesterManager.InitialTesters();
             
-            var dposInformation = new DPoSInformation
+            var dposInformation = new DPoSHeaderInformation
             {
                 Behaviour = DPoSBehaviour.NextRound,
                 Round = TesterManager.MinersKeyPairs.Select(p => p.PublicKey.ToHex()).ToList().ToMiners()
-                    .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval),
-                SenderPublicKey = TesterManager.MinersKeyPairs[0].PublicKey.ToHex()
+                    .GenerateFirstRoundOfNewTerm(DPoSSideChainTester.MiningInterval, DateTime.UtcNow),
+                SenderPublicKey = ByteString.CopyFrom(TesterManager.MinersKeyPairs[0].PublicKey)
             };
             
             var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(

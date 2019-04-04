@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types.CSharp;
@@ -18,13 +19,14 @@ namespace AElf.Kernel.SmartContract
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
+        private readonly IAccountService _accountService;
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService)
         {
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
-            
+            _accountService = accountService;
             _lazyStateProvider = new Lazy<IStateProvider>(
                 () => new CachedStateProvider(
                     new StateProvider() {HostSmartContractBridgeContext = this}),
@@ -72,6 +74,15 @@ namespace AElf.Kernel.SmartContract
             TransactionContext.Trace.Logs.Add(logEvent);
         }
 
+        public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
+        {
+            return AsyncHelper.RunSync(() => _accountService.EncryptMessage(receiverPublicKey, plainMessage));
+        }
+
+        public byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
+        {
+            return AsyncHelper.RunSync(() => _accountService.DecryptMessage(senderPublicKey, cipherMessage));
+        }
 
         public Transaction Transaction => TransactionContext.Transaction.Clone();
         public Hash TransactionId => TransactionContext.Transaction.GetHash();

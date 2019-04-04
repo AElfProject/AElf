@@ -67,6 +67,7 @@ namespace AElf.OS
             ITxHub txHub,
             ISmartContractAddressService smartContractAddressService,
             IBlockAttachService blockAttachService,
+            IStaticChainInformationProvider staticChainInformationProvider,
             IOptionsSnapshot<ChainOptions> chainOptions)
         {
             _chainOptions = chainOptions.Value;
@@ -78,6 +79,7 @@ namespace AElf.OS
             _smartContractAddressService = smartContractAddressService;
             _blockAttachService = blockAttachService;
             _txHub = txHub;
+            _staticChainInformationProvider = staticChainInformationProvider;
 
             BestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
@@ -175,14 +177,37 @@ namespace AElf.OS
             }
 
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
-                DateTime.UtcNow.AddMilliseconds(4000));
+                DateTime.UtcNow, TimeSpan.FromMilliseconds(4000));
 
             await _blockAttachService.AttachBlockAsync(block);
                 
             return block;
         }
-        
-        
+
+        public Block GenerateBlock(Hash preBlockHash, long preBlockHeight, List<Transaction> transactions)
+        {
+            var block = new Block
+            {
+                Header = new BlockHeader
+                {
+                    ChainId = _staticChainInformationProvider.ChainId,
+                    Height = preBlockHeight + 1,
+                    PreviousBlockHash = preBlockHash,
+                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                },
+                Body = new BlockBody()
+            };
+            foreach (var transaction in transactions)
+            {
+                block.AddTransaction(transaction);
+            }
+
+            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
+
+            return block;
+        }
+
+
         #region private methods
 
         private async Task StartNode()

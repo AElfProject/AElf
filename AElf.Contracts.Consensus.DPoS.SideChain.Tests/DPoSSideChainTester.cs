@@ -6,6 +6,7 @@ using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 
@@ -50,32 +51,20 @@ namespace AElf.Contracts.DPoS.SideChain
                 () => SingleTester.InitialSideChainAsync());
             DPoSSideChainContractAddress = SingleTester.GetConsensusContractAddress();
         }
-        
-        public DPoSTriggerInformation GetTriggerInformationForInitialTerm(IReadOnlyList<ECKeyPair> stubMiners)
+
+        public DPoSTriggerInformation GetTriggerInformationForNormalBlock(string publicKey, Hash randomHash,
+            Hash previousRandomHash = null)
         {
-            return new DPoSTriggerInformation
+            if (previousRandomHash == null)
             {
-                PublicKey = stubMiners[0].PublicKey.ToHex(),
-                Timestamp = DateTime.UtcNow.ToTimestamp(),
-                Miners = {stubMiners.Select(m => m.PublicKey.ToHex()).ToList()},
-                MiningInterval = 4000,
-            };
-        }
-        
-        public DPoSTriggerInformation GetTriggerInformationForNormalBlock(string publicKey, Hash currentInValue,
-            Hash previousInValue = null)
-        {
-            if (previousInValue == null)
-            {
-                previousInValue = Hash.Empty;
+                previousRandomHash = Hash.Empty;
             }
 
             return new DPoSTriggerInformation
             {
-                PublicKey = publicKey,
-                Timestamp = DateTime.UtcNow.ToTimestamp(),
-                PreviousInValue = previousInValue,
-                CurrentInValue = currentInValue
+                PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey)),
+                PreviousRandomHash = previousRandomHash,
+                RandomHash = randomHash
             };
         }
 
@@ -83,9 +72,7 @@ namespace AElf.Contracts.DPoS.SideChain
         {
             return new DPoSTriggerInformation
             {
-                PublicKey = publicKey,
-                Timestamp = timestamp,
-                IsBootMiner = isBootMiner
+                PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey))
             };
         }
     }

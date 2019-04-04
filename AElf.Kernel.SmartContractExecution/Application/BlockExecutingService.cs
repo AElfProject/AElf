@@ -45,11 +45,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var nonCancellable = nonCancellableTransactions.ToList();
             var cancellable = cancellableTransactions.ToList();
 
-            var chainContext = new ChainContext()
-            {
-                BlockHash = blockHeader.PreviousBlockHash,
-                BlockHeight = blockHeader.Height - 1
-            };
             var nonCancellableReturnSets =
                 await _executingService.ExecuteAsync(blockHeader, nonCancellable, CancellationToken.None, true);
             var cancellableReturnSets =

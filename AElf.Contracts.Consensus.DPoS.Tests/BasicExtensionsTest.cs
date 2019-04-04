@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.DPoS
             const int minersCount = 17;
             const int miningInterval = 4000;
 
-            var startTimestamp = DateTime.UtcNow.ToTimestamp();
+            var startTimestamp = DateTime.UtcNow;
 
             var round = GenerateFirstRound(startTimestamp, minersCount, miningInterval);
 
@@ -30,8 +30,8 @@ namespace AElf.Contracts.Consensus.DPoS
 
             round.GetStartTime().ShouldBe(startTimestamp);
 
-            round.GetExpectedEndTime().ShouldBe(startTimestamp.ToDateTime()
-                .AddMilliseconds(minersCount * miningInterval + miningInterval).ToTimestamp());
+            round.GetExpectedEndTime()
+                .ShouldBe(startTimestamp.AddMilliseconds(minersCount * miningInterval + miningInterval).ToTimestamp());
         }
 
         [Fact]
@@ -40,7 +40,7 @@ namespace AElf.Contracts.Consensus.DPoS
             const int minersCount = 17;
             const int miningInterval = 4000;
 
-            var startTimestamp = DateTime.UtcNow.ToTimestamp();
+            var startTimestamp = DateTime.UtcNow;
 
             var round = GenerateFirstRound(startTimestamp, minersCount, miningInterval);
 
@@ -55,7 +55,7 @@ namespace AElf.Contracts.Consensus.DPoS
             const int minersCount = 17;
             const int miningInterval = 4000;
 
-            var startTimestamp = DateTime.UtcNow.ToTimestamp();
+            var startTimestamp = DateTime.UtcNow;
 
             var round = GenerateFirstRound(startTimestamp, minersCount, miningInterval);
 
@@ -63,7 +63,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Entered his time slot but not total passed.
             {
-                var testTimestamp = startTimestamp.ToDateTime().AddMilliseconds(1).ToTimestamp();
+                var testTimestamp = startTimestamp.AddMilliseconds(1);
                 var isTimeSlotPassed = round.IsTimeSlotPassed(firstMinerPublicKey, testTimestamp, out _);
 
                 isTimeSlotPassed.ShouldBe(false);
@@ -71,16 +71,15 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Time slot passed but still in current round.
             {
-                var testTimestamp = startTimestamp.ToDateTime().AddMilliseconds(2 * miningInterval).ToTimestamp();
-                var isTimeSlotPassed = round.IsTimeSlotPassed(firstMinerPublicKey, testTimestamp, out _);
+                var testTime = startTimestamp.AddMilliseconds(2 * miningInterval);
+                var isTimeSlotPassed = round.IsTimeSlotPassed(firstMinerPublicKey, testTime, out _);
 
                 isTimeSlotPassed.ShouldBe(true);
             }
 
             // Time slot passed and beyond current round.
             {
-                var testTimestamp = startTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds())
-                    .ToTimestamp();
+                var testTimestamp = startTimestamp.AddMilliseconds(round.TotalMilliseconds());
                 var isTimeSlotPassed = round.IsTimeSlotPassed(firstMinerPublicKey, testTimestamp, out _);
 
                 isTimeSlotPassed.ShouldBe(true);
@@ -93,13 +92,13 @@ namespace AElf.Contracts.Consensus.DPoS
             const int minersCount = 17;
             const int miningInterval = 4000;
 
-            var startTimestamp = DateTime.UtcNow.ToTimestamp();
+            var startTime = DateTime.UtcNow;
 
-            var round = GenerateFirstRound(startTimestamp, minersCount, miningInterval);
+            var round = GenerateFirstRound(startTime, minersCount, miningInterval);
 
             var firstMiner = round.RealTimeMinersInformation.Values.First();
-            var testTimestamp = startTimestamp.ToDateTime().AddMilliseconds(-1).ToTimestamp();
-            var isTimeSlotPassed = round.IsTimeSlotPassed(firstMiner.PublicKey, testTimestamp, out _);
+            var testTime = startTime.AddMilliseconds(-1);
+            var isTimeSlotPassed = round.IsTimeSlotPassed(firstMiner.PublicKey, testTime, out _);
 
             isTimeSlotPassed.ShouldBe(false);
         }
@@ -110,37 +109,17 @@ namespace AElf.Contracts.Consensus.DPoS
             const int minersCount = 17;
             const int miningInterval = 4000;
 
-            var startTimestamp = DateTime.UtcNow.ToTimestamp();
-
-            var round = GenerateFirstRound(startTimestamp, minersCount, miningInterval);
+            var startTime = DateTime.UtcNow;
+            
+            var round = GenerateFirstRound(startTime, minersCount, miningInterval);
 
             var firstMiner = round.RealTimeMinersInformation.Values.First();
-
-            // If the node hasn't miss his actual time slot.
-            {
-                var testTimestamp = startTimestamp.ToDateTime().AddMilliseconds(-1).ToTimestamp();
-                var arrangedMiningTime = round.ArrangeAbnormalMiningTime(firstMiner.PublicKey, testTimestamp);
-
-                arrangedMiningTime.ShouldBe(DateTime.MaxValue.ToUniversalTime().ToTimestamp());
-            }
-
-            // If this node just missed his time slot.
-            {
-                var testTimestamp = startTimestamp.ToDateTime().AddMilliseconds(miningInterval / 2 + 1).ToTimestamp();
-                var arrangedMiningTime = round.ArrangeAbnormalMiningTime(firstMiner.PublicKey, testTimestamp);
-
-                arrangedMiningTime.ShouldBeOneOf(
-                    round.GetExpectedEndTime().ToDateTime().AddMilliseconds(miningInterval * firstMiner.Order).ToTimestamp(),
-                    // If this node is EBP.
-                    round.GetExpectedEndTime().ToDateTime().AddMilliseconds(-miningInterval).ToTimestamp());
-            }
 
             // If this node noticed he missed his time slot several rounds later.
             {
                 const int missedRoundsCount = 10;
-                var testTimestamp = startTimestamp.ToDateTime()
-                    .AddMilliseconds(1 + round.TotalMilliseconds() * missedRoundsCount).ToTimestamp();
-                var arrangedMiningTime = round.ArrangeAbnormalMiningTime(firstMiner.PublicKey, testTimestamp);
+                var testTime = startTime.AddMilliseconds(round.TotalMilliseconds() * missedRoundsCount);
+                var arrangedMiningTime = round.ArrangeAbnormalMiningTime(firstMiner.PublicKey, testTime);
 
                 arrangedMiningTime.ShouldBe(round.GetExpectedEndTime(missedRoundsCount).ToDateTime()
                     .AddMilliseconds(miningInterval * firstMiner.Order).ToTimestamp());
@@ -153,23 +132,23 @@ namespace AElf.Contracts.Consensus.DPoS
             const int minersCount = 17;
             const int miningInterval = 4000;
 
-            var startTimestamp = DateTime.UtcNow.ToTimestamp();
+            var startTime = DateTime.UtcNow;
 
-            var round = GenerateFirstRound(startTimestamp, minersCount, miningInterval);
+            var round = GenerateFirstRound(startTime, minersCount, miningInterval);
 
             var firstMiner = round.RealTimeMinersInformation.Values.First();
 
-            var actualMiningTime = startTimestamp.ToDateTime().AddMilliseconds(1).ToTimestamp();
+            var actualMiningTime = startTime.AddMilliseconds(1);
             var publicKey = firstMiner.PublicKey;
             var inValue = Hash.Generate();
             var outValue = Hash.FromMessage(inValue);
 
             var roundAfter =
-                round.ApplyNormalConsensusData(publicKey, Hash.Empty, outValue, Hash.Empty, actualMiningTime);
+                round.ApplyNormalConsensusData(publicKey, inValue, outValue, Hash.Empty, actualMiningTime);
 
-            var terminateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(1).ToTimestamp();
+            var terminateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(1);
 
-            var result = roundAfter.GenerateNextRoundInformation(terminateTime, startTimestamp, out var secondRound);
+            var result = roundAfter.GenerateNextRoundInformation(terminateTime, startTime.ToTimestamp(), out var secondRound);
 
             Assert.True(result);
             Assert.Equal(2L, secondRound.RoundNumber);
@@ -183,24 +162,24 @@ namespace AElf.Contracts.Consensus.DPoS
             const int minersCount = 17;
             const int miningInterval = 4000;
 
-            var startTimestamp = DateTime.UtcNow.ToTimestamp();
+            var startTime = DateTime.UtcNow;
 
-            var round = GenerateFirstRound(startTimestamp, minersCount, miningInterval);
+            var round = GenerateFirstRound(startTime, minersCount, miningInterval);
 
             var firstMiner = round.RealTimeMinersInformation.Values.First();
 
-            var actualMiningTime = startTimestamp.ToDateTime().AddMilliseconds(1).ToTimestamp();
+            var actualMiningTime = startTime.AddMilliseconds(1);
             var publicKey = firstMiner.PublicKey;
             var inValue = Hash.Generate();
             var outValue = Hash.FromMessage(inValue);
 
-            round.ApplyNormalConsensusData(publicKey, Hash.Empty, outValue, Hash.Empty, actualMiningTime);
+            round.ApplyNormalConsensusData(publicKey, inValue, outValue, Hash.Empty, actualMiningTime);
 
-            var terminateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(1).ToTimestamp();
+            var terminateTime = round.GetExpectedEndTime().ToDateTime().AddMilliseconds(1);
 
-            round.GenerateNextRoundInformation(terminateTime, startTimestamp, out var secondRound);
+            round.GenerateNextRoundInformation(terminateTime, startTime.ToTimestamp(), out var secondRound);
 
-            var result = secondRound.IsTimeToChangeTerm(round, startTimestamp, 1);
+            var result = secondRound.IsTimeToChangeTerm(round, startTime, 1);
 
             Assert.False(result);
         }
@@ -211,17 +190,17 @@ namespace AElf.Contracts.Consensus.DPoS
             const int minersCount = 17;
             const int miningInterval = 4000;
 
-            var startTimestamp = DateTime.UtcNow.ToTimestamp();
+            var startTime = DateTime.UtcNow;
             
-            var round = GenerateFirstRound(startTimestamp, minersCount, miningInterval);
+            var round = GenerateFirstRound(startTime, minersCount, miningInterval);
 
             foreach (var minerInRound in round.RealTimeMinersInformation)
             {
-                round.ApplyNormalConsensusData(minerInRound.Key, Hash.Empty, Hash.Generate(), Hash.Empty,
-                    startTimestamp.ToDateTime().AddMinutes(ConsensusDPoSConsts.DaysEachTerm + 1).ToTimestamp());
+                round.ApplyNormalConsensusData(minerInRound.Key, Hash.Generate(),Hash.Generate(), Hash.Empty,
+                    startTime.AddMinutes(ConsensusDPoSConsts.DaysEachTerm + 1));
             }
 
-            var result = round.IsTimeToChangeTerm(round, startTimestamp, 1);
+            var result = round.IsTimeToChangeTerm(round, startTime, 1);
 
             Assert.True(result);
         }
@@ -232,23 +211,23 @@ namespace AElf.Contracts.Consensus.DPoS
             const int minersCount = 17;
             const int miningInterval = 4000;
 
-            var startTimestamp = DateTime.UtcNow.ToTimestamp();
+            var startTime = DateTime.UtcNow;
 
-            var round = GenerateFirstRound(startTimestamp, minersCount, miningInterval);
+            var round = GenerateFirstRound(startTime, minersCount, miningInterval);
 
             var firstMiner = round.RealTimeMinersInformation.Values.First();
 
-            var actualMiningTime = startTimestamp.ToDateTime().AddMilliseconds(1).ToTimestamp();
+            var actualMiningTime = startTime.AddMilliseconds(1);
             var publicKey = firstMiner.PublicKey;
             var inValue = Hash.Generate();
             var outValue = Hash.FromMessage(inValue);
 
             var roundAfter =
-                round.ApplyNormalConsensusData(publicKey, Hash.Empty, outValue, Hash.Empty, actualMiningTime);
+                round.ApplyNormalConsensusData(publicKey, inValue, outValue, Hash.Empty, actualMiningTime);
 
             var minerInRoundAfter = roundAfter.RealTimeMinersInformation[publicKey];
 
-            Assert.Equal(actualMiningTime, minerInRoundAfter.ActualMiningTime);
+            Assert.Equal(actualMiningTime, minerInRoundAfter.ActualMiningTime.ToDateTime());
             Assert.Equal(publicKey, minerInRoundAfter.PublicKey);
             Assert.Equal(outValue, minerInRoundAfter.OutValue);
         }
@@ -256,11 +235,11 @@ namespace AElf.Contracts.Consensus.DPoS
         /// <summary>
         /// Only able to generate information of first round.
         /// </summary>
-        /// <param name="startTimestamp"></param>
+        /// <param name="startTime"></param>
         /// <param name="minersCount"></param>
         /// <param name="miningInterval"></param>
         /// <returns></returns>
-        private Round GenerateFirstRound(Timestamp startTimestamp, int minersCount, int miningInterval)
+        private Round GenerateFirstRound(DateTime startTime, int minersCount, int miningInterval)
         {
             var round = new Round {RoundNumber = 1};
             var extraBlockProducerOrder = new Random().Next(1, minersCount);
@@ -272,7 +251,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     PublicKey = keyPair.PublicKey.ToHex(),
                     Signature = Hash.Generate(),
                     Order = i + 1,
-                    ExpectedMiningTime = startTimestamp.ToDateTime().AddMilliseconds(miningInterval * i).ToTimestamp()
+                    ExpectedMiningTime = startTime.AddMilliseconds(miningInterval * i).ToTimestamp()
                 };
 
                 if (extraBlockProducerOrder == minerInRound.Order)

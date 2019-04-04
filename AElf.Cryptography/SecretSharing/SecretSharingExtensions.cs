@@ -12,7 +12,7 @@ namespace AElf.Cryptography.SecretSharing
 
             var bitsSize = (str.Length + 1) * bitSize;
             var filler = (int) SecretSharingConsts.MaxBits - bitsSize;
-            var totalBytes = new byte[33]; // 256 / 8 + 1
+            var totalBytes = new byte[129]; // 1024 / 8 + 1
             var strBytes = Encoding.UTF8.GetBytes(str);
 
             Array.Copy(strBytes, totalBytes, strBytes.Length);

@@ -12,18 +12,7 @@ namespace AElf.Contracts.Dividend
 {
     public partial class DividendContract : DividendContractContainer.DividendContractBase
     {
-        // TODO: Remove this.
-        public override Empty Initialize(InitializeInput input)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.ConsensusContract.Value = input.ConsensusContractAddress;
-            State.TokenContract.Value = input.TokenContractAddress;
-            State.Initialized.Value = true;
-            State.StarterPublicKey.Value = Context.RecoverPublicKey().ToHex();
-            return new Empty();
-        }
-        
-        public override Empty InitializeWithContractSystemNames(InitializeWithContractSystemNamesInput input)
+        public override Empty InitializeDividendContract(InitialDividendContractInput input)
         {
             var consensusContractAddress = input.ConsensusContractSystemName;
             var tokenContractSystemName = input.TokenContractSystemName;
@@ -69,7 +58,7 @@ namespace AElf.Contracts.Dividend
         /// <summary>
         /// Transfer dividends to miners.
         /// </summary>
-        /// <param name="votingRecord"></param>
+        /// <param name="input"></param>
         /// <returns></returns>
         // ReSharper disable once InconsistentNaming
         public override SInt64Value TransferDividends(VotingRecord input)
