@@ -4,24 +4,6 @@ option csharp_namespace = "AElf.Kernel";
 import "common.proto";
 import "google/protobuf/timestamp.proto";
 
-message Authorization
-{
-    Address MultiSigAccount = 1;
-    uint32 ExecutionThreshold = 2;
-    uint32 ProposerThreshold = 3;
-    repeated Reviewer Reviewers = 4;
-}
-
-message ParliamentAuth {
-    repeated bytes ProposerWhiteList = 1;
-    ParliamentAuthRule Rule =2;
-}
-
-enum ParliamentAuthRule{
-    MAJORITY = 0;
-    TwoThirds = 1;
-}
-
 message Proposal {
     Address MultiSigAccount = 1;
     string Name = 2;
@@ -41,14 +23,3 @@ message Approval {
     Hash ProposalHash = 1;
     bytes Signature = 2;
 }
-
-//enum AuthPolicyType {
-//    ANY = 0;
-//    ALL = 1;
-//}
-
-//message AuthPolicy {
-//    AssociationAuth Association = 1;
-//    ReferendumAuth Referendum = 2;
-//    ParliamentAuth Parliament = 3;
-//}
