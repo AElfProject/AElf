@@ -26,7 +26,7 @@ namespace AElf.Cryptography
         private readonly string _dataDirectory;
 
         private readonly List<OpenAccount> _openAccounts;
-        private readonly TimeSpan _defaultTimeoutToClose = TimeSpan.FromMinutes(10);
+        public TimeSpan DefaultTimeoutToClose = TimeSpan.FromMinutes(10); //in order to customize time setting.
 
         public enum Errors
         {
@@ -57,9 +57,6 @@ namespace AElf.Cryptography
             _openAccounts.Add(openAccount);
         }
 
-        public bool IsOpen { get; }
-
-        //TODO: Add OpenAsync to coverwith Timeout = false case [Case]
         public async Task<Errors> OpenAsync(string address, string password, bool withTimeout = true)
         {
             try
@@ -69,7 +66,7 @@ namespace AElf.Cryptography
 
                 if (withTimeout)
                 {
-                    await OpenAsync(address, password, _defaultTimeoutToClose);
+                    await OpenAsync(address, password, DefaultTimeoutToClose);
                 }
                 else
                 {
@@ -88,7 +85,6 @@ namespace AElf.Cryptography
             return Errors.None;
         }
 
-        //TODO: Add CloseAccount test case [Case]
         private void CloseAccount(object accountObject)
         {
             if (!(accountObject is OpenAccount openAccount))
