@@ -141,6 +141,18 @@ namespace AElf.OS
             return transaction;
         }
 
+        public async Task<List<Transaction>> GenerateTransferTransactions(int count)
+        {
+            var transactions = new List<Transaction>();
+            for (var i = 0; i < count; i++)
+            {
+                var transaction = await GenerateTransferTransaction();
+                transactions.Add(transaction);
+            }
+
+            return transactions;
+        }
+
         public Transaction GenerateTransaction(Address from, Address to,string methodName, IMessage input)
         {
             var chain = _blockchainService.GetChainAsync().Result;

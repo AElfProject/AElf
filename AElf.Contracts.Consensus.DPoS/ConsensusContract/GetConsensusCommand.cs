@@ -3,6 +3,8 @@ using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -13,6 +15,18 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert(input.PublicKey.Any(), "Invalid public key.");
 
             var behaviour = GetBehaviour(input.PublicKey.ToHex(), Context.CurrentBlockTime, out var currentRound);
+
+            if (behaviour == DPoSBehaviour.Nothing)
+            {
+                return new ConsensusCommand
+                {
+                    ExpectedMiningTime = DateTime.MaxValue.ToUniversalTime().ToTimestamp(),
+                    Hint = ByteString.CopyFrom(new DPoSHint {Behaviour = behaviour}.ToByteArray()),
+                    LimitMillisecondsOfMiningBlock = int.MaxValue, NextBlockMiningLeftMilliseconds = int.MaxValue
+                };
+            }
+
+            Assert(currentRound != null && currentRound.RoundId != 0, "Consensus not initialized.");
 
             var command = behaviour.GetConsensusCommand(currentRound, input.PublicKey.ToHex(), Context.CurrentBlockTime,
                 State.IsTimeSlotSkippable.Value);

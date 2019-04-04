@@ -179,7 +179,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
         }
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NextTerm_GetNewConsensusInformation_SameMiners()
         {
             const int minersCount = 3;
@@ -194,15 +194,6 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Produce several blocks.
             await miners.ProduceNormalBlocks(minersCount);
-
-            // Unable to change term.
-            {
-                var extraBlockMiner = miners.AnyOne();
-                var timestamp = DateTime.UtcNow.AddMilliseconds(minersCount * MiningInterval + MiningInterval);
-                var triggerInformation = GetTriggerInformationForNextTerm(extraBlockMiner.PublicKey);
-                var consensusInformation = await extraBlockMiner.GetInformationToUpdateConsensusAsync(triggerInformation, timestamp);
-                Assert.Equal(1L, consensusInformation.Round.TermNumber);
-            }
 
             // Terminate current round then produce several blocks with fake timestamp.
             await miners.ChangeRoundAsync();
@@ -219,7 +210,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
         }
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NextTerm_GetNewConsensusInformation_NewMiners()
         {
             const int minersCount = 3;
