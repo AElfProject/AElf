@@ -47,6 +47,12 @@ message AssociationAuthContractInitializationInput{
     Hash committeeContractSystemName = 3;
 }
 
+message ProposalInfo {
+    Hash ProposalHash = 1;
+    Proposal Proposal = 2;
+    bool IsReleased = 3;
+}
+
 message GetProposalOutput{
     Proposal proposal = 1;
     ProposalStatus status = 2;
