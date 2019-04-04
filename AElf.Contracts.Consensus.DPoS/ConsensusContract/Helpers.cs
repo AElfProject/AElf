@@ -245,7 +245,17 @@ namespace AElf.Contracts.Consensus.DPoS
 
             round.BlockchainAge = CurrentAge;
 
-            round.RealTimeMinersInformation[senderPublicKey].ProducedBlocks = 1;
+            if (round.RealTimeMinersInformation.ContainsKey(senderPublicKey))
+            {
+                round.RealTimeMinersInformation[senderPublicKey].ProducedBlocks = 1;
+            }
+            else
+            {
+                Assert(TryToGetMinerHistoryInformation(senderPublicKey, out var historyInformation),
+                    "Failed to get sender's history information.");
+                historyInformation.ProducedBlocks += 1;
+                AddOrUpdateMinerHistoryInformation(historyInformation);
+            }
 
             return round;
         }
