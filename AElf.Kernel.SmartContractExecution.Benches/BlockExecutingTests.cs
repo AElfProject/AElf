@@ -61,12 +61,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
                     Body = new BlockBody()
                 };
             
-                _transactions = new List<Transaction>();
-                for (int i = 0; i < 1000; i++)
-                {
-                    var transaction = await _osTestHelper.GenerateTransferTransaction();
-                    _transactions.Add(transaction);
-                }
+                _transactions = await _osTestHelper.GenerateTransferTransactions(1000);
             });
         }
 

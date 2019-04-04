@@ -43,17 +43,11 @@ namespace AElf.Consensus.DPoS
             {
                 return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
             }
-            
+
             if (miningInterval == 0)
             {
                 miningInterval = round.GetMiningInterval();
             }
-            
-//            if (round.RoundNumber == 1 && round.RealTimeMinersInformation[publicKey].OutValue == null)
-//            {
-//                var offset = miningInterval * round.RealTimeMinersInformation[publicKey].Order;
-//                return dateTime.AddMilliseconds(round.TotalMilliseconds() + offset).ToTimestamp();
-//            }
 
             if (!round.IsTimeSlotPassed(publicKey, dateTime, out var minerInRound) && minerInRound.OutValue == null)
             {
@@ -102,7 +96,7 @@ namespace AElf.Consensus.DPoS
                 .TotalMilliseconds;
             return distance > 0 ? distance : -distance;
         }
-        
+
         /// <summary>
         /// In current DPoS design, each miner produce his block in one time slot, then the extra block producer
         /// produce a block to terminate current round and confirm the mining order of next round.
@@ -152,7 +146,7 @@ namespace AElf.Consensus.DPoS
                 .AddMilliseconds(missedRoundsCount * round.TotalMilliseconds(miningInterval))
                 .ToTimestamp();
         }
-        
+
         /// <summary>
         /// For now, if current time is behind the half of expected mining time slot,
         /// we can say this node missed his time slot.
@@ -176,19 +170,19 @@ namespace AElf.Consensus.DPoS
 
             return false;
         }
-        
+
         public static DateTime GetExtraBlockMiningTime(this Round round)
         {
             return round.RealTimeMinersInformation.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value
                 .ExpectedMiningTime.ToDateTime()
                 .AddMilliseconds(round.GetMiningInterval());
         }
-        
+
         public static Timestamp GetArrangedTimestamp(this Timestamp timestamp, int order, int miningInterval)
         {
             return timestamp.ToDateTime().AddMilliseconds(miningInterval * order).ToTimestamp();
         }
-        
+
         public static bool IsTimeToChangeTerm(this Round round, Round previousRound, DateTime blockchainStartTime,
             long termNumber)
         {
