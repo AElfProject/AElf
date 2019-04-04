@@ -66,17 +66,9 @@ namespace AElf.WebApp.Web
         {
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
-                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly, settings =>
-                {
-                    settings.RootPath = "chain";
-                    settings.ApiVersions.Add(new ApiVersion(1, 0));
-                });
+                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly);
 
-                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly, settings =>
-                {
-                    settings.RootPath = "net";
-                    settings.ApiVersions.Add(new ApiVersion(1, 0));
-                });
+                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly);
             });
         }
 
