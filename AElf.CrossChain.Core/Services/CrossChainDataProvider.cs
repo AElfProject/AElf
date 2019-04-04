@@ -15,16 +15,15 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainContractReader _crossChainContractReader;
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
-        private readonly ILocalLibService _localLibService;
         public ILogger<CrossChainDataProvider> Logger { get; set; }
 
+        // todo : add height
         private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData = new Dictionary<Hash, CrossChainBlockData>();
         public CrossChainDataProvider(ICrossChainContractReader crossChainContractReader,
-            ICrossChainDataConsumer crossChainDataConsumer, ILocalLibService localLibService)
+            ICrossChainDataConsumer crossChainDataConsumer)
         {
             _crossChainContractReader = crossChainContractReader;
             _crossChainDataConsumer = crossChainDataConsumer;
-            _localLibService = localLibService;
         }
 
         public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash previousBlockHash, long preBlockHeight)
@@ -175,15 +174,9 @@ namespace AElf.CrossChain
         /// <param name="previousBlockHash"></param>
         /// <param name="previousBlockHeight"></param>
         /// <returns></returns>
-        public async Task<CrossChainBlockData> GetNewCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
+        public async Task<CrossChainBlockData> GetCrossChainBlockDataForMiningAsync(Hash previousBlockHash, long previousBlockHeight)
         {
-            var height = await _localLibService.GetLibHeight();
-            var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight + 1 < height)
-                .Select(kv => kv.Key).ToList();
-            foreach (var hash in toRemoveList)
-            {
-                _indexedCrossChainBlockData.Remove(hash);
-            }
+            // todo: lib event handler
             var sideChainBlockData = await GetSideChainBlockDataAsync(previousBlockHash, previousBlockHeight);
             var parentChainBlockData = await GetParentChainBlockDataAsync(previousBlockHash, previousBlockHeight);
 
