@@ -8,6 +8,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
@@ -31,16 +32,22 @@ namespace AElf.OS.Consensus.DPos
 
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            var hash = await _idpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockHashAsync(
-                eventData.SenderPubKey);
+            var irreversibleBlockHash =
+                await _idpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockHashAsync(
+                    eventData.SenderPubKey);
 
-            if (hash != null)
+            if (irreversibleBlockHash != null)
             {
-                _taskQueueManager.GetQueue(DPoSConsts.LIBSettingQueueName).Enqueue( async () =>
+                _taskQueueManager.GetQueue(DPoSConsts.LIBSettingQueueName).Enqueue(async () =>
                 {
                     var chain = await _blockchainService.GetChainAsync();
-                    var height = (await _blockchainService.GetBlockByHashAsync(hash)).Height;
-                    await _blockchainService.SetIrreversibleBlockAsync(chain, height, hash);
+                    var irreversibleBlockHeight =
+                        (await _blockchainService.GetBlockByHashAsync(irreversibleBlockHash)).Height;
+                    for (var height = chain.LastIrreversibleBlockHeight + 1; height < irreversibleBlockHeight; height++)
+                    {
+                        await _blockchainService.SetIrreversibleBlockAsync(chain, irreversibleBlockHeight,
+                            irreversibleBlockHash);
+                    }
                 });
             }
         }
@@ -57,6 +64,7 @@ namespace AElf.OS.Consensus.DPos
         private readonly IPeerPool _peerPool;
         private readonly IDPoSInformationProvider _dpoSInformationProvider;
         private readonly IBlockchainService _blockchainService;
+        public ILogger<DPoSLastLastIrreversibleBlockDiscoveryService> Logger { get; set; }
 
         public DPoSLastLastIrreversibleBlockDiscoveryService(IPeerPool peerPool,
             IDPoSInformationProvider dpoSInformationProvider, IBlockchainService blockchainService)
@@ -74,7 +82,7 @@ namespace AElf.OS.Consensus.DPos
             if (senderPeer == null)
                 return null;
 
-            var orderedBlocks = senderPeer.RecentBlockHeightAndHashMappings.OrderBy(p => p.Key).ToList();
+            var orderedBlocks = senderPeer.RecentBlockHeightAndHashMappings.OrderByDescending(p => p.Key).ToList();
 
             var chain = await _blockchainService.GetChainAsync();
             var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
@@ -95,10 +103,10 @@ namespace AElf.OS.Consensus.DPos
                     return hash == block.Value;
                 }).Count();
 
-                Console.WriteLine(11111111111111);
-                var sureAmount = (int) (pubkeyList.Count * 2d / 3) + 1;
-                if (peersHadBlockAmount > sureAmount)
+                var sureAmount = (int) (pubkeyList.Count * 2d / 3);
+                if (peersHadBlockAmount >= sureAmount)
                 {
+                    Logger.LogDebug($"LIB found in network layer: height {block.Key}");
                     return block.Value;
                 }
             }
