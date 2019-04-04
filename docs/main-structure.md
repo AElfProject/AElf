@@ -20,6 +20,7 @@
 * [Cross chain](crosschain/crosschain.md)
     * [Introduction](crosschain/intro.md)
     * [Architecture](crosschain/archi.md)
+    * [Crosschain verification](crosschain/verif.md)
     * [Set up](crosschain/setup.md)
 * [Public chain ecosystem](publicchain/publicchain.md)
     * [Introduction](publicchain/intro.md)
