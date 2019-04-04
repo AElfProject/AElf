@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 using Shouldly;
 
@@ -16,7 +17,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 Symbol = "RAM",
                 VirtualBalance = 50_0000,
-                Weight = 50_0000,
+                Weight = "0.5",
                 IsVirtualBalanceEnabled = false,
                 IsPurchaseEnabled = true
             }; 
@@ -25,7 +26,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 Symbol = "ELF",
                 VirtualBalance = 100_0000,
-                Weight = 100_0000,
+                Weight = "0.6",
                 IsPurchaseEnabled = true,
                 IsVirtualBalanceEnabled = false
             };
@@ -80,8 +81,8 @@ namespace AElf.Contracts.TokenConverter
         private long BuyOperation(long paidElf)
         {
             var getAmountToPayout = BancorHelpers.GetAmountToPayFromReturn(
-                _elfConnector.VirtualBalance, _elfConnector.Weight,
-                _ramConnector.VirtualBalance, _ramConnector.Weight,
+                _elfConnector.VirtualBalance, Decimal.Parse(_elfConnector.Weight),
+                _ramConnector.VirtualBalance, Decimal.Parse(_ramConnector.Weight),
                 paidElf);
             return getAmountToPayout;
         }
@@ -89,8 +90,8 @@ namespace AElf.Contracts.TokenConverter
         private long SellOperation(long paidRes)
         {
             var getReturnFromPaid = BancorHelpers.GetReturnFromPaid(
-                _ramConnector.VirtualBalance, _ramConnector.Weight,
-                _elfConnector.VirtualBalance, _elfConnector.Weight,
+                _ramConnector.VirtualBalance, Decimal.Parse(_ramConnector.Weight),
+                _elfConnector.VirtualBalance, Decimal.Parse(_elfConnector.Weight),
                 paidRes);
             return getReturnFromPaid;
         }
