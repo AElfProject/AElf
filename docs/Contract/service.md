@@ -35,3 +35,14 @@ rpc Create (CreateInput) returns (google.protobuf.Empty) { }
 ```
 
 The services takes a protobuf message as input and also returns a protobuf message as output. Note that here it returns a special message - google.protobuf.Empty - that signifies returning nothing. As a convention we append Input to any protobuf type that is destined to be a parameter to a service.
+
+
+#### View option
+
+```json
+rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
+    option (aelf.is_view) = true;
+}
+```
+
+This service is annotated with a view option. This signifies that this is a readonly method and will not modify the state.
