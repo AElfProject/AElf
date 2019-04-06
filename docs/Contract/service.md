@@ -34,4 +34,4 @@ For the service we have two different types of methods:
 rpc Create (CreateInput) returns (google.protobuf.Empty) { }
 ```
 
-The services takes protobuf messages as input and also returns protobuf messages. Note that here it returns a special message - google.protobuf.Empty - that signifies returning nothing. As a convention we append Input to any protobuf type that is destined to be a parameter to a service.
+The services takes a protobuf message as input and also returns a protobuf message as output. Note that here it returns a special message - google.protobuf.Empty - that signifies returning nothing. As a convention we append Input to any protobuf type that is destined to be a parameter to a service.

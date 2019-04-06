@@ -14,7 +14,7 @@
 * [Smart contracts](Contract/contracts.md)
     * [Architecture](Contract/archi.md)
     * [Service](Contract/service.md)
-    * [Event](Contract/service.md)
+    * [Event](Contract/events.md)
     * [Messages](Contract/service.md)
     * [Contract base](Contract/base.md)
     * [Deploy guide](Contract/depl.md)
