@@ -23,7 +23,6 @@ namespace AElf.Runtime.CSharp
         private readonly Type _contractType;
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
-        private readonly IReadOnlyList<ServiceDescriptor> _descriptors;
         private readonly ServerServiceDefinition _serverServiceDefinition;
 
         private CSharpSmartContractProxy _smartContractProxy;
@@ -32,6 +31,7 @@ namespace AElf.Runtime.CSharp
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
+        public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
 
         private Type FindContractType(Assembly assembly)
         {
@@ -67,7 +67,7 @@ namespace AElf.Runtime.CSharp
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
-            _descriptors = _serverServiceDefinition.GetDescriptors();
+            Descriptors = _serverServiceDefinition.GetDescriptors();
         }
 
         public IExecutive SetMaxCallDepth(int maxCallDepth)
@@ -241,7 +241,7 @@ namespace AElf.Runtime.CSharp
 
         public byte[] GetFileDescriptorSet()
         {
-            var descriptor = _descriptors.Last();
+            var descriptor = Descriptors.Last();
             var output = new FileDescriptorSet();
             output.File.AddRange(GetSelfAndDependency(descriptor.File).Select(x => x.SerializedData));
             return output.ToByteArray();
