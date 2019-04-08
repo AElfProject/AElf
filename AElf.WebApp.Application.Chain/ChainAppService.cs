@@ -168,17 +168,6 @@ namespace AElf.WebApp.Application.Chain
             }
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
-            var p = await GetTransactionParameters(transaction);
-            try
-            {
-                output.Transaction.Params = ((JObject) JsonConvert.DeserializeObject(p)).ToString();
-            }
-            catch
-            {
-                // Params is not structured but plain string
-                output.Transaction.Params = p;
-            }
-            
             return output;
         }
 
@@ -226,7 +215,7 @@ namespace AElf.WebApp.Application.Chain
                         transactionResultDto.Error = transactionResult.Error;
 
                     transactionResultDto.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
-                    transactionResultDto.Transaction.Params = ((JObject) JsonConvert.DeserializeObject(await GetTransactionParameters(transaction))).ToString();
+
                     transactionResultDto.Status = transactionResult.Status.ToString();
                     output.Add(transactionResultDto);
                 }

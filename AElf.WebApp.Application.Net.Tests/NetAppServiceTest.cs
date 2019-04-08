@@ -25,7 +25,7 @@ namespace AElf.WebApp.Application.Net.Tests
             {
                 { "address","127.0.0.1:1680"}
             };
-            var responseTrue = await PostResponseAsObjectAsync<bool>("/api/net/net/peer",parameters);
+            var responseTrue = await PostResponseAsObjectAsync<bool>("/api/net/peer",parameters);
             responseTrue.ShouldBeFalse();
         }
         
@@ -45,7 +45,7 @@ namespace AElf.WebApp.Application.Net.Tests
                 "0624dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab390",
                 ipAddressTwo);
             _peerPool.AddPeer(peerTwo);
-            var peers = await GetResponseAsObjectAsync<List<string>>("/api/net/net/peers");
+            var peers = await GetResponseAsObjectAsync<List<string>>("api/net/peers");
             peers.Count.ShouldBe(2);
             peers.ShouldContain((peer)=>peer.IsIn(ipAddressOne,ipAddressTwo));
         }
@@ -67,10 +67,10 @@ namespace AElf.WebApp.Application.Net.Tests
                 ipAddressTwo);
             _peerPool.AddPeer(peerTwo);
             
-            var response = await DeleteResponseAsObjectAsync<bool>($"/api/net/net/peer?address={ipAddressOne}");
+            var response = await DeleteResponseAsObjectAsync<bool>($"/api/net/peer?address={ipAddressOne}");
             response.ShouldBeTrue();
             
-            var peers = await GetResponseAsObjectAsync<List<string>>("/api/net/net/peers");
+            var peers = await GetResponseAsObjectAsync<List<string>>("/api/net/peers");
             peers.Count.ShouldBe(1);
             peers.ShouldContain((peer)=>peer.IsIn(ipAddressTwo));
         }

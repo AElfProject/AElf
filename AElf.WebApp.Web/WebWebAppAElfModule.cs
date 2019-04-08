@@ -8,13 +8,16 @@ using AElf.WebApp.Application.Net;
 using Google.Protobuf;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Swashbuckle.AspNetCore.Swagger;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Modularity;
@@ -33,6 +36,16 @@ namespace AElf.WebApp.Web
             //var configuration = context.Services.GetConfiguration();
 
             ConfigureAutoApiControllers();
+            
+            context.Services.AddApiVersioning(options =>
+            {
+                options.ApiVersionSelector = new CurrentImplementationApiVersionSelector(options);
+                options.AssumeDefaultVersionWhenUnspecified = true; 
+                options.ApiVersionReader = new MediaTypeApiVersionReader();
+                options.UseApiBehavior = false;
+            });
+            context.Services.AddVersionedApiExplorer();
+            
             ConfigureSwaggerServices(context.Services);
 
 
@@ -53,29 +66,16 @@ namespace AElf.WebApp.Web
         {
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
-                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly, settings =>
-                {
-                    settings.RootPath = "chain";
-                    settings.ApiVersions.Add(new ApiVersion(1, 0));
-                });
+                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly);
 
-                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly, settings =>
-                {
-                    settings.RootPath = "net";
-                    settings.ApiVersions.Add(new ApiVersion(1, 0));
-                });
+                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly);
             });
         }
 
         private void ConfigureSwaggerServices(IServiceCollection services)
         {
-            services.AddSwaggerGen(
-                options =>
-                {
-                    options.SwaggerDoc("v1", new Info {Title = "AELF API", Version = "v1"});
-                    options.DocInclusionPredicate((docName, description) => true);
-                    options.CustomSchemaIds(type => type.FullName);
-                });
+            services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+            services.AddSwaggerGen();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -98,8 +98,14 @@ namespace AElf.WebApp.Web
             //app.UseAbpRequestLocalization();
 
             app.UseSwagger();
-            app.UseSwaggerUI(options => { options.SwaggerEndpoint("/swagger/v1/swagger.json", "BookStore API"); });
-
+            app.UseSwaggerUI(options =>
+            {
+                var provider = context.ServiceProvider.GetRequiredService<IApiVersionDescriptionProvider>();
+                foreach ( var description in provider.ApiVersionDescriptions )
+                {
+                    options.SwaggerEndpoint( $"/swagger/{description.GroupName}/swagger.json", $"AELF API {description.GroupName.ToUpperInvariant()}" );
+                }
+            });
 
             app.UseMvc(routes =>
             {

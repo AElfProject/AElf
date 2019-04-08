@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
@@ -22,12 +23,33 @@ namespace AElf.Contracts.TokenConverter
             return State.FeeReceiverAddress.Value;
         }
 
+        public override StringValue GetFeeRate(Empty input)
+        {
+            return new StringValue()
+            {
+                Value = State.FeeRate.Value
+            };
+        }
+
+        public override Address GetManagerAddress(Empty input)
+        {
+            return State.ManagerAddress.Value;
+        }
+
+        public override TokenSymbol GetBaseTokenSymbol(Empty input)
+        {
+            return new TokenSymbol()
+            {
+                Symbol = State.BaseTokenSymbol.Value
+            };
+        }
+
         /// <summary>
         /// Query the connector details.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Connector GetConnector(TokenId input)
+        public override Connector GetConnector(TokenSymbol input)
         {
             return State.Connectors[input.Symbol];
         }
@@ -46,20 +68,19 @@ namespace AElf.Contracts.TokenConverter
             Assert(input.TokenContractAddress != null, "Token contract address required.");
             Assert(input.FeeReceiverAddress != null, "Fee receiver address required.");
             Assert(IsValidSymbol(input.BaseTokenSymbol), "Base token symbol is invalid.");
-            Assert(input.MaxWeight > 0, "Invalid MaxWeight.");
             Assert(State.TokenContract.Value == null, "Already initialized.");
             State.TokenContract.Value = input.TokenContractAddress;
             State.FeeReceiverAddress.Value = input.FeeReceiverAddress;
             State.BaseTokenSymbol.Value = input.BaseTokenSymbol;
-            State.MaxWeight.Value = input.MaxWeight;
-            State.Manager.Value = input.Manager;
-            State.FeeRateNumerator.Value = input.FeeRateNumerator;
-            State.FeeRateDenominator.Value = input.FeeRateDenominator;
-            
+            State.ManagerAddress.Value = input.ManagerAddress;
+            var feeRate = AssertedDecimal(input.FeeRate);
+            Assert(IsBetweenZeroAndOne(feeRate), "Fee rate has to be a decimal between 0 and 1.");
+            State.FeeRate.Value = feeRate.ToString(CultureInfo.InvariantCulture);
+
             var index = State.ConnectorCount.Value;
             foreach (var connector in input.Connectors)
             {
-                Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
+                AssertValidConnectorAndNormalizeWeight(connector);
                 State.ConnectorSymbols[index] = connector.Symbol;
                 State.Connectors[connector.Symbol] = connector;
                 index = index.Add(1);
@@ -71,7 +92,8 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty SetConnector(Connector input)
         {
-            Assert(Context.Sender == State.Manager.Value, "Only manager can perform this action.");
+            AssertPerformedByManager();
+            AssertValidConnectorAndNormalizeWeight(input);
             var existing = State.Connectors[input.Symbol];
             if (existing == null)
             {
@@ -130,6 +152,13 @@ namespace AElf.Contracts.TokenConverter
                     To = Context.Sender,
                     Amount = input.Amount
                 });
+            Context.Fire(new TokenBought()
+            {
+                Symbol = input.Symbol,
+                BoughtAmount = input.Amount,
+                BaseAmount = amountToPay,
+                FeeAmount = fee
+            });
             return new Empty();
         }
 
@@ -181,12 +210,53 @@ namespace AElf.Contracts.TokenConverter
                     To = Context.Self,
                     Amount = input.Amount
                 });
+            Context.Fire(new TokenSold()
+            {
+                Symbol = input.Symbol,
+                SoldAmount = input.Amount,
+                BaseAmount = amountToReceive,
+                FeeAmount = fee
+            });
+            return new Empty();
+        }
+
+        public override Empty SetFeeRate(StringValue input)
+        {
+            AssertPerformedByManager();
+            var feeRate = AssertedDecimal(input.Value);
+            Assert(IsBetweenZeroAndOne(feeRate), "Fee rate has to be a decimal between 0 and 1.");
+            State.FeeRate.Value = feeRate.ToString(CultureInfo.InvariantCulture);
+            return new Empty();
+        }
+
+        public override Empty SetManagerAddress(Address input)
+        {
+            AssertPerformedByManager();
+            Assert(input != null || input != new Address(), "Input is not a valid address.");
+            State.ManagerAddress.Value = input;
             return new Empty();
         }
 
         #endregion Actions
 
         #region Helpers
+
+        private static decimal AssertedDecimal(string number)
+        {
+            try
+            {
+                return decimal.Parse(number);
+            }
+            catch (FormatException)
+            {
+                throw new InvalidValueException($@"Invalid decimal ""{number}""");
+            }
+        }
+
+        private static bool IsBetweenZeroAndOne(decimal number)
+        {
+            return number > decimal.Zero && number < decimal.One;
+        }
 
         private static bool IsValidSymbol(string symbol)
         {
@@ -195,7 +265,7 @@ namespace AElf.Contracts.TokenConverter
 
         private decimal GetFeeRate()
         {
-            return new decimal(State.FeeRateNumerator.Value) / new decimal(State.FeeRateDenominator.Value);
+            return decimal.Parse(State.FeeRate.Value);
         }
 
 
@@ -217,7 +287,20 @@ namespace AElf.Contracts.TokenConverter
 
         private decimal GetWeight(Connector connector)
         {
-            return new decimal(connector.Weight) / new decimal(State.MaxWeight.Value);
+            return decimal.Parse(connector.Weight);
+        }
+
+        private void AssertPerformedByManager()
+        {
+            Assert(Context.Sender == State.ManagerAddress.Value, "Only manager can perform this action.");
+        }
+
+        private void AssertValidConnectorAndNormalizeWeight(Connector connector)
+        {
+            Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
+            var weight = AssertedDecimal(connector.Weight);
+            Assert(IsBetweenZeroAndOne(weight), "Connector weight has to be a decimal between 0 and 1.");
+            connector.Weight = weight.ToString(CultureInfo.InvariantCulture);
         }
 
         #endregion

@@ -45,12 +45,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
             {
                 var chain = await _blockchainService.GetChainAsync();
 
-                var transactions = new List<Transaction>();
-                for (int i = 0; i < 1000; i++)
-                {
-                    var transaction = await _osTestHelper.GenerateTransferTransaction();
-                    transactions.Add(transaction);
-                }
+                var transactions = await _osTestHelper.GenerateTransferTransactions(1000);
 
                 _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
                 
