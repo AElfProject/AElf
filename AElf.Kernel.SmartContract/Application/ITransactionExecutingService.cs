@@ -19,14 +19,16 @@ namespace AElf.Kernel.SmartContract.Application
     public class TransactionExecutingService : ITransactionExecutingService
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+        private readonly IEnumerable<IExecutionPlugin> _plugins;
         private readonly ITransactionResultService _transactionResultService;
         public ILogger<TransactionExecutingService> Logger { get; set; }
 
         public TransactionExecutingService(ITransactionResultService transactionResultService,
-            ISmartContractExecutiveService smartContractExecutiveService)
+            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IExecutionPlugin> plugins)
         {
             _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
+            _plugins = plugins;
             Logger = NullLogger<TransactionExecutingService>.Instance;
         }
 
@@ -53,6 +55,7 @@ namespace AElf.Kernel.SmartContract.Application
                     {
                         Logger.LogError(trace.StdErr);
                     }
+
                     trace.SurfaceUpError();
                 }
                 else
@@ -95,6 +98,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 throw new Exception($"error tx: {transaction}");
             }
+
             var trace = new TransactionTrace
             {
                 TransactionId = transaction.GetHash()
@@ -118,6 +122,29 @@ namespace AElf.Kernel.SmartContract.Application
 
             try
             {
+                #region PreTransaction
+
+                if (depth == 0)
+                {
+                    foreach (var preTx in _plugins.SelectMany(p => p.GetPreTransactions(executive.Descriptors)))
+                    {
+                        var preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
+                            cancellationToken);
+                        trace.PreTransactions.Add(preTx);
+                        trace.PreTraces.Add(preTrace);
+                        if (!preTrace.IsSuccessful())
+                        {
+                            trace.ExecutionStatus = ExecutionStatus.Prefailed;
+                            return trace;
+                        }
+
+                        internalStateCache.Update(preTrace.GetFlattenedWrite()
+                            .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    }
+                }
+
+                #endregion
+
                 executive.SetDataCache(chainContext.StateCache);
                 await executive.SetTransactionContext(txCtxt).ApplyAsync();
 
@@ -157,7 +184,8 @@ namespace AElf.Kernel.SmartContract.Application
 
         private TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
-            if (trace.ExecutionStatus == ExecutionStatus.Undefined)
+            if (trace.ExecutionStatus == ExecutionStatus.Undefined ||
+                trace.ExecutionStatus == ExecutionStatus.Prefailed)
             {
                 return null;
             }

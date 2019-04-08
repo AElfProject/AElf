@@ -49,7 +49,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 await _executingService.ExecuteAsync(blockHeader, nonCancellable, CancellationToken.None, true);
             var cancellableReturnSets =
                 await _executingService.ExecuteAsync(blockHeader, cancellable, cancellationToken, false);
-            var blockReturnSet = nonCancellableReturnSets.Concat(cancellableReturnSets).ToList();
+            var blockReturnSet = nonCancellableReturnSets.Concat(cancellableReturnSets).Where(x =>
+                x.Status == TransactionResultStatus.Mined || x.Status == TransactionResultStatus.Failed).ToList();
 
             // TODO: Insert deferredTransactions to TxPool
 
