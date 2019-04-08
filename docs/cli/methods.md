@@ -44,7 +44,7 @@ aelf-cli deploy <category> <code>
 ```
 
 Category    Required. Obsolete. The category of the contract to be deployed.  
-CodeFile    Required. The compiled contract code file of the contract to be deployed. This is the path             to the compiled code.  
+Code        Required. The compiled contract code file of the contract to be deployed. This is the path             to the compiled code.  
 
 Example:
 ```bash
@@ -73,6 +73,21 @@ connect...
   Value: "Hello world!"
 }
 ```
+
+Calling with no method name will print the list of methods:
+
+```bash
+aelf-cli call 4QjhKLWacRXrQYpT7rzf74k5XZFCx8yF3X7FXbzKD4wwEo6
+"Method name is required for sending a transaction:
+Hello
+"
+connect...
+{
+  Value: "Hello world!"
+}
+```
+
+Call with the method name without parameter will return
 
 ### call - send a transaction to a contract.
 

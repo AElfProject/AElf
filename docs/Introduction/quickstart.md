@@ -26,7 +26,7 @@ For readability we recommend you create the following alias:
 alias aelf-cli="dotnet AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
 ```
 
-The next command will export your datadir, this can be anywhere you want:
+The next command will export your datadir, this can be anywhere you want (depending on your system you can also set this is the bashrc or equivalent):
 ```bash
 export AELF_CLI_DATADIR=~/.local/share/aelf
 ```
