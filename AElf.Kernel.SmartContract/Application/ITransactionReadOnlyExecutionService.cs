@@ -126,7 +126,6 @@ namespace AElf.Kernel.SmartContract.Application
             return trace;
         }
 
-        //TODO: Add test case GetFileDescriptorSetAsync [Case]
         public async Task<byte[]> GetFileDescriptorSetAsync(IChainContext chainContext, Address address)
         {
             IExecutive executive = null;

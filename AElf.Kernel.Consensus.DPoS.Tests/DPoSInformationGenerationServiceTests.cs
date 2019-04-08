@@ -103,6 +103,24 @@ namespace AElf.Kernel.Consensus.DPoS
             dPoSTriggerInformation.RandomHash.ShouldNotBeNull();
         }
 
+        [Fact]
+        public async Task GetInformationToUpdateConsensusAsync()
+        {
+            var consensusInformationGenerationService =
+                GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
+            var chainContext = new ChainContext
+            {
+                BlockHash = Hash.Generate(),
+                BlockHeight = 1
+            };
+            var bytes = await consensusInformationGenerationService.GetInformationToUpdateConsensusAsync(chainContext,
+                DateTime.Now.Add(TimeSpan.FromSeconds(4)));
+            
+            var dposInformation = DPoSTriggerInformation.Parser.ParseFrom(bytes);
+            dposInformation.Behaviour.ShouldBe(DPoSBehaviour.UpdateValue);
+            dposInformation.PublicKey.ShouldBe(ByteString.CopyFromUtf8("test"));
+        }
+
         private IConsensusInformationGenerationService GetConsensusInformationGenerationService(
             DPoSBehaviour behavior)
         {
