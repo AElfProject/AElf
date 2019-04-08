@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS.SideChain;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf;
@@ -43,7 +44,7 @@ namespace AElf.Contracts.DPoS.SideChain
             consensusCommand.ShouldNotBeNull();
 
             var behavior = DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour;
-            behavior.ShouldBe(DPoSBehaviour.UpdateValue);
+            behavior.ShouldBe(DPoSBehaviour.Nothing);
         }
 
         [Fact]
@@ -211,6 +212,98 @@ namespace AElf.Contracts.DPoS.SideChain
             var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
                 nameof(ConsensusContract.NextRound), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        [Fact]
+        public async Task GetInformationToUpdateConsensus_Failed()
+        {
+            TesterManager.InitialTesters();
+
+            //invalid public key
+            {
+                var input = new DPoSTriggerInformation
+                {
+                    RandomHash = Hash.Generate(),
+                    Behaviour = DPoSBehaviour.NextRound
+                };
+                var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                    nameof(ConsensusContract.GetInformationToUpdateConsensus), input);
+
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Invalid public key").ShouldBeTrue();
+            }
+            
+            //invalid round info
+            {
+                var input = new DPoSTriggerInformation
+                {
+                    Behaviour = DPoSBehaviour.UpdateValue,
+                    PublicKey = ByteString.CopyFromUtf8(TesterManager.Testers[0].PublicKey),
+                };
+                
+                var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                    nameof(ConsensusContract.GetInformationToUpdateConsensus), input);
+
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Failed to get current round information").ShouldBeTrue();
+            }
+
+            //valid data but random public key
+            {
+                var input = new DPoSTriggerInformation
+                {
+                    Behaviour = DPoSBehaviour.UpdateValue,
+                    InitialTermNumber = 2,
+                    PreviousRandomHash = Hash.Generate(),
+                    PublicKey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey),
+                    RandomHash = Hash.Generate()
+                };
+
+                await InitialConsensus_Success();
+                
+                var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                    nameof(ConsensusContract.GetInformationToUpdateConsensus), input);
+
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("The given key was not present in the dictionary").ShouldBeTrue();
+            }
+        }
+        
+        [Fact]
+        public async Task GenerateConsensusTransactions_Failed()
+        {
+            TesterManager.InitialTesters();
+            
+            //without public key
+            {
+                var input = new DPoSTriggerInformation
+                {
+                    Behaviour = DPoSBehaviour.NextRound,
+                    InitialTermNumber = 1
+                };
+                var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                    nameof(ConsensusContract.GenerateConsensusTransactions), input);
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Data to request consensus information should contain public key").ShouldBeTrue();
+            }
+            
+            //with random public key
+            {
+                var input = new DPoSTriggerInformation
+                {
+                    PublicKey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey),
+                    Behaviour = DPoSBehaviour.NextRound,
+                    RandomHash = Hash.Generate()
+                };
+
+                await InitialConsensus_Success();
+                
+                var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                    nameof(ConsensusContract.GenerateConsensusTransactions), input);
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("The given key was not present in the dictionary").ShouldBeTrue();
+            }
         }
     }
 }
