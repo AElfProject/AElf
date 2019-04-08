@@ -5,8 +5,8 @@ namespace AElf.Kernel
 {
     public interface IStateCache
     {
-        bool TryGetValue(StatePath key, out byte[] value);
-        byte[] this[StatePath key] { set; }
+        bool TryGetValue(ScopedStatePath key, out byte[] value);
+        byte[] this[ScopedStatePath key] { set; }
     }
 
     /// <summary>

@@ -255,10 +255,6 @@ namespace AElf.Kernel.SmartContract
         private IHostSmartContractBridgeContext CreateNewContext()
         {
             _bridgeContext = GetRequiredService<IHostSmartContractBridgeContext>();
-            _bridgeContext.TransactionContext.Transaction = new Transaction()
-            {
-                To = _smartContractAddressService.GetZeroSmartContractAddress()
-            };
 
             var transactionContext = new TransactionContext()
             {
@@ -270,7 +266,8 @@ namespace AElf.Kernel.SmartContract
                 BlockHeight = 3,
                 CurrentBlockTime = DateTime.Now,
                 PreviousBlockHash = Hash.Empty,
-                Trace = new TransactionTrace()
+                Trace = new TransactionTrace(),
+                StateCache = new NullStateCache()
             };
             var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, transactionContext.Transaction
                 .GetHash().DumpByteArray());

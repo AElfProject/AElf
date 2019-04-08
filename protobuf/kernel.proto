@@ -51,6 +51,11 @@ message StatePath {
     repeated bytes Path = 1;
 }
 
+message ScopedStatePath {
+    Address address = 1;
+    StatePath path = 2;
+}
+
 message StateValue {
     bytes CurrentValue = 1;
     bytes OriginalValue = 2;

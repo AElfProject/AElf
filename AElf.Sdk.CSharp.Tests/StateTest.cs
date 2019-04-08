@@ -109,11 +109,15 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var path = new StatePath();
             path.Path.Add(ByteString.CopyFromUtf8("dummy_address"));
+            var mockProvider = new Mock<IStateProvider>();
+            var mockContext = new Mock<ISmartContractBridgeContext>();
+            mockContext.SetupGet(o => o.StateProvider).Returns(mockProvider.Object);
+            mockContext.SetupGet(o => o.Self).Returns(Address.Zero);
+
             var state = new MockContractState
             {
-                Provider = new Mock<IStateProvider>().Object,
                 Path = path,
-                Context = new Mock<ISmartContractBridgeContext>().Object
+                Context = new CSharpSmartContractContext(mockContext.Object)
             };
 
             // Initial default value

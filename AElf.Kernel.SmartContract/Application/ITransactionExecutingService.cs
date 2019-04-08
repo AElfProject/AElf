@@ -108,6 +108,7 @@ namespace AElf.Kernel.SmartContract.Application
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,
                 CallDepth = depth,
+                StateCache = chainContext.StateCache
             };
 
             var internalStateCache = new TieredStateCache(chainContext.StateCache);
@@ -118,7 +119,6 @@ namespace AElf.Kernel.SmartContract.Application
 
             try
             {
-                executive.SetDataCache(chainContext.StateCache);
                 await executive.SetTransactionContext(txCtxt).ApplyAsync();
 
                 if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)

@@ -182,7 +182,6 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 TransactionId = transaction.GetHash()
             };
-            Console.WriteLine(trace.ToString());
 
             var txCtxt = new TransactionContext
             {
@@ -192,10 +191,9 @@ namespace AElf.Kernel.SmartContract.Application
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,
                 CallDepth = 0,
+                StateCache = chainContext.StateCache
             };
-            Console.WriteLine(txCtxt.ToString());
 
-            executiveZero.SetDataCache(chainContext.StateCache);
             await executiveZero.SetTransactionContext(txCtxt).ApplyAsync();
             var returnBytes = txCtxt.Trace?.ReturnValue;
             if (returnBytes != null && returnBytes != ByteString.Empty)

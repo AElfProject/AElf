@@ -34,11 +34,5 @@ namespace AElf.Kernel.Infrastructure
         {
             return byteString?.GetFormatted();
         }
-        
-        
-        public static string ToStorageKey(this StatePath statePath)
-        {
-            return string.Join("/", statePath.Path.Select(x => x.ToStringUtf8()));
-        }
     }
 }

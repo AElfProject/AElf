@@ -27,15 +27,31 @@ namespace AElf.Kernel.SmartContract
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _accountService = accountService;
+            var self = this;
+            Address GetAddress() => self.Transaction.To;
             _lazyStateProvider = new Lazy<IStateProvider>(
                 () => new CachedStateProvider(
-                    new StateProvider() {HostSmartContractBridgeContext = this}),
+                    new ScopedStateProvider()
+                    {
+                        ContractAddress = GetAddress(),
+                        HostSmartContractBridgeContext = this
+                    }),
                 LazyThreadSafetyMode.PublicationOnly);
         }
 
-        public ITransactionContext TransactionContext { get; set; }
-        
-        private Lazy<IStateProvider> _lazyStateProvider;
+        private ITransactionContext _transactionContext;
+
+        public ITransactionContext TransactionContext
+        {
+            get => _transactionContext;
+            set
+            {
+                _transactionContext = value;
+                StateProvider.Cache = _transactionContext.StateCache ?? new NullStateCache();
+            }
+        }
+
+        private readonly Lazy<IStateProvider> _lazyStateProvider;
 
         public IStateProvider StateProvider => _lazyStateProvider.Value;
         public Address GetContractAddressByName(Hash hash)

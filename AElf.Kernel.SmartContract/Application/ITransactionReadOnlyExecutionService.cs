@@ -108,6 +108,7 @@ namespace AElf.Kernel.SmartContract.Application
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,
                 CallDepth = 0,
+                StateCache = chainContext.StateCache
             };
 
             var executive = await _smartContractExecutiveService.GetExecutiveAsync(
@@ -115,7 +116,6 @@ namespace AElf.Kernel.SmartContract.Application
 
             try
             {
-                executive.SetDataCache(chainContext.StateCache);
                 await executive.SetTransactionContext(transactionContext).ApplyAsync();
             }
             finally

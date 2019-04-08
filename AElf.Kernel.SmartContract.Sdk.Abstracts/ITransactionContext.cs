@@ -15,7 +15,7 @@ namespace AElf.Kernel.SmartContract.Sdk
         int CallDepth { get; set; }
         Transaction Transaction { get; set; }
         TransactionTrace Trace { get; set; }
-        
+        IStateCache StateCache { get; set; }
 
     }
 }

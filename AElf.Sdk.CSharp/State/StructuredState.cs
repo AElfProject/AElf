@@ -74,17 +74,6 @@ namespace AElf.Sdk.CSharp.State
             base.OnContextSet();
         }
 
-        internal override void OnProviderSet()
-        {
-            foreach (var kv in _propertyInfos)
-            {
-                var propertyInfo = kv.Value;
-                ((StateBase) propertyInfo.GetValue(this)).Provider = this.Provider;
-            }
-
-            base.OnProviderSet();
-        }
-
         internal override void Clear()
         {
             foreach (var kv in _propertyInfos)
