@@ -236,6 +236,12 @@ namespace AElf.Common
             return LoadByteArray(bytes);
         }
 
+        public static Hash LoadBase64(string base64)
+        {
+            var bytes = Convert.FromBase64String(base64);
+            return LoadByteArray(bytes);
+        }
+
         #endregion Load and dump
 
         public IEnumerator<byte> GetEnumerator()
