@@ -36,41 +36,44 @@ namespace AElf.Kernel.Consensus.DPoS
             _transactionReadOnlyExecutionService = GetRequiredService<ITransactionReadOnlyExecutionService>();
         }
 
-        [Fact(Skip = "Need to rewrite")]
+        [Fact]
         public void GetTriggerInformation_ConsensusCommand_IsNull()
         {
             var dPoSTriggerInformation =
                 (CommandInput) _consensusInformationGenerationService.GetTriggerInformation(
                     TriggerType.ConsensusCommand);
+            
+            dPoSTriggerInformation.ShouldNotBeNull();
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(_accountService.GetPublicKeyAsync().Result.ToHex());
         }
 
-        [Fact(Skip = "Need to rewrite")]
+        [Fact]
         public void GetTriggerInformation__ConsensusCommand_UpdateValue()
         {
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
 
             var dPoSTriggerInformation =
-                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
-                    .ConsensusCommand);
+                (DPoSTriggerInformation)consensusInformationGenerationService.GetTriggerInformation(TriggerType
+                    .BlockHeaderExtraData);
             dPoSTriggerInformation.RandomHash.ShouldNotBeNull();
         }
 
-        [Fact(Skip = "Need to rewrite")]
+        [Fact]
         public void GetTriggerInformation__ConsensusCommand_NextRound()
         {
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextRound);
 
             var dPoSTriggerInformation =
-                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
-                    .ConsensusCommand);
+                (DPoSTriggerInformation)consensusInformationGenerationService.GetTriggerInformation(TriggerType
+                    .BlockHeaderExtraData);
+            
             var publicKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }
 
-        [Fact(Skip = "Need to rewrite")]
+        [Fact]
         public void GetTriggerInformation__ConsensusCommand_NextTerm()
         {
             var consensusInformationGenerationService =
@@ -78,7 +81,7 @@ namespace AElf.Kernel.Consensus.DPoS
 
             var dPoSTriggerInformation =
                 (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
-                    .ConsensusCommand);
+                    .BlockHeaderExtraData);
             var publicKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }
