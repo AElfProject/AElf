@@ -46,7 +46,7 @@ namespace AElf.CrossChain.Grpc
             var result = await parentClient.TryHandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
 
-            parentClient = new GrpcClientForParentChain("localhost:3000", "test", 0);
+            parentClient = new GrpcClientForParentChain("localhost:3000", 0);
             await Assert.ThrowsAsync<RpcException>(()=>parentClient.TryHandShakeAsync(0, 3000));
         }
         
@@ -56,7 +56,7 @@ namespace AElf.CrossChain.Grpc
             var result = await sideClient.TryHandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
 
-            sideClient = new GrpcClientForSideChain("localhost:3000", "test");
+            sideClient = new GrpcClientForSideChain("localhost:3000");
             await Assert.ThrowsAsync<RpcException>(()=>sideClient.TryHandShakeAsync(0, 3000));
         }
 
@@ -66,11 +66,11 @@ namespace AElf.CrossChain.Grpc
             var cert = _certificateStore.LoadCertificate("test");
             var keyCert = new KeyCertificatePair(cert, keyStore);
             
-            _server.StartAsync(Host, ListenPort, keyCert).Wait();
+            _server.StartAsync(Host, ListenPort).Wait();
             
             string uri = $"{Host}:{ListenPort}";
-            parentClient = new GrpcClientForParentChain(uri, cert, 0);
-            sideClient = new GrpcClientForSideChain(uri, cert);
+            parentClient = new GrpcClientForParentChain(uri, 0);
+            sideClient = new GrpcClientForSideChain(uri);
         }
 
         public override void Dispose()

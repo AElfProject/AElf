@@ -29,17 +29,17 @@ namespace AElf.CrossChain.Grpc
             _serverBase = serverBase;
         }
 
-        public async Task StartAsync(string localServerIP, int localServerPort, KeyCertificatePair keyCert)
+        public async Task StartAsync(string localServerIP, int localServerPort)
         {
             _server = new global::Grpc.Core.Server
             {
                 Services = {CrossChainRpc.BindService(_serverBase)},
                 Ports =
                 {
-                    new ServerPort(localServerIP, localServerPort, new SslServerCredentials(new List<KeyCertificatePair> {keyCert}))
+                    new ServerPort(localServerIP, localServerPort, ServerCredentials.Insecure)
                 }
             };
-            // await
+            
             await Task.Run(() => _server.Start());
             
             Logger.LogDebug($"Grpc cross chain server started, listening at {localServerPort}");
