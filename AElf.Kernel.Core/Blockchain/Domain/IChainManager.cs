@@ -109,28 +109,28 @@ namespace AElf.Kernel.Blockchain.Domain
 
         protected async Task<ChainBlockLink> GetChainBlockLinkAsync(string blockHash)
         {
-            return await _chainBlockLinks.GetAsync(ChainId.ToStorageKey() + blockHash);
+            return await _chainBlockLinks.GetAsync(ChainId.ToStorageKey() + KernelConsts.StorageKeySeparator + blockHash);
         }
 
         public async Task SetChainBlockLinkAsync(ChainBlockLink chainBlockLink)
         {
-            await _chainBlockLinks.SetAsync(ChainId.ToStorageKey() + chainBlockLink.BlockHash.ToStorageKey(), chainBlockLink);
+            await _chainBlockLinks.SetAsync(ChainId.ToStorageKey() + KernelConsts.StorageKeySeparator + chainBlockLink.BlockHash.ToStorageKey(), chainBlockLink);
         }
 
         private async Task SetChainBlockIndexAsync(long blockHeight, Hash blockHash)
         {
-            await _chainBlockIndexes.SetAsync(ChainId.ToStorageKey() + blockHeight.ToStorageKey(),
+            await _chainBlockIndexes.SetAsync(ChainId.ToStorageKey() + KernelConsts.StorageKeySeparator + blockHeight.ToStorageKey(),
                 new ChainBlockIndex() {BlockHash = blockHash});
         }
 
         public async Task RemoveChainBlockLinkAsync(Hash blockHash)
         {
-            await _chainBlockLinks.RemoveAsync(ChainId.ToStorageKey() + blockHash.ToStorageKey());
+            await _chainBlockLinks.RemoveAsync(ChainId.ToStorageKey() + KernelConsts.StorageKeySeparator +  blockHash.ToStorageKey());
         }
 
         public async Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight)
         {
-            return await _chainBlockIndexes.GetAsync(ChainId.ToStorageKey() + blockHeight.ToStorageKey());
+            return await _chainBlockIndexes.GetAsync(ChainId.ToStorageKey() + KernelConsts.StorageKeySeparator + blockHeight.ToStorageKey());
         }
 
         public async Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink)

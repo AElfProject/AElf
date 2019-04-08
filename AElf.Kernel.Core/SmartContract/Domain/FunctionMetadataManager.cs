@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContract.Domain
 
         private string GetMetadataKey(string name)
         {
-            return _chainId.ToStorageKey() + name;
+            return _chainId.ToStorageKey() + KernelConsts.StorageKeySeparator + name;
         }
 
         public async Task AddMetadataAsync(string name, FunctionMetadata metadata)

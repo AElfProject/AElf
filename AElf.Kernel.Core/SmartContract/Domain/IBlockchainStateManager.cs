@@ -70,7 +70,7 @@ namespace AElf.Kernel.SmartContract.Domain
                     else
                     {
                         //find value in block state set
-                        var blockStateKey = blockHash.ToHex();
+                        var blockStateKey = blockHash.ToStorageKey();
                         var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
                         while (blockStateSet != null && blockStateSet.BlockHeight > bestChainState.BlockHeight)
                         {
@@ -80,7 +80,7 @@ namespace AElf.Kernel.SmartContract.Domain
                                 break;
                             }
 
-                            blockStateKey = blockStateSet.PreviousHash?.ToHex();
+                            blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
 
                             if (blockStateKey != null)
                             {
@@ -104,7 +104,7 @@ namespace AElf.Kernel.SmartContract.Domain
             else
             {
                 //best chain state is null, it will find value in block state set
-                var blockStateKey = blockHash.ToHex();
+                var blockStateKey = blockHash.ToStorageKey();
                 var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
                 while (blockStateSet != null)
                 {
@@ -114,7 +114,7 @@ namespace AElf.Kernel.SmartContract.Domain
                         break;
                     }
 
-                    blockStateKey = blockStateSet.PreviousHash?.ToHex();
+                    blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
 
                     if (blockStateKey != null)
                     {
