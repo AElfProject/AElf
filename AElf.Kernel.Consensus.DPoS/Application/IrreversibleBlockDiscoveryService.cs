@@ -10,16 +10,17 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Consensus.DPoS.Application
 {
     public interface IIrreversibleBlockDiscoveryService
     {
-        Task DiscoverAndSetIrreversibleAsync(IEnumerable<Hash> blockIds);
+        Task<IBlockIndex> DiscoverAndSetIrreversibleAsync(Chain chain, IEnumerable<Hash> blockIdsInOrder);
     }
 
-    public class IrreversibleBlockDiscoveryService : IIrreversibleBlockDiscoveryService
+    public class IrreversibleBlockDiscoveryService : IIrreversibleBlockDiscoveryService, ITransientDependency
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
@@ -57,27 +58,16 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             _bloom = _logEvent.GetBloom();
         }
 
-        public async Task DiscoverAndSetIrreversibleAsync(IEnumerable<Hash> blockIds)
+        public async Task<IBlockIndex> DiscoverAndSetIrreversibleAsync(Chain chain, IEnumerable<Hash> blockIdsInOrder)
         {
             PrepareBloom();
-            var heights = await DiscoverIrreversibleHeights(blockIds);
-            await SetIrreversibleAsync(heights);
-        }
 
-        private async Task<IEnumerable<long>> DiscoverIrreversibleHeights(IEnumerable<Hash> blockIds)
-        {
-            var output = new List<long>();
-            var blocks = blockIds.ToList().Select(async id => await _blockchainService.GetBlockByHashAsync(id))
-                .Select(b => b.Result).ToList();
-            if (!blocks.Any())
-            {
-                return output;
-            }
+            var reverse = blockIdsInOrder.Reverse();
 
-            var startBlockHeight = blocks.First().Height;
-            foreach (var block in blocks.OrderByDescending(b => b.Height))
+            foreach (var blockId in reverse)
             {
-                Logger.LogTrace($"Check event for block {block.GetHash()} - {block.Height}");
+                var block = await _blockchainService.GetBlockByHashAsync(blockId);
+                Logger.LogTrace($"Check event for block {blockId} - {block.Height}");
 
                 if (!_bloom.IsIn(new Bloom(block.Header.Bloom.ToByteArray())))
                 {
@@ -115,26 +105,22 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         message.MergeFrom(log);
 
                         var offset = message.Offset;
-                        output.AddRange(Enumerable
-                            .Range((int) startBlockHeight, (int) (block.Height - startBlockHeight) + 1)
-                            .Select(h => h - offset));
-                        return output;
+
+                        var libHeight = block.Height - offset;
+
+                        if (chain.LastIrreversibleBlockHeight >= libHeight)
+                            return null;
+
+                        var libBlock = await _blockchainService.GetBlockHashByHeightAsync(chain,
+                            libHeight,
+                            blockId);
+
+                        return new BlockIndex(libBlock, libHeight);
                     }
                 }
             }
 
-            return output;
-        }
-
-        private async Task SetIrreversibleAsync(IEnumerable<long> heights)
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            foreach (var height in heights)
-            {
-                var blockHash = await _blockchainService.GetBlockHashByHeightAsync(chain, height, chain.BestChainHash);
-
-                await _blockchainService.SetIrreversibleBlockAsync(chain, height, blockHash);
-            }
+            return null;
         }
     }
 }

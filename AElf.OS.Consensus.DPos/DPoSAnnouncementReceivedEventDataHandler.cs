@@ -38,7 +38,7 @@ namespace AElf.OS.Consensus.DPos
 
             if (irreversibleBlockHash != null)
             {
-                _taskQueueManager.GetQueue(DPoSConsts.LIBSettingQueueName).Enqueue(async () =>
+                _taskQueueManager.Enqueue(async () =>
                 {
                     var chain = await _blockchainService.GetChainAsync();
                     var block = await _blockchainService.GetBlockByHashAsync(irreversibleBlockHash);
@@ -46,6 +46,7 @@ namespace AElf.OS.Consensus.DPos
                     {
                         return;
                     }
+
                     for (var height = chain.LastIrreversibleBlockHeight + 1; height < block.Height; height++)
                     {
                         var hash = await _blockchainService.GetBlockHashByHeightAsync(chain, height,
@@ -54,9 +55,10 @@ namespace AElf.OS.Consensus.DPos
                         {
                             return;
                         }
+
                         await _blockchainService.SetIrreversibleBlockAsync(chain, height, hash);
                     }
-                });
+                }, DPoSConsts.LIBSettingQueueName);
             }
         }
     }
