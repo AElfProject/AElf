@@ -99,10 +99,10 @@ namespace AElf.Cryptography.Tests
             var addString = address.GetFormatted();
 
             //Open account with timeout
-            _keyStore.DefaultTimeoutToClose = TimeSpan.FromMilliseconds(200);
+            _keyStore.DefaultTimeoutToClose = TimeSpan.FromMilliseconds(50);
             _keyStore.OpenAsync(addString, "123").Wait();
             
-            Thread.Sleep(1000);
+            Thread.Sleep(60);
             var keyPairInfo = _keyStore.GetAccountKeyPair(addString);
             keyPairInfo.ShouldBeNull();
         }
