@@ -173,18 +173,6 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return false;
         }
 
-        public bool TryToGetRoundInformation(long roundNumber, out Round roundInformation)
-        {
-            roundInformation = State.RoundsMap[roundNumber.ToInt64Value()];
-            return roundInformation != null;
-        }
-
-        public bool TryToGetMiningInterval(out int miningInterval)
-        {
-            miningInterval = State.MiningIntervalField.Value;
-            return miningInterval > 0;
-        }
-
         public bool TryToGetBlockchainStartTimestamp(out Timestamp timestamp)
         {
             timestamp = State.BlockchainStartTimestamp.Value;
