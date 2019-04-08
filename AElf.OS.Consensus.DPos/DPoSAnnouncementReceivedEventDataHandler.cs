@@ -95,7 +95,6 @@ namespace AElf.OS.Consensus.DPos
                     return hash == block.Value;
                 }).Count();
 
-                Console.WriteLine(11111111111111);
                 var sureAmount = (int) (pubkeyList.Count * 2d / 3) + 1;
                 if (peersHadBlockAmount > sureAmount)
                 {
