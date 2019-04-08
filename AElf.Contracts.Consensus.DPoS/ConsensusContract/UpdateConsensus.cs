@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AElf.Common;
@@ -74,7 +75,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
                 case DPoSBehaviour.NextTerm:
                     var firstRoundOfNextTerm = GenerateFirstRoundOfNextTerm(publicKey.ToHex());
-                    Assert(firstRoundOfNextTerm != new Round(), "Failed to generate new round information.");
+                    Assert(firstRoundOfNextTerm.RoundId != 0, "Failed to generate new round information.");
                     var information = new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
@@ -146,18 +147,82 @@ namespace AElf.Contracts.Consensus.DPoS
                 if (round.RealTimeMinersInformation[pair.Key].PreviousInValue != null &&
                     round.RealTimeMinersInformation[pair.Key].PreviousInValue != previousInValue)
                 {
-                    Context.LogDebug(() => "Different previous in value.");
+                    Context.LogDebug(() => $"Different previous in value: {pair.Key}");
                 }
+
                 round.RealTimeMinersInformation[pair.Key].PreviousInValue = previousInValue;
             }
         }
-        
+
         private bool GenerateNextRoundInformation(Round currentRound, DateTime blockTime, out Round nextRound)
         {
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
+            if (TryToGetPreviousRoundInformation(out var previousRound))
+            {
+                var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);
+                var evilMinersCount = evilMinersPublicKey.Count;
+                if (evilMinersCount != 0)
+                {
+                    foreach (var publicKeyToRemove in evilMinersPublicKey)
+                    {
+                        var theOneFeelingLucky = GetNextAvailableMinerPublicKey(currentRound);
+
+                        if (theOneFeelingLucky == null)
+                        {
+                            break;
+                        }
+
+                        // Update history information
+                        var history = State.HistoryMap[publicKeyToRemove.ToStringValue()];
+                        history.ProducedBlocks +=
+                            currentRound.RealTimeMinersInformation[publicKeyToRemove].ProducedBlocks;
+                        State.HistoryMap[publicKeyToRemove.ToStringValue()] = history;
+
+                        var minerInRound = currentRound.RealTimeMinersInformation[theOneFeelingLucky];
+                        minerInRound.PublicKey = theOneFeelingLucky;
+                        currentRound.RealTimeMinersInformation[theOneFeelingLucky] = minerInRound;
+
+                        currentRound.RealTimeMinersInformation.Remove(publicKeyToRemove);
+                    }
+                }
+            }
+
             var result = currentRound.GenerateNextRoundInformation(blockTime, blockchainStartTimestamp, out nextRound);
             nextRound.BlockchainAge = CurrentAge;
             return result;
+        }
+
+        private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
+        {
+            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
+                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey)
+                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue
+                where previousOutValue != null && Hash.FromMessage(minerInCurrentRound.InValue) != previousOutValue
+                select minerInCurrentRound.PublicKey).ToList();
+        }
+
+        private string GetNextAvailableMinerPublicKey(Round round)
+        {
+            string nextCandidate = null;
+
+            // Check out election snapshot.
+            if (TryToGetTermNumber(out var termNumber) && termNumber > 1 &&
+                TryToGetSnapshot(termNumber - 1, out var snapshot))
+            {
+                nextCandidate = snapshot.CandidatesSnapshot.OrderBy(s => s.Votes)
+                    .Skip(round.RealTimeMinersInformation.Count)
+                    .FirstOrDefault(c => !round.RealTimeMinersInformation.ContainsKey(c.PublicKey))?.PublicKey;
+            }
+
+            // Check out initial miners.
+            if (nextCandidate == null && TryToGetRoundInformation(1, out var firstRound))
+            {
+                nextCandidate =
+                    firstRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
+                        !round.RealTimeMinersInformation.ContainsKey(k));
+            }
+
+            return nextCandidate;
         }
 
         public override TransactionList GenerateConsensusTransactions(DPoSTriggerInformation input)
