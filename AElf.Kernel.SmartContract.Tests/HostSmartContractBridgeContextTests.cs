@@ -193,11 +193,10 @@ namespace AElf.Kernel.SmartContract
         [Fact]
         public void Deploy_Contract_ThrowInvalidParameterException()
         {
-            var smartContractContext = new SmartContractContext
+            _bridgeContext.TransactionContext.Transaction = new Transaction()
             {
-                ContractAddress = _smartContractAddressService.GetZeroSmartContractAddress(),
+                To = _smartContractAddressService.GetZeroSmartContractAddress()
             };
-            _bridgeContext.SmartContractContext = smartContractContext;
 
             Should.Throw<InvalidParameterException>(() =>
                 _bridgeContext.DeployContract(_smartContractAddressService.GetZeroSmartContractAddress(),
@@ -207,11 +206,10 @@ namespace AElf.Kernel.SmartContract
         [Fact]
         public void Deploy_Contract_Success()
         {
-            var smartContractContext = new SmartContractContext
+            _bridgeContext.TransactionContext.Transaction = new Transaction()
             {
-                ContractAddress = _smartContractAddressService.GetZeroSmartContractAddress(),
+                To = _smartContractAddressService.GetZeroSmartContractAddress()
             };
-            _bridgeContext.SmartContractContext = smartContractContext;
 
             var registration = new SmartContractRegistration
             {
@@ -226,11 +224,11 @@ namespace AElf.Kernel.SmartContract
         [Fact]
         public void Update_Contract_ThrowAssertionError()
         {
-            var smartContractContext = new SmartContractContext
+            _bridgeContext.TransactionContext.Transaction = new Transaction()
             {
-                ContractAddress = _smartContractAddressService.GetZeroSmartContractAddress(),
+                To = _smartContractAddressService.GetZeroSmartContractAddress()
             };
-            _bridgeContext.SmartContractContext = smartContractContext;
+
             Should.Throw<InvalidParameterException>(() =>
                 _bridgeContext.UpdateContract(_smartContractAddressService.GetZeroSmartContractAddress(),
                     new SmartContractRegistration(){Category = -1}, null));
@@ -239,11 +237,10 @@ namespace AElf.Kernel.SmartContract
         [Fact]
         public void Update_Contract_Success()
         {
-            var smartContractContext = new SmartContractContext
+            _bridgeContext.TransactionContext.Transaction = new Transaction()
             {
-                ContractAddress = _defaultContractZeroCodeProvider.ContractZeroAddress
+                To = _smartContractAddressService.GetZeroSmartContractAddress()
             };
-            _bridgeContext.SmartContractContext = smartContractContext;
 
             var registration = new SmartContractRegistration
             {
@@ -258,11 +255,10 @@ namespace AElf.Kernel.SmartContract
         private IHostSmartContractBridgeContext CreateNewContext()
         {
             _bridgeContext = GetRequiredService<IHostSmartContractBridgeContext>();
-            var smartContractContext = new SmartContractContext
+            _bridgeContext.TransactionContext.Transaction = new Transaction()
             {
-                ContractAddress = Address.Genesis,
+                To = _smartContractAddressService.GetZeroSmartContractAddress()
             };
-            _bridgeContext.SmartContractContext = smartContractContext;
 
             var transactionContext = new TransactionContext()
             {

@@ -25,11 +25,7 @@ namespace AElf.Sdk.CSharp.Tests
         public TestContractTests()
         {
             StateProvider = GetRequiredService<IStateProviderFactory>().CreateStateProvider();
-            BridgeContext = GetRequiredService<IHostSmartContractBridgeContextService>().Create(
-                new SmartContractContext()
-                {
-                    ContractAddress = AddressList[0],
-                });
+            BridgeContext = GetRequiredService<IHostSmartContractBridgeContextService>().Create();
             
             var transactionContext = new TransactionContext()
             {

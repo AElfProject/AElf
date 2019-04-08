@@ -105,8 +105,7 @@ namespace AElf.Kernel.SmartContract.Application
             //executive.ContractHash = reg.CodeHash;
             //executive.ContractAddress = address;
             var context =
-                _hostSmartContractBridgeContextService.Create(new SmartContractContext()
-                    {ContractAddress = address, RunnerCategory = reg.Category});
+                _hostSmartContractBridgeContextService.Create();
             executive.SetHostSmartContractBridgeContext(context);
             return executive;
         }
