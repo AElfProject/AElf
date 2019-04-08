@@ -42,7 +42,23 @@ namespace AElf.Kernel.Consensus
                     new CommandInput {PublicKey = ByteString.CopyFrom(ecKeyPair.PublicKey)});
                 mockService.Setup(m => m.ParseConsensusTriggerInformation(It.IsAny<byte[]>())).Returns(
                     dposTriggerInformation);
-
+                mockService.Setup(m => m.ExecuteContractAsync<ValidationResult>(It.IsAny<IChainContext>(),
+                        It.IsAny<string>(), It.IsAny<IMessage>(), It.IsAny<DateTime>()))
+                    .Returns(Task.FromResult(new ValidationResult
+                    {
+                        Success = true
+                    }));
+                mockService.Setup(m => m.ExecuteContractAsync<TransactionList>(It.IsAny<IChainContext>(),
+                        It.IsAny<string>(), It.IsAny<IMessage>(), It.IsAny<DateTime>()))
+                    .Returns(Task.FromResult(new TransactionList
+                    {
+                        Transactions =
+                        {
+                            new Transaction{ MethodName = ConsensusConsts.GenerateConsensusTransactions, Params = ByteString.CopyFromUtf8("test1")},
+                            new Transaction{ MethodName = ConsensusConsts.GenerateConsensusTransactions, Params = ByteString.CopyFromUtf8("test2")},
+                            new Transaction{ MethodName = ConsensusConsts.GenerateConsensusTransactions, Params = ByteString.CopyFromUtf8("test3")}
+                        }
+                    }));
                 return mockService.Object;
             });
             
@@ -64,55 +80,6 @@ namespace AElf.Kernel.Consensus
                 return mockService.Object;
             });
 
-            services.AddTransient(o =>
-            {
-                var mockService = new Mock<ITransactionReadOnlyExecutionService>();
-                mockService.Setup(m=>m.ExecuteAsync(It.IsAny<IChainContext>(), 
-                        It.Is<Transaction>(t => t.MethodName == ConsensusConsts.GetInformationToUpdateConsensus), 
-                        It.IsAny<DateTime>()))
-                    .Returns(Task.FromResult(new TransactionTrace()
-                    {
-                        ReturnValue = dposTriggerInformation.ToByteString()
-                    }));
-                var transactions = new TransactionList
-                {
-                    Transactions =
-                    {
-                        new Transaction{ MethodName = ConsensusConsts.GenerateConsensusTransactions, Params = ByteString.CopyFromUtf8("test1")},
-                        new Transaction{ MethodName = ConsensusConsts.GenerateConsensusTransactions, Params = ByteString.CopyFromUtf8("test2")},
-                        new Transaction{ MethodName = ConsensusConsts.GenerateConsensusTransactions, Params = ByteString.CopyFromUtf8("test3")}
-                    }
-                };
-                var byteString = transactions.ToByteString();
-                mockService.Setup(m=>m.ExecuteAsync(It.IsAny<IChainContext>(), 
-                        It.Is<Transaction>(t => t.MethodName == ConsensusConsts.GenerateConsensusTransactions), 
-                        It.IsAny<DateTime>()))
-                    .Returns(Task.FromResult(new TransactionTrace()
-                {
-                    ReturnValue = byteString
-                }));
-                mockService.Setup(m=>m.ExecuteAsync(It.IsAny<IChainContext>(), 
-                        It.Is<Transaction>(t => t.MethodName == ConsensusConsts.ValidateConsensusBeforeExecution), 
-                        It.IsAny<DateTime>()))
-                    .Returns(Task.FromResult(new TransactionTrace()
-                    {
-                        ReturnValue = new ValidationResult
-                        {
-                            Success = true
-                        }.ToByteString()
-                    }));
-                mockService.Setup(m=>m.ExecuteAsync(It.IsAny<IChainContext>(), 
-                        It.Is<Transaction>(t => t.MethodName == ConsensusConsts.ValidateConsensusAfterExecution), 
-                        It.IsAny<DateTime>()))
-                    .Returns(Task.FromResult(new TransactionTrace()
-                    {
-                        ReturnValue = new ValidationResult
-                        {
-                            Success = true
-                        }.ToByteString()
-                    }));
-                return mockService.Object;
-            });
             services.AddTransient(o =>
             {
                 var mockService = new Mock<IConsensusScheduler>();
