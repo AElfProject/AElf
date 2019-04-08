@@ -18,7 +18,7 @@ namespace AElf.Kernel.TransactionPool.Domain
 
         public async Task AddOrUpdateReceiptAsync(TransactionReceipt receipt)
         {
-            await _transactionReceiptStore.SetAsync(receipt.TransactionId.ToHex(), receipt);
+            await _transactionReceiptStore.SetAsync(receipt.TransactionId.ToStorageKey(), receipt);
         }
 
         public async Task AddOrUpdateReceiptsAsync(IEnumerable<TransactionReceipt> receipts)
@@ -29,7 +29,7 @@ namespace AElf.Kernel.TransactionPool.Domain
 
         public async Task<TransactionReceipt> GetReceiptAsync(Hash txId)
         {
-            var result = await _transactionReceiptStore.GetAsync(txId.ToHex());
+            var result = await _transactionReceiptStore.GetAsync(txId.ToStorageKey());
             return result;
         }
     }
