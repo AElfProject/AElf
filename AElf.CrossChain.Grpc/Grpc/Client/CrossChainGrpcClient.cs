@@ -246,7 +246,7 @@ namespace AElf.CrossChain.Grpc
 
         protected override AsyncServerStreamingCall<ResponseSideChainBlockData> RequestIndexing(RequestCrossChainBlockData requestCrossChainBlockData)
         {
-            return Client.RequestIndexingSideChain(requestCrossChainBlockData);
+            return Client.RequestIndexingFromSideChain(requestCrossChainBlockData);
         }
     }
     
@@ -272,7 +272,7 @@ namespace AElf.CrossChain.Grpc
 
         protected override AsyncServerStreamingCall<ResponseParentChainBlockData> RequestIndexing(RequestCrossChainBlockData requestCrossChainBlockData)
         {
-            return Client.RequestIndexingParentChain(requestCrossChainBlockData);
+            return Client.RequestIndexingFromParentChain(requestCrossChainBlockData);
         }
     }
 
