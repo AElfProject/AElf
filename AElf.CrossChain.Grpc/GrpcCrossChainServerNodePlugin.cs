@@ -26,7 +26,7 @@ namespace AElf.CrossChain.Grpc
                 return Task.CompletedTask;
             var keyPair = LoadKeyPair(_grpcCrossChainConfigOption.LocalCertificateFileName);
             return _crossChainServer.StartAsync(_grpcCrossChainConfigOption.LocalServerIP,
-                _grpcCrossChainConfigOption.LocalServerPort, keyPair);
+                _grpcCrossChainConfigOption.LocalServerPort);
         }
 
         public Task ShutdownAsync()
