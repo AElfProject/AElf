@@ -7,7 +7,6 @@ using AElf.Consensus.DPoS;
 using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -172,14 +171,20 @@ namespace AElf.Contracts.Consensus.DPoS
                             break;
                         }
 
-                        // Update history information
+                        // Update history information of evil node.
                         var history = State.HistoryMap[publicKeyToRemove.ToStringValue()];
                         history.ProducedBlocks +=
                             currentRound.RealTimeMinersInformation[publicKeyToRemove].ProducedBlocks;
+                        history.MissedTimeSlots += 
+                            currentRound.RealTimeMinersInformation[publicKeyToRemove].MissedTimeSlots;
+                        history.IsEvilNode = true;
                         State.HistoryMap[publicKeyToRemove.ToStringValue()] = history;
 
-                        var minerInRound = currentRound.RealTimeMinersInformation[theOneFeelingLucky];
+                        // Transfer evil node's consensus information to the chosen backup.
+                        var minerInRound = currentRound.RealTimeMinersInformation[publicKeyToRemove];
                         minerInRound.PublicKey = theOneFeelingLucky;
+                        minerInRound.ProducedBlocks = 0;
+                        minerInRound.MissedTimeSlots = 0;
                         currentRound.RealTimeMinersInformation[theOneFeelingLucky] = minerInRound;
 
                         currentRound.RealTimeMinersInformation.Remove(publicKeyToRemove);
@@ -197,7 +202,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
                 where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey)
                 let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue
-                where previousOutValue != null && Hash.FromMessage(minerInCurrentRound.InValue) != previousOutValue
+                where previousOutValue != null && Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
                 select minerInCurrentRound.PublicKey).ToList();
         }
 

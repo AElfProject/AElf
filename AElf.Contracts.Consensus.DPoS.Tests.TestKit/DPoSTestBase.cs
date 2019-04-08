@@ -61,7 +61,7 @@ namespace AElf.Contracts.Consensus.DPoS
         protected List<ECKeyPair> VotersKeyPairs =>
             SampleECKeyPairs.KeyPairs.Skip(MinersCount + CandidatesCount).Take(VotersCount).ToList();
 
-        protected DateTime BlockchainStartTime => DateTime.Parse("2019-04-01 00:00:00.000").ToUniversalTime();
+        protected DateTime BlockchainStartTime => DateTime.Parse("2019-01-01 00:00:00.000").ToUniversalTime();
 
         protected void InitializeContracts(DPoSStrategyInput input = null)
         {
@@ -97,7 +97,39 @@ namespace AElf.Contracts.Consensus.DPoS
                     })).Output;
         }
 
-        protected async Task ChangeRound(long nextRoundNumber = 2)
+        protected async Task InitializeCandidates()
+        {
+            var initialMiner = GetTokenContractTester(BootMinerKeyPair);
+            foreach (var candidatesKeyPair in CandidatesKeyPairs)
+            {
+                await initialMiner.Transfer.SendAsync(new TransferInput
+                {
+                    Symbol = "ELF",
+                    To = Address.FromPublicKey(candidatesKeyPair.PublicKey),
+                    Amount = 10_0000
+                });
+                await GetConsensusContractTester(candidatesKeyPair).AnnounceElection.SendAsync(new Alias
+                {
+                    Value = candidatesKeyPair.PublicKey.ToHex().Substring(0, 20)
+                });
+            }
+        }
+        
+        protected async Task InitializeVoters()
+        {
+            var initialMiner = GetTokenContractTester(BootMinerKeyPair);
+            foreach (var voterKeyPair in VotersKeyPairs)
+            {
+                await initialMiner.Transfer.SendAsync(new TransferInput
+                {
+                    Symbol = "ELF",
+                    To = Address.FromPublicKey(voterKeyPair.PublicKey),
+                    Amount = 10_0000
+                });
+            }
+        }
+
+        protected async Task BootMinerChangeRoundAsync(long nextRoundNumber = 2)
         {
             var currentRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
             var expectedStartTime = BlockchainStartTime.GetRoundExpectedStartTime(
@@ -120,6 +152,11 @@ namespace AElf.Contracts.Consensus.DPoS
         internal DividendContractContainer.DividendContractStub GetDividendContractTester(ECKeyPair keyPair)
         {
             return GetTester<DividendContractContainer.DividendContractStub>(DividendContractAddress, keyPair);
+        }
+        
+        internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
         private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSStrategyInput input = null)
