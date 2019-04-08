@@ -307,7 +307,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Set dividends of related term to Dividends Contract.
             var minedBlocks = roundInformation.GetMinedBlocks();
             State.DividendContract.AddDividends.Send(
-                new AddDividendsInput()
+                new AddDividendsInput
                 {
                     TermNumber = dividendsTermNumber,
                     DividendsAmount = GetDividendsForVoters(minedBlocks)
