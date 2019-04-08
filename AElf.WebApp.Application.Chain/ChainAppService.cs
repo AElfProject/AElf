@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -291,7 +292,7 @@ namespace AElf.WebApp.Application.Chain
 
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
             {
-                var block = await this.GetBlock(Hash.LoadHex(notLinkedBlock.Value));
+                var block = await this.GetBlock(Hash.LoadBase64(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new NotLinkedBlockDto
                     {
                         BlockHash = block.GetHash().ToHex(),
@@ -317,7 +318,8 @@ namespace AElf.WebApp.Application.Chain
         
         public async Task<BlockStateDto> GetBlockState(string blockHash)
         {
-            var blockState = await _blockStateSets.GetAsync(blockHash);
+            var stateStorageKey = Hash.LoadHex(blockHash).ToStorageKey();
+            var blockState = await _blockStateSets.GetAsync(stateStorageKey);
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound],Error.NotFound.ToString());
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
