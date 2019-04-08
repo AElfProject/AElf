@@ -1,10 +1,10 @@
 ## CLI commands
 
-This page is a reference fo the metods that are available on the command line interface. Each example will execute the cli with the **aelf-cli** command, this simply implies that we have aliased the dotnet command to this command.
+This page is a reference for the methods that are available on the command line interface (cli). Each example will execute the cli with the **aelf-cli** command, this simply implies that we have aliased the dotnet command to this command.
 
-### Commun options
+### Common options
 
-As seen previously, the following options can be set for all commands:
+As seen previously, the following options can be specified for all commands, either with the options flag or by setting environment variables:
 
 ```bash
 -d, --datadir        The directory that contains the files. (AELF_CLI_DATADIR)
@@ -15,14 +15,13 @@ As seen previously, the following options can be set for all commands:
 
 ### create - create a new account.
 
-This command will walk you through the process of creating a key-pair. You can decide to save this keypair to the disk. For most scenarios you would reply "yes" because if you don't the key will not be retrievable later. If you reply "yes" to saving to the disk, the command will create a .ak file in your **datadir**. This .ak file will contain the encrypted keypair. It's encrypted by a password, so be sure to remember it if you need to use this key.
+This command will walk you through the process of creating a key-pair. You can decide to save this keypair to the disk. For most scenarios you would reply "yes" because if you don't the key will not be retrievable for later use. If you reply "yes" to saving to the disk, the command will create a .ak file in your **datadir**. This .ak file will contain the encrypted keypair. It's encrypted by a password, so be sure to remember it if you need to use this key again.
 
 ```bash 
 aelf-cli create 
 ```
 
 Example:
-
 ```bash
 aelf-cli create 
 Your wallet info is :
@@ -45,7 +44,16 @@ aelf-cli deploy <category> <code>
 ```
 
 Category    Required. Obsolete. The category of the contract to be deployed.  
-CodeFile    Required. The compiled contract code file of the contract to be deployed.  
+CodeFile    Required. The compiled contract code file of the contract to be deployed. This is the path             to the compiled code.  
+
+Example:
+```bash
+> aelf-cli deploy 0 bin/Debug/netstandard2.0/test-aelf.dll
+connect...                                                                                        Deploying Deploying contract...
+TransactionId is: 12ad81712e54caa320a1a386196ff7d4bb8ff7d1e2e096c5e71054ce30f2fa90
+```
+
+If successful the command will return the ID of the deployement transaction. See get-tx-result for more information.
 
 ### send - send a transaction to a contract.
 
@@ -55,7 +63,16 @@ aelf-cli send <address> <method> <method-input>
 
 address       Required. The address of the contract.  
 method        (optional) The particular method of the contract.  
-method-input  (optional) The input for the method in json format.  
+method-input  (optional) The input for the method in json format.
+
+Example:
+```bash
+aelf-cli call 4QjhKLWacRXrQYpT7rzf74k5XZFCx8yF3X7FXbzKD4wwEo6 Hello '{}'
+connect...
+{
+  Value: "Hello world!"
+}
+```
 
 ### call - send a transaction to a contract.
 
@@ -65,7 +82,16 @@ aelf-cli call <address> <method> <method-input>
 
 address       Required. The address of the contract.  
 method        (optional) The particular method of the contract.  
-method-input  (optional) The input for the method in json format.  
+method-input  (optional) The input for the method in json format.
+
+Example:
+```bash
+aelf-cli call 4QjhKLWacRXrQYpT7rzf74k5XZFCx8yF3X7FXbzKD4wwEo6 Hello '{}'
+connect...
+{
+  Value: "Hello world!"
+}
+```
 
 ### get-tx-result - get a transaction result.
 
@@ -120,13 +146,32 @@ This command get the current height of the best chain.
 
 ```bash 
 aelf-cli get-blk-height
-> 27
 ```
 Example:
 ```bash 
 aelf-cli get-blk-height
 > 27
 ```
+
+### gen-cert - generates a certificate (sidechains).
+
+```bash 
+gen-cert <chain-id> <ip>
+```
+
+chain-id  Required. The chain id of the node.
+ip        Required. The ip (host) of the node.
+
+Example:
+```bash 
+gen-cert aelf 127.0.0.1
+New generated certificate file with
+Name : aelf
+IP : 127.0.0.1
+Stored in /Users/username/.local/share/aelf/certs
+```
+
+Note that the certificate is generated in the <datadir>/certs folder.
 
 ### get-blk-info - get the block info by block height.
 
