@@ -1,7 +1,9 @@
 ## introduction
 
-Side chains were introduced to handle various commercial scenarios, it’s envisioned that one sidechain is designed for one or multiple similar business scenarios, distributing different tasks on multiple chains and improving processing efficiency.
+One of the major issues with current blockchain systems is scalability. This is why AElf side chains were introduced in the initial design. It’s envisioned that one sidechain is responsible for handling one or more similar business scenarios, distributing different tasks on multiple chains and improving the overall processing efficiency.
 
-Conceptually a side chain node and mainchain node are similar, they are both independent blockchains, with their own peer-to-peer network and possibly their own ecosystem. It is even possible to have this setup on multiple levels. In terms of peer-to-peer networks, all side chains work in parallel to each other but they are linked to a mainchain node through a cross-chain communication mechanism.
+The main idea is that the sidechains are independent and specialized to ensure that the dapps running on them can perform efficiently and smoothly. A network link will exist between mainchain node and sidechain nodes, but the communication is mainly done through what's called a Merkle root.
 
-Through this link, messages are exchanged and indexing is performed to ensure that transactions from the main are verifiable in the sidechain. Implementers can use AElf libraries and frameworks to build chains.
+The following sections of this documentation will give you an overview of the architecture of AElfs side chains. There will also be a guide explaining how to set up a mainchain and a side chain node.
+
+

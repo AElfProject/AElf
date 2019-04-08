@@ -2,31 +2,24 @@
 
 ## High level architecture
 
-Relationship between main chain and side chain.
+Conceptually a side chain node and mainchain node are similar, they are both independent blockchains, with their own peer-to-peer network and possibly their own ecosystem. It is even possible to have this setup on multiple levels. In terms of peer-to-peer networks, all side chains work in parallel to each other but they are linked to a mainchain node through a cross-chain communication mechanism.
 
-## Node level architecture
+Through this link, messages are exchanged and indexing is performed to ensure that transactions from the main are verifiable in the sidechain. Implementers can use AElf libraries and frameworks to build chains.
 
-[TODO] classify all this.
+One important aspect is the key role that the mainchain plays, because its main purpose is to index the side chains. Side chains are independent and do not have knowledge about each other. This means that when they need to verify information, they need the mainchain to provide the information. Only the mainchain indexes data about all the sidechains.
 
-### Client and server:
+### Node level architecture
 
-The **Aelf.CrossChain.Grpc** contains the implementation for both client and server that will be used for interchain communication. It is currently implemented with gRPC, but other libraries can be used.
+## Client and server:
 
-In the current architecture, both the side chain node and the main chain node has one server and exactly one client. This is the base for AElf 2-way communication between chains. 
-Both the server and the client are implemented as a node plugins (a node has a collection of plugins, that are contained in the blockchains node context). The IPlugin interface exposes start and stop methods that are called when the node is started or stopped. This means that interaction (listening and requesting) can start when both the node starts.
-
-The service exposed by the server is defined in header_info.proto and grpc is used to generate the C# client/server base class. These methods should be overridden to implement the logic.
-
-### Node type configuration:
-
-When a node wants to be a side chain for some other blockchain, it will need to configure itself accordingly. Based on the value of the **ChainType** configuration value, the launcher executable will register and launch either a mainchain node or a side chain node. Note that both have many similarities because they’re both based on a common module. Both node types will have a blockchain node context, this provides access to the p2p server and node’s context. When starting an initial list of contracts is loaded. Both chain of course need to be set up with their own chain id.
+In the current architecture, both the side chain node and the main chain node has one server and exactly one client. This is the base for AElfs two-way communication between mainchain and side chains. Both the server and the client are implemented as a node plugins (a node has a collection of plugins). Interaction (listening and requesting) can start when both the nodes have started.
 
 ### Core:
 
 The project named **AElf.Crosschain.Core** contains the logic outside of the implementation. Even though the side chain module acts as a separate and independent module, it still needs interaction with some of the nodes services. It defines the interactions between the side chain module and the rest of the node. 
 
 **Cache**   
-Data issued from the side chains is accessible through a cache. The cache is implemented through two components: CrossChainDataConsumer and CrossChainDataProducer. The cache stores all block info received from the side chain.
+Data issued from the side chains is accessible through a cache. The cache is implemented through two components through the producer/consumer pattern. The cache stores all block info received from the side chain.
 
 **Extra data**  
 Get extra data before generating a block.
