@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using AElf.Blockchains.BasicBaseChain;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividend;
@@ -53,7 +55,10 @@ namespace AElf.Blockchains.SideChain
                 ZeroSmartContract = typeof(BasicContractZero)
             };
             
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+            var dposOptions = context.ServiceProvider.GetService<IOptionsSnapshot<DPoSOptions>>().Value;
+
+            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
+                GenerateConsensusInitializationCallList(dposOptions));
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name, GenerateTokenInitializationCallList());
@@ -84,6 +89,22 @@ namespace AElf.Blockchains.SideChain
                 CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
             });
             return tokenContractCallList;
+        }
+        
+        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions)
+        {
+            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
+                dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
+                    DateTime.Parse(dposOptions.StartTimestamp).ToUniversalTime()));
+            consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
+                new DPoSStrategyInput
+                {
+                    IsBlockchainAgeSettable = dposOptions.IsBlockchainAgeSettable,
+                    IsTimeSlotSkippable = dposOptions.IsTimeSlotSkippable,
+                    IsVerbose = dposOptions.Verbose
+                });
+            return consensusMethodCallList;
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
