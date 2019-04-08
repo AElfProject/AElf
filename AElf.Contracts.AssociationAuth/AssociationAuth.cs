@@ -53,7 +53,7 @@ namespace AElf.Contracts.AssociationAuth
 
             Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
 
-            Hash hash = proposal.GetHash();
+            Hash hash = Hash.FromMessage(proposal);
             var existing = State.Proposals[hash];
             Assert(existing == null, "Proposal already created.");
 
@@ -85,14 +85,14 @@ namespace AElf.Contracts.AssociationAuth
             var proposal = proposalInfo.Proposal;
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(), 
                 "Expired proposal.");
-            byte[] toSig = proposal.GetHash().DumpByteArray();
+            byte[] toSig = proposal.ToByteArray();
             byte[] pubKey = Context.RecoverPublicKey(approval.Signature.ToByteArray(), toSig);
             Assert(pubKey != null && Context.RecoverPublicKey().SequenceEqual(pubKey), "Invalid approval.");
             var association = GetAssociation(null);
             Assert(association.Reviewers.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)),
                 "Not authorized approval.");
 
-            CheckSignature(proposal.GetHash().DumpByteArray(), approval.Signature.ToByteArray());
+            CheckSignature(proposal.ToByteArray(), approval.Signature.ToByteArray());
             approved = approved ?? new Approved();
             approved.Approvals.Add(approval);
             State.Approved[hash] = approved;
