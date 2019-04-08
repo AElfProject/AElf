@@ -25,6 +25,58 @@ namespace AElf.Contracts.DPoS.SideChain
         }
 
         [Fact]
+        public async Task Validation_ConsensusBeforeExecution_Success()
+        {
+            TesterManager.InitialTesters();
+            
+            //invalid dpos header info 
+            {
+                var invalidInput = new DPoSHeaderInformation
+                {
+                    SenderPublicKey = ByteString.CopyFrom(TesterManager.Testers[0].KeyPair.PublicKey)
+                };
+            
+                var validationResult = await TesterManager.Testers[0].ValidateConsensusBeforeExecutionAsync(invalidInput);
+                validationResult.Success.ShouldBeFalse();
+            }
+            
+            await InitialConsensus_Success();
+            var roundInfo = await TesterManager.Testers[0].GetCurrentRoundInformation();
+            var input = new DPoSHeaderInformation
+            {
+                SenderPublicKey = ByteString.CopyFrom(TesterManager.Testers[0].KeyPair.PublicKey),
+                Round = roundInfo,
+                Behaviour = DPoSBehaviour.Nothing
+            };
+            
+            //invalid behavior
+            {
+                var validationResult = await TesterManager.Testers[0].ValidateConsensusBeforeExecutionAsync(input);
+                validationResult.Success.ShouldBeFalse();
+                validationResult.Message.ShouldBe("Invalid behaviour");
+            }
+
+            //invalid out value
+            {
+                input.Behaviour = DPoSBehaviour.UpdateValue;
+                var validationResult = await TesterManager.Testers[0].ValidateConsensusBeforeExecutionAsync(input);
+                validationResult.Success.ShouldBeFalse();
+                validationResult.Message.ShouldBe("Incorrect new Out Value.");
+            }
+            
+            //valid data
+            {
+                input.Behaviour = DPoSBehaviour.NextRound;
+                var validationResult = await TesterManager.Testers[0].ValidateConsensusBeforeExecutionAsync(input);
+                validationResult.Success.ShouldBeTrue();
+
+                input.Behaviour = DPoSBehaviour.NextTerm;
+                validationResult = await TesterManager.Testers[0].ValidateConsensusBeforeExecutionAsync(input);
+                validationResult.Success.ShouldBeTrue();
+            }
+        }
+        
+        [Fact]
         public async Task Validation_ConsensusAfterExecution_Success()
         {
             TesterManager.InitialTesters();

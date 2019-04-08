@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
@@ -84,6 +86,21 @@ namespace AElf.Kernel.Consensus.DPoS
                     .BlockHeaderExtraData);
             var publicKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
+        }
+
+        [Fact]
+        public void ParseConsensusTriggerInformation()
+        {
+            var consensusInformationGenerationService =
+                GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
+
+            var bytes =
+                consensusInformationGenerationService.GetTriggerInformation(TriggerType
+                    .BlockHeaderExtraData).ToByteArray();
+            var dPoSTriggerInformation = DPoSTriggerInformation.Parser.ParseFrom(bytes);
+            
+            dPoSTriggerInformation.ShouldNotBeNull();
+            dPoSTriggerInformation.RandomHash.ShouldNotBeNull();
         }
 
         private IConsensusInformationGenerationService GetConsensusInformationGenerationService(
