@@ -22,12 +22,12 @@ namespace AElf.Kernel.Infrastructure
         }
         public static string ToStorageKey(this Hash hash)
         {
-            return hash?.ToHex();
+            return hash?.Value.ToBase64();
         }
         
         public static string ToStorageKey(this ByteString byteString)
         {
-            return byteString?.ToHex();
+            return byteString?.ToBase64();
         }
         
         public static string ToStorageKey(this Address byteString)
