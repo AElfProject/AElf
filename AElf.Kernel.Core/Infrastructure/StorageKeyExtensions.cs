@@ -9,16 +9,16 @@ namespace AElf.Kernel.Infrastructure
     {
         public static string ToStorageKey(this long n)
         {
-            return BitConverter.GetBytes(n).ToHex();
+            return n.ToString();
         }
         
         public static string ToStorageKey(this ulong n)
         {
-            return BitConverter.GetBytes(n).ToHex();
+            return n.ToString();
         }
         public static string ToStorageKey(this int n)
         {
-            return BitConverter.GetBytes(n).ToHex();
+            return n.ToString();
         }
         public static string ToStorageKey(this Hash hash)
         {
