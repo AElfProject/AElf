@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -268,7 +269,7 @@ namespace AElf.OS.Rpc.ChainController
 
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
             {
-                var block = await this.GetBlock(Hash.LoadHex(notLinkedBlock.Value));
+                var block = await this.GetBlock(Hash.LoadBase64(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new JObject
                     {
                         ["BlockHash"] = block.GetHash().ToHex(),
@@ -295,7 +296,8 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetBlockState", "blockHash")]
         public async Task<JObject> GetBlockState(string blockHash)
         {
-            var blockState = await BlockStateSets.GetAsync(blockHash);
+            var stateStorageKey = Hash.LoadHex(blockHash).ToStorageKey();
+            var blockState = await BlockStateSets.GetAsync(stateStorageKey);
             if (blockState == null)
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
             return JObject.FromObject(JsonConvert.DeserializeObject(blockState.ToString()));
