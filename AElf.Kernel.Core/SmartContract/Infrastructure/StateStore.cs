@@ -35,11 +35,16 @@ namespace AElf.Kernel.SmartContract.Infrastructure
 
         public async Task SetAsync(string key, T value)
         {
+            _cache[key] = value;
             await _stateStoreImplementation.SetAsync(key, value);
         }
 
         public async Task PipelineSetAsync(Dictionary<string, T> pipelineSet)
         {
+            foreach (var set in pipelineSet)
+            {
+                _cache[set.Key] = set.Value;
+            }
             await _stateStoreImplementation.PipelineSetAsync(pipelineSet);
         }
 
