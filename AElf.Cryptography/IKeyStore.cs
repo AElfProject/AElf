@@ -7,8 +7,6 @@ namespace AElf.Cryptography
 {
     public interface IKeyStore
     {
-        bool IsOpen { get; }
-
         Task<AElfKeyStore.Errors> OpenAsync(string address, string password, bool withTimeout = true);
 
         ECKeyPair GetAccountKeyPair(string address);

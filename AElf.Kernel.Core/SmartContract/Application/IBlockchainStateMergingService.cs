@@ -29,7 +29,6 @@ namespace AElf.Kernel.SmartContract.Application
             Logger = NullLogger<BlockchainStateMergingService>.Instance;
         }
 
-        // TODO: Add MergeBlockStateAsync test case [Case]
         public async Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash)
         {
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();

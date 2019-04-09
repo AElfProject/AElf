@@ -11,6 +11,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
 
@@ -273,6 +274,31 @@ namespace AElf.Contracts.Consensus.DPoS
                 miners.GetMinersHash());
         }
 
+        [Fact]
+        public async Task Set_ConfigStrategy()
+        {
+            var startTime = DateTime.UtcNow.ToTimestamp();
+            var testers = new ConsensusTesters();
+            testers.InitialTesters(startTime);
+
+            var input = new DPoSStrategyInput
+            {
+                IsBlockchainAgeSettable = true,
+                IsTimeSlotSkippable = true,
+                IsVerbose = true
+            };
+
+            var transactionResult = await testers.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.ConfigStrategy), input);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            //set again
+            transactionResult = await testers.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
+                nameof(ConsensusContract.ConfigStrategy), input);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.Contains("Already configured").ShouldBeTrue();
+        }
+        
         private DPoSTriggerInformation GetTriggerInformationForNormalBlock(string publicKey, Hash randomHash,
             Hash previousRandomHash = null)
         {
