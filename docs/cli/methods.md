@@ -87,7 +87,7 @@ connect...
 }
 ```
 
-Call with the method name without parameter will return
+Call with the method name without parameter will return information about the parameters, like their name and type.
 
 ### call - send a transaction to a contract.
 
