@@ -40,8 +40,6 @@ namespace AElf.Runtime.CSharp.Tests
         {
             var executive = await Runner.RunAsync(Reg);
             executive.ShouldNotBe(null);
-
-            executive.SetMaxCallDepth(3);
         }
 
         [Fact]

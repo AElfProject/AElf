@@ -14,12 +14,10 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
 
-        public IHostSmartContractBridgeContext Create(ISmartContractContext smartContractContext)
+        public IHostSmartContractBridgeContext Create()
         {
             //Create a new context
             var context = _serviceProvider.GetService<IHostSmartContractBridgeContext>();
-
-            context.SmartContractContext = smartContractContext;
             return context;
         }
     }

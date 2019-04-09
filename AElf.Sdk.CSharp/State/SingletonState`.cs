@@ -61,7 +61,7 @@ namespace AElf.Sdk.CSharp.State
             var stateSet = new TransactionExecutingStateSet();
             if (!Equals(_originalValue, _value))
             {
-                stateSet.Writes[Path.ToStateKey()] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
+                stateSet.Writes[Path.ToStateKey(Context.Self)] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
             }
 
             return stateSet;
@@ -73,11 +73,6 @@ namespace AElf.Sdk.CSharp.State
             _originalValue = SerializationHelper.Deserialize<TEntity>(bytes);
             _value = SerializationHelper.Deserialize<TEntity>(bytes);
             Loaded = true;
-        }
-
-        private void UpdateToCache(TEntity value)
-        {
-            Provider.Cache[Path] = SerializationHelper.Serialize(value);
         }
     }
 }

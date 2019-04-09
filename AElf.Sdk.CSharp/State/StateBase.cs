@@ -8,19 +8,9 @@ namespace AElf.Sdk.CSharp.State
 {
     public class StateBase
     {
-        private IStateProvider _provider;
         private StatePath _path;
-        private ISmartContractBridgeContext _context;
-
-        internal IStateProvider Provider
-        {
-            get => _provider;
-            set
-            {
-                _provider = value;
-                OnProviderSet();
-            }
-        }
+        private CSharpSmartContractContext _context;
+        internal IStateProvider Provider => _context.StateProvider;
 
         internal StatePath Path
         {
@@ -32,7 +22,7 @@ namespace AElf.Sdk.CSharp.State
             }
         }
 
-        internal ISmartContractBridgeContext Context
+        internal CSharpSmartContractContext Context
         {
             get => _context;
             set
@@ -40,10 +30,6 @@ namespace AElf.Sdk.CSharp.State
                 _context = value;
                 OnContextSet();
             }
-        }
-
-        internal virtual void OnProviderSet()
-        {
         }
 
         internal virtual void OnPathSet()

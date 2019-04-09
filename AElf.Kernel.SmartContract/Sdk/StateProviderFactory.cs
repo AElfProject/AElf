@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract.Sdk
 
         public IStateProvider CreateStateProvider()
         {
-            return new StateProvider()
+            return new ScopedStateProvider()
             {
             };
         }
