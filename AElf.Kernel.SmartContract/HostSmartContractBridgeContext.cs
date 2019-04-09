@@ -47,7 +47,7 @@ namespace AElf.Kernel.SmartContract
             set
             {
                 _transactionContext = value;
-                StateProvider.Cache = _transactionContext.StateCache ?? new NullStateCache();
+                StateProvider.Cache = _transactionContext?.StateCache ?? new NullStateCache();
             }
         }
 

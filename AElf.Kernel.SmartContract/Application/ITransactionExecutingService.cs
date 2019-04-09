@@ -119,7 +119,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             try
             {
-                await executive.SetTransactionContext(txCtxt).ApplyAsync();
+                await executive.ApplyAsync(txCtxt);
 
                 if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)
                 {

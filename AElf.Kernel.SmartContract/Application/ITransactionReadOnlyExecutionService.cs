@@ -116,7 +116,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             try
             {
-                await executive.SetTransactionContext(transactionContext).ApplyAsync();
+                await executive.ApplyAsync(transactionContext);
             }
             finally
             {
@@ -136,7 +136,6 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(
                     chainContext, address);
-                executive.SetDataCache(chainContext.StateCache);
                 output = executive.GetFileDescriptorSet();
             }
             finally

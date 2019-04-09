@@ -28,7 +28,6 @@ namespace AElf.Runtime.CSharp
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
-        private int _maxCallDepth = 4;
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
@@ -70,27 +69,10 @@ namespace AElf.Runtime.CSharp
             _descriptors = _serverServiceDefinition.GetDescriptors();
         }
 
-        public IExecutive SetMaxCallDepth(int maxCallDepth)
-        {
-            _maxCallDepth = maxCallDepth;
-            return this;
-        }
-
         public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
         {
             _hostSmartContractBridgeContext = smartContractBridgeContext;
             _smartContractProxy.InternalInitialize(_hostSmartContractBridgeContext);
-            return this;
-        }
-
-        public void SetDataCache(IStateCache cache)
-        {
-            _hostSmartContractBridgeContext.StateProvider.Cache = cache ?? new NullStateCache();
-        }
-
-        public IExecutive SetTransactionContext(ITransactionContext transactionContext)
-        {
-            _hostSmartContractBridgeContext.TransactionContext = transactionContext;
             return this;
         }
 
@@ -99,9 +81,16 @@ namespace AElf.Runtime.CSharp
             _smartContractProxy.Cleanup();
         }
 
-        public async Task ApplyAsync()
+        public async Task ApplyAsync(ITransactionContext transactionContext)
         {
-            await ExecuteMainTransaction();
+            _hostSmartContractBridgeContext.TransactionContext = transactionContext;
+            if (CurrentTransactionContext.CallDepth > CurrentTransactionContext.MaxCallDepth)
+            {
+                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
+                CurrentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
+                return;
+            }
+            Execute();
             if (CurrentTransactionContext.CallDepth == 0)
             {
                 // Plugin should only apply to top level transaction
@@ -112,15 +101,8 @@ namespace AElf.Runtime.CSharp
             }
         }
 
-        public async Task ExecuteMainTransaction()
+        public void Execute()
         {
-            if (CurrentTransactionContext.CallDepth > _maxCallDepth)
-            {
-                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
-                CurrentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
-                return;
-            }
-
             var s = CurrentTransactionContext.Trace.StartTime = DateTime.UtcNow;
             var methodName = CurrentTransactionContext.Transaction.MethodName;
 

@@ -113,16 +113,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
-            executive.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = new Transaction()
-                {
-                    To = address // This is to ensure that the contract has same address
-                }
-            });
-            executive.SetDataCache(new NullStateCache());
             GetPool(address).Add(executive);
-
             await Task.CompletedTask;
         }
 
@@ -194,7 +185,7 @@ namespace AElf.Kernel.SmartContract.Application
                 StateCache = chainContext.StateCache
             };
 
-            await executiveZero.SetTransactionContext(txCtxt).ApplyAsync();
+            await executiveZero.ApplyAsync(txCtxt);
             var returnBytes = txCtxt.Trace?.ReturnValue;
             if (returnBytes != null && returnBytes != ByteString.Empty)
             {

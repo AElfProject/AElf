@@ -13,6 +13,7 @@ namespace AElf.Kernel.SmartContract.Sdk
         DateTime CurrentBlockTime { get; set; }
         
         int CallDepth { get; set; }
+        int MaxCallDepth { get; set; }
         Transaction Transaction { get; set; }
         TransactionTrace Trace { get; set; }
         IStateCache StateCache { get; set; }
