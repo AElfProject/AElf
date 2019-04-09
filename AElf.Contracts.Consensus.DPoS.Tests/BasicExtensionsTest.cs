@@ -254,12 +254,70 @@ namespace AElf.Contracts.Consensus.DPoS
             var behaviour = DPoSBehaviour.NextTerm;
             var miningInterval = 4000;
             var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+            round.RealTimeMinersInformation.Last().Value.PromisedTinyBlocks = 1; //default is 0
 
             var consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.Last().Key,
                 DateTime.UtcNow, true);
             
-            
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
             DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.NextTerm);
+        }
+        
+        [Fact]
+        public void GetConsensusCommand_NextRound()
+        {
+            var behaviour = DPoSBehaviour.NextRound;
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+            round.RealTimeMinersInformation.Last().Value.PromisedTinyBlocks = 1; //default is 0
+
+            var consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.Last().Key,
+                DateTime.UtcNow, true);
+            
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.NextRound);
+        }
+        
+        [Fact]
+        public void GetConsensusCommand_UpdateValue()
+        {
+            var behaviour = DPoSBehaviour.UpdateValue;
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+            round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Value.PromisedTinyBlocks = 1; //default is 0
+            
+            var consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Key,
+                DateTime.UtcNow, false);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.UpdateValue);
+            
+            //skip time slot
+            consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Key,
+                            DateTime.UtcNow, true);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.NextRound);
+        }
+
+        [Fact]
+        public void GetConsensusCommand_UpdateValueWithoutPreviousInValue()
+        {
+            var behaviour = DPoSBehaviour.UpdateValueWithoutPreviousInValue;
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+            round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Value.PromisedTinyBlocks = 1; //default is 0
+            
+            var consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Key,
+                DateTime.UtcNow, false);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
+            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(2*miningInterval);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.UpdateValueWithoutPreviousInValue);
+            
+            //skip time slot
+            consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Key,
+                DateTime.UtcNow, true);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.NextRound);
+
         }
         
         /// <summary>
