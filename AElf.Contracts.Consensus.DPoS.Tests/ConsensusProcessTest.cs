@@ -29,7 +29,6 @@ namespace AElf.Contracts.Consensus.DPoS
             testers.InitialTesters(startTime);
 
             var inValue = Hash.Generate();
-            var outValue = Hash.FromMessage(inValue);
             var stubExtraInformation =
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
 
@@ -39,13 +38,11 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Assert
             Assert.NotNull(newConsensusInformation);
-            Assert.Equal(outValue, newConsensusInformation.Round
-                .RealTimeMinersInformation[testers.Testers[1].KeyPair.PublicKey.ToHex()]
-                .OutValue);
+            Assert.Equal(testers.Testers[1].PublicKey, newConsensusInformation.SenderPublicKey.ToHex());
         }
 
         [Fact]
-        public async Task NormalBlock_ValidationConsensus_Success()
+        public async Task NormalBlock_ValidationConsensus_Failed()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
             var testers = new ConsensusTesters();
@@ -56,13 +53,15 @@ namespace AElf.Contracts.Consensus.DPoS
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
 
             var newInformation =
-                await testers.Testers[1].GetInformationToUpdateConsensusAsync(triggerInformationForNormalBlock, DateTime.UtcNow);
+                await testers.Testers[1]
+                    .GetInformationToUpdateConsensusAsync(triggerInformationForNormalBlock, DateTime.UtcNow);
 
             // Act
             var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
 
             // Assert
-            Assert.True(validationResult?.Success);
+            Assert.False(validationResult.Success);
+            Assert.Equal("Invalid FinalOrderOfNextRound.", validationResult.Message);
         }
 
         [Fact]
