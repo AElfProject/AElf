@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "common.proto";
+import "kernel.proto";
+import "vote.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.Vote";
+
+service VoteContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Vote.VoteContractState";
+
+    // Action
+    rpc Register (VotingRegisterInput) returns (google.protobuf.Empty) {
+    }
+    rpc Vote (VoteInput) returns (google.protobuf.Empty) {
+    }
+    rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateEpochNumber (UpdateEpochNumberInput) returns (google.protobuf.Empty) {
+    }
+    
+    // View
+    rpc GetVotingInfo (GetVotingInfoInput) returns (VotingInfo) {
+        option (aelf.is_view) = true;
+    }
+}

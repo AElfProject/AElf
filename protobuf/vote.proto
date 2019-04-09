@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "common.proto";
+
+option csharp_namespace = "AElf.Kernel";
+
+message VotingRegisterInput {
+    string topic = 1;
+    Address sponsor = 2;
+    string accepted_currency = 3;
+    sint32 active_days = 4;
+    bool delegated = 5;
+    sint32 total_epoch = 6;
+    repeated string options = 7;
+}
+
+message VoteInput {
+    string topic = 1;
+    Address sponsor = 2;
+    sint64 amount = 3;
+}
+
+message WithdrawInput {
+    Hash vote_id = 1;
+}
+
+message GetVotingInfoInput {
+    string topic = 1;
+    Address sponsor = 2;
+    sint32 epoch_number = 3;
+}
+
+message VotingInfo {
+    string topic = 1;
+    Address sponsor = 2;
+    map<string, sint64> result = 3;
+}
+
+message UpdateEpochNumberInput {
+    sint32 epoch_number = 1;
+}

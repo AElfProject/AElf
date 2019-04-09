@@ -142,6 +142,8 @@ ProjectSection(SolutionItems) = preProject
 	protobuf\token_contract_messages.proto = protobuf\token_contract_messages.proto
 	protobuf\acs1.proto = protobuf\acs1.proto
 	protobuf\acs2.proto = protobuf\acs2.proto
+	protobuf\vote_contract.proto = protobuf\vote_contract.proto
+	protobuf\vote.proto = protobuf\vote.proto
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool", "AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"
