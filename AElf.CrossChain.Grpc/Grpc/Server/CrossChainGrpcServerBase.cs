@@ -33,14 +33,14 @@ namespace AElf.CrossChain.Grpc
             _crossChainConfigOption = crossChainConfigOption.Value;
         }
 
-        public override async Task RequestIndexingParentChain(RequestCrossChainBlockData request, 
+        public override async Task RequestIndexingFromParentChain(RequestCrossChainBlockData request, 
             IServerStreamWriter<ResponseParentChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Parent Chain Server received IndexedInfo message.");
             await WriteResponseStream(request, responseStream, false);
         }
         
-        public override async Task RequestIndexingSideChain(RequestCrossChainBlockData request, 
+        public override async Task RequestIndexingFromSideChain(RequestCrossChainBlockData request, 
             IServerStreamWriter<ResponseSideChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Side Chain Server received IndexedInfo message.");

@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var minersKeyPairs = Enumerable.Range(0, MinersCount - 1).Select(_ => CryptoHelpers.GenerateKeyPair()).ToList();
             minersKeyPairs.Add(Starter.KeyPair);
-            AsyncHelper.RunSync(() => Starter.InitialChainAndTokenAsync(minersKeyPairs, MiningInterval));
+            AsyncHelper.RunSync(() => Starter.InitialChainAndTokenAsync(minersKeyPairs));
             Miners = Enumerable.Range(0, MinersCount)
                 .Select(i => Starter.CreateNewContractTester(minersKeyPairs[i])).ToList();
         }
@@ -299,7 +299,7 @@ namespace AElf.Contracts.Consensus.DPoS
             
             var candidateLists = await Starter.GenerateCandidatesAsync(5);
 
-            var voter = (await Starter.GenerateVotersAsync(1, pocketMoney)).AnyOne();
+            var voter = (await Starter.GenerateVotersAsync(1)).AnyOne();
 
             for (int i = 0; i < votersCount; i++)
             {
@@ -346,13 +346,36 @@ namespace AElf.Contracts.Consensus.DPoS
             txResult.Error.Contains(ContractErrorCode.Message[ContractErrorCode.InvalidOperation]).ShouldBeTrue();
         }
 
+        /// <summary>
+        /// Situation not all candidates has votes.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Not_Vote_To_All_Initial_Miners()
+        {
+            var voter = (await Starter.GenerateVotersAsync()).AnyOne();
+            foreach (var miner in Miners)
+            {
+                if (miner.PublicKey != Starter.PublicKey)
+                {
+                    await Starter.TransferTokenAsync(miner.GetCallOwnerAddress(), DPoSContractConsts.LockTokenForElection);
+                }
+                await miner.AnnounceElectionAsync();
+            }
+            await voter.Vote(Starter.PublicKey, 100, 100);
+            await Miners.ChangeTermAsync(MiningInterval);
+
+            var currentTermNumber = await Starter.GetCurrentTermNumber();
+            currentTermNumber.ShouldBe(2);
+        }
+
         [Fact]
         public async Task IsCandidate_Success()
         {
             var candidateLists = await Starter.GenerateCandidatesAsync(2);
             var nonCandidateInfo = TestUserHelper.GenerateNewUser();
             var candidate = Starter.CreateNewContractTester(nonCandidateInfo.KeyPair);
-            var candidateResult = Google.Protobuf.WellKnownTypes.BoolValue.Parser.ParseFrom(
+            var candidateResult = BoolValue.Parser.ParseFrom(
                 await candidate.CallContractMethodAsync(
                     candidate.GetConsensusContractAddress(),
                     nameof(ConsensusContract.IsCandidate),

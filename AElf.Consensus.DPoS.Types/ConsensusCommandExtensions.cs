@@ -25,14 +25,17 @@ namespace AElf.Consensus.DPoS
             var myOrder = round.RealTimeMinersInformation[minerInRound.PublicKey].Order;
             var expectedMiningTime = round.RealTimeMinersInformation[minerInRound.PublicKey].ExpectedMiningTime;
 
+            int nextBlockMiningLeftMilliseconds;
+            var hint = new DPoSHint {Behaviour = behaviour}.ToByteString();
+
             var previousMinerMissedHisTimeSlot = myOrder != 1 &&
                                                  round.RealTimeMinersInformation.Values
                                                      .First(m => m.Order == myOrder - 1).OutValue == null;
             var previousTwoMinersMissedTheirTimeSlot = myOrder > 2 &&
-                                                     round.RealTimeMinersInformation.Values
-                                                         .First(m => m.Order == myOrder - 1).OutValue == null &&
-                                                     round.RealTimeMinersInformation.Values
-                                                         .First(m => m.Order == myOrder - 2).OutValue == null;
+                                                       round.RealTimeMinersInformation.Values
+                                                           .First(m => m.Order == myOrder - 1).OutValue == null &&
+                                                       round.RealTimeMinersInformation.Values
+                                                           .First(m => m.Order == myOrder - 2).OutValue == null;
             var skipTimeSlot = previousMinerMissedHisTimeSlot && !previousTwoMinersMissedTheirTimeSlot &&
                                isTimeSlotSkippable;
 
@@ -54,115 +57,58 @@ namespace AElf.Consensus.DPoS
                             var minersCount = round.RealTimeMinersInformation.Count;
                             var extraBlockMiningTimeInTheory =
                                 roundStartTimeInTheory.AddMilliseconds(minersCount * miningInterval);
-                            var nextBlockMiningLeftMilliseconds =
+                            nextBlockMiningLeftMilliseconds =
                                 (int) (round.ArrangeAbnormalMiningTime(publicKey, extraBlockMiningTimeInTheory,
                                            miningInterval).ToDateTime() - dateTime).TotalMilliseconds;
                             // If someone produced block in current round before.
-                            return new ConsensusCommand
-                            {
-                                ExpectedMiningTime = expectedMiningTime,
-                                NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
-                                LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                                Hint = new DPoSHint
-                                {
-                                    Behaviour = DPoSBehaviour.NextRound
-                                }.ToByteString()
-                            };
-                        }
 
-                        return new ConsensusCommand
-                        {
-                            ExpectedMiningTime = expectedMiningTime,
-                            NextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval * 2 + miningInterval,
-                            LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                            Hint = new DPoSHint
+                            hint = new DPoSHint
                             {
                                 Behaviour = DPoSBehaviour.NextRound
-                            }.ToByteString()
-                        };
+                            }.ToByteString();
+                            break;
+                        }
+
+                        nextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval * 2 + miningInterval;
+                        hint = new DPoSHint
+                        {
+                            Behaviour = DPoSBehaviour.NextRound
+                        }.ToByteString();
+                        break;
                     }
 
-                    return new ConsensusCommand
-                    {
-                        ExpectedMiningTime = expectedMiningTime,
-                        NextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval,
-                        LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    };
+                    nextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval;
+                    break;
 
                 case DPoSBehaviour.UpdateValue:
                     // If miner of previous order didn't produce block, skip this time slot.
                     if (skipTimeSlot)
                     {
-                        return new ConsensusCommand
+                        nextBlockMiningLeftMilliseconds = (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey,
+                                                                     round.GetExtraBlockMiningTime(),
+                                                                     round.GetMiningInterval()).ToDateTime() - dateTime)
+                            .TotalMilliseconds;
+                        hint = new DPoSHint
                         {
-                            ExpectedMiningTime = expectedMiningTime,
-                            NextBlockMiningLeftMilliseconds =
-                                (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, round.GetExtraBlockMiningTime(),
-                                           round.GetMiningInterval()).ToDateTime() - dateTime).TotalMilliseconds,
-                            LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                            Hint = new DPoSHint
-                            {
-                                Behaviour = DPoSBehaviour.NextRound
-                            }.ToByteString()
-                        };
+                            Behaviour = DPoSBehaviour.NextRound
+                        }.ToByteString();
+                        break;
                     }
 
-                    return new ConsensusCommand
-                    {
-                        ExpectedMiningTime = expectedMiningTime,
-                        NextBlockMiningLeftMilliseconds = (int) (expectedMiningTime.ToDateTime() - dateTime)
-                            .TotalMilliseconds,
-                        LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    };
+                    nextBlockMiningLeftMilliseconds =
+                        (int) (expectedMiningTime.ToDateTime() - dateTime).TotalMilliseconds;
+                    break;
                 case DPoSBehaviour.NextRound:
-                    if (round.RoundNumber == 1)
-                    {
-                        return new ConsensusCommand
-                        {
-                            ExpectedMiningTime = expectedMiningTime,
-                            NextBlockMiningLeftMilliseconds =
-                                round.RealTimeMinersInformation.Count * miningInterval + myOrder * miningInterval,
-                            LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                            Hint = new DPoSHint
-                            {
-                                Behaviour = behaviour
-                            }.ToByteString()
-                        };
-                    }
-
-                    return new ConsensusCommand
-                    {
-                        ExpectedMiningTime = expectedMiningTime,
-                        NextBlockMiningLeftMilliseconds =
-                            (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
-                                   dateTime).TotalMilliseconds,
-                        LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    };
+                    nextBlockMiningLeftMilliseconds = round.RoundNumber == 1
+                        ? round.RealTimeMinersInformation.Count * miningInterval + myOrder * miningInterval
+                        : (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
+                                 dateTime).TotalMilliseconds;
+                    break;
                 case DPoSBehaviour.NextTerm:
-                    return new ConsensusCommand
-                    {
-                        ExpectedMiningTime = expectedMiningTime,
-                        NextBlockMiningLeftMilliseconds =
-                            (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
-                                   dateTime).TotalMilliseconds,
-                        LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
-                        Hint = new DPoSHint
-                        {
-                            Behaviour = behaviour
-                        }.ToByteString()
-                    };
+                    nextBlockMiningLeftMilliseconds =
+                        (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
+                               dateTime).TotalMilliseconds;
+                    break;
                 default:
                     return new ConsensusCommand
                     {
@@ -175,6 +121,14 @@ namespace AElf.Consensus.DPoS
                         }.ToByteString()
                     };
             }
+
+            return new ConsensusCommand
+            {
+                ExpectedMiningTime = expectedMiningTime,
+                NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
+                LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
+                Hint = hint
+            };
         }
     }
 }

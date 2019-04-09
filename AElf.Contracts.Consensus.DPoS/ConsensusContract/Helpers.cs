@@ -49,19 +49,19 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-        public bool TryToGetTermNumber(out long termNumber)
+        private bool TryToGetTermNumber(out long termNumber)
         {
             termNumber = State.CurrentTermNumberField.Value;
             return termNumber != 0;
         }
 
-        public bool TryToGetMiners(long termNumber, out Miners miners)
+        private bool TryToGetMiners(long termNumber, out Miners miners)
         {
             miners = State.MinersMap[termNumber.ToInt64Value()];
             return miners != null;
         }
 
-        public bool TryToGetVictories(out Miners victories)
+        private bool TryToGetVictories(out Miners victories)
         {
             var candidates = State.CandidatesField.Value;
             if (candidates == null)
@@ -92,31 +92,31 @@ namespace AElf.Contracts.Consensus.DPoS
             return true;
         }
 
-        public bool TryToGetCurrentAge(out long blockAge)
+        private bool TryToGetCurrentAge(out long blockAge)
         {
             blockAge = State.AgeField.Value;
             return blockAge > 0;
         }
 
-        public bool TryToGetMinerHistoryInformation(string publicKey, out CandidateInHistory historyInformation)
+        private bool TryToGetMinerHistoryInformation(string publicKey, out CandidateInHistory historyInformation)
         {
             historyInformation = State.HistoryMap[publicKey.ToStringValue()];
             return historyInformation != null;
         }
 
-        public bool TryToGetSnapshot(long termNumber, out TermSnapshot snapshot)
+        private bool TryToGetSnapshot(long termNumber, out TermSnapshot snapshot)
         {
             snapshot = State.SnapshotMap[termNumber.ToInt64Value()];
             return snapshot != null;
         }
 
-        public bool TryToGetTicketsInformation(string publicKey, out Tickets tickets)
+        private bool TryToGetTicketsInformation(string publicKey, out Tickets tickets)
         {
             tickets = State.TicketsMap[publicKey.ToStringValue()];
             return tickets != null;
         }
 
-        public bool TryToGetBackups(List<string> currentMiners, out List<string> backups)
+        private bool TryToGetBackups(List<string> currentMiners, out List<string> backups)
         {
             var candidates = State.CandidatesField.Value;
             if (candidates == null)
@@ -144,7 +144,7 @@ namespace AElf.Contracts.Consensus.DPoS
             State.HistoryMap[historyInformation.PublicKey.ToStringValue()] = historyInformation;
         }
 
-        public void AddOrUpdateTicketsInformation(Tickets tickets)
+        private void AddOrUpdateTicketsInformation(Tickets tickets)
         {
             State.TicketsMap[tickets.PublicKey.ToStringValue()] = tickets;
         }
@@ -155,7 +155,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
 
-        public bool SetMiners(Miners miners, bool gonnaReplaceSomeone = false)
+        private bool SetMiners(Miners miners, bool gonnaReplaceSomeone = false)
         {
             // Miners for one specific term should only update once.
             var m = State.MinersMap[miners.TermNumber.ToInt64Value()];
@@ -168,7 +168,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        public bool SetSnapshot(TermSnapshot snapshot)
+        private bool SetSnapshot(TermSnapshot snapshot)
         {
             var s = State.SnapshotMap[snapshot.TermNumber.ToInt64Value()];
             if (s != null)
@@ -262,34 +262,34 @@ namespace AElf.Contracts.Consensus.DPoS
 
         #endregion
 
-        public long GetDividendsForEveryMiner(long minedBlocks)
+        private long GetDividendsForEveryMiner(long minedBlocks)
         {
             return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersBasicRatio /
                             GetProducerNumber());
         }
 
-        public long GetDividendsForTicketsCount(long minedBlocks)
+        private long GetDividendsForTicketsCount(long minedBlocks)
         {
             return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.MinersVotesRatio);
         }
 
-        public long GetDividendsForReappointment(long minedBlocks)
+        private long GetDividendsForReappointment(long minedBlocks)
         {
             return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock *
                             DPoSContractConsts.MinersReappointmentRatio);
         }
 
-        public long GetDividendsForBackupNodes(long minedBlocks)
+        private long GetDividendsForBackupNodes(long minedBlocks)
         {
             return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.BackupNodesRatio);
         }
 
-        public long GetDividendsForVoters(long minedBlocks)
+        private long GetDividendsForVoters(long minedBlocks)
         {
             return (long) (minedBlocks * DPoSContractConsts.ElfTokenPerBlock * DPoSContractConsts.VotersRatio);
         }
 
-        public int GetProducerNumber()
+        private int GetProducerNumber()
         {
             var round = GetCurrentRoundInformation(new Empty());
             return round.RealTimeMinersInformation.Count;
