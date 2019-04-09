@@ -8,8 +8,6 @@ namespace AElf.CrossChain.Grpc
         public bool LocalClient { get; set; }
         public string LocalServerIP { get; set; }
         public int LocalServerPort { get; set; }
-
-        public string LocalCertificateFileName { get; set; }
         #endregion
 
         #region Remote

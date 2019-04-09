@@ -42,14 +42,14 @@ namespace AElf.CrossChain.Grpc
 
         #region Create client
 
-        public async Task CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext, string certificate)
+        public async Task CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext)
         {
             if(_grpcCrossChainClients.ContainsKey(crossChainCommunicationContext.RemoteChainId))
                 return;
             if (crossChainCommunicationContext.RemoteIsSideChain && 
                 !_crossChainDataProducer.GetCachedChainIds().Contains(crossChainCommunicationContext.RemoteChainId)) 
                 return; // dont create client for not cached remote side chain
-            var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext, certificate);
+            var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext);
             var reply = await TryRequest(client, c => c.TryHandShakeAsync(crossChainCommunicationContext.LocalChainId,
                 ((GrpcCrossChainCommunicationContext) crossChainCommunicationContext).LocalListeningPort));
             if (reply == null || !reply.Result)
@@ -62,7 +62,7 @@ namespace AElf.CrossChain.Grpc
         /// </summary>
         /// <returns>
         /// </returns>    
-        private IGrpcCrossChainClient CreateGrpcClient(GrpcCrossChainCommunicationContext grpcClientBase, string certificate)
+        private IGrpcCrossChainClient CreateGrpcClient(GrpcCrossChainCommunicationContext grpcClientBase)
         {
             string uri = grpcClientBase.ToUriStr();
 
