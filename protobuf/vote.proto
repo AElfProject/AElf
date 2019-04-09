@@ -4,6 +4,10 @@ import "common.proto";
 
 option csharp_namespace = "AElf.Kernel";
 
+message InitialVoteContractInput {
+    Hash tokenContractSystemName = 1;
+}
+
 message VotingRegisterInput {
     string topic = 1;
     Address sponsor = 2;
@@ -14,28 +18,43 @@ message VotingRegisterInput {
     repeated string options = 7;
 }
 
+message VotingEvent {
+    string topic = 1;
+    Address sponsor = 2;
+    string accepted_currency = 3;
+    sint32 active_days = 4;
+    bool delegated = 5;
+    sint32 current_epoch = 6;
+    sint32 total_epoch = 7;
+    repeated string options = 8;
+}
+
 message VoteInput {
     string topic = 1;
     Address sponsor = 2;
     sint64 amount = 3;
+    string option = 4;
 }
 
 message WithdrawInput {
     Hash vote_id = 1;
 }
 
-message GetVotingInfoInput {
+message GetVotingResultInput {
     string topic = 1;
     Address sponsor = 2;
     sint32 epoch_number = 3;
 }
 
-message VotingInfo {
+message VotingResult {
     string topic = 1;
     Address sponsor = 2;
-    map<string, sint64> result = 3;
+    sint32 epoch_number = 3;
+    map<string, sint64> results = 4;
 }
 
 message UpdateEpochNumberInput {
-    sint32 epoch_number = 1;
+    string topic = 1;
+    Address sponsor = 2;
+    sint32 epoch_number = 3;
 }
