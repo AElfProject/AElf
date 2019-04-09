@@ -9,6 +9,7 @@ using AElf.Kernel.Blockchain.Events;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -17,7 +18,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
     public class TxHub : ITxHub, ISingletonDependency
     {
         public ILogger<TxHub> Logger { get; set; }
-        public TransactionOptions TransactionOptions { get; set; }
+        private readonly TransactionOptions _transactionOptions;
 
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
@@ -41,12 +42,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService)
+        public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService, 
+            IOptionsSnapshot<TransactionOptions> transactionOptions)
         {
             Logger = NullLogger<TxHub>.Instance;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
             LocalEventBus = NullLocalEventBus.Instance;
+            _transactionOptions = transactionOptions.Value;
         }
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync()
@@ -186,7 +189,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     continue;
                 }
 
-                if (_allTransactions.Count > TransactionOptions.PoolLimit)
+                if (_allTransactions.Count > _transactionOptions.PoolLimit)
                 {
                     Logger.LogWarning($"TxStore is full, ignore tx {receipt.TransactionId}");
                     break;
