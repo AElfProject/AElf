@@ -210,24 +210,22 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             string nextCandidate = null;
 
+            TryToGetRoundInformation(1, out var firstRound);
             // Check out election snapshot.
             if (TryToGetTermNumber(out var termNumber) && termNumber > 1 &&
                 TryToGetSnapshot(termNumber - 1, out var snapshot))
             {
-                nextCandidate = snapshot.CandidatesSnapshot.OrderBy(s => s.Votes)
+                nextCandidate = snapshot.CandidatesSnapshot
+                    .Where(cs => !firstRound.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
+                    .Where(cs => !round.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
+                    .OrderBy(s => s.Votes)
                     .Skip(round.RealTimeMinersInformation.Count)
                     .FirstOrDefault(c => !round.RealTimeMinersInformation.ContainsKey(c.PublicKey))?.PublicKey;
             }
 
             // Check out initial miners.
-            if (nextCandidate == null && TryToGetRoundInformation(1, out var firstRound))
-            {
-                nextCandidate =
-                    firstRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
-                        !round.RealTimeMinersInformation.ContainsKey(k));
-            }
-
-            return nextCandidate;
+            return nextCandidate ?? firstRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
+                       !round.RealTimeMinersInformation.ContainsKey(k));
         }
 
         public override TransactionList GenerateConsensusTransactions(DPoSTriggerInformation input)
