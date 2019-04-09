@@ -10,68 +10,6 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-        private void UpdateHistoryInformation(Round round)
-        {
-            var senderPublicKey = Context.RecoverPublicKey().ToHex();
-
-            Assert(TryToGetCurrentRoundInformation(out var currentRound), "Failed to get current round information.");
-
-            // Update missed time slots and produced blocks for each miner.
-            foreach (var minerInRound in currentRound.RealTimeMinersInformation)
-            {
-                if (round.RealTimeMinersInformation.ContainsKey(minerInRound.Key))
-                {
-                    round.RealTimeMinersInformation[minerInRound.Key].MissedTimeSlots =
-                        minerInRound.Value.MissedTimeSlots;
-                    round.RealTimeMinersInformation[minerInRound.Key].ProducedBlocks =
-                        minerInRound.Value.ProducedBlocks;
-                }
-                else
-                {
-                    if (TryToGetMinerHistoryInformation(senderPublicKey, out var historyInformation))
-                    {
-                        historyInformation.ProducedBlocks += minerInRound.Value.ProducedBlocks;
-                        historyInformation.MissedTimeSlots += minerInRound.Value.MissedTimeSlots;
-                    }
-                    else
-                    {
-                        historyInformation = new CandidateInHistory
-                        {
-                            PublicKey = senderPublicKey,
-                            ProducedBlocks = minerInRound.Value.ProducedBlocks,
-                            MissedTimeSlots = minerInRound.Value.MissedTimeSlots,
-                            CurrentAlias = senderPublicKey.Substring(0, DPoSContractConsts.AliasLimit)
-                        };
-                    }
-
-                    AddOrUpdateMinerHistoryInformation(historyInformation);
-                }
-            }
-
-            if (round.RealTimeMinersInformation.ContainsKey(senderPublicKey))
-            {
-                round.RealTimeMinersInformation[senderPublicKey].ProducedBlocks += 1;
-            }
-            else
-            {
-                if (TryToGetMinerHistoryInformation(senderPublicKey, out var historyInformation))
-                {
-                    historyInformation.ProducedBlocks += 1;
-                }
-                else
-                {
-                    historyInformation = new CandidateInHistory
-                    {
-                        PublicKey = senderPublicKey,
-                        ProducedBlocks = 1,
-                        CurrentAlias = senderPublicKey.Substring(0, DPoSContractConsts.AliasLimit)
-                    };
-                }
-
-                AddOrUpdateMinerHistoryInformation(historyInformation);
-            }
-        }
-
         public override Empty NextTerm(Round input)
         {
             // Count missed time slot of current round.
