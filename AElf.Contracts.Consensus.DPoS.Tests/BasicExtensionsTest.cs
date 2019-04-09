@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Cryptography;
+using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -232,6 +233,35 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.Equal(outValue, minerInRoundAfter.OutValue);
         }
 
+        [Fact]
+        public void GetConsensusCommand_Nothing()
+        {
+
+            var behaviour = DPoSBehaviour.Nothing;
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+            var consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.First().Key, 
+                DateTime.UtcNow, true);
+            
+            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(int.MaxValue);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(int.MaxValue);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.Nothing);
+        }
+
+        [Fact]
+        public void GetConsensusCommand_NextTerm()
+        {
+            var behaviour = DPoSBehaviour.NextTerm;
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+
+            var consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.Last().Key,
+                DateTime.UtcNow, true);
+            
+            
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.NextTerm);
+        }
+        
         /// <summary>
         /// Only able to generate information of first round.
         /// </summary>

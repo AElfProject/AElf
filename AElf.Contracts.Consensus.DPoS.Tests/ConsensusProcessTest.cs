@@ -17,12 +17,11 @@ using Xunit;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    // TODO: Rewrite via test kit.
     public class ConsensusProcessTest : ContractTestBase<DPoSContractTestAElfModule>
     {
         private const int MiningInterval = 4000;
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NormalBlock_GetNewConsensusInformation()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -45,7 +44,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 .OutValue);
         }
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NormalBlock_ValidationConsensus_Success()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -66,7 +65,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.True(validationResult?.Success);
         }
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NormalBlock_GenerateConsensusTransactions()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -86,7 +85,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.Equal(DPoSBehaviour.UpdateValue.ToString(), consensusTransactions.First().MethodName);
         }
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NextRound_GetConsensusCommand()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -103,7 +102,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.Equal(4000, command.LimitMillisecondsOfMiningBlock);
         }
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NextRound_GetNewConsensusInformation()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -114,7 +113,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 GetTriggerInformationForNextRound(testers.Testers[1].KeyPair.PublicKey.ToHex());
 
             // Act
-            var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000);
+            var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount);
             var newConsensusInformation =
                 await testers.Testers[1].GetInformationToUpdateConsensusAsync(triggerInformationForNextRoundOrTerm, futureTime);
 
@@ -122,7 +121,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.Equal(2L, newConsensusInformation.Round.RoundNumber);
         }
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NextRound_GenerateConsensusTransactions()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -141,7 +140,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.Equal(DPoSBehaviour.NextRound.ToString(), consensusTransactions.First().MethodName);
         }
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NextTerm_GetConsensusCommand()
         {
             const int minersCount = 3;
