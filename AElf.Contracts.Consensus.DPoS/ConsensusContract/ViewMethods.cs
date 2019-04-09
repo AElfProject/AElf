@@ -46,11 +46,6 @@ namespace AElf.Contracts.Consensus.DPoS
             return State.CandidatesField.Value;
         }
 
-        public override FriendlyString GetCandidatesListToFriendlyString(Empty input)
-        {
-            return new FriendlyString {Value = GetCandidatesList(input).ToString()};
-        }
-
         public override CandidateInHistory GetCandidateHistoryInformation(PublicKey input)
         {
             var historyInformation = State.HistoryMap[input.Hex.ToStringValue()];
@@ -63,11 +58,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 ProducedBlocks = 0,
                 ReappointmentCount = 0
             };
-        }
-
-        public override FriendlyString GetCandidateHistoryInfoToFriendlyString(PublicKey input)
-        {
-            return new FriendlyString {Value = GetCandidateHistoryInformation(input).ToString()};
         }
 
         public override CandidateInHistoryDictionary GetCandidatesHistoryInfo(Empty input)
@@ -96,11 +86,6 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             return result;
-        }
-
-        public override FriendlyString GetCandidatesHistoryInfoToFriendlyString(Empty input)
-        {
-            return new FriendlyString {Value = GetCandidatesHistoryInfo(input).ToString()};
         }
 
         public override CandidateInHistoryDictionary GetPageableCandidatesHistoryInfo(PageInfo input)
@@ -135,11 +120,6 @@ namespace AElf.Contracts.Consensus.DPoS
             return result;
         }
 
-        public override FriendlyString GetPageableCandidatesHistoryInfoToFriendlyString(PageInfo input)
-        {
-            return new FriendlyString {Value = GetPageableCandidatesHistoryInfo(input).ToString()};
-        }
-
         public override MinerList GetCurrentMiners(Empty input)
         {
             var currentTermNumber = State.CurrentTermNumberField.Value;
@@ -159,11 +139,6 @@ namespace AElf.Contracts.Consensus.DPoS
             minerList.Addresses.AddRange(currentMiners.Addresses);
             minerList.PublicKeys.AddRange(currentMiners.PublicKeys);
             return minerList;
-        }
-
-        public override FriendlyString GetCurrentMinersToFriendlyString(Empty input)
-        {
-            return new FriendlyString {Value = GetCurrentMiners(input).ToString()};
         }
 
         // TODO: Add an API to get unexpired tickets info.
@@ -196,11 +171,6 @@ namespace AElf.Contracts.Consensus.DPoS
 
             tickets.VotingRecordsCount = tickets.VotingRecords.Count;
             return tickets;
-        }
-
-        public override FriendlyString GetTicketsInformationToFriendlyString(PublicKey input)
-        {
-            return new FriendlyString {Value = GetTicketsInformation(input).ToString()};
         }
 
         public override VotingRecord GetVotingRecord(Hash input)
@@ -261,11 +231,6 @@ namespace AElf.Contracts.Consensus.DPoS
             return result;
         }
 
-        public override FriendlyString GetPageableTicketsInfoToFriendlyString(PageableTicketsInfoInput input)
-        {
-            return new FriendlyString {Value = GetPageableTicketsInfo(input).ToString()};
-        }
-
         public override Tickets GetPageableNotWithdrawnTicketsInfo(PageableTicketsInfoInput input)
         {
             var publicKey = new PublicKey {Hex = input.PublicKey};
@@ -290,11 +255,6 @@ namespace AElf.Contracts.Consensus.DPoS
             };
 
             return result;
-        }
-
-        public override FriendlyString GetPageableNotWithdrawnTicketsInfoToFriendlyString(PageableTicketsInfoInput input)
-        {
-            return new FriendlyString {Value = GetPageableNotWithdrawnTicketsInfo(input).ToString()};
         }
 
         public override TicketsHistories GetPageableTicketsHistories(PageableTicketsInfoInput input)
@@ -336,11 +296,6 @@ namespace AElf.Contracts.Consensus.DPoS
             result.HistoriesNumber = histories.Values.Count;
 
             return result;
-        }
-
-        public override FriendlyString GetPageableTicketsHistoriesToFriendlyString(PageableTicketsInfoInput input)
-        {
-            return new FriendlyString {Value = GetPageableTicketsHistories(input).ToString()};
         }
 
         /// <summary>
@@ -400,11 +355,6 @@ namespace AElf.Contracts.Consensus.DPoS
             return new TicketsDictionary();
         }
 
-        public override FriendlyString GetPageableElectionInfoToFriendlyString(PageableElectionInfoInput input)
-        {
-            return new FriendlyString {Value = GetPageableElectionInfo(input).ToString()};
-        }
-
         public override SInt64Value GetBlockchainAge(Empty input)
         {
             return new SInt64Value {Value = State.AgeField.Value};
@@ -417,19 +367,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 : new StringList();
         }
 
-        public override FriendlyString GetCurrentVictoriesToFriendlyString(Empty input)
-        {
-            return new FriendlyString {Value = GetCurrentVictories(input).ToString()};
-        }
-
         public override TermSnapshot GetTermSnapshot(SInt64Value input)
         {
             return State.SnapshotMap[input.Value.ToInt64Value()];
-        }
-
-        public override FriendlyString GetTermSnapshotToFriendlyString(SInt64Value input)
-        {
-            return new FriendlyString {Value = GetTermSnapshot(input).ToString()};
         }
 
         public override Alias QueryAlias(PublicKey input)
@@ -508,11 +448,6 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             return new SInt64Value();
-        }
-
-        public override FriendlyString QueryAliasesInUseToFriendlyString(Empty input)
-        {
-            return new FriendlyString {Value = QueryAliasesInUse(input).ToString()};
         }
     }
 }
