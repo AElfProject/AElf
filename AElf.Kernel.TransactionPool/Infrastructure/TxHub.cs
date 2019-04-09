@@ -17,6 +17,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
     public class TxHub : ITxHub, ISingletonDependency
     {
         public ILogger<TxHub> Logger { get; set; }
+        public TransactionOptions TransactionOptions { get; set; }
 
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
@@ -53,8 +54,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
             {
-                Logger.LogWarning(
-                    $"Attempting to retrieve executable transactions while best chain records don't match.");
+                Logger.LogWarning($"Attempting to retrieve executable transactions while best chain records don't match.");
                 return new ExecutableTransactionSet
                 {
                     PreviousBlockHash = _bestChainHash,
@@ -182,7 +182,19 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var receipt = new TransactionReceipt(transaction);
                 if (_allTransactions.ContainsKey(receipt.TransactionId))
                 {
-                    Logger.LogWarning($"Transaction already exists in TxPool");
+                    Logger.LogWarning($"Transaction already exists in TxStore");
+                    continue;
+                }
+
+                if (_allTransactions.Count > TransactionOptions.PoolLimit)
+                {
+                    Logger.LogWarning($"TxStore is full, ignore tx {receipt.TransactionId}");
+                    break;
+                }
+
+                if (transaction.CalculateSize() > TransactionPoolConsts.TransactionSizeLimit)
+                {
+                    Logger.LogWarning($"Transaction {receipt.TransactionId} oversize {transaction.CalculateSize()}");
                     continue;
                 }
 
