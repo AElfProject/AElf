@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Infrastructure;
@@ -25,8 +26,8 @@ namespace AElf.Kernel.SmartContract.Infrastructure
     {
         private readonly IStateStore<T> _stateStoreImplementation;
 
-        private Dictionary<string, T> _cache = new Dictionary<string, T>();
-        private Queue<string> _toBeCleanedKeys = new Queue<string>();
+        private ConcurrentDictionary<string, T> _cache = new ConcurrentDictionary<string, T>();
+        private ConcurrentQueue<string> _toBeCleanedKeys = new ConcurrentQueue<string>();
 
         public NotModifiedCachedStateStore(IStateStore<T> stateStoreImplementation)
         {
@@ -35,7 +36,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
 
         public async Task SetAsync(string key, T value)
         {
-            _cache[key] = value;
+            SetCache(key, value);
             await _stateStoreImplementation.SetAsync(key, value);
         }
 
@@ -43,7 +44,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         {
             foreach (var set in pipelineSet)
             {
-                _cache[set.Key] = set.Value;
+                SetCache(set.Key, set.Value);
             }
             await _stateStoreImplementation.PipelineSetAsync(pipelineSet);
         }
@@ -54,27 +55,35 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             {
                 return item;
             }
+            
+            var state = await _stateStoreImplementation.GetAsync(key);
+            SetCache(key, state);
 
+            return state;
+        }
+
+        public async Task RemoveAsync(string key)
+        {
+            _cache.TryRemove(key, out _);
+            await _stateStoreImplementation.RemoveAsync(key);
+        }
+
+        private void SetCache(string key, T value)
+        {
             _toBeCleanedKeys.Enqueue(key);
             while (_toBeCleanedKeys.Count > 100)
             {
                 try
                 {
-                    _cache.Remove(_toBeCleanedKeys.Dequeue());
+                    if (_toBeCleanedKeys.TryDequeue(out var cleanKey))
+                        _cache.TryRemove(cleanKey, out _);
                 }
                 catch
                 {
                     //ignore concurrency exceptions 
                 }
             }
-
-            return _cache[key] = await _stateStoreImplementation.GetAsync(key);
-        }
-
-        public async Task RemoveAsync(string key)
-        {
-            _cache.Remove(key);
-            await _stateStoreImplementation.RemoveAsync(key);
+            _cache[key] = value;
         }
     }
 }
