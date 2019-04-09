@@ -125,7 +125,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var previousTriggers = await GenerateEncryptedMessagesTest();
 
-            await ChangeRound();
+            await BootMinerChangeRoundAsync();
 
             var currentRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
