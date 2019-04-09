@@ -83,21 +83,29 @@ namespace AElf.Runtime.CSharp
 
         public async Task ApplyAsync(ITransactionContext transactionContext)
         {
-            _hostSmartContractBridgeContext.TransactionContext = transactionContext;
-            if (CurrentTransactionContext.CallDepth > CurrentTransactionContext.MaxCallDepth)
+            try
             {
-                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
-                CurrentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
-                return;
-            }
-            Execute();
-            if (CurrentTransactionContext.CallDepth == 0)
-            {
-                // Plugin should only apply to top level transaction
-                foreach (var plugin in _executivePlugins)
+                _hostSmartContractBridgeContext.TransactionContext = transactionContext;
+                if (CurrentTransactionContext.CallDepth > CurrentTransactionContext.MaxCallDepth)
                 {
-                    plugin.PostMain(_hostSmartContractBridgeContext, _serverServiceDefinition);
-                }                
+                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
+                    CurrentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
+                    return;
+                }
+
+                Execute();
+                if (CurrentTransactionContext.CallDepth == 0)
+                {
+                    // Plugin should only apply to top level transaction
+                    foreach (var plugin in _executivePlugins)
+                    {
+                        plugin.PostMain(_hostSmartContractBridgeContext, _serverServiceDefinition);
+                    }
+                }
+            }
+            finally
+            {
+                _hostSmartContractBridgeContext.TransactionContext = null;
             }
         }
 
