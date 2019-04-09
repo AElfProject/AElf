@@ -56,7 +56,7 @@ namespace AElf.Sdk.CSharp.State
             {
                 var propertyInfo = kv.Value;
                 var path = this.Path.Clone();
-                path.Path.Add(ByteString.CopyFromUtf8(kv.Key));
+                path.Parts.Add(kv.Key);
                 ((StateBase) propertyInfo.GetValue(this)).Path = path;
             }
 
@@ -72,17 +72,6 @@ namespace AElf.Sdk.CSharp.State
             }
 
             base.OnContextSet();
-        }
-
-        internal override void OnProviderSet()
-        {
-            foreach (var kv in _propertyInfos)
-            {
-                var propertyInfo = kv.Value;
-                ((StateBase) propertyInfo.GetValue(this)).Provider = this.Provider;
-            }
-
-            base.OnProviderSet();
         }
 
         internal override void Clear()
