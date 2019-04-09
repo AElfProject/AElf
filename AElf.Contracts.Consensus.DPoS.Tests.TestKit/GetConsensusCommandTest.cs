@@ -64,7 +64,7 @@ namespace AElf.Contracts.Consensus.DPoS
         [Fact]
         public async Task Normal_Round_First_Miner_Test()
         {
-            await ChangeRound();
+            await BootMinerChangeRoundAsync();
 
             // Check second round information.
             var secondRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());

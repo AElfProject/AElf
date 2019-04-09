@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
@@ -36,41 +38,44 @@ namespace AElf.Kernel.Consensus.DPoS
             _transactionReadOnlyExecutionService = GetRequiredService<ITransactionReadOnlyExecutionService>();
         }
 
-        [Fact(Skip = "Need to rewrite")]
+        [Fact]
         public void GetTriggerInformation_ConsensusCommand_IsNull()
         {
             var dPoSTriggerInformation =
                 (CommandInput) _consensusInformationGenerationService.GetTriggerInformation(
                     TriggerType.ConsensusCommand);
+            
+            dPoSTriggerInformation.ShouldNotBeNull();
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(_accountService.GetPublicKeyAsync().Result.ToHex());
         }
 
-        [Fact(Skip = "Need to rewrite")]
+        [Fact]
         public void GetTriggerInformation__ConsensusCommand_UpdateValue()
         {
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
 
             var dPoSTriggerInformation =
-                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
-                    .ConsensusCommand);
+                (DPoSTriggerInformation)consensusInformationGenerationService.GetTriggerInformation(TriggerType
+                    .BlockHeaderExtraData);
             dPoSTriggerInformation.RandomHash.ShouldNotBeNull();
         }
 
-        [Fact(Skip = "Need to rewrite")]
+        [Fact]
         public void GetTriggerInformation__ConsensusCommand_NextRound()
         {
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextRound);
 
             var dPoSTriggerInformation =
-                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
-                    .ConsensusCommand);
+                (DPoSTriggerInformation)consensusInformationGenerationService.GetTriggerInformation(TriggerType
+                    .BlockHeaderExtraData);
+            
             var publicKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }
 
-        [Fact(Skip = "Need to rewrite")]
+        [Fact]
         public void GetTriggerInformation__ConsensusCommand_NextTerm()
         {
             var consensusInformationGenerationService =
@@ -78,9 +83,42 @@ namespace AElf.Kernel.Consensus.DPoS
 
             var dPoSTriggerInformation =
                 (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
-                    .ConsensusCommand);
+                    .BlockHeaderExtraData);
             var publicKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
+        }
+
+        [Fact]
+        public void ParseConsensusTriggerInformation()
+        {
+            var consensusInformationGenerationService =
+                GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
+
+            var bytes =
+                consensusInformationGenerationService.GetTriggerInformation(TriggerType
+                    .BlockHeaderExtraData).ToByteArray();
+            var dPoSTriggerInformation = DPoSTriggerInformation.Parser.ParseFrom(bytes);
+            
+            dPoSTriggerInformation.ShouldNotBeNull();
+            dPoSTriggerInformation.RandomHash.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task GetInformationToUpdateConsensusAsync()
+        {
+            var consensusInformationGenerationService =
+                GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
+            var chainContext = new ChainContext
+            {
+                BlockHash = Hash.Generate(),
+                BlockHeight = 1
+            };
+            var bytes = await consensusInformationGenerationService.GetInformationToUpdateConsensusAsync(chainContext,
+                DateTime.Now.Add(TimeSpan.FromSeconds(4)));
+            
+            var dposInformation = DPoSTriggerInformation.Parser.ParseFrom(bytes);
+            dposInformation.Behaviour.ShouldBe(DPoSBehaviour.UpdateValue);
+            dposInformation.PublicKey.ShouldBe(ByteString.CopyFromUtf8("test"));
         }
 
         private IConsensusInformationGenerationService GetConsensusInformationGenerationService(

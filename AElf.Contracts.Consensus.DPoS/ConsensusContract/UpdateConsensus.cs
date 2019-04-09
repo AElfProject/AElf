@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AElf.Common;
@@ -6,7 +7,6 @@ using AElf.Consensus.DPoS;
 using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -74,7 +74,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     };
                 case DPoSBehaviour.NextTerm:
                     var firstRoundOfNextTerm = GenerateFirstRoundOfNextTerm(publicKey.ToHex());
-                    Assert(firstRoundOfNextTerm != new Round(), "Failed to generate new round information.");
+                    Assert(firstRoundOfNextTerm.RoundId != 0, "Failed to generate new round information.");
                     var information = new DPoSHeaderInformation
                     {
                         SenderPublicKey = publicKey,
@@ -146,18 +146,87 @@ namespace AElf.Contracts.Consensus.DPoS
                 if (round.RealTimeMinersInformation[pair.Key].PreviousInValue != null &&
                     round.RealTimeMinersInformation[pair.Key].PreviousInValue != previousInValue)
                 {
-                    Context.LogDebug(() => "Different previous in value.");
+                    Context.LogDebug(() => $"Different previous in value: {pair.Key}");
                 }
+
                 round.RealTimeMinersInformation[pair.Key].PreviousInValue = previousInValue;
             }
         }
-        
+
         private bool GenerateNextRoundInformation(Round currentRound, DateTime blockTime, out Round nextRound)
         {
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
+            if (TryToGetPreviousRoundInformation(out var previousRound))
+            {
+                var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);
+                var evilMinersCount = evilMinersPublicKey.Count;
+                if (evilMinersCount != 0)
+                {
+                    foreach (var publicKeyToRemove in evilMinersPublicKey)
+                    {
+                        var theOneFeelingLucky = GetNextAvailableMinerPublicKey(currentRound);
+
+                        if (theOneFeelingLucky == null)
+                        {
+                            break;
+                        }
+
+                        // Update history information of evil node.
+                        var history = State.HistoryMap[publicKeyToRemove.ToStringValue()];
+                        history.ProducedBlocks +=
+                            currentRound.RealTimeMinersInformation[publicKeyToRemove].ProducedBlocks;
+                        history.MissedTimeSlots += 
+                            currentRound.RealTimeMinersInformation[publicKeyToRemove].MissedTimeSlots;
+                        history.IsEvilNode = true;
+                        State.HistoryMap[publicKeyToRemove.ToStringValue()] = history;
+
+                        // Transfer evil node's consensus information to the chosen backup.
+                        var minerInRound = currentRound.RealTimeMinersInformation[publicKeyToRemove];
+                        minerInRound.PublicKey = theOneFeelingLucky;
+                        minerInRound.ProducedBlocks = 0;
+                        minerInRound.MissedTimeSlots = 0;
+                        currentRound.RealTimeMinersInformation[theOneFeelingLucky] = minerInRound;
+
+                        currentRound.RealTimeMinersInformation.Remove(publicKeyToRemove);
+                    }
+                }
+            }
+
             var result = currentRound.GenerateNextRoundInformation(blockTime, blockchainStartTimestamp, out nextRound);
             nextRound.BlockchainAge = CurrentAge;
             return result;
+        }
+
+        private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
+        {
+            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
+                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey)
+                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue
+                where previousOutValue != null && Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
+                select minerInCurrentRound.PublicKey).ToList();
+        }
+
+        private string GetNextAvailableMinerPublicKey(Round round)
+        {
+            string nextCandidate = null;
+
+            TryToGetRoundInformation(1, out var firstRound);
+            // Check out election snapshot.
+            if (TryToGetTermNumber(out var termNumber) && termNumber > 1 &&
+                TryToGetSnapshot(termNumber - 1, out var snapshot))
+            {
+                nextCandidate = snapshot.CandidatesSnapshot
+                        // Except initial miners.
+                    .Where(cs => !firstRound.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
+                        // Except current miners.
+                    .Where(cs => !round.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
+                    .OrderByDescending(s => s.Votes)
+                    .FirstOrDefault(c => !round.RealTimeMinersInformation.ContainsKey(c.PublicKey))?.PublicKey;
+            }
+
+            // Check out initial miners.
+            return nextCandidate ?? firstRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
+                       !round.RealTimeMinersInformation.ContainsKey(k));
         }
 
         public override TransactionList GenerateConsensusTransactions(DPoSTriggerInformation input)

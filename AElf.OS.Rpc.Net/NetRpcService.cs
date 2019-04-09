@@ -29,7 +29,7 @@ namespace AElf.OS.Rpc.Net
         [JsonRpcMethod("GetPeers")]
         public async Task<List<string>> GetPeers()
         {
-            return NetworkService.GetPeers();
+            return NetworkService.GetPeerIpList();
         }
     }
 }

@@ -190,9 +190,9 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Snapshot for the number of votes of new victories.
             var candidateInTerms = new List<CandidateInTerm>();
-            if (TryToGetVictories(out var victories))
+            if (State.CandidatesField.Value != null)
             {
-                foreach (var candidatePublicKey in victories.PublicKeys)
+                foreach (var candidatePublicKey in State.CandidatesField.Value.PublicKeys)
                 {
                     if (TryToGetTicketsInformation(candidatePublicKey, out var candidateTickets))
                     {
@@ -307,7 +307,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Set dividends of related term to Dividends Contract.
             var minedBlocks = roundInformation.GetMinedBlocks();
             State.DividendContract.AddDividends.Send(
-                new AddDividendsInput()
+                new AddDividendsInput
                 {
                     TermNumber = dividendsTermNumber,
                     DividendsAmount = GetDividendsForVoters(minedBlocks)

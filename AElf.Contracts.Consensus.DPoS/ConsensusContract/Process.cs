@@ -57,12 +57,9 @@ namespace AElf.Contracts.Consensus.DPoS
 
             foreach (var tuneOrder in input.TuneOrderInformation)
             {
-                LogVerbose(
-                    $"Will tune {tuneOrder.Key} order from {round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound} to {tuneOrder.Value}");
                 round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
             }
 
-            LogVerbose($"Previous in value published by {publicKey} himself is {input.PreviousInValue.ToHex()}");
             // For first round of each term, no one need to publish in value.
             if (input.PreviousInValue != Hash.Empty)
             {

@@ -25,10 +25,8 @@ namespace AElf.CrossChain.Grpc
                 option.LocalServer = true;
                 option.LocalServerPort = 5001;
                 option.LocalServerIP = "127.0.0.1";
-                option.LocalCertificateFileName = "AELF";
                 option.RemoteParentChainNodeIp = "127.0.0.1";
                 option.RemoteParentChainNodePort = 5000;
-                option.RemoteParentCertificateFileName = "AELF";
             });
             
             Configure<ChainOptions>(option =>

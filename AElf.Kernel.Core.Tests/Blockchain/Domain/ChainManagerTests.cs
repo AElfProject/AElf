@@ -210,6 +210,10 @@ namespace AElf.Kernel.Blockchain.Domain
             }
 
             {
+                
+                chain.LastIrreversibleBlockHash.ShouldBe(_blocks[1]);
+                chain.LastIrreversibleBlockHeight.ShouldBe(1.BlockHeight());
+                
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[4]);
                 (await _chainManager.GetChainBlockIndexAsync(0.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[0]);
@@ -285,7 +289,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LongestChainHeight.ShouldBe(6.BlockHeight());
                 chain.LongestChainHash.ShouldBe(_blocks[7]);
 
-                chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
+                chain.NotLinkedBlocks[_blocks[9].ToStorageKey()].ShouldBe(_blocks[8].ToStorageKey());
             }
 
             //0 -> 1 -> 2 -> 3 -> 4 -> 5 -> *10[6]         , 2 branches
@@ -307,7 +311,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LongestChainHeight.ShouldBe(6.BlockHeight());
                 chain.LongestChainHash.ShouldBe(_blocks[7]);
 
-                chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
+                chain.NotLinkedBlocks[_blocks[9].ToStorageKey()].ShouldBe(_blocks[8].ToStorageKey());
             }
 
             //0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 10[6]         , 2 branches
@@ -329,8 +333,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LongestChainHeight.ShouldBe(6.BlockHeight());
                 chain.LongestChainHash.ShouldBe(_blocks[7]);
 
-                chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
-                chain.NotLinkedBlocks[_blocks[11].ToHex()].ShouldBe(_blocks[12].ToHex());
+                chain.NotLinkedBlocks[_blocks[9].ToStorageKey()].ShouldBe(_blocks[8].ToStorageKey());
+                chain.NotLinkedBlocks[_blocks[11].ToStorageKey()].ShouldBe(_blocks[12].ToStorageKey());
             }
 
             //0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 10[6] -> *11[7] -> 12[8]         , 2 branches
@@ -352,8 +356,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LongestChainHeight.ShouldBe(8.BlockHeight());
                 chain.LongestChainHash.ShouldBe(_blocks[12]);
 
-                chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
-                chain.NotLinkedBlocks.ContainsKey(_blocks[11].ToHex()).ShouldBeFalse();
+                chain.NotLinkedBlocks[_blocks[9].ToStorageKey()].ShouldBe(_blocks[8].ToStorageKey());
+                chain.NotLinkedBlocks.ContainsKey(_blocks[11].ToStorageKey()).ShouldBeFalse();
             }
 
             {
@@ -544,7 +548,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LongestChainHeight.ShouldBe(6.BlockHeight());
                 chain.LongestChainHash.ShouldBe(_blocks[7]);
 
-                chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
+                chain.NotLinkedBlocks[_blocks[9].ToStorageKey()].ShouldBe(_blocks[8].ToStorageKey());
             }
 
             //0 -> 1 -> 2 -> 3 -> 4 -> 5 -> *10[6]         , 2 branches
@@ -566,7 +570,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LongestChainHeight.ShouldBe(6.BlockHeight());
                 chain.LongestChainHash.ShouldBe(_blocks[7]);
 
-                chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
+                chain.NotLinkedBlocks[_blocks[9].ToStorageKey()].ShouldBe(_blocks[8].ToStorageKey());
             }
 
             //0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 10[6]         , 2 branches
@@ -588,8 +592,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LongestChainHeight.ShouldBe(6.BlockHeight());
                 chain.LongestChainHash.ShouldBe(_blocks[7]);
 
-                chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
-                chain.NotLinkedBlocks[_blocks[11].ToHex()].ShouldBe(_blocks[12].ToHex());
+                chain.NotLinkedBlocks[_blocks[9].ToStorageKey()].ShouldBe(_blocks[8].ToStorageKey());
+                chain.NotLinkedBlocks[_blocks[11].ToStorageKey()].ShouldBe(_blocks[12].ToStorageKey());
             }
 
             //0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 10[6] -> *11[7] -> 12[8]         , 2 branches
@@ -611,8 +615,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LongestChainHeight.ShouldBe(8.BlockHeight());
                 chain.LongestChainHash.ShouldBe(_blocks[12]);
 
-                chain.NotLinkedBlocks[_blocks[9].ToHex()].ShouldBe(_blocks[8].ToHex());
-                chain.NotLinkedBlocks.ContainsKey(_blocks[11].ToHex()).ShouldBeFalse();
+                chain.NotLinkedBlocks[_blocks[9].ToStorageKey()].ShouldBe(_blocks[8].ToStorageKey());
+                chain.NotLinkedBlocks.ContainsKey(_blocks[11].ToStorageKey()).ShouldBeFalse();
             }
         }
 
