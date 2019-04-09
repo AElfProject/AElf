@@ -47,8 +47,12 @@ namespace AElf.OS.Network.Application
             {
                 try
                 {
-                    await peer.AnnounceAsync(new PeerNewBlockAnnouncement
-                        {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height});
+                    var announcement = new PeerNewBlockAnnouncement
+                    {
+                        BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height
+                    };
+                    Logger.LogDebug($"PeerNewBlockAnnouncement: {announcement}");
+                    await peer.AnnounceAsync(announcement);
 
                     successfulBcasts++;
                 }

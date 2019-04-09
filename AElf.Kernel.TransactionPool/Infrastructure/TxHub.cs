@@ -54,7 +54,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             if (chain.BestChainHash != _bestChainHash)
             {
                 Logger.LogWarning(
-                    $"Attempting to retrieve executable transactions while best chain records don't macth.");
+                    $"Attempting to retrieve executable transactions while best chain records don't match.");
                 return new ExecutableTransactionSet
                 {
                     PreviousBlockHash = _bestChainHash,
