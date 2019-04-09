@@ -319,6 +319,19 @@ namespace AElf.Contracts.Consensus.DPoS
             DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.NextRound);
 
         }
+
+        [Fact]
+        public void GetRoundHash()
+        {
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+
+            var hash = round.GetHash();
+            hash.ShouldNotBeNull();
+
+            var hash1 = round.GetHash(false);
+            hash1.ShouldNotBeNull();
+        }
         
         /// <summary>
         /// Only able to generate information of first round.

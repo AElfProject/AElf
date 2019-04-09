@@ -117,7 +117,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 await testers.Testers[1].GetInformationToUpdateConsensusAsync(triggerInformationForNextRoundOrTerm, futureTime);
 
             // Assert
-            Assert.Equal(2L, newConsensusInformation.Round.RoundNumber);
+            newConsensusInformation.SenderPublicKey.ToHex().ShouldBe(testers.Testers[1].PublicKey);
+            newConsensusInformation.Round.RoundNumber.ShouldBeGreaterThanOrEqualTo(2);
         }
 
         [Fact]
