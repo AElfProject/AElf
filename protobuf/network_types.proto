@@ -14,9 +14,10 @@ message Handshake {
 }
 
 message HandshakeData {
-    int64 ListeningPort = 1;
-    bytes PublicKey = 2;
-    int32 Version = 3;
+    int32 ChainId = 1;
+    int32 Version = 2;
+    int64 ListeningPort = 3;
+    bytes PublicKey = 4;
 }
 
 message PeerNewBlockAnnouncement {

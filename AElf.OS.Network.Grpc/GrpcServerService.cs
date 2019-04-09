@@ -59,8 +59,12 @@ namespace AElf.OS.Network.Grpc
 
             if (handshake?.HskData == null)
                 return new ConnectReply { Err = AuthError.InvalidHandshake };
-            
-            //verify signature
+
+            // verify chain id
+            if (handshake.HskData.ChainId != _blockChainService.GetChainId())
+                return new ConnectReply { Err = AuthError.InvalidPeer };
+
+            // verify signature
             var validData = await _accountService.VerifySignatureAsync(handshake.Sig.ToByteArray(), 
                 Hash.FromMessage(handshake.HskData).ToByteArray(), handshake.HskData.PublicKey.ToByteArray());
             if (!validData)

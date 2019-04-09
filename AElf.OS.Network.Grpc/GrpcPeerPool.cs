@@ -100,7 +100,7 @@ namespace AElf.OS.Network.Grpc
                 await channel.ShutdownAsync();
                 return false;
             }
-            
+
             peer.DisconnectionEvent += PeerOnDisconnectionEvent;
 
             Logger.LogTrace($"Connected to {peer}.");
@@ -147,17 +147,17 @@ namespace AElf.OS.Network.Grpc
 
         public bool AddPeer(IPeer peer)
         {
-            if (!(peer is GrpcPeer p)) 
+            if (!(peer is GrpcPeer p))
                 return false;
-            
+
             if (!_authenticatedPeers.TryAdd(p.PubKey, p))
             {
                 Logger.LogWarning($"Could not add peer {peer.PubKey} ({peer.PeerIpAddress})");
                 return false;
             }
-            
+
             p.DisconnectionEvent += PeerOnDisconnectionEvent;
-            
+
             return true;
         }
 
@@ -173,6 +173,7 @@ namespace AElf.OS.Network.Grpc
                 ListeningPort = _networkOptions.ListeningPort,
                 PublicKey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
                 Version = KernelConstants.ProtocolVersion,
+                ChainId = _blockchainService.GetChainId()
             };
 
             byte[] sig = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
