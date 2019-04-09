@@ -35,8 +35,10 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
                 var index = await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain,
                     eventData.ExecutedBlocks);
-
-                await _blockchainService.SetIrreversibleBlockAsync(chain, index.Height, index.Hash);
+                if (index != null)
+                {
+                    await _blockchainService.SetIrreversibleBlockAsync(chain, index.Height, index.Hash);
+                }
             }, DPoSConsts.LIBSettingQueueName);
         }
     }
