@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.BackgroundJobs;
 using Xunit;
 
@@ -33,7 +35,28 @@ namespace AElf.OS.Handlers
         [Fact]
         public async Task HandleEventAsync_UnderLIBHeight_DoesNothing()
         {
-            var announcement = new PeerNewBlockAnnouncement {BlockHash = Hash.FromString("block"), BlockHeight = 1};
+            var announcement = new PeerNewBlockAnnouncement
+            {
+                BlockHash = Hash.FromString("block"),
+                BlockHeight = 1,
+                BlockTime = DateTime.UtcNow.ToTimestamp()
+            };
+            await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1"));
+
+            var jobs = await _jobStore.GetWaitingJobsAsync(MaxJobsToCheck);
+            Assert.True(jobs.Count == 0);
+        }
+
+        [Fact]
+        public async Task HandleEventAsync_FutureBlock_DoesNothing()
+        {
+            var announcement = new PeerNewBlockAnnouncement
+            {
+                BlockHash = Hash.FromString("block"),
+                BlockHeight = 1,
+                BlockTime = (DateTime.UtcNow + TimeSpan.FromSeconds(5)).ToTimestamp()
+            };
+
             await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1"));
 
             var jobs = await _jobStore.GetWaitingJobsAsync(MaxJobsToCheck);

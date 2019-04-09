@@ -2,11 +2,11 @@ using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Jobs;
+using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.BackgroundJobs;
 using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
@@ -48,11 +48,16 @@ namespace AElf.OS.Handlers
 
             Logger.LogTrace($"Receive header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
 
+            if (!VerifyAnnouncement(header.Announce))
+            {
+                return;
+            }
+
             var chain = await _blockchainService.GetChainAsync();
             if (blockHeight < chain.LastIrreversibleBlockHeight)
             {
-                Logger.LogTrace(
-                    $"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} form {senderPubKey}, ignore.");
+                Logger.LogTrace($"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} " +
+                                $"form {senderPubKey}, ignore.");
                 return;
             }
 
@@ -65,6 +70,18 @@ namespace AElf.OS.Handlers
                     BlockHeight = blockHeight
                 });
             });
+        }
+
+        private bool VerifyAnnouncement(PeerNewBlockAnnouncement announcement)
+        {
+            var t = DateTime.UtcNow + OSConsts.AllowedFutureBlockTimeSpan;
+            if ( t < announcement.BlockTime.ToDateTime())
+            {
+                Logger.LogWarning($"Receive future block {announcement}");
+                return false;
+            }
+
+            return true;
         }
     }
 }
