@@ -55,7 +55,7 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
 
-            var smartContractAddress = Address.Generate();
+            var smartContractAddress = Address.FromString("CrossChainContract");
 
             _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
                 smartContractAddress);
