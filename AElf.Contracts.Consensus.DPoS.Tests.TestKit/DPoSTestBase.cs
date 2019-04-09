@@ -26,10 +26,10 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public class DPoSTestBase : ContractTestBase<DPoSTestAElfModule>
     {
-        public const int MinersCount = 5;
-        public const int CandidatesCount = 10;
-        public const int VotersCount = 10;
-        public const int MiningInterval = 4000;
+        protected const int MinersCount = 5;
+        protected const int CandidatesCount = 10;
+        protected const int VotersCount = 10;
+        protected const int MiningInterval = 4000;
 
         protected ISmartContractAddressService ContractAddressService =>
             Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
@@ -97,10 +97,10 @@ namespace AElf.Contracts.Consensus.DPoS
                     })).Output;
         }
 
-        protected async Task InitializeCandidates()
+        protected async Task InitializeCandidates(int take = CandidatesCount)
         {
             var initialMiner = GetTokenContractTester(BootMinerKeyPair);
-            foreach (var candidatesKeyPair in CandidatesKeyPairs)
+            foreach (var candidatesKeyPair in CandidatesKeyPairs.Take(take))
             {
                 await initialMiner.Transfer.SendAsync(new TransferInput
                 {

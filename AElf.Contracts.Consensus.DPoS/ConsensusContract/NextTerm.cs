@@ -190,24 +190,27 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Snapshot for the number of votes of new victories.
             var candidateInTerms = new List<CandidateInTerm>();
-            foreach (var candidatePublicKey in State.CandidatesField.Value.PublicKeys)
+            if (State.CandidatesField.Value != null)
             {
-                if (TryToGetTicketsInformation(candidatePublicKey, out var candidateTickets))
+                foreach (var candidatePublicKey in State.CandidatesField.Value.PublicKeys)
                 {
-                    candidateInTerms.Add(new CandidateInTerm
+                    if (TryToGetTicketsInformation(candidatePublicKey, out var candidateTickets))
                     {
-                        PublicKey = candidatePublicKey,
-                        Votes = candidateTickets.ObtainedTickets
-                    });
-                }
-                else
-                {
-                    AddOrUpdateTicketsInformation(new Tickets {PublicKey = candidatePublicKey});
-                    candidateInTerms.Add(new CandidateInTerm
+                        candidateInTerms.Add(new CandidateInTerm
+                        {
+                            PublicKey = candidatePublicKey,
+                            Votes = candidateTickets.ObtainedTickets
+                        });
+                    }
+                    else
                     {
-                        PublicKey = candidatePublicKey,
-                        Votes = 0
-                    });
+                        AddOrUpdateTicketsInformation(new Tickets {PublicKey = candidatePublicKey});
+                        candidateInTerms.Add(new CandidateInTerm
+                        {
+                            PublicKey = candidatePublicKey,
+                            Votes = 0
+                        });
+                    }
                 }
             }
 
