@@ -29,10 +29,8 @@ message IndexingHandShakeReply {
 }
 
 service CrossChainRpc {
-    rpc RequestSideChainDuplexStreaming (stream RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
-    rpc RequestIndexingSideChain (RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
-    rpc RequestParentChainDuplexStreaming (stream RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
-    rpc RequestIndexingParentChain (RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
+    rpc RequestIndexingFromSideChain (RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
+    rpc RequestIndexingFromParentChain (RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
     rpc CrossChainIndexingShake (IndexingHandShake) returns (IndexingHandShakeReply) {} // only side chain shake with parent chain.
 }
 

@@ -6,26 +6,22 @@ namespace AElf.CrossChain
 {
     public interface ICrossChainDataProvider
     {
-        Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash previousBlockHash, long preBlockHeight);
+        Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
         Task<bool> ValidateSideChainBlockDataAsync(List<SideChainBlockData> sideChainBlockData,
-            Hash previousBlockHash, long preBlockHeight);
+            Hash currentBlockHash, long currentBlockHeight);
 
-        Task<List<ParentChainBlockData>> GetParentChainBlockDataAsync(Hash previousBlockHash, long preBlockHeight);
+        Task<List<ParentChainBlockData>> GetParentChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
         Task<bool> ValidateParentChainBlockDataAsync(List<ParentChainBlockData> parentChainBlockData,
-            Hash previousBlockHash, long preBlockHeight);
-
-        Task ActivateCrossChainCacheAsync(Hash blockHash, long blockHeight);
+            Hash currentBlockHash, long currentBlockHeight);
 
         void RegisterNewChain(int chainId);
-        //void AddNewSideChainDataConsumer(ICrossChainDataConsumer crossChainDataConsumer);
-        //int GetCachedChainCount();
-        //void CreateNewSideChain();
-        Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight);
+        
+        Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
-        Task<CrossChainBlockData> GetNewCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight);
+        Task<CrossChainBlockData> GetCrossChainBlockDataForNextMiningAsync(Hash currentBlockHash, long currentBlockHeight);
 
-        CrossChainBlockData GetUsedCrossChainBlockData(Hash previousBlockHash, long previousBlockHeight);
+        CrossChainBlockData GetUsedCrossChainBlockDataForLastMiningAsync(Hash blockHash, long previousBlockHeight);
     }
 }

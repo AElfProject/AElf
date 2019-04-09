@@ -35,7 +35,7 @@ namespace AElf.WebApp.Application.Net
         
         public Task<List<string>> GetPeers()
         {
-            return Task.FromResult(_networkService.GetPeers());
+            return Task.FromResult(_networkService.GetPeerIpList());
         }
     }
 }

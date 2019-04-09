@@ -41,7 +41,11 @@ namespace AElf.Kernel.Consensus.DPoS
                 var currentLibHeight = chain.LastIrreversibleBlockHeight;
                 var currentLibHash = chain.LastIrreversibleBlockHash;
 
-                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(new List<Hash>());
+                var index = await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain, new List<Hash>());
+                if (index != null)
+                {
+                    await _blockchainService.SetIrreversibleBlockAsync(chain, index.Height, index.Hash);
+                }
 
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
@@ -62,8 +66,12 @@ namespace AElf.Kernel.Consensus.DPoS
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 var executedBlocks = new List<Hash> {newBlock.GetHash()};
-                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(executedBlocks);
 
+                var index = await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain, executedBlocks);
+                if (index != null)
+                {
+                    await _blockchainService.SetIrreversibleBlockAsync(chain, index.Height, index.Hash);
+                }
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
 
@@ -88,8 +96,12 @@ namespace AElf.Kernel.Consensus.DPoS
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 var executedBlocks = new List<Hash> {newBlock.GetHash()};
-                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(executedBlocks);
 
+                var index = await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain, executedBlocks);
+                if (index != null)
+                {
+                    await _blockchainService.SetIrreversibleBlockAsync(chain, index.Height, index.Hash);
+                }
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
 
@@ -114,8 +126,12 @@ namespace AElf.Kernel.Consensus.DPoS
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
 
                 var executedBlocks = new List<Hash> {newBlock.GetHash()};
-                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(executedBlocks);
 
+                var index = await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain, executedBlocks);
+                if (index != null)
+                {
+                    await _blockchainService.SetIrreversibleBlockAsync(chain, index.Height, index.Hash);
+                }
                 LibShouldBe(currentLibHeight, currentLibHash);
             }
 
@@ -140,8 +156,12 @@ namespace AElf.Kernel.Consensus.DPoS
                 var libHash = await _blockchainService.GetBlockHashByHeightAsync(chain, 10, chain.LongestChainHash);
 
                 var executedBlocks = new List<Hash> {newBlock.GetHash()};
-                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(executedBlocks);
 
+                var index = await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain, executedBlocks);
+                if (index != null)
+                {
+                    await _blockchainService.SetIrreversibleBlockAsync(chain, index.Height, index.Hash);
+                }
                 LibShouldBe(10, libHash);
             }
         }
