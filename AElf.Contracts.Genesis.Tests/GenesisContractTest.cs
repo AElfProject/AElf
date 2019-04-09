@@ -38,6 +38,7 @@ namespace AElf.Contracts.Genesis
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
                 Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
             });
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             result.Output.ShouldNotBeNull();
             return result.Output;
         }

@@ -27,17 +27,31 @@ namespace AElf.Kernel.SmartContract
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _accountService = accountService;
+            var self = this;
+            Address GetAddress() => self.Transaction.To;
             _lazyStateProvider = new Lazy<IStateProvider>(
                 () => new CachedStateProvider(
-                    new StateProvider() {HostSmartContractBridgeContext = this}),
+                    new ScopedStateProvider()
+                    {
+                        ContractAddress = GetAddress(),
+                        HostSmartContractBridgeContext = this
+                    }),
                 LazyThreadSafetyMode.PublicationOnly);
         }
 
-        public ITransactionContext TransactionContext { get; set; }
-        public ISmartContractContext SmartContractContext { get; set; }
+        private ITransactionContext _transactionContext;
 
-        
-        private Lazy<IStateProvider> _lazyStateProvider;
+        public ITransactionContext TransactionContext
+        {
+            get => _transactionContext;
+            set
+            {
+                _transactionContext = value;
+                StateProvider.Cache = _transactionContext?.StateCache ?? new NullStateCache();
+            }
+        }
+
+        private readonly Lazy<IStateProvider> _lazyStateProvider;
 
         public IStateProvider StateProvider => _lazyStateProvider.Value;
         public Address GetContractAddressByName(Hash hash)
@@ -45,12 +59,9 @@ namespace AElf.Kernel.SmartContract
             return _smartContractBridgeService.GetAddressByContractName(hash);
         }
 
-        public void Initialize(ITransactionContext transactionContext,
-            ISmartContractContext smartContractContext)
+        public void Initialize(ITransactionContext transactionContext)
         {
             TransactionContext = transactionContext;
-            SmartContractContext = smartContractContext;
-
         }
 
         public async Task<ByteString> GetStateAsync(string key)
@@ -87,7 +98,7 @@ namespace AElf.Kernel.SmartContract
         public Transaction Transaction => TransactionContext.Transaction.Clone();
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.Clone();
-        public Address Self => SmartContractContext.ContractAddress.Clone();
+        public Address Self => TransactionContext.Transaction.To.Clone();
         public Address Genesis => Address.Genesis;
         public long CurrentHeight => TransactionContext.BlockHeight;
         public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;

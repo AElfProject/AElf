@@ -5,16 +5,14 @@ using AElf.Kernel.SmartContract.Sdk;
 
 namespace AElf.Kernel.SmartContract.Infrastructure
 {
+    /// <summary>
+    /// An isolated environment for runtime contract code.
+    /// </summary>
     public interface IExecutive
     {
-        IExecutive SetMaxCallDepth(int maxCallDepth);
- 
         IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext);
-        IExecutive SetTransactionContext(ITransactionContext transactionContext);
-        void SetDataCache(IStateCache cache); //temporary solution to let data provider access actor's state cache
-        Task ApplyAsync();
+        Task ApplyAsync(ITransactionContext transactionContext);
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);
         byte[] GetFileDescriptorSet();
-
     }
 }
