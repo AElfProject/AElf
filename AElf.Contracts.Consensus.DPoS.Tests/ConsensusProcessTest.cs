@@ -65,6 +65,46 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
+        public async Task NormalBlock_ValidateConsensusAfterExecution_Failed()
+        {
+            var startTime = DateTime.UtcNow.ToTimestamp();
+            var testers = new ConsensusTesters();
+            testers.InitialTesters(startTime);
+
+            var inValue = Hash.Generate();
+            var triggerInformationForNormalBlock =
+                GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
+
+            var newInformation =
+                await testers.Testers[1]
+                    .GetInformationToUpdateConsensusAsync(triggerInformationForNormalBlock, DateTime.UtcNow);
+            
+            // Act
+            var validationResult = await testers.Testers[0].ValidateConsensusAfterExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeFalse();
+            validationResult.Message.ShouldBe("Current round information is different with consensus extra data.");
+        }
+        
+        [Fact]
+        public async Task NormalBlock_ValidateConsensusAfterExecution_Success()
+        {
+            var startTime = DateTime.UtcNow.ToTimestamp();
+            var testers = new ConsensusTesters();
+            testers.InitialTesters(startTime);
+
+            var newInformation = new DPoSHeaderInformation
+            {
+                SenderPublicKey = ByteString.CopyFrom(testers.Testers[0].KeyPair.PublicKey),
+                Round = await testers.Testers[0].GetCurrentRoundInformationAsync(),
+                Behaviour = DPoSBehaviour.UpdateValueWithoutPreviousInValue
+            };
+            
+            // Act
+            var validationResult = await testers.Testers[0].ValidateConsensusAfterExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeTrue();
+        }
+
+        [Fact]
         public async Task NormalBlock_GenerateConsensusTransactions()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
