@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -9,15 +10,13 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using AElf.OS;
-using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
 using AElf.TestBase;
+using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus.DPoS
@@ -77,6 +76,31 @@ namespace AElf.Kernel.Consensus.DPoS
                 o.IsBootMiner = true;
             });
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
+            context.Services.AddTransient(o =>
+            {
+                var mockService = new Mock<ISmartContractAddressService>();
+                mockService.Setup(m=>m.GetAddressByContractName(It.IsAny<Hash>()))
+                    .Returns(Address.Generate);
+
+                return mockService.Object;
+            });
+            context.Services.AddTransient(o=>
+            {
+                var mockService = new Mock<ITransactionReadOnlyExecutionService>();
+                mockService.Setup(m=>m.ExecuteAsync(It.IsAny<ChainContext>(), It.IsAny<Transaction>(),It.IsAny<DateTime>()))
+                    .Returns(Task.FromResult(new TransactionTrace
+                    {
+                        ExecutionStatus = ExecutionStatus.Executed,
+                        ReturnValue = new DPoSHeaderInformation
+                        {
+                            Behaviour = DPoSBehaviour.UpdateValue,
+                            Round = new Round(),
+                            SenderPublicKey = ByteString.CopyFromUtf8("test")
+                        }.ToByteString() 
+                    }));
+
+                return mockService.Object;
+            });
             context.Services.AddTransient<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
         }
     }

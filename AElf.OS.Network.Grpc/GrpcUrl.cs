@@ -2,7 +2,6 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcUrl
     {
-        //TODO: Add Parse test case  [Case]
         public static GrpcUrl Parse(string address)
         {
             var splitRes = address.Split(':');
