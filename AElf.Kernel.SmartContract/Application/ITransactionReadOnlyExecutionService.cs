@@ -108,6 +108,7 @@ namespace AElf.Kernel.SmartContract.Application
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,
                 CallDepth = 0,
+                StateCache = chainContext.StateCache
             };
 
             var executive = await _smartContractExecutiveService.GetExecutiveAsync(
@@ -115,8 +116,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             try
             {
-                executive.SetDataCache(chainContext.StateCache);
-                await executive.SetTransactionContext(transactionContext).ApplyAsync();
+                await executive.ApplyAsync(transactionContext);
             }
             finally
             {
@@ -135,7 +135,6 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(
                     chainContext, address);
-                executive.SetDataCache(chainContext.StateCache);
                 output = executive.GetFileDescriptorSet();
             }
             finally

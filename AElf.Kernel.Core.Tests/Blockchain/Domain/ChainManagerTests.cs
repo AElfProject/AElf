@@ -210,6 +210,10 @@ namespace AElf.Kernel.Blockchain.Domain
             }
 
             {
+                
+                chain.LastIrreversibleBlockHash.ShouldBe(_blocks[1]);
+                chain.LastIrreversibleBlockHeight.ShouldBe(1.BlockHeight());
+                
                 await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[4]);
                 (await _chainManager.GetChainBlockIndexAsync(0.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[0]);

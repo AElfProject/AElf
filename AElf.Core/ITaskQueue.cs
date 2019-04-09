@@ -93,6 +93,14 @@ namespace AElf
         ITaskQueue GetQueue(string name = null);
     }
 
+    public static class TaskQueueManagerExtensions
+    {
+        public static void Enqueue(this ITaskQueueManager taskQueueManager, Func<Task> task, string name = null)
+        {
+            taskQueueManager.GetQueue(name).Enqueue(task);
+        }
+    }
+
     public class TaskQueueManager : ITaskQueueManager, ISingletonDependency
     {
         private readonly IServiceProvider _serviceProvider;

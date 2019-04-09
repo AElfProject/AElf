@@ -99,8 +99,6 @@ namespace AElf.CrossChain
             {
                 new SideChainBlockData {SideChainId = chainId, SideChainHeight = 1}
             };
-
-
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
 
             var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
@@ -478,42 +476,5 @@ namespace AElf.CrossChain
         }
 
         #endregion
-
-        [Fact]
-        public async Task Activate_Cache_WithChainExist()
-        {
-            int chainId = 123;
-            var blockInfoCache = new List<IBlockInfo>
-            {
-                new SideChainBlockData {SideChainHeight = 1, SideChainId = chainId}
-            };
-            var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
-            AddFakeCacheData(fakeCache);
-            int fakeChainId = 124;
-            _crossChainTestHelper.AddFakeParentChainIdHeight(fakeChainId, 1);
-
-            await _crossChainDataProvider.ActivateCrossChainCacheAsync(Hash.Empty, 1);
-            Assert.True(CrossChainDataConsumer.GetCachedChainCount() == 2);
-        }
-
-
-        [Fact]
-        public async Task Activate_Cache_WithoutChainExist()
-        {
-            int chainId = 123;
-            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
-            await _crossChainDataProvider.ActivateCrossChainCacheAsync(Hash.Empty, 1);
-            Assert.True(CrossChainDataConsumer.GetCachedChainCount() == 1);
-        }
-        
-        [Fact]
-        public async Task Activate_Cache_Twice()
-        {
-            int chainId = 123;
-            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
-            await _crossChainDataProvider.ActivateCrossChainCacheAsync(Hash.Empty, 1);
-            await _crossChainDataProvider.ActivateCrossChainCacheAsync(Hash.Empty, 1);
-            Assert.True(CrossChainDataConsumer.GetCachedChainCount() == 1);
-        }
     }
 }

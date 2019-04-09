@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
+using Volo.Abp.Threading;
 
 namespace AElf.CrossChain.Grpc
 {
@@ -28,17 +29,18 @@ namespace AElf.CrossChain.Grpc
             _serverBase = serverBase;
         }
 
-        public async Task StartAsync(string localServerIP, int localServerPort, KeyCertificatePair keyCert)
+        public async Task StartAsync(string localServerIP, int localServerPort)
         {
             _server = new global::Grpc.Core.Server
             {
                 Services = {CrossChainRpc.BindService(_serverBase)},
                 Ports =
                 {
-                    new ServerPort(localServerIP, localServerPort, new SslServerCredentials(new List<KeyCertificatePair> {keyCert}))
+                    new ServerPort(localServerIP, localServerPort, ServerCredentials.Insecure)
                 }
             };
-            _server.Start();
+            
+            await Task.Run(() => _server.Start());
             
             Logger.LogDebug($"Grpc cross chain server started, listening at {localServerPort}");
         }
@@ -47,7 +49,7 @@ namespace AElf.CrossChain.Grpc
         {
             if (_server == null)
                 return;
-            _server.ShutdownAsync();
+            AsyncHelper.RunSync(() =>_server.ShutdownAsync());
             _server = null;
         }
     }

@@ -105,8 +105,7 @@ namespace AElf.Kernel.SmartContract.Application
             //executive.ContractHash = reg.CodeHash;
             //executive.ContractAddress = address;
             var context =
-                _hostSmartContractBridgeContextService.Create(new SmartContractContext()
-                    {ContractAddress = address, RunnerCategory = reg.Category});
+                _hostSmartContractBridgeContextService.Create();
             executive.SetHostSmartContractBridgeContext(context);
             return executive;
         }
@@ -114,16 +113,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
-            executive.SetTransactionContext(new TransactionContext()
-            {
-                Transaction = new Transaction()
-                {
-                    To = address // This is to ensure that the contract has same address
-                }
-            });
-            executive.SetDataCache(new NullStateCache());
             GetPool(address).Add(executive);
-
             await Task.CompletedTask;
         }
 
@@ -183,7 +173,6 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 TransactionId = transaction.GetHash()
             };
-            Console.WriteLine(trace.ToString());
 
             var txCtxt = new TransactionContext
             {
@@ -193,11 +182,10 @@ namespace AElf.Kernel.SmartContract.Application
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,
                 CallDepth = 0,
+                StateCache = chainContext.StateCache
             };
-            Console.WriteLine(txCtxt.ToString());
 
-            executiveZero.SetDataCache(chainContext.StateCache);
-            await executiveZero.SetTransactionContext(txCtxt).ApplyAsync();
+            await executiveZero.ApplyAsync(txCtxt);
             var returnBytes = txCtxt.Trace?.ReturnValue;
             if (returnBytes != null && returnBytes != ByteString.Empty)
             {

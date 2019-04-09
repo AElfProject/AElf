@@ -18,6 +18,7 @@ namespace AElf.Sdk.CSharp
             _smartContractBridgeContextImplementation = smartContractBridgeContextImplementation;
         }
 
+        public IStateProvider StateProvider => _smartContractBridgeContextImplementation.StateProvider;
         public int ChainId => _smartContractBridgeContextImplementation.ChainId;
 
         public void LogDebug(Func<string> func)

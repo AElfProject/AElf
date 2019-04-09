@@ -7,6 +7,6 @@ namespace AElf.CrossChain.Grpc
 {
     public interface ICrossChainServer : IDisposable
     {
-        Task StartAsync(string localServerIP, int localServerPort, KeyCertificatePair keyCertificatePair);
+        Task StartAsync(string localServerIP, int localServerPort);
     }
 }

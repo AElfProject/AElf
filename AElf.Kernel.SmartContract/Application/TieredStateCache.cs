@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -6,7 +7,7 @@ namespace AElf.Kernel.SmartContract.Application
     public class TieredStateCache : IStateCache
     {
         private IStateCache _parent = new NullStateCache();
-        private Dictionary<StatePath, byte[]> _originalValues = new Dictionary<StatePath, byte[]>();
+        private Dictionary<ScopedStatePath, byte[]> _originalValues = new Dictionary<ScopedStatePath, byte[]>();
         private Dictionary<string, byte[]> _currentValues = new Dictionary<string, byte[]>();
 
         public TieredStateCache() : this(new NullStateCache())
@@ -21,7 +22,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
         }
 
-        public bool TryGetValue(StatePath key, out byte[] value)
+        public bool TryGetValue(ScopedStatePath key, out byte[] value)
         {
             // if the original value doesn't exist, then the state is not in the cache
             if (!TryGetOriginalValue(key, out value))
@@ -38,7 +39,7 @@ namespace AElf.Kernel.SmartContract.Application
             return true;
         }
 
-        public byte[] this[StatePath key]
+        public byte[] this[ScopedStatePath key]
         {
             get => TryGetValue(key, out var value) ? value : null;
             set
@@ -58,7 +59,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
         }
 
-        private bool TryGetOriginalValue(StatePath path, out byte[] value)
+        private bool TryGetOriginalValue(ScopedStatePath path, out byte[] value)
         {
             if (_originalValues.TryGetValue(path, out value))
             {
