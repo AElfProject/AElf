@@ -48,7 +48,12 @@ message TransactionReceipt {
 }
 
 message StatePath {
-    repeated bytes Path = 1;
+    repeated string parts = 1;
+}
+
+message ScopedStatePath {
+    Address address = 1;
+    StatePath path = 2;
 }
 
 message StateValue {
