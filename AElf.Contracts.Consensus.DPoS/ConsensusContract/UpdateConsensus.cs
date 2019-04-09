@@ -216,10 +216,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 TryToGetSnapshot(termNumber - 1, out var snapshot))
             {
                 nextCandidate = snapshot.CandidatesSnapshot
+                        // Except initial miners.
                     .Where(cs => !firstRound.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
+                        // Except current miners.
                     .Where(cs => !round.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
-                    .OrderBy(s => s.Votes)
-                    .Skip(round.RealTimeMinersInformation.Count)
+                    .OrderByDescending(s => s.Votes)
                     .FirstOrDefault(c => !round.RealTimeMinersInformation.ContainsKey(c.PublicKey))?.PublicKey;
             }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -47,12 +48,12 @@ namespace AElf.Contracts.Consensus.DPoS
                 Value = oneMoreCandidateKeyPair.PublicKey.ToHex().Substring(0, 20)
             });
 
-            foreach (var candidateKeyPair in CandidatesKeyPairs.Append(oneMoreCandidateKeyPair))
+            foreach (var candidateKeyPair in CandidatesKeyPairs.Take(MinersCount).Append(oneMoreCandidateKeyPair))
             {
                 await voter.Vote.SendAsync(new VoteInput
                 {
                     CandidatePublicKey = candidateKeyPair.PublicKey.ToHex(),
-                    Amount = 100,
+                    Amount = 100 + new Random().Next(1, 200),
                     LockTime = 100
                 });
             }
