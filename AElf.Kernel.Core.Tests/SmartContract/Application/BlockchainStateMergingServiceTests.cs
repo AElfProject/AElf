@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.SmartContract.Domain;
@@ -31,23 +32,21 @@ namespace AElf.Kernel.SmartContract.Application
             chainStateInfo.MergingBlockHash.ShouldNotBe(lastIrreversibleBlockHash);
         }
 
-        //TODO: fix unit tests
-        [Fact(Skip = "test failed")]
+        [Fact]
         public async Task BlockState_Merge_GotException()
         {
             var lastIrreversibleBlockHeight = 1;
             var lastIrreversibleBlockHash = Hash.Generate();
 
-            await _blockchainStateMergingService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
-                lastIrreversibleBlockHash);
-
+            await Should.ThrowAsync<InvalidOperationException>(()=>_blockchainStateMergingService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
+                lastIrreversibleBlockHash));
+            
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             chainStateInfo.BlockHeight.ShouldNotBe(lastIrreversibleBlockHeight);
             chainStateInfo.MergingBlockHash.ShouldNotBe(lastIrreversibleBlockHash);
         }
 
-        //TODO: fix unit tests
-        [Fact(Skip = "test failed")]
+        [Fact]
         public async Task BlockState_MergeBlock_Normal()
         {
             var blockStateSet1 = new BlockStateSet()
@@ -94,8 +93,8 @@ namespace AElf.Kernel.SmartContract.Application
 
             //test merge height 3 without block state set before
             {
-                await _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet3.BlockHeight,
-                    blockStateSet3.BlockHash);
+                await Should.ThrowAsync<InvalidOperationException>(()=> _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet3.BlockHeight,
+                    blockStateSet3.BlockHash));
 
                 var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
                 chainStateInfo.BlockHeight.ShouldBe(2);

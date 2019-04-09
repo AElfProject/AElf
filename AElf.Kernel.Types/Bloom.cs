@@ -88,7 +88,6 @@ namespace AElf.Kernel
             }
         }
 
-        //TODO: Add Combine test case [Case]
         /// <summary>
         /// Combines some other blooms into current bloom.
         /// </summary>
