@@ -11,12 +11,17 @@ namespace AElf.CrossChain.Cache
             _multiChainBlockInfoCacheProvider = multiChainBlockInfoCacheProvider;
         }
 
-        public IBlockInfo TryTake(int crossChainId, long height, bool isCacheSizeLimited)
+        public T TryTake<T>(int crossChainId, long height, bool isCacheSizeLimited)
         {
             var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(crossChainId);
             if (blockInfoCache == null)
-                return null;
-            return blockInfoCache.TryTake(height, out var blockInfo, isCacheSizeLimited) ? blockInfo : null;
+                return default(T);
+            if (blockInfoCache.TryTake(height, out var blockInfo, isCacheSizeLimited))
+            {
+                return (T) blockInfo;
+            }
+
+            return default(T);
         }
 
         public int GetCachedChainCount()

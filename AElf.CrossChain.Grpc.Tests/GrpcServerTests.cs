@@ -35,7 +35,7 @@ namespace AElf.CrossChain.Grpc
 
             IServerStreamWriter<ResponseParentChainBlockData> responseStream = Mock.Of<IServerStreamWriter<ResponseParentChainBlockData>>();
             var context = BuildServerCallContext();
-            await CrossChainGrpcServer.RequestIndexingParentChain(requestData, responseStream, context);
+            await CrossChainGrpcServer.RequestIndexingFromParentChain(requestData, responseStream, context);
         }
         
         [Fact]
@@ -49,7 +49,7 @@ namespace AElf.CrossChain.Grpc
 
             IServerStreamWriter<ResponseParentChainBlockData> responseStream = Mock.Of<IServerStreamWriter<ResponseParentChainBlockData>>();
             var context = BuildServerCallContext();
-            await CrossChainGrpcServer.RequestIndexingParentChain(requestData, responseStream, context);
+            await CrossChainGrpcServer.RequestIndexingFromParentChain(requestData, responseStream, context);
         }
 
         [Fact]
@@ -63,7 +63,7 @@ namespace AElf.CrossChain.Grpc
             
             IServerStreamWriter<ResponseSideChainBlockData> responseStream = Mock.Of<IServerStreamWriter<ResponseSideChainBlockData>>();
             var context = BuildServerCallContext();
-            await CrossChainGrpcServer.RequestIndexingSideChain(requestData, responseStream, context);
+            await CrossChainGrpcServer.RequestIndexingFromSideChain(requestData, responseStream, context);
         }
 
         [Fact]

@@ -16,7 +16,7 @@ namespace AElf.CrossChain.Cache
         public void TryTake_EmptyCache()
         {
             int chainId = 123;
-            var blockInfo = _crossChainDataConsumer.TryTake(chainId, 1, false);
+            var blockInfo = _crossChainDataConsumer.TryTake<SideChainBlockData>(chainId, 1, false);
             Assert.Null(blockInfo);
         }
 
@@ -30,7 +30,7 @@ namespace AElf.CrossChain.Cache
             };
             CreateFakeCache(dict);
             int chainIdB = 124;
-            var blockInfo = _crossChainDataConsumer.TryTake(chainIdB, 1, false);
+            var blockInfo = _crossChainDataConsumer.TryTake<SideChainBlockData>(chainIdB, 1, false);
             Assert.Null(blockInfo);
         }
 
@@ -49,7 +49,7 @@ namespace AElf.CrossChain.Cache
                 {chainId, blockInfoCache}
             };
             CreateFakeCache(dict);
-            var blockInfo = _crossChainDataConsumer.TryTake(chainId, 2, false);
+            var blockInfo = _crossChainDataConsumer.TryTake<SideChainBlockData>(chainId, 2, false);
             Assert.Null(blockInfo);
         }
 
@@ -95,7 +95,7 @@ namespace AElf.CrossChain.Cache
                 SideChainHeight = 1
             };
             blockInfoCache.TryAdd(expectedBlockInfo);
-            var actualBlockInfo = _crossChainDataConsumer.TryTake(chainId, 1, false);
+            var actualBlockInfo = _crossChainDataConsumer.TryTake<SideChainBlockData>(chainId, 1, false);
             Assert.Equal(expectedBlockInfo, actualBlockInfo);
         }
         
@@ -112,7 +112,7 @@ namespace AElf.CrossChain.Cache
                 SideChainHeight = 1
             };
             blockInfoCache.TryAdd(expectedBlockInfo);
-            var blockInfo = _crossChainDataConsumer.TryTake(chainId, 2, false);
+            var blockInfo = _crossChainDataConsumer.TryTake<SideChainBlockData>(chainId, 2, false);
             Assert.Null(blockInfo);
         }
     }
