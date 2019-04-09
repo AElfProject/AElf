@@ -14,7 +14,7 @@ namespace AElf.Sdk.CSharp.State
         internal StatePath GetSubStatePath(string key)
         {
             var statePath = this.Path.Clone();
-            statePath.Path.Add(ByteString.CopyFromUtf8(key));
+            statePath.Parts.Add(key);
             return statePath;
         }
     }

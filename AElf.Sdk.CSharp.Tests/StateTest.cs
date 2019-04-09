@@ -108,7 +108,7 @@ namespace AElf.Sdk.CSharp.Tests
         public void State_Test()
         {
             var path = new StatePath();
-            path.Path.Add(ByteString.CopyFromUtf8("dummy_address"));
+            path.Parts.Add("dummy_address");
             var mockProvider = new Mock<IStateProvider>();
             var mockContext = new Mock<ISmartContractBridgeContext>();
             mockContext.SetupGet(o => o.StateProvider).Returns(mockProvider.Object);

@@ -56,7 +56,7 @@ namespace AElf.Sdk.CSharp.State
             {
                 var propertyInfo = kv.Value;
                 var path = this.Path.Clone();
-                path.Path.Add(ByteString.CopyFromUtf8(kv.Key));
+                path.Parts.Add(kv.Key);
                 ((StateBase) propertyInfo.GetValue(this)).Path = path;
             }
 

@@ -17,8 +17,7 @@ namespace AElf.Kernel.SmartContract.Sdk
         public static string ToStateKey(this ScopedStatePath scopedStatePath)
         {
             return string.Join("/",
-                new[] {scopedStatePath.Address.GetFormatted()}.Concat(
-                    scopedStatePath.Path.Path.Select(x => x.ToStringUtf8())));
+                new[] {scopedStatePath.Address.GetFormatted()}.Concat(scopedStatePath.Path.Parts));
         }
     }
 }
