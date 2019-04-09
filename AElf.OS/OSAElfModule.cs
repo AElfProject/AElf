@@ -1,8 +1,8 @@
-﻿using System;
-using AElf.Common.Application;
+﻿using AElf.Common.Application;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Modularity;
+using AElf.OS.Consensus.DPos;
 using AElf.OS.Handlers;
 using AElf.OS.Jobs;
 using AElf.OS.Network.Grpc;
@@ -14,7 +14,8 @@ namespace AElf.OS
     [DependsOn(
         typeof(KernelAElfModule),
         typeof(CoreOSAElfModule),
-        typeof(GrpcNetworkModule)
+        typeof(GrpcNetworkModule),
+        typeof(DPoSConsensusOSAElfModule)
     )]
     public class OSAElfModule : AElfModule
     {
