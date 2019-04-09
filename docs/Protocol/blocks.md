@@ -1,6 +1,6 @@
 ## Blocks
 
-Blocks are objects that are produced by the miners or block producers, the following message definitions show the structure of a Block and its constituents:
+Blocks are produced by the miners or block producers, the following message definitions show the structure of a Block and its constituents:
 
 ```json
 message Block {
@@ -30,6 +30,16 @@ message BlockBody {
 
 ```
 
-A block is the agregation of a BlockHeader and a BlockBody. The header contains metadata about the block itself, such as the previous block hash. It also contains the the merkle root of both the transactions and the world state.
-The block can also be signed and this signature will be place in the *Sig* field.
-The block body is used to contain the transactions that where included in this block by the miner.
+A block is the agregation of a BlockHeader and a BlockBody. The header contains metadata about the block itself. It also contains the the merkle root of both the transactions and the world state. The block body is used to contain the transactions that where included in this block by the miner.
+
+#### Block hash
+
+A blockchain is also a data structure of cryptographicaly linked blocks. Inside the header there's the hash of the previous block. The hash of a block uniquely represents a block and become its identifier (sometimes called block id). This hash is based on multiple values, including the **ChainId**, **Height**, **Previous block hash** and **merkle roots** (but not only).
+
+#### Signature
+
+The Sig field is destined to host the signature of the producer, to confirm that he created this block. It is the hash of the header that is signed, not the entire block.
+
+#### Merkle tree
+
+The header contains the merkle tree of the transactions that where included in the block. It also contains the merkle tree of the state which is the merkle tree formed by the hash of the txid and the status of its transaction result.

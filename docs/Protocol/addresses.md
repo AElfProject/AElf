@@ -9,7 +9,7 @@ import Aelf from 'aelf-sdk';
 Aelf.wallet.createNewWallet();
 ```
 
-This will return an object containing the mnemonic used, the key-pair and the address. In AElf we usually encoding the address in base58. This address is derived from the public, we calculate it as the first 30 bytes of the double sha256 hash. The AElf js-sdk provides the following, that return the :
+This will return an object containing the mnemonic used, the key-pair and the address. In AElf we usually encode the address in base58. This address is derived from the public, we calculate it as the first 30 bytes of the double sha256 hash. The AElf js-sdk provides the following, that returns the address:
 
 ```js
 import Aelf from 'aelf-sdk';
@@ -18,7 +18,7 @@ const address = aelf.wallet.getAddressFromPubKey(pubKey);
 
 For more information about how the js-sdk works, please refer to the [documentation](https://github.com/AElfProject/aelf-sdk.js/blob/doc-2.0/docs/Wallet.md)
 
-Finally here is the Protobuf message we use for representing an address:
+Finally here is the Protobuf message we use for representing an address, it is often used by other types to represent addresses:
 
 ```Proto
 option csharp_namespace = "AElf.Common";
