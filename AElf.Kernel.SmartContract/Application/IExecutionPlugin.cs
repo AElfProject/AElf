@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf.Reflection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
     public interface IExecutionPlugin
     {
-        IEnumerable<Transaction> GetPreTransactions(IReadOnlyList<ServiceDescriptor> descriptors);
+        Task<IEnumerable<Transaction>> GetPreTransactionsAsync(IReadOnlyList<ServiceDescriptor> descriptors,
+            ITransactionContext transactionContext);
     }
 }

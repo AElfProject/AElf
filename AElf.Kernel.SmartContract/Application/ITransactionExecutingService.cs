@@ -127,20 +127,24 @@ namespace AElf.Kernel.SmartContract.Application
 
                 if (depth == 0)
                 {
-                    foreach (var preTx in _plugins.SelectMany(p => p.GetPreTransactions(executive.Descriptors)))
+                    foreach (var plugin in _plugins)
                     {
-                        var preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
-                            cancellationToken);
-                        trace.PreTransactions.Add(preTx);
-                        trace.PreTraces.Add(preTrace);
-                        if (!preTrace.IsSuccessful())
+                        var transactions = await plugin.GetPreTransactionsAsync(executive.Descriptors, txCtxt);
+                        foreach (var preTx in transactions)
                         {
-                            trace.ExecutionStatus = ExecutionStatus.Prefailed;
-                            return trace;
-                        }
+                            var preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
+                                cancellationToken);
+                            trace.PreTransactions.Add(preTx);
+                            trace.PreTraces.Add(preTrace);
+                            if (!preTrace.IsSuccessful())
+                            {
+                                trace.ExecutionStatus = ExecutionStatus.Prefailed;
+                                return trace;
+                            }
 
-                        internalStateCache.Update(preTrace.GetFlattenedWrite()
-                            .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                            internalStateCache.Update(preTrace.GetFlattenedWrite()
+                                .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                        }    
                     }
                 }
 

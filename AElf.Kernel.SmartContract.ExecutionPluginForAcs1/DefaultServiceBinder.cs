@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using AElf.Types.CSharp;
 using Google.Protobuf.Reflection;
 
-namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
+namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 {
     internal class DefaultServiceBinder : ServiceBinderBase
     {
