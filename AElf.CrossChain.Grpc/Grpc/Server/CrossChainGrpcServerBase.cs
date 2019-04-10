@@ -19,16 +19,16 @@ namespace AElf.CrossChain.Grpc
         public ILogger<CrossChainGrpcServerBase> Logger { get; set; }
         public ILocalEventBus LocalEventBus { get; set; }
         private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
-        private readonly ICrossChainService _crossChainService;
         private readonly ILocalLibService _localLibService;
         private readonly CrossChainConfigOption _crossChainConfigOption;
+        private readonly ICrossChainDataProvider _crossChainDataProvider;
         
-        public CrossChainGrpcServerBase(CrossChainService crossChainService, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption,
-            IBlockExtraDataExtractor blockExtraDataExtractor, ILocalLibService localLibService)
+        public CrossChainGrpcServerBase(IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption,
+            IBlockExtraDataExtractor blockExtraDataExtractor, ILocalLibService localLibService, ICrossChainDataProvider crossChainDataProvider)
         {
-            _crossChainService = crossChainService;
             _blockExtraDataExtractor = blockExtraDataExtractor;
             _localLibService = localLibService;
+            _crossChainDataProvider = crossChainDataProvider;
             LocalEventBus = NullLocalEventBus.Instance;
             _crossChainConfigOption = crossChainConfigOption.Value;
         }
@@ -70,14 +70,14 @@ namespace AElf.CrossChain.Grpc
             return new ChainInitializationResponse
             {
                 SideChainInitializationContext =
-                    await _crossChainService.GetChainInitializationContextAsync(request.ChainId)
+                    await _crossChainDataProvider.GetChainInitializationContextAsync(request.ChainId)
             };
         }
 
         private async Task<IList<SideChainBlockData>> GetIndexedSideChainBlockInfoResult(Block block)
         {
             var crossChainBlockData =
-                await _crossChainService.GetCrossChainBlockDataIndexedInStateAsync(block.GetHash(), block.Height);
+                await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
             //Logger.LogTrace($"Indexed side chain block size {crossChainBlockData.SideChainBlockData.Count}");
             return crossChainBlockData.SideChainBlockData;
         }
