@@ -14,11 +14,11 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 {
-    public class FeeChargeExecutivePlugin : IExecutionPlugin, ISingletonDependency
+    public class FeeChargeExecutionPlugin : IExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
 
-        public FeeChargeExecutivePlugin(IHostSmartContractBridgeContextService contextService)
+        public FeeChargeExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
             _contextService = contextService;
         }
@@ -50,10 +50,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory()
                 {
-                    Sender = transactionContext.Transaction.To, // Sender is the original contract
+                    Sender = transactionContext.Transaction.From,
                     ContractAddress = tokenContractAddress
                 }
             };
+            if (transactionContext.Transaction.To == tokenContractAddress &&
+                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees))
+            {
+                // Skip ChargeTransactionFees itself 
+                return new List<Transaction>();
+            }
+            
             var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput()
             {
                 Amount = fee.Amount,
