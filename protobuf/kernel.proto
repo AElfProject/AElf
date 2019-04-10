@@ -75,6 +75,7 @@ enum TransactionResultStatus {
     Pending = 1;
     Failed = 2;
     Mined = 3;
+    Unexecutable = 4;
 }
 
 message TransactionResult {
