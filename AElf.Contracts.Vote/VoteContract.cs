@@ -149,6 +149,7 @@ namespace AElf.Contracts.Vote
         public override Empty AddOption(AddOptionInput input)
         {
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
+            Assert(votingEvent.Sponsor == Context.Sender, "Only sponsor can update options.");
             Assert(!votingEvent.Options.Contains(input.Option), "Option already exists.");
             if (input.Costs != null)
             {
@@ -174,8 +175,9 @@ namespace AElf.Contracts.Vote
         public override Empty RemoveOption(RemoveOptionInput input)
         {
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
+            Assert(votingEvent.Sponsor == Context.Sender, "Only sponsor can update options.");
             Assert(votingEvent.Options.Contains(input.Option), "Option doesn't exist.");
-
+            // TODO: Unlock token if locked when adding option.
             return new Empty();
         }
 
