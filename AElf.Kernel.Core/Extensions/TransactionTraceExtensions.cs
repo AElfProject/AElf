@@ -14,6 +14,14 @@ namespace AElf.Kernel
                 return false;
             }
 
+            foreach (var trace in txTrace.PreTraces)
+            {
+                if (!trace.IsSuccessful())
+                {
+                    return false;
+                }
+            }
+
             foreach (var trace in txTrace.InlineTraces)
             {
                 if (!trace.IsSuccessful())
