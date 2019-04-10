@@ -29,17 +29,22 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            _taskQueueManager.Enqueue(async () =>
+            var chain = await _blockchainService.GetChainAsync();
+            var index = await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain,
+                eventData.ExecutedBlocks);
+            
+            if (index != null)
             {
-                var chain = await _blockchainService.GetChainAsync();
-
-                var index = await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain,
-                    eventData.ExecutedBlocks);
-                if (index != null)
-                {
-                    await _blockchainService.SetIrreversibleBlockAsync(chain, index.Height, index.Hash);
-                }
-            }, DPoSConsts.LIBSettingQueueName);
+                _taskQueueManager.Enqueue(
+                    async () =>
+                    {
+                        var currentChain = await _blockchainService.GetChainAsync();
+                        if (chain.LastIrreversibleBlockHeight < index.Height)
+                        {
+                            await _blockchainService.SetIrreversibleBlockAsync(currentChain, index.Height, index.Hash);
+                        }
+                    }, KernelConsts.UpdateChainQueueName);
+            }
         }
     }
 }
