@@ -57,6 +57,18 @@ namespace AElf.Contracts.Consensus.DPoS
             return new Empty();
         }
 
+        private void SetInitialMinersHistory(IEnumerable<string> initialMinersPublicKeys)
+        {
+            foreach (var initialMinerPublicKey in initialMinersPublicKeys)
+            {
+                State.HistoryMap[initialMinerPublicKey.ToStringValue()] = new CandidateInHistory
+                {
+                    PublicKey = initialMinerPublicKey,
+                    Address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(initialMinerPublicKey))
+                };
+            }
+        }
+
         /// <summary>
         /// Initial miners can set blockchain age manually.
         /// For testing.
@@ -88,6 +100,7 @@ namespace AElf.Contracts.Consensus.DPoS
             State.MiningIntervalField.Value = firstRound.GetMiningInterval();
 
             SetInitialMinersAliases(firstRound.RealTimeMinersInformation.Keys);
+            SetInitialMinersHistory(firstRound.RealTimeMinersInformation.Keys);
 
             var miners = firstRound.RealTimeMinersInformation.Keys.ToList().ToMiners(1);
             miners.TermNumber = 1;
