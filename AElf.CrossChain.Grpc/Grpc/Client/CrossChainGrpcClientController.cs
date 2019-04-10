@@ -48,7 +48,7 @@ namespace AElf.CrossChain.Grpc
         {
             var clientForParentChain = new GrpcClientForParentChain(uri, chainId);
             var response = await TryRequest(clientForParentChain, c => c.RequestChainInitializationContext(chainId));
-            return response.SideChainInitializationContext;
+            return response?.SideChainInitializationContext;
         }
         
         /// <summary>
