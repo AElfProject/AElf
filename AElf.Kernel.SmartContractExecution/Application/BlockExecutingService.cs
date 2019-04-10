@@ -8,10 +8,12 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Domain;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
@@ -20,13 +22,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ITransactionExecutingService _executingService;
         private readonly IBlockManager _blockManager;
         private readonly IBlockGenerationService _blockGenerationService;
-        
+        public ILocalEventBus EventBus { get; set; }
         public BlockExecutingService(ITransactionExecutingService executingService, IBlockManager blockManager,
             IBlockGenerationService blockGenerationService)
         {
             _executingService = executingService;
             _blockManager = blockManager;
             _blockGenerationService = blockGenerationService;
+            EventBus = NullLocalEventBus.Instance;
         }
 
         public async Task<Block> ExecuteBlockAsync(BlockHeader blockHeader,
@@ -40,8 +43,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
             CancellationToken cancellationToken)
         {
-            // TODO: If already executed, don't execute again. Maybe check blockStateSet?
-
             var nonCancellable = nonCancellableTransactions.ToList();
             var cancellable = cancellableTransactions.ToList();
 
@@ -49,8 +50,24 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 await _executingService.ExecuteAsync(blockHeader, nonCancellable, CancellationToken.None, true);
             var cancellableReturnSets =
                 await _executingService.ExecuteAsync(blockHeader, cancellable, cancellationToken, false);
-            var blockReturnSet = nonCancellableReturnSets.Concat(cancellableReturnSets).ToList();
+            var blockReturnSet = new List<ExecutionReturnSet>();
+            var unexecutable = new List<Hash>();
+            foreach (var returnSet in nonCancellableReturnSets.Concat(cancellableReturnSets))
+            {
+                if (returnSet.Status == TransactionResultStatus.Mined ||
+                    returnSet.Status == TransactionResultStatus.Failed)
+                {
+                    blockReturnSet.Add(returnSet);
+                }else if (returnSet.Status == TransactionResultStatus.Unexecutable)
+                {
+                    unexecutable.Add(returnSet.TransactionId);
+                }
+            }
 
+            if (unexecutable.Count > 0)
+            {
+                await EventBus.PublishAsync(new UnexecutableTransactionsFoundEvent(blockHeader, unexecutable));
+            }
             // TODO: Insert deferredTransactions to TxPool
 
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
