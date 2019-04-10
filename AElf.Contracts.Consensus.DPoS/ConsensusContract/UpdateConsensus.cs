@@ -199,8 +199,6 @@ namespace AElf.Contracts.Consensus.DPoS
 
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
-            Context.LogDebug(() => $"GetEvilMinersPublicKey currentRound: {currentRound}");
-            Context.LogDebug(() => $"GetEvilMinersPublicKey previousRound: {previousRound}");
             return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
                 where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey)
                 let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue
