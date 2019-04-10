@@ -40,6 +40,98 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.NotNull(newConsensusInformation);
             Assert.Equal(testers.Testers[1].PublicKey, newConsensusInformation.SenderPublicKey.ToHex());
         }
+        
+        [Fact]
+        public async Task NormalBlock_ValidateConsensusBeforeExecution_Failed()
+        {
+            var startTime = DateTime.UtcNow.ToTimestamp();
+            var testers = new ConsensusTesters();
+            testers.InitialTesters(startTime);
+
+            var newInformation = new DPoSHeaderInformation
+            {
+                SenderPublicKey = ByteString.CopyFrom(testers.Testers[0].KeyPair.PublicKey),
+                Round = await testers.Testers[0].GetCurrentRoundInformationAsync(),
+                Behaviour = DPoSBehaviour.UpdateValueWithoutPreviousInValue
+            };
+            
+            // Act
+            var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeFalse();
+            validationResult.Message.ShouldBe("Incorrect new Out Value.");
+            
+            newInformation.Round.RealTimeMinersInformation.First().Value.OutValue = Hash.Generate();
+            validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeFalse();
+            validationResult.Message.ShouldBe("Invalid FinalOrderOfNextRound.");
+        }
+        
+        [Fact]
+        public async Task NormalBlock_ValidateConsensusBeforeExecution_Success()
+        {
+            var startTime = DateTime.UtcNow.ToTimestamp();
+            var testers = new ConsensusTesters();
+            testers.InitialTesters(startTime);
+            var currentRound = await testers.Testers[0].GetCurrentRoundInformationAsync();
+            var roundInfo = new Round
+            {
+                BlockchainAge = currentRound.BlockchainAge + 1,
+                RoundNumber = currentRound.RoundNumber + 1,
+                TermNumber = currentRound.TermNumber,
+                RealTimeMinersInformation =
+                {
+                    { testers.Testers[0].PublicKey, new MinerInRound
+                        {
+                            OutValue = Hash.Generate(),
+                            FinalOrderOfNextRound = 1,
+                            ExpectedMiningTime = currentRound.RealTimeMinersInformation[testers.Testers[0].PublicKey].ExpectedMiningTime,
+                            Order = 1
+                            
+                        }
+                    },
+                    {
+                        testers.Testers[1].PublicKey, new MinerInRound
+                        {
+                            OutValue = Hash.Generate(),
+                            FinalOrderOfNextRound = 2,
+                            ExpectedMiningTime = currentRound.RealTimeMinersInformation[testers.Testers[1].PublicKey].ExpectedMiningTime,
+                            Order = 2
+                        }
+                    },
+                    {
+                        testers.Testers[2].PublicKey, new MinerInRound
+                        {
+                            OutValue = Hash.Generate(),
+                            FinalOrderOfNextRound = 3,
+                            ExpectedMiningTime = currentRound.RealTimeMinersInformation[testers.Testers[2].PublicKey].ExpectedMiningTime,
+                            Order = 3
+                        }
+                    },
+                }
+            }; 
+                 
+            var newInformation = new DPoSHeaderInformation
+            {
+                SenderPublicKey = ByteString.CopyFrom(testers.Testers[0].KeyPair.PublicKey),
+                Round = roundInfo,
+                Behaviour = DPoSBehaviour.NextRound
+            };
+            
+            // Act
+            var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeTrue();
+
+            //nothing behavior
+            newInformation.Behaviour = DPoSBehaviour.Nothing;
+            validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeFalse();
+            validationResult.Message.ShouldBe("Invalid behaviour");
+            
+            //update value
+            newInformation.Behaviour = DPoSBehaviour.UpdateValue;
+            validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
+            validationResult.ShouldNotBeNull();
+        }
 
         [Fact]
         public async Task NormalBlock_ValidateConsensusAfterExecution_Failed()

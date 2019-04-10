@@ -59,6 +59,11 @@ namespace AElf.Contracts.TokenConverter
             //GetTokenContractAddress
             var tokenContractAddress = await DefaultStub.GetTokenContractAddress.CallAsync(new Empty());
             tokenContractAddress.ShouldBe(TokenContractAddress);
+            
+            //GetBaseTokenSymbol
+            var tokenSymbol = await DefaultStub.GetBaseTokenSymbol.CallAsync(new Empty());
+            tokenSymbol.ShouldNotBeNull();
+            tokenSymbol.Symbol.ShouldBe("ELF");
         }
 
         #endregion
@@ -373,6 +378,106 @@ namespace AElf.Contracts.TokenConverter
             sellResultPriceNotGood.Error.Contains("Price not good.").ShouldBeTrue();
         }
 
+        [Fact]
+        public async Task SetFeeRate_Success()
+        {
+            await DeployContractsAsync();
+            await CreateRamToken();
+            await InitializeTokenConverterContract();
+
+            //perform by non manager
+            {
+                var transactionResult = (await DefaultStub.SetFeeRate.SendAsync(
+                    new StringValue
+                    {
+                        Value = "test value"
+                    })).TransactionResult;
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Only manager can perform this action").ShouldBeTrue();
+            }
+            
+            var testManager = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                ManagerKeyPair);
+            
+            //invalid feeRate
+            {
+                var transactionResult = (await testManager.SetFeeRate.SendAsync(
+                    new StringValue
+                    {
+                        Value = "test value"
+                    })).TransactionResult;
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Invalid decimal").ShouldBeTrue();            
+            }
+            
+            //feeRate not correct
+            {
+                var transactionResult = (await testManager.SetFeeRate.SendAsync(
+                    new StringValue
+                    {
+                        Value = "1.05"
+                    })).TransactionResult;
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Fee rate has to be a decimal between 0 and 1").ShouldBeTrue(); 
+            }
+            
+            //correct 
+            {
+                var feeRate = new StringValue
+                {
+                    Value = "0.15"
+                };
+                var transactionResult = (await testManager.SetFeeRate.SendAsync(feeRate))
+                    .TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var feeRate1 = await testManager.GetFeeRate.CallAsync(new Empty());
+                feeRate1.ShouldBe(feeRate);
+            }
+        }
+
+        [Fact]
+        public async Task SetManagerAddress_Success()
+        {
+            await DeployContractsAsync();
+            await CreateRamToken();
+            await InitializeTokenConverterContract();
+
+            //perform by non manager
+            {
+                var transactionResult = (await DefaultStub.SetManagerAddress.SendAsync(
+                    new Address()
+                    )).TransactionResult;
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Only manager can perform this action").ShouldBeTrue();
+            }
+
+            var testManager = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
+                TokenConverterContractAddress,
+                ManagerKeyPair);
+            
+            //invalid address
+            {
+                var transactionResult = (await testManager.SetManagerAddress.SendAsync(
+                    new Address()
+                )).TransactionResult;
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Input is not a valid address").ShouldBeTrue();
+            }
+            
+            //valid address
+            {
+                var address = Address.Generate();
+                
+                var transactionResult = (await testManager.SetManagerAddress.SendAsync(address)).TransactionResult;
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var managerAddress = await testManager.GetManagerAddress.CallAsync(new Empty());
+                managerAddress.ShouldBe(address);
+            }
+        }
+        
         #endregion
 
         #region Private Task
