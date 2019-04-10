@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.EventMessages;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
@@ -8,7 +9,9 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     public class TxPoolInterestedEventsHandler : ILocalEventHandler<TransactionsReceivedEvent>,
         ILocalEventHandler<BlockAcceptedEvent>,
-        ILocalEventHandler<BestChainFoundEventData>, ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
+        ILocalEventHandler<BestChainFoundEventData>,
+        ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
+        ILocalEventHandler<UnexecutableTransactionsFoundEvent>,
         ITransientDependency
     {
         private readonly ITxHub _txHub;
@@ -37,6 +40,11 @@ namespace AElf.Kernel.TransactionPool.Application
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             await _txHub.HandleNewIrreversibleBlockFoundAsync(eventData);
+        }
+
+        public async Task HandleEventAsync(UnexecutableTransactionsFoundEvent eventData)
+        {
+            await _txHub.HandleUnexecutableTransactionsFoundAsync(eventData);
         }
     }
 }
