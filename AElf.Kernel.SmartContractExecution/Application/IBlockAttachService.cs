@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var existBlock = await _blockchainService.GetBlockHeaderByHashAsync(block.GetHash());
             if (existBlock != null)
             {
-                Logger.LogDebug($"Try attaching block, but hash: {block.GetHash()}, height: {block.Height} already exist");
+                Logger.LogDebug($"Try attaching block but already exist, hash: {block.GetHash()}, height: {block.Height}");
                 return;
             }
             await _blockchainService.AddBlockAsync(block);
