@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 option csharp_namespace = "AElf.CrossChain";
-
+import "google/protobuf/timestamp.proto";
 import "common.proto";
 import "resource.proto";
 import "kernel.proto";
@@ -78,4 +78,11 @@ message CrossChainBlockData {
 message CrossChainMerkleProofContext{
     int64 BoundParentChainHeight = 1;
     MerklePath MerklePathForParentChainRoot = 2;
+}
+
+message SideChainInitializationContext{
+    int32 chainId =1;
+    Address Creator = 2;
+    google.protobuf.Timestamp CreatedTime = 3;
+    repeated bytes ExtraInformation = 4;
 }

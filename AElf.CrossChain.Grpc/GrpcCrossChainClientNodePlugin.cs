@@ -9,7 +9,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Grpc
 {
-    public class GrpcCrossChainClientNodePlugin : INodePlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>, ILocalEventHandler<BestChainFoundEventData>
+    public class GrpcCrossChainClientNodePlugin : ISideChainInitializationPlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>, ILocalEventHandler<BestChainFoundEventData>
     {
         private readonly CrossChainGrpcClientController _crossChainGrpcClientController;
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
