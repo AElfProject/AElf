@@ -20,7 +20,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly ITransactionExecutingService _executingService;
         private readonly IBlockManager _blockManager;
         private readonly IBlockGenerationService _blockGenerationService;
-        
+
         public BlockExecutingService(ITransactionExecutingService executingService, IBlockManager blockManager,
             IBlockGenerationService blockGenerationService)
         {
@@ -40,8 +40,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
             CancellationToken cancellationToken)
         {
-            // TODO: If already executed, don't execute again. Maybe check blockStateSet?
-
             var nonCancellable = nonCancellableTransactions.ToList();
             var cancellable = cancellableTransactions.ToList();
 

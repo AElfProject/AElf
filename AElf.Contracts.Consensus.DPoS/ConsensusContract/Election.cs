@@ -208,7 +208,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
             else
             {
-                tickets = new Tickets();
+                tickets = new Tickets {PublicKey = voterPublicKey};
                 tickets.VoteToTransactions.Add(votingRecord.TransactionId);
             }
 
@@ -224,7 +224,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
             else
             {
-                candidateTickets = new Tickets();
+                candidateTickets = new Tickets {PublicKey = candidatePublicKey};
                 candidateTickets.VoteFromTransactions.Add(votingRecord.TransactionId);
             }
 
