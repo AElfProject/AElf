@@ -36,16 +36,11 @@ namespace AElf.Kernel.SmartContract.Infrastructure
 
         public async Task SetAsync(string key, T value)
         {
-            SetCache(key, value);
             await _stateStoreImplementation.SetAsync(key, value);
         }
 
         public async Task PipelineSetAsync(Dictionary<string, T> pipelineSet)
         {
-            foreach (var set in pipelineSet)
-            {
-                SetCache(set.Key, set.Value);
-            }
             await _stateStoreImplementation.PipelineSetAsync(pipelineSet);
         }
 
@@ -55,9 +50,26 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             {
                 return item;
             }
-            
+
             var state = await _stateStoreImplementation.GetAsync(key);
-            SetCache(key, state);
+            if (state != null)
+            {
+                _toBeCleanedKeys.Enqueue(key);
+                while (_toBeCleanedKeys.Count > 100)
+                {
+                    try
+                    {
+                        if (_toBeCleanedKeys.TryDequeue(out var cleanKey))
+                            _cache.TryRemove(cleanKey, out _);
+                    }
+                    catch
+                    {
+                        //ignore concurrency exceptions 
+                    }
+                }
+
+                _cache[key] = state;
+            }
 
             return state;
         }
@@ -66,24 +78,6 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         {
             _cache.TryRemove(key, out _);
             await _stateStoreImplementation.RemoveAsync(key);
-        }
-
-        private void SetCache(string key, T value)
-        {
-            _toBeCleanedKeys.Enqueue(key);
-            while (_toBeCleanedKeys.Count > 100)
-            {
-                try
-                {
-                    if (_toBeCleanedKeys.TryDequeue(out var cleanKey))
-                        _cache.TryRemove(cleanKey, out _);
-                }
-                catch
-                {
-                    //ignore concurrency exceptions 
-                }
-            }
-            _cache[key] = value;
         }
     }
 }
