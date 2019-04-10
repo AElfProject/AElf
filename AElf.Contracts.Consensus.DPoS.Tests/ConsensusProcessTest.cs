@@ -42,29 +42,6 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
-        public async Task NormalBlock_ValidationConsensus_Failed()
-        {
-            var startTime = DateTime.UtcNow.ToTimestamp();
-            var testers = new ConsensusTesters();
-            testers.InitialTesters(startTime);
-
-            var inValue = Hash.Generate();
-            var triggerInformationForNormalBlock =
-                GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
-
-            var newInformation =
-                await testers.Testers[1]
-                    .GetInformationToUpdateConsensusAsync(triggerInformationForNormalBlock, DateTime.UtcNow);
-
-            // Act
-            var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
-
-            // Assert
-            Assert.False(validationResult.Success);
-            Assert.Equal("Invalid FinalOrderOfNextRound.", validationResult.Message);
-        }
-
-        [Fact]
         public async Task NormalBlock_ValidateConsensusAfterExecution_Failed()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -159,25 +136,6 @@ namespace AElf.Contracts.Consensus.DPoS
             // Assert
             newConsensusInformation.SenderPublicKey.ToHex().ShouldBe(testers.Testers[1].PublicKey);
             newConsensusInformation.Round.RoundNumber.ShouldBeGreaterThanOrEqualTo(2);
-        }
-
-        [Fact]
-        public async Task NextRound_GenerateConsensusTransactions()
-        {
-            var startTime = DateTime.UtcNow.ToTimestamp();
-            var testers = new ConsensusTesters();
-            testers.InitialTesters(startTime);
-
-            var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000).ToTimestamp();
-            var triggerInformationForNextRoundOrTerm =
-                GetTriggerInformationForNextRound(testers.Testers[1].KeyPair.PublicKey.ToHex());
-
-            // Act
-            var consensusTransactions = await testers.Testers[1]
-                .GenerateConsensusTransactionsAsync(triggerInformationForNextRoundOrTerm);
-
-            // Assert
-            Assert.Equal(DPoSBehaviour.NextRound.ToString(), consensusTransactions.First().MethodName);
         }
 
         [Fact]
