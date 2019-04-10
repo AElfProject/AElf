@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 import "common.proto";
-import "kernel.proto";
 import "vote.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
