@@ -38,10 +38,8 @@ namespace AElf.Contracts.CrossChain
         public override SInt32Value RequestChainCreation(SideChainCreationRequest input)
         {
             // no need to check authority since invoked in transaction from normal address
-            Assert(
-                input.SideChainStatus == SideChainStatus.Apply && input.Proposer != null &&
-                Context.Sender.Equals(input.Proposer) && input.LockedTokenAmount > 0 &&
-                input.LockedTokenAmount > input.IndexingPrice, "Invalid chain creation request.");
+            Assert(input.LockedTokenAmount > 0 && input.LockedTokenAmount > input.IndexingPrice,
+                "Invalid chain creation request.");
 
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
             var serialNumber = State.SideChainSerialNumber.Value;
@@ -50,16 +48,21 @@ namespace AElf.Contracts.CrossChain
             Assert(info == null, "Chain creation request already exists.");
 
             // lock token and resource
-            input.SideChainId = chainId;
-            LockTokenAndResource(input);
+            LockTokenAndResource(input, chainId);
 
             // side chain creation proposal
 //            Hash hash = Propose("ChainCreation", RequestChainCreationWaitingPeriod, Context.Genesis,
 //                Context.Self, CreateSideChainMethodName, ChainHelpers.ConvertChainIdToBase58(chainId));
-            input.SideChainStatus = SideChainStatus.Review;
 //            request.ProposalHash = hash;
-            State.SideChainInfos[chainId] = input;
-
+            var sideChainInfo = new SideChainInfo
+            {
+                Proposer = Context.Sender,
+                SideChainId = chainId,
+                SideChainStatus = SideChainStatus.Review,
+                SideChainCreationRequest = input
+            };
+            State.SideChainInfos[chainId] = sideChainInfo;
+            
             return new SInt32Value() {Value = chainId};
         }
 
@@ -90,23 +93,24 @@ namespace AElf.Contracts.CrossChain
             var chainId = input.Value;
             // side chain creation should be triggered by multi sig txn from system address.
 //            CheckAuthority(Context.Genesis);
-            var request = State.SideChainInfos[chainId];
+            var sideChainInfo = State.SideChainInfos[chainId];
             // todo: maybe expired time check is needed, but now it is assumed that creation only can be in a multi signatures transaction from genesis address.
             Assert(
-                request != null &&
-                request.SideChainStatus == SideChainStatus.Review, "Side chain creation request not found.");
+                sideChainInfo != null &&
+                sideChainInfo.SideChainStatus == SideChainStatus.Review, "Side chain creation request not found.");
 
-            request.SideChainStatus = SideChainStatus.Active;
-            State.SideChainInfos[chainId] = request;
+            sideChainInfo.SideChainStatus = SideChainStatus.Active;
+            sideChainInfo.CreatedTime = Timestamp.FromDateTime(Context.CurrentBlockTime);
+            State.SideChainInfos[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = 0;
 
             var initialConsensusInfo = GetCurrentMiners();
-            State.SideChainInitialConsensusInfo[chainId] = initialConsensusInfo.ToByteString();
+            State.SideChainInitialConsensusInfo[chainId] = new BytesValue{Value = initialConsensusInfo.ToByteString()};
             Context.LogDebug(() => $"Initial miner list for side chain {chainId} :" +
                                    string.Join(",",
-                                       initialConsensusInfo.PublicKeys.Select(p =>
+                                       initialConsensusInfo.MinerList.PublicKeys.Select(p =>
                                            Address.FromPublicKey(ByteArrayHelpers.FromHexString(p)).ToString())));
-            Context.LogDebug(() => $"TermNumber {initialConsensusInfo.TermNumber}");
+            Context.LogDebug(() => $"RoundNumber {initialConsensusInfo.RoundNumber}");
             // Event is not used for now.
             Context.Fire(new CreationRequested()
             {
@@ -132,7 +136,7 @@ namespace AElf.Contracts.CrossChain
                  sideChainInfo.SideChainStatus == SideChainStatus.InsufficientBalance),
                 "Side chain not found or not able to be recharged.");
             State.IndexingBalance[chainId] = State.IndexingBalance[chainId] + amount;
-            if (State.IndexingBalance[chainId] > sideChainInfo.IndexingPrice)
+            if (State.IndexingBalance[chainId] > sideChainInfo.SideChainCreationRequest.IndexingPrice)
             {
                 sideChainInfo.SideChainStatus = SideChainStatus.Active;
                 State.SideChainInfos[chainId] = sideChainInfo;
@@ -315,7 +319,7 @@ namespace AElf.Contracts.CrossChain
                     continue;
 
                 // indexing fee
-                var indexingPrice = info.IndexingPrice;
+                var indexingPrice = info.SideChainCreationRequest.IndexingPrice;
                 var lockedToken = State.IndexingBalance[chainId];
 
                 lockedToken -= indexingPrice;

@@ -55,9 +55,7 @@ namespace AElf.Blockchains.SideChain
             var dposOptions = context.ServiceProvider.GetService<IOptionsSnapshot<DPoSOptions>>().Value;
 
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
-                GenerateConsensusInitializationCallList(dposOptions,
-                    Miners.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]),
-                    chainInitializationContext.CreatedTime.ToDateTime()));
+                GenerateConsensusInitializationCallList(dposOptions, chainInitializationContext));
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name, GenerateTokenInitializationCallList());
@@ -84,11 +82,15 @@ namespace AElf.Blockchains.SideChain
             return tokenContractCallList;
         }
         
-        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions, Miners miners, DateTime sideChainCreatedTime)
+        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions, ChainInitializationContext chainInitializationContext)
         {
             var consensusMethodCallList = new SystemTransactionMethodCallList();
+            var miners = chainInitializationContext == null
+                ? dposOptions.InitialMiners.ToMiners()
+                : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
-                miners.GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval, sideChainCreatedTime.ToUniversalTime()));
+                miners.GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
+                    chainInitializationContext.CreatedTime.ToDateTime().ToUniversalTime()));
             consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
                 new DPoSStrategyInput
                 {

@@ -21,7 +21,7 @@ namespace AElf.CrossChain
 
         private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData =
             new Dictionary<Hash, CrossChainBlockData>();
-        private KeyValuePair<long, Hash> _libHeightToHash = new KeyValuePair<long, Hash>();
+        private KeyValuePair<long, Hash> _libHeightToHash;
         public CrossChainDataProvider(ICrossChainContractReader crossChainContractReader,
             ICrossChainDataConsumer crossChainDataConsumer, ILocalLibService localLibService)
         {
@@ -198,9 +198,12 @@ namespace AElf.CrossChain
                 : null;
         }
 
-        public Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId)
+        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId)
         {
-            _crossChainContractReader.
+            if (_libHeightToHash.Value != null)
+                return await _crossChainContractReader.GetChainInitializationContextAsync(_libHeightToHash.Value,
+                    _libHeightToHash.Key, chainId);
+            return null;
         }
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
