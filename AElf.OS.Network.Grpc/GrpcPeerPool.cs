@@ -86,7 +86,7 @@ namespace AElf.OS.Network.Grpc
             // todo if not correct we kill the channel.
             if (connectReply?.Handshake?.HskData == null || connectReply.Err != AuthError.None)
             {
-                Logger.LogWarning($"Incorrect handshake for {ipAddress}.");
+                Logger.LogWarning($"Incorrect handshake for {ipAddress}, {connectReply?.Err}");
                 await channel.ShutdownAsync();
                 return false;
             }
