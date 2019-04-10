@@ -9,7 +9,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Grpc
 {
-    public class GrpcCrossChainClientNodePlugin : ISideChainInitializationPlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>, ILocalEventHandler<BestChainFoundEventData>
+    public class GrpcCrossChainClientNodePlugin : IChainInitializationPlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>, ILocalEventHandler<BestChainFoundEventData>
     {
         private readonly CrossChainGrpcClientController _crossChainGrpcClientController;
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
@@ -58,6 +58,13 @@ namespace AElf.CrossChain.Grpc
             _crossChainGrpcClientController.CloseClientsToSideChain();
             _crossChainGrpcClientController.CloseClientToParentChain();
             return Task.CompletedTask;
+        }
+
+        public async Task<ChainInitializationContext> RequestChainInitializationContextAsync(int chainId)
+        {
+            string uri = string.Join(":", _grpcCrossChainConfigOption.RemoteParentChainNodeIp, _grpcCrossChainConfigOption.RemoteParentChainNodePort);
+            var chainInitializationContext = await _crossChainGrpcClientController.RequestChainInitializationContext(uri, chainId);
+            return chainInitializationContext;
         }
 
         private string LoadCertificate(string fileName)

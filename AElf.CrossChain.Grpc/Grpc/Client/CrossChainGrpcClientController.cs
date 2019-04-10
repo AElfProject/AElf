@@ -13,8 +13,6 @@ namespace AElf.CrossChain.Grpc
 {
     public class CrossChainGrpcClientController : ISingletonDependency
     {
-//        private CancellationTokenSource TokenSourceToSideChain { get; } = new CancellationTokenSource();
-//        private CancellationTokenSource TokenSourceToParentChain { get; } = new CancellationTokenSource();
         private readonly ICrossChainDataProducer _crossChainDataProducer;
         public ILogger<CrossChainGrpcClientController> Logger { get; set; }
 
@@ -28,17 +26,6 @@ namespace AElf.CrossChain.Grpc
 //            LocalEventBus = NullLocalEventBus.Instance;
         }
 
-//        /// <summary>
-//        /// Extend interval for request after initial block synchronization.
-//        /// </summary>
-//        public void UpdateRequestInterval(int interval)
-//        {
-//            // no wait
-//            LocalEventBus.PublishAsync(new GrpcClientRequestIntervalUpdateEvent
-//            {
-//                Interval = interval
-//            });
-//        }
 
         #region Create client
 
@@ -57,6 +44,13 @@ namespace AElf.CrossChain.Grpc
             _grpcCrossChainClients[crossChainCommunicationContext.RemoteChainId] = client;
         }
 
+        public async Task<ChainInitializationContext> RequestChainInitializationContext(string uri, int chainId)
+        {
+            var clientForParentChain = new GrpcClientForParentChain(uri, chainId);
+            var response = await TryRequest(clientForParentChain, c => c.RequestChainInitializationContext(chainId));
+            return response.SideChainInitializationContext;
+        }
+        
         /// <summary>
         /// Create a new client to parent chain 
         /// </summary>

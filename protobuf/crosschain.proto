@@ -80,7 +80,7 @@ message CrossChainMerkleProofContext{
     MerklePath MerklePathForParentChainRoot = 2;
 }
 
-message SideChainInitializationContext{
+message ChainInitializationContext{
     int32 chainId =1;
     Address Creator = 2;
     google.protobuf.Timestamp CreatedTime = 3;

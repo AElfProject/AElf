@@ -28,17 +28,17 @@ message IndexingHandShakeReply {
     bool Result = 1;
 }
 
-message SideChainInitializationRequest{
+message ChainInitializationRequest{
     int32 chainId =1;
 }
 
-message SideChainInitializationResponse{
-    SideChainInitializationContext SideChainInitializationContext = 1; 
+message ChainInitializationResponse{
+    ChainInitializationContext SideChainInitializationContext = 1; 
 }
 
 service CrossChainRpc {
     rpc RequestIndexingFromSideChain (RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
     rpc RequestIndexingFromParentChain (RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
     rpc CrossChainIndexingShake (IndexingHandShake) returns (IndexingHandShakeReply) {} // only side chain shake with parent chain.
-    rpc RequestSideChainInitializationContextFromParentChain (SideChainInitializationRequest) returns (SideChainInitializationResponse) {}
+    rpc RequestChainInitializationContextFromParentChain (ChainInitializationRequest) returns (ChainInitializationResponse) {}
 }
