@@ -6,6 +6,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
@@ -34,7 +35,7 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override SInt32Value RequestChainCreation(SideChainInfo input)
+        public override SInt32Value RequestChainCreation(SideChainCreationRequest input)
         {
             // no need to check authority since invoked in transaction from normal address
             Assert(
@@ -100,7 +101,7 @@ namespace AElf.Contracts.CrossChain
             State.CurrentSideChainHeight[chainId] = 0;
 
             var initialConsensusInfo = GetCurrentMiners();
-            State.SideChainInitialConsensusInfo[chainId] = initialConsensusInfo;
+            State.SideChainInitialConsensusInfo[chainId] = initialConsensusInfo.ToByteString();
             Context.LogDebug(() => $"Initial miner list for side chain {chainId} :" +
                                    string.Join(",",
                                        initialConsensusInfo.PublicKeys.Select(p =>

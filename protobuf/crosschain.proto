@@ -3,7 +3,6 @@ syntax = "proto3";
 option csharp_namespace = "AElf.CrossChain";
 import "google/protobuf/timestamp.proto";
 import "common.proto";
-import "resource.proto";
 import "kernel.proto";
 
 message SideChainBlockData {
@@ -52,17 +51,6 @@ enum SideChainStatus
     Active = 2;
     InsufficientBalance = 3;
     Terminated = 4;
-}
-
-message SideChainInfo {
-    int64 IndexingPrice = 1;
-    int64 LockedTokenAmount = 2;
-    repeated ResourceTypeBalancePair ResourceBalances = 3; 
-    bytes ContractCode = 4;
-    Address Proposer = 5;
-    SideChainStatus SideChainStatus = 6;
-    int32 SideChainId = 7;
-    Hash ProposalHash = 8;
 }
 
 message SideChainIdAndHeightDict{

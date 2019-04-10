@@ -65,6 +65,11 @@ namespace AElf.CrossChain.Grpc
             return Task.FromResult(new IndexingHandShakeReply{Result = true});
         }
 
+        public override Task<ChainInitializationResponse> RequestChainInitializationContextFromParentChain(ChainInitializationRequest request, ServerCallContext context)
+        {
+            return 
+        }
+
         private async Task<IList<SideChainBlockData>> GetIndexedSideChainBlockInfoResult(Block block)
         {
             var crossChainBlockData =

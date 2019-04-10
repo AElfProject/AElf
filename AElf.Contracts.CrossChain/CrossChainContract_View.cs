@@ -113,7 +113,7 @@ namespace AElf.Contracts.CrossChain
         public override SInt64Value LockedToken(SInt32Value input)
         {
             var info = State.SideChainInfos[input.Value];
-            Assert(info != null, "Not existed side chain.");
+            Assert(info != null, "Side chain Not Found.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return new SInt64Value() {Value = info.LockedTokenAmount};
         }
@@ -126,5 +126,16 @@ namespace AElf.Contracts.CrossChain
             return info.Proposer;
         }
 
+        public override ChainInitializationContext GetChainInitializationContext(SInt32Value chainId)
+        {
+            var sideChainInfo = State.SideChainInfos[chainId.Value];
+            Assert(sideChainInfo != null, "Side chain Not Found.");
+            Assert(sideChainInfo.SideChainStatus > (SideChainStatus)1, "Incorrect side chain status.");
+            var res = new ChainInitializationContext
+            {
+//                CreatedTime = sideChainInfo.
+            };
+            return res;
+        }
     }
 }
