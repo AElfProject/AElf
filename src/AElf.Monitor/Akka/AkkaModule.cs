@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using AElf.Modularity;
-using AElf.RPC;
+using AElf.OS.Rpc;
 using Akka.Actor;
 using Akka.Configuration;
 using Microsoft.Extensions.Configuration;

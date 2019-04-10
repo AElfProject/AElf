@@ -9,7 +9,7 @@
         <PackageReference Include="Google.Protobuf" Version="3.7.0"/>
     </ItemGroup>
     <ItemGroup>
-        <Content Include="..\..\protobuf\common.proto">
+        <Content Include="..\..\protobuf\common.proto" CopyToOutputDirectory="false">
             <Link>Protobuf/Proto/common.proto</Link>
         </Content>
     </ItemGroup>

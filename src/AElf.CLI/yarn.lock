@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@aelfqueen/protobufjs@^6.8.8":
-  version "6.8.8"
-  resolved "https://registry.yarnpkg.com/@aelfqueen/protobufjs/-/protobufjs-6.8.8.tgz#6b9e1206c3cff1a5681830bcde342e0f0c18ad2b"
-  integrity sha512-KNGSfYzOx3kCHQdbTapKw3W01rY1e7JIrRVQn3pWz+/hGOP9ZIGLFYNbAojNOjjk7tLq3b0VwgHUnQTfwJy+LQ==
+"@aelfqueen/protobufjs@^6.8.9":
+  version "6.8.9"
+  resolved "https://registry.yarnpkg.com/@aelfqueen/protobufjs/-/protobufjs-6.8.9.tgz#5eb0e6f2d649994501eb472d98052958e237fbfb"
+  integrity sha512-xa8i/rsC/Dj6Wh0DWpgr4eODVu8tVktyTENJU0QGjwmu317PCyp/8p7rEcvplljAteoQ31cFxUCrnzFQ0iLG1g==
   dependencies:
     "@protobufjs/aspromise" "^1.1.2"
     "@protobufjs/base64" "^1.1.2"
@@ -89,12 +89,12 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.1.tgz#8701cd760acc20beba5ffe0b7a1b879f39cb8c41"
   integrity sha512-Rymt08vh1GaW4vYB6QP61/5m/CFLGnFZP++bJpWbiNxceNa6RBipDmb413jvtSf/R1gg5a/jQVl2jY4XVRscEA==
 
-aelf-sdk@^2.1.7:
-  version "2.1.7"
-  resolved "https://registry.yarnpkg.com/aelf-sdk/-/aelf-sdk-2.1.7.tgz#09adf6394c92ca50d40ff535fe5a79d0c583a2de"
-  integrity sha512-GdZt06Alfu4ZymHVWLtCPl3OT8YmvIb5rtVOU4MGEaL7jWY9HcaMd6DYiNeuQLfUvENm/SzBNOq0oBcWQK+Abw==
+aelf-sdk@^2.1.12:
+  version "2.1.17"
+  resolved "https://registry.yarnpkg.com/aelf-sdk/-/aelf-sdk-2.1.17.tgz#8676be44aaa9dd44a57721bcea581506a16adda7"
+  integrity sha512-PdBt76PaPuxkApVyoCWaGduh5DfKk8SeiVlvFpznDP1YwEyqDYrVNB5X17vWYzzAZkhJf2Y6qpwTDjKNGeLXtw==
   dependencies:
-    "@aelfqueen/protobufjs" "^6.8.8"
+    "@aelfqueen/protobufjs" "^6.8.9"
     "@aelfqueen/xmlhttprequest" "^1.8.1"
     bignumber "^1.1.0"
     bignumber.js "^2.0.7"
