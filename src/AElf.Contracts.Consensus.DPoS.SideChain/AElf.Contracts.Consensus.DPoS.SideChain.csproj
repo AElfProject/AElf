@@ -11,25 +11,25 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\protobuf\aelf_options.proto">
+      <Content Include="..\..\protobuf\aelf_options.proto">
         <Link>Protobuf/Proto/aelf_options.proto</Link>
       </Content>
-      <Content Include="..\protobuf\consensus.proto">
+      <Content Include="..\..\protobuf\consensus.proto">
         <Link>Protobuf/Proto/consensus.proto</Link>
       </Content>
-      <Content Include="..\protobuf\consensus_dpos.proto">
+      <Content Include="..\..\protobuf\consensus_dpos.proto">
         <Link>Protobuf/Proto/consensus_dpos.proto</Link>
       </Content>
-      <Content Include="..\protobuf\kernel.proto">
+      <Content Include="..\..\protobuf\kernel.proto">
         <Link>Protobuf/Proto/kernel.proto</Link>
       </Content>
-      <Content Include="..\protobuf\dpos_sidechain_contract.proto">
+      <Content Include="..\..\protobuf\dpos_sidechain_contract.proto">
         <Link>Protobuf/Proto/dpos_sidechain_contract.proto</Link>
       </Content>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_code.sh dpos_sidechain_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\scripts\generate_contract_code.bat dpos_sidechain_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh dpos_sidechain_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_code.bat dpos_sidechain_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

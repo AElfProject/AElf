@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\protobuf\peer_service.proto">
+      <Content Include="..\..\protobuf\peer_service.proto">
         <Link>Protobuf/peer_service.proto</Link>
       </Content>
     </ItemGroup>
@@ -31,7 +31,7 @@
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
-            <Protobuf ProtoRoot="../protobuf" Include="peer_service.proto" OutputDir="./Protobuf/Generated" />
+            <Protobuf ProtoRoot="../../protobuf" Include="peer_service.proto" OutputDir="./Protobuf/Generated" />
         </ItemGroup>
     </Target>
 

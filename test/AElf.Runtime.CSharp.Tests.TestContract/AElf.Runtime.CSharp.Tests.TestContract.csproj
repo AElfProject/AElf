@@ -11,19 +11,19 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\protobuf\aelf_options.proto">
+      <Content Include="..\..\protobuf\aelf_options.proto">
         <Link>Protobuf/proto/aelf_options.proto</Link>
       </Content>
-      <Content Include="..\protobuf\common.proto">
+      <Content Include="..\..\protobuf\common.proto">
         <Link>Protobuf/proto/common.proto</Link>
       </Content>
-      <Content Include="..\protobuf\test_contract.proto">
+      <Content Include="..\..\protobuf\test_contract.proto">
         <Link>Protobuf/proto/test_contract.proto</Link>
       </Content>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_code.sh test_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\scripts\generate_contract_code.bat test_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh test_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_code.bat test_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
       <ItemGroup>

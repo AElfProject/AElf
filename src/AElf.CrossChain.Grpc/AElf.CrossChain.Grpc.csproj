@@ -13,7 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\protobuf\header_info.proto">
+        <Content Include="..\..\protobuf\header_info.proto">
             <Link>./Grpc/Protobuf/header_info.proto</Link>
         </Content>
     </ItemGroup>
@@ -24,7 +24,7 @@
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
-            <Protobuf ProtoRoot="../protobuf" Include="header_info.proto" OutputDir="./Grpc/Protobuf/Generated" />
+            <Protobuf ProtoRoot="../../protobuf" Include="header_info.proto" OutputDir="./Grpc/Protobuf/Generated" />
         </ItemGroup>
     </Target>
 </Project>

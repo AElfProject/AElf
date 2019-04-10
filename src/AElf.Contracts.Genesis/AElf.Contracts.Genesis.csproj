@@ -9,22 +9,22 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\protobuf\aelf_options.proto">
+        <Content Include="..\..\protobuf\aelf_options.proto">
             <Link>Protobuf/Proto/aelf_options.proto</Link>
         </Content>
-        <Content Include="..\protobuf\common.proto">
+        <Content Include="..\..\protobuf\common.proto">
             <Link>Protobuf/Proto/common.proto</Link>
         </Content>
-        <Content Include="..\protobuf\kernel.proto">
+        <Content Include="..\..\protobuf\kernel.proto">
             <Link>Protobuf/Proto/kernel.proto</Link>
         </Content>
-        <Content Include="..\protobuf\basic_contract_zero.proto">
+        <Content Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
         </Content>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_code.sh basic_contract_zero.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\scripts\generate_contract_code.bat basic_contract_zero.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh basic_contract_zero.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_code.bat basic_contract_zero.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
