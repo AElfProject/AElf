@@ -263,8 +263,9 @@ namespace AElf.Contracts.TestBase
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
                 });
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
-                initialMiners.ToMiners().GenerateFirstRoundOfNewTerm(miningInterval, startTimestamp.ToDateTime()));
+            var firstRound = initialMiners.ToMiners()
+                .GenerateFirstRoundOfNewTerm(miningInterval, startTimestamp.ToDateTime());
+            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus), firstRound);
             return consensusMethodCallList;
         }
 
