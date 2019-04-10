@@ -14,6 +14,9 @@ namespace AElf.Kernel.TransactionPool
         {
             var services = context.Services;
             services.AddSingleton<ITxHub, TxHub>();
+
+            var configuration = context.Services.GetConfiguration();
+            Configure<TransactionOptions>(configuration.GetSection("Transaction"));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -21,7 +24,5 @@ namespace AElf.Kernel.TransactionPool
             
             //TODO! should define a interface like RuntimeEnvironment and inject it in ClientManager.
         }
-
-
     }
 }

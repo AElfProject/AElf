@@ -38,7 +38,6 @@ namespace AElf.Blockchains.SideChain
             Logger = NullLogger<SideChainAElfModule>.Instance;
         }
 
-
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
@@ -89,7 +88,7 @@ namespace AElf.Blockchains.SideChain
             var consensusMethodCallList = new SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
-                    DateTime.Parse(dposOptions.StartTimestamp).ToUniversalTime()));
+                    dposOptions.StartTimestamp.ToUniversalTime()));
             consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
                 new DPoSStrategyInput
                 {
