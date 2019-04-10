@@ -39,7 +39,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                     async () =>
                     {
                         var currentChain = await _blockchainService.GetChainAsync();
-                        if (chain.LastIrreversibleBlockHeight < index.Height)
+                        if (currentChain.LastIrreversibleBlockHeight < index.Height)
                         {
                             await _blockchainService.SetIrreversibleBlockAsync(currentChain, index.Height, index.Hash);
                         }
