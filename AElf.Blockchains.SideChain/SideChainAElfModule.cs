@@ -7,6 +7,7 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
+using AElf.CrossChain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.DPoS;
@@ -47,11 +48,16 @@ namespace AElf.Blockchains.SideChain
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero)
             };
+            var chainInitializationPlugin = context.ServiceProvider.GetService<IChainInitializationPlugin>();
+            var chainInitializationContext = AsyncHelper.RunSync(async () =>
+                await chainInitializationPlugin.RequestChainInitializationContextAsync(dto.ChainId));
             
             var dposOptions = context.ServiceProvider.GetService<IOptionsSnapshot<DPoSOptions>>().Value;
 
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
-                GenerateConsensusInitializationCallList(dposOptions));
+                GenerateConsensusInitializationCallList(dposOptions,
+                    Miners.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]),
+                    chainInitializationContext.CreatedTime.ToDateTime()));
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name, GenerateTokenInitializationCallList());
@@ -78,12 +84,11 @@ namespace AElf.Blockchains.SideChain
             return tokenContractCallList;
         }
         
-        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions)
+        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions, Miners miners, DateTime sideChainCreatedTime)
         {
             var consensusMethodCallList = new SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
-                dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
-                    DateTime.Parse(dposOptions.StartTimestamp).ToUniversalTime()));
+                miners.GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval, sideChainCreatedTime.ToUniversalTime()));
             consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
                 new DPoSStrategyInput
                 {
