@@ -6,7 +6,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.BenchBase\AElf.BenchBase.csproj" />
-      <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
+      <ProjectReference Include="..\..\test\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
     </ItemGroup>
 
     <ItemGroup>

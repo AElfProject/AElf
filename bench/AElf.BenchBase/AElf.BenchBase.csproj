@@ -9,7 +9,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
+      <ProjectReference Include="..\..\test\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
 
 </Project>
