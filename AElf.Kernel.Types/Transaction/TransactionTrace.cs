@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
@@ -14,10 +15,15 @@ namespace AElf.Kernel
         {
             get
             {
-                var o = Logs.Clone();
-                foreach (var t in InlineTraces)
+                var o = new RepeatedField<LogEvent>();
+                foreach (var trace in PreTraces)
                 {
-                    o.AddRange(t.FlattenedLogs);
+                    o.AddRange(trace.FlattenedLogs);
+                }
+                o.AddRange(Logs);
+                foreach (var trace in InlineTraces)
+                {
+                    o.AddRange(trace.FlattenedLogs);
                 }
 
                 return o;
@@ -26,6 +32,14 @@ namespace AElf.Kernel
 
         public IEnumerable<KeyValuePair<string, ByteString>> GetFlattenedWrite()
         {
+            foreach (var trace in PreTraces)
+            {
+                foreach (var kv in trace.GetFlattenedWrite())
+                {
+                    yield return kv;
+                }
+            }
+
             foreach (var kv in StateSet.Writes)
             {
                 yield return kv;
