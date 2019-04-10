@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+import "common.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Kernel";
+
+message InitialVoteContractInput {
+    Hash tokenContractSystemName = 1;
+}
+
+message VotingRegisterInput {
+    string topic = 1;
+    string accepted_currency = 3;
+    sint32 active_days = 4;
+    bool delegated = 5;
+    sint32 total_epoch = 6;
+    repeated string options = 7;
+}
+
+message VotingEvent {
+    string topic = 1;
+    Address sponsor = 2;
+    string accepted_currency = 3;
+    sint32 active_days = 4;
+    bool delegated = 5;
+    sint32 current_epoch = 6;
+    sint32 total_epoch = 7;
+    repeated string options = 8;
+}
+
+message VoteInput {
+    string topic = 1;
+    Address sponsor = 2;
+    sint64 amount = 3;
+    string option = 4;
+    Hash vote_id = 5;
+    Address voter = 6;
+}
+
+message WithdrawInput {
+    Hash vote_id = 1;
+}
+
+message GetVotingResultInput {
+    string topic = 1;
+    Address sponsor = 2;
+    sint32 epoch_number = 3;
+}
+
+message VotingResult {
+    string topic = 1;
+    Address sponsor = 2;
+    sint32 epoch_number = 3;
+    map<string, sint64> results = 4;
+}
+
+message UpdateEpochNumberInput {
+    string topic = 1;
+    sint32 epoch_number = 3;
+}
+
+message VotingRecord {
+    string topic = 1;
+    Address sponsor = 2;
+    sint32 epoch_number = 3;
+    Address voter = 4;
+    sint64 amount = 5;
+    google.protobuf.Timestamp WithdrawTimestamp = 6;
+    google.protobuf.Timestamp VoteTimestamp = 7;
+    bool IsWithdrawn = 8;
+    string option = 9;
+}
