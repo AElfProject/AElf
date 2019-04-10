@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
@@ -8,6 +9,7 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Shouldly;
@@ -90,7 +92,8 @@ namespace AElf.OS.Network
             var header = new PeerNewBlockAnnouncement
             {
                 BlockHeight = 100,
-                BlockHash = Hash.Generate()
+                BlockHash = Hash.Generate(),
+                BlockTime = DateTime.UtcNow.ToTimestamp()
             };
 
             await _grpcPeer.AnnounceAsync(header);

@@ -6,9 +6,11 @@ using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.EventMessages;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -17,6 +19,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
     public class TxHub : ITxHub, ISingletonDependency
     {
         public ILogger<TxHub> Logger { get; set; }
+        private readonly TransactionOptions _transactionOptions;
 
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
@@ -40,12 +43,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService)
+        public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService, 
+            IOptionsSnapshot<TransactionOptions> transactionOptions)
         {
             Logger = NullLogger<TxHub>.Instance;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
             LocalEventBus = NullLocalEventBus.Instance;
+            _transactionOptions = transactionOptions.Value;
         }
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync()
@@ -53,8 +58,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
             {
-                Logger.LogWarning(
-                    $"Attempting to retrieve executable transactions while best chain records don't match.");
+                Logger.LogWarning($"Attempting to retrieve executable transactions while best chain records don't match.");
                 return new ExecutableTransactionSet
                 {
                     PreviousBlockHash = _bestChainHash,
@@ -182,7 +186,19 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var receipt = new TransactionReceipt(transaction);
                 if (_allTransactions.ContainsKey(receipt.TransactionId))
                 {
-                    Logger.LogWarning($"Transaction already exists in TxPool");
+                    Logger.LogWarning($"Transaction already exists in TxStore");
+                    continue;
+                }
+
+                if (_allTransactions.Count > _transactionOptions.PoolLimit)
+                {
+                    Logger.LogWarning($"TxStore is full, ignore tx {receipt.TransactionId}");
+                    break;
+                }
+
+                if (transaction.CalculateSize() > TransactionPoolConsts.TransactionSizeLimit)
+                {
+                    Logger.LogWarning($"Transaction {receipt.TransactionId} oversize {transaction.CalculateSize()}");
                     continue;
                 }
 
@@ -257,6 +273,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             await Task.CompletedTask;
         }
 
+        public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
+        {
+            foreach (var txId in eventData.Transactions)
+            {
+                _allTransactions.TryRemove(txId, out _);
+            }
+            await Task.CompletedTask;
+        }
         #endregion
 
         public async Task<int> GetTransactionPoolSizeAsync()

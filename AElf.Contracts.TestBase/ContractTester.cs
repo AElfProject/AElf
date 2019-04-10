@@ -249,7 +249,7 @@ namespace AElf.Contracts.TestBase
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
-                    DateTime.Parse(dposOptions.StartTimestamp).ToUniversalTime()));
+                    dposOptions.StartTimestamp.ToUniversalTime()));
             return consensusMethodCallList;
         }
         

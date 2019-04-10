@@ -15,19 +15,9 @@ namespace AElf.Contracts.TokenConverter
 {
     public class TokenConverterTestBase:ContractTestBase<TokenConverterTestModule>
     {
-        protected ISmartContractAddressService ContractAddressService =>
-            Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
-
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
-        
-        protected Address BasicZeroContractAddress;
-        
         protected Address TokenContractAddress;
         
         protected Address TokenConverterContractAddress;
-        
-        internal BasicContractZeroContainer.BasicContractZeroStub ContractZeroStub =>
-            GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, DefaultSenderKeyPair);
 
         internal TokenContractContainer.TokenContractStub TokenContractStub;
         
@@ -45,12 +35,9 @@ namespace AElf.Contracts.TokenConverter
         {
             {
                 // TokenContract
-                var result = await ContractZeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput()
-                {
-                    Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
-                });
-                TokenContractAddress = result.Output;
+                var category = KernelConstants.CodeCoverageRunnerCategory;
+                var code = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
+                TokenContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
@@ -73,12 +60,9 @@ namespace AElf.Contracts.TokenConverter
             }
             {
                 // TokenConverterContract
-                var result = await ContractZeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput()
-                {
-                    Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenConverterContract).Assembly.Location))
-                });
-                TokenConverterContractAddress = result.Output;
+                var category = KernelConstants.CodeCoverageRunnerCategory;
+                var code = File.ReadAllBytes(typeof(TokenConverterContract).Assembly.Location);
+                TokenConverterContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
                 DefaultStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, DefaultSenderKeyPair);
             }

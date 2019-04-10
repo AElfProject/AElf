@@ -250,10 +250,16 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
+            if (input.Equals(new ChargeTransactionFeesInput()))
+            {
+                return new Empty();
+            }
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.Symbol == State.NativeTokenSymbol.Value, "The paid fee is not in native token.");
             var fromAddress = Context.Sender;
-            State.Balances[fromAddress][input.Symbol] = State.Balances[fromAddress][input.Symbol].Sub(input.Amount);
+            var existingBalance = State.Balances[fromAddress][input.Symbol];
+            Assert(existingBalance >= input.Amount, "Insufficient balance.");
+            State.Balances[fromAddress][input.Symbol] = existingBalance.Sub(input.Amount);
             State.ChargedFees[fromAddress][input.Symbol] =
                 State.ChargedFees[fromAddress][input.Symbol].Add(input.Amount);
             return new Empty();
