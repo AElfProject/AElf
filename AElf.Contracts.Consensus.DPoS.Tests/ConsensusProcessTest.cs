@@ -58,12 +58,10 @@ namespace AElf.Contracts.Consensus.DPoS
             // Act
             var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
             validationResult.Success.ShouldBeFalse();
-            validationResult.Message.ShouldBe("Incorrect new Out Value.");
             
             newInformation.Round.RealTimeMinersInformation.First().Value.OutValue = Hash.Generate();
             validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
             validationResult.Success.ShouldBeFalse();
-            validationResult.Message.ShouldBe("Invalid FinalOrderOfNextRound.");
         }
         
         [Fact]
