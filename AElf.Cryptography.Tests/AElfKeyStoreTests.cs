@@ -102,7 +102,7 @@ namespace AElf.Cryptography.Tests
             _keyStore.DefaultTimeoutToClose = TimeSpan.FromMilliseconds(50);
             _keyStore.OpenAsync(addString, "123").Wait();
             
-            Thread.Sleep(60);
+            Thread.Sleep(100);
             var keyPairInfo = _keyStore.GetAccountKeyPair(addString);
             keyPairInfo.ShouldBeNull();
         }
