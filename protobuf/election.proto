@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+import "common.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Kernel";
+
+message InitialElectionContractInput {
+    Hash voteContractSystemName = 1;
+}
+
+message AnnounceElectionInput {
+    string alias = 1;
+}
+
+message VoteMinerInput {
+    string candidatePublicKey = 1;
+    sint64 amount = 2;
+    sint32 lockTime = 3;
+}
+
+message UpdateTermNumberInput {
+    sint32 term_number = 1;
+}
+
+message GetElectionResultInput {
+    sint32 term_number = 1;
+}
+
+message ElectionResult {
+    sint32 term_number = 1;
+    map<string, sint64> results = 2;
+    bool isActive = 3;
+}

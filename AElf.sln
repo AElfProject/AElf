@@ -144,6 +144,8 @@ ProjectSection(SolutionItems) = preProject
 	protobuf\acs2.proto = protobuf\acs2.proto
 	protobuf\vote_contract.proto = protobuf\vote_contract.proto
 	protobuf\vote.proto = protobuf\vote.proto
+	protobuf\election.proto = protobuf\election.proto
+	protobuf\election_contract.proto = protobuf\election_contract.proto
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool", "AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"
@@ -325,6 +327,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Vote", "AElf.Contracts.Vote\AElf.Contracts.Vote.csproj", "{1634F9D4-CED2-4621-8D7C-71316642C291}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Consensus.DPos", "AElf.OS.Consensus.DPos\AElf.OS.Consensus.DPos.csproj", "{788482AC-4654-4BBD-BF2C-F32800F32E99}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Election", "AElf.Contracts.Election\AElf.Contracts.Election.csproj", "{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -800,6 +804,10 @@ Global
 		{1634F9D4-CED2-4621-8D7C-71316642C291}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1634F9D4-CED2-4621-8D7C-71316642C291}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1634F9D4-CED2-4621-8D7C-71316642C291}.Release|Any CPU.Build.0 = Release|Any CPU
+		{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -913,5 +921,6 @@ Global
 		{E2399D77-4A00-45AB-910C-2545C6B2E7AD} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{788482AC-4654-4BBD-BF2C-F32800F32E99} = {BC510DE7-274F-4C8B-BCBB-A9E18627ED05}
 		{1634F9D4-CED2-4621-8D7C-71316642C291} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 	EndGlobalSection
 EndGlobal
