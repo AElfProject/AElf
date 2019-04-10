@@ -2,6 +2,10 @@
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{798BAA50-825B-4DD9-83E2-77A9EE6EBE09}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4E54480A-D155-43ED-9736-1A5BE7957211}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core", "src\AElf.Kernel.Core\AElf.Kernel.Core.csproj", "{C7A26DA1-70D3-4D73-B5DB-A83241AB6F79}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core.Tests", "test\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj", "{43CE2CD7-AE6C-4086-8594-7BC82FC83B74}"
@@ -40,8 +44,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Concurrency.Lighthouse
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Contracts", "AElf.Contracts", "{D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test", "AElf.Test", "{4E54480A-D155-43ED-9736-1A5BE7957211}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization.Tests", "test\AElf.Contracts.Authorization.Tests\AElf.Contracts.Authorization.Tests.csproj", "{322850D0-CCBB-402D-AFFB-12EE43BCB09A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Core", "src\AElf.Core\AElf.Core.csproj", "{26287CC7-874E-4C9B-B41C-202511835B95}"
@@ -59,12 +61,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests", "test\AElf.Runtime.CSharp.Tests\AElf.Runtime.CSharp.Tests.csproj", "{D40BEB6B-C370-4A8E-A628-47B6842C975A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestBase", "test\AElf.TestBase\AElf.TestBase.csproj", "{7FEA756D-FA6F-48AF-A1F9-E6CD65F6DEF5}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{17BB24BA-6B44-4CA2-B989-6F5703DA0A67}"
-ProjectSection(SolutionItems) = preProject
-	docs\test.puml = docs\test.puml
-	docs\README.md = docs\README.md
-EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{F1365623-C82C-4ACD-A4D7-008B6B6972AE}"
 ProjectSection(SolutionItems) = preProject
@@ -113,44 +109,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.DPoS", "src\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj", "{74FA5F2B-E691-483B-B19E-8DF288C1C04B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Test.Helpers", "test\AElf.Test.Helpers\AElf.Test.Helpers.csproj", "{6D1B3707-67D7-405E-A4D1-F1BA759E2087}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "protobuf", "protobuf", "{790DD479-B398-4782-A066-698F0D692ACA}"
-ProjectSection(SolutionItems) = preProject
-	protobuf\common.proto = protobuf\common.proto
-	protobuf\execution.proto = protobuf\execution.proto
-	protobuf\kernel.proto = protobuf\kernel.proto
-	protobuf\abi.proto = protobuf\abi.proto
-	protobuf\address_pair.proto = protobuf\address_pair.proto
-	protobuf\auth.proto = protobuf\auth.proto
-	protobuf\consensus.proto = protobuf\consensus.proto
-	protobuf\crosschain.proto = protobuf\crosschain.proto
-	protobuf\header_info.proto = protobuf\header_info.proto
-	protobuf\messages.proto = protobuf\messages.proto
-	protobuf\metadata.proto = protobuf\metadata.proto
-	protobuf\resource.proto = protobuf\resource.proto
-	protobuf\smart_contract.proto = protobuf\smart_contract.proto
-	protobuf\peer_service.proto = protobuf\peer_service.proto
-	protobuf\network_types.proto = protobuf\network_types.proto
-	protobuf\consensus_dpos.proto = protobuf\consensus_dpos.proto
-	protobuf\aelf_options.proto = protobuf\aelf_options.proto
-	protobuf\descriptor_equivalent.proto = protobuf\descriptor_equivalent.proto
-	protobuf\test_contract.proto = protobuf\test_contract.proto
-	protobuf\token_contract_messages.proto = protobuf\token_contract_messages.proto
-	protobuf\acs1.proto = protobuf\acs1.proto
-	protobuf\acs2.proto = protobuf\acs2.proto
-	protobuf\authorization_contract.proto = protobuf\authorization_contract.proto
-	protobuf\basic_contract_zero.proto = protobuf\basic_contract_zero.proto
-	protobuf\cross_chain_contract.proto = protobuf\cross_chain_contract.proto
-	protobuf\dividend_contract.proto = protobuf\dividend_contract.proto
-	protobuf\dpos_contract.proto = protobuf\dpos_contract.proto
-	protobuf\dpos_crosschain_state.proto = protobuf\dpos_crosschain_state.proto
-	protobuf\dpos_sidechain_contract.proto = protobuf\dpos_sidechain_contract.proto
-	protobuf\fee_receiver_contract.proto = protobuf\fee_receiver_contract.proto
-	protobuf\resource_contract.proto = protobuf\resource_contract.proto
-	protobuf\token_contract.proto = protobuf\token_contract.proto
-	protobuf\token_contract_impl.proto = protobuf\token_contract_impl.proto
-	protobuf\token_converter_contract.proto = protobuf\token_converter_contract.proto
-EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool", "src\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"
 EndProject
@@ -290,7 +248,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividend.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Tests", "test\AElf.Kernel.Consensus.Tests\AElf.Kernel.Consensus.Tests.csproj", "{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benches", "benches", "{72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Bench", "AElf.Bench", "{72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.BenchBase", "test\AElf.BenchBase\AElf.BenchBase.csproj", "{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593}"
 EndProject
@@ -329,6 +287,44 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Benches", "test\AElf.Kernel.SmartContractExecution.Benches\AElf.Kernel.SmartContractExecution.Benches.csproj", "{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Consensus.DPos", "src\AElf.OS.Consensus.DPos\AElf.OS.Consensus.DPos.csproj", "{788482AC-4654-4BBD-BF2C-F32800F32E99}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "protobuf", "protobuf", "{790DD479-B398-4782-A066-698F0D692ACA}"
+ProjectSection(SolutionItems) = preProject
+	protobuf\common.proto = protobuf\common.proto
+	protobuf\execution.proto = protobuf\execution.proto
+	protobuf\kernel.proto = protobuf\kernel.proto
+	protobuf\abi.proto = protobuf\abi.proto
+	protobuf\address_pair.proto = protobuf\address_pair.proto
+	protobuf\auth.proto = protobuf\auth.proto
+	protobuf\consensus.proto = protobuf\consensus.proto
+	protobuf\crosschain.proto = protobuf\crosschain.proto
+	protobuf\header_info.proto = protobuf\header_info.proto
+	protobuf\messages.proto = protobuf\messages.proto
+	protobuf\metadata.proto = protobuf\metadata.proto
+	protobuf\resource.proto = protobuf\resource.proto
+	protobuf\smart_contract.proto = protobuf\smart_contract.proto
+	protobuf\peer_service.proto = protobuf\peer_service.proto
+	protobuf\network_types.proto = protobuf\network_types.proto
+	protobuf\consensus_dpos.proto = protobuf\consensus_dpos.proto
+	protobuf\aelf_options.proto = protobuf\aelf_options.proto
+	protobuf\descriptor_equivalent.proto = protobuf\descriptor_equivalent.proto
+	protobuf\test_contract.proto = protobuf\test_contract.proto
+	protobuf\token_contract_messages.proto = protobuf\token_contract_messages.proto
+	protobuf\acs1.proto = protobuf\acs1.proto
+	protobuf\acs2.proto = protobuf\acs2.proto
+	protobuf\authorization_contract.proto = protobuf\authorization_contract.proto
+	protobuf\basic_contract_zero.proto = protobuf\basic_contract_zero.proto
+	protobuf\cross_chain_contract.proto = protobuf\cross_chain_contract.proto
+	protobuf\dividend_contract.proto = protobuf\dividend_contract.proto
+	protobuf\dpos_contract.proto = protobuf\dpos_contract.proto
+	protobuf\dpos_crosschain_state.proto = protobuf\dpos_crosschain_state.proto
+	protobuf\dpos_sidechain_contract.proto = protobuf\dpos_sidechain_contract.proto
+	protobuf\fee_receiver_contract.proto = protobuf\fee_receiver_contract.proto
+	protobuf\resource_contract.proto = protobuf\resource_contract.proto
+	protobuf\token_contract.proto = protobuf\token_contract.proto
+	protobuf\token_contract_impl.proto = protobuf\token_contract_impl.proto
+	protobuf\token_converter_contract.proto = protobuf\token_converter_contract.proto
+EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -912,5 +908,28 @@ Global
 		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 		{E2399D77-4A00-45AB-910C-2545C6B2E7AD} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{788482AC-4654-4BBD-BF2C-F32800F32E99} = {BC510DE7-274F-4C8B-BCBB-A9E18627ED05}
+		{D674C1B1-2E22-416B-AEB8-CA75FA521E51} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{4EC22E9F-7019-470B-B990-B9E020DBBFB2} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{55F6997E-DB59-476B-B1D1-65FE4B6D0437} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{E48703B9-82DD-45F5-8CE6-F81AB0047B18} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{26287CC7-874E-4C9B-B41C-202511835B95} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{D86E3450-B65D-4999-8C1D-4B1D4403DB51} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{B0AD7E8F-E1BB-470A-A38A-4E0B920E0507} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{2A5C7854-9B98-4798-A9AE-8DC464093B90} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{BED61A6F-A339-4F33-ADA6-D41DA8251615} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{E710F6D7-F087-4815-8906-AE3643E21BAE} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{71DE375A-1037-4CDB-BC7C-6DC454B5D55D} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{4895B014-DCC4-4F5B-9DDE-FA1B43E37B98} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{05350E0A-D372-401F-B13C-894D1BB88397} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{A52F1E94-2805-4B6E-BFC5-CD0063A78ACC} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{8EF44709-4B5E-489B-A945-EDCB2D1A69C2} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{89AC0402-38F7-405C-B244-31C5F13FD364} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{90B310B4-C2DB-419E-B5EE-97FA096B62CC} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{BC510DE7-274F-4C8B-BCBB-A9E18627ED05} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{13B37500-5DF4-4C64-BD57-2CA6A619596A} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{72D80DF1-6B81-4D71-9AFF-2B526C99A1D9} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal
