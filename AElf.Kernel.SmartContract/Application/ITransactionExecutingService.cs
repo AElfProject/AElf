@@ -19,7 +19,7 @@ namespace AElf.Kernel.SmartContract.Application
     public class TransactionExecutingService : ITransactionExecutingService
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly IEnumerable<IExecutionPlugin> _plugins;
+        private readonly List<IExecutionPlugin> _plugins;
         private readonly ITransactionResultService _transactionResultService;
         public ILogger<TransactionExecutingService> Logger { get; set; }
 
@@ -28,7 +28,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
-            _plugins = plugins;
+            _plugins = GetUniquePlugins(plugins);
             Logger = NullLogger<TransactionExecutingService>.Instance;
         }
 
@@ -76,7 +76,8 @@ namespace AElf.Kernel.SmartContract.Application
                     await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
                 }
 
-                returnSets.Add(GetReturnSet(trace, result));
+                var returnSet = GetReturnSet(trace, result);
+                returnSets.Add(returnSet);
             }
 
             return returnSets;
@@ -188,10 +189,19 @@ namespace AElf.Kernel.SmartContract.Application
 
         private TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
         {
-            if (trace.ExecutionStatus == ExecutionStatus.Undefined ||
-                trace.ExecutionStatus == ExecutionStatus.Prefailed)
+            if (trace.ExecutionStatus == ExecutionStatus.Undefined)
             {
                 return null;
+            }
+
+            if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
+            {
+                return new TransactionResult()
+                {
+                    TransactionId = trace.TransactionId,
+                    Status = TransactionResultStatus.Unexecutable,
+                    Error = trace.StdErr
+                };
             }
 
             if (trace.IsSuccessful())
@@ -252,6 +262,12 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             return returnSet;
+        }
+
+        private static List<IExecutionPlugin> GetUniquePlugins(IEnumerable<IExecutionPlugin> plugins)
+        {
+            // One instance per type
+            return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
     }
 }
