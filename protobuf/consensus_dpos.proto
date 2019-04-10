@@ -89,6 +89,7 @@ message CandidateInTerm {
 message Round {
     int64 RoundNumber = 1;
     map<string, MinerInRound> RealTimeMinersInformation = 2;
+    int64 MainChainMinersRoundNumber = 3;
     int64 BlockchainAge = 4;
     string ExtraBlockProducerOfPreviousRound = 7;
     int64 TermNumber = 8;
@@ -250,6 +251,7 @@ message MinerList {
     int64 TermNumber = 1;
     repeated string PublicKeys = 2;
     repeated Address Addresses = 3;
+    int64 RoundNumber = 4;
 }
 
 message SendDividendsInput {

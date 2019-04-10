@@ -154,7 +154,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 return null;
             var minerList = new MinerList
             {
-                TermNumber = currentMiners.TermNumber
+                TermNumber = currentMiners.TermNumber,
+                RoundNumber = State.CurrentRoundNumberField.Value
             };
             minerList.Addresses.AddRange(currentMiners.Addresses);
             minerList.PublicKeys.AddRange(currentMiners.PublicKeys);
