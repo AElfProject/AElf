@@ -62,34 +62,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestBase", "test\AElf.TestBase\AElf.TestBase.csproj", "{7FEA756D-FA6F-48AF-A1F9-E6CD65F6DEF5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{F1365623-C82C-4ACD-A4D7-008B6B6972AE}"
-ProjectSection(SolutionItems) = preProject
-	.travis.yml = .travis.yml
-	scripts\build.sh = scripts\build.sh
-	scripts\install_chakracore.sh = scripts\install_chakracore.sh
-	scripts\install_protobuf.sh = scripts\install_protobuf.sh
-	scripts\download_chakracore.sh = scripts\download_chakracore.sh
-	scripts\test.sh = scripts\test.sh
-	scripts\upload_coverage.sh = scripts\upload_coverage.sh
-	appveyor.yml = appveyor.yml
-	scripts\deploy_myget.sh = scripts\deploy_myget.sh
-	scripts\deploy_nuget.sh = scripts\deploy_nuget.sh
-	scripts\deploy_docker.sh = scripts\deploy_docker.sh
-	scripts\deploy_myget_daily.sh = scripts\deploy_myget_daily.sh
-	scripts\download_binary.bat = scripts\download_binary.bat
-	scripts\download_binary.sh = scripts\download_binary.sh
-	scripts\generate_contract_base.bat = scripts\generate_contract_base.bat
-	scripts\generate_contract_code.bat = scripts\generate_contract_code.bat
-	scripts\generate_contract_code.sh = scripts\generate_contract_code.sh
-	scripts\generate_contract_reference.bat = scripts\generate_contract_reference.bat
-	scripts\generate_contract_reference.sh = scripts\generate_contract_reference.sh
-	scripts\generate_event_only.bat = scripts\generate_event_only.bat
-	scripts\generate_event_only.sh = scripts\generate_event_only.sh
-	scripts\generate_contract_base.sh = scripts\generate_contract_base.sh
-	scripts\generate_contract_stub.bat = scripts\generate_contract_stub.bat
-	scripts\generate_contract_stub.sh = scripts\generate_contract_stub.sh
-EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase", "test\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj", "{F7017767-0BD0-4882-948D-E15C6FF7C15D}"
@@ -287,44 +259,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Benches", "test\AElf.Kernel.SmartContractExecution.Benches\AElf.Kernel.SmartContractExecution.Benches.csproj", "{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Consensus.DPos", "src\AElf.OS.Consensus.DPos\AElf.OS.Consensus.DPos.csproj", "{788482AC-4654-4BBD-BF2C-F32800F32E99}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "protobuf", "protobuf", "{790DD479-B398-4782-A066-698F0D692ACA}"
-ProjectSection(SolutionItems) = preProject
-	protobuf\common.proto = protobuf\common.proto
-	protobuf\execution.proto = protobuf\execution.proto
-	protobuf\kernel.proto = protobuf\kernel.proto
-	protobuf\abi.proto = protobuf\abi.proto
-	protobuf\address_pair.proto = protobuf\address_pair.proto
-	protobuf\auth.proto = protobuf\auth.proto
-	protobuf\consensus.proto = protobuf\consensus.proto
-	protobuf\crosschain.proto = protobuf\crosschain.proto
-	protobuf\header_info.proto = protobuf\header_info.proto
-	protobuf\messages.proto = protobuf\messages.proto
-	protobuf\metadata.proto = protobuf\metadata.proto
-	protobuf\resource.proto = protobuf\resource.proto
-	protobuf\smart_contract.proto = protobuf\smart_contract.proto
-	protobuf\peer_service.proto = protobuf\peer_service.proto
-	protobuf\network_types.proto = protobuf\network_types.proto
-	protobuf\consensus_dpos.proto = protobuf\consensus_dpos.proto
-	protobuf\aelf_options.proto = protobuf\aelf_options.proto
-	protobuf\descriptor_equivalent.proto = protobuf\descriptor_equivalent.proto
-	protobuf\test_contract.proto = protobuf\test_contract.proto
-	protobuf\token_contract_messages.proto = protobuf\token_contract_messages.proto
-	protobuf\acs1.proto = protobuf\acs1.proto
-	protobuf\acs2.proto = protobuf\acs2.proto
-	protobuf\authorization_contract.proto = protobuf\authorization_contract.proto
-	protobuf\basic_contract_zero.proto = protobuf\basic_contract_zero.proto
-	protobuf\cross_chain_contract.proto = protobuf\cross_chain_contract.proto
-	protobuf\dividend_contract.proto = protobuf\dividend_contract.proto
-	protobuf\dpos_contract.proto = protobuf\dpos_contract.proto
-	protobuf\dpos_crosschain_state.proto = protobuf\dpos_crosschain_state.proto
-	protobuf\dpos_sidechain_contract.proto = protobuf\dpos_sidechain_contract.proto
-	protobuf\fee_receiver_contract.proto = protobuf\fee_receiver_contract.proto
-	protobuf\resource_contract.proto = protobuf\resource_contract.proto
-	protobuf\token_contract.proto = protobuf\token_contract.proto
-	protobuf\token_contract_impl.proto = protobuf\token_contract_impl.proto
-	protobuf\token_converter_contract.proto = protobuf\token_converter_contract.proto
-EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
