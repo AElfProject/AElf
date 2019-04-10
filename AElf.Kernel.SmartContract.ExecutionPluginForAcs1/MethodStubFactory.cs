@@ -1,13 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types.CSharp;
 using Google.Protobuf;
 
-namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
+namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 {
     public class MethodStubFactory : IMethodStubFactory
     {

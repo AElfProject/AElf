@@ -6,6 +6,7 @@ using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.EventMessages;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -272,6 +273,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             await Task.CompletedTask;
         }
 
+        public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
+        {
+            foreach (var txId in eventData.Transactions)
+            {
+                _allTransactions.TryRemove(txId, out _);
+            }
+            await Task.CompletedTask;
+        }
         #endregion
 
         public async Task<int> GetTransactionPoolSizeAsync()
