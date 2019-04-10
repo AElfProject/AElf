@@ -262,7 +262,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var finalExtraBlockProducer = miners.First();
             for (var i = 0; i < roundsCount; i++)
             {
-                var round = await miners.AnyOne().GetCurrentRoundInformationAsync();
+                var round = await miners[0].GetCurrentRoundInformationAsync();
                 foreach (var miner in round.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
                 {
                     var currentMiner = miners.First(m => m.PublicKey == miner.PublicKey);
@@ -309,7 +309,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public static async Task<ContractTester<DPoSContractTestAElfModule>> ChangeRoundAsync(
             this List<ContractTester<DPoSContractTestAElfModule>> miners)
         {
-            var round = await miners.AnyOne().GetCurrentRoundInformationAsync();
+            var round = await miners[0].GetCurrentRoundInformationAsync();
 
             var extraBlockProducer = round.GetExtraBlockProducerInformation();
             round.GenerateNextRoundInformation(DateTime.UtcNow, DateTime.UtcNow.ToTimestamp(),
