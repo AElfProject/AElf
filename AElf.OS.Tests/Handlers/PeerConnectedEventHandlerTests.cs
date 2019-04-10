@@ -4,7 +4,6 @@ using AElf.Common;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using Google.Protobuf.WellKnownTypes;
-using Volo.Abp.BackgroundJobs;
 using Xunit;
 
 namespace AElf.OS.Handlers
@@ -17,19 +16,11 @@ namespace AElf.OS.Handlers
         //     a) It's linkable => nothing happens
         //     b) It's not linkable => queue job
 
-        /// <summary>
-        /// Default amount of jobs to get from the store, since for now all tests should queues at most one, then
-        /// 2 is enough to check.
-        /// </summary>
-        private const int MaxJobsToCheck = 2;
-
         private readonly PeerConnectedEventHandler _handler;
-        private IBackgroundJobStore _jobStore;
 
         public PeerConnectedEventHandlerTests()
         {
             _handler = GetRequiredService<PeerConnectedEventHandler>();
-            _jobStore = GetRequiredService<IBackgroundJobStore>();
         }
 
         [Fact]
@@ -41,10 +32,9 @@ namespace AElf.OS.Handlers
                 BlockHeight = 1,
                 BlockTime = DateTime.UtcNow.ToTimestamp()
             };
-            await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1"));
-
-            var jobs = await _jobStore.GetWaitingJobsAsync(MaxJobsToCheck);
-            Assert.True(jobs.Count == 0);
+            var exception = await Record.ExceptionAsync(async () =>
+                await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1")));
+            Assert.Null(exception);
         }
 
         [Fact]
@@ -56,11 +46,9 @@ namespace AElf.OS.Handlers
                 BlockHeight = 1,
                 BlockTime = (DateTime.UtcNow + TimeSpan.FromSeconds(5)).ToTimestamp()
             };
-
-            await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1"));
-
-            var jobs = await _jobStore.GetWaitingJobsAsync(MaxJobsToCheck);
-            Assert.True(jobs.Count == 0);
+            var exception = await Record.ExceptionAsync(async () => 
+                await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1")));
+            Assert.Null(exception);
         }
     }
 }

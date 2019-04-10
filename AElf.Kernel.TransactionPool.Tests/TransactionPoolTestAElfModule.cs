@@ -16,11 +16,11 @@ namespace AElf.Kernel.TransactionPool
             context.Services.AddSingleton<TxHub>();
             Configure<TransactionOptions>(o=>
             {
-                o.PoolLimit = 1024;
+                o.PoolLimit = 5120;
             });
         }
     }
-    
+
     [DependsOn(
         typeof(TransactionPoolTestAElfModule),
         typeof(KernelCoreWithChainTestAElfModule)
