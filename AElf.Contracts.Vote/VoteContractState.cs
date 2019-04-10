@@ -6,7 +6,10 @@ namespace AElf.Contracts.Vote
 {
     public partial class VoteContractState : ContractState
     {
+        public BoolState Initialized { get; set; }
+
         public MappedState<Hash, VotingEvent> VotingEvents { get; set; }
         public MappedState<Hash, VotingResult> VotingResults { get; set; }
+        public MappedState<Hash, VotingRecord> VotingRecords { get; set; }
     }
 }

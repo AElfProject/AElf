@@ -25,7 +25,8 @@ namespace AElf.Contracts.MultiToken
                 TotalSupply = input.TotalSupply,
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
-                IsBurnable = input.IsBurnable
+                IsBurnable = input.IsBurnable,
+                
             });
 
             foreach (var address in input.LockWhiteList)
