@@ -21,5 +21,7 @@ namespace AElf.CrossChain
 
         CrossChainBlockData GetCrossChainBlockDataFilledInBlock(Hash previousBlockHash, long previousBlockHeight);
         Task<CrossChainBlockData> GetCrossChainBlockDataIndexedInStateAsync(Hash previousBlockHash, long previousBlockHeight);
+
+        Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId);
     }
 }

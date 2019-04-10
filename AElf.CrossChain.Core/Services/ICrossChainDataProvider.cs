@@ -23,5 +23,7 @@ namespace AElf.CrossChain
         Task<CrossChainBlockData> GetCrossChainBlockDataForNextMiningAsync(Hash currentBlockHash, long currentBlockHeight);
 
         CrossChainBlockData GetUsedCrossChainBlockDataForLastMiningAsync(Hash blockHash, long previousBlockHeight);
+
+        Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId);
     }
 }

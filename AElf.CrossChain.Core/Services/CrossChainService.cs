@@ -64,5 +64,10 @@ namespace AElf.CrossChain
             return await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(previousBlockHash,
                 previousBlockHeight);
         }
+
+        public Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
