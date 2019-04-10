@@ -97,7 +97,7 @@ namespace AElf.Blockchains.MainChain
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
-                    DateTime.Parse(dposOptions.StartTimestamp).ToUniversalTime()));
+                    dposOptions.StartTimestamp.ToUniversalTime()));
             consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
                 new DPoSStrategyInput
                 {

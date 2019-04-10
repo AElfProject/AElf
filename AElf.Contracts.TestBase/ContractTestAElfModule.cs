@@ -72,7 +72,7 @@ namespace AElf.Contracts.TestBase
                 o.InitialMiners = miners;
                 o.MiningInterval = 4000;
                 o.IsBootMiner = true;
-                o.StartTimestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+                o.StartTimestamp = DateTime.UtcNow;
             });
         }
     }
