@@ -30,6 +30,19 @@ namespace AElf.Contracts.TestKit
             return res.Output;
         }
 
+        protected async Task<Address> DeploySystemSmartContract(int category, byte[] code, Hash name, ECKeyPair senderKey)
+        {
+            var zeroStub = GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, senderKey);
+            var res = await zeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput()
+            {
+                Category = category,
+                Code = ByteString.CopyFrom(code),
+                Name = name,
+                TransactionMethodCallList = new SystemTransactionMethodCallList()
+            });
+            return res.Output;
+        }
+
         public T GetTester<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
         {
             var factory = Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
