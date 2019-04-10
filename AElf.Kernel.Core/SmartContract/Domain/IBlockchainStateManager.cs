@@ -18,6 +18,7 @@ namespace AElf.Kernel.SmartContract.Domain
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
         Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, Hash blockStateHash);
         Task<ChainStateInfo> GetChainStateInfoAsync();
+        Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash);
     }
 
     public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
@@ -193,6 +194,11 @@ namespace AElf.Kernel.SmartContract.Domain
         {
             var o = await _chainStateInfoCollection.GetAsync(_chainId.ToStorageKey());
             return o ?? new ChainStateInfo() {ChainId = _chainId};
+        }
+
+        public async Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash)
+        {
+            return await _blockStateSets.GetAsync(blockHash.ToStorageKey());
         }
 
 

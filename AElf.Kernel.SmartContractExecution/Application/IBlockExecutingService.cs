@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.SmartContract.Domain;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.EventBus.Local;
 
@@ -29,16 +30,19 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockValidationService _blockValidationService;
         private readonly IBlockExecutingService _blockExecutingService;
+        private readonly IBlockchainStateManager _blockchainStateManager;
         public ILocalEventBus LocalEventBus { get; set; }
 
         public FullBlockchainExecutingService(IChainManager chainManager,
             IBlockchainService blockchainService, IBlockValidationService blockValidationService,
-            IBlockExecutingService blockExecutingService)
+            IBlockExecutingService blockExecutingService, IBlockchainStateManager blockchainStateManager)
         {
             _chainManager = chainManager;
             _blockchainService = blockchainService;
             _blockValidationService = blockValidationService;
             _blockExecutingService = blockExecutingService;
+            _blockchainStateManager = blockchainStateManager;
+            
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -46,6 +50,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         private async Task<bool> ExecuteBlock(ChainBlockLink blockLink, Block block)
         {
+            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            if (blockState != null)
+            {
+                return true;
+            }
+
             var result = await _blockExecutingService.ExecuteBlockAsync(block.Header, block.Body.TransactionList);
             return result.GetHash().Equals(block.GetHash());
         }
