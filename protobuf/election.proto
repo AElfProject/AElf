@@ -32,3 +32,12 @@ message ElectionResult {
     map<string, sint64> results = 2;
     bool isActive = 3;
 }
+
+message Votes {
+    repeated Hash ActiveVotes = 1;
+    repeated Hash WithdrawnVotes = 2;
+}
+
+message CandidateHistory {
+    Hash AnnouncementTransactionId = 1;
+}

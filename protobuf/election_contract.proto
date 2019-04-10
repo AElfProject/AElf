@@ -9,13 +9,13 @@ import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.Election";
 
-service VoteContract {
+service ElectionContract {
     option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
 
     // Action
     rpc InitialElectionContract (InitialElectionContractInput) returns (google.protobuf.Empty) {
     }
-    rpc AnnounceElection (AnnounceElectionInput) returns (google.protobuf.Empty) {
+    rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }

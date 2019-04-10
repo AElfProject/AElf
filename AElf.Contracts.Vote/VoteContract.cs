@@ -10,6 +10,7 @@ namespace AElf.Contracts.Vote
     {
         public override Empty InitialVoteContract(InitialVoteContractInput input)
         {
+            Assert(!State.Initialized.Value, "Already initialized.");
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
 
