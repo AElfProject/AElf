@@ -1,10 +1,12 @@
 syntax = "proto3";
 
+package election;
+
+import "aelf_options.proto";
 import "common.proto";
 import "kernel.proto";
 import "vote.proto";
 import "election.proto";
-import "aelf_options.proto";
 import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.Election";
