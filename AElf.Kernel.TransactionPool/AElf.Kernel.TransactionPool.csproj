@@ -11,8 +11,4 @@
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Domain" />
-    </ItemGroup>
-
 </Project>

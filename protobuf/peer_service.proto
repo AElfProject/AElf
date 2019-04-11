@@ -34,6 +34,8 @@ enum AuthError {
     WrongAuth = 3;
     InvalidHandshake = 4;
     InvalidPeer = 5;
+    ChainMismatch = 6;
+    ProtocolMismatch = 7;
 }
 
 // **** Blocks *****
