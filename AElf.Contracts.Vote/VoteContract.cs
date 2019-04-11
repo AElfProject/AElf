@@ -98,6 +98,14 @@ namespace AElf.Contracts.Vote
                 Currency = votingEvent.AcceptedCurrency
             };
             State.VotingRecords[input.VoteId] = votingRecord;
+            
+            // Update voting history
+            var currentHistory = State.VotingHistories[votingRecord.Voter] ?? new VotingHistory
+            {
+                Voter = votingRecord.Voter,
+            };
+            currentHistory.History[votingEvent.GetHash().ToHex()].Values.Add(input.VoteId);
+            State.VotingHistories[votingRecord.Voter] = currentHistory;
 
             // Lock voted token.
             State.TokenContract.Lock.Send(new LockInput
@@ -165,6 +173,17 @@ namespace AElf.Contracts.Vote
             votingEvent.Options.Remove(input.Option);
             State.VotingEvents[votingEvent.GetHash()] = votingEvent;
             return new Empty();
+        }
+
+        public override VotingHistory GetVotingHistories(Address input)
+        {
+            return State.VotingHistories[input];
+        }
+
+        public override HashList GetVotingHistory(GetVotingHistoryInput input)
+        {
+            var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
+            return State.VotingHistories[input.Voter].History[votingEvent.GetHash().ToHex()];
         }
 
         private VotingEvent AssertVotingEvent(string topic, Address sponsor)

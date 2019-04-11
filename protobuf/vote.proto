@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "common.proto";
+import "kernel.proto";
 import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Kernel";
@@ -27,6 +28,7 @@ message VotingEvent {
     sint32 current_epoch = 6;
     sint32 total_epoch = 7;
     repeated string options = 8;
+    sint32 voters_count = 9;
 }
 
 message VoteInput {
@@ -83,4 +85,15 @@ message RemoveOptionInput {
     string topic = 1;
     Address sponsor = 2;
     string option = 3;
+}
+
+message VotingHistory {
+    Address voter = 1;
+    map<string, HashList> history = 2;// VotingEvent's hash hex -> Votes ids.
+}
+
+message GetVotingHistoryInput {
+    Address voter = 1;
+    string topic = 2;
+    Address sponsor = 3;
 }
