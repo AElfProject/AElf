@@ -61,7 +61,7 @@ namespace AElf.OS.Handlers
                 return;
             }
 
-            _taskQueueManager.GetQueue(OSConsts.BlockSyncQueueName).Enqueue(async () =>
+            _taskQueueManager.Enqueue(async () =>
             {
                 await _blockSyncJob.ExecuteAsync(new BlockSyncJobArgs
                 {
@@ -69,7 +69,7 @@ namespace AElf.OS.Handlers
                     BlockHash = blockHash,
                     BlockHeight = blockHeight
                 });
-            });
+            }, OSConsts.BlockSyncQueueName);
         }
 
         private bool VerifyAnnouncement(PeerNewBlockAnnouncement announcement)
