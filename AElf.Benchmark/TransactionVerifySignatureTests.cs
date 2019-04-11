@@ -8,7 +8,7 @@ namespace AElf.Benchmark
     [MarkdownExporterAttribute.GitHub]
     public class TransactionVerifySignatureTests: BenchmarkTestBase
     {
-        private OSTestHelper _osTestHelper;
+        private readonly OSTestHelper _osTestHelper;
         
         private Transaction _transaction;
         public TransactionVerifySignatureTests()

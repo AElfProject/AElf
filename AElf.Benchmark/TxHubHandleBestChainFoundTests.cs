@@ -21,7 +21,7 @@ namespace AElf.Benchmark
             _blockchainService = GetRequiredService<IBlockchainService>();
         }
 
-        [Params(1, 10, 100, 1000, 3000, 5000)] 
+        [Params(1, 10, 100, 1000, 3000, 5000)]
         public int TransactionCount;
 
         [GlobalSetup]
