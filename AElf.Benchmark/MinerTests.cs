@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
@@ -35,39 +36,30 @@ namespace AElf.Benchmark
         public int TransactionCount;
 
         [GlobalSetup]
-        public void GlobalSetup()
+        public async Task GlobalSetup()
         {
-            AsyncHelper.RunSync(async () =>
-            {
-                var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
+            var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
 
-                await _osTestHelper.BroadcastTransactions(transactions);
-            });
+            await _osTestHelper.BroadcastTransactions(transactions);
         }
 
         [Benchmark]
-        public void MineBlockTest()
+        public async Task MineBlockTest()
         {
-            AsyncHelper.RunSync(async () =>
-            {
-                var chain = await _blockchainService.GetChainAsync();
-                _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
-                    DateTime.UtcNow, TimeSpan.FromMilliseconds(4000));
-            });
+            var chain = await _blockchainService.GetChainAsync();
+            _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
+                DateTime.UtcNow, TimeSpan.FromMilliseconds(4000));
         }
 
         [GlobalCleanup]
-        public void Cleanup()
+        public async Task Cleanup()
         {
-            AsyncHelper.RunSync(async () =>
+            await _blockAttachService.AttachBlockAsync(_block);
+            var chain = await _blockchainService.GetChainAsync();
+            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
             {
-                await _blockAttachService.AttachBlockAsync(_block);
-                var chain = await _blockchainService.GetChainAsync();
-                await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-                {
-                    BlockHash = chain.BestChainHash,
-                    BlockHeight = chain.BestChainHeight
-                });
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
             });
         }
     }
