@@ -14,6 +14,7 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
+using VoteInput = AElf.Consensus.DPoS.VoteInput;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -323,7 +324,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 voteTxs.Add(await voter.GenerateTransactionAsync(
                     starter.GetConsensusContractAddress(),
                     nameof(ConsensusContract.Vote),
-                    new VoteInput()
+                    new VoteInput
                     {
                         CandidatePublicKey = candidate.PublicKey,
                         Amount = 1,

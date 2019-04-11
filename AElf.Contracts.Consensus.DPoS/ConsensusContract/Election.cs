@@ -7,6 +7,8 @@ using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using VoteInput = AElf.Consensus.DPoS.VoteInput;
+using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
