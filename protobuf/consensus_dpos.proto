@@ -128,6 +128,7 @@ message CandidateInHistory {
     int64 CurrentVotesNumber = 9;
     Address Address = 11;
     Hash AnnouncementTransactionId = 12;
+    bool IsEvilNode = 13;
 }
 
 message TicketsDictionary {

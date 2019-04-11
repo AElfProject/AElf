@@ -23,15 +23,14 @@ namespace AElf.Runtime.CSharp
         private readonly Type _contractType;
         private readonly object _contractInstance;
         private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
-        private readonly IReadOnlyList<ServiceDescriptor> _descriptors;
         private readonly ServerServiceDefinition _serverServiceDefinition;
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
-        private int _maxCallDepth = 4;
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
+        public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
 
         private Type FindContractType(Assembly assembly)
         {
@@ -67,13 +66,7 @@ namespace AElf.Runtime.CSharp
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
-            _descriptors = _serverServiceDefinition.GetDescriptors();
-        }
-
-        public IExecutive SetMaxCallDepth(int maxCallDepth)
-        {
-            _maxCallDepth = maxCallDepth;
-            return this;
+            Descriptors = _serverServiceDefinition.GetDescriptors();
         }
 
         public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
@@ -83,44 +76,41 @@ namespace AElf.Runtime.CSharp
             return this;
         }
 
-        public void SetDataCache(IStateCache cache)
-        {
-            _hostSmartContractBridgeContext.StateProvider.Cache = cache ?? new NullStateCache();
-        }
-
-        public IExecutive SetTransactionContext(ITransactionContext transactionContext)
-        {
-            _hostSmartContractBridgeContext.TransactionContext = transactionContext;
-            return this;
-        }
-
         private void Cleanup()
         {
             _smartContractProxy.Cleanup();
         }
 
-        public async Task ApplyAsync()
+        public async Task ApplyAsync(ITransactionContext transactionContext)
         {
-            await ExecuteMainTransaction();
-            if (CurrentTransactionContext.CallDepth == 0)
+            try
             {
-                // Plugin should only apply to top level transaction
-                foreach (var plugin in _executivePlugins)
+                _hostSmartContractBridgeContext.TransactionContext = transactionContext;
+                if (CurrentTransactionContext.CallDepth > CurrentTransactionContext.MaxCallDepth)
                 {
-                    plugin.PostMain(_hostSmartContractBridgeContext, _serverServiceDefinition);
-                }                
+                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
+                    CurrentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
+                    return;
+                }
+
+                Execute();
+                if (CurrentTransactionContext.CallDepth == 0)
+                {
+                    // Plugin should only apply to top level transaction
+                    foreach (var plugin in _executivePlugins)
+                    {
+                        plugin.PostMain(_hostSmartContractBridgeContext, _serverServiceDefinition);
+                    }
+                }
+            }
+            finally
+            {
+                _hostSmartContractBridgeContext.TransactionContext = null;
             }
         }
 
-        public async Task ExecuteMainTransaction()
+        public void Execute()
         {
-            if (CurrentTransactionContext.CallDepth > _maxCallDepth)
-            {
-                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
-                CurrentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
-                return;
-            }
-
             var s = CurrentTransactionContext.Trace.StartTime = DateTime.UtcNow;
             var methodName = CurrentTransactionContext.Transaction.MethodName;
 
@@ -241,7 +231,7 @@ namespace AElf.Runtime.CSharp
 
         public byte[] GetFileDescriptorSet()
         {
-            var descriptor = _descriptors.Last();
+            var descriptor = Descriptors.Last();
             var output = new FileDescriptorSet();
             output.File.AddRange(GetSelfAndDependency(descriptor.File).Select(x => x.SerializedData));
             return output.ToByteArray();

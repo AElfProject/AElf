@@ -64,7 +64,13 @@ namespace AElf.CrossChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<CrossChainTestHelper>();
-            
+            context.Services.AddTransient(provider =>
+            {
+                var mockSmartContractAddressService = new Mock<ISmartContractAddressService>();
+                mockSmartContractAddressService.Setup(m => m.GetAddressByContractName(It.IsAny<Hash>()))
+                    .Returns(Address.FromString("CrossChainContract"));
+                return mockSmartContractAddressService.Object;
+            });
             context.Services.AddTransient(provider =>
             {
                 var mockTransactionReadOnlyExecutionService = new Mock<ITransactionReadOnlyExecutionService>();

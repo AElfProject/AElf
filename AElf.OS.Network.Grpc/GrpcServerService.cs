@@ -59,8 +59,16 @@ namespace AElf.OS.Network.Grpc
 
             if (handshake?.HskData == null)
                 return new ConnectReply { Err = AuthError.InvalidHandshake };
-            
-            //verify signature
+
+            // verify chain id
+            if (handshake.HskData.ChainId != _blockChainService.GetChainId())
+                return new ConnectReply { Err = AuthError.ChainMismatch };
+
+            // verify protocol
+            if (handshake.HskData.Version != KernelConstants.ProtocolVersion)
+                return new ConnectReply { Err = AuthError.ProtocolMismatch };
+
+            // verify signature
             var validData = await _accountService.VerifySignatureAsync(handshake.Sig.ToByteArray(), 
                 Hash.FromMessage(handshake.HskData).ToByteArray(), handshake.HskData.PublicKey.ToByteArray());
             if (!validData)
@@ -133,7 +141,6 @@ namespace AElf.OS.Network.Grpc
             if (peerInPool != null)
             {
                 peerInPool.HandlerRemoteAnnounce(an);
-                
             }
 
             Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");

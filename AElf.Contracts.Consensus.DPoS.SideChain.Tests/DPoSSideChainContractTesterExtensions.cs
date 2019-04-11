@@ -96,6 +96,13 @@ namespace AElf.Contracts.DPoS.SideChain
             return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetConsensusContractAddress(),
                 methodName, input);
         }
+        
+        public static async Task<ByteString> CallConsensusContractMethodAsync(
+            this ContractTester<DPoSSideChainTestAElfModule> contractTester, string methodName, IMessage input)
+        {
+            return await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
+                methodName, input);
+        }
 
         public static async Task<Round> GetCurrentRoundInformation(
             this ContractTester<DPoSSideChainTestAElfModule> contractTester

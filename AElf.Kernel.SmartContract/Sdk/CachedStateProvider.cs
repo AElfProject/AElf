@@ -1,14 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {
-    public class CachedStateProvider : IStateProvider
+    public class CachedStateProvider : IScopedStateProvider
     {
+        public Address ContractAddress => _inner.ContractAddress;
 
-        private readonly IStateProvider _inner;
+        private readonly IScopedStateProvider _inner;
 
-        public CachedStateProvider(IStateProvider inner)
+        public CachedStateProvider(IScopedStateProvider inner)
         {
             _inner = inner;
         }
@@ -17,30 +20,36 @@ namespace AElf.Kernel.SmartContract.Sdk
 
         public async Task<byte[]> GetAsync(StatePath path)
         {
-            if (Cache.TryGetValue(path, out var value))
+            var scoped = new ScopedStatePath()
+            {
+                Address = ContractAddress,
+                Path = path
+            };
+
+            if (Cache.TryGetValue(scoped, out var value))
             {
                 return value;
             }
 
             var bytes = await _inner.GetAsync(path);
 
-            Cache[path] = bytes;
+            Cache[scoped] = bytes;
 
             return bytes;
         }
-        
+
         private class InMemoryStateCache : IStateCache
         {
-            private readonly Dictionary<StatePath, byte[]> _data = 
-                new Dictionary<StatePath, byte[]>();
+            private readonly Dictionary<ScopedStatePath, byte[]> _data =
+                new Dictionary<ScopedStatePath, byte[]>();
 
             //TODO: Add TryGetValue and this[StatePath key] cases [Case]
-            public bool TryGetValue(StatePath key, out byte[] value)
+            public bool TryGetValue(ScopedStatePath key, out byte[] value)
             {
                 return _data.TryGetValue(key, out value);
             }
 
-            public byte[] this[StatePath key]
+            public byte[] this[ScopedStatePath key]
             {
                 get => TryGetValue(key, out var value) ? value : null;
                 set => _data[key] = value;

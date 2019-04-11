@@ -18,6 +18,7 @@ namespace AElf.Kernel.SmartContract.Domain
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
         Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, Hash blockStateHash);
         Task<ChainStateInfo> GetChainStateInfoAsync();
+        Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash);
     }
 
     public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
@@ -70,7 +71,7 @@ namespace AElf.Kernel.SmartContract.Domain
                     else
                     {
                         //find value in block state set
-                        var blockStateKey = blockHash.ToHex();
+                        var blockStateKey = blockHash.ToStorageKey();
                         var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
                         while (blockStateSet != null && blockStateSet.BlockHeight > bestChainState.BlockHeight)
                         {
@@ -80,7 +81,7 @@ namespace AElf.Kernel.SmartContract.Domain
                                 break;
                             }
 
-                            blockStateKey = blockStateSet.PreviousHash?.ToHex();
+                            blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
 
                             if (blockStateKey != null)
                             {
@@ -104,7 +105,7 @@ namespace AElf.Kernel.SmartContract.Domain
             else
             {
                 //best chain state is null, it will find value in block state set
-                var blockStateKey = blockHash.ToHex();
+                var blockStateKey = blockHash.ToStorageKey();
                 var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
                 while (blockStateSet != null)
                 {
@@ -114,7 +115,7 @@ namespace AElf.Kernel.SmartContract.Domain
                         break;
                     }
 
-                    blockStateKey = blockStateSet.PreviousHash?.ToHex();
+                    blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
 
                     if (blockStateKey != null)
                     {
@@ -193,6 +194,11 @@ namespace AElf.Kernel.SmartContract.Domain
         {
             var o = await _chainStateInfoCollection.GetAsync(_chainId.ToStorageKey());
             return o ?? new ChainStateInfo() {ChainId = _chainId};
+        }
+
+        public async Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash)
+        {
+            return await _blockStateSets.GetAsync(blockHash.ToStorageKey());
         }
 
 

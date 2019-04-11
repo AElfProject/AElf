@@ -20,7 +20,7 @@ namespace AElf.Kernel.Consensus
             _consensusControlInformation = GetRequiredService<ConsensusControlInformation>();
         }
 
-        [Fact(Skip = "Obsolete")]
+        [Fact]
         public async Task ValidateConsensusBeforeExecutionAsync()
         {
             var chainContext = new ChainContext
@@ -34,7 +34,7 @@ namespace AElf.Kernel.Consensus
             result.ShouldBeTrue();
         }
 
-        [Fact(Skip = "Obsolete")]
+        [Fact]
         public async Task ValidateConsensusAfterExecutionAsync()
         {
             var chainContext = new ChainContext
@@ -62,7 +62,7 @@ namespace AElf.Kernel.Consensus
             dposTriggerInformation.ShouldNotBeNull();
         }
 
-        [Fact(Skip = "Obsolete")]
+        [Fact]
         public async Task GenerateConsensusTransactionsAsync()
         {
             var chainContext = new ChainContext
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Consensus
             
             transactions.Select(t =>t.RefBlockNumber).ShouldAllBe(x => x == 100);
             
-            var prefix = ByteString.CopyFrom(Hash.Empty.Take(4).ToArray());
+            var prefix = ByteString.CopyFrom(chainContext.BlockHash.Take(4).ToArray());
             transactions.Select(t =>t.RefBlockPrefix).ShouldAllBe( p => p == prefix);
         }
     }

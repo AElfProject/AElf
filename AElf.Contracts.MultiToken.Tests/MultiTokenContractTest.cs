@@ -497,30 +497,31 @@ namespace AElf.Contracts.MultiToken
 
             {
                 var resultGetBytes = await Tester.CallContractMethodAsync(TokenContractAddress,
-                    nameof(TokenContract.GetMethodFee), new GetMethodFeeInput
+                    nameof(TokenContract.GetMethodFee),new MethodName()
                     {
-                        Method = nameof(TokenContract.Transfer)
+                        Name = nameof(TokenContract.Transfer)
                     });
-                var resultGet = GetMethodFeeOutput.Parser.ParseFrom(resultGetBytes);
-                resultGet.Fee.ShouldBe(0L);
+                var resultGet = TokenAmount.Parser.ParseFrom(resultGetBytes);
+                resultGet.Amount.ShouldBe(0L);
             }
 
             var resultSet = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.SetMethodFee), new SetMethodFeeInput
                 {
                     Method = nameof(TokenContract.Transfer),
-                    Fee = 10L
+                    Symbol = "ELF",
+                    Amount = 10L
                 });
             resultSet.Status.ShouldBe(TransactionResultStatus.Mined);
 
             {
                 var resultGetBytes = await Tester.CallContractMethodAsync(TokenContractAddress,
-                    nameof(TokenContract.GetMethodFee), new GetMethodFeeInput
+                    nameof(TokenContract.GetMethodFee), new MethodName()
                     {
-                        Method = nameof(TokenContract.Transfer)
+                        Name = nameof(TokenContract.Transfer)
                     });
-                var resultGet = GetMethodFeeOutput.Parser.ParseFrom(resultGetBytes);
-                resultGet.Fee.ShouldBe(10L);
+                var resultGet = TokenAmount.Parser.ParseFrom(resultGetBytes);
+                resultGet.Amount.ShouldBe(10L);
             }
         }
 

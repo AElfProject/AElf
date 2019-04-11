@@ -10,7 +10,6 @@ using Google.Protobuf;
 
 namespace AElf.CrossChain
 {
-    //TODO: Add test cases for CrossChainEventHelper [Case]
     //TODO: Can be removed as it is not used.
     public static class CrossChainEventHelper
     {

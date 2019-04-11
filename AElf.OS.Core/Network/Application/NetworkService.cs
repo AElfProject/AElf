@@ -34,7 +34,7 @@ namespace AElf.OS.Network.Application
             return await _peerPool.RemovePeerByAddressAsync(address);
         }
 
-        public List<string> GetPeers()
+        public List<string> GetPeerIpList()
         {
             return _peerPool.GetPeers(true).Select(p => p.PeerIpAddress).ToList();
         }
@@ -42,13 +42,19 @@ namespace AElf.OS.Network.Application
         public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader)
         {
             int successfulBcasts = 0;
-            
+
             foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
-                    await peer.AnnounceAsync(new PeerNewBlockAnnouncement
-                        {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height});
+                    var announcement = new PeerNewBlockAnnouncement
+                    {
+                        BlockHash = blockHeader.GetHash(),
+                        BlockHeight = blockHeader.Height,
+                        BlockTime = blockHeader.Time
+                    };
+                    Logger.LogDebug($"PeerNewBlockAnnouncement: {announcement}");
+                    await peer.AnnounceAsync(announcement);
 
                     successfulBcasts++;
                 }
@@ -198,9 +204,5 @@ namespace AElf.OS.Network.Application
             return Task.FromResult(peer?.CurrentBlockHeight ?? 0);
         }
 
-        /*public async Task<Hash> FindLastLastIrreversibleBlockHash()
-        {
-            var peers = _peerPool.GetPeers();
-        }*/
     }
 }

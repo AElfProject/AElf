@@ -2,16 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Common;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Events;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.EventBus;
-using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainService : ICrossChainService, ITransientDependency, ILocalEventHandler<BestChainFoundEventData>
+    public class CrossChainService : ICrossChainService, ITransientDependency
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IChainManager _chainManager;
@@ -55,24 +51,18 @@ namespace AElf.CrossChain
 
         public async Task<CrossChainBlockData> GetNewCrossChainBlockDataAsync(Hash previousBlockHash, long previousBlockHeight)
         {
-            return await _crossChainDataProvider.GetCrossChainBlockDataForMiningAsync(previousBlockHash, previousBlockHeight);
+            return await _crossChainDataProvider.GetCrossChainBlockDataForNextMiningAsync(previousBlockHash, previousBlockHeight);
         }
 
         public CrossChainBlockData GetCrossChainBlockDataFilledInBlock(Hash previousBlockHash, long previousBlockHeight)
         {
-            return _crossChainDataProvider.GetUsedCrossChainBlockData(previousBlockHash, previousBlockHeight);
+            return _crossChainDataProvider.GetUsedCrossChainBlockDataForLastMiningAsync(previousBlockHash, previousBlockHeight);
         }
 
         public async Task<CrossChainBlockData> GetCrossChainBlockDataIndexedInStateAsync(Hash previousBlockHash, long previousBlockHeight)
         {
             return await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(previousBlockHash,
                 previousBlockHeight);
-        }
-        public Task HandleEventAsync(BestChainFoundEventData eventData)
-        {
-            var task = _crossChainDataProvider.ActivateCrossChainCacheAsync(eventData.BlockHash,
-                eventData.BlockHeight);
-            return Task.CompletedTask;
         }
     }
 }

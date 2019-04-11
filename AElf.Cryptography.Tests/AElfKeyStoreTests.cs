@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography.ECDSA.Exceptions;
@@ -96,9 +98,13 @@ namespace AElf.Cryptography.Tests
             var address = Address.FromPublicKey(keyPair.PublicKey);
             var addString = address.GetFormatted();
 
-            //Open account
-            var errResult = await _keyStore.OpenAsync(addString, "123", false);
-            errResult.ShouldBe(AElfKeyStore.Errors.None);
+            //Open account with timeout
+            _keyStore.DefaultTimeoutToClose = TimeSpan.FromMilliseconds(50);
+            _keyStore.OpenAsync(addString, "123").Wait();
+            
+            Thread.Sleep(100);
+            var keyPairInfo = _keyStore.GetAccountKeyPair(addString);
+            keyPairInfo.ShouldBeNull();
         }
     }
 }

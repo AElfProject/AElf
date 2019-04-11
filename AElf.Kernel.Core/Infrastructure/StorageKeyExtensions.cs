@@ -9,36 +9,30 @@ namespace AElf.Kernel.Infrastructure
     {
         public static string ToStorageKey(this long n)
         {
-            return BitConverter.GetBytes(n).ToHex();
+            return n.ToString();
         }
         
         public static string ToStorageKey(this ulong n)
         {
-            return BitConverter.GetBytes(n).ToHex();
+            return n.ToString();
         }
         public static string ToStorageKey(this int n)
         {
-            return BitConverter.GetBytes(n).ToHex();
+            return n.ToString();
         }
         public static string ToStorageKey(this Hash hash)
         {
-            return hash?.ToHex();
+            return hash?.Value.ToBase64();
         }
         
         public static string ToStorageKey(this ByteString byteString)
         {
-            return byteString?.ToHex();
+            return byteString?.ToBase64();
         }
         
         public static string ToStorageKey(this Address byteString)
         {
             return byteString?.GetFormatted();
-        }
-        
-        
-        public static string ToStorageKey(this StatePath statePath)
-        {
-            return string.Join("/", statePath.Path.Select(x => x.ToStringUtf8()));
         }
     }
 }
