@@ -36,17 +36,11 @@ namespace AElf.Contract.CrossChain.Tests
                     Symbol = "ELF"
                 }));
             Assert.Equal(_balanceOfStarter, balanceResult.Balance);
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             var txResult =await ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.RequestChainCreation),
-                sideChainInfo);
+                sideChainCreationRequest);
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Mined);
             var expectedChainId = ChainHelpers.GetChainId(1);
@@ -58,16 +52,10 @@ namespace AElf.Contract.CrossChain.Tests
         {
             await InitializeCrossChainContract();
             long lockedTokenAmount = 10;
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             var txResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,
-                sideChainInfo);
+                sideChainCreationRequest);
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
         }
@@ -76,16 +64,10 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task Request_SideChain_Creation_WithoutEnoughToken()
         {
             await InitializeCrossChainContract();
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = 1000_000L
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, 1000_000L, ByteString.Empty);
+
             var txResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,
-                sideChainInfo);
+                sideChainCreationRequest);
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
         }
@@ -95,35 +77,10 @@ namespace AElf.Contract.CrossChain.Tests
         {
             await InitializeCrossChainContract();
             long lockedTokenAmount = 10;
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                LockedTokenAmount = lockedTokenAmount,
-                Proposer = Address.Generate()
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             var txResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,
-                sideChainInfo);
-            var status = txResult.Status;
-            Assert.True(status == TransactionResultStatus.Failed);
-        }
-        
-        [Fact]
-        public async Task Request_SideChain_Creation_WrongStatus()
-        {
-            await InitializeCrossChainContract();
-            long lockedTokenAmount = 10;
-            await ApproveBalance(lockedTokenAmount);
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Review,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress()
-            };
-            var txResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,
-                sideChainInfo);
+                sideChainCreationRequest);
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
         }
@@ -135,23 +92,17 @@ namespace AElf.Contract.CrossChain.Tests
             long lockedTokenAmount = 20;
             await ApproveBalance(lockedTokenAmount * 2);
 
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             var tx = await GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.RequestChainCreation),
                 null,
-                sideChainInfo);
+                sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx});
             
             var txResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.RequestChainCreation),
-                sideChainInfo);
+                sideChainCreationRequest);
             var expectedChainId = ChainHelpers.GetChainId(2);
             Assert.Equal(expectedChainId, SInt32Value.Parser.ParseFrom(txResult.ReturnValue).Value);
         }
@@ -162,19 +113,13 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract();
             long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             
             var tx = await GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.RequestChainCreation),
                 null,
-                sideChainInfo);
+                sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx});
             var expectedChainId = ChainHelpers.GetChainId(1);
             var txResult =
@@ -197,19 +142,11 @@ namespace AElf.Contract.CrossChain.Tests
             await ApproveBalance(lockedTokenAmount);
             
             var ecKeyPair = CryptoHelpers.GenerateKeyPair();
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = Address.FromPublicKey(ecKeyPair.PublicKey),
-                LockedTokenAmount = lockedTokenAmount
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             
             var tx = await GenerateTransactionAsync(CrossChainContractAddress,
-                nameof(CrossChainContract.RequestChainCreation),
-                ecKeyPair,
-                sideChainInfo);
+                nameof(CrossChainContract.RequestChainCreation), ecKeyPair, sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx});
             var expectedChainId = ChainHelpers.GetChainId(1);
             var txResult =
@@ -226,17 +163,10 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract();
             long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
             
             var tx = await GenerateTransactionAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName, null,
-                sideChainInfo);
+                sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx});
             var expectedChainId = ChainHelpers.GetChainId(2);
             var txResult =
@@ -256,17 +186,11 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract();
             long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             
             var tx = await GenerateTransactionAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName, null,
-                sideChainInfo);
+                sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx});
             var chainId = ChainHelpers.GetChainId(1);
             await ExecuteContractWithMiningAsync(CrossChainContractAddress,
@@ -292,17 +216,9 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract();
             long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
-            
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
             var tx = await GenerateTransactionAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,null,
-                sideChainInfo);
+                sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx});
             var chainId = ChainHelpers.GetChainId(1);
             var txResult =
@@ -327,17 +243,11 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract();
             long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             
             var requestTransaction = await GenerateTransactionAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,null,
-                sideChainInfo);
+                sideChainCreationRequest);
             await MineAsync(new List<Transaction> {requestTransaction});
             var chainId = ChainHelpers.GetChainId(1);
             var creationTransaction = await GenerateTransactionAsync(CrossChainContractAddress,
@@ -354,7 +264,6 @@ namespace AElf.Contract.CrossChain.Tests
                     Value = chainId
                 })).Value;
             Assert.Equal(10, balance);
-            
         }
         
         //TODO: Disable for param packer removing
@@ -402,16 +311,10 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract();
             await ApproveBalance(lockedTokenAmount);
             
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress()
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, 0, ByteString.Empty);
             
             var tx = await GenerateTransactionAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName, null,
-                sideChainInfo);
+                sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx});
             var chainId = ChainHelpers.GetChainId(2);
             var txResult =
@@ -432,19 +335,10 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract();
             await ApproveBalance(lockedTokenAmount);
             
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
             
             var tx1 = await GenerateTransactionAsync(CrossChainContractAddress, 
-                nameof(CrossChainContract.RequestChainCreation),
-                null,
-                sideChainInfo);
+                nameof(CrossChainContract.RequestChainCreation), null, sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
             var tx2 = await GenerateTransactionAsync(CrossChainContractAddress,
@@ -473,19 +367,10 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract();
             await ApproveBalance(lockedTokenAmount);
             
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
-            
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             var tx1 = await GenerateTransactionAsync(CrossChainContractAddress,
-                nameof(CrossChainContract.RequestChainCreation),
-                null,
-                sideChainInfo);
+                nameof(CrossChainContract.RequestChainCreation), null, sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
             var tx2 = await GenerateTransactionAsync(CrossChainContractAddress, 
@@ -519,19 +404,10 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract();
             await ApproveBalance(lockedTokenAmount);
             
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
-            
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             var tx1 = await GenerateTransactionAsync(CrossChainContractAddress,
-                nameof(CrossChainContract.RequestChainCreation),
-                null,
-                sideChainInfo);
+                nameof(CrossChainContract.RequestChainCreation),null, sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
             
@@ -551,19 +427,10 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract();
             await ApproveBalance(lockedTokenAmount);
             
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
-            
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             var tx1 = await GenerateTransactionAsync(CrossChainContractAddress,
-                nameof(CrossChainContract.RequestChainCreation),
-                null,
-                sideChainInfo);
+                nameof(CrossChainContract.RequestChainCreation), null, sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
             await ExecuteContractWithMiningAsync(CrossChainContractAddress, 
@@ -604,19 +471,10 @@ namespace AElf.Contract.CrossChain.Tests
             long lockedTokenAmount = 10;           
             await InitializeCrossChainContract();
             await ApproveBalance(lockedTokenAmount);
-            
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
-            
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             var tx1 = await GenerateTransactionAsync(CrossChainContractAddress, 
-                nameof(CrossChainContract.RequestChainCreation), null,
-                sideChainInfo);
+                nameof(CrossChainContract.RequestChainCreation), null, sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
             await ExecuteContractWithMiningAsync(CrossChainContractAddress, 

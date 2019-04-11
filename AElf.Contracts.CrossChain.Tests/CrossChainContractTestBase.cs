@@ -81,17 +81,10 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract(parentChainId);
 
             await ApproveBalance(lockedTokenAmount);
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
-
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+            
             var tx1 = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
-                nameof(CrossChainContract.RequestChainCreation), sideChainInfo);
+                nameof(CrossChainContract.RequestChainCreation), sideChainCreationRequest);
             await Tester.MineAsync(new List<Transaction> {tx1});
             var chainId = ChainHelpers.GetChainId(1);
             var tx2 = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
@@ -138,6 +131,19 @@ namespace AElf.Contract.CrossChain.Tests
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(bytes);
             return bytes.Skip(Array.FindIndex(bytes, Convert.ToBoolean)).ToArray();
+        }
+
+        protected SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount, ByteString contractCode, IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
+        {
+            var res = new SideChainCreationRequest
+            {
+                ContractCode = contractCode,
+                IndexingPrice = indexingPrice,
+                LockedTokenAmount = lockedTokenAmount
+            };
+            if(resourceTypeBalancePairs != null)
+                res.ResourceBalances.AddRange(resourceTypeBalancePairs);
+            return res;
         }
     }
 }

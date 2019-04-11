@@ -29,6 +29,8 @@ namespace AElf.CrossChain
         Task<Dictionary<int, long>> GetAllChainsIdAndHeightAsync(Hash blockHash, long blockHeight);
 
         Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight);
+        
+        Task<ChainInitializationContext> GetChainInitializationContextAsync(Hash blockHash, long blockHeight, int chainId);
     }
 
     public class CrossChainContractReader : ICrossChainContractReader, ITransientDependency
@@ -114,6 +116,14 @@ namespace AElf.CrossChain
             return await ReadByTransactionAsync<CrossChainBlockData>(readOnlyTransaction, blockHash, blockHeight);
         }
 
+        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(Hash blockHash, long blockHeight, int chainId)
+        {
+            var readOnlyTransaction =
+                GenerateReadOnlyTransaction(nameof(CrossChainContractMethodNames.GetChainInitializationContext),
+                    new SInt32Value{Value = chainId});
+            return await ReadByTransactionAsync<ChainInitializationContext>(readOnlyTransaction, blockHash, blockHeight);
+        }
+
         private Address CrossChainContractMethodAddress =>
             _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
         
@@ -164,6 +174,6 @@ namespace AElf.CrossChain
         GetSideChainIdAndHeight,
         GetAllChainsIdAndHeight,
         GetIndexedCrossChainBlockDataByHeight,
-            
+        GetChainInitializationContext
     }
 }
