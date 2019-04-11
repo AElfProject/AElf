@@ -32,40 +32,33 @@ namespace AElf.OS.Consensus.DPos
 
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            var irreversibleBlockHash =
-                await _idpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockHashAsync(
+            var irreversibleBlockIndex =
+                await _idpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
                     eventData.SenderPubKey);
 
-            if (irreversibleBlockHash != null)
+            if (irreversibleBlockIndex != null)
             {
                 _taskQueueManager.Enqueue(async () =>
                 {
                     var chain = await _blockchainService.GetChainAsync();
-                    var block = await _blockchainService.GetBlockByHashAsync(irreversibleBlockHash);
-                    if (block == null)
+                    if (chain.LastIrreversibleBlockHeight < irreversibleBlockIndex.Height)
                     {
-                        return;
-                    }
-
-                    for (var height = chain.LastIrreversibleBlockHeight + 1; height < block.Height; height++)
-                    {
-                        var hash = await _blockchainService.GetBlockHashByHeightAsync(chain, height,
-                            chain.BestChainHash);
-                        if (hash == null)
+                        var hash = await _blockchainService.GetBlockHashByHeightAsync(chain,
+                            irreversibleBlockIndex.Height, chain.BestChainHash);
+                        if (hash == irreversibleBlockIndex.Hash)
                         {
-                            return;
+                            await _blockchainService.SetIrreversibleBlockAsync(chain, irreversibleBlockIndex.Height,
+                                irreversibleBlockIndex.Hash);
                         }
-
-                        await _blockchainService.SetIrreversibleBlockAsync(chain, height, hash);
                     }
-                }, DPoSConsts.LIBSettingQueueName);
+                }, KernelConsts.UpdateChainQueueName);
             }
         }
     }
 
     public interface IDPoSLastLastIrreversibleBlockDiscoveryService
     {
-        Task<Hash> FindLastLastIrreversibleBlockHashAsync(string senderPubKey);
+        Task<IBlockIndex> FindLastLastIrreversibleBlockAsync(string senderPubKey);
     }
 
     public class DPoSLastLastIrreversibleBlockDiscoveryService : IDPoSLastLastIrreversibleBlockDiscoveryService,
@@ -85,7 +78,7 @@ namespace AElf.OS.Consensus.DPos
             //LocalEventBus = NullLocalEventBus.Instance;
         }
 
-        public async Task<Hash> FindLastLastIrreversibleBlockHashAsync(string senderPubKey)
+        public async Task<IBlockIndex> FindLastLastIrreversibleBlockAsync(string senderPubKey)
         {
             var senderPeer = _peerPool.FindPeerByPublicKey(senderPubKey);
 
@@ -117,7 +110,7 @@ namespace AElf.OS.Consensus.DPos
                 if (peersHadBlockAmount >= sureAmount)
                 {
                     Logger.LogDebug($"LIB found in network layer: height {block.Key}");
-                    return block.Value;
+                    return new BlockIndex(block.Value, block.Key);
                 }
             }
 
