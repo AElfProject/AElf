@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.Types.CSharp.Utils;
@@ -115,7 +113,7 @@ namespace AElf.Contracts.CrossChain
             State.TxRootMerklePathInParentChain[height] = path;
         }
 
-        private void LockTokenAndResource(SideChainInfo sideChainInfo)
+        private void LockTokenAndResource(SideChainCreationRequest sideChainInfo, int chainId)
         {
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
             // update locked token balance
@@ -135,7 +133,6 @@ namespace AElf.Contracts.CrossChain
                 Amount = sideChainInfo.LockedTokenAmount,
                 Symbol = "ELF"
             });
-            var chainId = sideChainInfo.SideChainId;
             State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
             // Todo: enable resource
             // lock 
@@ -193,17 +190,11 @@ namespace AElf.Contracts.CrossChain
             return output.Balance;
         }
 
-        private MinerList GetCurrentMiners()
+        private MinerListWithRoundNumber GetCurrentMiners()
         {
             ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
             var miners = State.ConsensusContract.GetCurrentMiners.Call(new Empty());
-            var minerList = new MinerList
-            {
-                TermNumber = miners.TermNumber
-            };
-            minerList.Addresses.AddRange(miners.Addresses);
-            minerList.PublicKeys.AddRange(miners.PublicKeys);
-            return minerList;
+            return miners;
         }
 
         // only for side chain

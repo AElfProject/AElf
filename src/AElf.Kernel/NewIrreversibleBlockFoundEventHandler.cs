@@ -27,11 +27,11 @@ namespace AElf.Kernel
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            _taskQueueManager.GetQueue(KernelConsts.MergeBlockStateQueueName).Enqueue(async () =>
+            _taskQueueManager.Enqueue(async () =>
             {
                 await _blockchainStateMergingService.MergeBlockStateAsync(eventData.BlockHeight,
                     eventData.BlockHash);
-            });
+            }, KernelConsts.MergeBlockStateQueueName);
         }
     }
 }

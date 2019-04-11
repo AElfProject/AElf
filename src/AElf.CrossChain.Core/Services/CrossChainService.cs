@@ -7,7 +7,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainService : ICrossChainService, ITransientDependency
+    public class CrossChainService : ITransientDependency
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IChainManager _chainManager;
@@ -63,6 +63,11 @@ namespace AElf.CrossChain
         {
             return await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(previousBlockHash,
                 previousBlockHeight);
+        }
+
+        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId)
+        {
+            return await _crossChainDataProvider.GetChainInitializationContextAsync(chainId);
         }
     }
 }
