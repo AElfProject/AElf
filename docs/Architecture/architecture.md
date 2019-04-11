@@ -7,7 +7,7 @@ We follow generally accepted good practices when it comes to programming, especi
 Even though it's unusual for blockchain projects, we follow a domain driven design (DDD) approach to our developpement style. Part of the reason for this is that one of our main frameworks follows this approach and since the framework is a good fit for our needs, it's natural that we take the same design philosophy.
 
 A few key points concerning DDD:
-- traditionally, four layers: presentation, application, domain and infrastructure. 
+- traditionally, four layers: presentation, application, domain and infrastructure.
 - presentation for us corresponds to any type of dApp.
 - application represents exposed services mapped to the different domains.
 - domain represents the specific events related to our blockchain system and also domain objects.
@@ -27,11 +27,11 @@ For lower level, we use gRPC for the cross-chain and p2p network communication. 
 
 ### Design principles:
 
-![](node-archi.png?raw=true)
+![](node-archi.png)
 
 The above diagram shows the conceptual structure of the node and the separation between OS and Kernel.
 
-#### OS 
+#### OS
 
 The OS layer implements the application and infrastructure layer for the network. It also implements the high level handlers for network events and job, like for example synchronizing the chain in reaction to a block announcement. The OS layer also contains the RPC implementation for the exposed API.
 
