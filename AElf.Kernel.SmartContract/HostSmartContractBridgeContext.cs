@@ -70,7 +70,7 @@ namespace AElf.Kernel.SmartContract
         }
 
         public void FireLogEvent(LogEvent logEvent)
-        {
+        {    
             TransactionContext.Trace.Logs.Add(logEvent);
         }
 
