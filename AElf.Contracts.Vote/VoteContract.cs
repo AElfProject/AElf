@@ -151,22 +151,6 @@ namespace AElf.Contracts.Vote
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
             Assert(votingEvent.Sponsor == Context.Sender, "Only sponsor can update options.");
             Assert(!votingEvent.Options.Contains(input.Option), "Option already exists.");
-            if (input.Costs != null)
-            {
-                foreach (var cost in input.Costs)
-                {
-                    // TODO: Not safe.
-                    State.TokenContract.Lock.Send(new LockInput
-                    {
-                        From = cost.Volunteer,
-                        Symbol = votingEvent.AcceptedCurrency,
-                        LockId = cost.LockId,
-                        Amount = cost.Amount,
-                        To = input.Sponsor,
-                        Usage = $"Voting for {input.Topic}"
-                    });
-                }
-            }
             votingEvent.Options.Add(input.Option);
             State.VotingEvents[votingEvent.GetHash()] = votingEvent;
             return new Empty();
@@ -177,7 +161,8 @@ namespace AElf.Contracts.Vote
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
             Assert(votingEvent.Sponsor == Context.Sender, "Only sponsor can update options.");
             Assert(votingEvent.Options.Contains(input.Option), "Option doesn't exist.");
-            // TODO: Unlock token if locked when adding option.
+            votingEvent.Options.Remove(input.Option);
+            State.VotingEvents[votingEvent.GetHash()] = votingEvent;
             return new Empty();
         }
 

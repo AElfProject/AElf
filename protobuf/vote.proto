@@ -77,13 +77,6 @@ message AddOptionInput {
     string topic = 1;
     Address sponsor = 2;
     string option = 3;
-    repeated AddOptionCost costs = 4;
-}
-
-message AddOptionCost {
-    Address volunteer = 1;
-    sint64 amount = 2;
-    Hash lock_id = 3;
 }
 
 message RemoveOptionInput {
