@@ -1,7 +1,7 @@
 using System;
 using Google.Protobuf;
 
-namespace AElf.Common
+namespace AElf.Types
 {
     public static class ByteStringHelpers
     {

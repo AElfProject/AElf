@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 using AElf.Common.Application;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;

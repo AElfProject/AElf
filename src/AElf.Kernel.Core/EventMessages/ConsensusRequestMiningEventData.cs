@@ -1,6 +1,5 @@
 using System;
-using AElf.Common;
-using Google.Protobuf.WellKnownTypes;
+using AElf.Types;
 
 namespace AElf.Kernel.EventMessages
 {

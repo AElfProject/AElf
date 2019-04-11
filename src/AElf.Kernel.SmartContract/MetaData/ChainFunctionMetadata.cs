@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Google.Protobuf;
 using Org.BouncyCastle.Security;
-using AElf.Kernel;
 using QuickGraph;
 using QuickGraph.Algorithms;
-using AElf.Common;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.MetaData;
 

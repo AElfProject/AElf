@@ -1,5 +1,5 @@
 using System.Linq;
-using AElf.Common;
+using AElf.Types;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;

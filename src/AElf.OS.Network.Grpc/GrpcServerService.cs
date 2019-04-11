@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Cryptography;
+using AElf.Types;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -13,7 +10,6 @@ using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Grpc.Core.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;

@@ -1,5 +1,5 @@
 using System;
-using AElf.Common;
+using AElf.Types;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;

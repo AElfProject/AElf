@@ -1,6 +1,7 @@
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Common
+namespace AElf.Kernel
 {
     public static class HashHelpers
     {

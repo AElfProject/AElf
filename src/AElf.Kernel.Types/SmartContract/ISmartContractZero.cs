@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel.Types;
+using AElf.Types;
 
 namespace AElf.Kernel.KernelAccount
 {

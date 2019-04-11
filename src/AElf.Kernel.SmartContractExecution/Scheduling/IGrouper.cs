@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
-using AElf.Common;
 
 namespace AElf.Kernel.SmartContractExecution.Scheduling
 {

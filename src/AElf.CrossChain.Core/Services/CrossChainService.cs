@@ -1,7 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 using AElf.Kernel.Blockchain.Domain;
 using Volo.Abp.DependencyInjection;
 

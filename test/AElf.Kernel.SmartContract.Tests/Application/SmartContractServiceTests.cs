@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Google.Protobuf;
-using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.SmartContract.Application

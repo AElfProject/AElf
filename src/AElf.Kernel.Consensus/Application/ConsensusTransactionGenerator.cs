@@ -1,6 +1,5 @@
 using System.Collections.Generic;
-using AElf.Common;
-using AElf.Kernel;
+using AElf.Types;
 using AElf.Kernel.Miner.Application;
 using Volo.Abp.Threading;
 

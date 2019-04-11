@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AElf.Common;
+using AElf.Types;
 using Google.Protobuf;
 using Xunit;
 

@@ -1,6 +1,7 @@
 ﻿using System;
+using AElf.Types;
 
-namespace AElf.Common
+namespace AElf.Kernel
 {
     public static class ChainHelpers
     {

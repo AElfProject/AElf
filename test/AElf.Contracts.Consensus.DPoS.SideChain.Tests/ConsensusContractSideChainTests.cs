@@ -1,9 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Kernel;
 using Google.Protobuf;
 using Shouldly;

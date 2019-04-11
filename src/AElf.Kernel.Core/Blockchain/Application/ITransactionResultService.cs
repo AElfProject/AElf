@@ -1,9 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 

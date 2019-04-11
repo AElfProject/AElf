@@ -1,4 +1,4 @@
-using AElf.Common;
+using AElf.Types;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;

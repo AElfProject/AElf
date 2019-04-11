@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using AElf.Common;
+using AElf.Types;
 using AElf.Database;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;

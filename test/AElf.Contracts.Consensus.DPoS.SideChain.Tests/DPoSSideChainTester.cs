@@ -1,11 +1,10 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;

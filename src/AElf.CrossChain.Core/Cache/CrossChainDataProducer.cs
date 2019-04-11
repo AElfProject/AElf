@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
-using AElf.Common;
 using AElf.CrossChain.Cache.Exception;
+using AElf.Kernel;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 

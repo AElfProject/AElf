@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using AElf.Kernel.Types;
-using AElf.Common;
-using AElf.Kernel.SmartContract;
+﻿using System.Threading.Tasks;
+using AElf.Types;
 
 namespace AElf.Kernel.SmartContract
 {

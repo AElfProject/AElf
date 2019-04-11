@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 using AElf.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;

@@ -1,7 +1,5 @@
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel.Infrastructure;
+using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {

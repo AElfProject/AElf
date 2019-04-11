@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel;
+using AElf.Types;
 using AElf.Kernel.SmartContractExecution.Application;
 using Akka.Actor;
-using Address = AElf.Common.Address;
 
 namespace AElf.Kernel.SmartContractExecution.Execution
 {

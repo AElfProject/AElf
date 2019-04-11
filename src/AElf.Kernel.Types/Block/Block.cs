@@ -1,9 +1,9 @@
-﻿using AElf.Common;
+﻿using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public partial class Block : ICustomDiagnosticMessage, IBlock 
+    public partial class Block : ICustomDiagnosticMessage, IBlock
     {
         /// <summary>
         /// Used to override IMessage's default string representation.
@@ -13,7 +13,7 @@ namespace AElf.Kernel
         {
             return $"{{ id: {GetHash()}, height: {Height} }}";
         }
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AElf.Kernel.Block"/> class.
         /// A previous block must be referred, except for the genesis block.

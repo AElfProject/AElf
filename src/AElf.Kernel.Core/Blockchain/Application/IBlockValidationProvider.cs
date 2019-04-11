@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 
 namespace AElf.Kernel.Blockchain.Application
 {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 using AElf.Contracts.Authorization;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;

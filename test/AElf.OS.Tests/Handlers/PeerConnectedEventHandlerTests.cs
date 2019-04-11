@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using Google.Protobuf.WellKnownTypes;

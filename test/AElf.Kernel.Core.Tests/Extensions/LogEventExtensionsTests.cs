@@ -1,4 +1,4 @@
-using AElf.Common;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;

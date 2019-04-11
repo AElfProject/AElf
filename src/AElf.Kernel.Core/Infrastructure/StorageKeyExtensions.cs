@@ -1,6 +1,4 @@
-using System;
-using System.Linq;
-using AElf.Common;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Infrastructure

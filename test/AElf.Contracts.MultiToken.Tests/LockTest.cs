@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken.Messages;

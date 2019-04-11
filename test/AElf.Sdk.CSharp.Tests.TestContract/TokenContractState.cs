@@ -1,4 +1,4 @@
-using AElf.Common;
+using AElf.Types;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Sdk.CSharp.Tests.TestContract

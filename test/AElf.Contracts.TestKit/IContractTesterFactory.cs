@@ -1,5 +1,5 @@
 using System;
-using AElf.Common;
+using AElf.Types;
 using AElf.Cryptography.ECDSA;
 using AElf.Types.CSharp;
 using Volo.Abp.DependencyInjection;

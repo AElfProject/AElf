@@ -1,4 +1,3 @@
-using AElf.Common;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
 using Shouldly;

@@ -1,14 +1,9 @@
 ﻿using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
-using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;

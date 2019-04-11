@@ -1,5 +1,4 @@
-using AElf.Common;
-using Google.Protobuf.WellKnownTypes;
+using AElf.Types;
 
 namespace AElf.Contracts.Resource
 {

@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using AElf.Common;
+﻿using AElf.Types;
 
 namespace AElf.Kernel
 {

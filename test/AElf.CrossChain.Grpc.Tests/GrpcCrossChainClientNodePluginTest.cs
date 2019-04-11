@@ -1,11 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Node.Infrastructure;
 using Microsoft.Extensions.Options;
-using Shouldly;
 using Xunit;
 
 namespace AElf.CrossChain.Grpc

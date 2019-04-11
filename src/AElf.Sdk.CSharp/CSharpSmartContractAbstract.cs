@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Sdk;
 

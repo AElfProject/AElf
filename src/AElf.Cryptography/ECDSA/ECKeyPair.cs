@@ -1,5 +1,5 @@
 ﻿using System;
-using AElf.Common;
+using AElf.Types;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Secp256k1Net;

@@ -7,7 +7,7 @@
 //using Google.Protobuf;
 //using Google.Protobuf.WellKnownTypes;
 //using Xunit;
-//using AElf.Common;
+//using AElf.Types;
 
 /*
 namespace AElf.Kernel.Core.Tests.Concurrency.Scheduling

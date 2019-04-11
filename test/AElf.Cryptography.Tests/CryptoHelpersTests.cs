@@ -1,10 +1,7 @@
 using System;
-using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
-using AElf.Common;
-using AElf.Database.RedisProtocol;
-using Secp256k1Net;
+using AElf.Types;
 using Xunit;
 using Shouldly;
 using Virgil.Crypto;

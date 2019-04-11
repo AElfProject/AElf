@@ -1,4 +1,4 @@
-using AElf.Common;
+using AElf.Types;
 using AElf.Kernel;
 using AElf.Types.CSharp;
 using Google.Protobuf;

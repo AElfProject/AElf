@@ -15,7 +15,7 @@
 //using Google.Protobuf;
 //using Google.Protobuf.WellKnownTypes;
 //using Type = System.Type;
-//using AElf.Common;
+//using AElf.Types;
 //using Microsoft.Extensions.Options;
 //using Address = AElf.Common.Address;
 

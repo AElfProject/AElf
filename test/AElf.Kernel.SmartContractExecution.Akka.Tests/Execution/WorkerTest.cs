@@ -5,7 +5,7 @@
 //using Akka.Actor;
 //using Akka.TestKit.Xunit;
 //using AElf.Kernel.SmartContractExecution;
-//using AElf.Common;
+//using AElf.Types;
 //using AElf.Kernel.SmartContractExecution.Execution;
 //using Google.Protobuf;
 //using Address= AElf.Common.Address;

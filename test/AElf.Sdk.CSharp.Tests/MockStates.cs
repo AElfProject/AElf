@@ -1,8 +1,6 @@
 using System;
 using AElf.Sdk.CSharp.State;
-using AElf.Common;
-using AElf.Sdk.CSharp;
-using JetBrains.Annotations;
+using AElf.Types;
 
 namespace AElf.Sdk.CSharp.Tests
 {

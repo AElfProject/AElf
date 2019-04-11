@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.EventMessages;
 

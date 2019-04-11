@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf.Reflection;
 

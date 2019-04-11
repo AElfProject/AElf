@@ -1,4 +1,4 @@
-namespace AElf
+namespace AElf.Types
 {
     public class TypeConsts
     {

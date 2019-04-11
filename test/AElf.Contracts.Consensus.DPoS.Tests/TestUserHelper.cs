@@ -1,4 +1,4 @@
-using AElf.Common;
+using AElf.Types;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 

@@ -1,10 +1,9 @@
 using System;
 
-namespace AElf.Common
+namespace AElf.Types
 {
     public static class HexExtensions
     {
-
         public static byte[] DumpByteArray(this int n)
         {
             return BitConverter.GetBytes(n);

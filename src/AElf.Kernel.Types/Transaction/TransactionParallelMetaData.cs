@@ -1,13 +1,14 @@
-﻿using System.Collections.Generic;
-using AElf.Common;
+﻿using System;
+using System.Collections.Generic;
+using AElf.Types;
 
 namespace AElf.Kernel
 {
-    public class TransactionParallelMetaData: ITransactionParallelMetaData
+    public class TransactionParallelMetaData : ITransactionParallelMetaData
     {
         public bool IsParallel()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public IEnumerable<Hash> GetDataConflict()
@@ -17,7 +18,6 @@ namespace AElf.Kernel
 
             yield return a;
             yield return b;
-            
         }
     }
 }

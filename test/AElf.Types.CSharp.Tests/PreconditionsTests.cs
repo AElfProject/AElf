@@ -1,5 +1,4 @@
 using System;
-using AElf.Common;
 using AElf.Types.CSharp.Utils;
 using Shouldly;
 using Xunit;

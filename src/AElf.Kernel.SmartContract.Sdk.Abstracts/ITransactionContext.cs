@@ -1,5 +1,5 @@
 ﻿using System;
-using AElf.Common;
+using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {

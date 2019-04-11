@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using Xunit;
-using AElf.Common;
+﻿using Xunit;
 using Google.Protobuf;
 using Shouldly;
 

@@ -2,7 +2,7 @@
 //using AElf.Sdk.CSharp;
 //using AElf.Sdk.CSharp.Types;
 //using AElf.Types.CSharp.MetadataAttribute;
-//using AElf.Common;
+//using AElf.Types;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
 {

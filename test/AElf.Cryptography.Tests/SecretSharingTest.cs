@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Numerics;
-using AElf.Common;
+using AElf.Types;
 using AElf.Cryptography.SecretSharing;
 using Xunit;
 

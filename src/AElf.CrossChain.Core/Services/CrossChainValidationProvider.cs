@@ -1,11 +1,8 @@
 using System.Linq;
-using System;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using Google.Protobuf;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {

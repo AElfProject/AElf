@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Common;
+using AElf.Types;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.MultiToken;

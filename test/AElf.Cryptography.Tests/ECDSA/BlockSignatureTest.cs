@@ -1,9 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA;
+﻿using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Xunit;
-using AElf.Common;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Cryptography.Tests.ECDSA

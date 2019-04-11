@@ -13,7 +13,7 @@
 //using Akka.Actor;
 //using Google.Protobuf.WellKnownTypes;
 //using Mono.Cecil.Cil;
-//using AElf.Common;
+//using AElf.Types;
 //using AElf.Kernel.SmartContractExecution.Execution;
 //using AElf.Kernel.Blockchain.Domain;
 //using AElf.Kernel.SmartContract.Domain;

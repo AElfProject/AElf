@@ -1,5 +1,5 @@
 using System;
-using AElf.Common;
+using AElf.Types;
 using AElf.Kernel.Types.SmartContract;
 
 namespace AElf.Sdk.CSharp.Tests.TestContract

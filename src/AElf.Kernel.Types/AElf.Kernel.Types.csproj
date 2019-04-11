@@ -12,9 +12,6 @@
     <Compile Remove="IResourcePath.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\protobuf\abi.proto">
-      <Link>Protobuf/Proto/abi.proto</Link>
-    </Content>
     <Content Include="..\..\protobuf\auth.proto">
       <Link>Protobuf/Proto/auth.proto</Link>
     </Content>

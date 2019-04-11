@@ -1,5 +1,4 @@
-using AElf.Common;
-using Google.Protobuf;
+using AElf.Types;
 
 namespace AElf.Kernel
 {
@@ -8,8 +7,8 @@ namespace AElf.Kernel
         Hash Hash { get; }
         long Height { get; }
     }
-    
-    public class BlockIndex: IBlockIndex
+
+    public class BlockIndex : IBlockIndex
     {
         public BlockIndex(Hash hash, long height)
         {
@@ -22,7 +21,6 @@ namespace AElf.Kernel
 
         public BlockIndex()
         {
-            
         }
 
         public override string ToString()
