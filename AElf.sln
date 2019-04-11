@@ -121,7 +121,6 @@ ProjectSection(SolutionItems) = preProject
 	protobuf\kernel.proto = protobuf\kernel.proto
 	protobuf\abi.proto = protobuf\abi.proto
 	protobuf\address_pair.proto = protobuf\address_pair.proto
-	protobuf\auth.proto = protobuf\auth.proto
 	protobuf\consensus.proto = protobuf\consensus.proto
 	protobuf\crosschain.proto = protobuf\crosschain.proto
 	protobuf\header_info.proto = protobuf\header_info.proto

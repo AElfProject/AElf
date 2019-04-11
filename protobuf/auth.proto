@@ -1,5 +1,0 @@
-syntax = "proto3";
-
-option csharp_namespace = "AElf.Kernel";
-import "common.proto";
-import "google/protobuf/timestamp.proto";
