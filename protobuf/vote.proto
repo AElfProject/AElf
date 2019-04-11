@@ -1,10 +1,10 @@
 syntax = "proto3";
 
+option csharp_namespace = "AElf.Kernel";
+
 import "common.proto";
 import "kernel.proto";
 import "google/protobuf/timestamp.proto";
-
-option csharp_namespace = "AElf.Kernel";
 
 message InitialVoteContractInput {
     Hash tokenContractSystemName = 1;
