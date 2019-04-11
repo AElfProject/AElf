@@ -76,6 +76,15 @@ namespace AElf.Contracts.Consensus.DPoS
                 ConsensusConsts.ValidateConsensusBeforeExecution, headerInformation);
             return ValidationResult.Parser.ParseFrom(bytes);
         }
+        
+        public static async Task<ValidationResult> ValidateConsensusAfterExecutionAsync(
+            this ContractTester<DPoSContractTestAElfModule> tester,
+            DPoSHeaderInformation headerInformation)
+        {
+            var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
+                ConsensusConsts.ValidateConsensusAfterExecution, headerInformation);
+            return ValidationResult.Parser.ParseFrom(bytes);
+        }
 
         public static async Task<Block> GenerateConsensusTransactionsAndMineABlockAsync(
             this ContractTester<DPoSContractTestAElfModule> tester,
