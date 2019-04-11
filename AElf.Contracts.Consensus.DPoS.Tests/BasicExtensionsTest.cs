@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Cryptography;
+using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -232,6 +233,106 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.Equal(outValue, minerInRoundAfter.OutValue);
         }
 
+        [Fact]
+        public void GetConsensusCommand_Nothing()
+        {
+
+            var behaviour = DPoSBehaviour.Nothing;
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+            var consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.First().Key, 
+                DateTime.UtcNow, true);
+            
+            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(int.MaxValue);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(int.MaxValue);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.Nothing);
+        }
+
+        [Fact]
+        public void GetConsensusCommand_NextTerm()
+        {
+            var behaviour = DPoSBehaviour.NextTerm;
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+            round.RealTimeMinersInformation.Last().Value.PromisedTinyBlocks = 1; //default is 0
+
+            var consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.Last().Key,
+                DateTime.UtcNow, true);
+            
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.NextTerm);
+        }
+        
+        [Fact]
+        public void GetConsensusCommand_NextRound()
+        {
+            var behaviour = DPoSBehaviour.NextRound;
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+            round.RealTimeMinersInformation.Last().Value.PromisedTinyBlocks = 1; //default is 0
+
+            var consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.Last().Key,
+                DateTime.UtcNow, true);
+            
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.NextRound);
+        }
+        
+        [Fact]
+        public void GetConsensusCommand_UpdateValue()
+        {
+            var behaviour = DPoSBehaviour.UpdateValue;
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+            round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Value.PromisedTinyBlocks = 1; //default is 0
+            
+            var consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Key,
+                DateTime.UtcNow, false);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.UpdateValue);
+            
+            //skip time slot
+            consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Key,
+                            DateTime.UtcNow, true);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.NextRound);
+        }
+
+        [Fact]
+        public void GetConsensusCommand_UpdateValueWithoutPreviousInValue()
+        {
+            var behaviour = DPoSBehaviour.UpdateValueWithoutPreviousInValue;
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+            round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Value.PromisedTinyBlocks = 1; //default is 0
+            
+            var consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Key,
+                DateTime.UtcNow, false);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
+            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(2*miningInterval);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.UpdateValueWithoutPreviousInValue);
+            
+            //skip time slot
+            consensusCommand = behaviour.GetConsensusCommand(round, round.RealTimeMinersInformation.First(m=>m.Value.Order == 2).Key,
+                DateTime.UtcNow, true);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(miningInterval);
+            DPoSHint.Parser.ParseFrom(consensusCommand.Hint.ToByteArray()).Behaviour.ShouldBe(DPoSBehaviour.NextRound);
+
+        }
+
+        [Fact]
+        public void GetRoundHash()
+        {
+            var miningInterval = 4000;
+            var round = GenerateFirstRound(DateTime.UtcNow, 3, miningInterval);
+
+            var hash = round.GetHash();
+            hash.ShouldNotBeNull();
+
+            var hash1 = round.GetHash(false);
+            hash1.ShouldNotBeNull();
+        }
+        
         /// <summary>
         /// Only able to generate information of first round.
         /// </summary>
