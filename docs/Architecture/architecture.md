@@ -27,7 +27,19 @@ For lower level, we use gRPC for the cross-chain and p2p network communication. 
 
 ### Design principles:
 
-DDD, microservice
+![](node-archi.png?raw=true)
+
+The above diagram shows the conceptual structure of the node and the separation between OS and Kernel.
+
+#### OS 
+
+The OS layer implements the application and infrastructure layer for the network. It also implements the high level handlers for network events and job, like for example synchronizing the chain in reaction to a block announcement. The OS layer also contains the RPC implementation for the exposed API.
+
+#### Kernel
+
+The kernel contains the smart contract and execution primitives and definitions. The kernel also defines the components necessary for accessing the blockchains data. Various managers will use the storage layer to access the underlying database.
+
+The kernel also defines the notion of plugins. The diagram show that the side chain modules are implemented as plugins.
 
 ### Structure of the project:
 
