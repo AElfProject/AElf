@@ -141,24 +141,21 @@ namespace AElf.Contracts.Consensus.DPoS
             return new FriendlyString {Value = GetPageableCandidatesHistoryInfo(input).ToString()};
         }
 
-        public override MinerList GetCurrentMiners(Empty input)
+        public override MinerListWithRoundNumber GetCurrentMiners(Empty input)
         {
-            var currentTermNumber = State.CurrentTermNumberField.Value;
-            if (currentTermNumber == 0)
+            if (!TryToGetCurrentRoundInformation(out var currentRound))
             {
-                currentTermNumber = 1;
+                return null;
             }
 
-            var currentMiners = State.MinersMap[currentTermNumber.ToInt64Value()];
+            var currentMiners = currentRound.RealTimeMinersInformation.Keys.ToList().ToMiners();
+            currentMiners.TermNumber = currentRound.TermNumber;
 
-            if (currentMiners == null)
-                return null;
-            var minerList = new MinerList
+            var minerList = new MinerListWithRoundNumber
             {
-                TermNumber = currentMiners.TermNumber
+                MinerList = currentMiners,
+                RoundNumber = currentRound.RoundNumber
             };
-            minerList.Addresses.AddRange(currentMiners.Addresses);
-            minerList.PublicKeys.AddRange(currentMiners.PublicKeys);
             return minerList;
         }
 

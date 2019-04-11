@@ -19,9 +19,11 @@ namespace AElf.CrossChain
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
         public ILogger<CrossChainDataProvider> Logger { get; set; }
 
-        private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData = new Dictionary<Hash, CrossChainBlockData>();
+        private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData =
+            new Dictionary<Hash, CrossChainBlockData>();
+        private KeyValuePair<long, Hash> _libHeightToHash;
         public CrossChainDataProvider(ICrossChainContractReader crossChainContractReader,
-            ICrossChainDataConsumer crossChainDataConsumer)
+            ICrossChainDataConsumer crossChainDataConsumer, ILocalLibService localLibService)
         {
             _crossChainContractReader = crossChainContractReader;
             _crossChainDataConsumer = crossChainDataConsumer;
@@ -196,6 +198,14 @@ namespace AElf.CrossChain
                 : null;
         }
 
+        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId)
+        {
+            if (_libHeightToHash.Value != null)
+                return await _crossChainContractReader.GetChainInitializationContextAsync(_libHeightToHash.Value,
+                    _libHeightToHash.Key, chainId);
+            return null;
+        }
+
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             // create cache for new chain
@@ -211,6 +221,8 @@ namespace AElf.CrossChain
             {
                 _indexedCrossChainBlockData.Remove(hash);
             }
+
+            _libHeightToHash = new KeyValuePair<long, Hash>(eventData.BlockHeight, eventData.BlockHash);
         }
     }
 }

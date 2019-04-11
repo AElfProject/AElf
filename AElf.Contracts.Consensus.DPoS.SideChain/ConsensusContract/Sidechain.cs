@@ -16,11 +16,12 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                 return new Empty();
             var consensusInformation = DPoSHeaderInformation.Parser.ParseFrom(input.Bytes);
             
-            if(consensusInformation.Round.TermNumber <= State.TermNumberFromMainChainField.Value)
+            // check round number of shared consensus, not term number
+            if(consensusInformation.Round.RoundNumber <= State.RoundNumberFromMainChainField.Value)
                 return new Empty();
-            Context.LogDebug(() => $"Shared BP of term {consensusInformation.Round.TermNumber.ToInt64Value()}");
+            Context.LogDebug(() => $"Shared BP of round {consensusInformation.Round.RoundNumber.ToInt64Value()}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
-            State.TermNumberFromMainChainField.Value = consensusInformation.Round.TermNumber;
+            State.RoundNumberFromMainChainField.Value = consensusInformation.Round.RoundNumber;
             State.CurrentMiners.Value = minersKeys.ToList().ToMiners();
             return new Empty();
         }

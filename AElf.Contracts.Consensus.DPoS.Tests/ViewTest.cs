@@ -242,11 +242,11 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var bytes = await Starter.CallContractMethodAsync(Starter.GetConsensusContractAddress(),
                 nameof(ConsensusContract.GetCurrentMiners), new Empty());
-            var minersInfo = Miners.Parser.ParseFrom(bytes);
-            minersInfo.PublicKeys.Count.ShouldBe(3);
-            minersInfo.Addresses.Count.ShouldBe(3);
-            minersInfo.PublicKeys.Contains(MinersKeyPairs[0].PublicKey.ToHex()).ShouldBeTrue();
-            minersInfo.Addresses.Contains(Address.FromPublicKey(MinersKeyPairs[0].PublicKey)).ShouldBeTrue();
+            var minersInfo = MinerListWithRoundNumber.Parser.ParseFrom(bytes);
+            minersInfo.MinerList.PublicKeys.Count.ShouldBe(3);
+            minersInfo.MinerList.Addresses.Count.ShouldBe(3);
+            minersInfo.MinerList.PublicKeys.Contains(MinersKeyPairs[0].PublicKey.ToHex()).ShouldBeTrue();
+            minersInfo.MinerList.Addresses.Contains(Address.FromPublicKey(MinersKeyPairs[0].PublicKey)).ShouldBeTrue();
         }
 
         [Fact]
