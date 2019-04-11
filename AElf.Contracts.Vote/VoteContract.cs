@@ -123,6 +123,7 @@ namespace AElf.Contracts.Vote
             State.VotingHistoriesMap[votingRecord.Voter] = votingHistories;
 
             // Lock voted token.
+            // TODO: Maybe no need to lock token for some voting events.
             State.TokenContract.Lock.Send(new LockInput
             {
                 From = votingRecord.Voter,
@@ -163,6 +164,7 @@ namespace AElf.Contracts.Vote
                     EpochNumber = votingRecord.EpochNumber
                 });
                 var votingResult = State.VotingResults[votingResultHash];
+                votingResult.Results[votingRecord.Option] -= votingRecord.Amount;
                 votingResult.VotersCount -= 1;
                 State.VotingResults[votingResultHash] = votingResult;
             }
