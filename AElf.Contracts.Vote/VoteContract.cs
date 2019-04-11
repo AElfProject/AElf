@@ -70,15 +70,9 @@ namespace AElf.Contracts.Vote
 
         public override Empty Vote(VoteInput input)
         {
-            var votingEvent = new VotingEvent
-            {
-                Sponsor = input.Sponsor,
-                Topic = input.Topic
-            };
-            var votingEventHash = votingEvent.GetHash();
-
-            Assert(State.VotingEvents[votingEventHash] != null, "Voting event not found.");
-            votingEvent = State.VotingEvents[votingEventHash];
+            var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
+            
+            // Modify VotingResult
             var votingResultHash = Hash.FromMessage(new GetVotingResultInput
             {
                 Sponsor = input.Sponsor,
@@ -90,6 +84,7 @@ namespace AElf.Contracts.Vote
             votingResult.Results[input.Option] = currentVotes + input.Amount;
             State.VotingResults[votingResultHash] = votingResult;
 
+            // VoteId -> VotingRecord
             var votingRecord = new VotingRecord
             {
                 Topic = input.Topic,
@@ -99,10 +94,12 @@ namespace AElf.Contracts.Vote
                 Option = input.Option,
                 IsWithdrawn = false,
                 VoteTimestamp = Context.CurrentBlockTime.ToTimestamp(),
-                Voter = votingEvent.Delegated ? input.Voter : Context.Sender
+                Voter = votingEvent.Delegated ? input.Voter : Context.Sender,
+                Currency = votingEvent.AcceptedCurrency
             };
             State.VotingRecords[input.VoteId] = votingRecord;
 
+            // Lock voted token.
             State.TokenContract.Lock.Send(new LockInput
             {
                 From = votingRecord.Voter,
@@ -120,27 +117,27 @@ namespace AElf.Contracts.Vote
         {
             var votingRecord = State.VotingRecords[input.VoteId];
             Assert(votingRecord != null, "Voting record not found.");
-
+            if (votingRecord == null)
+            {
+                return new Empty();
+            }
+            State.TokenContract.Unlock.Send(new UnlockInput
+            {
+                From = votingRecord.Voter,
+                Symbol = votingRecord.Currency,
+                Amount = votingRecord.Amount,
+                LockId = input.VoteId,
+                To = votingRecord.Sponsor,
+                Usage = $"Withdraw votes for {votingRecord.Topic}"
+            });
             return new Empty();
         }
 
         public override Empty UpdateEpochNumber(UpdateEpochNumberInput input)
         {
-            var votingEvent = new VotingEvent
-            {
-                Sponsor = Context.Sender,
-                Topic = input.Topic
-            };
-            var votingEventHash = votingEvent.GetHash();
-
-            Assert(State.VotingEvents[votingEventHash] != null, "Voting event not found.");
-
-            votingEvent = State.VotingEvents[votingEventHash];
-
+            var votingEvent = AssertVotingEvent(input.Topic, Context.Sender);
             votingEvent.CurrentEpoch = input.EpochNumber;
-
-            State.VotingEvents[votingEventHash] = votingEvent;
-
+            State.VotingEvents[votingEvent.GetHash()] = votingEvent;
             return new Empty();
         }
 
@@ -148,6 +145,38 @@ namespace AElf.Contracts.Vote
         {
             var votingResultHash = Hash.FromMessage(input);
             return State.VotingResults[votingResultHash];
+        }
+
+        public override Empty AddOption(AddOptionInput input)
+        {
+            var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
+            Assert(votingEvent.Sponsor == Context.Sender, "Only sponsor can update options.");
+            Assert(!votingEvent.Options.Contains(input.Option), "Option already exists.");
+            votingEvent.Options.Add(input.Option);
+            State.VotingEvents[votingEvent.GetHash()] = votingEvent;
+            return new Empty();
+        }
+
+        public override Empty RemoveOption(RemoveOptionInput input)
+        {
+            var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
+            Assert(votingEvent.Sponsor == Context.Sender, "Only sponsor can update options.");
+            Assert(votingEvent.Options.Contains(input.Option), "Option doesn't exist.");
+            votingEvent.Options.Remove(input.Option);
+            State.VotingEvents[votingEvent.GetHash()] = votingEvent;
+            return new Empty();
+        }
+
+        private VotingEvent AssertVotingEvent(string topic, Address sponsor)
+        {
+            var votingEvent = new VotingEvent
+            {
+                Topic = topic,
+                Sponsor = sponsor
+            };
+            var votingEventHash = votingEvent.GetHash();
+            Assert(State.VotingEvents[votingEventHash] != null, "Voting event not found.");
+            return State.VotingEvents[votingEventHash];
         }
     }
 }

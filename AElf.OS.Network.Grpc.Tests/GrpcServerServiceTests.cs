@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
@@ -61,15 +63,18 @@ namespace AElf.OS.Network
                 received = a;
                 return Task.CompletedTask;
             });
-            
+
             Hash hash = Hash.Generate();
-            await _service.Announce(new PeerNewBlockAnnouncement { BlockHeight = 10, BlockHash = hash}, BuildServerCallContext());
-            
+            await _service.Announce(new PeerNewBlockAnnouncement
+            {
+                BlockHeight = 10, BlockHash = hash, BlockTime = DateTime.UtcNow.ToTimestamp()
+            }, BuildServerCallContext());
+
             Assert.NotNull(received);
             Assert.Equal(10, received.Announce.BlockHeight);
             Assert.Equal(received.Announce.BlockHash, hash);
         }
-        
+
         [Fact]
         public async Task SendTx_ShouldPublishEvent()
         {

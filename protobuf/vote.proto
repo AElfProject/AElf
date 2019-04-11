@@ -66,8 +66,21 @@ message VotingRecord {
     sint32 epoch_number = 3;
     Address voter = 4;
     sint64 amount = 5;
-    google.protobuf.Timestamp WithdrawTimestamp = 6;
-    google.protobuf.Timestamp VoteTimestamp = 7;
-    bool IsWithdrawn = 8;
+    google.protobuf.Timestamp withdraw_timestamp = 6;
+    google.protobuf.Timestamp vote_timestamp = 7;
+    bool is_withdrawn = 8;
     string option = 9;
+    string currency = 10;
+}
+
+message AddOptionInput {
+    string topic = 1;
+    Address sponsor = 2;
+    string option = 3;
+}
+
+message RemoveOptionInput {
+    string topic = 1;
+    Address sponsor = 2;
+    string option = 3;
 }

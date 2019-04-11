@@ -7,6 +7,8 @@ using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using VoteInput = AElf.Consensus.DPoS.VoteInput;
+using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -145,7 +147,7 @@ namespace AElf.Contracts.Consensus.DPoS
             return new ActionResult {Success = true};
         }
 
-        /*public override Hash Vote(VoteInput input)
+        public override Hash Vote(VoteInput input)
         {
             var candidatePublicKey = input.CandidatePublicKey;
             var amount = input.Amount;
@@ -248,7 +250,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
 
             return Context.TransactionId;
-        }*/
+        }
         
         // ReSharper disable once PossibleNullReferenceException
         public override ActionResult ReceiveDividendsByTransactionId(Hash input)
