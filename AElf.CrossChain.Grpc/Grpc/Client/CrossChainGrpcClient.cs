@@ -15,9 +15,9 @@ namespace AElf.CrossChain.Grpc
 
         protected int LocalChainId;
 
-        public async Task<bool> StartIndexingRequest(int remoteChainId, ICrossChainDataProducer crossChainDataProducer)
+        public async Task<bool> StartIndexingRequest(int chainId, ICrossChainDataProducer crossChainDataProducer)
         {
-            var targetHeight = crossChainDataProducer.GetChainHeightNeeded(remoteChainId);
+            var targetHeight = crossChainDataProducer.GetChainHeightNeeded(chainId);
             var requestData = new RequestCrossChainBlockData
             {
                 FromChainId = LocalChainId,
@@ -61,6 +61,16 @@ namespace AElf.CrossChain.Grpc
                 // use formatted chainId as certificate name, which can be changed later.  
             });
             return Task.FromResult(handShakeReply);
+        }
+        
+        public Task<ChainInitializationResponse> RequestChainInitializationContext(int chainId)
+        {
+            var chainInitializationResponse = Client.RequestChainInitializationContextFromParentChain(
+                new ChainInitializationRequest
+                {
+                    ChainId = chainId
+                });
+            return Task.FromResult(chainInitializationResponse);
         }
 
         //protected abstract AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> CallWithDuplexStreaming(int milliSeconds = 0);
@@ -149,6 +159,7 @@ namespace AElf.CrossChain.Grpc
     {
         //Task StartDuplexStreamingCall(int chainId, CancellationToken cancellationToken);
         Task<IndexingHandShakeReply> TryHandShakeAsync(int chainId, int localListeningPort);
-        Task<bool> StartIndexingRequest(int remoteChainaId, ICrossChainDataProducer crossChainDataProducer);
+        Task<bool> StartIndexingRequest(int chainId, ICrossChainDataProducer crossChainDataProducer);
+        Task<ChainInitializationResponse> RequestChainInitializationContext(int chainId);
     }
 }

@@ -15,10 +15,11 @@ namespace AElf.Kernel.Consensus.DPoS
             _consensusInformationGenerationService = consensusInformationGenerationService;
         }
 
-        public async Task<MinerList> GetCurrentMiners(ChainContext chainContext)
+        public async Task<Miners> GetCurrentMiners(ChainContext chainContext)
         {
-            return await _consensusInformationGenerationService.ExecuteContractAsync<MinerList>(chainContext,
+            var minersWithRoundNumber = await _consensusInformationGenerationService.ExecuteContractAsync<MinerListWithRoundNumber>(chainContext,
                 "GetCurrentMiners", new Empty(), DateTime.UtcNow);
+            return minersWithRoundNumber.MinerList;
         }
     }
 }

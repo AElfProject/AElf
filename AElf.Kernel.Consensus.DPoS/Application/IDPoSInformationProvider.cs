@@ -5,6 +5,6 @@ namespace AElf.Kernel.Consensus.DPoS
 {
     public interface IDPoSInformationProvider
     {
-        Task<MinerList> GetCurrentMiners(ChainContext chainContext);
+        Task<Miners> GetCurrentMiners(ChainContext chainContext);
     }
 }
