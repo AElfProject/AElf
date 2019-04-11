@@ -29,13 +29,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task AttachBlockAsync(Block block)
         {
             var existBlock = await _blockchainService.GetBlockHeaderByHashAsync(block.GetHash());
-            if (existBlock == null)
+            if (existBlock != null)
             {
-                await _blockchainService.AddBlockAsync(block);
-                var chain = await _blockchainService.GetChainAsync();
-                var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
-                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+                Logger.LogDebug($"Try attaching block but already exist, hash: {block.GetHash()}, height: {block.Height}");
+                return;
             }
+            await _blockchainService.AddBlockAsync(block);
+            var chain = await _blockchainService.GetChainAsync();
+            var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
+            await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
         }
     }
 }
