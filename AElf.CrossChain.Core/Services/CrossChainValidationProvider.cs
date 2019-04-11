@@ -11,12 +11,12 @@ namespace AElf.CrossChain
 {
     public class CrossChainValidationProvider : IBlockValidationProvider
     {
-        private readonly ICrossChainService _crossChainService;
+        private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
 
-        public CrossChainValidationProvider(ICrossChainService crossChainService, IBlockExtraDataExtractor blockExtraDataExtractor)
+        public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataExtractor blockExtraDataExtractor)
         {
-            _crossChainService = crossChainService;
+            _crossChainDataProvider = crossChainDataProvider;
             _blockExtraDataExtractor = blockExtraDataExtractor;
         }
 
@@ -32,7 +32,7 @@ namespace AElf.CrossChain
                 return true;
             
             var indexedCrossChainBlockData =
-                await _crossChainService.GetCrossChainBlockDataIndexedInStateAsync(block.Header.GetHash(), block.Height);
+                await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Height);
             var extraData = _blockExtraDataExtractor.ExtractCrossChainExtraData(block.Header);
             if (indexedCrossChainBlockData == null)
             {
@@ -57,9 +57,9 @@ namespace AElf.CrossChain
                 return false;
             
             // check cache identity
-            var res = await _crossChainService.ValidateSideChainBlockDataAsync(
+            var res = await _crossChainDataProvider.ValidateSideChainBlockDataAsync(
                        crossChainBlockData.SideChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Height - 1) &&
-                   await _crossChainService.ValidateParentChainBlockDataAsync(
+                   await _crossChainDataProvider.ValidateParentChainBlockDataAsync(
                        crossChainBlockData.ParentChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Height - 1);
             return res;
         }
