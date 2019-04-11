@@ -84,12 +84,13 @@ namespace AElf.Blockchains.SideChain
         private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions, ChainInitializationContext chainInitializationContext)
         {
             var consensusMethodCallList = new SystemTransactionMethodCallList();
+            
             var miners = chainInitializationContext == null
                 ? dposOptions.InitialMiners.ToMiners()
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;
+            var timestamp = chainInitializationContext?.CreatedTime.ToDateTime() ?? dposOptions.StartTimestamp;
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
-                miners.GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
-                    chainInitializationContext.CreatedTime.ToDateTime().ToUniversalTime()));
+                miners.GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval, timestamp.ToUniversalTime()));
             consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
                 new DPoSStrategyInput
                 {
