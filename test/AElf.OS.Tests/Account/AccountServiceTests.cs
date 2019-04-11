@@ -1,6 +1,9 @@
 using System.Threading.Tasks;
 using AElf.Common;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
+using Shouldly;
 using Xunit;
 
 namespace AElf.OS.Account
@@ -55,6 +58,23 @@ namespace AElf.OS.Account
             var verifyResult = await _accountService.VerifySignatureAsync(signature, data2, publicKey);
 
             Assert.False(verifyResult);
+        }
+
+        [Fact]
+        public async Task EncryptAndDecryptMessage()
+        {
+            var stringValue = new StringValue
+            {
+                Value = "EncryptAndDecryptMessage"
+            };
+            var pubicKey = await _accountService.GetPublicKeyAsync();
+            var plainMessage = stringValue.ToByteArray();
+
+            var encryptMessage = await _accountService.EncryptMessage(pubicKey, plainMessage);
+
+            var decryptMessage = await _accountService.DecryptMessage(pubicKey, encryptMessage);
+
+            decryptMessage.ShouldBe(plainMessage);
         }
     }
 }

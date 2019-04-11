@@ -83,37 +83,19 @@ service ConsensusContract {
     rpc GetCandidates (google.protobuf.Empty) returns (Candidates) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidatesListToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
-        option (aelf.is_view) = true;
-    }
     rpc GetCandidateHistoryInformation (PublicKey) returns (CandidateInHistory) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetCandidateHistoryInfoToFriendlyString (PublicKey) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
     rpc GetCandidatesHistoryInfo (google.protobuf.Empty) returns (CandidateInHistoryDictionary) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidatesHistoryInfoToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
-        option (aelf.is_view) = true;
-    }
     rpc GetPageableCandidatesHistoryInfo (PageInfo) returns (CandidateInHistoryDictionary) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetPageableCandidatesHistoryInfoToFriendlyString (PageInfo) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
     rpc GetCurrentMiners (google.protobuf.Empty) returns (MinerListWithRoundNumber) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentMinersToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
-        option (aelf.is_view) = true;
-    }
     rpc GetTicketsInformation (PublicKey) returns (Tickets) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetTicketsInformationToFriendlyString (PublicKey) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
     rpc GetVotingRecord (Hash) returns (VotingRecord) {
@@ -128,25 +110,13 @@ service ConsensusContract {
     rpc GetPageableTicketsInfo (PageableTicketsInfoInput) returns (Tickets) {
         option (aelf.is_view) = true;
     }
-    rpc GetPageableTicketsInfoToFriendlyString (PageableTicketsInfoInput) returns (FriendlyString) {
-        option (aelf.is_view) = true;
-    }
     rpc GetPageableNotWithdrawnTicketsInfo (PageableTicketsInfoInput) returns (Tickets) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetPageableNotWithdrawnTicketsInfoToFriendlyString (PageableTicketsInfoInput) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
     rpc GetPageableTicketsHistories (PageableTicketsInfoInput) returns (TicketsHistories) {
         option (aelf.is_view) = true;
     }
-    rpc GetPageableTicketsHistoriesToFriendlyString (PageableTicketsInfoInput) returns (FriendlyString) {
-        option (aelf.is_view) = true;
-    }
     rpc GetPageableElectionInfo (PageableElectionInfoInput) returns (TicketsDictionary) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetPageableElectionInfoToFriendlyString (PageableElectionInfoInput) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
     rpc GetBlockchainAge (google.protobuf.Empty) returns (SInt64Value) {
@@ -155,13 +125,7 @@ service ConsensusContract {
     rpc GetCurrentVictories (google.protobuf.Empty) returns (StringList) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentVictoriesToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
-        option (aelf.is_view) = true;
-    }
     rpc GetTermSnapshot (SInt64Value) returns (TermSnapshot) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetTermSnapshotToFriendlyString (SInt64Value) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
     rpc QueryAlias (PublicKey) returns (Alias) {
@@ -186,9 +150,6 @@ service ConsensusContract {
         option (aelf.is_view) = true;
     }
     rpc QueryMinedBlockCountInCurrentTerm (PublicKey) returns (SInt64Value) {
-        option (aelf.is_view) = true;
-    }
-    rpc QueryAliasesInUseToFriendlyString (google.protobuf.Empty) returns (FriendlyString) {
         option (aelf.is_view) = true;
     }
 }
