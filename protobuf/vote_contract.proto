@@ -4,6 +4,7 @@ package vote;
 
 import "common.proto";
 import "vote.proto";
+import "kernel.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
 
@@ -30,6 +31,12 @@ service VoteContract {
     
     // View
     rpc GetVotingInfo (GetVotingResultInput) returns (VotingResult) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotingHistories (Address) returns (VotingHistory) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotingHistory (GetVotingHistoryInput) returns (HashList) {
         option (aelf.is_view) = true;
     }
 }

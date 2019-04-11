@@ -11,5 +11,6 @@ namespace AElf.Contracts.Vote
         public MappedState<Hash, VotingEvent> VotingEvents { get; set; }
         public MappedState<Hash, VotingResult> VotingResults { get; set; }
         public MappedState<Hash, VotingRecord> VotingRecords { get; set; }
+        public MappedState<Address, VotingHistory> VotingHistories { get; set; }
     }
 }
