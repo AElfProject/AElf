@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package vote;
+
 import "common.proto";
 import "vote.proto";
 import "aelf_options.proto";
