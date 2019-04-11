@@ -3,12 +3,14 @@ syntax = "proto3";
 package election;
 
 import "common.proto";
+import "kernel.proto";
 import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Kernel";
 
 message InitialElectionContractInput {
     Hash voteContractSystemName = 1;
+    Hash tokenContractSystemName = 2;
 }
 
 message AnnounceElectionInput {
