@@ -33,9 +33,6 @@
       <Content Include="..\protobuf\kernel.proto">
         <Link>Protobuf/Proto/kernel.proto</Link>
       </Content>
-      <Content Include="..\protobuf\dpos_crosschain_state.proto">
-        <Link>Protobuf/Proto/dpos_crosschain_state.proto</Link>
-      </Content>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_reference.sh basic_contract_zero.proto token_contract.proto authorization_contract.proto dpos_sidechain_contract.proto consensus_dpos.proto; ../scripts/generate_contract_code.sh cross_chain_contract.proto" />

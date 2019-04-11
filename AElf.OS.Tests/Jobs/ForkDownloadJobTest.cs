@@ -68,7 +68,7 @@ namespace AElf.OS.Jobs
 
         private void DisposeQueue()
         {
-            _taskQueueManager.GetQueue(ExecutionConsts.BlockAttachQueueName).Dispose();
+            _taskQueueManager.GetQueue(KernelConsts.UpdateChainQueueName).Dispose();
         }
     }
 }

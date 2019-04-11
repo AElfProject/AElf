@@ -368,17 +368,11 @@ namespace AElf.Contract.CrossChain.Tests
             // create second side chain
             long lockedTokenAmount = 10;
             await ApproveBalance(lockedTokenAmount);
-            var sideChainInfo = new SideChainInfo
-            {
-                SideChainStatus = SideChainStatus.Apply,
-                ContractCode = ByteString.Empty,
-                IndexingPrice = 1,
-                Proposer = CrossChainContractTestHelper.GetAddress(),
-                LockedTokenAmount = lockedTokenAmount
-            };
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+
             
             var tx1 = await GenerateTransactionAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,null,
-                sideChainInfo);
+                sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx1});
             var sideChainId2 = ChainHelpers.GetChainId(2);
             var tx2 = await GenerateTransactionAsync(

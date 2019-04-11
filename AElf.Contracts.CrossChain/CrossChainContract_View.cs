@@ -4,6 +4,7 @@ using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types.CSharp.Utils;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain
@@ -113,9 +114,9 @@ namespace AElf.Contracts.CrossChain
         public override SInt64Value LockedToken(SInt32Value input)
         {
             var info = State.SideChainInfos[input.Value];
-            Assert(info != null, "Not existed side chain.");
+            Assert(info != null, "Side chain Not Found.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
-            return new SInt64Value() {Value = info.LockedTokenAmount};
+            return new SInt64Value() {Value = info.SideChainCreationRequest.LockedTokenAmount};
         }
 
         public override Address LockedAddress(SInt32Value input)
@@ -126,5 +127,20 @@ namespace AElf.Contracts.CrossChain
             return info.Proposer;
         }
 
+        public override ChainInitializationContext GetChainInitializationContext(SInt32Value chainId)
+        {
+            var sideChainInfo = State.SideChainInfos[chainId.Value];
+            Assert(sideChainInfo != null, "Side chain Not Found.");
+            Assert(sideChainInfo.SideChainStatus > SideChainStatus.Review, "Incorrect side chain status.");
+            var res = new ChainInitializationContext
+            {
+                CreatedTime = sideChainInfo.CreatedTime,
+                ChainId = chainId.Value,
+                Creator = sideChainInfo.Proposer
+            };
+            ByteString consensusInformation = State.SideChainInitialConsensusInfo[chainId.Value].Value;
+            res.ExtraInformation.Add(consensusInformation);
+            return res;
+        }
     }
 }
