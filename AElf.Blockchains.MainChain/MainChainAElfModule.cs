@@ -162,6 +162,10 @@ namespace AElf.Blockchains.MainChain
             tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
                 DividendsSmartContractAddressNameProvider.Name);
 
+            tokenContractCallList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
+            {
+                CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
+            });
             return tokenContractCallList;
         }
 
