@@ -65,7 +65,9 @@ namespace AElf.OS.Jobs
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
                         return;
                     }
-                    _taskQueueManager.GetQueue(KernelConsts.UpdateChainQueueName).Enqueue( async () => await _blockAttachService.AttachBlockAsync(peerBlock));
+
+                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(peerBlock),
+                        KernelConsts.UpdateChainQueueName);
                     return;
                 }
 
@@ -113,7 +115,8 @@ namespace AElf.OS.Jobs
                         }
 
                         Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
-                        _taskQueueManager.GetQueue(KernelConsts.UpdateChainQueueName).Enqueue( async () => await _blockAttachService.AttachBlockAsync(block));
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                            KernelConsts.UpdateChainQueueName);
                     }
 
                     peerBestChainHeight = await _networkService.GetBestChainHeightAsync();
