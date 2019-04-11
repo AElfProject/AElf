@@ -9,8 +9,8 @@ import "google/protobuf/timestamp.proto";
 option csharp_namespace = "AElf.Kernel";
 
 message InitialElectionContractInput {
-    Hash voteContractSystemName = 1;
-    Hash tokenContractSystemName = 2;
+    Hash vote_contract_system_name = 1;
+    Hash token_contract_system_name = 2;
 }
 
 message AnnounceElectionInput {
@@ -18,7 +18,7 @@ message AnnounceElectionInput {
 }
 
 message VoteMinerInput {
-    string candidatePublicKey = 1;
+    string candidate_publicKey = 1;
     sint64 amount = 2;
     sint32 lockTime = 3;
 }
@@ -34,14 +34,14 @@ message GetElectionResultInput {
 message ElectionResult {
     sint32 term_number = 1;
     map<string, sint64> results = 2;
-    bool isActive = 3;
+    bool is_active = 3;
 }
 
 message Votes {
-    repeated Hash ActiveVotes = 1;
-    repeated Hash WithdrawnVotes = 2;
+    repeated Hash active_votes = 1;
+    repeated Hash withdrawn_votes = 2;
 }
 
 message CandidateHistory {
-    Hash AnnouncementTransactionId = 1;
+    Hash announcement_transaction_id = 1;
 }

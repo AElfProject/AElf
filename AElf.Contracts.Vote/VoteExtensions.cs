@@ -13,5 +13,12 @@ namespace AElf.Contracts.Vote
                 Topic = votingEvent.Topic
             });
         }
+
+        public static HashList Concat(this HashList hashList1, HashList hashList2)
+        {
+            var hashes = hashList1.Values;
+            hashes.AddRange(hashList2.Values);
+            return new HashList {Values = {hashes}};
+        }
     }
 }

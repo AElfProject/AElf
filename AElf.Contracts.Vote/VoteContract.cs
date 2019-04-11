@@ -71,18 +71,6 @@ namespace AElf.Contracts.Vote
         public override Empty Vote(VoteInput input)
         {
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
-            
-            // Modify VotingResult
-            var votingResultHash = Hash.FromMessage(new GetVotingResultInput
-            {
-                Sponsor = input.Sponsor,
-                Topic = input.Topic,
-                EpochNumber = votingEvent.CurrentEpoch
-            });
-            var votingResult = State.VotingResults[votingResultHash];
-            var currentVotes = votingResult.Results[input.Option];
-            votingResult.Results[input.Option] = currentVotes + input.Amount;
-            State.VotingResults[votingResultHash] = votingResult;
 
             // VoteId -> VotingRecord
             var votingRecord = new VotingRecord
@@ -97,15 +85,42 @@ namespace AElf.Contracts.Vote
                 Voter = votingEvent.Delegated ? input.Voter : Context.Sender,
                 Currency = votingEvent.AcceptedCurrency
             };
-            State.VotingRecords[input.VoteId] = votingRecord;
-            
-            // Update voting history
-            var currentHistory = State.VotingHistories[votingRecord.Voter] ?? new VotingHistory
+
+            // Modify VotingResult
+            var votingResultHash = Hash.FromMessage(new GetVotingResultInput
             {
-                Voter = votingRecord.Voter,
+                Sponsor = input.Sponsor,
+                Topic = input.Topic,
+                EpochNumber = votingEvent.CurrentEpoch
+            });
+            var votingResult = State.VotingResults[votingResultHash];
+            var currentVotes = votingResult.Results[input.Option];
+            votingResult.Results[input.Option] = currentVotes + input.Amount;
+
+            // Update voting history
+            var votingHistories = State.VotingHistoriesMap[votingRecord.Voter] ?? new VotingHistories
+            {
+                Voter = votingRecord.Voter
             };
-            currentHistory.History[votingEvent.GetHash().ToHex()].Values.Add(input.VoteId);
-            State.VotingHistories[votingRecord.Voter] = currentHistory;
+            var eventVotingHistories = votingHistories.Votes[votingEvent.GetHash().ToHex()];
+            if (eventVotingHistories == null)
+            {
+                votingHistories.Votes[votingEvent.GetHash().ToHex()] = new VotingHistory
+                {
+                    ActiveVotes = {input.VoteId}
+                };
+                votingResult.VotersCount += 1;
+            }
+            else
+            {
+                votingHistories.Votes[votingEvent.GetHash().ToHex()].ActiveVotes.Add(input.VoteId);
+            }
+
+            State.VotingRecords[input.VoteId] = votingRecord;
+
+            State.VotingResults[votingResultHash] = votingResult;
+
+            State.VotingHistoriesMap[votingRecord.Voter] = votingHistories;
 
             // Lock voted token.
             State.TokenContract.Lock.Send(new LockInput
@@ -129,6 +144,29 @@ namespace AElf.Contracts.Vote
             {
                 return new Empty();
             }
+
+            votingRecord.IsWithdrawn = true;
+            votingRecord.WithdrawTimestamp = Context.CurrentBlockTime.ToTimestamp();
+            State.VotingRecords[input.VoteId] = votingRecord;
+
+            var votingEventHash =
+                new VotingEvent {Topic = votingRecord.Topic, Sponsor = votingRecord.Sponsor}.GetHash();
+
+            var votingHistory = UpdateHistoryAfterWithdrawing(votingRecord.Voter, votingEventHash, input.VoteId);
+            
+            if (!votingHistory.Votes[votingEventHash.ToHex()].ActiveVotes.Any())
+            {
+                var votingResultHash = Hash.FromMessage(new GetVotingResultInput
+                {
+                    Sponsor = votingRecord.Sponsor,
+                    Topic = votingRecord.Topic,
+                    EpochNumber = votingRecord.EpochNumber
+                });
+                var votingResult = State.VotingResults[votingResultHash];
+                votingResult.VotersCount -= 1;
+                State.VotingResults[votingResultHash] = votingResult;
+            }
+            
             State.TokenContract.Unlock.Send(new UnlockInput
             {
                 From = votingRecord.Voter,
@@ -175,15 +213,21 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
-        public override VotingHistory GetVotingHistories(Address input)
+        public override VotingHistories GetVotingHistories(Address input)
         {
-            return State.VotingHistories[input];
+            return State.VotingHistoriesMap[input];
         }
 
-        public override HashList GetVotingHistory(GetVotingHistoryInput input)
+        public override VotingHistory GetVotingHistory(GetVotingHistoryInput input)
         {
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
-            return State.VotingHistories[input.Voter].History[votingEvent.GetHash().ToHex()];
+            var votes = State.VotingHistoriesMap[input.Voter].Votes[votingEvent.GetHash().ToHex()];
+            var activeVotes = votes.ActiveVotes;
+            var withdrawnVotes = votes.WithdrawnVotes;
+            return new VotingHistory
+            {
+                ActiveVotes = {activeVotes}, WithdrawnVotes = {withdrawnVotes}
+            };
         }
 
         private VotingEvent AssertVotingEvent(string topic, Address sponsor)
@@ -196,6 +240,15 @@ namespace AElf.Contracts.Vote
             var votingEventHash = votingEvent.GetHash();
             Assert(State.VotingEvents[votingEventHash] != null, "Voting event not found.");
             return State.VotingEvents[votingEventHash];
+        }
+
+        private VotingHistories UpdateHistoryAfterWithdrawing(Address voter, Hash votingEventHash, Hash voteId)
+        {
+            var votingHistory = State.VotingHistoriesMap[voter];
+            votingHistory.Votes[votingEventHash.ToHex()].ActiveVotes.Remove(voteId);
+            votingHistory.Votes[votingEventHash.ToHex()].WithdrawnVotes.Add(voteId);
+            State.VotingHistoriesMap[voter] = votingHistory;
+            return votingHistory;
         }
     }
 }

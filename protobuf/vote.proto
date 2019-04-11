@@ -28,7 +28,6 @@ message VotingEvent {
     sint32 current_epoch = 6;
     sint32 total_epoch = 7;
     repeated string options = 8;
-    sint32 voters_count = 9;
 }
 
 message VoteInput {
@@ -55,6 +54,7 @@ message VotingResult {
     Address sponsor = 2;
     sint32 epoch_number = 3;
     map<string, sint64> results = 4;
+    sint32 voters_count = 5;
 }
 
 message UpdateEpochNumberInput {
@@ -87,9 +87,14 @@ message RemoveOptionInput {
     string option = 3;
 }
 
-message VotingHistory {
+message VotingHistories {
     Address voter = 1;
-    map<string, HashList> history = 2;// VotingEvent's hash hex -> Votes ids.
+    map<string, VotingHistory> votes = 2;
+}
+
+message VotingHistory {
+    repeated Hash active_votes = 1;
+    repeated Hash withdrawn_votes = 2;
 }
 
 message GetVotingHistoryInput {
