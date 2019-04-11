@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package election;
+
 import "common.proto";
 import "google/protobuf/timestamp.proto";
 
