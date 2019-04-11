@@ -19,7 +19,6 @@ namespace AElf.OS
             context.Services.AddAssemblyOf<CoreOSAElfModule>();
 
             Configure<NetworkOptions>(configuration.GetSection("Network"));
-            Configure<BackgroundJobWorkerOptions>(configuration.GetSection("BackgroundJobWorker"));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

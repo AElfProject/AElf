@@ -39,7 +39,6 @@ namespace AElf.Blockchains.SideChain
             Logger = NullLogger<SideChainAElfModule>.Instance;
         }
 
-
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
