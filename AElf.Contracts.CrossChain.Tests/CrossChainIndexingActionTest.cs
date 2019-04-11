@@ -32,7 +32,6 @@ namespace AElf.Contract.CrossChain.Tests
                 SideChainId = sideChainId,
                 TransactionMerkleTreeRoot = fakeTxMerkleTreeRoot
             };
-            Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = new ParentChainBlockData
             {
                 Root = new ParentChainBlockRootInfo
@@ -440,6 +439,56 @@ namespace AElf.Contract.CrossChain.Tests
             var expectedCrossChainBlocData = new CrossChainBlockData();
             expectedCrossChainBlocData.SideChainBlockData.Add(sideChainBlockData1);
             Assert.Equal(expectedCrossChainBlocData, indexedCrossChainBlockData);
+        }
+
+        [Fact]
+        public async Task GetChainInitializationContext_Success()
+        {
+            var parentChainId = 123;
+            var lockedToken = 10L;
+            var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
+            var fakeTxMerkleTreeRoot = Hash.FromString("txMerkleTreeRoot");
+            var sideChainBlockData = new SideChainBlockData
+            {
+                BlockHeaderHash = fakeSideChainBlockHash,
+                SideChainHeight = 1,
+                SideChainId = sideChainId,
+                TransactionMerkleTreeRoot = fakeTxMerkleTreeRoot
+            };
+            
+            var crossChainBlockData = new CrossChainBlockData
+            {
+                SideChainBlockData = { sideChainBlockData}
+            };
+
+            var indexingTx = await GenerateTransactionAsync(CrossChainContractAddress,
+                CrossChainConsts.CrossChainIndexingMethodName, null, crossChainBlockData);
+            var block = await MineAsync(new List<Transaction> {indexingTx});
+            var indexingRes = await Tester.GetTransactionResultAsync(indexingTx.GetHash());
+            Assert.True(indexingRes.Status == TransactionResultStatus.Mined);
+
+            //not exsit chain id
+            var chainInitializationContext = ChainInitializationContext.Parser.ParseFrom(
+                await CallContractMethodAsync(CrossChainContractAddress,
+                    nameof(CrossChainContract.GetChainInitializationContext),
+                    new SInt32Value()
+                    {
+                        Value = parentChainId
+                    }));
+            chainInitializationContext.ChainId.ShouldBe(0);
+            chainInitializationContext.Creator.ShouldBeNull();
+            
+            //valid chain id
+            chainInitializationContext = ChainInitializationContext.Parser.ParseFrom(
+                await CallContractMethodAsync(CrossChainContractAddress,
+                nameof(CrossChainContract.GetChainInitializationContext),
+                new SInt32Value()
+                {
+                    Value = sideChainId
+                }));
+            chainInitializationContext.ChainId.ShouldBe(sideChainId);
+            chainInitializationContext.Creator.ShouldBe(Address.FromPublicKey(Tester.KeyPair.PublicKey));
         }
 
         #endregion
