@@ -136,8 +136,8 @@ namespace AElf.Contracts.ParliamentAuth
 
         private IEnumerable<Representative> GetRepresentatives()
         {
-            var minerList = State.ConsensusContractReferenceState.GetCurrentMiners.Call(new Empty());
-            var representatives = minerList.PublicKeys.Select(publicKey => new Representative
+            var miner = State.ConsensusContractReferenceState.GetCurrentMiners.Call(new Empty());
+            var representatives = miner.MinerList.PublicKeys.Select(publicKey => new Representative
             {
                 PubKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey)),
                 Weight = 1 // weight is for farther improvement

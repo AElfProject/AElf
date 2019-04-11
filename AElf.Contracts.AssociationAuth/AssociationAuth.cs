@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
+using Acs3;
 using AElf.Common;
-using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 

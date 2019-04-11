@@ -5,7 +5,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
         <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
         <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
@@ -32,7 +31,7 @@
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_base.sh acs3.proto; ../scripts/generate_contract_reference.sh consensus_dpos.proto dpos_contract.proto; ../scripts/generate_contract_code.sh parliament_auth_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\scripts\generate_contract_reference.bat consensus_dpos.proto dpos_contract.proto &amp; ..\scripts\generate_contract_code.bat parliament_auth_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="../scripts/generate_contract_base.bat acs3.proto &amp; ..\scripts\generate_contract_reference.bat consensus_dpos.proto dpos_contract.proto &amp; ..\scripts\generate_contract_code.bat parliament_auth_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
