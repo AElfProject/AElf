@@ -42,14 +42,16 @@ namespace AElf.OS.Network.Application
         public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader)
         {
             int successfulBcasts = 0;
-            
+
             foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
                     var announcement = new PeerNewBlockAnnouncement
                     {
-                        BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height
+                        BlockHash = blockHeader.GetHash(),
+                        BlockHeight = blockHeader.Height,
+                        BlockTime = blockHeader.Time
                     };
                     Logger.LogDebug($"PeerNewBlockAnnouncement: {announcement}");
                     await peer.AnnounceAsync(announcement);
