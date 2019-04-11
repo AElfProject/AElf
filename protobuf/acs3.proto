@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package acs3;
+import "common.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option (aelf.identity) = "acs3";
+
+service AuthorizationContract {
+    rpc Propose (Proposal) returns (Hash) {
+    }
+    rpc SayYes (Approval) returns (google.protobuf.BoolValue) {
+    }
+    rpc Release (Hash) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetProposal(Hash) returns (GetProposalOutput) {
+    }
+}
+
+message Approval {
+    Hash ProposalHash = 1;
+    bytes Signature = 2;
+}
+
+message Proposal {
+    Address MultiSigAccount = 1;
+    string Name = 2;
+    Address ToAddress = 3;
+    bytes Params = 4;
+    google.protobuf.Timestamp ExpiredTime = 5;
+    Address Proposer = 6;
+}
+
+message Approved {
+    Hash ProposalHash = 1;
+    repeated Approval Approvals = 5;
+}
+
+message GetProposalOutput{
+    Proposal proposal = 1;
+    ProposalStatus status = 2;
+    bool canBeReleased = 3;
+}
+
+enum ProposalStatus {
+    Active = 0;
+    Released = 1;
+    Expired = 2;
+}
+
+message ProposalInfo {
+    Hash ProposalHash = 1;
+    Proposal Proposal = 2;
+    bool IsReleased = 3;
+}

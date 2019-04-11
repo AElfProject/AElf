@@ -1,6 +1,6 @@
+using Acs3;
 using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
-using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Contracts.ParliamentAuth

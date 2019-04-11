@@ -2,25 +2,16 @@ syntax = "proto3";
 
 import "common.proto";
 import "aelf_options.proto";
+import "acs3.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/wrappers.proto";
-import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.ParliamentAuth";
 
 service ParliamentAuthContract {
     option (aelf.csharp_state) = "AElf.Contracts.ParliamentAuth.ParliamentAuthState";
+    option (aelf.base) = "acs3.proto";
     // Actions
     rpc Initialize(ParliamentAuthInitializationInput) returns (google.protobuf.Empty){
-    }
-    rpc Propose (Proposal) returns (Hash) {
-    }
-    rpc SayYes (Approval) returns (google.protobuf.BoolValue) {
-    }
-    rpc Release (Hash) returns (google.protobuf.Empty) {
-    }
-    // Views
-    rpc GetProposal(Hash) returns (GetProposalOutput) {
     }
 }
 
@@ -28,44 +19,8 @@ message ParliamentAuthInitializationInput{
     Hash consensusContractSystemName = 1;
 }
 
-message ProposalInfo {
-    Hash proposalHash = 1;
-    Proposal proposal = 2;
-    bool isReleased = 3;
-}
-
-message GetProposalOutput{
-    Proposal proposal = 1;
-    ProposalStatus status = 2;
-    bool canBeReleased = 3;
-}
-
-message Approved {
-    Hash ProposalHash = 1;
-    repeated Approval Approvals = 5;
-}
-
 message Representative{
     bytes PubKey = 1;
     int32 Weight = 2;
 }
 
-message Proposal {
-    Address MultiSigAccount = 1;
-    string Name = 2;
-    Address ToAddress = 3;
-    bytes Params = 4;
-    google.protobuf.Timestamp ExpiredTime = 5;
-    Address Proposer = 6;
-}
-
-enum ProposalStatus {
-    Active = 0;
-    Released = 1;
-    Expired = 2;
-}
-
-message Approval {
-    Hash ProposalHash = 1;
-    bytes Signature = 2;
-}
