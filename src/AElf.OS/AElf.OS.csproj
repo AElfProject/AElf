@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.OS</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\AElf.OS.Consensus.DPos\AElf.OS.Consensus.DPos.csproj" />
+        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+        <ProjectReference Include="..\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj" />
+        <ProjectReference Include="..\AElf.OS.Rpc.ChainController\AElf.OS.Rpc.ChainController.csproj" />
+        <ProjectReference Include="..\AElf.OS.Rpc.Net\AElf.OS.Rpc.Net.csproj" />
+        <ProjectReference Include="..\AElf.OS.Rpc.Wallet\AElf.OS.Rpc.Wallet.csproj" />
+    </ItemGroup>
+
+</Project>

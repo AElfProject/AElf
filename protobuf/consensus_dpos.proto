@@ -89,6 +89,7 @@ message CandidateInTerm {
 message Round {
     int64 RoundNumber = 1;
     map<string, MinerInRound> RealTimeMinersInformation = 2;
+    int64 MainChainMinersRoundNumber = 3;
     int64 BlockchainAge = 4;
     string ExtraBlockProducerOfPreviousRound = 7;
     int64 TermNumber = 8;
@@ -128,6 +129,7 @@ message CandidateInHistory {
     int64 CurrentVotesNumber = 9;
     Address Address = 11;
     Hash AnnouncementTransactionId = 12;
+    bool IsEvilNode = 13;
 }
 
 message TicketsDictionary {
@@ -245,10 +247,9 @@ message FriendlyString {
     string value = 1;
 }
 
-message MinerList {
-    int64 TermNumber = 1;
-    repeated string PublicKeys = 2;
-    repeated Address Addresses = 3;
+message MinerListWithRoundNumber {
+    Miners MinerList = 1;
+    int64 RoundNumber = 4;
 }
 
 message SendDividendsInput {

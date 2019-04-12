@@ -66,6 +66,7 @@ message TokenInfo {
     sint32 decimals = 5;
     Address issuer = 6;
     bool isBurnable = 7;
+    repeated Address lockWhiteList = 8;
 }
 
 message CreateInput {
