@@ -8,6 +8,7 @@ import "google/protobuf/timestamp.proto";
 
 message InitialVoteContractInput {
     Hash tokenContractSystemName = 1;
+    Hash consensusContractSystemName = 2;
 }
 
 message VotingRegisterInput {

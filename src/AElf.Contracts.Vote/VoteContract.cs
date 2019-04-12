@@ -8,9 +8,21 @@ namespace AElf.Contracts.Vote
 {
     public class VoteContract : VoteContractContainer.VoteContractBase
     {
+        /// <summary>
+        /// Initial `Vote Contract`.
+        /// Purpose:
+        ///     Set contract system name of `Token Contract` and `Consensus Contract`
+        /// in order to get their addresses in the future.
+        /// Notes:
+        ///     Contract system names can neither be same nor empty.
+        ///     Cannot initialize more than once.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty InitialVoteContract(InitialVoteContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
+            
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
 
