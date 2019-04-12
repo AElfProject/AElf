@@ -7,11 +7,13 @@ import "kernel.proto";
 import "google/protobuf/timestamp.proto";
 
 message InitialVoteContractInput {
-    Hash tokenContractSystemName = 1;
+    Hash token_contract_system_name = 1;
+    Hash consensus_contract_system_name = 2;
 }
 
 message VotingRegisterInput {
     string topic = 1;
+    google.protobuf.Timestamp start_timestamp = 2;
     string accepted_currency = 3;
     sint32 active_days = 4;
     bool delegated = 5;
@@ -28,6 +30,9 @@ message VotingEvent {
     sint32 current_epoch = 6;
     sint32 total_epoch = 7;
     repeated string options = 8;
+    google.protobuf.Timestamp register_timestamp = 9;
+    google.protobuf.Timestamp start_timestamp = 10;
+    google.protobuf.Timestamp epoch_start_timestamp = 11;
 }
 
 message VoteInput {
@@ -55,6 +60,8 @@ message VotingResult {
     sint32 epoch_number = 3;
     map<string, sint64> results = 4;
     sint32 voters_count = 5;
+    google.protobuf.Timestamp start_timestamp = 6;
+    google.protobuf.Timestamp end_timestamp = 7;
 }
 
 message UpdateEpochNumberInput {
