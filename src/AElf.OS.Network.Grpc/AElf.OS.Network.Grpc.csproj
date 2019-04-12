@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.OS.Network.Grpc</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Grpc" Version="1.19.0" />
+      <PackageReference Include="Grpc.Tools" Version="1.19.0" />
+      <PackageReference Include="Volo.Abp.EventBus" Version="0.15.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+      <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+      <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\..\protobuf\peer_service.proto">
+        <Link>Protobuf/peer_service.proto</Link>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Protobuf" />
+    </ItemGroup>
+
+    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Protobuf ProtoRoot="../../protobuf" Include="peer_service.proto" OutputDir="./Protobuf/Generated" />
+        </ItemGroup>
+    </Target>
+
+</Project>
