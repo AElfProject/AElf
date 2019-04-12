@@ -6,25 +6,17 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Vote
 {
+    /// <summary>
+    /// Comments and documents see README.md of current project.
+    /// </summary>
     public class VoteContract : VoteContractContainer.VoteContractBase
     {
-        /// <summary>
-        /// Initial `Vote Contract`.
-        /// Purpose:
-        ///     Set contract system name of `Token Contract` and `Consensus Contract`
-        /// in order to get their addresses in the future.
-        /// Notes:
-        ///     Contract system names can neither be same nor empty.
-        ///     Cannot initialize more than once.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
         public override Empty InitialVoteContract(InitialVoteContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
+            State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
 
             State.Initialized.Value = true;
 
@@ -33,10 +25,21 @@ namespace AElf.Contracts.Vote
 
         public override Empty Register(VotingRegisterInput input)
         {
-            if (State.TokenContract.Value == null)
+            if (input.TotalEpoch == 0)
             {
-                State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+                input.TotalEpoch = 1;
+            }
+
+            if (input.ActiveDays == int.MaxValue)
+            {
+                Assert(input.TotalEpoch != 1, "Cannot created endless voting event.");
+            }
+
+            InitializeDependentContracts();
+
+            if (input.StartTimestamp.ToDateTime() < Context.CurrentBlockTime)
+            {
+                input.StartTimestamp = Context.CurrentBlockTime.ToTimestamp();
             }
 
             var votingEvent = new VotingEvent
@@ -47,13 +50,10 @@ namespace AElf.Contracts.Vote
             var votingEventHash = votingEvent.GetHash();
 
             Assert(State.VotingEvents[votingEventHash] == null, "Voting event already exists.");
-            Assert(input.TotalEpoch >= 1, "Invalid total epoch.");
-            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            Assert(State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
             {
                 Symbol = input.AcceptedCurrency
-            });
-            Assert(tokenInfo.LockWhiteList.Contains(Context.Self),
-                "Claimed accepted token is not available for voting.");
+            }).LockWhiteList.Contains(Context.Self), "Claimed accepted token is not available for voting.");
 
             // Initialize VotingEvent.
             votingEvent.AcceptedCurrency = input.AcceptedCurrency;
@@ -62,6 +62,10 @@ namespace AElf.Contracts.Vote
             votingEvent.TotalEpoch = input.TotalEpoch;
             votingEvent.Options.AddRange(input.Options);
             votingEvent.CurrentEpoch = 1;
+            votingEvent.EpochStartTimestamp = input.StartTimestamp;
+            votingEvent.RegisterTimestamp = Context.CurrentBlockTime.ToTimestamp();
+            votingEvent.StartTimestamp = input.StartTimestamp;
+
             State.VotingEvents[votingEventHash] = votingEvent;
 
             // Initialize VotingResult of Epoch 1.
@@ -269,6 +273,23 @@ namespace AElf.Contracts.Vote
             votingHistory.Votes[votingEventHash.ToHex()].WithdrawnVotes.Add(voteId);
             State.VotingHistoriesMap[voter] = votingHistory;
             return votingHistory;
+        }
+
+        private void InitializeDependentContracts()
+        {
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+            }
+
+            if (State.ConsensusContract.Value == null)
+            {
+                State.ConsensusContract.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
+            }
         }
     }
 }
