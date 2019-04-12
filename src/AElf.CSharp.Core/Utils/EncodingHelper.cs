@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace AElf.Types.CSharp.Utils
+namespace AElf.CSharp.Core.Utils
 {
     public class EncodingHelper
     {

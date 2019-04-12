@@ -19,7 +19,7 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("AElf.Runtime.CSharp.Tests")]
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     internal static class ServerCalls
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using AElf.Kernel;
 
-namespace AElf.Types.CSharp.MetadataAttribute
+namespace AElf.CSharp.Core.MetadataAttribute
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class SmartContractFieldDataAttribute : Attribute

@@ -1,7 +1,7 @@
 using Shouldly;
 using Xunit;
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     public class MarshallerTests : TypesCSharpTestBase
     {

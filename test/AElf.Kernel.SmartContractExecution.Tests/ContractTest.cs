@@ -6,7 +6,7 @@
 //using AElf.Kernel.Managers;
 //using Google.Protobuf;
 //using Xunit;
-//using AElf.Types.CSharp;
+//using AElf.CSharp.Core;
 //using Google.Protobuf.WellKnownTypes;
 ////using AElf.Kernel.SmartContract.Domain;
 //using AElf.Kernel.SmartContractExecution.Domain;

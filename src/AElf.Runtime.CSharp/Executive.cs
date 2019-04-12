@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
-using AElf.Types.CSharp;
+using AElf.CSharp.Core;
 using Google.Protobuf;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;

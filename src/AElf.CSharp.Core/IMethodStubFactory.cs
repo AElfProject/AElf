@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using Google.Protobuf;
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     public interface IExecutionTask
     {

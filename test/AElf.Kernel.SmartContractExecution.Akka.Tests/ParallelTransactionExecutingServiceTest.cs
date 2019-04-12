@@ -11,7 +11,7 @@
 //using AElf.Kernel.SmartContractExecution.Scheduling;
 //using AElf.Kernel.Core.Tests.Concurrency.Execution;
 //using AElf.SmartContract;
-//using AElf.Types.CSharp;
+//using AElf.CSharp.Core;
 //using Google.Protobuf;
 //using Google.Protobuf.WellKnownTypes;
 //using Type = System.Type;

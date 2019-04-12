@@ -19,7 +19,7 @@
 using System;
 using Google.Protobuf.Reflection;
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     /// <summary>
     /// Allows binding server-side method implementations in alternative serving stacks.

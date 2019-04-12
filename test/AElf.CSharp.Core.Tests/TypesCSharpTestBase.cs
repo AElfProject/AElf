@@ -1,6 +1,6 @@
 using AElf.TestBase;
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     public class TypesCSharpTestBase : AElfIntegratedTest<TypesCSharpTestAElfModule>
     {

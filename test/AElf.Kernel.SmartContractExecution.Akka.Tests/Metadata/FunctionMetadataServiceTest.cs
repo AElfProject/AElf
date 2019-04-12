@@ -8,7 +8,7 @@
 //using AElf.Kernel.Core.Tests.Concurrency.Scheduling;
 //using AElf.Sdk.CSharp;
 //using AElf.TestBase;
-//using AElf.Types.CSharp.MetadataAttribute;
+//using AElf.CSharp.Core.MetadataAttribute;
 //using Akka.Routing;
 //using Xunit;
 

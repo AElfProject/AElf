@@ -20,7 +20,7 @@ using System;
 using System.Collections.Generic;
 using Google.Protobuf.Reflection;
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     /// <summary>
     /// Stores mapping of methods to server call handlers.

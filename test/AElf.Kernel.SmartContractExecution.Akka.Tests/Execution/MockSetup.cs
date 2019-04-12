@@ -9,7 +9,7 @@
 //using AElf.SmartContract;
 //using AElf.Kernel.SmartContractExecution;
 //using AElf.Kernel.Core.Tests.Concurrency.Scheduling;
-//using AElf.Types.CSharp;
+//using AElf.CSharp.Core;
 //using Akka.Actor;
 //using Google.Protobuf.WellKnownTypes;
 //using Mono.Cecil.Cil;

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Google.Protobuf;
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     public interface IEvent<T> : IMessage<T> where T : IEvent<T>
     {

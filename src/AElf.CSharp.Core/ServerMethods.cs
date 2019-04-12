@@ -16,7 +16,7 @@
 
 #endregion
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     /// <summary>
     /// Handler for a contract method.

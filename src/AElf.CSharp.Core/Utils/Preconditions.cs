@@ -18,7 +18,7 @@
 
 using System;
 
-namespace AElf.Types.CSharp.Utils
+namespace AElf.CSharp.Core.Utils
 {
     public class Preconditions
     {

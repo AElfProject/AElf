@@ -4,7 +4,7 @@ using System.Linq;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Types;
-using AElf.Types.CSharp;
+using AElf.CSharp.Core;
 using Google.Protobuf;
 
 namespace AElf.CrossChain

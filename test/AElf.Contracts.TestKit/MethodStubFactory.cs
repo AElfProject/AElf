@@ -5,7 +5,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Types.CSharp;
+using AElf.CSharp.Core;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;

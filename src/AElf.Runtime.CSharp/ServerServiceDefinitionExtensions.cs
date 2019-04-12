@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Google.Protobuf.Reflection;
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     internal static class ServerServiceDefinitionExtensions
     {

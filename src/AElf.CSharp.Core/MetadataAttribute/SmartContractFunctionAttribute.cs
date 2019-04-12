@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AElf.Types.CSharp.MetadataAttribute
+namespace AElf.CSharp.Core.MetadataAttribute
 {
     [AttributeUsage(AttributeTargets.Method)]
     public class SmartContractFunctionAttribute : Attribute

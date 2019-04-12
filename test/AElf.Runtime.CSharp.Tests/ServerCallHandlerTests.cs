@@ -1,6 +1,6 @@
 using System;
 using AElf.Runtime.CSharp.Tests.TestContract;
-using AElf.Types.CSharp;
+using AElf.CSharp.Core;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;

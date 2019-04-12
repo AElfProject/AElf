@@ -10,7 +10,7 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.MetaData;
-using AElf.Types.CSharp.MetadataAttribute;
+using AElf.CSharp.Core.MetadataAttribute;
 using Type = System.Type;
 
 namespace AElf.Runtime.CSharp

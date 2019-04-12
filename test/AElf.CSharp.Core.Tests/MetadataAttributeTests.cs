@@ -2,11 +2,11 @@ using System;
 using System.Linq;
 using System.Reflection;
 using AElf.Kernel;
-using AElf.Types.CSharp.MetadataAttribute;
+using AElf.CSharp.Core.MetadataAttribute;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     public class MetadataAttributeTests : TypesCSharpTestBase
     {

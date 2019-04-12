@@ -6,7 +6,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
-using AElf.Types.CSharp.Utils;
+using AElf.CSharp.Core.Utils;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

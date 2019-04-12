@@ -16,9 +16,9 @@
 
 #endregion
 
-using AElf.Types.CSharp.Utils;
+using AElf.CSharp.Core.Utils;
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     public enum MethodType
     {

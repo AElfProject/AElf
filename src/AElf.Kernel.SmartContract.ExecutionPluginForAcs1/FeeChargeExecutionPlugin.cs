@@ -6,7 +6,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
-using AElf.Types.CSharp;
+using AElf.CSharp.Core;
 using Google.Protobuf.Reflection;
 using Volo.Abp.DependencyInjection;
 

@@ -1,9 +1,9 @@
 using System;
-using AElf.Types.CSharp.Utils;
+using AElf.CSharp.Core.Utils;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     public class PreconditionsTests : TypesCSharpTestBase
     {

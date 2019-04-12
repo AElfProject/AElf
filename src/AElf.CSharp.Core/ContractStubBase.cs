@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 
-namespace AElf.Types.CSharp
+namespace AElf.CSharp.Core
 {
     public class ContractStubBase
     {
