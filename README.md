@@ -23,7 +23,7 @@ For more information you can follow these links:
 
 ### This repository
 
-This repo contains mainly two things: the code for an AElf node and the command line tool used to interact with it.
+This repo contains mainly two things: the code for an AElf node and the command line tool used to interact with it. It also contains tests to validate the logic. There's a docs folder which centralizes all our documentation.
 
 ### Prerequisites
 
