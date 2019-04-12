@@ -1,0 +1,5 @@
+# Election Contract
+
+## Actions
+
+## Views
