@@ -18,26 +18,28 @@ service AuthorizationContract {
     }
     // Views
     rpc GetProposal(Hash) returns (GetProposalOutput) {
+        option (aelf.is_view) = true;
     }
 }
 
 message Approval {
-    Hash ProposalHash = 1;
-    bytes Signature = 2;
+    Hash proposalHash = 1;
+    bytes inputData= 3;
 }
 
 message Proposal {
-    Address MultiSigAccount = 1;
-    string Name = 2;
-    Address ToAddress = 3;
-    bytes Params = 4;
-    google.protobuf.Timestamp ExpiredTime = 5;
-    Address Proposer = 6;
+    Address multiSigAccount = 1;
+    string name = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Address proposer = 6;
+    ProposalLevel level = 7;
 }
 
-message Approved {
-    Hash ProposalHash = 1;
-    repeated Approval Approvals = 5;
+message ApprovedResult {
+    Hash proposalHash = 1;
+    repeated Approval approvals = 5;
 }
 
 message GetProposalOutput{
@@ -52,8 +54,13 @@ enum ProposalStatus {
     Expired = 2;
 }
 
+enum ProposalLevel{
+    Normal = 0;
+    Vital = 1;
+}
+
 message ProposalInfo {
-    Hash ProposalHash = 1;
-    Proposal Proposal = 2;
-    bool IsReleased = 3;
+    Hash proposalHash = 1;
+    Proposal proposal = 2;
+    bool isReleased = 3;
 }

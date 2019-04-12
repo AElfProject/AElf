@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+import "common.proto";
+import "aelf_options.proto";
+import "acs3.proto";
+import "google/protobuf/empty.proto";
+option csharp_namespace = "AElf.Contracts.ReferendumAuth";
+
+service ReferendumAuthContract {
+    option (aelf.csharp_state) = "AElf.Contracts.ReferendumAuth.ReferendumAuthState";
+    option (aelf.base) = "acs3.proto";
+    // Actions
+    rpc Initialize(ReferendumAuthContractInitializationInput) returns (google.protobuf.Empty){
+    }
+    
+    rpc ReclaimVote(Hash) returns (google.protobuf.Empty){
+    }
+}
+
+message ReferendumAuthContractInitializationInput{
+    Hash associationAuthContractSystemName = 1;
+    Hash parliamentAuthContractSystemName = 2;
+    Hash tokenContractSystemName =3;
+}
+
+message VoteInfo{
+    int64 amount = 1;
+    Hash lockId = 2;
+}
