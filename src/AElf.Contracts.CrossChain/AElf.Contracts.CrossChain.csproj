@@ -24,9 +24,6 @@
         <Content Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </Content>
-        <Content Include="..\..\protobuf\authorization_contract.proto">
-            <Link>Protobuf/Proto/authorization_contract.proto</Link>
-        </Content>
       <Content Include="..\..\protobuf\cross_chain_contract.proto">
         <Link>Protobuf/Proto/cross_chain_contract.proto</Link>
       </Content>

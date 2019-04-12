@@ -5,7 +5,6 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Contracts.Authorization\AElf.Contracts.Authorization.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
