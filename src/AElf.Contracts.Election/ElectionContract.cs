@@ -13,6 +13,25 @@ namespace AElf.Contracts.Election
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.Initialized.Value = true;
 
+            State.TokenContract.Create.Send(new CreateInput
+            {
+                Symbol = ElectionContractConsts.VoteSymbol,
+                TokenName = "Elf Vote token",
+                Issuer = Context.Self,
+                Decimals = 2,
+                IsBurnable = true,
+                TotalSupply = ElectionContractConsts.VotesTotalSupply,
+                LockWhiteList = {Context.Self}
+            });
+
+            State.TokenContract.Issue.Send(new IssueInput
+            {
+                Symbol = ElectionContractConsts.Symbol,
+                Amount = ElectionContractConsts.VotesTotalSupply,
+                To = Context.Self,
+                Memo = "Power!"
+            });
+
             State.VoteContract.Register.Send(new VotingRegisterInput
             {
                 Topic = ElectionContractConsts.Topic,
@@ -79,7 +98,7 @@ namespace AElf.Contracts.Election
             var publicKey = Context.RecoverPublicKey().ToHex();
 
             State.Candidates[publicKey] = null;
-            
+
             State.TokenContract.Unlock.Send(new UnlockInput
             {
                 From = Context.Sender,
@@ -102,6 +121,24 @@ namespace AElf.Contracts.Election
 
         public override Empty Vote(VoteMinerInput input)
         {
+            State.TokenContract.Transfer.Send(new TransferInput
+            {
+                Symbol = ElectionContractConsts.VoteSymbol,
+                To = Context.Sender,
+                Amount = input.Amount,
+                Memo = "Get VOTEs."
+            });
+
+            State.TokenContract.Lock.Send(new LockInput
+            {
+                From = Context.Sender,
+                Symbol = ElectionContractConsts.Symbol,
+                LockId = Context.TransactionId,
+                Amount = input.Amount,
+                To = Context.Self,
+                Usage = $"Voting for {ElectionContractConsts.Topic}"
+            });
+
             State.VoteContract.Vote.Send(new VoteInput
             {
                 Topic = ElectionContractConsts.Topic,
@@ -117,6 +154,18 @@ namespace AElf.Contracts.Election
 
         public override Empty Withdraw(Hash input)
         {
+            var votingRecord = State.VoteContract.GetVotingRecord.Call(input);
+            
+            State.TokenContract.Unlock.Send(new UnlockInput
+            {
+                From = votingRecord.Voter,
+                Symbol = votingRecord.Currency,
+                Amount = votingRecord.Amount,
+                LockId = input,
+                To = votingRecord.Sponsor,
+                Usage = $"Withdraw votes for {ElectionContractConsts.Topic}"
+            });
+            
             State.VoteContract.Withdraw.Send(new WithdrawInput
             {
                 VoteId = input
@@ -138,7 +187,7 @@ namespace AElf.Contracts.Election
 
         public override ElectionResult GetElectionResult(GetElectionResultInput input)
         {
-            var votingResult = State.VoteContract.GetVotingInfo.Call(new GetVotingResultInput
+            var votingResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
             {
                 Topic = ElectionContractConsts.Topic,
                 EpochNumber = input.TermNumber,
