@@ -24,6 +24,7 @@ service AuthorizationContract {
 
 message Approval {
     Hash proposalHash = 1;
+    bytes publicKey = 2;
     bytes inputData= 3;
 }
 

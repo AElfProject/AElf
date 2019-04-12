@@ -9,7 +9,7 @@ namespace AElf.Contracts.ParliamentAuth
     {
         public SingletonState<Hash> ConsensusContractSystemName { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
-        public MappedState<Hash, Approved> Approved { get; set; }
+        public MappedState<Hash, ApprovedResult> Approved { get; set; }
 
         public BoolState Initialized { get; set; }
         

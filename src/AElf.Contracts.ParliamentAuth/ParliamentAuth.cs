@@ -64,12 +64,15 @@ namespace AElf.Contracts.ParliamentAuth
                 "Expired proposal.");
             //byte[] toSig = Hash.FromMessage(proposal).DumpByteArray();
             byte[] pubKey = Context.RecoverPublicKey();
-            //Assert(pubKey != null && Context.RecoverPublicKey().SequenceEqual(pubKey), "Invalid approval.");
+            Assert(approval.PublicKey.IsEmpty || approval.PublicKey.ToByteArray().SequenceEqual(pubKey),
+                "Invalid public key in approval.");
+
             var representatives = GetRepresentatives();
             Assert(representatives.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)),
                 "Not authorized approval.");
 
-            //CheckSignature(toSig, approval.Signature.ToByteArray());
+            if(approval.PublicKey.IsEmpty)
+                approval.PublicKey = ByteString.CopyFrom(pubKey);
             approved = approved ?? new ApprovedResult();
             approved.Approvals.Add(approval);
             State.Approved[hash] = approved;
@@ -93,6 +96,8 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(CheckApprovals(proposalId), "Not authorized to release.");
            
             Context.SendInline(proposal.ToAddress, proposal.Name, proposal.Params);
+            proposalInfo.IsReleased = true;
+            State.Proposals[proposalId] = proposalInfo;
             return new Empty();
         }
 
