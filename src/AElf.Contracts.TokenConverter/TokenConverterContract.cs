@@ -231,7 +231,7 @@ namespace AElf.Contracts.TokenConverter
         public override Empty SetManagerAddress(Address input)
         {
             AssertPerformedByManager();
-            Assert(input != null || input != new Address(), "Input is not a valid address.");
+            Assert(input != null && input != new Address(), "Input is not a valid address.");
             State.ManagerAddress.Value = input;
             return new Empty();
         }

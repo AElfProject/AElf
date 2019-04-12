@@ -13,15 +13,15 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
+using VoteInput = AElf.Consensus.DPoS.VoteInput;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    // TODO: Rewrite via test kit.
     public class ConsensusProcessTest : ContractTestBase<DPoSContractTestAElfModule>
     {
         private const int MiningInterval = 4000;
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NormalBlock_GetNewConsensusInformation()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -29,7 +29,6 @@ namespace AElf.Contracts.Consensus.DPoS
             testers.InitialTesters(startTime);
 
             var inValue = Hash.Generate();
-            var outValue = Hash.FromMessage(inValue);
             var stubExtraInformation =
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
 
@@ -39,13 +38,101 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Assert
             Assert.NotNull(newConsensusInformation);
-            Assert.Equal(outValue, newConsensusInformation.Round
-                .RealTimeMinersInformation[testers.Testers[1].KeyPair.PublicKey.ToHex()]
-                .OutValue);
+            Assert.Equal(testers.Testers[1].PublicKey, newConsensusInformation.SenderPublicKey.ToHex());
+        }
+        
+        [Fact]
+        public async Task NormalBlock_ValidateConsensusBeforeExecution_Failed()
+        {
+            var startTime = DateTime.UtcNow.ToTimestamp();
+            var testers = new ConsensusTesters();
+            testers.InitialTesters(startTime);
+
+            var newInformation = new DPoSHeaderInformation
+            {
+                SenderPublicKey = ByteString.CopyFrom(testers.Testers[0].KeyPair.PublicKey),
+                Round = await testers.Testers[0].GetCurrentRoundInformationAsync(),
+                Behaviour = DPoSBehaviour.UpdateValueWithoutPreviousInValue
+            };
+            
+            // Act
+            var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeFalse();
+            
+            newInformation.Round.RealTimeMinersInformation.First().Value.OutValue = Hash.Generate();
+            validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeFalse();
+        }
+        
+        [Fact]
+        public async Task NormalBlock_ValidateConsensusBeforeExecution_Success()
+        {
+            var startTime = DateTime.UtcNow.ToTimestamp();
+            var testers = new ConsensusTesters();
+            testers.InitialTesters(startTime);
+            var currentRound = await testers.Testers[0].GetCurrentRoundInformationAsync();
+            var roundInfo = new Round
+            {
+                BlockchainAge = currentRound.BlockchainAge + 1,
+                RoundNumber = currentRound.RoundNumber + 1,
+                TermNumber = currentRound.TermNumber,
+                RealTimeMinersInformation =
+                {
+                    { testers.Testers[0].PublicKey, new MinerInRound
+                        {
+                            OutValue = Hash.Generate(),
+                            FinalOrderOfNextRound = 1,
+                            ExpectedMiningTime = currentRound.RealTimeMinersInformation[testers.Testers[0].PublicKey].ExpectedMiningTime,
+                            Order = 1
+                            
+                        }
+                    },
+                    {
+                        testers.Testers[1].PublicKey, new MinerInRound
+                        {
+                            OutValue = Hash.Generate(),
+                            FinalOrderOfNextRound = 2,
+                            ExpectedMiningTime = currentRound.RealTimeMinersInformation[testers.Testers[1].PublicKey].ExpectedMiningTime,
+                            Order = 2
+                        }
+                    },
+                    {
+                        testers.Testers[2].PublicKey, new MinerInRound
+                        {
+                            OutValue = Hash.Generate(),
+                            FinalOrderOfNextRound = 3,
+                            ExpectedMiningTime = currentRound.RealTimeMinersInformation[testers.Testers[2].PublicKey].ExpectedMiningTime,
+                            Order = 3
+                        }
+                    },
+                }
+            }; 
+                 
+            var newInformation = new DPoSHeaderInformation
+            {
+                SenderPublicKey = ByteString.CopyFrom(testers.Testers[0].KeyPair.PublicKey),
+                Round = roundInfo,
+                Behaviour = DPoSBehaviour.NextRound
+            };
+            
+            // Act
+            var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeTrue();
+
+            //nothing behavior
+            newInformation.Behaviour = DPoSBehaviour.Nothing;
+            validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeFalse();
+            validationResult.Message.ShouldBe("Invalid behaviour");
+            
+            //update value
+            newInformation.Behaviour = DPoSBehaviour.UpdateValue;
+            validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
+            validationResult.ShouldNotBeNull();
         }
 
-        [Fact(Skip = "Rewrite")]
-        public async Task NormalBlock_ValidationConsensus_Success()
+        [Fact]
+        public async Task NormalBlock_ValidateConsensusAfterExecution_Failed()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
             var testers = new ConsensusTesters();
@@ -56,16 +143,35 @@ namespace AElf.Contracts.Consensus.DPoS
                 GetTriggerInformationForNormalBlock(testers.Testers[1].KeyPair.PublicKey.ToHex(), inValue);
 
             var newInformation =
-                await testers.Testers[1].GetInformationToUpdateConsensusAsync(triggerInformationForNormalBlock, DateTime.UtcNow);
-
+                await testers.Testers[1]
+                    .GetInformationToUpdateConsensusAsync(triggerInformationForNormalBlock, DateTime.UtcNow);
+            
             // Act
-            var validationResult = await testers.Testers[0].ValidateConsensusBeforeExecutionAsync(newInformation);
+            var validationResult = await testers.Testers[0].ValidateConsensusAfterExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeFalse();
+            validationResult.Message.ShouldBe("Current round information is different with consensus extra data.");
+        }
+        
+        [Fact]
+        public async Task NormalBlock_ValidateConsensusAfterExecution_Success()
+        {
+            var startTime = DateTime.UtcNow.ToTimestamp();
+            var testers = new ConsensusTesters();
+            testers.InitialTesters(startTime);
 
-            // Assert
-            Assert.True(validationResult?.Success);
+            var newInformation = new DPoSHeaderInformation
+            {
+                SenderPublicKey = ByteString.CopyFrom(testers.Testers[0].KeyPair.PublicKey),
+                Round = await testers.Testers[0].GetCurrentRoundInformationAsync(),
+                Behaviour = DPoSBehaviour.UpdateValueWithoutPreviousInValue
+            };
+            
+            // Act
+            var validationResult = await testers.Testers[0].ValidateConsensusAfterExecutionAsync(newInformation);
+            validationResult.Success.ShouldBeTrue();
         }
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NormalBlock_GenerateConsensusTransactions()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -85,7 +191,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.Equal(DPoSBehaviour.UpdateValue.ToString(), consensusTransactions.First().MethodName);
         }
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NextRound_GetConsensusCommand()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -102,7 +208,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Assert.Equal(4000, command.LimitMillisecondsOfMiningBlock);
         }
 
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NextRound_GetNewConsensusInformation()
         {
             var startTime = DateTime.UtcNow.ToTimestamp();
@@ -113,34 +219,16 @@ namespace AElf.Contracts.Consensus.DPoS
                 GetTriggerInformationForNextRound(testers.Testers[1].KeyPair.PublicKey.ToHex());
 
             // Act
-            var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000);
+            var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount);
             var newConsensusInformation =
                 await testers.Testers[1].GetInformationToUpdateConsensusAsync(triggerInformationForNextRoundOrTerm, futureTime);
 
             // Assert
-            Assert.Equal(2L, newConsensusInformation.Round.RoundNumber);
+            newConsensusInformation.SenderPublicKey.ToHex().ShouldBe(testers.Testers[1].PublicKey);
+            newConsensusInformation.Round.RoundNumber.ShouldBeGreaterThanOrEqualTo(2);
         }
 
-        [Fact(Skip = "Rewrite")]
-        public async Task NextRound_GenerateConsensusTransactions()
-        {
-            var startTime = DateTime.UtcNow.ToTimestamp();
-            var testers = new ConsensusTesters();
-            testers.InitialTesters(startTime);
-
-            var futureTime = DateTime.UtcNow.AddMilliseconds(4000 * testers.MinersCount + 4000).ToTimestamp();
-            var triggerInformationForNextRoundOrTerm =
-                GetTriggerInformationForNextRound(testers.Testers[1].KeyPair.PublicKey.ToHex());
-
-            // Act
-            var consensusTransactions = await testers.Testers[1]
-                .GenerateConsensusTransactionsAsync(triggerInformationForNextRoundOrTerm);
-
-            // Assert
-            Assert.Equal(DPoSBehaviour.NextRound.ToString(), consensusTransactions.First().MethodName);
-        }
-
-        [Fact(Skip = "Rewrite")]
+        [Fact]
         public async Task NextTerm_GetConsensusCommand()
         {
             const int minersCount = 3;
@@ -235,7 +323,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 voteTxs.Add(await voter.GenerateTransactionAsync(
                     starter.GetConsensusContractAddress(),
                     nameof(ConsensusContract.Vote),
-                    new VoteInput()
+                    new VoteInput
                     {
                         CandidatePublicKey = candidate.PublicKey,
                         Amount = 1,

@@ -56,5 +56,22 @@ namespace AElf.OS.Account
 
             Assert.False(verifyResult);
         }
+
+        [Fact]
+        public async Task EncryptAndDecryptMessage()
+        {
+            var stringValue = new StringValue
+            {
+                Value = "EncryptAndDecryptMessage"
+            };
+            var pubicKey = await _accountService.GetPublicKeyAsync();
+            var plainMessage = stringValue.ToByteArray();
+
+            var encryptMessage = await _accountService.EncryptMessage(pubicKey, plainMessage);
+
+            var decryptMessage = await _accountService.DecryptMessage(pubicKey, encryptMessage);
+
+            decryptMessage.ShouldBe(plainMessage);
+        }
     }
 }

@@ -18,6 +18,8 @@ using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using VoteInput = AElf.Consensus.DPoS.VoteInput;
+using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -72,6 +74,15 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
                 ConsensusConsts.ValidateConsensusBeforeExecution, headerInformation);
+            return ValidationResult.Parser.ParseFrom(bytes);
+        }
+        
+        public static async Task<ValidationResult> ValidateConsensusAfterExecutionAsync(
+            this ContractTester<DPoSContractTestAElfModule> tester,
+            DPoSHeaderInformation headerInformation)
+        {
+            var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
+                ConsensusConsts.ValidateConsensusAfterExecution, headerInformation);
             return ValidationResult.Parser.ParseFrom(bytes);
         }
 
