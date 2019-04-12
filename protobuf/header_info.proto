@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 option csharp_namespace = "AElf.CrossChain";
+
 import "common.proto";
 import "crosschain.proto";
 
