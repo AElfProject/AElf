@@ -11,26 +11,13 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/aelfblockchain.svg?label=%40aelfblockchain&style=social)](https://twitter.com/aelfblockchain)
 [![Gitter](https://badges.gitter.im/aelfproject/community.svg)](https://gitter.im/aelfproject/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Welcome to AElfs’ official GitHub repository. The code is still in its early stages and is under constant change to 
-improve its quality and functionality.
+Welcome to AElfs’ official GitHub repository ! 
 
-You can find out more about AElf by reading the 
-[White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1). 
+AElf is a blockchain system aiming to achieve scalability and extensibility through the use of side-chains and flexible design. To support multiple use cases AElf makes it as easy as possible to extend/customize the system by providing easy to use tools and frameworks in order to customize the chains and write smart contracts. AElf will eventually support various languages that will let developers choose the one they are the most comfortable with.
 
-Official website: [aelf.io](https://aelf.io)
-
-## Overview
-
-AElfs main objective is to permit scalability and extensibility through a multi-layer branching structure formed by a 
-main chain and multiple levels of side-chains (a tree like structure). Each side-chain will be designed for one business 
-use case. We also plan to include communication with external blockchains like Bitcoin or Ethereum.
-
-AElf also aims to make it as easy as possible to extend/customize the system by providing easy to use tools and 
-frameworks in order to customize the chains and write smart contracts. AElf will support various languages that will let 
-developers choose the one they are the most comfortable with.
-
-AElf will improve overall blockchain performance by executing transactions in parallel and isolating smart contracts in 
-their own side-chains in order to segregate the systems resources.
+For more information you can follow these links:
+* [Official website](https://aelf.io)
+* [White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1) 
 
 ## Development
 
