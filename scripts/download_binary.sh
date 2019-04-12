@@ -25,6 +25,6 @@ if [[ ! -f ${plugin} ]]; then
     # Make sure you grab the latest version
     curl -OL https://github.com/AElfProject/contract-plugin/releases/download/${version}/${filename}
     # Unzip
-    unzip ${filename} -d "${scriptdir}"
+    unzip -o ${filename} -d "${scriptdir}"
     rm ${filename}
 fi
