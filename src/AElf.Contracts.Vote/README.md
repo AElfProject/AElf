@@ -35,7 +35,9 @@ For a `Sponsor` to register / create a voting event.
 
 - Transction sender will be the `Sponsor`.
 
-- The values of `Topic` and `Sponsor` filed can identify a voting event.
+- The values of `Topic` and `Sponsor` fields can identify a `VotingEvent`.
+
+- If `Delegated` is true, it means the sender address of `Vote` transaction must be the address of `Sponsor`.
 
 - If `StartTimestamp` of input value is smaller than current block time, will use current block time as `StartTimestamp`.
 
@@ -43,12 +45,26 @@ For a `Sponsor` to register / create a voting event.
 
 - Anyway, voters can withdraw their votes after a certain days according to the value of `VoteContractConsts.MaxActiveDays`.
 
-
 </details>
 
 <details>
 
   <summary><b>Vote</b></summary>
+  
+### Purpose
+
+For a `Voter` to vote for a (epoch of a) certain voting event.
+
+### Notes
+
+- Basically, a voting behaviour is to update `VotingResult`, and add a new `VotingRecord`.
+
+- The values of `Topic`, `Sponsor` and `EpochNumber` fields can identify a `VotingResult`.
+
+- We can get a certain `VotingRecord` by providing transaction id of `Vote` transaction, which actually called `VoteId`.
+
+- This method will only lock token if voting event isn't delegated. Delegated voting event should lock in higher level contract, like `Election Contract`.
+
 
 </details>
 

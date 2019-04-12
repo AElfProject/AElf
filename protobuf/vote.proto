@@ -19,7 +19,6 @@ message VotingRegisterInput {
     bool delegated = 5;
     sint32 total_epoch = 6;
     repeated string options = 7;
-
 }
 
 message VotingEvent {

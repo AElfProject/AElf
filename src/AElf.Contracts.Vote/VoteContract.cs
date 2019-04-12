@@ -88,7 +88,11 @@ namespace AElf.Contracts.Vote
         {
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
 
-            // VoteId -> VotingRecord
+            if (votingEvent.Delegated)
+            {
+                Assert(input.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
+            }
+
             var votingRecord = new VotingRecord
             {
                 Topic = input.Topic,
@@ -102,7 +106,7 @@ namespace AElf.Contracts.Vote
                 Currency = votingEvent.AcceptedCurrency
             };
 
-            // Modify VotingResult
+            // Update VotingResult based on this voting behaviour.
             var votingResultHash = Hash.FromMessage(new GetVotingResultInput
             {
                 Sponsor = input.Sponsor,
