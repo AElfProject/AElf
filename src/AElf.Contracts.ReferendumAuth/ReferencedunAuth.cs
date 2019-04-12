@@ -55,22 +55,15 @@ namespace AElf.Contracts.ReferendumAuth
             // check validity of proposal 
             Hash hash = approval.ProposalHash;
 
-            var approved = State.Approved[hash];
-            // check approval not existed
-            Assert(approved == null || !approved.Approvals.Contains(approval),
-                "Approval already existed.");
-
             var proposalInfo = State.Proposals[hash];
             // check authorization and permission 
             Assert(proposalInfo != null, "Proposal not found.");
             var proposal = proposalInfo.Proposal;
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(), "Expired proposal.");
 
-            approved = approved ?? new ApprovedResult();
-            approved.Approvals.Add(approval);
-            State.Approved[hash] = approved;
-
             var lockedVoteAmount = Int64Value.Parser.ParseFrom(approval.InputData).Value;
+            
+            Assert(State.LockedVoteAmount[Context.Sender][hash] == null, "Cannot approve more than once.");
             State.LockedVoteAmount[Context.Sender][hash] = new VoteInfo
                 {Amount = lockedVoteAmount, LockId = Context.TransactionId};
             
