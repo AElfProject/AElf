@@ -15,52 +15,30 @@ namespace AElf.Benchmark
     [MarkdownExporterAttribute.GitHub]
     public class MinerTests: BenchmarkTestBase
     {
-        private readonly IBlockchainService _blockchainService;
-        private readonly IMinerService _minerService;
-        private readonly ITxHub _txHub;
-        private readonly IBlockAttachService _blockAttachService;
-        private readonly OSTestHelper _osTestHelper;
-        
-        private Block _block;
-
-        public MinerTests()
-        {
-            _blockchainService = GetRequiredService<IBlockchainService>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
-            _minerService = GetRequiredService<IMinerService>();
-            _txHub = GetRequiredService<ITxHub>();
-            _blockAttachService = GetRequiredService<IBlockAttachService>();
-        }
-                
+        private IBlockchainService _blockchainService;
+        private IMinerService _minerService;
+        private OSTestHelper _osTestHelper;
+                        
         [Params(1, 10, 100, 1000, 3000, 5000)]
         public int TransactionCount;
 
         [GlobalSetup]
         public async Task GlobalSetup()
         {
+            _blockchainService = GetRequiredService<IBlockchainService>();
+            _osTestHelper = GetRequiredService<OSTestHelper>();
+            _minerService = GetRequiredService<IMinerService>();
+            
             var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
-
             await _osTestHelper.BroadcastTransactions(transactions);
         }
-
+        
         [Benchmark]
         public async Task MineBlockTest()
         {
             var chain = await _blockchainService.GetChainAsync();
-            _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
+            await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(4000));
-        }
-
-        [GlobalCleanup]
-        public async Task Cleanup()
-        {
-            await _blockAttachService.AttachBlockAsync(_block);
-            var chain = await _blockchainService.GetChainAsync();
-            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            });
         }
     }
 }

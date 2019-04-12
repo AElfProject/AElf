@@ -13,19 +13,12 @@ namespace AElf.Benchmark
     [MarkdownExporterAttribute.GitHub]
     public class BlockExecutingTests : BenchmarkTestBase
     {
-        private readonly IBlockExecutingService _blockExecutingService;
-        private readonly IBlockchainService _blockchainService;
-        private readonly OSTestHelper _osTestHelper;
+        private IBlockExecutingService _blockExecutingService;
+        private IBlockchainService _blockchainService;
+        private OSTestHelper _osTestHelper;
 
         private List<Transaction> _transactions;
         private Block _block;
-
-        public BlockExecutingTests()
-        {
-            _blockchainService = GetRequiredService<IBlockchainService>();
-            _blockExecutingService = GetRequiredService<IBlockExecutingService>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
-        }
         
         [Params(1, 10, 100, 1000, 3000, 5000)]
         public int TransactionCount;
@@ -33,6 +26,10 @@ namespace AElf.Benchmark
         [GlobalSetup]
         public async Task GlobalSetup()
         {
+            _blockchainService = GetRequiredService<IBlockchainService>();
+            _blockExecutingService = GetRequiredService<IBlockExecutingService>();
+            _osTestHelper = GetRequiredService<OSTestHelper>();
+            
             var chain = await _blockchainService.GetChainAsync();
 
             _block = new Block
