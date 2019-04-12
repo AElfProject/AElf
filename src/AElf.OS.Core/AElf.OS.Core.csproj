@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>AElf.OS</RootNamespace>
+    <PackageId>AElf.OS.Core</PackageId>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
+    <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.BackgroundJobs" Version="0.15.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.15.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Services" />
+  </ItemGroup>
+  <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+    <Exec LogStandardErrorAsError="true" Command="protoc --proto_path=../../protobuf --csharp_out=./Network/Generated --csharp_opt=file_extension=.g.cs network_types.proto" />
+  </Target>
+  <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <Compile Include="./Network/Generated/*.g.cs" />
+    </ItemGroup>
+  </Target>
+  <ItemGroup>
+    <Content Include="..\..\protobuf\network_types.proto">
+      <Link>Network/Proto/network_types.proto</Link>
+    </Content>
+  </ItemGroup>
+</Project>

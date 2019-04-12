@@ -66,6 +66,7 @@ message TokenInfo {
     sint32 decimals = 5;
     Address issuer = 6;
     bool isBurnable = 7;
+    repeated Address lockWhiteList = 8;
 }
 
 message CreateInput {
@@ -209,7 +210,7 @@ message CrossChainReceiveTokenInput {
     repeated Hash merklePath = 4;
 }
 
-// Events
+// EventsCreateInput
 message Transferred {
     option (aelf.is_event) = true;
     Address from = 1 [(aelf.is_indexed) = true];

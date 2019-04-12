@@ -2,341 +2,275 @@
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core", "AElf.Kernel.Core\AElf.Kernel.Core.csproj", "{C7A26DA1-70D3-4D73-B5DB-A83241AB6F79}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{798BAA50-825B-4DD9-83E2-77A9EE6EBE09}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core.Tests", "AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj", "{43CE2CD7-AE6C-4086-8594-7BC82FC83B74}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4E54480A-D155-43ED-9736-1A5BE7957211}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Core", "AElf.OS.Core\AElf.OS.Core.csproj", "{F1B2B70C-7E8D-4F73-80C2-455CAF21C09C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core", "src\AElf.Kernel.Core\AElf.Kernel.Core.csproj", "{C7A26DA1-70D3-4D73-B5DB-A83241AB6F79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Tests", "AElf.OS.Tests\AElf.OS.Tests.csproj", "{65480B60-CE71-4486-85F4-EBEF8BEEFD98}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core.Tests", "test\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj", "{43CE2CD7-AE6C-4086-8594-7BC82FC83B74}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Database", "AElf.Database\AElf.Database.csproj", "{B0AD7E8F-E1BB-470A-A38A-4E0B920E0507}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Core", "src\AElf.OS.Core\AElf.OS.Core.csproj", "{F1B2B70C-7E8D-4F73-80C2-455CAF21C09C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Database.Tests", "AElf.Database.Tests\AElf.Database.Tests.csproj", "{5A9AF758-4ECA-4962-9BBC-3B133D4F221D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Tests", "test\AElf.OS.Tests\AElf.OS.Tests.csproj", "{65480B60-CE71-4486-85F4-EBEF8BEEFD98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common", "AElf.Common\AElf.Common.csproj", "{4EC22E9F-7019-470B-B990-B9E020DBBFB2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Database", "src\AElf.Database\AElf.Database.csproj", "{B0AD7E8F-E1BB-470A-A38A-4E0B920E0507}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types.CSharp", "AElf.Types.CSharp\AElf.Types.CSharp.csproj", "{A52F1E94-2805-4B6E-BFC5-CD0063A78ACC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Database.Tests", "test\AElf.Database.Tests\AElf.Database.Tests.csproj", "{5A9AF758-4ECA-4962-9BBC-3B133D4F221D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Tests.TestContract", "AElf.Kernel.Tests.TestContract\AElf.Kernel.Tests.TestContract.csproj", "{6F17E8F3-68F9-46A4-8766-5E003688C742}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common", "src\AElf.Common\AElf.Common.csproj", "{4EC22E9F-7019-470B-B990-B9E020DBBFB2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Cryptography", "AElf.Cryptography\AElf.Cryptography.csproj", "{D86E3450-B65D-4999-8C1D-4B1D4403DB51}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types.CSharp", "src\AElf.Types.CSharp\AElf.Types.CSharp.csproj", "{A52F1E94-2805-4B6E-BFC5-CD0063A78ACC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Cryptography.Tests", "AElf.Cryptography.Tests\AElf.Cryptography.Tests.csproj", "{F493AA95-89E6-4F90-BA8F-129A6FE64A6D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Tests.TestContract", "test\AElf.Kernel.Tests.TestContract\AElf.Kernel.Tests.TestContract.csproj", "{6F17E8F3-68F9-46A4-8766-5E003688C742}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types.CSharp.Tests", "AElf.Types.CSharp.Tests\AElf.Types.CSharp.Tests.csproj", "{BE325074-BE8D-448D-931B-57F5812F7714}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Cryptography", "src\AElf.Cryptography\AElf.Cryptography.csproj", "{D86E3450-B65D-4999-8C1D-4B1D4403DB51}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Types", "AElf.Kernel.Types\AElf.Kernel.Types.csproj", "{DAEEB200-1D20-4A56-8C21-CA2ADE976AD5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Cryptography.Tests", "test\AElf.Cryptography.Tests\AElf.Cryptography.Tests.csproj", "{F493AA95-89E6-4F90-BA8F-129A6FE64A6D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Genesis.Tests", "AElf.Contracts.Genesis.Tests\AElf.Contracts.Genesis.Tests.csproj", "{508FD4EB-9EA0-43B1-B1AD-30ED7D0545F7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types.CSharp.Tests", "test\AElf.Types.CSharp.Tests\AElf.Types.CSharp.Tests.csproj", "{BE325074-BE8D-448D-931B-57F5812F7714}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution", "AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj", "{7ECFDC4C-4685-40AC-81D5-AB10461D299E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Types", "src\AElf.Kernel.Types\AElf.Kernel.Types.csproj", "{DAEEB200-1D20-4A56-8C21-CA2ADE976AD5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract", "AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj", "{05996EDC-D17E-4DC4-82C0-EDD4408E5F8A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Genesis.Tests", "test\AElf.Contracts.Genesis.Tests\AElf.Contracts.Genesis.Tests.csproj", "{508FD4EB-9EA0-43B1-B1AD-30ED7D0545F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.ChainController", "AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj", "{74446502-51C1-48EE-BE10-F7B3551005A5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution", "src\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj", "{7ECFDC4C-4685-40AC-81D5-AB10461D299E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Concurrency.Lighthouse", "AElf.Concurrency.Lighthouse\AElf.Concurrency.Lighthouse.csproj", "{55F6997E-DB59-476B-B1D1-65FE4B6D0437}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract", "src\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj", "{05996EDC-D17E-4DC4-82C0-EDD4408E5F8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.ChainController", "src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj", "{74446502-51C1-48EE-BE10-F7B3551005A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Concurrency.Lighthouse", "src\AElf.Concurrency.Lighthouse\AElf.Concurrency.Lighthouse.csproj", "{55F6997E-DB59-476B-B1D1-65FE4B6D0437}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Contracts", "AElf.Contracts", "{D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test", "AElf.Test", "{4E54480A-D155-43ED-9736-1A5BE7957211}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization.Tests", "test\AElf.Contracts.Authorization.Tests\AElf.Contracts.Authorization.Tests.csproj", "{322850D0-CCBB-402D-AFFB-12EE43BCB09A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization.Tests", "AElf.Contracts.Authorization.Tests\AElf.Contracts.Authorization.Tests.csproj", "{322850D0-CCBB-402D-AFFB-12EE43BCB09A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Core", "src\AElf.Core\AElf.Core.csproj", "{26287CC7-874E-4C9B-B41C-202511835B95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Core", "AElf.Core\AElf.Core.csproj", "{26287CC7-874E-4C9B-B41C-202511835B95}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp", "src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj", "{4895B014-DCC4-4F5B-9DDE-FA1B43E37B98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp", "AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj", "{4895B014-DCC4-4F5B-9DDE-FA1B43E37B98}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Core", "src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj", "{3B20D815-01B9-4EE4-B486-012302AB954E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Core", "AElf.CrossChain.Core\AElf.CrossChain.Core.csproj", "{3B20D815-01B9-4EE4-B486-012302AB954E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp.Tests.TestContract", "test\AElf.Sdk.CSharp.Tests.TestContract\AElf.Sdk.CSharp.Tests.TestContract.csproj", "{7B4C527E-B09B-430D-9D93-9C58D78078E1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp.Tests.TestContract", "AElf.Sdk.CSharp.Tests.TestContract\AElf.Sdk.CSharp.Tests.TestContract.csproj", "{7B4C527E-B09B-430D-9D93-9C58D78078E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp.Tests", "test\AElf.Sdk.CSharp.Tests\AElf.Sdk.CSharp.Tests.csproj", "{F3F761B4-914A-4190-93B1-F874CEE9149E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Sdk.CSharp.Tests", "AElf.Sdk.CSharp.Tests\AElf.Sdk.CSharp.Tests.csproj", "{F3F761B4-914A-4190-93B1-F874CEE9149E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Core", "src\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj", "{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Core", "AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj", "{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests", "test\AElf.Runtime.CSharp.Tests\AElf.Runtime.CSharp.Tests.csproj", "{D40BEB6B-C370-4A8E-A628-47B6842C975A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests", "AElf.Runtime.CSharp.Tests\AElf.Runtime.CSharp.Tests.csproj", "{D40BEB6B-C370-4A8E-A628-47B6842C975A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestBase", "AElf.TestBase\AElf.TestBase.csproj", "{7FEA756D-FA6F-48AF-A1F9-E6CD65F6DEF5}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{17BB24BA-6B44-4CA2-B989-6F5703DA0A67}"
-ProjectSection(SolutionItems) = preProject
-	docs\test.puml = docs\test.puml
-	docs\README.md = docs\README.md
-EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{F1365623-C82C-4ACD-A4D7-008B6B6972AE}"
-ProjectSection(SolutionItems) = preProject
-	.travis.yml = .travis.yml
-	scripts\build.sh = scripts\build.sh
-	scripts\install_chakracore.sh = scripts\install_chakracore.sh
-	scripts\install_protobuf.sh = scripts\install_protobuf.sh
-	scripts\download_chakracore.sh = scripts\download_chakracore.sh
-	scripts\test.sh = scripts\test.sh
-	scripts\upload_coverage.sh = scripts\upload_coverage.sh
-	appveyor.yml = appveyor.yml
-	scripts\deploy_myget.sh = scripts\deploy_myget.sh
-	scripts\deploy_nuget.sh = scripts\deploy_nuget.sh
-	scripts\deploy_docker.sh = scripts\deploy_docker.sh
-	scripts\deploy_myget_daily.sh = scripts\deploy_myget_daily.sh
-	scripts\download_binary.bat = scripts\download_binary.bat
-	scripts\download_binary.sh = scripts\download_binary.sh
-	scripts\generate_contract_base.bat = scripts\generate_contract_base.bat
-	scripts\generate_contract_code.bat = scripts\generate_contract_code.bat
-	scripts\generate_contract_code.sh = scripts\generate_contract_code.sh
-	scripts\generate_contract_reference.bat = scripts\generate_contract_reference.bat
-	scripts\generate_contract_reference.sh = scripts\generate_contract_reference.sh
-	scripts\generate_event_only.bat = scripts\generate_event_only.bat
-	scripts\generate_event_only.sh = scripts\generate_event_only.sh
-	scripts\generate_contract_base.sh = scripts\generate_contract_base.sh
-	scripts\generate_contract_stub.bat = scripts\generate_contract_stub.bat
-	scripts\generate_contract_stub.sh = scripts\generate_contract_stub.sh
-EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestBase", "test\AElf.TestBase\AElf.TestBase.csproj", "{7FEA756D-FA6F-48AF-A1F9-E6CD65F6DEF5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Contracts", "AElf.Test.Contracts", "{D3950CC9-808F-4ED8-946A-79A992F3F8EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase", "AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj", "{F7017767-0BD0-4882-948D-E15C6FF7C15D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase", "test\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj", "{F7017767-0BD0-4882-948D-E15C6FF7C15D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.RuntimeSetup", "AElf.RuntimeSetup\AElf.RuntimeSetup.csproj", "{71DE375A-1037-4CDB-BC7C-6DC454B5D55D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.RuntimeSetup", "src\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj", "{71DE375A-1037-4CDB-BC7C-6DC454B5D55D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc", "AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj", "{6875BAB1-307C-4BF7-A729-5C5F0BED838D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc", "src\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj", "{6875BAB1-307C-4BF7-A729-5C5F0BED838D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus", "AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj", "{4F98F0BE-9C2B-4012-AA11-768303C50E46}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus", "src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj", "{4F98F0BE-9C2B-4012-AA11-768303C50E46}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types", "AElf.Types\AElf.Types.csproj", "{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types", "src\AElf.Types\AElf.Types.csproj", "{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS", "AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj", "{31FC0E10-B49E-4FEE-BFDE-76A39C6064FB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS", "src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj", "{31FC0E10-B49E-4FEE-BFDE-76A39C6064FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.Tests", "AElf.Contracts.Consensus.DPoS.Tests\AElf.Contracts.Consensus.DPoS.Tests.csproj", "{621FA51E-593C-4E2E-86A4-CF173F108839}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.Tests", "test\AElf.Contracts.Consensus.DPoS.Tests\AElf.Contracts.Consensus.DPoS.Tests.csproj", "{621FA51E-593C-4E2E-86A4-CF173F108839}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.DPoS", "AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj", "{74FA5F2B-E691-483B-B19E-8DF288C1C04B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.DPoS", "src\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj", "{74FA5F2B-E691-483B-B19E-8DF288C1C04B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Test.Helpers", "AElf.Test.Helpers\AElf.Test.Helpers.csproj", "{6D1B3707-67D7-405E-A4D1-F1BA759E2087}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Test.Helpers", "test\AElf.Test.Helpers\AElf.Test.Helpers.csproj", "{6D1B3707-67D7-405E-A4D1-F1BA759E2087}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "protobuf", "protobuf", "{790DD479-B398-4782-A066-698F0D692ACA}"
-ProjectSection(SolutionItems) = preProject
-	protobuf\common.proto = protobuf\common.proto
-	protobuf\execution.proto = protobuf\execution.proto
-	protobuf\kernel.proto = protobuf\kernel.proto
-	protobuf\abi.proto = protobuf\abi.proto
-	protobuf\address_pair.proto = protobuf\address_pair.proto
-	protobuf\auth.proto = protobuf\auth.proto
-	protobuf\consensus.proto = protobuf\consensus.proto
-	protobuf\crosschain.proto = protobuf\crosschain.proto
-	protobuf\header_info.proto = protobuf\header_info.proto
-	protobuf\messages.proto = protobuf\messages.proto
-	protobuf\metadata.proto = protobuf\metadata.proto
-	protobuf\resource.proto = protobuf\resource.proto
-	protobuf\smart_contract.proto = protobuf\smart_contract.proto
-	protobuf\peer_service.proto = protobuf\peer_service.proto
-	protobuf\network_types.proto = protobuf\network_types.proto
-	protobuf\consensus_dpos.proto = protobuf\consensus_dpos.proto
-	protobuf\aelf_options.proto = protobuf\aelf_options.proto
-	protobuf\descriptor_equivalent.proto = protobuf\descriptor_equivalent.proto
-	protobuf\test_contract.proto = protobuf\test_contract.proto
-	protobuf\token_contract_messages.proto = protobuf\token_contract_messages.proto
-	protobuf\acs1.proto = protobuf\acs1.proto
-	protobuf\acs2.proto = protobuf\acs2.proto
-	protobuf\authorization_contract.proto = protobuf\authorization_contract.proto
-	protobuf\basic_contract_zero.proto = protobuf\basic_contract_zero.proto
-	protobuf\cross_chain_contract.proto = protobuf\cross_chain_contract.proto
-	protobuf\dividend_contract.proto = protobuf\dividend_contract.proto
-	protobuf\dpos_contract.proto = protobuf\dpos_contract.proto
-	protobuf\dpos_crosschain_state.proto = protobuf\dpos_crosschain_state.proto
-	protobuf\dpos_sidechain_contract.proto = protobuf\dpos_sidechain_contract.proto
-	protobuf\fee_receiver_contract.proto = protobuf\fee_receiver_contract.proto
-	protobuf\resource_contract.proto = protobuf\resource_contract.proto
-	protobuf\token_contract.proto = protobuf\token_contract.proto
-	protobuf\token_contract_impl.proto = protobuf\token_contract_impl.proto
-	protobuf\token_converter_contract.proto = protobuf\token_converter_contract.proto
-EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool", "src\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool", "AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj", "{A9FD95FA-909C-4396-9DE8-954A1373B351}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel", "src\AElf.Kernel\AElf.Kernel.csproj", "{6127E436-97F1-4824-9FE3-E37A5E1CA916}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel", "AElf.Kernel\AElf.Kernel.csproj", "{6127E436-97F1-4824-9FE3-E37A5E1CA916}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Akka", "AElf.Kernel.SmartContractExecution.Akka\AElf.Kernel.SmartContractExecution.Akka.csproj", "{BBA3CF7F-BA54-4157-81FC-F25B51D43454}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Akka", "src\AElf.Kernel.SmartContractExecution.Akka\AElf.Kernel.SmartContractExecution.Akka.csproj", "{BBA3CF7F-BA54-4157-81FC-F25B51D43454}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Kernel", "AElf.Kernel", "{90B310B4-C2DB-419E-B5EE-97FA096B62CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Genesis", "AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj", "{B1E39853-406A-4CC7-A273-E70CFEEE3968}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Genesis", "src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj", "{B1E39853-406A-4CC7-A273-E70CFEEE3968}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource", "AElf.Contracts.Resource\AElf.Contracts.Resource.csproj", "{75E35189-F4AE-48DF-8D70-14ADCC9C31EC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource", "src\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj", "{75E35189-F4AE-48DF-8D70-14ADCC9C31EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource.FeeReceiver", "AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj", "{65A0E708-17BF-4C2D-AE03-E6EBE35F4B8B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource.FeeReceiver", "src\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj", "{65A0E708-17BF-4C2D-AE03-E6EBE35F4B8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Node", "AElf.Kernel.Node\AElf.Kernel.Node.csproj", "{9C7A5377-C2C0-4C33-9087-77FE29462C5E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Node", "src\AElf.Kernel.Node\AElf.Kernel.Node.csproj", "{9C7A5377-C2C0-4C33-9087-77FE29462C5E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.OS", "AElf.OS", "{BC510DE7-274F-4C8B-BCBB-A9E18627ED05}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.TestBase", "AElf.OS.Rpc.TestBase\AElf.OS.Rpc.TestBase.csproj", "{84838A25-6E45-4251-8091-71F13774C9AF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.TestBase", "test\AElf.OS.Rpc.TestBase\AElf.OS.Rpc.TestBase.csproj", "{84838A25-6E45-4251-8091-71F13774C9AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.ChainController.Tests", "AElf.OS.Rpc.ChainController.Tests\AElf.OS.Rpc.ChainController.Tests.csproj", "{1CADEB6E-B454-4559-8254-E9E72B234D09}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.ChainController.Tests", "test\AElf.OS.Rpc.ChainController.Tests\AElf.OS.Rpc.ChainController.Tests.csproj", "{1CADEB6E-B454-4559-8254-E9E72B234D09}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain", "AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj", "{48D20E4A-51FA-4085-A31E-096A648EB9CF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain", "src\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj", "{48D20E4A-51FA-4085-A31E-096A648EB9CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization", "AElf.Contracts.Authorization\AElf.Contracts.Authorization.csproj", "{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Authorization", "src\AElf.Contracts.Authorization\AElf.Contracts.Authorization.csproj", "{69F4D789-9CBE-4C72-A5FE-798E2CE7F85E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividend", "AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj", "{5CF48590-2FAC-4773-82D2-D92A4C56815B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividend", "src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj", "{5CF48590-2FAC-4773-82D2-D92A4C56815B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.Rpc", "AElf.Test.Rpc", "{E4D6568F-622A-4685-B95B-0F2FF1315ECE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Types.Tests", "AElf.Kernel.Types.Tests\AElf.Kernel.Types.Tests.csproj", "{50659C6B-FDAC-4FA4-97C1-04187499F68D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Types.Tests", "test\AElf.Kernel.Types.Tests\AElf.Kernel.Types.Tests.csproj", "{50659C6B-FDAC-4FA4-97C1-04187499F68D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types.Tests", "AElf.Types.Tests\AElf.Types.Tests.csproj", "{A4ED0D4F-73A1-46F3-9046-D3AA2A05B98B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Types.Tests", "test\AElf.Types.Tests\AElf.Types.Tests.csproj", "{A4ED0D4F-73A1-46F3-9046-D3AA2A05B98B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Tests", "AElf.Kernel.SmartContractExecution.Tests\AElf.Kernel.SmartContractExecution.Tests.csproj", "{595D1AC6-F8C2-418E-A8C7-9BDB5A0650E5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Tests", "test\AElf.Kernel.SmartContractExecution.Tests\AElf.Kernel.SmartContractExecution.Tests.csproj", "{595D1AC6-F8C2-418E-A8C7-9BDB5A0650E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Akka.Tests", "AElf.Kernel.SmartContractExecution.Akka.Tests\AElf.Kernel.SmartContractExecution.Akka.Tests.csproj", "{F02628E1-B063-4523-9801-4CBEB6DC2EA7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Akka.Tests", "test\AElf.Kernel.SmartContractExecution.Akka.Tests\AElf.Kernel.SmartContractExecution.Akka.Tests.csproj", "{F02628E1-B063-4523-9801-4CBEB6DC2EA7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool.Tests", "AElf.Kernel.TransactionPool.Tests\AElf.Kernel.TransactionPool.Tests.csproj", "{50D47C05-E2ED-459D-9415-4E1B7C024768}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool.Tests", "test\AElf.Kernel.TransactionPool.Tests\AElf.Kernel.TransactionPool.Tests.csproj", "{50D47C05-E2ED-459D-9415-4E1B7C024768}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Node.Tests", "AElf.Kernel.Node.Tests\AElf.Kernel.Node.Tests.csproj", "{7C7A6E53-F53F-4EFB-90A0-02343961386C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Node.Tests", "test\AElf.Kernel.Node.Tests\AElf.Kernel.Node.Tests.csproj", "{7C7A6E53-F53F-4EFB-90A0-02343961386C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.ChainController.Tests", "AElf.Kernel.ChainController.Tests\AElf.Kernel.ChainController.Tests.csproj", "{9E848C22-3975-4898-ABA4-F1B6FEE5335E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.ChainController.Tests", "test\AElf.Kernel.ChainController.Tests\AElf.Kernel.ChainController.Tests.csproj", "{9E848C22-3975-4898-ABA4-F1B6FEE5335E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Scheduler.RxNet", "AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj", "{4BFFFB87-752F-403F-AF77-8B86E3F2D67D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Scheduler.RxNet", "src\AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj", "{4BFFFB87-752F-403F-AF77-8B86E3F2D67D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Launcher", "AElf.Launcher\AElf.Launcher.csproj", "{2A5C7854-9B98-4798-A9AE-8DC464093B90}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Launcher", "src\AElf.Launcher\AElf.Launcher.csproj", "{2A5C7854-9B98-4798-A9AE-8DC464093B90}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Tests", "AElf.CrossChain.Tests\AElf.CrossChain.Tests.csproj", "{7231A984-223A-4BD9-A4A6-EAC30DE3AA4B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Tests", "test\AElf.CrossChain.Tests\AElf.CrossChain.Tests.csproj", "{7231A984-223A-4BD9-A4A6-EAC30DE3AA4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Scheduler.FluentScheduler", "AElf.Kernel.Consensus.Scheduler.FluentScheduler\AElf.Kernel.Consensus.Scheduler.FluentScheduler.csproj", "{8B23312F-61B4-4330-900D-280848C2DB4B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Scheduler.FluentScheduler", "src\AElf.Kernel.Consensus.Scheduler.FluentScheduler\AElf.Kernel.Consensus.Scheduler.FluentScheduler.csproj", "{8B23312F-61B4-4330-900D-280848C2DB4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.Core", "AElf.OS.Rpc.Core\AElf.OS.Rpc.Core.csproj", "{8EA0B3B2-A6E1-43F5-8F0D-1B271C3B72CA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.Core", "src\AElf.OS.Rpc.Core\AElf.OS.Rpc.Core.csproj", "{8EA0B3B2-A6E1-43F5-8F0D-1B271C3B72CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.Net", "AElf.OS.Rpc.Net\AElf.OS.Rpc.Net.csproj", "{1494530D-5C66-48F8-8BCB-2DCC30BE3B4F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.Net", "src\AElf.OS.Rpc.Net\AElf.OS.Rpc.Net.csproj", "{1494530D-5C66-48F8-8BCB-2DCC30BE3B4F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.Wallet", "AElf.OS.Rpc.Wallet\AElf.OS.Rpc.Wallet.csproj", "{256FDDCF-D63C-4B7D-AA83-15070CF857ED}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.Wallet", "src\AElf.OS.Rpc.Wallet\AElf.OS.Rpc.Wallet.csproj", "{256FDDCF-D63C-4B7D-AA83-15070CF857ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.ChainController", "AElf.OS.Rpc.ChainController\AElf.OS.Rpc.ChainController.csproj", "{34455FE3-711A-4EB6-AECB-945B4180CDF5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Rpc.ChainController", "src\AElf.OS.Rpc.ChainController\AElf.OS.Rpc.ChainController.csproj", "{34455FE3-711A-4EB6-AECB-945B4180CDF5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.OS.Rpc", "AElf.OS.Rpc", "{DC79786E-61FC-4C9C-BF37-19613EB5A6AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Tests", "AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj", "{7A739BBB-E672-46FA-8AD7-C629A95FFB03}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Tests", "test\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj", "{7A739BBB-E672-46FA-8AD7-C629A95FFB03}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.CrossChain", "AElf.CrossChain", "{89AC0402-38F7-405C-B244-31C5F13FD364}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Types", "AElf.CrossChain.Types\AElf.CrossChain.Types.csproj", "{14012931-8CFC-4C9C-B21E-0CC3FE9779D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Types", "src\AElf.CrossChain.Types\AElf.CrossChain.Types.csproj", "{14012931-8CFC-4C9C-B21E-0CC3FE9779D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource.Tests", "AElf.Contracts.Resource.Tests\AElf.Contracts.Resource.Tests.csproj", "{EE1DF2C6-64F3-460B-9538-E3C30468EB68}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource.Tests", "test\AElf.Contracts.Resource.Tests\AElf.Contracts.Resource.Tests.csproj", "{EE1DF2C6-64F3-460B-9538-E3C30468EB68}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase.Tests", "AElf.Contracts.TestBase.Tests\AElf.Contracts.TestBase.Tests.csproj", "{17CEAE8A-1F06-4027-9183-10901413FBA9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestBase.Tests", "test\AElf.Contracts.TestBase.Tests\AElf.Contracts.TestBase.Tests.csproj", "{17CEAE8A-1F06-4027-9183-10901413FBA9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TestBase", "AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj", "{6B97F71E-83AE-4FA9-B41D-06FFAC81EDCC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TestBase", "test\AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj", "{6B97F71E-83AE-4FA9-B41D-06FFAC81EDCC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain.Tests", "AElf.Contracts.CrossChain.Tests\AElf.Contracts.CrossChain.Tests.csproj", "{1AB21B04-6593-4F63-B2BB-5C6939A764FE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.CrossChain.Tests", "test\AElf.Contracts.CrossChain.Tests\AElf.Contracts.CrossChain.Tests.csproj", "{1AB21B04-6593-4F63-B2BB-5C6939A764FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common.Tests", "AElf.Common.Tests\AElf.Common.Tests.csproj", "{2A442741-0593-415F-B801-3AA553E547AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common.Tests", "test\AElf.Common.Tests\AElf.Common.Tests.csproj", "{2A442741-0593-415F-B801-3AA553E547AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Sdk.Abstracts", "AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj", "{35636A23-C51F-4B05-8F1B-AFA435332C46}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Sdk.Abstracts", "src\AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj", "{35636A23-C51F-4B05-8F1B-AFA435332C46}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Grpc", "AElf.CrossChain.Grpc\AElf.CrossChain.Grpc.csproj", "{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Grpc", "src\AElf.CrossChain.Grpc\AElf.CrossChain.Grpc.csproj", "{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Tests", "AElf.Kernel.Tests\AElf.Kernel.Tests.csproj", "{DE4395E2-AFC4-415E-A51D-526E472337BF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Tests", "test\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj", "{DE4395E2-AFC4-415E-A51D-526E472337BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.SideChain", "AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj", "{78FC0592-4E5C-4E2A-B919-7481D824AE32}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.SideChain", "src\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj", "{78FC0592-4E5C-4E2A-B919-7481D824AE32}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS", "AElf.OS\AElf.OS.csproj", "{2A37A558-8BB1-4F8F-8D16-81014B252400}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS", "src\AElf.OS\AElf.OS.csproj", "{2A37A558-8BB1-4F8F-8D16-81014B252400}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Core.Tests", "AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj", "{FC6DA3E4-5333-4D2B-9DB1-01870435AB9F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Core.Tests", "test\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj", "{FC6DA3E4-5333-4D2B-9DB1-01870435AB9F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Consensus.DPoS.Types", "AElf.Consensus.DPoS.Types\AElf.Consensus.DPoS.Types.csproj", "{E48703B9-82DD-45F5-8CE6-F81AB0047B18}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Consensus.DPoS.Types", "src\AElf.Consensus.DPoS.Types\AElf.Consensus.DPoS.Types.csproj", "{E48703B9-82DD-45F5-8CE6-F81AB0047B18}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Token", "AElf.Kernel.Token\AElf.Kernel.Token.csproj", "{642B0C5E-4AC6-4910-A992-D9FB1FBBD6F4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Token", "src\AElf.Kernel.Token\AElf.Kernel.Token.csproj", "{642B0C5E-4AC6-4910-A992-D9FB1FBBD6F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp", "AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj", "{BED61A6F-A339-4F33-ADA6-D41DA8251615}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp", "src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj", "{BED61A6F-A339-4F33-ADA6-D41DA8251615}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests.TestContract", "AElf.Runtime.CSharp.Tests.TestContract\AElf.Runtime.CSharp.Tests.TestContract.csproj", "{9EA920C4-2FA4-41CC-BCDC-D5FBF0EA4B3D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests.TestContract", "test\AElf.Runtime.CSharp.Tests.TestContract\AElf.Runtime.CSharp.Tests.TestContract.csproj", "{9EA920C4-2FA4-41CC-BCDC-D5FBF0EA4B3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken", "AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj", "{0597D9D4-D2BB-434C-92C4-76266509D021}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken", "src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj", "{0597D9D4-D2BB-434C-92C4-76266509D021}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Tester", "AElf.Tester\AElf.Tester.csproj", "{6B9DF43E-248A-45B2-945B-EA8217C7125B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Tester", "test\AElf.Tester\AElf.Tester.csproj", "{6B9DF43E-248A-45B2-945B-EA8217C7125B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.ExecutiveTokenPlugin", "AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj", "{E710F6D7-F087-4815-8906-AE3643E21BAE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.ExecutiveTokenPlugin", "src\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj", "{E710F6D7-F087-4815-8906-AE3643E21BAE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestLauncher", "AElf.TestLauncher\AElf.TestLauncher.csproj", "{05350E0A-D372-401F-B13C-894D1BB88397}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Cluster", "src\AElf.Cluster\AElf.Cluster.csproj", "{D674C1B1-2E22-416B-AEB8-CA75FA521E51}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Cluster", "AElf.Cluster\AElf.Cluster.csproj", "{D674C1B1-2E22-416B-AEB8-CA75FA521E51}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.MainChain", "src\AElf.Blockchains.MainChain\AElf.Blockchains.MainChain.csproj", "{6D907620-FE59-4C55-86CD-8299278BC06A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.MainChain", "AElf.Blockchains.MainChain\AElf.Blockchains.MainChain.csproj", "{6D907620-FE59-4C55-86CD-8299278BC06A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.BasicBaseChain", "src\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj", "{BAE34041-C603-4A7D-BE25-5DD48BD4391E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.BasicBaseChain", "AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj", "{BAE34041-C603-4A7D-BE25-5DD48BD4391E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.SideChain", "AElf.Blockchains.SideChain\AElf.Blockchains.SideChain.csproj", "{CB758566-4212-4ECB-8210-2934FAD44941}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.SideChain", "src\AElf.Blockchains.SideChain\AElf.Blockchains.SideChain.csproj", "{CB758566-4212-4ECB-8210-2934FAD44941}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Blockchains", "AElf.Blockchains", "{8EF44709-4B5E-489B-A945-EDCB2D1A69C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.DPoS.Tests", "AElf.Kernel.Consensus.DPoS.Tests\AElf.Kernel.Consensus.DPoS.Tests.csproj", "{DF3A98D2-8D85-4F1B-9A83-0E3119DF5902}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.DPoS.Tests", "test\AElf.Kernel.Consensus.DPoS.Tests\AElf.Kernel.Consensus.DPoS.Tests.csproj", "{DF3A98D2-8D85-4F1B-9A83-0E3119DF5902}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.TestBase", "AElf.OS.TestBase\AElf.OS.TestBase.csproj", "{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.TestBase", "test\AElf.OS.TestBase\AElf.OS.TestBase.csproj", "{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Grpc.Tests", "AElf.CrossChain.Grpc.Tests\AElf.CrossChain.Grpc.Tests.csproj", "{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Grpc.Tests", "test\AElf.CrossChain.Grpc.Tests\AElf.CrossChain.Grpc.Tests.csproj", "{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc.Tests", "AElf.OS.Network.Grpc.Tests\AElf.OS.Network.Grpc.Tests.csproj", "{F3B93EF4-C324-44B1-BA33-8F4899131664}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc.Tests", "test\AElf.OS.Network.Grpc.Tests\AElf.OS.Network.Grpc.Tests.csproj", "{F3B93EF4-C324-44B1-BA33-8F4899131664}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestKit", "AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj", "{F4DD898D-0BE8-4873-9532-F1F26DDB3291}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestKit", "test\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj", "{F4DD898D-0BE8-4873-9532-F1F26DDB3291}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken.Tests", "AElf.Contracts.MultiToken.Tests\AElf.Contracts.MultiToken.Tests.csproj", "{A526C0D6-1C3E-4570-96EB-AB784AF17835}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.MultiToken.Tests", "test\AElf.Contracts.MultiToken.Tests\AElf.Contracts.MultiToken.Tests.csproj", "{A526C0D6-1C3E-4570-96EB-AB784AF17835}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenConverter", "AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj", "{03EC899C-1FA1-4E98-A821-870F72B48082}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenConverter", "src\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj", "{03EC899C-1FA1-4E98-A821-870F72B48082}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.SideChain.Tests", "AElf.Contracts.Consensus.DPoS.SideChain.Tests\AElf.Contracts.Consensus.DPoS.SideChain.Tests.csproj", "{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.SideChain.Tests", "test\AElf.Contracts.Consensus.DPoS.SideChain.Tests\AElf.Contracts.Consensus.DPoS.SideChain.Tests.csproj", "{4ED81F28-6D18-4A1D-A1DE-38F6DCB58788}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource.FeeReceiver.Tests", "AElf.Contracts.Resource.FeeReceiver.Tests\AElf.Contracts.Resource.FeeReceiver.Tests.csproj", "{85188AEE-3DCE-4535-850D-B3E69BF84CA7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Resource.FeeReceiver.Tests", "test\AElf.Contracts.Resource.FeeReceiver.Tests\AElf.Contracts.Resource.FeeReceiver.Tests.csproj", "{85188AEE-3DCE-4535-850D-B3E69BF84CA7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividend.Tests", "AElf.Contracts.Dividend.Tests\AElf.Contracts.Dividend.Tests.csproj", "{20F01527-7A2B-428B-A96D-5C7052A32830}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Dividend.Tests", "test\AElf.Contracts.Dividend.Tests\AElf.Contracts.Dividend.Tests.csproj", "{20F01527-7A2B-428B-A96D-5C7052A32830}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Tests", "AElf.Kernel.Consensus.Tests\AElf.Kernel.Consensus.Tests.csproj", "{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.Tests", "test\AElf.Kernel.Consensus.Tests\AElf.Kernel.Consensus.Tests.csproj", "{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benches", "benches", "{72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Core.Tests", "test\AElf.Core.Tests\AElf.Core.Tests.csproj", "{B353DF2E-A7C1-4511-A47E-883CDF938D36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.BenchBase", "AElf.BenchBase\AElf.BenchBase.csproj", "{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Database.Benches", "AElf.Database.Benches\AElf.Database.Benches.csproj", "{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Core.Tests", "AElf.Core.Tests\AElf.Core.Tests.csproj", "{B353DF2E-A7C1-4511-A47E-883CDF938D36}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenConverter.Tests", "AElf.Contracts.TokenConverter.Tests\AElf.Contracts.TokenConverter.Tests.csproj", "{BEF12323-63DD-458D-B6E4-4209752ACA69}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TokenConverter.Tests", "test\AElf.Contracts.TokenConverter.Tests\AElf.Contracts.TokenConverter.Tests.csproj", "{BEF12323-63DD-458D-B6E4-4209752ACA69}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.WebApp", "AElf.WebApp", "{13B37500-5DF4-4C64-BD57-2CA6A619596A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Web", "AElf.WebApp.Web\AElf.WebApp.Web.csproj", "{B4783569-B72C-4005-B592-F7B444364FD2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Web", "src\AElf.WebApp.Web\AElf.WebApp.Web.csproj", "{B4783569-B72C-4005-B592-F7B444364FD2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Core", "AElf.WebApp.Application.Core\AElf.WebApp.Application.Core.csproj", "{C047419C-8A70-4533-90E4-1FAE52C141AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Core", "src\AElf.WebApp.Application.Core\AElf.WebApp.Application.Core.csproj", "{C047419C-8A70-4533-90E4-1FAE52C141AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Chain", "AElf.WebApp.Application.Chain\AElf.WebApp.Application.Chain.csproj", "{139042C5-1BB4-4673-92DE-13A9584B3009}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Chain", "src\AElf.WebApp.Application.Chain\AElf.WebApp.Application.Chain.csproj", "{139042C5-1BB4-4673-92DE-13A9584B3009}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Net", "AElf.WebApp.Application.Net\AElf.WebApp.Application.Net.csproj", "{623C86D3-E93D-404D-8BBD-440BC73D445B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Net", "src\AElf.WebApp.Application.Net\AElf.WebApp.Application.Net.csproj", "{623C86D3-E93D-404D-8BBD-440BC73D445B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.WebApp", "AElf.Test.WebApp", "{7190E4AA-10F9-419B-B2A2-A4A745787B3A}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Test.WebApp", "test\AElf.Test.WebApp", "{7190E4AA-10F9-419B-B2A2-A4A745787B3A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.TestBase", "AElf.WebApp.Application.TestBase\AElf.WebApp.Application.TestBase.csproj", "{89992897-D2C2-48BE-959B-6E996E82F87F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.TestBase", "test\AElf.WebApp.Application.TestBase\AElf.WebApp.Application.TestBase.csproj", "{89992897-D2C2-48BE-959B-6E996E82F87F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Chain.Tests", "AElf.WebApp.Application.Chain.Tests\AElf.WebApp.Application.Chain.Tests.csproj", "{899AC6DB-FD44-4E7B-89DB-5400891AC80A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Chain.Tests", "test\AElf.WebApp.Application.Chain.Tests\AElf.WebApp.Application.Chain.Tests.csproj", "{899AC6DB-FD44-4E7B-89DB-5400891AC80A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Benches", "AElf.Kernel.Benches\AElf.Kernel.Benches.csproj", "{825D2222-C5A1-43E4-9269-DC1E9B132601}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.Tests.TestKit", "test\AElf.Contracts.Consensus.DPoS.Tests.TestKit\AElf.Contracts.Consensus.DPoS.Tests.TestKit.csproj", "{E2399D77-4A00-45AB-910C-2545C6B2E7AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool.Benches", "AElf.Kernel.TransactionPool.Benches\AElf.Kernel.TransactionPool.Benches.csproj", "{03B1222C-F06F-47BB-97BE-ED440D944FB9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Net.Tests", "test\AElf.WebApp.Application.Net.Tests\AElf.WebApp.Application.Net.Tests.csproj", "{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core.Benches", "AElf.Kernel.Core.Benches\AElf.Kernel.Core.Benches.csproj", "{7FF22A28-9057-4A69-91A6-7F2E93EBF092}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Consensus.DPos", "src\AElf.OS.Consensus.DPos\AElf.OS.Consensus.DPos.csproj", "{788482AC-4654-4BBD-BF2C-F32800F32E99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.DPoS.Tests.TestKit", "AElf.Contracts.Consensus.DPoS.Tests.TestKit\AElf.Contracts.Consensus.DPoS.Tests.TestKit.csproj", "{E2399D77-4A00-45AB-910C-2545C6B2E7AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1", "src\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj", "{A14864DE-5AE8-45D4-8530-BFC40489A155}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.WebApp.Application.Net.Tests", "AElf.WebApp.Application.Net.Tests\AElf.WebApp.Application.Net.Tests.csproj", "{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.csproj", "{0BB1CAC9-44BB-44CC-871E-E4986A61D548}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Benches", "AElf.Kernel.SmartContractExecution.Benches\AElf.Kernel.SmartContractExecution.Benches.csproj", "{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract.csproj", "{DD0F7490-8BED-4DFD-B717-DC995F4746A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Consensus.DPos", "AElf.OS.Consensus.DPos\AElf.OS.Consensus.DPos.csproj", "{788482AC-4654-4BBD-BF2C-F32800F32E99}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "bench", "bench", "{3099C7ED-AE0A-4670-9DF3-0CBC01D65D10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1", "AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj", "{A14864DE-5AE8-45D4-8530-BFC40489A155}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.BenchBase", "bench\AElf.BenchBase\AElf.BenchBase.csproj", "{BC5F86D6-8E7A-474F-94F0-85DA60E8EFC3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests", "AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.csproj", "{0BB1CAC9-44BB-44CC-871E-E4986A61D548}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Database.Benches", "bench\AElf.Database.Benches\AElf.Database.Benches.csproj", "{607F0049-E568-4EA3-9690-3C9961B4D190}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract", "AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract.csproj", "{DD0F7490-8BED-4DFD-B717-DC995F4746A0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Vote", "src\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj", "{1634F9D4-CED2-4621-8D7C-71316642C291}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Benchmark", "AElf.Benchmark\AElf.Benchmark.csproj", "{53C97E7F-7ED2-4C33-A41D-6B0D3147951E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Benches", "bench\AElf.Kernel.Benches\AElf.Kernel.Benches.csproj", "{C3543066-8E80-4385-9F24-631EE428D993}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Core.Benches", "bench\AElf.Kernel.Core.Benches\AElf.Kernel.Core.Benches.csproj", "{21645458-DB15-4CB0-9850-EE468993858A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Benches", "bench\AElf.Kernel.SmartContractExecution.Benches\AElf.Kernel.SmartContractExecution.Benches.csproj", "{B86A4E8D-3D18-4B1C-ADDF-3A17B153C936}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.TransactionPool.Benches", "bench\AElf.Kernel.TransactionPool.Benches\AElf.Kernel.TransactionPool.Benches.csproj", "{2AAE1A18-B7A9-456C-924D-19AF34BA1684}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.TestLauncher", "test\AElf.TestLauncher\AElf.TestLauncher.csproj", "{7B6687BB-47E6-4036-9F11-12E0D1839E93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Election", "src\AElf.Contracts.Election\AElf.Contracts.Election.csproj", "{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Benchmark", "bench\AElf.Benchmark\AElf.Benchmark.csproj", "{017DC714-0E66-40F4-830B-EB21AF09212A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -676,10 +610,6 @@ Global
 		{E710F6D7-F087-4815-8906-AE3643E21BAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E710F6D7-F087-4815-8906-AE3643E21BAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E710F6D7-F087-4815-8906-AE3643E21BAE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{05350E0A-D372-401F-B13C-894D1BB88397}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{05350E0A-D372-401F-B13C-894D1BB88397}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{05350E0A-D372-401F-B13C-894D1BB88397}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{05350E0A-D372-401F-B13C-894D1BB88397}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D674C1B1-2E22-416B-AEB8-CA75FA521E51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D674C1B1-2E22-416B-AEB8-CA75FA521E51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D674C1B1-2E22-416B-AEB8-CA75FA521E51}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -740,14 +670,6 @@ Global
 		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B353DF2E-A7C1-4511-A47E-883CDF938D36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B353DF2E-A7C1-4511-A47E-883CDF938D36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B353DF2E-A7C1-4511-A47E-883CDF938D36}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -780,26 +702,10 @@ Global
 		{899AC6DB-FD44-4E7B-89DB-5400891AC80A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{899AC6DB-FD44-4E7B-89DB-5400891AC80A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{899AC6DB-FD44-4E7B-89DB-5400891AC80A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{825D2222-C5A1-43E4-9269-DC1E9B132601}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{825D2222-C5A1-43E4-9269-DC1E9B132601}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{825D2222-C5A1-43E4-9269-DC1E9B132601}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{825D2222-C5A1-43E4-9269-DC1E9B132601}.Release|Any CPU.Build.0 = Release|Any CPU
-		{03B1222C-F06F-47BB-97BE-ED440D944FB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{03B1222C-F06F-47BB-97BE-ED440D944FB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{03B1222C-F06F-47BB-97BE-ED440D944FB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{03B1222C-F06F-47BB-97BE-ED440D944FB9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7FF22A28-9057-4A69-91A6-7F2E93EBF092}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7FF22A28-9057-4A69-91A6-7F2E93EBF092}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7FF22A28-9057-4A69-91A6-7F2E93EBF092}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7FF22A28-9057-4A69-91A6-7F2E93EBF092}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2399D77-4A00-45AB-910C-2545C6B2E7AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -820,10 +726,46 @@ Global
 		{DD0F7490-8BED-4DFD-B717-DC995F4746A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD0F7490-8BED-4DFD-B717-DC995F4746A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD0F7490-8BED-4DFD-B717-DC995F4746A0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{53C97E7F-7ED2-4C33-A41D-6B0D3147951E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{53C97E7F-7ED2-4C33-A41D-6B0D3147951E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{53C97E7F-7ED2-4C33-A41D-6B0D3147951E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{53C97E7F-7ED2-4C33-A41D-6B0D3147951E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1634F9D4-CED2-4621-8D7C-71316642C291}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1634F9D4-CED2-4621-8D7C-71316642C291}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1634F9D4-CED2-4621-8D7C-71316642C291}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1634F9D4-CED2-4621-8D7C-71316642C291}.Release|Any CPU.Build.0 = Release|Any CPU
+		{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC5F86D6-8E7A-474F-94F0-85DA60E8EFC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC5F86D6-8E7A-474F-94F0-85DA60E8EFC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC5F86D6-8E7A-474F-94F0-85DA60E8EFC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC5F86D6-8E7A-474F-94F0-85DA60E8EFC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{607F0049-E568-4EA3-9690-3C9961B4D190}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{607F0049-E568-4EA3-9690-3C9961B4D190}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{607F0049-E568-4EA3-9690-3C9961B4D190}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{607F0049-E568-4EA3-9690-3C9961B4D190}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3543066-8E80-4385-9F24-631EE428D993}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3543066-8E80-4385-9F24-631EE428D993}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3543066-8E80-4385-9F24-631EE428D993}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3543066-8E80-4385-9F24-631EE428D993}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21645458-DB15-4CB0-9850-EE468993858A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21645458-DB15-4CB0-9850-EE468993858A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21645458-DB15-4CB0-9850-EE468993858A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21645458-DB15-4CB0-9850-EE468993858A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B86A4E8D-3D18-4B1C-ADDF-3A17B153C936}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B86A4E8D-3D18-4B1C-ADDF-3A17B153C936}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B86A4E8D-3D18-4B1C-ADDF-3A17B153C936}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B86A4E8D-3D18-4B1C-ADDF-3A17B153C936}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AAE1A18-B7A9-456C-924D-19AF34BA1684}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AAE1A18-B7A9-456C-924D-19AF34BA1684}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AAE1A18-B7A9-456C-924D-19AF34BA1684}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AAE1A18-B7A9-456C-924D-19AF34BA1684}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B6687BB-47E6-4036-9F11-12E0D1839E93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B6687BB-47E6-4036-9F11-12E0D1839E93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B6687BB-47E6-4036-9F11-12E0D1839E93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B6687BB-47E6-4036-9F11-12E0D1839E93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{017DC714-0E66-40F4-830B-EB21AF09212A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{017DC714-0E66-40F4-830B-EB21AF09212A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{017DC714-0E66-40F4-830B-EB21AF09212A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{017DC714-0E66-40F4-830B-EB21AF09212A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -918,8 +860,6 @@ Global
 		{85188AEE-3DCE-4535-850D-B3E69BF84CA7} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{20F01527-7A2B-428B-A96D-5C7052A32830} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{64D9EC14-36C1-4F98-AF16-3C8A9C601B37} = {4E54480A-D155-43ED-9736-1A5BE7957211}
-		{EC8B1C87-B7FE-4E9C-81F9-AA9EED9A7593} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
-		{9BCB0BE3-23FF-460B-AFD1-86C3B3DA09A5} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 		{B353DF2E-A7C1-4511-A47E-883CDF938D36} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{BEF12323-63DD-458D-B6E4-4209752ACA69} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{B4783569-B72C-4005-B592-F7B444364FD2} = {13B37500-5DF4-4C64-BD57-2CA6A619596A}
@@ -929,16 +869,42 @@ Global
 		{7190E4AA-10F9-419B-B2A2-A4A745787B3A} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{89992897-D2C2-48BE-959B-6E996E82F87F} = {7190E4AA-10F9-419B-B2A2-A4A745787B3A}
 		{899AC6DB-FD44-4E7B-89DB-5400891AC80A} = {7190E4AA-10F9-419B-B2A2-A4A745787B3A}
-		{825D2222-C5A1-43E4-9269-DC1E9B132601} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
-		{03B1222C-F06F-47BB-97BE-ED440D944FB9} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
-		{7FF22A28-9057-4A69-91A6-7F2E93EBF092} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 		{BECDF1B9-E3FD-4ABD-BB78-41F8200821D1} = {7190E4AA-10F9-419B-B2A2-A4A745787B3A}
-		{5DC5535B-8C21-4CDB-A2A4-3EB0090E7B6D} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
 		{E2399D77-4A00-45AB-910C-2545C6B2E7AD} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{788482AC-4654-4BBD-BF2C-F32800F32E99} = {BC510DE7-274F-4C8B-BCBB-A9E18627ED05}
 		{A14864DE-5AE8-45D4-8530-BFC40489A155} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{0BB1CAC9-44BB-44CC-871E-E4986A61D548} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{DD0F7490-8BED-4DFD-B717-DC995F4746A0} = {4E54480A-D155-43ED-9736-1A5BE7957211}
-		{53C97E7F-7ED2-4C33-A41D-6B0D3147951E} = {72D80DF1-6B81-4D71-9AFF-2B526C99A1D9}
+		{1634F9D4-CED2-4621-8D7C-71316642C291} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{347CD12D-E1AA-4FC4-B33E-0E3EFED6B1A2} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{D674C1B1-2E22-416B-AEB8-CA75FA521E51} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{4EC22E9F-7019-470B-B990-B9E020DBBFB2} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{55F6997E-DB59-476B-B1D1-65FE4B6D0437} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{E48703B9-82DD-45F5-8CE6-F81AB0047B18} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{26287CC7-874E-4C9B-B41C-202511835B95} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{D86E3450-B65D-4999-8C1D-4B1D4403DB51} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{B0AD7E8F-E1BB-470A-A38A-4E0B920E0507} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{2A5C7854-9B98-4798-A9AE-8DC464093B90} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{BED61A6F-A339-4F33-ADA6-D41DA8251615} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{DB1E5EA5-4EC2-4C95-A942-DA09D68783E7} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{E710F6D7-F087-4815-8906-AE3643E21BAE} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{71DE375A-1037-4CDB-BC7C-6DC454B5D55D} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{4895B014-DCC4-4F5B-9DDE-FA1B43E37B98} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{602B14ED-409E-4EFD-AF5C-DE0AFE706AF3} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{A52F1E94-2805-4B6E-BFC5-CD0063A78ACC} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{8EF44709-4B5E-489B-A945-EDCB2D1A69C2} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{89AC0402-38F7-405C-B244-31C5F13FD364} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{90B310B4-C2DB-419E-B5EE-97FA096B62CC} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{BC510DE7-274F-4C8B-BCBB-A9E18627ED05} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{13B37500-5DF4-4C64-BD57-2CA6A619596A} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
+		{BC5F86D6-8E7A-474F-94F0-85DA60E8EFC3} = {3099C7ED-AE0A-4670-9DF3-0CBC01D65D10}
+		{607F0049-E568-4EA3-9690-3C9961B4D190} = {3099C7ED-AE0A-4670-9DF3-0CBC01D65D10}
+		{C3543066-8E80-4385-9F24-631EE428D993} = {3099C7ED-AE0A-4670-9DF3-0CBC01D65D10}
+		{21645458-DB15-4CB0-9850-EE468993858A} = {3099C7ED-AE0A-4670-9DF3-0CBC01D65D10}
+		{B86A4E8D-3D18-4B1C-ADDF-3A17B153C936} = {3099C7ED-AE0A-4670-9DF3-0CBC01D65D10}
+		{2AAE1A18-B7A9-456C-924D-19AF34BA1684} = {3099C7ED-AE0A-4670-9DF3-0CBC01D65D10}
+		{7B6687BB-47E6-4036-9F11-12E0D1839E93} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{017DC714-0E66-40F4-830B-EB21AF09212A} = {3099C7ED-AE0A-4670-9DF3-0CBC01D65D10}
 	EndGlobalSection
 EndGlobal

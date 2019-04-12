@@ -211,6 +211,10 @@ message StringList {
     string Remark = 2;
 }
 
+message HashList {
+    repeated Hash Values = 1;
+}
+
 message LongList {
     repeated int64 Values = 1;
     string Remark = 2;
