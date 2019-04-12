@@ -14,17 +14,10 @@ namespace AElf.Benchmark
             }))
             {
                 application.Initialize();
-
 #if DEBUG
                 BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, new DebugInProcessConfig());          
 #else
-                BenchmarkRunner.Run<TransactionVerifySignatureTests>();
-                BenchmarkRunner.Run<TxHubHandleBestChainFoundTests>();
-                BenchmarkRunner.Run<TxHubTransactionsReceiveTests>();
-                BenchmarkRunner.Run<BlockAttachTests>();
-                BenchmarkRunner.Run<BlockchainStateMergingTests>();
-                BenchmarkRunner.Run<BlockExecutingTests>();
-                BenchmarkRunner.Run<MinerTests>();
+                BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 
 #endif
             }
