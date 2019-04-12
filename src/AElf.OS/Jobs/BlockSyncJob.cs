@@ -41,7 +41,6 @@ namespace AElf.OS.Jobs
             _taskQueueManager = taskQueueManager;
         }
 
-        //TODO: Add ExecuteAsync case [Case]
         public async Task ExecuteAsync(BlockSyncJobArgs args)
         {
             Logger.LogDebug($"Start block sync job, target height: {args.BlockHeight}, target block hash: {args.BlockHash}, peer: {args.SuggestedPeerPubKey}");

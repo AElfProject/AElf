@@ -39,7 +39,7 @@ namespace AElf.OS.Rpc.ChainController
                     throw new JsonRpcServiceException(Error.InvalidTransaction,
                         Error.Message[Error.InvalidTransaction]);
                 }
-
+                
                 if (!transaction.VerifySignature())
                 {
                     throw new JsonRpcServiceException(Error.InvalidTransaction,
