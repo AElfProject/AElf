@@ -160,7 +160,7 @@ namespace AElf.Contracts.ParliamentAuth
             var representatives = GetRepresentatives();
 
             // processing approvals 
-            var validApprovalCount = approved.Approvals.Aggregate((int) 0, (weights, approval) =>
+            var validApprovalWeights = approved.Approvals.Aggregate((int) 0, (weights, approval) =>
             {
                 var recoverPublicKey = Context.RecoverPublicKey(approval.Signature.ToByteArray(), toSig);
                 if (recoverPublicKey == null)
@@ -171,9 +171,7 @@ namespace AElf.Contracts.ParliamentAuth
                 return weights + reviewer.Weight;
             });
 
-            //Api.Assert(validApprovals, "Unauthorized approval."); //This should never happen.
-            //Api.Assert(weight >= authorization.ExecutionThreshold, "Not enough approvals.");
-            return validApprovalCount >= SystemThreshold(representatives.Count());
+            return validApprovalWeights >= SystemThreshold(representatives.Count());
         }
     }
 }
