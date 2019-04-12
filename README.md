@@ -11,7 +11,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/aelfblockchain.svg?label=%40aelfblockchain&style=social)](https://twitter.com/aelfblockchain)
 [![Gitter](https://badges.gitter.im/aelfproject/community.svg)](https://gitter.im/aelfproject/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-Welcome to AElfs’ official GitHub repository ! 
+Welcome to AElf's official GitHub repository ! 
 
 AElf is a blockchain system aiming to achieve scalability and extensibility through the use of side-chains and flexible design. To support multiple use cases AElf makes it as easy as possible to extend/customize the system by providing easy to use tools and frameworks in order to customize the chains and write smart contracts. AElf will eventually support various languages that will let developers choose the one they are the most comfortable with.
 
@@ -19,40 +19,65 @@ For more information you can follow these links:
 * [Official website](https://aelf.io)
 * [White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1) 
 
-## Development
+## Getting Started
 
-In these early stages, we want to concentrate on developing the kernel of the system. This corresponds to the most basic 
-building block of the system. Notably, structures like chain and storage will be implemented in it. The next step will 
-be to develop the networking and consensus layer used to create the network. The final step will be to work on AElfs 
-gouvernance system.
+### This repository
 
-If you want to run the code you can clone the repository and open the project with any IDE that support C# and the 
-.NET core runtime (we would recommend either [Visual Studio](https://www.visualstudio.com/) on Windows or 
-[Rider](https://www.jetbrains.com/rider/) if you’re on a Mac). You will also need to have the 
-[.NET Core SDK](https://www.microsoft.com/net/learn/get-started/macos) installed.
+This repo contains mainly two things: the code for an AElf node and the command line tool used to interact with it.
 
-For now the solution includes the unit tests, you can run them and study them to get an idea as to how different parts 
-of the current system work and how they’re used.
+### Prerequisites
 
-You will find some more in-depth technical documentation [here](/docs/README.md).
+Because most of AElf is written in C# with the dotnet core framework, you will need to download and install the [.NET Core SDK](https://dotnet.microsoft.com/download).
 
-## How to Contribute
+Concerning the IDE, you can use any as long as it has support for C#. Good choices include Jetbrains Rider and Visual Studio.
 
-If you have a reasonable understanding of blockchain technology and at least some notions of C# you can of course 
-contribute by using GitHub issues and Pull Requests. We also appreciate other types of contributions such as 
-documentation improvements or even correcting typos in the code if you spot any.
+Finally if you want to run the node you will have to install and run a Redis or SSDB for the nodes data.
 
-The standard procedure is well documented on GitHub, for detailed explanation, especially if it’s the first time you’re 
-doing this, you can follow the procedure on the following links:
-[Working with forks](https://help.github.com/articles/working-with-forks/) and 
-[Pull Requests](https://help.github.com/articles/proposing-changes-to-your-work-with-pull-requests/).
-Basically, you fork the AElf repository, create a branch that clearly indicates the problem you’re solving. Later, when 
-you are happy with your work, you create a Pull Request so we can review and discuss your implementation.
+### Build and run
 
-If the problem needs debating or you have questions on how to implement a feature, we would prefer you open a GitHub 
-[issue](https://github.com/AElfProject/AElf/issues). If you spotted a typo or a code formatting issue, just directly 
-opening a Pull Request is fine. 
+### Run the tests
 
-## Supported Platforms
+Our tests are in the **test** folder, in order to run you only have to execute the following script:
 
-Any platform that supports .NET Core is compatible.
+```bash
+sh scripts/test.sh
+```
+
+## Contributing
+
+If you have a reasonable understanding of blockchain technology and at least some notions of C# you can of course contribute. We also appreciate other types of contributions such as documentation improvements or even correcting typos in the code if you spot any.
+
+We expect every contributor to be respectful and constructive so that everyone has a positive experience, you can find out more in our [code of conduct](https://github.com/AElfProject/AElf/blob/dev/CODE_OF_CONDUCT.md).
+
+### Reporting an issue
+
+We currently only use GitHub for tracking issues, feature request and pull requests. If you're not familiar with these tools have a look at the [GitHub](https://help.github.com/en) documentation.
+
+#### Bug report
+
+If you think you have found a bug in our system feel free to open a GitHub issue, but first:
+- check with GitHubs search engine that the bug doesn't already exist
+- in the request give as much information as possible such as: the OS, the version of AElf, how to reproduce...
+
+#### Missing feature
+
+We also use the GitHub issue tracker for features. If you think that some piece of functionality is missing in AElf, you can open an issue with the following in mind:
+- check for similare feature requests already open.
+- provide as much detail and context as possible
+- be as convincing as possible as to why we need this feature and how everybody can benefit from it.
+
+### Pull request
+
+For any non trivial modification to the code, the pull requests should be associated with an issue that was previously discussed. During the time you implement and a not ready for review prefix the PR with ```[WIP]```. Don't forget to do the following:
+- add a description in the pull request saying which issue you are fixing/implementing. Be as explicit as possible about the changes.
+- add the tests corresponding to your modifications.
+
+When the you are ready for a review by the core team, just remove ```[WIP]``` from your PRs title and others will review, either this will lead to discussion or to the code being merged. 
+
+## Versioning
+
+We use Semantic Versioning (SemVer) for versioning, if you're intereted in closely following AElf's developement please check out the [SemVer docs](https://semver.org/).
+
+## License
+
+AElf is licenced under [MIT](https://github.com/AElfProject/AElf/blob/dev/LICENSE)
