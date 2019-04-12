@@ -122,17 +122,19 @@ namespace AElf.Contracts.Vote
 
             State.VotingHistoriesMap[votingRecord.Voter] = votingHistories;
 
-            // Lock voted token.
-            // TODO: Maybe no need to lock token for some voting events.
-            State.TokenContract.Lock.Send(new LockInput
+            if (!votingEvent.Delegated)
             {
-                From = votingRecord.Voter,
-                Symbol = votingEvent.AcceptedCurrency,
-                LockId = input.VoteId,
-                Amount = input.Amount,
-                To = input.Sponsor,
-                Usage = $"Voting for {input.Topic}"
-            });
+                // Lock voted token.
+                State.TokenContract.Lock.Send(new LockInput
+                {
+                    From = votingRecord.Voter,
+                    Symbol = votingEvent.AcceptedCurrency,
+                    LockId = input.VoteId,
+                    Amount = input.Amount,
+                    To = input.Sponsor,
+                    Usage = $"Voting for {input.Topic}"
+                });
+            }
 
             return new Empty();
         }
@@ -154,7 +156,7 @@ namespace AElf.Contracts.Vote
                 new VotingEvent {Topic = votingRecord.Topic, Sponsor = votingRecord.Sponsor}.GetHash();
 
             var votingHistory = UpdateHistoryAfterWithdrawing(votingRecord.Voter, votingEventHash, input.VoteId);
-            
+
             if (!votingHistory.Votes[votingEventHash.ToHex()].ActiveVotes.Any())
             {
                 var votingResultHash = Hash.FromMessage(new GetVotingResultInput
@@ -168,16 +170,20 @@ namespace AElf.Contracts.Vote
                 votingResult.VotersCount -= 1;
                 State.VotingResults[votingResultHash] = votingResult;
             }
-            
-            State.TokenContract.Unlock.Send(new UnlockInput
+
+            if (!State.VotingEvents[votingEventHash].Delegated)
             {
-                From = votingRecord.Voter,
-                Symbol = votingRecord.Currency,
-                Amount = votingRecord.Amount,
-                LockId = input.VoteId,
-                To = votingRecord.Sponsor,
-                Usage = $"Withdraw votes for {votingRecord.Topic}"
-            });
+                State.TokenContract.Unlock.Send(new UnlockInput
+                {
+                    From = votingRecord.Voter,
+                    Symbol = votingRecord.Currency,
+                    Amount = votingRecord.Amount,
+                    LockId = input.VoteId,
+                    To = votingRecord.Sponsor,
+                    Usage = $"Withdraw votes for {votingRecord.Topic}"
+                });
+            }
+
             return new Empty();
         }
 
@@ -189,7 +195,7 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
-        public override VotingResult GetVotingInfo(GetVotingResultInput input)
+        public override VotingResult GetVotingResult(GetVotingResultInput input)
         {
             var votingResultHash = Hash.FromMessage(input);
             return State.VotingResults[votingResultHash];
