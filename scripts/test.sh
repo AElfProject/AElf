@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd test/
+
 for i in *Tests ; do
   limit=$((${#i}+30))
 
