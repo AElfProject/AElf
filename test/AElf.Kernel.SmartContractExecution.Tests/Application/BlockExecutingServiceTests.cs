@@ -92,41 +92,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             block.Body.TransactionList.ShouldBe(allTxs);
         }
 
-        [Fact]
-        public async Task Execute_Block_WithInvalidTransaction()
-        {
-            var blockHeader = new BlockHeader
-            {
-                Height = 2,
-                PreviousBlockHash = Hash.Empty,
-                Time = DateTime.UtcNow.ToTimestamp()
-            };
-            var nonCancellableTxs = BuildTransactions(1);
-            var cancellableTxs = new []
-            {
-                //valid
-                new Transaction
-                {
-                    From = Address.Zero,
-                    To = Address.Zero,
-                    MethodName = Guid.NewGuid().ToString()
-                }, 
-                //invalid
-                new Transaction
-                {
-                    From = null,
-                    To = Address.Zero,
-                    MethodName = Guid.NewGuid().ToString()
-                } 
-            };
-            var cancelToken = new CancellationTokenSource();
-
-            var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, nonCancellableTxs,
-                cancellableTxs, cancelToken.Token);
-            
-            block.ShouldNotBeNull();
-        }
-
         private List<Transaction> BuildTransactions(int txCount)
         {
             var result = new List<Transaction>(txCount);
