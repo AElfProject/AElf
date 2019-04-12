@@ -39,13 +39,11 @@ namespace AElf.Contracts.AssociationAuth
             return new Empty();
         }
 
-        public override Hash Propose(Proposal input)
+        public override Hash Propose(Proposal proposal)
         {
-            var proposal = input;
             // check validity of proposal
             Assert(
                 proposal.Name != null
-                //&& proposal.MultiSigAccount != null
                 && proposal.ToAddress != null
                 && proposal.Params != null
                 && proposal.Proposer != null, "Invalid proposal.");
@@ -68,9 +66,8 @@ namespace AElf.Contracts.AssociationAuth
             return hash;
         }
 
-        public override BoolValue SayYes(Approval input)
+        public override BoolValue SayYes(Approval approval)
         {
-            var approval = input;
             // check validity of proposal 
             Hash hash = approval.ProposalHash;
 
@@ -85,24 +82,23 @@ namespace AElf.Contracts.AssociationAuth
             var proposal = proposalInfo.Proposal;
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(), 
                 "Expired proposal.");
-            byte[] toSig = proposal.ToByteArray();
-            byte[] pubKey = Context.RecoverPublicKey(approval.Signature.ToByteArray(), toSig);
-            Assert(pubKey != null && Context.RecoverPublicKey().SequenceEqual(pubKey), "Invalid approval.");
+            byte[] pubKey = Context.RecoverPublicKey();
+            Assert(approval.PublicKey.IsEmpty || approval.PublicKey.ToByteArray().SequenceEqual(pubKey),
+                "Invalid public key in approval.");
             var association = GetAssociation(null);
             Assert(association.Reviewers.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)),
                 "Not authorized approval.");
-
-            CheckSignature(proposal.ToByteArray(), approval.Signature.ToByteArray());
-            approved = approved ?? new Approved();
+            if(approval.PublicKey.IsEmpty)
+                approval.PublicKey = ByteString.CopyFrom(pubKey);
+            approved = approved ?? new ApprovedResult();
             approved.Approvals.Add(approval);
             State.Approved[hash] = approved;
 
             return new BoolValue {Value = true};
         }
 
-        public override Empty Release(Hash input)
+        public override Empty Release(Hash proposalId)
         {
-            var proposalId = input;
             var proposalInfo = State.Proposals[proposalId];
             Assert(proposalInfo != null, "Proposal not found.");
             var proposal = proposalInfo.Proposal;
@@ -114,23 +110,15 @@ namespace AElf.Contracts.AssociationAuth
 
             // check approvals
             Assert(CheckApprovals(proposalId), "Not authorized to release.");
-
-            // check and append signatures to packed txn
-            // check authorization of proposal
-            //var proposedTxn = CheckAndFillTxnData(proposal, approved);
-            // send deferred transaction
-            //Context.SendDeferredTransaction(proposedTxn);
             
-            // temporary method to calculate virtual hash 
-            var virtualHash = Hash.FromMessage(proposal.ToAddress);
-            Context.SendVirtualInline(virtualHash, proposal.ToAddress, proposal.Name, proposal.Params);
-            
+            Context.SendInline(proposal.ToAddress, proposal.Name, proposal.Params);
+            proposalInfo.IsReleased = true;
+            State.Proposals[proposalId] = proposalInfo;
             return new Empty();
         }
 
-        public override GetProposalOutput GetProposal(Hash input)
+        public override GetProposalOutput GetProposal(Hash proposalId)
         {
-            var proposalId = input;
             var proposalInfo = State.Proposals[proposalId];
             Assert(proposalInfo != null, "Not found proposal.");
 
@@ -186,10 +174,8 @@ namespace AElf.Contracts.AssociationAuth
             // processing approvals 
             var validApprovalCount = approved.Approvals.Aggregate((int) 0, (weights, approval) =>
             {
-                var recoverPublicKey = Context.RecoverPublicKey(approval.Signature.ToByteArray(), toSig);
-                if (recoverPublicKey == null)
-                    return weights;
-                var reviewer = association.Reviewers.FirstOrDefault(r => r.PubKey.SequenceEqual(recoverPublicKey));
+                var reviewer =
+                    association.Reviewers.FirstOrDefault(r => r.PubKey.SequenceEqual(approval.PublicKey.ToByteArray()));
                 if (reviewer == null)
                     return weights;
                 return weights + reviewer.Weight;
@@ -198,13 +184,6 @@ namespace AElf.Contracts.AssociationAuth
             //Api.Assert(validApprovals, "Unauthorized approval."); //This should never happen.
             //Api.Assert(weight >= authorization.ExecutionThreshold, "Not enough approvals.");
             return validApprovalCount >= association.ExecutionThreshold;
-        }
- 
-        private void CheckSignature(byte[] data, byte[] approvalSignature)
-        {
-            var recoveredPublicKey = Context.RecoverPublicKey(approvalSignature, data);
-            var senderPublicKey = Context.RecoverPublicKey();
-            Assert(recoveredPublicKey.SequenceEqual(senderPublicKey), "Incorrect signature");
         }
     }
 }
