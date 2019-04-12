@@ -8,7 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.ParliamentAuth
 {
-    public class ParliamentAuthContract : ParliamentAuthContractContainer.ParliamentAuthContractBase
+    public partial class ParliamentAuthContract : ParliamentAuthContractContainer.ParliamentAuthContractBase
     {
         public override Empty Initialize(ParliamentAuthInitializationInput input)
         {
@@ -62,15 +62,15 @@ namespace AElf.Contracts.ParliamentAuth
             var proposal = proposalInfo.Proposal;
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(), 
                 "Expired proposal.");
-            byte[] toSig = Hash.FromMessage(proposal).DumpByteArray();
-            byte[] pubKey = Context.RecoverPublicKey(approval.Signature.ToByteArray(), toSig);
-            Assert(pubKey != null && Context.RecoverPublicKey().SequenceEqual(pubKey), "Invalid approval.");
+            //byte[] toSig = Hash.FromMessage(proposal).DumpByteArray();
+            byte[] pubKey = Context.RecoverPublicKey();
+            //Assert(pubKey != null && Context.RecoverPublicKey().SequenceEqual(pubKey), "Invalid approval.");
             var representatives = GetRepresentatives();
             Assert(representatives.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)),
                 "Not authorized approval.");
 
-            CheckSignature(toSig, approval.Signature.ToByteArray());
-            approved = approved ?? new Approved();
+            //CheckSignature(toSig, approval.Signature.ToByteArray());
+            approved = approved ?? new ApprovedResult();
             approved.Approvals.Add(approval);
             State.Approved[hash] = approved;
 
@@ -92,10 +92,7 @@ namespace AElf.Contracts.ParliamentAuth
             // check approvals
             Assert(CheckApprovals(proposalId), "Not authorized to release.");
            
-            // temporary method to calculate virtual hash 
-            var virtualHash = Hash.FromMessage(proposal.ToAddress);
-            Context.SendVirtualInline(virtualHash, proposal.ToAddress, proposal.Name, proposal.Params);
-            
+            Context.SendInline(proposal.ToAddress, proposal.Name, proposal.Params);
             return new Empty();
         }
 
@@ -127,51 +124,6 @@ namespace AElf.Contracts.ParliamentAuth
             }
 
             return result;
-        }
-        
-        private int SystemThreshold(int reviewerCount)
-        {
-            return reviewerCount * 2 / 3;
-        }
-
-        private IEnumerable<Representative> GetRepresentatives()
-        {
-            var miner = State.ConsensusContractReferenceState.GetCurrentMiners.Call(new Empty());
-            var representatives = miner.MinerList.PublicKeys.Select(publicKey => new Representative
-            {
-                PubKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey)),
-                Weight = 1 // weight is for farther improvement
-            });
-            return representatives;
-        }
-        
-        private void CheckSignature(byte[] data, byte[] approvalSignature)
-        {
-            var recoveredPublicKey = Context.RecoverPublicKey(approvalSignature, data);
-            var senderPublicKey = Context.RecoverPublicKey();
-            Assert(recoveredPublicKey.SequenceEqual(senderPublicKey), "Incorrect signature");
-        }
-        
-        private bool CheckApprovals(Hash proposalId)
-        {
-            var approved = State.Approved[proposalId];
-
-            var toSig = proposalId.DumpByteArray();
-            var representatives = GetRepresentatives();
-
-            // processing approvals 
-            var validApprovalWeights = approved.Approvals.Aggregate((int) 0, (weights, approval) =>
-            {
-                var recoverPublicKey = Context.RecoverPublicKey(approval.Signature.ToByteArray(), toSig);
-                if (recoverPublicKey == null)
-                    return weights;
-                var reviewer = representatives.FirstOrDefault(r => r.PubKey.SequenceEqual(recoverPublicKey));
-                if (reviewer == null)
-                    return weights;
-                return weights + reviewer.Weight;
-            });
-
-            return validApprovalWeights >= SystemThreshold(representatives.Count());
         }
     }
 }
