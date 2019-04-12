@@ -1,5 +1,4 @@
 using System.Linq;
-using AElf.Types;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 

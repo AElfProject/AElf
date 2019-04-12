@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;

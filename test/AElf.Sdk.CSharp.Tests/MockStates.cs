@@ -1,6 +1,5 @@
 using System;
 using AElf.Sdk.CSharp.State;
-using AElf.Types;
 
 namespace AElf.Sdk.CSharp.Tests
 {

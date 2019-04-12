@@ -1,8 +1,6 @@
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
-using AElf.Types;
-
 namespace AElf.Contracts.Authorization
 {
     public class AuthorizationContractState : ContractState

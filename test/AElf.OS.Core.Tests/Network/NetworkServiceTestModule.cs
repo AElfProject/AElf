@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network;

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;

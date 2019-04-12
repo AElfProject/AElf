@@ -1,6 +1,6 @@
 using System;
 
-namespace AElf.Types
+namespace AElf
 {
     public static class HashExtensions
     {

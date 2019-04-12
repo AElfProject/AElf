@@ -1,10 +1,10 @@
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 
 namespace AElf.Contracts.TokenConverter
 {

@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using Google.Protobuf;
 
-namespace AElf.Types
+namespace AElf
 {
     public static class ByteExtensions
     {

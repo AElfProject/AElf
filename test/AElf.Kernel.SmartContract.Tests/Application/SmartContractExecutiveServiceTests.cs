@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel.SmartContract.Infrastructure;
 using Google.Protobuf;
 using Moq;

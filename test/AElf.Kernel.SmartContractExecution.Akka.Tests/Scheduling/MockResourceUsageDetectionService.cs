@@ -2,7 +2,6 @@
 //using System.Linq;
 //using System.Threading.Tasks;
 //using AElf.Kernel.SmartContractExecution;
-//using AElf.Types;
 
 /*
 namespace AElf.Kernel.Core.Tests.Concurrency.Scheduling

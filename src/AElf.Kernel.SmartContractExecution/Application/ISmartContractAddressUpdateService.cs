@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;

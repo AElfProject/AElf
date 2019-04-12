@@ -1,6 +1,4 @@
-﻿using Address = AElf.Types.Address;
-using System.Linq;
-using AElf.Types;
+﻿using System.Linq;
 
 namespace AElf.Sdk.CSharp.Tests.TestContract
 {

@@ -1,4 +1,3 @@
-using AElf.Types;
 using AElf.Cryptography;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

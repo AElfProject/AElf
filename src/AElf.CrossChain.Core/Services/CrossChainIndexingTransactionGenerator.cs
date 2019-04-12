@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Types;
 using AElf.Kernel;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;

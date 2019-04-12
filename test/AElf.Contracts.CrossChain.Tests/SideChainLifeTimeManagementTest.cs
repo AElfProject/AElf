@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;

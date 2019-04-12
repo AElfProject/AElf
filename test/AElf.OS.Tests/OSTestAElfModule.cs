@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;

@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using Google.Protobuf.WellKnownTypes;

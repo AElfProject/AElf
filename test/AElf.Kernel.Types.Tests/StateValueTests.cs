@@ -1,4 +1,3 @@
-using AElf.Types;
 using Shouldly;
 using Xunit;
 

@@ -1,5 +1,4 @@
-﻿using AElf.Types;
-using AElf.Contracts.MultiToken.Messages;
+﻿using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 

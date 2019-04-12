@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 

@@ -1,6 +1,5 @@
 using System;
 using System.Security.Cryptography;
-using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel

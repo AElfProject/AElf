@@ -1,5 +1,4 @@
 using System;
-using AElf.Types;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;

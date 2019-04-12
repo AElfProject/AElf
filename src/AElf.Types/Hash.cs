@@ -7,7 +7,7 @@ using System.Text;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Types
+namespace AElf
 {
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>, IEnumerable<byte>
     {

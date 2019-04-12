@@ -1,4 +1,3 @@
-using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Infrastructure

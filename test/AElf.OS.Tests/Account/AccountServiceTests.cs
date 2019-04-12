@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;

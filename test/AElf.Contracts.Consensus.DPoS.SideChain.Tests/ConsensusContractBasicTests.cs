@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Cryptography;

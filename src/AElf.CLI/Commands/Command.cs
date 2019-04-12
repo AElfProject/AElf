@@ -3,7 +3,6 @@ using AElf.CLI.JS;
 using System.IO;
 using Alba.CsConsoleFormat.Fluent;
 using AElf.CLI.Utils;
-using AElf.Types;
 using Autofac;
 
 namespace AElf.CLI.Commands

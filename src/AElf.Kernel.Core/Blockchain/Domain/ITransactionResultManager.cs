@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel.Blockchain.Infrastructure;
 
 namespace AElf.Kernel.Blockchain.Domain

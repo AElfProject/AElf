@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Types;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;

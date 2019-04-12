@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using Volo.Abp.DependencyInjection;

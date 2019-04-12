@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Types;
 using Shouldly;
 using Xunit;
 

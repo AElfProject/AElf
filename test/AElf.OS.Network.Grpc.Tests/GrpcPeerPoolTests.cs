@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Cryptography;
+using AElf.Kernel;
 using AElf.OS.Network.Grpc;
 using Grpc.Core;
 using Shouldly;

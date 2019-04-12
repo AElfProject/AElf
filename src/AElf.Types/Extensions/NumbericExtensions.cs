@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace AElf.Types
+namespace AElf
 {
     public static class NumbericExtensions
     {

@@ -1,5 +1,3 @@
-using AElf.Types;
-
 namespace AElf.OS.Jobs
 {
     public class BlockSyncJobArgs

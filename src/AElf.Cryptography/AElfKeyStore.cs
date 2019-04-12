@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
 using Org.BouncyCastle.Crypto;

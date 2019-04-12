@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Consensus.DPoS;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

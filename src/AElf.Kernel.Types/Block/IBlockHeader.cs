@@ -1,7 +1,4 @@
-﻿using AElf.Types;
-
-// ReSharper disable once CheckNamespace
-namespace AElf.Kernel
+﻿namespace AElf.Kernel
 {
     public interface IBlockHeader : IHashProvider
     {

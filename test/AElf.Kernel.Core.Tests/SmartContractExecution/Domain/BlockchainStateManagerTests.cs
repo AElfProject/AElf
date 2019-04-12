@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel.SmartContract.Domain;
 using Google.Protobuf;
 using Shouldly;

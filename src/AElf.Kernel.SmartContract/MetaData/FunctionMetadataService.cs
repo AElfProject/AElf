@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using AElf.Kernel.SmartContract.Domain;

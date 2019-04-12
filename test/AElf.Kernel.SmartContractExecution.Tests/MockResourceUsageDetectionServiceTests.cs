@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;

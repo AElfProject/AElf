@@ -1,5 +1,4 @@
 using System.Linq;
-using AElf.Types;
 using AElf.Cryptography;
 
 namespace AElf.Kernel

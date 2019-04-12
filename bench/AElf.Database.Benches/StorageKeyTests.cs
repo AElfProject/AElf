@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Linq;
-using AElf.Types;
 using NBench;
 using Pro.NBench.xUnit.XunitExtensions;
 using Xunit.Abstractions;

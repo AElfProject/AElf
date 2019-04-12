@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using Google.Protobuf;

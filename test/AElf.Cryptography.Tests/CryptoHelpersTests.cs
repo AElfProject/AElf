@@ -1,7 +1,6 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
-using AElf.Types;
 using Xunit;
 using Shouldly;
 using Virgil.Crypto;

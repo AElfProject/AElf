@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
-using AElf.Types;
 using AElf.Kernel.SmartContract.Infrastructure;
 using Volo.Abp.DependencyInjection;
 

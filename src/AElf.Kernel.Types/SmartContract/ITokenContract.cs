@@ -1,5 +1,3 @@
-using AElf.Types;
-
 namespace AElf.Kernel.Types.SmartContract
 {
     public interface ITokenContract

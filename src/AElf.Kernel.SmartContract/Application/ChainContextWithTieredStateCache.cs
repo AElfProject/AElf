@@ -1,5 +1,3 @@
-using AElf.Types;
-
 namespace AElf.Kernel.SmartContract.Application
 {
     public class ChainContextWithTieredStateCache : IChainContext<TieredStateCache>

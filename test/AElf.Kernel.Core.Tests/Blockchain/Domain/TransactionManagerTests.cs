@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using Xunit;
-using AElf.Types;
 using AElf.Cryptography;
 using Shouldly;
 

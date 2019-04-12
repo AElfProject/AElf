@@ -7,7 +7,7 @@ using Google.Protobuf;
 [assembly: InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]
 [assembly: InternalsVisibleTo("AElf.Contracts.Authorization.Tests")]
 
-namespace AElf.Types
+namespace AElf
 {
     public partial class Address : ICustomDiagnosticMessage, IComparable<Address>
     {

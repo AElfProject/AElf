@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using AElf.Types;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using Google.Protobuf;

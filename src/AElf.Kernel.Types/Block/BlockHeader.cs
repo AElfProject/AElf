@@ -1,5 +1,4 @@
-﻿using AElf.Types;
-using Google.Protobuf;
+﻿using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;

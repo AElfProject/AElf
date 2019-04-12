@@ -4,7 +4,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.SmartContract.Domain;
 using Google.Protobuf;

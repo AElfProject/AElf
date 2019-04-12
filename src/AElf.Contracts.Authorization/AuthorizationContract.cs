@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using AElf.Types;
 using AElf.Cryptography;
 using AElf.Kernel;
 using Google.Protobuf;

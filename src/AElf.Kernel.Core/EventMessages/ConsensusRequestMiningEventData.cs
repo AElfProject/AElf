@@ -1,5 +1,4 @@
 using System;
-using AElf.Types;
 
 namespace AElf.Kernel.EventMessages
 {

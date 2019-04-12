@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using Volo.Abp.DependencyInjection;

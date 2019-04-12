@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;

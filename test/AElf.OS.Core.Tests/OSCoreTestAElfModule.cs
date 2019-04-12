@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;

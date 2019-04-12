@@ -1,7 +1,6 @@
 ﻿using System.Text;
 
-// ReSharper disable once CheckNamespace
-namespace AElf.Types
+namespace AElf
 {
     public static class StringExtensions
     {

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Types;
 
 namespace AElf.Kernel
 {

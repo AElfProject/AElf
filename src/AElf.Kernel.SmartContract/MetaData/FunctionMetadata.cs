@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using QuickGraph;
 using QuickGraph.Algorithms;
-using AElf.Types;
 using AElf.Kernel.SmartContract.MetaData;
 
 // ReSharper disable once CheckNamespace

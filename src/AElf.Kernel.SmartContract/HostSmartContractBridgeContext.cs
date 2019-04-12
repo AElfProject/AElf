@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Types;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;

@@ -1,4 +1,3 @@
-using AElf.Types;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Vote;
