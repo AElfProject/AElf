@@ -34,10 +34,7 @@ namespace AElf.Contracts.ParliamentAuth
             // processing approvals 
             var validApprovalWeights = approved.Approvals.Aggregate((int) 0, (weights, approval) =>
             {
-                var recoverPublicKey = Context.RecoverPublicKey(approval.Signature.ToByteArray(), toSig);
-                if (recoverPublicKey == null)
-                    return weights;
-                var reviewer = representatives.FirstOrDefault(r => r.PubKey.SequenceEqual(recoverPublicKey));
+                var reviewer = representatives.FirstOrDefault(r => r.PubKey.Equals(approval.PublicKey));
                 if (reviewer == null)
                     return weights;
                 return weights + reviewer.Weight;
