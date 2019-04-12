@@ -30,7 +30,10 @@ service VoteContract {
     }
     
     // View
-    rpc GetVotingInfo (GetVotingResultInput) returns (VotingResult) {
+    rpc GetVotingResult (GetVotingResultInput) returns (VotingResult) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotingRecord (Hash) returns (VotingRecord) {
         option (aelf.is_view) = true;
     }
     rpc GetVotingHistories (Address) returns (VotingHistories) {
