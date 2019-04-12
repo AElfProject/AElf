@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>AElf.Kernel</RootNamespace>
+    <PackageId>AElf.Kernel.Types</PackageId>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="IResourcePath.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\protobuf\abi.proto">
+      <Link>Protobuf/Proto/abi.proto</Link>
+    </Content>
+    <Content Include="..\..\protobuf\auth.proto">
+      <Link>Protobuf/Proto/auth.proto</Link>
+    </Content>
+    <Content Include="..\..\protobuf\consensus.proto">
+      <Link>Protobuf/Proto/consensus.proto</Link>
+    </Content>
+    <Content Include="..\..\protobuf\kernel.proto">
+      <Link>Protobuf/Proto/kernel.proto</Link>
+    </Content>
+    <Content Include="..\..\protobuf\metadata.proto">
+      <Link>Protobuf/Proto/metadata.proto</Link>
+    </Content>
+    <Content Include="..\..\protobuf\resource.proto">
+      <Link>Protobuf/Proto/resource.proto</Link>
+    </Content>
+    <Content Include="..\..\protobuf\smart_contract.proto">
+      <Link>Protobuf/Proto/smart_contract.proto</Link>
+    </Content>
+  </ItemGroup>
+  <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+    <Exec Command="protoc --proto_path=../../protobuf --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs auth.proto kernel.proto resource.proto smart_contract.proto abi.proto metadata.proto consensus.proto vote.proto election.proto" />
+  </Target>
+  <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <Compile Include="./Protobuf/Generated/*.g.cs" />
+    </ItemGroup>
+  </Target>
+</Project>
