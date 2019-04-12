@@ -8,17 +8,15 @@ namespace AElf.Benchmark
     [MarkdownExporterAttribute.GitHub]
     public class TransactionVerifySignatureTests: BenchmarkTestBase
     {
-        private readonly OSTestHelper _osTestHelper;
+        private OSTestHelper _osTestHelper;
         
         private Transaction _transaction;
-        public TransactionVerifySignatureTests()
-        {
-            _osTestHelper = GetRequiredService<OSTestHelper>();
-        }
 
         [GlobalSetup]
         public async Task GlobalSetup()
         {
+            _osTestHelper = GetRequiredService<OSTestHelper>();
+            
             _transaction = await _osTestHelper.GenerateTransferTransaction();
         }
 
