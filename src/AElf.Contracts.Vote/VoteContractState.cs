@@ -8,14 +8,27 @@ namespace AElf.Contracts.Vote
     {
         public BoolState Initialized { get; set; }
         
-        // This hash is calculated by: topic & sponsor
+        /// <summary>
+        /// This hash is calculated by: topic & sponsor
+        /// VotingEventHash
+        /// </summary>
         public MappedState<Hash, VotingEvent> VotingEvents { get; set; }
         
-        // This hash is calculated by: topic & sponsor & epoch_number
+        /// <summary>
+        /// This hash is calculated by: topic & sponsor & epoch_number
+        /// VotingGoingHash
+        /// </summary>
         public MappedState<Hash, VotingResult> VotingResults { get; set; }
         
-        // vote_id -> voting_record
+        /// <summary>
+        /// VoteId -> VotingRecord
+        /// Usually VoteId is Context.TransactionId
+        /// </summary>
         public MappedState<Hash, VotingRecord> VotingRecords { get; set; }
+        
+        /// <summary>
+        /// Voter's Address -> VotingHistories
+        /// </summary>
         public MappedState<Address, VotingHistories> VotingHistoriesMap { get; set; }
     }
 }

@@ -1,7 +1,3 @@
-# Some basic designs
-- `Vote Contract` provides methods like `Register` a voting topic, `Vote` to a voting topic, and `Withdraw` votes, which is supposed to be a basic voting contract that sponsors are likely to writing a new contract to call methods of this contract.
-- When `total_epoch` is `x`, if sponsor set `epoch_number` to `x + 1`, this voting topic will be terminated immediately.
-
 # Vote Contract
 
 ## Actions 
@@ -37,6 +33,10 @@ For a `Sponsor` to register / create a voting event.
 
 - The values of `Topic` and `Sponsor` fields can identify a `VotingEvent`.
 
+- A `VotingEvent` with specific `EpochNumber` called `VotingGoing` in this contract, which isn't really exists.
+
+- Thus we can use `GetHash()` of `VotingResult` to get the hash of a `VotingGoing`.
+
 - If `Delegated` is true, it means the sender address of `Vote` transaction must be the address of `Sponsor`.
 
 - If `StartTimestamp` of input value is smaller than current block time, will use current block time as `StartTimestamp`.
@@ -53,13 +53,17 @@ For a `Sponsor` to register / create a voting event.
   
 ### Purpose
 
-For a `Voter` to vote for a (epoch of a) certain voting event.
+For a `Voter` to vote for a voting going (a epoch of a voting event).
 
 ### Notes
 
-- Basically, a voting behaviour is to update `VotingResult`, and add a new `VotingRecord`.
+- Basically, a voting behaviour is to update related `VotingResult` and `VotingHistories`, also add a new `VotingRecord`.
 
-- The values of `Topic`, `Sponsor` and `EpochNumber` fields can identify a `VotingResult`.
+- `VotingHistories` contains vote histories of all `VotingEvent`s - more precisely - `VotingGoing`s of a voter.
+
+- `VotingHistory` just for one `VotingGoing` (of a voter).
+
+- The values of `Topic`, `Sponsor` and `EpochNumber` fields can identify a `VotingGoing` or a `VotingResult`.
 
 - We can get a certain `VotingRecord` by providing transaction id of `Vote` transaction, which actually called `VoteId`.
 
@@ -72,11 +76,39 @@ For a `Voter` to vote for a (epoch of a) certain voting event.
 
   <summary><b>Withdraw</b></summary>
 
+### Purpose
+
+For a `Voter` to withdraw his previous votes.
+
+### Notes
+
+- Will update related `VotingResult` and `VotingRecord`.
+
+- Unlock token logic is same as `Vote` method, delegated voting event should unlock token on 
+
+- Cannot withdraw votes of on-going voting events, it means `EpochNumber` of `VotingRecord` must be less than `CurrentEpoch` of `VotingEvent`.
+
+- Extra limitation of voters withdrawing their votes should be coded in higher level contract. Like in `Election Contract`, voters need to keep locking their tokens at least for several epoches (terms).
+
 </details>
 
 <details>
 
   <summary><b>UpdateEpochNumber</b></summary>
+
+### Purpose
+
+For the `Sponsor` to update epoch number.
+
+### Notes
+
+- Can only increase the epoch number 1 each time.
+
+- Will update previous on-going voting event and initialize new on-going event.
+
+- After updating, votes of previous epoch is possible withdrawable for voters.
+
+- When `TotalEpoch` of `VotingEvent` is `x`, if the `Sponsor` set `EpochNumber` to `x + 1`, the whole voting event will be regarded as terminated immediately.
 
 </details>
 
@@ -84,11 +116,23 @@ For a `Voter` to vote for a (epoch of a) certain voting event.
 
   <summary><b>AddOption</b></summary>
 
+### Purpose
+
+For the `Sponsor` to add an option of a certain `VotingEvent`.
+
+### Notes
+
 </details>
 
 <details>
 
   <summary><b>RemoveOption</b></summary>
+
+### Purpose
+
+For the `Sponsor` to remove an option of a certain `VotingEvent`.
+
+### Notes
 
 </details>
 

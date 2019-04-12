@@ -62,7 +62,6 @@ message VotingResult {
     sint32 voters_count = 5;
     google.protobuf.Timestamp start_timestamp = 6;
     google.protobuf.Timestamp end_timestamp = 7;
-    
 }
 
 message UpdateEpochNumberInput {
