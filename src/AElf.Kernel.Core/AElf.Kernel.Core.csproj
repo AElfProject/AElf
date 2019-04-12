@@ -18,16 +18,6 @@
     <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
     <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj">
-      <Project>{DAEEB200-1D20-4A56-8C21-CA2ADE976AD5}</Project>
-      <Name>AElf.Kernel.Types</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Domain" />
-    <Folder Include="Miner\Domain" />
-    <Folder Include="SmartContractExecution\Application" />
-    <Folder Include="SmartContract\Application" />
-    <Folder Include="TransactionPool\Application" />
+    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
   </ItemGroup>
 </Project>
