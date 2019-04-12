@@ -173,7 +173,7 @@ namespace AElf.Contracts.Vote
 
             Assert(votingEvent.CurrentEpoch > votingRecord.EpochNumber,
                 "Cannot withdraw votes of on-going voting event.");
-            
+
             // Update VotingRecord.
             votingRecord.IsWithdrawn = true;
             votingRecord.WithdrawTimestamp = Context.CurrentBlockTime.ToTimestamp();
@@ -185,7 +185,7 @@ namespace AElf.Contracts.Vote
                 Topic = votingRecord.Topic,
                 EpochNumber = votingRecord.EpochNumber
             }.GetHash();
-            
+
             var votingHistories = UpdateHistoryAfterWithdrawing(votingRecord.Voter, votingGoingHash, input.VoteId);
 
             var votingResult = State.VotingResults[votingGoingHash];
@@ -194,7 +194,7 @@ namespace AElf.Contracts.Vote
             {
                 votingResult.VotersCount -= 1;
             }
-            
+
             State.VotingResults[votingGoingHash] = votingResult;
 
             if (!State.VotingEvents[votingEventHash].Delegated)
@@ -216,7 +216,7 @@ namespace AElf.Contracts.Vote
         public override Empty UpdateEpochNumber(UpdateEpochNumberInput input)
         {
             var votingEvent = AssertVotingEvent(input.Topic, Context.Sender);
-            
+
             // Update previous voting going information.
             var previousVotingGoingHash = new VotingResult
             {
@@ -227,7 +227,7 @@ namespace AElf.Contracts.Vote
             var previousVotingResult = State.VotingResults[previousVotingGoingHash];
             previousVotingResult.EndTimestamp = Context.CurrentBlockTime.ToTimestamp();
             State.VotingResults[previousVotingGoingHash] = previousVotingResult;
-            
+
             Assert(votingEvent.CurrentEpoch + 1 == input.EpochNumber, "Can only increase epoch number 1 each time.");
             votingEvent.CurrentEpoch = input.EpochNumber;
             State.VotingEvents[votingEvent.GetHash()] = votingEvent;

@@ -5,7 +5,7 @@
 
   <summary><b>InitialVoteContract</b></summary>
 
-This method will be called once by a inline transaction right after `Vote Contract` get deployed.
+This method will be called once by an inline transaction right after `Vote Contract` get deployed.
 
 ### Purpose
 
