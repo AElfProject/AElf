@@ -14,7 +14,6 @@ using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
@@ -33,6 +32,16 @@ using Xunit.Abstractions;
 
 namespace AElf.Contracts.TestKit
 {
+    public class ContractTestModule<TSelf> : ContractTestModule
+        where TSelf : ContractTestModule<TSelf>
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddAssemblyOf<TSelf>();
+            base.ConfigureServices(context);
+        }
+    }
+
     [DependsOn(
         typeof(AbpEventBusModule),
         typeof(AbpTestBaseModule),
@@ -48,7 +57,7 @@ namespace AElf.Contracts.TestKit
         typeof(CSharpRuntimeAElfModule),
         typeof(TokenKernelAElfModule)
     )]
-    public class ContractTestModule : AElfModule
+    public class ContractTestModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
