@@ -286,3 +286,5 @@ aelf.js
 scripts/contract_csharp_plugin
 scripts/contract_csharp_plugin.exe
 
+**/BenchmarkDotNet.Artifacts/*
+
