@@ -7,6 +7,6 @@ SET file=%scriptdir%%filename%
 if not exist "%scriptdir%contract_csharp_plugin.exe" (
     powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (new-object 
 net.webclient).DownloadFile('%url%', '%file%')"
-    unzip %scriptdir%%filename% -d %scriptdir%
+    unzip -o %scriptdir%%filename% -d %scriptdir%
     del %scriptdir%%filename%
 )
