@@ -1,5 +1,5 @@
-using AElf.Common;
 using AElf.CrossChain;
+using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 

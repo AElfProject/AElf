@@ -1,9 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Kernel;
 using Google.Protobuf;
 using Shouldly;
@@ -24,7 +22,7 @@ namespace AElf.Contracts.DPoS.SideChain
         //TODO: UpdateMainChainConsensus default parameter check should be update, round info should check.
         //BODY: System.NullReferenceException: Object reference not set to an instance of an object.
         //at AElf.Contracts.Consensus.DPoS.SideChain.ConsensusContract.UpdateMainChainConsensus(DPoSInformation input)
-        //at AElf.Types.CSharp.UnaryServerCallHandler`2.Execute(Byte[] input) in /Users/ericshu/GitHub/AElf/AElf.Runtime.CSharp/ServerCallHandler.cs:line 57
+        //at AElf.CSharp.Core.UnaryServerCallHandler`2.Execute(Byte[] input) in /Users/ericshu/GitHub/AElf/AElf.Runtime.CSharp/ServerCallHandler.cs:line 57
         //at AElf.Runtime.CSharp.Executive.ExecuteMainTransaction() in /Users/ericshu/GitHub/AElf/AElf.Runtime.CSharp/Executive.cs:line 139 
         [Fact(Skip = "Default check cannot works.")]
         public async Task UpdateMainChainConsensus_WithDefaultDPosInformation()

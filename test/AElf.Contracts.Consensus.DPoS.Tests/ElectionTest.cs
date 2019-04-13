@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken;
@@ -9,7 +8,7 @@ using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Types.CSharp;
+using AElf.CSharp.Core;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;

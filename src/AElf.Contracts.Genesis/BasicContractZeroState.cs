@@ -1,4 +1,3 @@
-﻿using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 

@@ -1,5 +1,4 @@
 using Acs1;
-using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;

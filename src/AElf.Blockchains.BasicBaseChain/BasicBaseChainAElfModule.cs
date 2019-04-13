@@ -1,4 +1,3 @@
-﻿using AElf.Common;
 using AElf.CrossChain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;

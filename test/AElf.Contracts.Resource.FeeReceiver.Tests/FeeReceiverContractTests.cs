@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;

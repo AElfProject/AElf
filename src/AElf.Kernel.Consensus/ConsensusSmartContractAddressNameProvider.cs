@@ -1,6 +1,4 @@
-using AElf.Common;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus

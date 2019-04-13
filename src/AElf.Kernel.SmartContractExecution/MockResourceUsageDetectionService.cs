@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf;
-using AElf.Common;
 
 namespace AElf.Kernel.SmartContractExecution
 {

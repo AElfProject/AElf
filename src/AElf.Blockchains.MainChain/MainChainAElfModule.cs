@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using AElf.Blockchains.BasicBaseChain;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;

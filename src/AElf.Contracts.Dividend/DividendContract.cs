@@ -1,5 +1,4 @@
-﻿using System;
-using AElf.Common;
+using System;
 using AElf.Standard;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
