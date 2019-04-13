@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using AElf.Common;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

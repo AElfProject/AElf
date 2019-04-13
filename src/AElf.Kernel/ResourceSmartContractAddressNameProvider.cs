@@ -1,4 +1,3 @@
-using AElf.Common;
 using AElf.Kernel.SmartContract;
 using Volo.Abp.DependencyInjection;
 

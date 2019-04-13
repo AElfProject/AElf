@@ -1,7 +1,6 @@
 using System;
-using AElf.Common;
 using AElf.Cryptography.ECDSA;
-using AElf.Types.CSharp;
+using AElf.CSharp.Core;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Contracts.TestKit

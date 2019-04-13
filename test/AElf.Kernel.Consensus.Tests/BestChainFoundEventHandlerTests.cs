@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Consensus.Application;
 using Xunit;

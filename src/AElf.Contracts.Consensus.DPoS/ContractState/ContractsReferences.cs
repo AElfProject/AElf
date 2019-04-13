@@ -1,4 +1,3 @@
-using AElf.Common;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;

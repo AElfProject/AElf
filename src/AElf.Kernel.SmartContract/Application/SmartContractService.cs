@@ -1,12 +1,7 @@
-﻿using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using AElf.Common;
+﻿using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.Types;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Application
 {

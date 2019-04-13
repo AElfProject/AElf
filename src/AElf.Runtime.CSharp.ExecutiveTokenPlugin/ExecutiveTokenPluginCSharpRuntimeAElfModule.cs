@@ -1,5 +1,4 @@
-﻿using AElf.Common;
-using AElf.Kernel.SmartContract;
+﻿using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using Volo.Abp.Modularity;
 

@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;

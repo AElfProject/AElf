@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.SmartContractExecution.Execution;
 using Akka.Actor;
 using AkkaAssembly = Akka;

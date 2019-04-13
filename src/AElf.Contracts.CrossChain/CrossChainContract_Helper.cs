@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
-using AElf.Types.CSharp.Utils;
+using AElf.CSharp.Core.Utils;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 

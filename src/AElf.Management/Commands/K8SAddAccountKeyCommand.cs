@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Common.Application;
 using AElf.Cryptography;
 using AElf.Management.Helper;
