@@ -1,18 +1,34 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Genesis;
 using AElf.Cryptography.ECDSA;
+using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
-using AElf.TestBase;
-using AElf.CSharp.Core;
 using Google.Protobuf;
+using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.TestKit
 {
-    public class ContractTestBase<TContractTestAElfModule> : AElfIntegratedTest<TContractTestAElfModule>
-        where TContractTestAElfModule : ContractTestModule
+    public class ContractTestBase : ContractTestBase<ContractTestModule>
     {
+    }
+
+    public class ContractTestBase<TModule> : AbpIntegratedTest<TModule>
+        where TModule : ContractTestModule
+    {
+        protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
+        {
+            options.UseAutofac();
+        }
+
+        protected void SetTestOutputHelper(ITestOutputHelper testOutputHelper)
+        {
+            GetRequiredService<ITestOutputHelperAccessor>().OutputHelper = testOutputHelper;
+        }
+
         protected ISmartContractAddressService ContractAddressService =>
             Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
 
@@ -29,7 +45,8 @@ namespace AElf.Contracts.TestKit
             return res.Output;
         }
 
-        protected async Task<Address> DeploySystemSmartContract(int category, byte[] code, Hash name, ECKeyPair senderKey)
+        protected async Task<Address> DeploySystemSmartContract(int category, byte[] code, Hash name,
+            ECKeyPair senderKey)
         {
             var zeroStub = GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, senderKey);
             var res = await zeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput()
