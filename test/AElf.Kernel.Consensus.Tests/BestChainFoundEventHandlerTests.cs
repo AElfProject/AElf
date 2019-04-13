@@ -25,7 +25,7 @@ namespace AElf.Kernel.Consensus
                 BlockHeight = 100
             };
 
-            _bestChainFoundEventHandler.HandleEventAsync(eventData);
+            await _bestChainFoundEventHandler.HandleEventAsync(eventData);
         }
     }
 }

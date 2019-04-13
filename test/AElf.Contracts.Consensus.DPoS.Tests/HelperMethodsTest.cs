@@ -69,11 +69,5 @@ namespace AElf.Contracts.Consensus.DPoS
                 Assert.Equal(2L, round.TermNumber);
             }
         }
-
-        [Fact]
-        public async Task ChangeTermTest()
-        {
-            
-        }
     }
 }

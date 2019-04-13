@@ -136,6 +136,23 @@ namespace AElf.OS
 
             return transaction;
         }
+        
+        public async Task<Transaction> GenerateInvalidTransaction()
+        {
+            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+
+            var transaction = GenerateTransaction(null,
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
+                nameof(TokenContract.Transfer),
+                new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
+
+            transaction.Sigs.Add(ByteString.CopyFromUtf8("invalid signature1"));
+            transaction.Sigs.Add(ByteString.CopyFromUtf8("invalid signature2"));
+
+            return transaction;
+        }
+        
+        
 
         public async Task<List<Transaction>> GenerateTransferTransactions(int count)
         {

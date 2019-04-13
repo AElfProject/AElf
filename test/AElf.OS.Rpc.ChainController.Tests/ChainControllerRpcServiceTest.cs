@@ -221,7 +221,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             // Generate a transaction and broadcast
             var chain = await _blockchainService.GetChainAsync();
-            var transactionList = await GenerateTwoInitializeTransaction();
+            var transactionList = GenerateTwoInitializeTransaction();
             await _osTestHelper.BroadcastTransactions(transactionList);
 
             var block = await _osTestHelper.MinedOneBlock();
@@ -460,7 +460,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         }
 
         [Fact]
-        public async Task Transaction_To_JObject()
+        public void Transaction_To_JObject()
         {
             var transaction = _osTestHelper.GenerateTransaction(Address.Generate(), Address.Generate(),
                 nameof(TokenContract.Transfer), new TransferInput
@@ -593,7 +593,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
 
         #endregion
 
-        private async Task<List<Transaction>> GenerateTwoInitializeTransaction()
+        private List<Transaction> GenerateTwoInitializeTransaction()
         {
             var transactionList = new List<Transaction>();
             var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
