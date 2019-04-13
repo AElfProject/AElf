@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -125,6 +126,7 @@ namespace AElf.Benchmark
                 {
                     _transactionManager.RemoveTransaction(tx);
                     _transactionResultManager.RemoveTransactionResultAsync(tx, block.GetHash());
+                    _transactionResultManager.RemoveTransactionResultAsync(tx, block.Header.GetPreMiningHash());
                 }
                 await _chainManager.RemoveChainBlockLinkAsync(block.GetHash());
                 await _blockManager.RemoveBlockAsync(block.GetHash());

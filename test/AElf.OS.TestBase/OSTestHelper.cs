@@ -12,6 +12,7 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
@@ -121,6 +122,12 @@ namespace AElf.OS
                 await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
                     BestBranchBlockList[4].GetHash());
             }
+
+            _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+            {
+                 BlockHash = chain.BestChainHash,
+                 BlockHeight = chain.BestChainHeight
+            });
         }
 
         public async Task DisposeMock()
