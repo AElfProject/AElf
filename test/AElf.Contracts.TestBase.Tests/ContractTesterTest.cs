@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
@@ -11,7 +9,6 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Xunit;
 

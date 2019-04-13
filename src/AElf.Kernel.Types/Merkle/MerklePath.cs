@@ -1,8 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using AElf.Common;
-using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -12,6 +8,7 @@ namespace AElf.Kernel
         {
             Path.AddRange(hashes);
         }
+
         /// <summary>
         /// Calculate the <see cref="BinaryMerkleTree.Root"/> with path and provided leaf.
         /// </summary>
@@ -24,6 +21,7 @@ namespace AElf.Kernel
             {
                 hash = BinaryMerkleTree.CalculateRootFromMultiHash(new[] {hash, node});
             }
+
             return hash;
         }
     }

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using Xunit;
-using AElf.Common;
 using Shouldly;
 
 namespace AElf.Types.Tests.Helpers

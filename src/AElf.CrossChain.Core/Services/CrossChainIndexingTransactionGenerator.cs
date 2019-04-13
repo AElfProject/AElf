@@ -1,20 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.Types;
-using AElf.Types.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
-using Volo.Abp.DependencyInjection;
-using Volo.Abp.Threading;
 
 namespace AElf.CrossChain
 {

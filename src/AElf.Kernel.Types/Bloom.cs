@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Google.Protobuf;
 using System.Security.Cryptography;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {

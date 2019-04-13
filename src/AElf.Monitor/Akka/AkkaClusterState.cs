@@ -67,7 +67,7 @@ namespace AElf.Monitor
             }
         }
 
-        public static void ChangeLeader(Address address)
+        public static void ChangeLeader(Akka.Actor.Address address)
         {
             foreach (var member in MemberInfos.Values)
             {

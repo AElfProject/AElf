@@ -1,10 +1,6 @@
-﻿using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using Org.BouncyCastle.Security;
-using AElf.Common;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Domain;
 
 namespace AElf.Kernel.SmartContract.Metadata

@@ -1,14 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContractExecution.Application

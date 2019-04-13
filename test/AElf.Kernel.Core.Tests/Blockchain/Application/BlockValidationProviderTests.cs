@@ -1,7 +1,5 @@
 using System;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
-using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;

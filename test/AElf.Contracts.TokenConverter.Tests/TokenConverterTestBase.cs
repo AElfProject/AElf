@@ -1,15 +1,10 @@
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Application;
-using Google.Protobuf;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.TokenConverter
 {

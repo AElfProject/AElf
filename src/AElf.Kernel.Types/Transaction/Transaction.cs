@@ -1,8 +1,6 @@
 using System;
 using System.Security.Cryptography;
 using Google.Protobuf;
-using AElf.Common;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
 {
@@ -37,6 +35,5 @@ namespace AElf.Kernel
             txData.RefBlockPrefix = RefBlockPrefix;
             return txData.ToByteArray();
         }
-
     }
 }

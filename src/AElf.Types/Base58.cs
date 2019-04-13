@@ -4,7 +4,7 @@ using System.Numerics;
 using System.Security.Cryptography;
 using Google.Protobuf;
 
-namespace AElf.Common
+namespace AElf
 {
     /// <summary>
     /// From https://github.com/adamcaudill/Base58Check, for NOT dotnet core version
