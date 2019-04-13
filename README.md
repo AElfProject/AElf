@@ -30,7 +30,7 @@ If you're looking for the js sdk, follow this [link](https://github.com/AElfProj
 ### Prerequisites
 
 Because most of AElf is written in C# with the dotnet core framework, you will need to download and install the [.NET Core SDK](https://dotnet.microsoft.com/download).
-Concerning the IDE, you can use any as long as it has support for C#. Good choices include Jetbrains Rider and Visual Studio. Strictly speaking,if you only want to run the node, no need for an IDE since you can build and run with dotnet commands, but if you want to contribute to AElf, it's better to have more support for solution and project files.  
+Concerning the IDE, you can use any as long as it has support for C#. Good choices include Jetbrains Rider, Visual Studio and Visual Studio Code. Strictly speaking, if you only want to run the node, no need for an IDE since you can build and run with dotnet commands, but if you want to contribute to AElf, it's better to have more support for solution and project files.  
 Finally if you want to run the node you will have to install and run a Redis or SSDB for the nodes data.
 
 Note that, if you intend to develop AElf itself you will have to install protobuf/gRPC.
