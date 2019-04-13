@@ -10,20 +10,23 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
     public class MiningProcessTest : DPoSTestBase
     {
-        public MiningProcessTest()
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public MiningProcessTest(ITestOutputHelper testOutputHelper)
         {
+            _testOutputHelper = testOutputHelper;
             InitializeContracts();
             AsyncHelper.RunSync(() => InitializeCandidates(MinersCount));
             AsyncHelper.RunSync(InitializeVoters);
         }
 
-        // TODO: Sometimes not pass，need to be fix
-        [Fact(Skip = "Sometimes not pass，need to be fix")]
+        [Fact]
         public async Task EvilNodeDetectionTest()
         {
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -49,14 +52,17 @@ namespace AElf.Contracts.Consensus.DPoS
                 Value = oneMoreCandidateKeyPair.PublicKey.ToHex().Substring(0, 20)
             });
 
+            //in order candidate 0 be selected
+            var count = 0;
             foreach (var candidateKeyPair in CandidatesKeyPairs.Take(MinersCount).Append(oneMoreCandidateKeyPair))
             {
                 await voter.Vote.SendAsync(new VoteInput
                 {
                     CandidatePublicKey = candidateKeyPair.PublicKey.ToHex(),
-                    Amount = 100 + new Random().Next(1, 200),
+                    Amount = 10000 - new Random().Next(1, 200) * count,
                     LockTime = 100
                 });
+                count++;
             }
 
             foreach (var minerInRound in firstRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
@@ -92,14 +98,16 @@ namespace AElf.Contracts.Consensus.DPoS
             var oneCandidate = GetConsensusContractTester(CandidatesKeyPairs[0]);
             var anotherCandidate = GetConsensusContractTester(CandidatesKeyPairs[1]);
             var randomHash = Hash.Generate();
-            var informationOfSecondRound = await oneCandidate.GetInformationToUpdateConsensus.CallAsync(
-                new DPoSTriggerInformation
-                {
-                    Behaviour = DPoSBehaviour.UpdateValue,
-                    PreviousRandomHash = Hash.Empty,
-                    RandomHash = randomHash,
-                    PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
-                });
+            var input = new DPoSTriggerInformation
+            {
+                Behaviour = DPoSBehaviour.UpdateValue,
+                PreviousRandomHash = Hash.Empty,
+                RandomHash = randomHash,
+                PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
+            };
+            var informationOfSecondRound = await oneCandidate.GetInformationToUpdateConsensus.CallAsync(input);
+            if(informationOfSecondRound.Round == null)
+                _testOutputHelper.WriteLine(informationOfSecondRound.ToString());
             await oneCandidate.UpdateValue.SendAsync(
                 informationOfSecondRound.Round.ExtractInformationToUpdateConsensus(CandidatesKeyPairs[0].PublicKey
                     .ToHex()));
