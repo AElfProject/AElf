@@ -282,6 +282,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Vote", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Election", "src\AElf.Contracts.Election\AElf.Contracts.Election.csproj", "{82DD4B12-4089-4DCF-8AE8-3797B84237C7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Vote.Tests", "test\AElf.Contracts.Vote.Tests\AElf.Contracts.Vote.Tests.csproj", "{2C133309-0EAB-44F2-8ED3-17F88B4659ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Election.Tests", "test\AElf.Contracts.Election.Tests\AElf.Contracts.Election.Tests.csproj", "{0C8DF9CA-CF04-4F4D-8DF0-ADA17FF8F079}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -796,6 +800,14 @@ Global
 		{82DD4B12-4089-4DCF-8AE8-3797B84237C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82DD4B12-4089-4DCF-8AE8-3797B84237C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82DD4B12-4089-4DCF-8AE8-3797B84237C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C133309-0EAB-44F2-8ED3-17F88B4659ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C133309-0EAB-44F2-8ED3-17F88B4659ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C133309-0EAB-44F2-8ED3-17F88B4659ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C133309-0EAB-44F2-8ED3-17F88B4659ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C8DF9CA-CF04-4F4D-8DF0-ADA17FF8F079}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C8DF9CA-CF04-4F4D-8DF0-ADA17FF8F079}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C8DF9CA-CF04-4F4D-8DF0-ADA17FF8F079}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C8DF9CA-CF04-4F4D-8DF0-ADA17FF8F079}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -941,5 +953,7 @@ Global
 		{D1FFF4BE-5A37-49E1-9938-BDC0BFBC640C} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{11714DF6-9501-4AB4-AB38-C8A3AD826584} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{82DD4B12-4089-4DCF-8AE8-3797B84237C7} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{2C133309-0EAB-44F2-8ED3-17F88B4659ED} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{0C8DF9CA-CF04-4F4D-8DF0-ADA17FF8F079} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal
