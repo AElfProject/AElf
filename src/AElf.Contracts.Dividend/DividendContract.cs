@@ -1,8 +1,8 @@
 ﻿using System;
 using AElf.Common;
+using AElf.Standard;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Standard";
+
+import "common.proto";
+
+message ActionResult {
+    bool Success = 1;
+    string ErrorMessage = 2;
+}
+
+message LongList {
+    repeated int64 Values = 1;
+    string Remark = 2;
+}
