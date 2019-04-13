@@ -45,7 +45,7 @@ namespace AElf.Contracts.ParliamentAuth
             return hash;
         }
 
-        public override BoolValue SayYes(Approval input)
+        public override BoolValue Approve(Approval input)
         {
             var approval = input;
             // check validity of proposal 

@@ -66,7 +66,7 @@ namespace AElf.Contracts.AssociationAuth
             return hash;
         }
 
-        public override BoolValue SayYes(Approval approval)
+        public override BoolValue Approve(Approval approval)
         {
             // check validity of proposal 
             Hash hash = approval.ProposalHash;

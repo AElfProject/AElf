@@ -12,7 +12,7 @@ option (aelf.identity) = "acs3";
 service AuthorizationContract {
     rpc CreateProposal (Proposal) returns (Hash) {
     }
-    rpc SayYes (Approval) returns (google.protobuf.BoolValue) {
+    rpc Approve (Approval) returns (google.protobuf.BoolValue) {
     }
     rpc Release (Hash) returns (google.protobuf.Empty) {
     }
