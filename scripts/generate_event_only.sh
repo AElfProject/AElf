@@ -5,7 +5,7 @@ bash "${scriptdir}/download_binary.sh"
 
 plugin="${scriptdir}/contract_csharp_plugin"
 
-protoc --proto_path=../protobuf \
+protoc --proto_path=../../protobuf \
 --csharp_out=internal_access:./Protobuf/Generated \
 --csharp_opt=file_extension=.g.cs \
 --contract_opt=nocontract \

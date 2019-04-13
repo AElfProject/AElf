@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package vote;
+
+import "common.proto";
+import "vote.proto";
+import "kernel.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.Vote";
+
+service VoteContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Vote.VoteContractState";
+
+    // Action
+    rpc InitialVoteContract (InitialVoteContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc Register (VotingRegisterInput) returns (google.protobuf.Empty) {
+    }
+    rpc Vote (VoteInput) returns (google.protobuf.Empty) {
+    }
+    rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateEpochNumber (UpdateEpochNumberInput) returns (google.protobuf.Empty) {
+    }
+    rpc AddOption (AddOptionInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty) {
+    }
+    
+    // View
+    rpc GetVotingResult (GetVotingResultInput) returns (VotingResult) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotingRecord (Hash) returns (VotingRecord) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotingHistories (Address) returns (VotingHistories) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotingHistory (GetVotingHistoryInput) returns (VotingHistory) {
+        option (aelf.is_view) = true;
+    }
+}

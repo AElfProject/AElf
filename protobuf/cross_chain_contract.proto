@@ -6,6 +6,8 @@ import "aelf_options.proto";
 import "crosschain.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+import "resource.proto";
 
 option csharp_namespace = "AElf.Contracts.CrossChain";
 
@@ -14,7 +16,7 @@ service CrossChainContract {
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc RequestChainCreation (SideChainInfo) returns (SInt32Value) {
+    rpc RequestChainCreation (SideChainCreationRequest) returns (SInt32Value) {
     }
     rpc WithdrawRequest (SInt32Value) returns (google.protobuf.Empty) {
     }
@@ -69,6 +71,9 @@ service CrossChainContract {
     rpc GetBoundParentChainHeightAndMerklePathByHeight (SInt64Value) returns (CrossChainMerkleProofContext) {
         option (aelf.is_view) = true;
     }
+    rpc GetChainInitializationContext(SInt32Value) returns (ChainInitializationContext){
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitializeInput {
@@ -101,4 +106,20 @@ message Disposed
 {
     option (aelf.is_event) = true;
     int32 chainId = 1;
+}
+
+message SideChainCreationRequest {
+    int64 indexingPrice = 1;
+    int64 lockedTokenAmount = 2;
+    repeated ResourceTypeBalancePair resourceBalances = 3;
+    bytes contractCode = 4;
+}
+
+message SideChainInfo {
+    SideChainCreationRequest sideChainCreationRequest = 1;
+    Address Proposer = 5;
+    SideChainStatus SideChainStatus = 6;
+    int32 SideChainId = 7;
+    Hash ProposalHash = 8;
+    google.protobuf.Timestamp CreatedTime = 9;
 }

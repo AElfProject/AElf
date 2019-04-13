@@ -40,7 +40,7 @@ service ConsensusContract {
     rpc ValidateConsensusAfterExecution (DPoSHeaderInformation) returns (ValidationResult) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentMiners (google.protobuf.Empty) returns (MinerList) {
+    rpc GetCurrentMiners (google.protobuf.Empty) returns (MinerListWithRoundNumber) {
         option (aelf.is_view) = true;
     }
 }

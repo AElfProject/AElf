@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package election;
+
+import "aelf_options.proto";
+import "common.proto";
+import "kernel.proto";
+import "vote.proto";
+import "election.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.Election";
+
+service ElectionContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
+
+    // Action
+    rpc InitialElectionContract (InitialElectionContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc Vote (VoteMinerInput) returns (google.protobuf.Empty) {
+    }
+    rpc Withdraw (Hash) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateTermNumber (UpdateTermNumberInput) returns (google.protobuf.Empty) {
+    }
+
+    // View
+    rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
+        option (aelf.is_view) = true;
+    }
+}
