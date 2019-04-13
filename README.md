@@ -23,12 +23,14 @@ For more information you can follow these links:
 
 ### This repository
 
-This repo contains mainly two things: the code for an AElf node and the command line tool used to interact with it. It also contains tests to validate the logic. There's a docs folder which centralizes all our documentation.
+This repo is where you will find the code that can use to run an AElf node and the command line tool used to interact with it. It also contains a **tests** folder that centralizes all the unit tests.
+
+If you're looking for the js sdk, follow this [link](https://github.com/AElfProject/aelf-sdk.js).
 
 ### Prerequisites
 
 Because most of AElf is written in C# with the dotnet core framework, you will need to download and install the [.NET Core SDK](https://dotnet.microsoft.com/download).
-Concerning the IDE, you can use any as long as it has support for C#. Good choices include Jetbrains Rider and Visual Studio.
+Concerning the IDE, you can use any as long as it has support for C#. Good choices include Jetbrains Rider and Visual Studio. Strictly speaking,if you only want to run the node, no need for an IDE since you can build and run with dotnet commands, but if you want to contribute to AElf, it's better to have more support for solution and project files.  
 Finally if you want to run the node you will have to install and run a Redis or SSDB for the nodes data.
 
 Note that, if you intend to develop AElf itself you will have to install protobuf/gRPC.
@@ -60,7 +62,7 @@ We currently only use GitHub for tracking issues, feature request and pull reque
 #### Bug report
 
 If you think you have found a bug in our system feel free to open a GitHub issue, but first:
-- check with GitHubs search engine that the bug doesn't already exist.
+- check with GitHub's search engine that the bug doesn't already exist.
 - in the request give as much information as possible such as: the OS, the version of AElf, how to reproduce...
 
 #### Missing feature
@@ -72,13 +74,13 @@ We also use the GitHub issue tracker for features. If you think that some piece 
 
 ### Pull request
 
-For any non trivial modification to the code, the pull requests should be associated with an issue that was previously discussed. During the time you implement and are not yet ready for review, prefix the PRs title with ```[WIP]``` and also don't forget to do the following:
+For any non trivial modification of the code, the pull requests should be associated with an issue that was previously discussed. During the time you implement and are not yet ready for review, prefix the PR's title with ```[WIP]``` and also don't forget to do the following:
 - add a description in the pull request saying which issue you are fixing/implementing. 
 - be as explicit as possible about the changes in the description.
 - add the tests corresponding to your modifications.
-- pull requests should be against the **dev** branch.
+- pull requests should be made against the **dev** branch.
 
-When you are ready for a review by the core team, just remove ```[WIP]``` from your PRs title and others will review. This will either lead to discussion or to a refactor of the code. The Travis CI system makes sure that every pull request is built for Windows, Linux, and macOS, and that unit tests are run automatically. The CI passing is a pre-condition for the PR to be merged.
+When you are ready for a review by the core team, just remove ```[WIP]``` from your PR's title and others will review. This will either lead to a discussion or to a refactor of the code. The Travis CI system makes sure that every pull request is built for Windows, Linux, and macOS, and that unit tests are run automatically. The CI passing is a pre-condition for the PR to be merged as well as the approval from the core team.
 
 ## Versioning
 
