@@ -1,7 +1,6 @@
 ﻿//using AElf.Sdk.CSharp.Types;
-//using AElf.Types.CSharp.MetadataAttribute;
+//using AElf.CSharp.Core.MetadataAttribute;
 //using CSharpSmartContract = AElf.Sdk.CSharp.CSharpSmartContract;
-//using AElf.Common;
 
 namespace AElf.Kernel.Tests.Concurrency.Metadata.TestContracts
 {

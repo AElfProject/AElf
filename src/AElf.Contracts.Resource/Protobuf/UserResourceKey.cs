@@ -1,6 +1,3 @@
-using AElf.Common;
-using Google.Protobuf.WellKnownTypes;
-
 namespace AElf.Contracts.Resource
 {
     public partial class UserResourceKey

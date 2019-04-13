@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.TestBase;
-using AElf.Types.CSharp;
+using AElf.CSharp.Core;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 

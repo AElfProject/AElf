@@ -1,10 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Domain;
 using AElf.Modularity;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +9,6 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.EventBus;
 using Volo.Abp.Modularity;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel
 {

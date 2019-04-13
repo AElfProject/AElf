@@ -1,3 +1,5 @@
+using AElf.Kernel;
+
 namespace AElf.Contracts.TestKit
 {
     public static class SmartContractTestConstants

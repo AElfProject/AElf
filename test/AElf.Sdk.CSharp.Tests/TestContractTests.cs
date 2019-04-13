@@ -1,14 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Bcpg;
 using Shouldly;
 using Xunit;
 using CustomContract = AElf.Runtime.CSharp.Tests.TestContract;

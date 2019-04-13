@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace AElf.Common
+namespace AElf
 {
     public static class ByteArrayHelpers
     {
@@ -42,19 +42,20 @@ namespace AElf.Common
             return true;
         }
 
-        
-        
+
         public static byte[] Combine(params byte[][] arrays)
         {
             byte[] rv = new byte[arrays.Sum(a => a.Length)];
             int offset = 0;
-            foreach (byte[] array in arrays) {
+            foreach (byte[] array in arrays)
+            {
                 Buffer.BlockCopy(array, 0, rv, offset, array.Length);
                 offset += array.Length;
             }
+
             return rv;
         }
-        
+
         public static byte[] ConcatArrays(params byte[][] arrays)
         {
             var result = new byte[arrays.Sum(arr => arr.Length)];

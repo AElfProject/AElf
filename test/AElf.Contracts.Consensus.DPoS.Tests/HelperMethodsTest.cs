@@ -1,11 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
-using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -71,12 +68,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 Assert.Equal(4L, round.RoundNumber);
                 Assert.Equal(2L, round.TermNumber);
             }
-        }
-
-        [Fact]
-        public async Task ChangeTermTest()
-        {
-            
         }
     }
 }

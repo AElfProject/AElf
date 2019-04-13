@@ -1,6 +1,4 @@
-﻿using System;
-using AElf.Common;
-using AElf.Kernel;
+﻿using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Contracts.Genesis
