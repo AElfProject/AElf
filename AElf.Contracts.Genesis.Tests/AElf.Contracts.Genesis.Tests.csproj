@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
+    <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
     <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
     <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
     <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
