@@ -14,10 +14,4 @@
       <ProjectReference Include="..\..\test\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Content Include="appsettings.json">
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </Content>
-    </ItemGroup>
-
 </Project>
