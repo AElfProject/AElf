@@ -199,7 +199,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             // Before mined
             var response = await GetResponseAsObjectAsync<TransactionResultDto>(
-                $"/api/chain/transactionResult/{transactionHex}");
+                $"/api/chain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.Pending.ToString());
@@ -208,7 +208,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             // After mined
             response = await GetResponseAsObjectAsync<TransactionResultDto>(
-                $"/api/chain/transactionResult/{transactionHex}");
+                $"/api/chain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.Mined.ToString());
@@ -226,7 +226,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             // After executed
             var transactionHex = transactionList[1].GetHash().ToHex();
             var response = await GetResponseAsObjectAsync<TransactionResultDto>(
-                $"/api/chain/transactionResult/{transactionHex}");
+                $"/api/chain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.Failed.ToString());
@@ -241,7 +241,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var transactionHex = transaction.GetHash().ToHex();
 
             var response = await GetResponseAsObjectAsync<TransactionResultDto>(
-                $"/api/chain/transactionResult/{transactionHex}");
+                $"/api/chain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.NotExisted.ToString());
@@ -252,7 +252,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             var fakeTransactionId = "FakeTransactionId";
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/transactionResult/{fakeTransactionId}", expectedStatusCode: HttpStatusCode.Forbidden);           
+                $"/api/chain/transactionResult?transactionId={fakeTransactionId}", expectedStatusCode: HttpStatusCode.Forbidden);           
 
             response.Error.Code.ShouldBe(Error.InvalidTransactionId.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransactionId]);
