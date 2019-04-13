@@ -5,6 +5,8 @@ TAG=$1
 MYGET_API_KEY=$2
 VERSION=`echo ${TAG} | cut -b 2-`
 
+cd src/
+
 for name in `ls -lh | grep ^d | grep AElf | grep -v Tests | awk '{print $NF}'`;
 do
     if [[ -f ${name}/${name}.csproj ]] && [[ 1 -eq $(grep -c "GeneratePackageOnBuild"  ${name}/${name}.csproj) ]];then
