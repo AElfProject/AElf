@@ -1,5 +1,4 @@
-﻿using System;
-using AElf.Common;
+﻿using AElf.Common;
 using AElf.CrossChain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;
@@ -10,7 +9,6 @@ using AElf.OS.Rpc.ChainController;
 using AElf.OS.Rpc.Net;
 using AElf.OS.Rpc.Wallet;
 using AElf.Runtime.CSharp;
-using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
 using AElf.RuntimeSetup;
 using AElf.WebApp.Web;
 using Microsoft.Extensions.DependencyInjection;

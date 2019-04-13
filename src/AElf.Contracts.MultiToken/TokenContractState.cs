@@ -1,12 +1,9 @@
-using System;
 using Acs1;
 using AElf.Common;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
 {

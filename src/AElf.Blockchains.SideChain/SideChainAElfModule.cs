@@ -1,5 +1,4 @@
-﻿using System;
-using AElf.Blockchains.BasicBaseChain;
+﻿using AElf.Blockchains.BasicBaseChain;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.CrossChain;

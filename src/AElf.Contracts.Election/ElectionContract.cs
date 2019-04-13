@@ -2,7 +2,6 @@
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Asn1.Cms;
 
 namespace AElf.Contracts.Election
 {
