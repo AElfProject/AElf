@@ -11,6 +11,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -30,6 +31,7 @@ namespace AElf.Kernel.Consensus
             {
                 PublicKey = ByteString.CopyFrom(ecKeyPair.PublicKey),
                 InitialTermNumber = 1,
+                Behaviour = DPoSBehaviour.NextTerm
             };
             services.AddTransient(o =>
             {
@@ -42,6 +44,13 @@ namespace AElf.Kernel.Consensus
                     new CommandInput {PublicKey = ByteString.CopyFrom(ecKeyPair.PublicKey)});
                 mockService.Setup(m => m.ParseConsensusTriggerInformation(It.IsAny<byte[]>())).Returns(
                     dposTriggerInformation);
+                mockService.Setup(m => m.ExecuteContractAsync<ConsensusCommand>(It.IsAny<IChainContext>(),
+                        It.IsAny<string>(), It.IsAny<IMessage>(), It.IsAny<DateTime>()))
+                    .Returns(Task.FromResult(new ConsensusCommand
+                    {
+                        NextBlockMiningLeftMilliseconds = 4000,
+                        ExpectedMiningTime = DateTime.UtcNow.Add(TimeSpan.FromSeconds(4)).ToTimestamp()
+                    }));
                 mockService.Setup(m => m.ExecuteContractAsync<ValidationResult>(It.IsAny<IChainContext>(),
                         It.IsAny<string>(), It.IsAny<IMessage>(), It.IsAny<DateTime>()))
                     .Returns(Task.FromResult(new ValidationResult
