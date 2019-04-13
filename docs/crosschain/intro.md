@@ -4,6 +4,11 @@ One of the major issues with current blockchain systems is scalability. This is 
 
 The main idea is that the sidechains are independent and specialized to ensure that the dapps running on them can perform efficiently and smoothly. A network link will exist between mainchain node and sidechain nodes, but the communication is mainly done through what's called a Merkle root.
 
+<!-- ![](intro-topology.png=400x400) -->
+<p align="center">
+    <img src="intro-topology.png" width="300" align="center" >
+</div>
+
 The following sections of this documentation will give you an overview of the architecture of AElfs side chains. There will also be a guide explaining how to set up a mainchain and a side chain node.
 
 

@@ -10,4 +10,6 @@ One important aspect is the key role that the mainchain plays, because its main 
 
 In the current architecture, both the side chain node and the main chain node has one server and exactly one client. This is the base for AElfs two-way communication between mainchain and side chains. Both the server and the client are implemented as a node plugins (a node has a collection of plugins). Interaction (listening and requesting) can start when both the nodes have started.
 
+![](archi-topology.png)
+
 
