@@ -14,4 +14,21 @@ In the current architecture, both the side chain node and the main chain node ha
     <img src="archi-topology.png" width="300" align="center" />
 </p>
 
+The diagram above illustrates two nodes run by an entity: one main chain node and one side chain node. Note that the nodes don't have to be in the same physical location. 
+
+#### Side chain creation
+
+The following steps are necessary to create a side chain.
+1. Start a mainchain node - the process of creating and indexing a side chain is initiated on the mainchain.
+2. Approve tokens to cross chain contract.
+3. Wait for accept.
+4. start a side chain node.
+
+The next section describes what happens once the side chain node has been started.
+
+#### Connection and messages
+
+<p align="center">
+    <img src="archi-node.png" width="300" align="center" />
+</p>
 

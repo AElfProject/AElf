@@ -12,7 +12,7 @@ The main idea is that the sidechains are **independent** and **specialized** to 
 
 The diagram above illustrates the conceptual idea behind side chains.
 
-Side chains are isolated but still need a way to interact with each other. for this AElf introduces a communication mechanism through **merkle roots** and **indexing** to enable cross chain verification scenarios.
+Side chains are isolated but still need a way to interact with each other for this AElf introduces a communication mechanism through **merkle roots** and **indexing** to enable cross chain verification scenarios.
 
 The following sections of this documentation will give you an overview of the architecture of AElfs side chains. There will also be a guide explaining how to set up a mainchain and a side chain node.
 
