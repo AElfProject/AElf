@@ -39,7 +39,7 @@ namespace AElf.Contracts.AssociationAuth
             return new Empty();
         }
 
-        public override Hash Propose(Proposal proposal)
+        public override Hash CreateProposal(Proposal proposal)
         {
             // check validity of proposal
             Assert(

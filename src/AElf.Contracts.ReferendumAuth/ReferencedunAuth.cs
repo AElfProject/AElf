@@ -21,7 +21,7 @@ namespace AElf.Contracts.ReferendumAuth
             return new Empty();
         }
 
-        public override Hash Propose(Proposal proposal)
+        public override Hash CreateProposal(Proposal proposal)
         {
             Assert(State.Initialized.Value, "Contract not initialized.");
             CheckParliamentAddress();

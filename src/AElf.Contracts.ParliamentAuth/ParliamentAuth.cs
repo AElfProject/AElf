@@ -18,7 +18,7 @@ namespace AElf.Contracts.ParliamentAuth
             return new Empty();
         }
 
-        public override Hash Propose(Proposal input)
+        public override Hash CreateProposal(Proposal input)
         {
             var proposal = input;
             // check validity of proposal

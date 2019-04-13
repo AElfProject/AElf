@@ -10,7 +10,7 @@ import "google/protobuf/wrappers.proto";
 option (aelf.identity) = "acs3";
 
 service AuthorizationContract {
-    rpc Propose (Proposal) returns (Hash) {
+    rpc CreateProposal (Proposal) returns (Hash) {
     }
     rpc SayYes (Approval) returns (google.protobuf.BoolValue) {
     }
