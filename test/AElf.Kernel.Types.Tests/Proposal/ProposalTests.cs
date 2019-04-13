@@ -1,7 +1,5 @@
 using System;
-using AElf.Common;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;

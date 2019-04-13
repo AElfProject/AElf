@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
-using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -21,7 +19,7 @@ namespace AElf.Kernel
         /// <param name="hash"></param>
         public bool AddNode(Hash hash)
         {
-            if(Root ==null)
+            if (Root == null)
                 Nodes.Add(hash);
             return Root == null;
         }
@@ -30,14 +28,15 @@ namespace AElf.Kernel
         {
             var enumerable = hashes as Hash[] ?? hashes.ToArray();
             var hashesList = enumerable.ToList();
-            
+
             // remove sort here
             //hashesList.Sort(CompareHash);
-            
+
             foreach (var hash in hashesList)
             {
                 Nodes.Add(hash);
             }
+
             return this;
         }
 
@@ -65,26 +64,28 @@ namespace AElf.Kernel
                 Root = Hash.Empty;
                 return Root;
             }
+
             LeafCount = Nodes.Count;
-            if(Nodes.Count % 2 == 1)
+            if (Nodes.Count % 2 == 1)
                 Nodes.Add(Nodes.Last());
             var nodeToAdd = Nodes.Count / 2;
             var newAdded = 0;
             var i = 0;
-            while (i < Nodes.Count-1)
+            while (i < Nodes.Count - 1)
             {
                 var left = Nodes[i++];
                 var right = Nodes[i++];
-                Nodes.Add(CalculateRootFromMultiHash(new []{left, right}));
-                if (++newAdded != nodeToAdd) 
+                Nodes.Add(CalculateRootFromMultiHash(new[] {left, right}));
+                if (++newAdded != nodeToAdd)
                     continue;
-                
+
                 // complete this row
                 if (nodeToAdd % 2 == 1 && nodeToAdd != 1)
                 {
                     nodeToAdd++;
                     Nodes.Add(Nodes.Last());
                 }
+
                 // start a new row
                 nodeToAdd /= 2;
                 newAdded = 0;
@@ -125,6 +126,7 @@ namespace AElf.Kernel
                 index = firstInRow + shift;
                 rowcount /= 2;
             }
+
             var res = new MerklePath();
             res.Path.AddRange(path);
             return res;
@@ -134,7 +136,7 @@ namespace AElf.Kernel
         {
             var res = hashList.OrderBy(b => b).Select(h => h.DumpByteArray())
                 .Aggregate(new byte[0], (rawBytes, bytes) => rawBytes.Concat(bytes).ToArray());
-            
+
             return Hash.FromRawBytes(res);
         }
     }

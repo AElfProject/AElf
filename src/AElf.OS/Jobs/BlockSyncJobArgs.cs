@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using AElf.Common;
-
 namespace AElf.OS.Jobs
 {
     public class BlockSyncJobArgs

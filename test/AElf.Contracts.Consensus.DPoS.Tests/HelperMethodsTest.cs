@@ -1,11 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
-using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;

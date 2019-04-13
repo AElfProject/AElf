@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using Google.Protobuf;
 
-namespace AElf.Common
+namespace AElf
 {
     public static class ByteExtensions
     {
@@ -15,7 +15,7 @@ namespace AElf.Common
         {
             return Base58CheckEncoding.EncodePlain(value);
         }
-        
+
 
         public static string ToHex(this byte[] bytes, bool withPrefix = false)
         {

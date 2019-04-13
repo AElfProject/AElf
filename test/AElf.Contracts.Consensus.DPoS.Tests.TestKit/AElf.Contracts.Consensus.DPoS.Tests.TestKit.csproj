@@ -1,11 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
-
         <IsPackable>false</IsPackable>
-
         <RootNamespace>AElf.Contracts.Consensus.DPoS</RootNamespace>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -22,7 +23,7 @@
       <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
       <ProjectReference Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
       <ProjectReference Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
-      <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
       <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     </ItemGroup>

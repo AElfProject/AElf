@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AElf.Common;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Blockchain.Application

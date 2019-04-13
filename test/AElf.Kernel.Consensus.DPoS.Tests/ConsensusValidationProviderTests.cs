@@ -1,6 +1,4 @@
-using System.Collections.Immutable;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 using Shouldly;

@@ -1,4 +1,3 @@
-using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
@@ -11,7 +10,6 @@ namespace AElf.Contracts.Vote
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract { get; set; }
         internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
-        
         public SingletonState<Hash> TokenContractSystemName { get; set; }
         public SingletonState<Hash> ConsensusContractSystemName { get; set; }
     }

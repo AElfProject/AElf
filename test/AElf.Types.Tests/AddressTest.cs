@@ -1,5 +1,4 @@
 ﻿using System;
-using AElf.Common;
 using AElf.Cryptography;
 using Shouldly;
 using Xunit;

@@ -1,18 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Contracts.MultiToken;
 using AElf.Kernel;
-using AElf.Kernel.ABI;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Runtime.CSharp.Tests.TestContract;
-using AElf.Types.CSharp;
 using Google.Protobuf;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Shouldly;
 using Xunit;
 

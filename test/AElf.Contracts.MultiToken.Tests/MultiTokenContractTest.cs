@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Acs1;
-using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
