@@ -104,20 +104,23 @@ namespace AElf.OS
             await StartNode();
             var chain = await _blockchainService.GetChainAsync();
 
-            var genesisBlock = await _blockchainService.GetBlockByHashAsync(chain.GenesisBlockHash);
-            BestBranchBlockList.Add(genesisBlock);
+            if (chain.BestChainHeight == 1)
+            {
+                var genesisBlock = await _blockchainService.GetBlockByHashAsync(chain.GenesisBlockHash);
+                BestBranchBlockList.Add(genesisBlock);
 
-            BestBranchBlockList.AddRange(await AddBestBranch());
+                BestBranchBlockList.AddRange(await AddBestBranch());
 
-            ForkBranchBlockList =
-                await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
+                ForkBranchBlockList =
+                    await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
 
-            UnlinkedBranchBlockList = await AddForkBranch(Hash.FromString("UnlinkBlock"), 9);
+                UnlinkedBranchBlockList = await AddForkBranch(Hash.FromString("UnlinkBlock"), 9);
 
-            // Set lib
-            chain = await _blockchainService.GetChainAsync();
-            await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
-                BestBranchBlockList[4].GetHash());
+                // Set lib
+                chain = await _blockchainService.GetChainAsync();
+                await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
+                    BestBranchBlockList[4].GetHash());
+            }
         }
 
         public async Task DisposeMock()
