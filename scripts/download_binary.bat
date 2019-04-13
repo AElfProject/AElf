@@ -10,7 +10,7 @@ echo %url%
 echo %file%
 
 if not exist "%scriptdir%contract_csharp_plugin.exe" (
-    powershell -Command "(new-object net.webclient).DownloadFile('%url%', '%file%')"
+    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%url%' -OutFile '%file%'"
     unzip %scriptdir%%filename% -d %scriptdir%
     del %scriptdir%%filename%
 )
