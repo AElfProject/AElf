@@ -13,6 +13,10 @@ using Xunit.Abstractions;
 
 namespace AElf.Contracts.TestKit
 {
+    public class ContractTestBase : ContractTestBase<ContractTestModule>
+    {
+    }
+
     public class ContractTestBase<TModule> : AbpIntegratedTest<TModule>
         where TModule : ContractTestModule
     {
