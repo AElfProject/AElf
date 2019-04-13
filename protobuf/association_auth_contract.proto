@@ -6,31 +6,69 @@ import "acs3.proto";
 import "google/protobuf/empty.proto";
 option csharp_namespace = "AElf.Contracts.AssociationAuth";
 
-service AssociationAuthContract {
-    option (aelf.csharp_state) = "AElf.Contracts.AssociationAuth.AssociationAuthState";
+service OrganizationAuthContract {
+    option (aelf.csharp_state) = "AElf.Contracts.OrganizationAuth.OrganizationAuthState";
     option (aelf.base) = "acs3.proto";
-    // Actions
-    rpc Initialize(AssociationAuthContractInitializationInput) returns (google.protobuf.Empty){
+    
+    // return organization address.
+    rpc CreateOrganization(CreateOrganizationInput) returns (Address){
     }
-    rpc UpdateAssociation(Association) returns (google.protobuf.Empty){
-    }     
-    rpc GetAssociation (google.protobuf.Empty) returns (Association) {
+    rpc CreateProposal (CreateProposalInput) returns (Hash) {
+    }
+    rpc GetOrganization (google.protobuf.Empty) returns (Organization) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetProposal(Hash) returns (GetProposalOutput) {
         option (aelf.is_view) = true;
     }
 }
 
-message Association{
-    int32 ExecutionThreshold = 1;
-    int32 ProposerThreshold = 2;
-    repeated Reviewer Reviewers = 3;
+message CreateOrganizationInput{
+    repeated Reviewer reviewers = 3;
 }
 
-message Reviewer {
-    bytes PubKey = 1;
-    int32 Weight = 2;
+message Organization{
+    int32 executionThreshold = 1;
+    repeated Reviewer reviewers = 2;
+    Address organizationAddress = 3;
 }
 
-message AssociationAuthContractInitializationInput{
-    Address director = 1;
-    Hash parliamentAuthContractSystemName = 2;
+message Reviewer{
+    bytes pubKey = 1;
+    int32 weight = 2;
+}
+
+message CreateProposalInput{
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Hash organizationAddress = 6;
+}
+
+message ProposalInfo{
+    Hash proposalHash = 1;
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Hash organizationAddress = 6;
+    Address sender = 7;
+}
+
+message GetProposalOutput{
+    Hash proposalHash = 1;
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Hash organizationAddress = 6;
+    Address sender = 7;
+    ProposalStatus status = 8;
+}
+
+enum ProposalStatus{
+    Active = 0;
+    Released = 1;
+    Expired = 2;
 }

@@ -10,32 +10,21 @@ import "google/protobuf/wrappers.proto";
 option (aelf.identity) = "acs3";
 
 service AuthorizationContract {
-    rpc CreateProposal (Proposal) returns (Hash) {
-    }
-    rpc Approve (Approval) returns (google.protobuf.BoolValue) {
+    rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) {
     }
     rpc Release (Hash) returns (google.protobuf.Empty) {
     }
-    // Views
-    rpc GetProposal(Hash) returns (GetProposalOutput) {
-        option (aelf.is_view) = true;
-    }
 }
 
-message Approval {
+message ApproveInput {
     Hash proposalHash = 1;
-    bytes publicKey = 2;
-    bytes inputData= 3;
+    bytes inputData= 2;
 }
 
-message Proposal {
-    Address multiSigAccount = 1;
-    string name = 2;
-    Address toAddress = 3;
-    bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
-    Address proposer = 6;
-    ProposalLevel level = 7;
+message Approval{
+    Hash proposalHash = 1;
+    bytes pubKey = 2;
+    bytes inputData= 3;
 }
 
 message ApprovedResult {
@@ -44,9 +33,22 @@ message ApprovedResult {
 }
 
 message GetProposalOutput{
-    Proposal proposal = 1;
-    ProposalStatus status = 2;
-    bool canBeReleased = 3;
+    Hash proposalHash = 1;
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Address sender = 7;
+    ProposalStatus status = 8;
+}
+
+message ProposalInfo{
+    Hash proposalHash = 1;
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Address sender = 7;
 }
 
 enum ProposalStatus {
@@ -58,10 +60,4 @@ enum ProposalStatus {
 enum ProposalLevel{
     Normal = 0;
     Vital = 1;
-}
-
-message ProposalInfo {
-    Hash proposalHash = 1;
-    Proposal proposal = 2;
-    bool isReleased = 3;
 }

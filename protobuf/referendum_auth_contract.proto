@@ -12,8 +12,12 @@ service ReferendumAuthContract {
     // Actions
     rpc Initialize(ReferendumAuthContractInitializationInput) returns (google.protobuf.Empty){
     }
-    
+    rpc CreateProposal (CreateProposalInput) returns (Hash) {
+    }
     rpc ReclaimVote(Hash) returns (google.protobuf.Empty){
+    }
+    rpc GetProposal(Hash) returns (GetProposalOutput) {
+        option (aelf.is_view) = true;
     }
 }
 
@@ -26,4 +30,39 @@ message ReferendumAuthContractInitializationInput{
 message VoteInfo{
     int64 amount = 1;
     Hash lockId = 2;
+}
+
+message CreateProposalInput{
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    string tokenSymbol = 6;
+}
+
+message ProposalInfo{
+    Hash proposalHash = 1;
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Address sender = 6;
+    string tokenSymbol = 7;
+}
+
+message GetProposalOutput{
+    Hash proposalHash = 1;
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    string tokenSymbol = 6;
+    Address sender = 7;
+    ProposalStatus status = 8;
+}
+
+enum ProposalStatus{
+    Active = 0;
+    Released = 1;
+    Expired = 2;
 }

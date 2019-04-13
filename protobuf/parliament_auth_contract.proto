@@ -13,6 +13,11 @@ service ParliamentAuthContract {
     // Actions
     rpc Initialize(ParliamentAuthInitializationInput) returns (google.protobuf.Empty){
     }
+    rpc CreateProposal (CreateProposalInput) returns (Hash) {
+    }
+    rpc GetProposal(Hash) returns (GetProposalOutput) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message ParliamentAuthInitializationInput{
@@ -24,3 +29,34 @@ message Representative{
     int32 Weight = 2;
 }
 
+message CreateProposalInput{
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+}
+
+message GetProposalOutput{
+    Hash proposalHash = 1;
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Address sender = 7;
+    ProposalStatus status = 8;
+}
+
+enum ProposalStatus{
+    Active = 0;
+    Released = 1;
+    Expired = 2;
+}
+
+message ProposalInfo {
+    Hash proposalHash = 1;
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Address sender = 6;
+}
