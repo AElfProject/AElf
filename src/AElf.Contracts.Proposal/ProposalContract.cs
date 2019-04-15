@@ -80,5 +80,12 @@ namespace AElf.Contracts.Proposal
 
             return result;
         }
+
+        public override ApprovedResult GetApprovedResult(Hash proposalId)
+        {
+            var approvedResult = State.Approved[proposalId];
+            Assert(approvedResult != null, "Not found approved result.");
+            return approvedResult;
+        }
     }
 }

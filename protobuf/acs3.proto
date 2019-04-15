@@ -10,6 +10,8 @@ import "google/protobuf/wrappers.proto";
 option (aelf.identity) = "acs3";
 
 service AuthorizationContract {
+    rpc CreateProposal (CreateProposalInput) returns (Hash) {
+    }
     rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) {
     }
     rpc Release (Hash) returns (google.protobuf.Empty) {
@@ -19,4 +21,12 @@ service AuthorizationContract {
 message ApproveInput {
     Hash proposalHash = 1;
     bytes inputData= 2;
+}
+
+message CreateProposalInput{
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Address organizationAddress = 6;
 }

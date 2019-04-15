@@ -17,6 +17,10 @@ service ProposalContract {
     }
     rpc Approve (Approval) returns (google.protobuf.BoolValue) {
     }
+    
+    rpc GetApprovedResult(Hash) returns (ApprovedResult){
+        option (aelf.is_view) = true;
+    }
 }
 
 message CreateProposalInput{
@@ -24,7 +28,7 @@ message CreateProposalInput{
     Address toAddress = 3;
     bytes params = 4;
     google.protobuf.Timestamp expiredTime = 5;
-    Hash organizationAddress = 6;
+    Address organizationAddress = 6;
     Address Proposer = 7;
 }
 
@@ -44,6 +48,7 @@ message GetProposalOutput{
     Address toAddress = 3;
     bytes params = 4;
     google.protobuf.Timestamp expiredTime = 5;
+    Address organizationAddress = 6;
     Address proposer = 7;
 }
 
