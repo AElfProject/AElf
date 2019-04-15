@@ -1,12 +1,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Infrastructure;
 using Shouldly;
 using Shouldly.ShouldlyExtensionMethods;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace AElf.Kernel.Blockchain.Domain
 {

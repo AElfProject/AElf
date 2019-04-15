@@ -6,16 +6,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.MetaData;
-using AElf.Sdk.CSharp;
-using AElf.Types.CSharp.MetadataAttribute;
-using Google.Protobuf;
+using AElf.CSharp.Core.MetadataAttribute;
 using Type = System.Type;
-using Module = AElf.Kernel.ABI.Module;
 
 namespace AElf.Runtime.CSharp
 {

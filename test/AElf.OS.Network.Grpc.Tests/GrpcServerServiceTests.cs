@@ -3,7 +3,6 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -17,11 +16,8 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
-using Microsoft.Extensions.Options;
-using Moq;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
-using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.OS.Network

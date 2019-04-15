@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Types;
-using AElf.Types.CSharp;
+using AElf.CSharp.Core;
 using Google.Protobuf;
 
 namespace AElf.CrossChain

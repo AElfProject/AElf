@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using AElf.Common;
 using AElf.Cryptography.Certificate;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;

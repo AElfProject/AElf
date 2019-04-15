@@ -1,4 +1,3 @@
-using AElf.Common;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
 using AElf.Kernel.Node.Infrastructure;

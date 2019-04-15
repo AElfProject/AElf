@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Infrastructure;
 
 namespace AElf.Kernel.SmartContractExecution.Domain

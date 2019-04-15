@@ -7,6 +7,8 @@ MYGET_API_KEY=$2
 BUILD_VERSION=`expr $(date +%s) / 86400`
 VERSION=${VERSION_PREFIX}-${BUILD_VERSION}
 
+cd src/
+
 for name in `ls -lh | grep ^d | grep AElf | grep -v Tests| awk '{print $NF}'`;
 do
     if [[ -f ${name}/${name}.csproj ]] && [[ 1 -eq $(grep -c "GeneratePackageOnBuild" ${name}/${name}.csproj) ]];then

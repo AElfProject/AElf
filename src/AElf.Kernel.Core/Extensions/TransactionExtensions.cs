@@ -1,5 +1,4 @@
 using System.Linq;
-using AElf.Common;
 using AElf.Cryptography;
 
 namespace AElf.Kernel
@@ -21,6 +20,7 @@ namespace AElf.Kernel
             return transaction.CalculateSize();
         }
         
+        //TODO: VerifySignature method need update, remove sig count check logic.
         public static bool VerifySignature(this Transaction tx)
         {
             if (tx.Sigs == null || tx.Sigs.Count == 0)

@@ -5,7 +5,6 @@
 //using Google.Protobuf;
 //using Microsoft.Extensions.Logging;
 //using Xunit;
-//using AElf.Common;
 //using AElf.TestBase;
 //using AElf.Kernel.Managers;
 //using AElf.Kernel.SmartContract;

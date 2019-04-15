@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
-using AElf.Types.CSharp.Utils;
+using AElf.CSharp.Core.Utils;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -92,7 +91,7 @@ namespace AElf.Contracts.CrossChain
                 Hash.FromRawBytes(txId.DumpByteArray().Concat(txResultStatusRawBytes).ToArray()));
         }
 
-        private Hash ComputeRootWirhMultiHash(IEnumerable<Hash> nodes)
+        private Hash ComputeRootWithMultiHash(IEnumerable<Hash> nodes)
         {
             var binaryMerkleTree = new BinaryMerkleTree();
             binaryMerkleTree.AddNodes(nodes);
@@ -211,7 +210,7 @@ namespace AElf.Contracts.CrossChain
         private Hash GetSideChainMerkleTreeRoot(long parentChainHeight)
         {
             var indexedSideChainData = State.IndexedCrossChainBlockData[parentChainHeight];
-            return ComputeRootWirhMultiHash(
+            return ComputeRootWithMultiHash(
                 indexedSideChainData.SideChainBlockData.Select(d => d.TransactionMerkleTreeRoot));
         }
         

@@ -2,7 +2,6 @@
 //using System.Collections.Generic;
 //using System.Linq;
 //using AElf.SmartContract;
-//using AElf.Common;
 //using AElf.Kernel.SmartContract;
 //using Google.Protobuf;
 

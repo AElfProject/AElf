@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
 using Google.Protobuf;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Core.Tests")]
 [assembly: InternalsVisibleTo("AElf.Contracts.SideChain.Tests")]
 [assembly: InternalsVisibleTo("AElf.Contracts.Authorization.Tests")]
 
-namespace AElf.Common
+namespace AElf
 {
     public partial class Address : ICustomDiagnosticMessage, IComparable<Address>
     {
@@ -192,7 +191,7 @@ namespace AElf.Common
     public class ChainAddress
     {
         public Address Address { get; }
-        public int ChainId { get;}
+        public int ChainId { get; }
 
         public ChainAddress(Address address, int chainId)
         {
@@ -213,7 +212,7 @@ namespace AElf.Common
 
             var chainId = BitConverter.ToInt32(Base58CheckEncoding.Decode(arr[2]), 0);
 
-            return new ChainAddress(address,chainId);
+            return new ChainAddress(address, chainId);
         }
 
         private string _formatted;
@@ -223,7 +222,7 @@ namespace AElf.Common
             if (_formatted != null)
                 return _formatted;
             return _formatted = (TypeConsts.AElfAddressPrefix + "_") + Address.GetFormatted() +
-                               ("_" + Base58CheckEncoding.Encode(ChainId.DumpByteArray()));
+                                ("_" + Base58CheckEncoding.Encode(ChainId.DumpByteArray()));
         }
     }
 }

@@ -1,5 +1,3 @@
-using AElf.Common;
-
 namespace AElf.Sdk.CSharp.Tests.TestContract
 {
     public partial class TokenContract
