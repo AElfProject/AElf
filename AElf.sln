@@ -272,6 +272,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CSharp.Core", "src\AEl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CSharp.Core.Tests", "test\AElf.CSharp.Core.Tests\AElf.CSharp.Core.Tests.csproj", "{0C2B9A2C-AB0B-46D5-8EA3-800565C596DE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Proposal", "src\AElf.Contracts.Proposal\AElf.Contracts.Proposal.csproj", "{F48CCCFF-4C5C-4012-A981-6C89DEB5EC74}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -766,6 +768,10 @@ Global
 		{0C2B9A2C-AB0B-46D5-8EA3-800565C596DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0C2B9A2C-AB0B-46D5-8EA3-800565C596DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0C2B9A2C-AB0B-46D5-8EA3-800565C596DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F48CCCFF-4C5C-4012-A981-6C89DEB5EC74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F48CCCFF-4C5C-4012-A981-6C89DEB5EC74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F48CCCFF-4C5C-4012-A981-6C89DEB5EC74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F48CCCFF-4C5C-4012-A981-6C89DEB5EC74}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -906,5 +912,6 @@ Global
 		{F4DD898D-0BE8-4873-9532-F1F26DDB3291} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{550430E8-AA02-4FEE-AC3C-34F18BAA96A4} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{0C2B9A2C-AB0B-46D5-8EA3-800565C596DE} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{F48CCCFF-4C5C-4012-A981-6C89DEB5EC74} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 	EndGlobalSection
 EndGlobal
