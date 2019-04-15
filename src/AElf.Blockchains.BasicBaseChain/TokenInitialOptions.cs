@@ -7,7 +7,7 @@ namespace AElf.Blockchains.BasicBaseChain
         public int TotalSupply { get; set; }
         public int Decimals { get; set; }
         public bool IsBurnable { get; set; }
-        public float DividendPoolRatio { get; set; }
+        public double DividendPoolRatio { get; set; }
         public long LockForElection { get; set; }
     }
 }

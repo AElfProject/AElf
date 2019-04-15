@@ -1,4 +1,5 @@
-﻿using AElf.CrossChain.Grpc;
+﻿using System;
+using AElf.CrossChain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Modularity;
@@ -42,8 +43,41 @@ namespace AElf.Blockchains.BasicBaseChain
             var config = context.Services.GetConfiguration();
             
             Configure<NodeOptions>(config.GetSection("NodeType"));
-            
-            Configure<TokenInitialOptions>(config.GetSection("TokenInitial"));
+                        
+            Configure<TokenInitialOptions>(option =>
+            {
+                var nodeType = config.GetValue<NodeType>("NodeType");
+                switch (nodeType)
+                {
+                    case NodeType.MainNet:
+                        option.Symbol = "ELF";
+                        option.Name = "elf token";
+                        option.TotalSupply = 10_0000_0000;
+                        option.Decimals = 2;
+                        option.IsBurnable = true;
+                        option.DividendPoolRatio = 0.2;
+                        option.LockForElection = 10_0000;
+                        break;
+                    case NodeType.TestNet:
+                        option.Symbol = "ELFTEST";
+                        option.Name = "elf test token";
+                        option.TotalSupply = 10_0000_0000;
+                        option.Decimals = 2;
+                        option.IsBurnable = true;
+                        option.DividendPoolRatio = 0.2;
+                        option.LockForElection = 10_0000;
+                        break;
+                    case NodeType.CustomNet:
+                        option.Symbol = config["TokenInitial:Symbol"].ToString();
+                        option.Name = config["TokenInitial:Name"].ToString();
+                        option.TotalSupply = Convert.ToInt32(config["TokenInitial:TotalSupply"]);
+                        option.Decimals = Convert.ToInt32(config["TokenInitial:Decimals"]);
+                        option.IsBurnable = Convert.ToBoolean(config["TokenInitial:IsBurnable"]);
+                        option.DividendPoolRatio = Convert.ToDouble(config["TokenInitial:DividendPoolRatio"]);
+                        option.LockForElection = Convert.ToInt64(config["TokenInitial:LockForElection"]);
+                        break;
+                }
+            });
             
             Configure<ChainOptions>(option =>
             {
