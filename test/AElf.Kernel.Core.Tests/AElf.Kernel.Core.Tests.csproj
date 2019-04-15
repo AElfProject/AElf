@@ -18,7 +18,4 @@
         <ProjectReference Include="..\AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Domain" />
-    </ItemGroup>
 </Project>
