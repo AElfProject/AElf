@@ -27,6 +27,10 @@ namespace AElf.Contracts.Vote
             {
                 input.TotalEpoch = 1;
             }
+            
+            Assert(!string.IsNullOrEmpty(input.Topic), "Topic cannot be null or empty.");
+            Assert(input.TotalEpoch > 0, "Total epoch number must be greater than 0.");
+            Assert(input.ActiveDays > 0, "Total active days must be greater than 0.");
 
             if (input.ActiveDays == int.MaxValue)
             {
@@ -35,7 +39,7 @@ namespace AElf.Contracts.Vote
 
             InitializeDependentContracts();
 
-            if (input.StartTimestamp.ToDateTime() < Context.CurrentBlockTime)
+            if (input.StartTimestamp == null || input.StartTimestamp.ToDateTime() < Context.CurrentBlockTime)
             {
                 input.StartTimestamp = Context.CurrentBlockTime.ToTimestamp();
             }

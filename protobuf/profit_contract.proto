@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package token;
+
+import "common.proto";
+import "kernel.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+import "profit.proto";
+
+option csharp_namespace = "AElf.Contracts.Profit";
+
+service ProfitContract {
+    // Actions
+    rpc InitializeProfitContract (InitializeProfitContractInput) returns (google.protobuf.Empty) {
+    }
+}
