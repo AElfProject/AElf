@@ -1,11 +1,9 @@
-﻿using AElf.Common;
-using AElf.Kernel.Types;
-using Google.Protobuf;
+﻿using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class BlockHeader: IBlockHeader
+    public partial class BlockHeader : IBlockHeader
     {
         partial void OnConstruction()
         {
@@ -13,7 +11,7 @@ namespace AElf.Kernel
         }
 
         private Hash _blockHash;
-        
+
         public BlockHeader(Hash preBlockHash)
         {
             PreviousBlockHash = preBlockHash;

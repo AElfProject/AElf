@@ -1,13 +1,8 @@
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Account;
 using AElf.Kernel.Account.Application;
 using Microsoft.Extensions.Options;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Account
 {

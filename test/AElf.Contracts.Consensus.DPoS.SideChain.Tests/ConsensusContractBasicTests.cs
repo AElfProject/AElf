@@ -1,12 +1,9 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

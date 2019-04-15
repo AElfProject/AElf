@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
-using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 

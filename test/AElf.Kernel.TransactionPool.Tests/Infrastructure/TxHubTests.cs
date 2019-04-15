@@ -1,14 +1,8 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Shouldly;
-using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure

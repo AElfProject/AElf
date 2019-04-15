@@ -9,11 +9,11 @@
 //using AElf.SmartContract;
 //using AElf.Kernel.SmartContractExecution;
 //using AElf.Kernel.Core.Tests.Concurrency.Scheduling;
-//using AElf.Types.CSharp;
+//using AElf.CSharp.Core;
 //using Akka.Actor;
 //using Google.Protobuf.WellKnownTypes;
 //using Mono.Cecil.Cil;
-//using AElf.Common;
+//using AElf.Types;
 //using AElf.Kernel.SmartContractExecution.Execution;
 //using AElf.Kernel.Blockchain.Domain;
 //using AElf.Kernel.SmartContract.Domain;

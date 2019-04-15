@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <PackageId>AElf.Contracts.TestKit</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <NoWarn>0436</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="..\..\protobuf\aelf_options.proto">
+        <Link>Protobuf/Proto/aelf_options.proto</Link>
+      </Content>
+      <Content Include="..\..\protobuf\common.proto">
+        <Link>Protobuf/Proto/common.proto</Link>
+      </Content>
+      <Content Include="..\..\protobuf\kernel.proto">
+        <Link>Protobuf/Proto/kernel.proto</Link>
+      </Content>
+      <Content Include="..\..\protobuf\basic_contract_zero.proto">
+        <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+      </Content>
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0" />
+      <PackageReference Include="Moq" Version="4.10.1" />
+      <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
+      <PackageReference Include="Volo.Abp.TestBase" Version="0.15.0" />
+    </ItemGroup>
+    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto" />
+    </Target>
+    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Compile Include="./Protobuf/Generated/*.cs" />
+        </ItemGroup>
+    </Target>
+</Project>

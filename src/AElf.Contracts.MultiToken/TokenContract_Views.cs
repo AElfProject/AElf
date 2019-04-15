@@ -1,6 +1,5 @@
 ﻿using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
-using Address = AElf.Common.Address;
 
 namespace AElf.Contracts.MultiToken
 {

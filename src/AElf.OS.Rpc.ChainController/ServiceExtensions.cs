@@ -4,15 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Anemonis.JsonRpc;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 
@@ -39,7 +35,7 @@ namespace AElf.OS.Rpc.ChainController
                     throw new JsonRpcServiceException(Error.InvalidTransaction,
                         Error.Message[Error.InvalidTransaction]);
                 }
-
+                
                 if (!transaction.VerifySignature())
                 {
                     throw new JsonRpcServiceException(Error.InvalidTransaction,
@@ -204,23 +200,24 @@ namespace AElf.OS.Rpc.ChainController
             };
         }
 
-        internal static async Task<string> GetTransactionParameters(this ChainControllerRpcService s, Transaction tx)
-        {
-            string output = null;
-            try
-            {
-                var chainContext = await s.GetChainContextAsync();
-
-                output = await s.TransactionReadOnlyExecutionService.GetTransactionParametersAsync(
-                    chainContext, tx);
-            }
-            catch (InvalidCastException ex)
-            {
-                s.Logger.LogWarning($"Unsupported type conversion error： {ex}");
-            }
-
-            return output;
-        }
+// No call reference 
+//        internal static async Task<string> GetTransactionParameters(this ChainControllerRpcService s, Transaction tx)
+//        {
+//            string output = null;
+//            try
+//            {
+//                var chainContext = await s.GetChainContextAsync();
+//
+//                output = await s.TransactionReadOnlyExecutionService.GetTransactionParametersAsync(
+//                    chainContext, tx);
+//            }
+//            catch (InvalidCastException ex)
+//            {
+//                s.Logger.LogWarning($"Unsupported type conversion error： {ex}");
+//            }
+//
+//            return output;
+//        }
 
         internal static async Task<long> GetCurrentChainHeight(this ChainControllerRpcService s)
         {

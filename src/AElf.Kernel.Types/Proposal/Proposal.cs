@@ -1,7 +1,5 @@
 using System.IO;
-using AElf.Common;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
 {
@@ -20,7 +18,6 @@ namespace AElf.Kernel
                 mm.Flush();
                 return Hash.FromRawBytes(mm.ToArray());
             }
-
         }
     }
 }

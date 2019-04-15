@@ -4,7 +4,6 @@
 //using System.Threading.Tasks;
 //using AElf.Kernel.SmartContractExecution.Scheduling;
 //using Xunit;
-//using AElf.Common;
 //using Google.Protobuf;
 
 namespace AElf.Kernel.Tests.Concurrency.Scheduling
