@@ -28,7 +28,13 @@ The next section describes what happens once the side chain node has been starte
 
 #### Connection and messages
 
+Conceptually the node is like described in the following diagram:
+
 <p align="center">
     <img src="archi-node.png" width="300" align="center" />
 </p>
+
+Explain components.
+
+Explain what start to happen when the node starts.
 
