@@ -19,7 +19,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0-dev-00032" />
-        <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="0.16.0" />
         <PackageReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
     <ItemGroup>
