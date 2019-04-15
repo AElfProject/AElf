@@ -41,9 +41,7 @@ namespace AElf.Blockchains.BasicBaseChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var config = context.Services.GetConfiguration();
-            
-            Configure<NodeOptions>(config.GetSection("NodeType"));
-                        
+                                    
             Configure<TokenInitialOptions>(option =>
             {
                 var nodeType = config.GetValue<NodeType>("NodeType");
@@ -96,5 +94,12 @@ namespace AElf.Blockchains.BasicBaseChain
                 }
             });
         }
+    }
+    
+    public enum NodeType
+    {
+        MainNet,
+        TestNet,
+        CustomNet
     }
 }
