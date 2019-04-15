@@ -1,4 +1,6 @@
-﻿using AElf.Kernel;
+﻿using System.Linq;
+using AElf.Kernel;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Profit
@@ -14,6 +16,17 @@ namespace AElf.Contracts.Profit
             State.Initialized.Value = true;
 
             return new Empty();
+        }
+
+        public override Hash CreateProfitItem(CreateProfitItemInput input)
+        {
+            var profitId = GetProfitId(input.Creator, input.ItemName);
+            return profitId;
+        }
+
+        private Hash GetProfitId(Address creator, string itemName)
+        {
+            return Hash.FromRawBytes(creator.Value.Concat(itemName.CalculateHash()).ToArray());
         }
     }
 }

@@ -20,11 +20,7 @@ message AddReceiverInput {
     Address receiver = 1;
 }
 
-message RemoveReceiveInput {
-    
-}
-
-message ReceiveProfitsInput {
+message RemoveReceiverInput {
     
 }
 

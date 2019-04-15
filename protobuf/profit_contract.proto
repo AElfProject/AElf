@@ -16,7 +16,7 @@ service ProfitContract {
     // Actions
     rpc InitializeProfitContract (InitializeProfitContractInput) returns (google.protobuf.Empty) {
     }
-    rpc CreateProfitItem (CreateProfitItemInput) returns (google.protobuf.Empty) {
+    rpc CreateProfitItem (CreateProfitItemInput) returns (Hash) {
     }
     rpc AddReceiver (AddReceiverInput) returns (google.protobuf.Empty) {
     }
