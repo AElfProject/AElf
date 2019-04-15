@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package token;
+package profit;
 
 import "common.proto";
 import "kernel.proto";
@@ -11,6 +11,8 @@ import "profit.proto";
 option csharp_namespace = "AElf.Contracts.Profit";
 
 service ProfitContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Profit.ProfitContractState";
+
     // Actions
     rpc InitializeProfitContract (InitializeProfitContractInput) returns (google.protobuf.Empty) {
     }
