@@ -244,7 +244,7 @@ namespace AElf.Contracts.TestBase
                 new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
@@ -260,7 +260,7 @@ namespace AElf.Contracts.TestBase
                 new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name
                 });
             var firstRound = initialMiners.ToMiners()
                 .GenerateFirstRoundOfNewTerm(miningInterval, startTimestamp.ToDateTime());
@@ -616,7 +616,7 @@ namespace AElf.Contracts.TestBase
             {
                 Symbol = "ELF",
                 Amount = InitialDividendToken,
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name
+                ToSystemContractName = DividendSmartContractAddressNameProvider.Name
             });
             callList.Add(nameof(TokenContract.Issue), new IssueInput
             {
@@ -627,7 +627,7 @@ namespace AElf.Contracts.TestBase
 
             return list =>
             {
-                list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
                 //TODO: support initialize method, make the tester auto issue elf token
                 list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, callList);
                 list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);

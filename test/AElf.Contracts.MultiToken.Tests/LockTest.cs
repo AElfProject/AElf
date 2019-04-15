@@ -41,7 +41,7 @@ namespace AElf.Contracts.MultiToken
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 20,
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
                 Memo = "Issue ",
             });
 
@@ -55,7 +55,7 @@ namespace AElf.Contracts.MultiToken
             });
             AsyncHelper.RunSync(() => Starter.InitialChainAsync(list =>
             {
-                list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name,
                     tokenContractCallList);
             }));

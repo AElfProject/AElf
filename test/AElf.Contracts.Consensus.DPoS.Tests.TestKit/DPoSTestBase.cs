@@ -81,7 +81,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Category = KernelConstants.DefaultRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(DividendContract).Assembly.Location)),
-                        Name = DividendsSmartContractAddressNameProvider.Name,
+                        Name = DividendSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateDividendInitializationCallList()
                     })).Output;
             
@@ -165,7 +165,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(
@@ -214,7 +214,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 Symbol = symbol,
                 Amount = (long)(totalSupply * 0.2),
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
 
@@ -231,7 +231,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Set fee pool address to dividend contract address.
             tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendSmartContractAddressNameProvider.Name);
 
             return tokenContractCallList;
         }
