@@ -10,6 +10,24 @@ message InitializeProfitContractInput {
     Hash token_contract_system_name = 1;
 }
 
-message CreateProfitItem {
+message CreateProfitItemInput {
+    string item_name = 1;
+    Address creator = 2;
+    
+}
+
+message AddReceiverInput {
+    Address receiver = 1;
+}
+
+message RemoveReceiveInput {
+    
+}
+
+message ReceiveProfitsInput {
+    
+}
+
+message ProfitInput {
     
 }
