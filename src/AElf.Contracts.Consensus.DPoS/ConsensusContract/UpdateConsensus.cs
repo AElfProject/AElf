@@ -199,7 +199,7 @@ namespace AElf.Contracts.Consensus.DPoS
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
             return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
-                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey)
+                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey) && minerInCurrentRound.PreviousInValue != null
                 let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue
                 where previousOutValue != null && Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
                 select minerInCurrentRound.PublicKey).ToList();
