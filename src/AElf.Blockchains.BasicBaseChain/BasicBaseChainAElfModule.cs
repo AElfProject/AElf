@@ -40,6 +40,11 @@ namespace AElf.Blockchains.BasicBaseChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var config = context.Services.GetConfiguration();
+            
+            Configure<NodeOptions>(config.GetSection("NodeType"));
+            
+            Configure<TokenInitialOptions>(config.GetSection("TokenInitial"));
+            
             Configure<ChainOptions>(option =>
             {
                 var nodeType = config.GetValue<NodeType>("NodeType");
