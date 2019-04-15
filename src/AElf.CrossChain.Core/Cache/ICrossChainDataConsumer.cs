@@ -1,3 +1,5 @@
+using AElf.Kernel;
+
 namespace AElf.CrossChain.Cache
 {
     // todo : generic type

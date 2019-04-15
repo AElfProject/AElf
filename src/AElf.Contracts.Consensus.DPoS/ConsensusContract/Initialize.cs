@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using Google.Protobuf.WellKnownTypes;
 

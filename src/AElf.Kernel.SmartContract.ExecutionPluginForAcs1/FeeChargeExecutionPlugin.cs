@@ -2,13 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
-using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
-using AElf.Types.CSharp;
-using Google.Protobuf;
+using AElf.CSharp.Core;
 using Google.Protobuf.Reflection;
 using Volo.Abp.DependencyInjection;
 

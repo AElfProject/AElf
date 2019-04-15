@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.Serialization;
-using AElf.Common;
 using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Sdk

@@ -1,8 +1,6 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
-// ReSharper disable once CheckNamespace
-namespace AElf.Common
+namespace AElf
 {
     public static class StringExtensions
     {
@@ -15,7 +13,7 @@ namespace AElf.Common
         {
             return str.StartsWith("0x") ? str : "0x" + str;
         }
-        
+
         /// <summary>
         /// Calculates the hash for a string.
         /// </summary>

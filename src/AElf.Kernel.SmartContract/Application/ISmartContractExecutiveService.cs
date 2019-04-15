@@ -1,22 +1,10 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Volo.Abp;
 
 namespace AElf.Kernel.SmartContract.Application
 {

@@ -1,5 +1,4 @@
-﻿using AElf.Common;
-using Google.Protobuf;
+﻿using Google.Protobuf;
 
 namespace AElf.Kernel.TransactionPool
 {

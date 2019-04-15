@@ -14,8 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Types.CSharp\AElf.Types.CSharp.csproj" />
+      <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
     </ItemGroup>
-
 
 </Project>

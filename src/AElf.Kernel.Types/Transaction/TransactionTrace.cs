@@ -20,6 +20,7 @@ namespace AElf.Kernel
                 {
                     o.AddRange(trace.FlattenedLogs);
                 }
+
                 o.AddRange(Logs);
                 foreach (var trace in InlineTraces)
                 {

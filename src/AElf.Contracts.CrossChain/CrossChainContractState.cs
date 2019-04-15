@@ -1,11 +1,6 @@
-using System;
-using AElf.Common;
-using AElf.Consensus.DPoS;
-using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.CrossChain

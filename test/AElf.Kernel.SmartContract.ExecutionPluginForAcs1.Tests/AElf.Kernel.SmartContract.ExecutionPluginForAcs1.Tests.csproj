@@ -1,8 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,7 +19,7 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.Contracts.MultiToken.Tests\AElf.Contracts.MultiToken.Tests.csproj"/>
         <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj"/>
-        <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj"/>
         <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract.csproj"/>
         <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj"/>
     </ItemGroup>

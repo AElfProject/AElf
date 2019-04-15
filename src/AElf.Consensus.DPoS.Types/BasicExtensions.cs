@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AElf.Common;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
