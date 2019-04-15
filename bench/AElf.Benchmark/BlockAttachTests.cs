@@ -18,10 +18,10 @@ namespace AElf.Benchmark
         private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
         private IBlockManager _blockManager;
         private IChainManager _chainManager;
-        private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
         private IBlockchainService _blockchainService;
         private IBlockAttachService _blockAttachService;
+        private ITransactionManager _transactionManager;
         private OSTestHelper _osTestHelper;
 
         private Chain _chain;
@@ -37,10 +37,10 @@ namespace AElf.Benchmark
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             _chainManager = GetRequiredService<IChainManager>();
             _blockManager = GetRequiredService<IBlockManager>();
-            _transactionManager = GetRequiredService<ITransactionManager>();
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockAttachService = GetRequiredService<IBlockAttachService>();
+            _transactionManager = GetRequiredService<ITransactionManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             
             _chain = await _blockchainService.GetChainAsync();
@@ -67,6 +67,7 @@ namespace AElf.Benchmark
             {
                 _transactionManager.RemoveTransaction(tx);
                 _transactionResultManager.RemoveTransactionResultAsync(tx, _block.GetHash());
+                _transactionResultManager.RemoveTransactionResultAsync(tx,_block.Header.GetPreMiningHash());
             }
             await _chainManager.RemoveChainBlockLinkAsync(_block.GetHash());
             await _blockManager.RemoveBlockAsync(_block.GetHash());
