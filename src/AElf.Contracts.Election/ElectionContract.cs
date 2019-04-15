@@ -4,7 +4,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election
 {
-    public class ElectionContract : ElectionContractContainer.ElectionContractBase
+    public partial class ElectionContract : ElectionContractContainer.ElectionContractBase
     {
         public override Empty InitialElectionContract(InitialElectionContractInput input)
         {

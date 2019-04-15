@@ -8,14 +8,13 @@ namespace AElf.Contracts.Vote
     /// <summary>
     /// Comments and documents see README.md of current project.
     /// </summary>
-    public class VoteContract : VoteContractContainer.VoteContractBase
+    public partial class VoteContract : VoteContractContainer.VoteContractBase
     {
         public override Empty InitialVoteContract(InitialVoteContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
 
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
-            State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
 
             State.Initialized.Value = true;
 
@@ -320,12 +319,6 @@ namespace AElf.Contracts.Vote
             {
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
-            }
-
-            if (State.ConsensusContract.Value == null)
-            {
-                State.ConsensusContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
             }
         }
     }

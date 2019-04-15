@@ -44,10 +44,93 @@ message Votes {
 }
 
 message CandidateHistory {
-    Hash announcement_transaction_id = 1;
+    string PublicKey = 1;
+    repeated int64 Terms = 2;
+    int64 ProducedBlocks = 3;
+    int64 MissedTimeSlots = 4;
+    int64 ContinualAppointmentCount = 5;
+    int64 ReappointmentCount = 6;
+    repeated string Aliases = 7;
+    string CurrentAlias = 8;
+    int64 CurrentVotesNumber = 9;
+    Address Address = 11;
+    Hash AnnouncementTransactionId = 12;
+    bool IsEvilNode = 13;
 }
 
 enum LockTimeUnit {
     Days = 0;
     Mouths = 1;
+}
+
+// The ticket / voting information for one user.
+message ElectionTickets {
+    repeated ElectionVotingRecord election_voting_records = 1;
+    int64 VotingRecordsCount = 2;
+    int64 ObtainedTickets = 3;
+    int64 VotedTickets = 4;
+    int64 HistoryObtainedTickets = 5;
+    int64 HistoryVotedTickets = 6;
+    repeated Hash VoteToTransactions = 8;
+    repeated Hash VoteFromTransactions = 9;
+    string PublicKey = 10;
+}
+
+message ElectionVotingRecord {
+    string From = 1;
+    string To = 2;
+    int64 Count = 3;
+    int64 RoundNumber = 4;
+    Hash TransactionId = 5;
+    int64 VoteAge = 6;
+    repeated int32 LockDaysList = 7;// Can be renewed by adding items.
+    int64 UnlockAge = 8;
+    int64 TermNumber = 9;
+    google.protobuf.Timestamp UnlockTimestamp = 10;
+    google.protobuf.Timestamp WithdrawTimestamp = 11;
+    google.protobuf.Timestamp VoteTimestamp = 12;
+    bool IsWithdrawn = 13;
+}
+
+message PageableElectionTicketsInfoInput {
+    sint32 start = 1;
+    sint32 length = 2;
+    string publicKey = 3;
+}
+
+message PageInfo {
+    sint32 start = 1;
+    sint32 length = 2;
+}
+
+message CandidateHistoryDictionary {
+    map<string, CandidateHistory> Maps = 1;
+    int32 CandidatesNumber = 3;
+}
+
+message ElectionTicketsHistories {
+    repeated ElectionTicketsHistory Values = 1;
+    int64 HistoriesNumber = 2;
+}
+
+message ElectionTicketsHistory {
+    string CandidateAlias = 1;
+    int64 VotesNumber = 2;
+    google.protobuf.Timestamp Timestamp = 3;
+    bool State = 4;
+    ElectionTicketsHistoryType Type = 5;
+}
+
+enum ElectionTicketsHistoryType {
+    None = 0;
+    Redeem = 1;
+    Vote = 2;
+}
+
+message StringInput {
+    string value = 1;
+}
+
+message StringOutput {
+    string value = 1;
 }

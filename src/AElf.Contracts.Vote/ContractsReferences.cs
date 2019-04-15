@@ -8,9 +8,7 @@ namespace AElf.Contracts.Vote
     public partial class VoteContractState
     {
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract { get; set; }
         internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
         public SingletonState<Hash> TokenContractSystemName { get; set; }
-        public SingletonState<Hash> ConsensusContractSystemName { get; set; }
     }
 }

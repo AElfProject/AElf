@@ -199,7 +199,6 @@ namespace AElf.Blockchains.MainChain
             voteContractMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
                 new InitialVoteContractInput
                 {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
             return voteContractMethodCallList;
