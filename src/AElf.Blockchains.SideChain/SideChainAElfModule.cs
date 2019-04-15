@@ -41,6 +41,7 @@ namespace AElf.Blockchains.SideChain
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            var tokenInitialOptions = context.ServiceProvider.GetService<IOptionsSnapshot<TokenInitialOptions>>().Value;
             var chainOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto()
             {
@@ -62,7 +63,7 @@ namespace AElf.Blockchains.SideChain
             var crossChainOption = context.ServiceProvider.GetService<IOptionsSnapshot<CrossChainConfigOption>>()
                 .Value;
             int parentChainId = crossChainOption.ParentChainId;
-            var crossChainMethodCallList = GenerateCrossChainInitializationCallList(parentChainId);
+            var crossChainMethodCallList = GenerateCrossChainInitializationCallList(parentChainId, tokenInitialOptions);
             dto.InitializationSmartContracts.AddGenesisSmartContract<CrossChainContract>(
                 CrossChainSmartContractAddressNameProvider.Name, crossChainMethodCallList);
 
@@ -101,15 +102,18 @@ namespace AElf.Blockchains.SideChain
             return consensusMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateCrossChainInitializationCallList(int parentChainId)
+        private SystemTransactionMethodCallList GenerateCrossChainInitializationCallList(int parentChainId,
+            TokenInitialOptions tokenInitialOptions)
         {
             var crossChainMethodCallList = new SystemTransactionMethodCallList();
-            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize), new AElf.Contracts.CrossChain.InitializeInput
-            {
-                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                ParentChainId = parentChainId
-            });
+            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
+                new AElf.Contracts.CrossChain.InitializeInput
+                {
+                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    ParentChainId = parentChainId,
+                    NativeTokenSymbol = tokenInitialOptions.Symbol
+                });
             return crossChainMethodCallList;
         }
 
