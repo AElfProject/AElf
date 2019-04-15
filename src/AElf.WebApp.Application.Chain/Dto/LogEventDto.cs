@@ -4,8 +4,10 @@ namespace AElf.WebApp.Application.Chain.Dto
     {
         public string Address { get; set; }
         
-        public string[] Topics { get; set; }
+        public string Name { get; set; }
         
-        public string Data { get; set; }
+        public string[] Indexed { get; set; }
+        
+        public string NonIndexed { get; set; }
     }
 }
