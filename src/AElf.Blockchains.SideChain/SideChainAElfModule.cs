@@ -38,6 +38,16 @@ namespace AElf.Blockchains.SideChain
         {
             Logger = NullLogger<SideChainAElfModule>.Instance;
         }
+        
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var config = context.Services.GetConfiguration();
+
+            Configure<ChainOptions>(option =>
+            {
+                option.ChainId = ChainHelpers.ConvertBase58ToChainId(config["ChainId"]);
+            });
+        }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {

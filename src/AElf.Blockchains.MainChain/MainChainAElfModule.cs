@@ -21,6 +21,7 @@ using AElf.Modularity;
 using AElf.OS.Consensus.DPos;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -43,6 +44,28 @@ namespace AElf.Blockchains.MainChain
         public MainChainAElfModule()
         {
             Logger = NullLogger<MainChainAElfModule>.Instance;
+        }
+        
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var config = context.Services.GetConfiguration();
+            
+            Configure<ChainOptions>(option =>
+            {
+                var nodeType = config.GetValue<NodeType>("NodeType");
+                switch (nodeType)
+                {
+                    case NodeType.MainNet:
+                        option.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
+                        break;
+                    case NodeType.TestNet:
+                        option.ChainId = ChainHelpers.ConvertBase58ToChainId("TEST");
+                        break;
+                    case NodeType.CustomNet:
+                        option.ChainId = ChainHelpers.ConvertBase58ToChainId(config["ChainId"]);
+                        break;
+                }
+            });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
