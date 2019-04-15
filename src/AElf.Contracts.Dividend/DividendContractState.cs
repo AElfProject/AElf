@@ -27,5 +27,7 @@ namespace AElf.Contracts.Dividend
 
         public SingletonState<Hash> ConsensusContractSystemName { get; set; }
         public SingletonState<Hash> TokenContractSystemName { get; set; }
+        
+        public StringState NativeTokenSymbol { get; set; }
     }
 }

@@ -17,6 +17,7 @@ namespace AElf.Contracts.Dividend
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.TokenContractSystemName.Value = tokenContractSystemName;
             State.ConsensusContractSystemName.Value = consensusContractAddress;
+            State.NativeTokenSymbol.Value = input.NativeTokenSymbol;
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -46,7 +47,7 @@ namespace AElf.Contracts.Dividend
             {
                 To = targetAddress,
                 Amount = amount,
-                Symbol = "ELF",
+                Symbol = State.NativeTokenSymbol.Value,
                 Memo = "Send dividends."
             });
             return new Empty();
@@ -109,7 +110,7 @@ namespace AElf.Contracts.Dividend
             {
                 To = dividendsOwnerAddress,
                 Amount = totalDividendsAmount,
-                Symbol = "ELF",
+                Symbol = State.NativeTokenSymbol.Value,
                 Memo = "Transfer dividends."
             });
 
