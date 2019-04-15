@@ -74,5 +74,7 @@ namespace AElf.Contracts.Consensus.DPoS
         /// Term Number -> First Round Number of this term.
         /// </summary>
         public MappedState<Int64Value, Int64Value> TermToFirstRoundMap { get; set; }
+        
+        public StringState NativeTokenSymbol { get; set; }
     }
 }

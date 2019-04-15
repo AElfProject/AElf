@@ -92,7 +92,7 @@ namespace AElf.Blockchains.MainChain
                 .GetZeroSmartContractAddress();
 
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
-                GenerateConsensusInitializationCallList(dposOptions, tokenLockForElection));
+                GenerateConsensusInitializationCallList(dposOptions, tokenLockForElection, tokenSymbol));
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
                 DividendsSmartContractAddressNameProvider.Name, GenerateDividendInitializationCallList());
@@ -120,7 +120,7 @@ namespace AElf.Blockchains.MainChain
         }
 
         private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions,
-            long lockTokenForElection)
+            long lockTokenForElection, string tokenSymbol)
         {
             var consensusMethodCallList = new SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
@@ -128,7 +128,8 @@ namespace AElf.Blockchains.MainChain
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name,
-                    LockTokenForElection = lockTokenForElection
+                    LockTokenForElection = lockTokenForElection,
+                    NativeTokenSymbol = tokenSymbol
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
