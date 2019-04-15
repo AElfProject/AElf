@@ -98,8 +98,6 @@ namespace AElf.Benchmark
             await _chainManager.RemoveChainBlockLinkAsync(_block.GetHash());
             await _blockManager.RemoveBlockAsync(_block.GetHash());
             await _chains.SetAsync(_chain.Id.ToStorageKey(), _chain);
-            
-            
         }
     }
 }
