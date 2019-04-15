@@ -53,9 +53,7 @@ namespace AElf.Contracts.Proposal
             Assert(proposalInfo != null, "Proposal not found.");
             Assert(Context.CurrentBlockTime < proposalInfo.ExpiredTime.ToDateTime(), 
                 "Expired proposal.");
-            byte[] pubKey = Context.RecoverPublicKey();
-            Assert(approval.PublicKey.IsEmpty || approval.PublicKey.ToByteArray().SequenceEqual(pubKey),
-                "Invalid public key in approval.");
+            Assert(Context.Sender.Equals(proposalInfo.Sender), "Incorrect sender address.");
             approved = approved ?? new ApprovedResult();
             approved.Approvals.Add(approval);
             State.Approved[hash] = approved;

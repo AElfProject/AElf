@@ -26,11 +26,12 @@ namespace AElf.Contracts.AssociationAuth
                     State.BasicContractZero.GetContractAddressByName.Call(State.ProposalContractSystemName.Value);
         }
         
-        private bool CheckApprovals(Hash proposalId)
+        private bool CheckApprovals(Hash proposalId, Address proposalOrganizationAddress)
         {
+            ValidateProposalContract();
             var approved = State.ProposalContract.GetApprovedResult.Call(proposalId);
 
-            var organization = GetOrganization(null);
+            var organization = GetOrganization(proposalOrganizationAddress);
             // processing approvals 
             var validApprovalCount = approved.Approvals.Aggregate((int) 0, (weights, approval) =>
             {
@@ -44,7 +45,7 @@ namespace AElf.Contracts.AssociationAuth
 
             //Api.Assert(validApprovals, "Unauthorized approval."); //This should never happen.
             //Api.Assert(weight >= authorization.ExecutionThreshold, "Not enough approvals.");
-            return validApprovalCount >= organization.ExecutionThreshold;
+            return validApprovalCount >= organization.ReleaseThreshold;
         }
     }
 }

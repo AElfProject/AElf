@@ -4,6 +4,7 @@ import "common.proto";
 import "aelf_options.proto";
 import "acs3.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.ParliamentAuth";
 
@@ -13,15 +14,16 @@ service ParliamentAuthContract {
     // Actions
     rpc Initialize(ParliamentAuthInitializationInput) returns (google.protobuf.Empty){
     }
-    rpc CreateProposal (CreateProposalInput) returns (Hash) {
+    rpc CreateOrganization (CreateOrganizationInput) returns (Address) {
     }
-    rpc GetProposal(Hash) returns (GetProposalOutput) {
+    rpc GetOrganization (Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
 }
 
 message ParliamentAuthInitializationInput{
     Hash consensusContractSystemName = 1;
+    Hash proposalContractSystemName = 2;
 }
 
 message Representative{
@@ -29,27 +31,13 @@ message Representative{
     int32 Weight = 2;
 }
 
-message CreateProposalInput{
-    string contractMethodName = 2;
-    Address toAddress = 3;
-    bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
+message CreateOrganizationInput{
+    int32 releaseThreshold = 1;
 }
 
-message GetProposalOutput{
-    Hash proposalHash = 1;
-    string contractMethodName = 2;
-    Address toAddress = 3;
-    bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
-    Address sender = 7;
-    ProposalStatus status = 8;
-}
-
-enum ProposalStatus{
-    Active = 0;
-    Released = 1;
-    Expired = 2;
+message Organization{
+    int32 releaseThreshold = 1;
+    Address organizationAddress = 2;
 }
 
 message ProposalInfo {

@@ -1,10 +1,10 @@
-using System;
 using System.Linq;
 using Acs3;
 using AElf.Contracts.ProposalContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using CreateProposalInput = Acs3.CreateProposalInput;
+using GetProposalOutput = Acs3.GetProposalOutput;
 
 namespace AElf.Contracts.AssociationAuth
 {
@@ -21,6 +21,7 @@ namespace AElf.Contracts.AssociationAuth
         
         public override GetProposalOutput GetProposal(Hash proposalId)
         {
+            ValidateProposalContract();
             var proposal = State.ProposalContract.GetProposal.Call(proposalId);
 
             var result = new GetProposalOutput
@@ -60,7 +61,7 @@ namespace AElf.Contracts.AssociationAuth
             {
                 var organization =new Organization
                 {
-                    ExecutionThreshold = input.ExecutionThreshold,
+                    ReleaseThreshold = input.ReleaseThreshold,
                     OrganizationAddress = organizationAddress
                 };
                 organization.Reviewers.AddRange(input.Reviewers);
@@ -86,7 +87,7 @@ namespace AElf.Contracts.AssociationAuth
             });
             return Hash.FromMessage(proposal);
         }
-
+    
         public override BoolValue Approve(ApproveInput approval)
         {
             byte[] pubKey = Context.RecoverPublicKey();
@@ -107,6 +108,7 @@ namespace AElf.Contracts.AssociationAuth
         public override Empty Release(Hash proposalId)
         {
             // check expired time of proposal
+            ValidateProposalContract();
             var proposal = State.ProposalContract.GetProposal.Call(proposalId);
 
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(),
@@ -114,7 +116,7 @@ namespace AElf.Contracts.AssociationAuth
             Assert(!State.ProposalReleaseStatus[proposalId].Value, "Proposal already released");
 
             // check approvals
-            Assert(CheckApprovals(proposalId), "Not authorized to release.");
+            Assert(CheckApprovals(proposalId, proposal.OrganizationAddress), "Not authorized to release.");
             
             Context.SendInline(proposal.ToAddress, proposal.ContractMethodName, proposal.Params);
             

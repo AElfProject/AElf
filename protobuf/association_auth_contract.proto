@@ -13,27 +13,21 @@ service AssociationAuthContract {
     // Actions
     rpc Initialize(AssociationAuthContractInitializationInput) returns (google.protobuf.Empty){
     }
-//    rpc CreateProposal (CreateProposalInput) returns (Hash) {
-//    }
-    
     rpc CreateOrganization (CreateOrganizationInput) returns (Address) {        
     }
     rpc GetOrganization (Address) returns (Organization) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetProposal(Hash) returns (GetProposalOutput) {
         option (aelf.is_view) = true;
     }
 }
 
 message CreateOrganizationInput{
     repeated Reviewer reviewers = 1;
-    int32 executionThreshold = 2;
+    int32 releaseThreshold = 2;
     int32 proposerThreshold = 3;
 }
 
 message Organization{
-    int32 executionThreshold = 1;
+    int32 releaseThreshold = 1;
     repeated Reviewer reviewers = 2;
     int32 proposerThreshold = 3;
     Address organizationAddress = 4;
@@ -45,19 +39,7 @@ message Reviewer {
 }
 
 message AssociationAuthContractInitializationInput{
-    Address director = 1;
-    Hash proposalContractSystemName = 2;
-}
-
-message GetProposalOutput{
-    Hash proposalHash = 1;
-    string contractMethodName = 2;
-    Address toAddress = 3;
-    bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
-    Address organizationAddress = 6;
-    Address proposer = 7;
-    bool CanBeReleased = 8;
+    Hash proposalContractSystemName = 1;
 }
 
 enum ProposalStatus{
