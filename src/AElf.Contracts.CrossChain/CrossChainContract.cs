@@ -21,6 +21,7 @@ namespace AElf.Contracts.CrossChain
             State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             //State.AuthorizationContract.Value = authorizationContractAddress;
+            State.NativeTokenSymbol.Value = input.NativeTokenSymbol;
             State.Initialized.Value = true;
             State.ParentChainId.Value = input.ParentChainId;
             return new Empty();
@@ -144,7 +145,7 @@ namespace AElf.Contracts.CrossChain
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = "ELF",
+                Symbol = State.NativeTokenSymbol.Value,
                 Amount = amount,
                 Memo = "Recharge."
             });
@@ -332,7 +333,7 @@ namespace AElf.Contracts.CrossChain
                 Transfer(new TransferInput
                 {
                     To = Context.Sender,
-                    Symbol = "ELF",
+                    Symbol = State.NativeTokenSymbol.Value,
                     Amount = indexingPrice,
                     Memo = "Index fee."
                 });

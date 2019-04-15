@@ -80,6 +80,7 @@ message InitializeInput {
     Hash tokenContractSystemName = 1;
     Hash consensusContractSystemName = 2;
     int32 parentChainId = 3;
+    string nativeTokenSymbol = 4;
 }
 
 message RechargeInput {

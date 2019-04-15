@@ -109,7 +109,8 @@ namespace AElf.Blockchains.MainChain
             crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize), new AElf.Contracts.CrossChain.InitializeInput
             {
                 ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+                TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                NativeTokenSymbol = tokenSymbol
             });
             dto.InitializationSmartContracts.AddGenesisSmartContract<CrossChainContract>(
                 CrossChainSmartContractAddressNameProvider.Name, crossChainMethodCallList);
