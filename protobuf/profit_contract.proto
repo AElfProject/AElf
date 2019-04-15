@@ -20,6 +20,8 @@ service ProfitContract {
     }
     rpc AddReceiver (AddReceiverInput) returns (google.protobuf.Empty) {
     }
+    rpc RemoveReceiver (RemoveReceiverInput) returns (google.protobuf.Empty) {
+    }
     rpc Profit (ProfitInput) returns (google.protobuf.Empty) {
     }
     

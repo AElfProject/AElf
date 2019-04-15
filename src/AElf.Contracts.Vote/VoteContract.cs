@@ -31,6 +31,7 @@ namespace AElf.Contracts.Vote
             Assert(!string.IsNullOrEmpty(input.Topic), "Topic cannot be null or empty.");
             Assert(input.TotalEpoch > 0, "Total epoch number must be greater than 0.");
             Assert(input.ActiveDays > 0, "Total active days must be greater than 0.");
+            Assert(input.Options != null && input.Options.Any(), "Options cannot be null or empty.");
 
             if (input.ActiveDays == int.MaxValue)
             {
@@ -90,6 +91,7 @@ namespace AElf.Contracts.Vote
         {
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
 
+            Assert(votingEvent.Options.Contains(input.Option), $"Option {input.Option} not found.");
             if (votingEvent.Delegated)
             {
                 Assert(input.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
