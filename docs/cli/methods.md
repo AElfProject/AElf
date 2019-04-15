@@ -57,6 +57,8 @@ If successful the command will return the ID of the deployement transaction. See
 
 ### send - send a transaction to a contract.
 
+The send command will generate a transaction in order to call a method on the contract at the specified address.
+
 ```bash 
 aelf-cli send <address> <method> <method-input>
 ```
@@ -65,12 +67,14 @@ address       Required. The address of the contract.
 method        (optional) The particular method of the contract.  
 method-input  (optional) The input for the method in json format.
 
-Example:
+Return the ID of the generated transaction.
+
+Example: send a transaction to the **Transfer** method on the contract at address **4Qj...Eo6**.
 ```bash
-aelf-cli call 4QjhKLWacRXrQYpT7rzf74k5XZFCx8yF3X7FXbzKD4wwEo6 Hello '{}'
+aelf-cli send 4QjhKLWacRXrQYpT7rzf74k5XZFCx8yF3X7FXbzKD4wwEo6 Transfer '{amount:"1000",symbol:"ELF",to:"..."}'
 connect...
 {
-  Value: "Hello world!"
+  TransactionId: "6d7302651684b5a7ef3a18b204587b6d4b8ee479e7a19ae79bf778a97997be7b"
 }
 ```
 
@@ -79,7 +83,8 @@ Calling with no method name will print the list of methods:
 ```bash
 aelf-cli call 4QjhKLWacRXrQYpT7rzf74k5XZFCx8yF3X7FXbzKD4wwEo6
 "Method name is required for sending a transaction:
-Hello
+Transfer
+...
 "
 connect...
 {
@@ -91,6 +96,8 @@ Call with the method name without parameter will return information about the pa
 
 ### call - send a transaction to a contract.
 
+The **call** command will generate a transaction in order to call a method on the contract at the specified address. The difference with the **send** is that call will not persist any modifications made to the state in the contract. A transaction created with call will not be included in a block nor broadcast.
+
 ```bash 
 aelf-cli call <address> <method> <method-input>
 ```
@@ -98,6 +105,8 @@ aelf-cli call <address> <method> <method-input>
 address       Required. The address of the contract.  
 method        (optional) The particular method of the contract.  
 method-input  (optional) The input for the method in json format.
+
+Returns the result in JSON format.
 
 Example:
 ```bash
@@ -167,26 +176,6 @@ Example:
 aelf-cli get-blk-height
 > 27
 ```
-
-### gen-cert - generates a certificate (sidechains).
-
-```bash 
-gen-cert <chain-id> <ip>
-```
-
-chain-id  Required. The chain id of the node.
-ip        Required. The ip (host) of the node.
-
-Example:
-```bash 
-gen-cert aelf 127.0.0.1
-New generated certificate file with
-Name : aelf
-IP : 127.0.0.1
-Stored in /Users/username/.local/share/aelf/certs
-```
-
-Note that the certificate is generated in the <datadir>/certs folder.
 
 ### get-blk-info - get the block info by block height.
 
