@@ -52,7 +52,7 @@ message ProposalInfo{
     Address toAddress = 3;
     bytes params = 4;
     google.protobuf.Timestamp expiredTime = 5;
-    Hash organizationAddress = 6;
+    Address organizationAddress = 6;
     Address sender = 7;
 }
 

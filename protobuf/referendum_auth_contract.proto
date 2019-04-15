@@ -27,11 +27,6 @@ message ReferendumAuthContractInitializationInput{
     Hash tokenContractSystemName =3;
 }
 
-message VoteInfo{
-    int64 amount = 1;
-    Hash lockId = 2;
-}
-
 message CreateProposalInput{
     string contractMethodName = 2;
     Address toAddress = 3;
