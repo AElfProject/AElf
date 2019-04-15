@@ -121,6 +121,10 @@ namespace AElf.Contracts.Election
 
         public override Empty Vote(VoteMinerInput input)
         {
+            var lockTime = input.LockTimeUnit == LockTimeUnit.Days ? input.LockTime : input.LockTime * 30;
+            Assert(lockTime >= 90, "Should lock token for at least 90 days.");
+            State.LockTimeMap[Context.TransactionId] = lockTime;
+
             State.TokenContract.Transfer.Send(new TransferInput
             {
                 Symbol = ElectionContractConsts.VoteSymbol,
@@ -155,6 +159,11 @@ namespace AElf.Contracts.Election
         public override Empty Withdraw(Hash input)
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input);
+
+            var actualLockedDays = (Context.CurrentBlockTime - votingRecord.VoteTimestamp.ToDateTime()).TotalDays;
+            var claimedLockDays = State.LockTimeMap[input];
+            Assert(actualLockedDays >= claimedLockDays,
+                $"Still need {claimedLockDays - actualLockedDays} days to unlock your token.");
             
             State.TokenContract.Unlock.Send(new UnlockInput
             {

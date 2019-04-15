@@ -21,6 +21,7 @@ message VoteMinerInput {
     string candidate_publicKey = 1;
     sint64 amount = 2;
     sint32 lockTime = 3;
+    LockTimeUnit LockTimeUnit = 4;
 }
 
 message UpdateTermNumberInput {
@@ -44,4 +45,9 @@ message Votes {
 
 message CandidateHistory {
     Hash announcement_transaction_id = 1;
+}
+
+enum LockTimeUnit {
+    Days = 0;
+    Mouths = 1;
 }
