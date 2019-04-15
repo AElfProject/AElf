@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel";
+
+import "common.proto";
+import "kernel.proto";
+import "google/protobuf/timestamp.proto";
+
+message InitializeProfitContractInput {
+    Hash token_contract_system_name = 1;
+}
+
+message CreateProfitItem {
+    
+}
