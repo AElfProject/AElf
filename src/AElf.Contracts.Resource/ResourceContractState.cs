@@ -13,5 +13,6 @@ namespace AElf.Contracts.Resource
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         public ProtobufState<Address> FeeAddress { get; set; }
         public ProtobufState<Address> ResourceControllerAddress { get; set; }
+        public StringState NativeTokenSymbol { get; set; } 
     }
 }

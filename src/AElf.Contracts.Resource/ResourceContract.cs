@@ -94,6 +94,7 @@ namespace AElf.Contracts.Resource
             State.TokenContract.Value = input.ElfTokenAddress;
             State.FeeAddress.Value = input.FeeAddress;
             State.ResourceControllerAddress.Value = input.ResourceControllerAddress;
+            State.NativeTokenSymbol.Value = input.NativeTokenSymbol;
             foreach (var resourceType in _resourceTypes)
             {
                 var rt = GetConverterKey(resourceType);
@@ -153,7 +154,7 @@ namespace AElf.Contracts.Resource
                     From = Context.Sender,
                     To = Context.Self,
                     Amount = elfForRes,
-                    Symbol = "ELF",
+                    Symbol = State.NativeTokenSymbol.Value,
                     Memo = $"Buying {resourceType.ToUpper()} with {paidElf} elf tokens."
                 });
             }
@@ -165,7 +166,7 @@ namespace AElf.Contracts.Resource
                     From = Context.Sender,
                     To = State.FeeAddress.Value,
                     Amount = fees,
-                    Symbol = "ELF",
+                    Symbol = State.NativeTokenSymbol.Value,
                     Memo = $"Charged {fees} fees for buying {resourceType.ToUpper()}"
                 });
             }
@@ -197,7 +198,7 @@ namespace AElf.Contracts.Resource
                 {
                     To = Context.Sender,
                     Amount = amount,
-                    Symbol = "ELF",
+                    Symbol = State.NativeTokenSymbol.Value,
                     Memo = $"Selling {resToSell} {resourceType.ToUpper()}s"
                 });
             }
@@ -207,7 +208,7 @@ namespace AElf.Contracts.Resource
                 State.TokenContract.Transfer.Send(new TransferInput
                 {
                     To = State.FeeAddress.Value,
-                    Symbol = "ELF",
+                    Symbol = State.NativeTokenSymbol.Value,
                     Amount = fees,
                     Memo = $"Charged {fees} fees for selling {resourceType.ToUpper()}s"
                 });

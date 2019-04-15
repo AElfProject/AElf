@@ -32,4 +32,5 @@ service FeeReceiverContract {
 message InitializeInput {
     Address elfTokenAddress = 1;
     Address foundationAddress = 2;
+    string nativeTokenSymbol = 3;
 }

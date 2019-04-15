@@ -82,6 +82,7 @@ message InitializeInput {
     Address elfTokenAddress = 1;
     Address feeAddress = 2;
     Address resourceControllerAddress = 3;
+    string nativeTokenSymbol =4;
 }
 
 message ResourceAmount {

@@ -9,5 +9,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         public ProtobufState<Address> FoundationAddress { get; set; }
         public Int64State OwedToFoundation { get; set; }
+        
+        public StringState NativeTokenSymbol { get; set; }
     }
 }
