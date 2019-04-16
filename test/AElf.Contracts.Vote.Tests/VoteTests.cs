@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -15,7 +17,7 @@ namespace AElf.Contracts.Vote
         {
             InitializeContracts();
         }
-
+        
         [Fact]
         public async Task VoteContract_InitializeMultiTimes()
         {
@@ -123,17 +125,67 @@ namespace AElf.Contracts.Vote
                 transactionResult.Error.Contains("Voting event not found").ShouldBeTrue();
             }
             
-            //sponsor is not sender
+            //without such option
             {
+                await GenerateNewVoteEvent("topic0", 2, 100, 4, true);
+                
                 var input = new VoteInput
                 {
-                    Topic = "Topic1",
+                    Topic = "topic0",
                     Sponsor = DefaultSender,
+                    Option = "Somebody"
                 };
+                var otherKeyPair = SampleECKeyPairs.KeyPairs[1];
+                var otherVoteStub = GetVoteContractTester(otherKeyPair);
+                
+                var transactionResult = (await otherVoteStub.Vote.SendAsync(input)).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains($"Option {input.Option} not found").ShouldBeTrue();
             }
             
+            //not enough token
+            {
+                await GenerateNewVoteEvent("topic1", 2, 100, 4, false);
+                
+                var input = new VoteInput
+                {
+                    Topic = "topic1",
+                    Sponsor = DefaultSender,
+                    Option = Options[1],
+                    Amount = 2000_000L
+                };
+                var otherKeyPair = SampleECKeyPairs.KeyPairs[1];
+                var otherVoteStub = GetVoteContractTester(otherKeyPair);
+                
+                var transactionResult = (await otherVoteStub.Vote.SendAsync(input)).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Insufficient balance").ShouldBeTrue();
+            }
         }
 
+        private async Task<TransactionResult> GenerateNewVoteEvent(string topic, int totalEpoch, int activeDays, int optionCount, bool delegated)
+        {
+            Options = GenerateOptions(optionCount);
+            var input = new VotingRegisterInput
+            {
+                Topic = topic,
+                TotalEpoch = totalEpoch,
+                ActiveDays = activeDays,
+                StartTimestamp = DateTime.UtcNow.ToTimestamp(),
+                Options =
+                {
+                    Options
+                },
+                AcceptedCurrency = "ELF",
+                Delegated = delegated
+            };
+            
+            var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
+
+            return transactionResult;
+        }
         private List<string> GenerateOptions(int count = 1)
         {
             var addressList = new List<string>(); 
@@ -143,6 +195,17 @@ namespace AElf.Contracts.Vote
             }
 
             return addressList;
+        }
+
+        private async Task<long> GetUserBalance(byte[] publicKey)
+        {
+            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = "ELF",
+                Owner = Address.FromPublicKey(publicKey)
+            })).Balance;
+
+            return balance;
         }
     }
 }

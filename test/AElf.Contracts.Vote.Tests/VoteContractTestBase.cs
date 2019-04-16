@@ -91,7 +91,7 @@ namespace AElf.Contracts.Vote
             var tokenContractCallList = new SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
-                Symbol = "ELF",
+                Symbol = symbol,
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
@@ -103,13 +103,26 @@ namespace AElf.Contracts.Vote
                 }
             });
 
-            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            //issue default user
+            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = symbol,
-                Amount = totalSupply,
+                Amount = totalSupply - 20 * 100_000L,
+                To = DefaultSender,
                 Memo = "Issue token to default user for vote.",
-                ToSystemContractName = VoteSmartContractAddressNameProvider.Name
             });
+            
+            //issue some amount to voter
+            for (int i = 1; i < 20; i++)
+            {
+                tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                {
+                    Symbol = symbol,
+                    Amount = 100_000L,
+                    To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
+                    Memo = "set voters few amount for voting."
+                });
+            }
 
             return tokenContractCallList;
         }

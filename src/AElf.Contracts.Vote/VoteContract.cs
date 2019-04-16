@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Net.Mime;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
@@ -9,14 +9,13 @@ namespace AElf.Contracts.Vote
     /// <summary>
     /// Comments and documents see README.md of current project.
     /// </summary>
-    public class VoteContract : VoteContractContainer.VoteContractBase
+    public partial class VoteContract : VoteContractContainer.VoteContractBase
     {
         public override Empty InitialVoteContract(InitialVoteContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
 
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
-            State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
 
             State.Initialized.Value = true;
 
@@ -29,6 +28,11 @@ namespace AElf.Contracts.Vote
             {
                 input.TotalEpoch = 1;
             }
+            
+            Assert(!string.IsNullOrEmpty(input.Topic), "Topic cannot be null or empty.");
+            Assert(input.TotalEpoch > 0, "Total epoch number must be greater than 0.");
+            Assert(input.ActiveDays > 0, "Total active days must be greater than 0.");
+            Assert(input.Options != null && input.Options.Any(), "Options cannot be null or empty.");
 
             if (input.ActiveDays == int.MaxValue)
             {
@@ -37,7 +41,7 @@ namespace AElf.Contracts.Vote
 
             InitializeDependentContracts();
 
-            if (input.StartTimestamp.ToDateTime() < Context.CurrentBlockTime)
+            if (input.StartTimestamp == null || input.StartTimestamp.ToDateTime() < Context.CurrentBlockTime)
             {
                 input.StartTimestamp = Context.CurrentBlockTime.ToTimestamp();
             }
@@ -50,12 +54,10 @@ namespace AElf.Contracts.Vote
             var votingEventHash = votingEvent.GetHash();
 
             Assert(State.VotingEvents[votingEventHash] == null, "Voting event already exists.");
-            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            Assert(State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
             {
                 Symbol = input.AcceptedCurrency
-            });
-            var whiteList = tokenInfo.LockWhiteList;
-            Assert(whiteList.Contains(Context.Self), "Claimed accepted token is not available for voting.");
+            }).LockWhiteList.Contains(Context.Self), "Claimed accepted token is not available for voting.");
 
             // Initialize voting event.
             votingEvent.AcceptedCurrency = input.AcceptedCurrency;
@@ -90,9 +92,15 @@ namespace AElf.Contracts.Vote
         {
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
 
+            Assert(votingEvent.Options.Contains(input.Option), $"Option {input.Option} not found.");
             if (votingEvent.Delegated)
             {
                 Assert(input.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
+                Assert(input.VoteId != null, "Vote Id cannot be null if this voting event is delegated.");
+            }
+            else
+            {
+                input.VoteId = Context.TransactionId;
             }
 
             var votingRecord = new VotingRecord
@@ -116,6 +124,10 @@ namespace AElf.Contracts.Vote
                 EpochNumber = votingEvent.CurrentEpoch
             });
             var votingResult = State.VotingResults[votingResultHash];
+            if (!votingResult.Results.ContainsKey(input.Option))
+            {
+                votingResult.Results.Add(input.Option, 0);
+            }
             var currentVotes = votingResult.Results[input.Option];
             votingResult.Results[input.Option] = currentVotes + input.Amount;
 
@@ -124,9 +136,10 @@ namespace AElf.Contracts.Vote
             {
                 Voter = votingRecord.Voter
             };
-            if (votingHistories.Votes[votingResult.GetHash().ToHex()] == null)
+            var voteHash = votingResult.GetHash().ToHex();
+            if (!votingHistories.Votes.ContainsKey(voteHash))
             {
-                votingHistories.Votes[votingResult.GetHash().ToHex()] = new VotingHistory
+                votingHistories.Votes[voteHash] = new VotingHistory
                 {
                     ActiveVotes = {input.VoteId}
                 };
@@ -152,7 +165,7 @@ namespace AElf.Contracts.Vote
                     Symbol = votingEvent.AcceptedCurrency,
                     LockId = input.VoteId,
                     Amount = input.Amount,
-                    To = input.Sponsor,
+                    To = Context.Self,
                     Usage = $"Voting for {input.Topic}"
                 });
             }
@@ -323,12 +336,6 @@ namespace AElf.Contracts.Vote
             {
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
-            }
-
-            if (State.ConsensusContract.Value == null)
-            {
-                State.ConsensusContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
             }
         }
     }
