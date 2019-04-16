@@ -69,7 +69,7 @@ namespace AElf.Contracts.Consensus.DPoS
             ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)
                 .DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput
                 {
-                    Category = KernelConstants.DefaultRunnerCategory,
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ConsensusContract).Assembly.Location)),
                     Name = ConsensusSmartContractAddressNameProvider.Name,
                     TransactionMethodCallList = GenerateConsensusInitializationCallList(input)
@@ -79,7 +79,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 .DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
-                        Category = KernelConstants.DefaultRunnerCategory,
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(DividendContract).Assembly.Location)),
                         Name = DividendsSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateDividendInitializationCallList()
@@ -89,7 +89,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 .DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
-                        Category = KernelConstants.DefaultRunnerCategory,
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
                         Name = TokenSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
