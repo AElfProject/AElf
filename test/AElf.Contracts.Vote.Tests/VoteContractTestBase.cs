@@ -78,7 +78,6 @@ namespace AElf.Contracts.Vote
                 new InitialVoteContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
                 });
 
             return voteMethodCallList;

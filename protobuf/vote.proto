@@ -108,3 +108,8 @@ message GetVotingHistoryInput {
     string topic = 2;
     Address sponsor = 3;
 }
+
+message GetVotingEventInput {
+    string topic = 1;
+    Address sponsor = 2;
+}

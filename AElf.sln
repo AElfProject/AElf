@@ -278,6 +278,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Consensus.DPoS.Types.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Profit", "src\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj", "{111C8C9A-28CA-4FB3-84C3-C12A2693F303}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AElfConsensus", "src\AElf.Contracts.AElfConsensus\AElf.Contracts.AElfConsensus.csproj", "{0E09CFC2-BEE3-473E-BB88-07AA69D023A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -784,6 +786,10 @@ Global
 		{111C8C9A-28CA-4FB3-84C3-C12A2693F303}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{111C8C9A-28CA-4FB3-84C3-C12A2693F303}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{111C8C9A-28CA-4FB3-84C3-C12A2693F303}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E09CFC2-BEE3-473E-BB88-07AA69D023A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E09CFC2-BEE3-473E-BB88-07AA69D023A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E09CFC2-BEE3-473E-BB88-07AA69D023A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E09CFC2-BEE3-473E-BB88-07AA69D023A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -927,5 +933,6 @@ Global
 		{0E65C39D-0E43-45EF-A585-F08690DBA486} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{2A3267D8-415E-40AC-BB37-531D1AE9FB9A} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{111C8C9A-28CA-4FB3-84C3-C12A2693F303} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{0E09CFC2-BEE3-473E-BB88-07AA69D023A8} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 	EndGlobalSection
 EndGlobal

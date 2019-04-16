@@ -24,6 +24,8 @@ namespace AElf.Contracts.Vote
 
         public override Empty Register(VotingRegisterInput input)
         {
+            input.Topic = input.Topic.Trim();
+
             if (input.TotalEpoch == 0)
             {
                 input.TotalEpoch = 1;
@@ -92,6 +94,8 @@ namespace AElf.Contracts.Vote
 
         public override Empty Vote(VoteInput input)
         {
+            input.Topic = input.Topic.Trim();
+            
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
 
             Assert(votingEvent.Options.Contains(input.Option), $"Option {input.Option} not found.");
@@ -233,6 +237,8 @@ namespace AElf.Contracts.Vote
 
         public override Empty UpdateEpochNumber(UpdateEpochNumberInput input)
         {
+            input.Topic = input.Topic.Trim();
+            
             var votingEvent = AssertVotingEvent(input.Topic, Context.Sender);
 
             // Update previous voting going information.
@@ -296,6 +302,25 @@ namespace AElf.Contracts.Vote
         public override VotingHistories GetVotingHistories(Address input)
         {
             return State.VotingHistoriesMap[input];
+        }
+
+        public override VotingRecord GetVotingRecord(Hash input)
+        {
+            var votingRecord = State.VotingRecords[input];
+            Assert(votingRecord != null, "Voting record not found.");
+            return votingRecord;
+        }
+
+        public override VotingEvent GetVotingEvent(GetVotingEventInput input)
+        {
+            var votingEventHash = new VotingEvent
+            {
+                Topic = input.Topic,
+                Sponsor = input.Sponsor
+            }.GetHash();
+            var votingEvent = State.VotingEvents[votingEventHash];
+            Assert(votingEvent != null, "Voting Event not found.");
+            return votingEvent;
         }
 
         public override VotingHistory GetVotingHistory(GetVotingHistoryInput input)

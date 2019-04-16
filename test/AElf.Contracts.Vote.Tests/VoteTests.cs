@@ -22,7 +22,6 @@ namespace AElf.Contracts.Vote
             var transactionResult = (await VoteContractStub.InitialVoteContract.SendAsync(new InitialVoteContractInput
             {
                 TokenContractSystemName = Hash.Generate(),
-                ConsensusContractSystemName = Hash.Generate()
             })).TransactionResult;
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
