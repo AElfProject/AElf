@@ -21,6 +21,14 @@ namespace AElf.Contracts.Profit
         public override Hash CreateProfitItem(CreateProfitItemInput input)
         {
             var profitId = GetProfitId(input.Creator, input.ItemName);
+            State.ProfitsMap[profitId] = new ProfitItem
+            {
+                Creator = input.Creator,
+                ItemName = input.ItemName,
+                ProfitId = GetProfitId(input.Creator, input.ItemName),
+                TotalWeight = input.TotalWeight,
+                IsTotalWeightFixed = input.IsTotalWeightFixed
+            };
             return profitId;
         }
 

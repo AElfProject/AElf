@@ -95,6 +95,13 @@ namespace AElf.Contracts.Vote
             if (votingEvent.Delegated)
             {
                 Assert(input.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
+                Assert(input.Voter != null, "Voter cannot be null if voting event is delegated.");
+                Assert(input.VoteId != null, "Vote Id cannot be null if voting event is delegated.");
+            }
+            else
+            {
+                input.Voter = Context.Sender;
+                input.VoteId = Context.TransactionId;
             }
 
             var votingRecord = new VotingRecord
@@ -106,7 +113,7 @@ namespace AElf.Contracts.Vote
                 Option = input.Option,
                 IsWithdrawn = false,
                 VoteTimestamp = Context.CurrentBlockTime.ToTimestamp(),
-                Voter = votingEvent.Delegated ? input.Voter : Context.Sender,
+                Voter = input.Voter,
                 Currency = votingEvent.AcceptedCurrency
             };
 
@@ -130,7 +137,7 @@ namespace AElf.Contracts.Vote
             {
                 Voter = votingRecord.Voter
             };
-            if (votingHistories.Votes[votingResult.GetHash().ToHex()] == null)
+            if (!votingHistories.Votes.ContainsKey(votingResult.GetHash().ToHex()))
             {
                 votingHistories.Votes[votingResult.GetHash().ToHex()] = new VotingHistory
                 {

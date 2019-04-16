@@ -1,3 +1,4 @@
+using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Contracts.Profit

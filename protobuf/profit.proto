@@ -22,7 +22,8 @@ message ProfitItem {
     Address creator = 2;
     string item_name = 3;
     repeated ReceiverInformation receivers = 4;
-    
+    sint64 total_weight = 5;
+    bool is_total_weight_fixed = 6;
 }
 
 message ReceiverInformation {
