@@ -60,6 +60,17 @@ namespace AElf.CrossChain.Grpc
                     .Returns(Hash.Generate);
                 return mockService.Object;
             });
+
+            services.AddTransient(o =>
+            {
+                var mockCrossChainDataProvider = new Mock<ICrossChainDataProvider>();
+                mockCrossChainDataProvider
+                    .Setup(c => c.GetChainInitializationContextAsync(It.IsAny<int>())).Returns(Task.FromResult(new ChainInitializationContext
+                    {
+                        ParentChainHeightOfCreation = 1,
+                    }));
+                return mockCrossChainDataProvider.Object;
+            });
             
             services.AddSingleton<CrossChainRpc.CrossChainRpcBase, CrossChainGrpcServerBase>();
         }

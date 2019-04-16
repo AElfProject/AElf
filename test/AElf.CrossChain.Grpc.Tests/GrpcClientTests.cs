@@ -46,7 +46,7 @@ namespace AElf.CrossChain.Grpc
             var result = await parentClient.TryHandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
 
-            parentClient = new GrpcClientForParentChain("localhost:3000", 0);
+            parentClient = new GrpcClientForParentChain("localhost:3000", 0,1);
             await Assert.ThrowsAsync<RpcException>(()=>parentClient.TryHandShakeAsync(0, 3000));
         }
         
@@ -56,7 +56,7 @@ namespace AElf.CrossChain.Grpc
             var result = await sideClient.TryHandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
 
-            sideClient = new GrpcClientForSideChain("localhost:3000");
+            sideClient = new GrpcClientForSideChain("localhost:3000", 1);
             await Assert.ThrowsAsync<RpcException>(()=>sideClient.TryHandShakeAsync(0, 3000));
         }
 
@@ -69,8 +69,8 @@ namespace AElf.CrossChain.Grpc
             _server.StartAsync(Host, ListenPort).Wait();
             
             string uri = $"{Host}:{ListenPort}";
-            parentClient = new GrpcClientForParentChain(uri, 0);
-            sideClient = new GrpcClientForSideChain(uri);
+            parentClient = new GrpcClientForParentChain(uri, 0, 1);
+            sideClient = new GrpcClientForSideChain(uri, 1);
         }
 
         public override void Dispose()
