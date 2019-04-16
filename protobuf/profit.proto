@@ -13,17 +13,40 @@ message InitializeProfitContractInput {
 message CreateProfitItemInput {
     string item_name = 1;
     Address creator = 2;
+    sint64 total_weight = 3;
+    bool is_total_weight_fixed = 4;
+}
+
+message ProfitItem {
+    Hash profit_id = 1;
+    Address creator = 2;
+    string item_name = 3;
+    repeated ReceiverInformation receivers = 4;
     
+}
+
+message ReceiverInformation {
+    Address receiver = 1;
+    string item_name = 2;
+    sint64 weight = 3;
 }
 
 message AddReceiverInput {
     Address receiver = 1;
+    string item_name = 2;
+    sint64 weight = 3;
 }
 
 message RemoveReceiverInput {
-    
+    Address receiver = 1;
+    string item_name = 2;
 }
 
 message ProfitInput {
+    string item_name = 1;
+}
+
+message ReleaseProfitInput {
+    string item_name = 1;
     
 }

@@ -118,6 +118,10 @@ namespace AElf.Contracts.Vote
                 EpochNumber = votingEvent.CurrentEpoch
             });
             var votingResult = State.VotingResults[votingResultHash];
+            if (!votingResult.Results.ContainsKey(input.Option))
+            {
+                votingResult.Results.Add(input.Option, 0);
+            }
             var currentVotes = votingResult.Results[input.Option];
             votingResult.Results[input.Option] = currentVotes + input.Amount;
 

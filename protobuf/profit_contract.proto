@@ -24,5 +24,7 @@ service ProfitContract {
     }
     rpc Profit (ProfitInput) returns (google.protobuf.Empty) {
     }
+    rpc ReleaseProfit (ReleaseProfitInput) returns (google.protobuf.Empty) {
+    }
     
 }
