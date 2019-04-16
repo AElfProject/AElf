@@ -97,6 +97,11 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 var currentPublicKey = pair.Key;
 
+                if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
+                {
+                    return;
+                }
+
                 if (currentPublicKey == publicKey)
                 {
                     continue;
@@ -110,6 +115,11 @@ namespace AElf.Contracts.Consensus.DPoS
                     .Add(currentPublicKey, ByteString.CopyFrom(encryptedInValue));
 
                 if (previousRound.RoundId == 0 || round.TermNumber != previousRound.TermNumber)
+                {
+                    continue;
+                }
+
+                if (!previousRound.RealTimeMinersInformation.ContainsKey(currentPublicKey))
                 {
                     continue;
                 }
