@@ -38,6 +38,7 @@ message CreateOrganizationInput{
 message Organization{
     int32 releaseThreshold = 1;
     Address organizationAddress = 2;
+    Hash organizationHash = 3;
 }
 
 message ProposalInfo {

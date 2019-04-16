@@ -31,6 +31,7 @@ message Organization{
     repeated Reviewer reviewers = 2;
     int32 proposerThreshold = 3;
     Address organizationAddress = 4;
+    Hash organizationHash = 5;
 }
 
 message Reviewer {

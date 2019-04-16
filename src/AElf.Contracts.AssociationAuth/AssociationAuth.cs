@@ -55,15 +55,18 @@ namespace AElf.Contracts.AssociationAuth
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
+            var organizationHash = Hash.FromMessage(input);
             Address organizationAddress =
                 Context.ConvertVirtualAddressToContractAddress(Hash.FromTwoHashes(Hash.FromMessage(Context.Self),
-                    Hash.FromMessage(input)));
+                    organizationHash));
             if(State.Organisations[organizationAddress] == null)
             {
                 var organization =new Organization
                 {
                     ReleaseThreshold = input.ReleaseThreshold,
-                    OrganizationAddress = organizationAddress
+                    OrganizationAddress = organizationAddress,
+                    ProposerThreshold = input.ProposerThreshold,
+                    OrganizationHash = organizationHash
                 };
                 organization.Reviewers.AddRange(input.Reviewers);
                 State.Organisations[organizationAddress] = organization;
@@ -119,8 +122,10 @@ namespace AElf.Contracts.AssociationAuth
             // check approvals
             Assert(CheckApprovals(proposalId, proposal.OrganizationAddress), "Not authorized to release.");
             
-            Context.SendInline(proposal.ToAddress, proposal.ContractMethodName, proposal.Params);
-            
+            var organization = GetOrganization(proposal.OrganizationAddress);
+            var virtualHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), organization.OrganizationHash);
+            Context.SendVirtualInline(virtualHash, proposal.ToAddress, proposal.ContractMethodName, proposal.Params);
+
             State.ProposalReleaseStatus[proposalId] = new BoolValue{Value = true};
             return new Empty();
         }

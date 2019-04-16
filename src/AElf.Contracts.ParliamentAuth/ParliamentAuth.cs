@@ -52,15 +52,17 @@ namespace AElf.Contracts.ParliamentAuth
         
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
+            var organizationHash = Hash.FromMessage(input);
             Address organizationAddress =
                 Context.ConvertVirtualAddressToContractAddress(Hash.FromTwoHashes(Hash.FromMessage(Context.Self),
-                    Hash.FromMessage(input)));
+                    organizationHash));
             if(State.Organisations[organizationAddress] == null)
             {
                 var organization =new Organization
                 {
                     ReleaseThreshold = input.ReleaseThreshold,
-                    OrganizationAddress = organizationAddress
+                    OrganizationAddress = organizationAddress,
+                    OrganizationHash = organizationHash
                 };
                 State.Organisations[organizationAddress] = organization;
             }
@@ -104,15 +106,15 @@ namespace AElf.Contracts.ParliamentAuth
             // check expired time of proposal
             ValidateProposalContract();
             var proposal = State.ProposalContract.GetProposal.Call(proposalId);
-            var organization = State.Organisations[proposal.OrganizationAddress];
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(),
                 "Expired proposal.");
 
             // check approvals
+            var organization = GetOrganization(proposal.OrganizationAddress);
             Assert(CheckApprovals(proposalId, organization.ReleaseThreshold), "Not authorized to release.");
-            
-            Context.SendInline(proposal.ToAddress, proposal.ContractMethodName, proposal.Params);
-            
+            var virtualHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), organization.OrganizationHash);
+            Context.SendVirtualInline(virtualHash, proposal.ToAddress, proposal.ContractMethodName, proposal.Params);
+
             State.ProposalReleaseStatus[proposalId] = new BoolValue{Value = true};
             return new Empty();
         }

@@ -34,6 +34,7 @@ message Organization{
     int64 releaseThreshold = 1;
     string tokenSymbol = 2;
     Address organizationAddress = 3;
+    Hash organizationHash = 4;
 }
 
 message VoteInfo{
