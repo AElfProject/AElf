@@ -76,23 +76,6 @@ namespace AElf.Blockchains.BasicBaseChain
                         break;
                 }
             });
-            
-            Configure<ChainOptions>(option =>
-            {
-                var nodeType = config.GetValue<NodeType>("NodeType");
-                switch (nodeType)
-                {
-                    case NodeType.MainNet:
-                        option.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
-                        break;
-                    case NodeType.TestNet:
-                        option.ChainId = ChainHelpers.ConvertBase58ToChainId("TEST");
-                        break;
-                    case NodeType.CustomNet:
-                        option.ChainId = ChainHelpers.ConvertBase58ToChainId(config["ChainId"]);
-                        break;
-                }
-            });
         }
     }
     
