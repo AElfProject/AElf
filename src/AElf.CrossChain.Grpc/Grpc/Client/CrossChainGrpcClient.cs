@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
@@ -10,9 +11,9 @@ namespace AElf.CrossChain.Grpc
     public abstract class CrossChainGrpcClient<TResponse> : IGrpcCrossChainClient where TResponse : IResponseIndexingMessage
     {
         protected CrossChainRpc.CrossChainRpcClient Client;
-
         protected int LocalChainId;
-
+        protected int Timeout;
+        
         public async Task<bool> StartIndexingRequest(int chainId, ICrossChainDataProducer crossChainDataProducer)
         {
             var targetHeight = crossChainDataProducer.GetChainHeightNeeded(chainId);
@@ -57,7 +58,7 @@ namespace AElf.CrossChain.Grpc
                 ChainId = chainId,
                 ListeningPort = localListeningPort
                 // use formatted chainId as certificate name, which can be changed later.  
-            });
+            }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(Timeout)));
             return Task.FromResult(handShakeReply);
         }
         
@@ -67,7 +68,7 @@ namespace AElf.CrossChain.Grpc
                 new ChainInitializationRequest
                 {
                     ChainId = chainId
-                });
+                }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(Timeout)));
             return Task.FromResult(chainInitializationResponse);
         }
 
@@ -98,8 +99,9 @@ namespace AElf.CrossChain.Grpc
     public class GrpcClientForSideChain : CrossChainGrpcClient<ResponseSideChainBlockData>
     {
 
-        public GrpcClientForSideChain(string uri)
+        public GrpcClientForSideChain(string uri, int timeout)
         {
+            Timeout = timeout;
             Client = new CrossChainRpc.CrossChainRpcClient(CreateChannel(uri));
         }
 
@@ -123,15 +125,17 @@ namespace AElf.CrossChain.Grpc
 
         protected override AsyncServerStreamingCall<ResponseSideChainBlockData> RequestIndexing(RequestCrossChainBlockData requestCrossChainBlockData)
         {
-            return Client.RequestIndexingFromSideChain(requestCrossChainBlockData);
+            return Client.RequestIndexingFromSideChain(requestCrossChainBlockData,
+                new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(Timeout)));
         }
     }
     
     public class GrpcClientForParentChain : CrossChainGrpcClient<ResponseParentChainBlockData>
     {
-        public GrpcClientForParentChain(string uri, int localChainId)
+        public GrpcClientForParentChain(string uri, int localChainId, int timeout)
         {
             LocalChainId = localChainId;
+            Timeout = timeout;
             Client = new CrossChainRpc.CrossChainRpcClient(CreateChannel(uri));
         }
 
@@ -149,7 +153,8 @@ namespace AElf.CrossChain.Grpc
 
         protected override AsyncServerStreamingCall<ResponseParentChainBlockData> RequestIndexing(RequestCrossChainBlockData requestCrossChainBlockData)
         {
-            return Client.RequestIndexingFromParentChain(requestCrossChainBlockData);
+            return Client.RequestIndexingFromParentChain(requestCrossChainBlockData,
+                new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(Timeout)));
         }
     }
 

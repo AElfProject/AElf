@@ -10,7 +10,8 @@ namespace AElf.CrossChain.Grpc
         
         public int LocalListeningPort { get; set; }
         public string CertificateFileName { get; set; }
-        
+        public int Timeout { get; set; }
+
         public string ToUriStr()
         {
             return string.Join(":",TargetIp, TargetPort);

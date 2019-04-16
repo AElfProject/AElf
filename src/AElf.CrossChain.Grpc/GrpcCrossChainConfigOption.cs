@@ -14,6 +14,8 @@ namespace AElf.CrossChain.Grpc
         public string RemoteParentChainNodeIp { get; set; }
         public int RemoteParentChainNodePort { get; set; }
         public string RemoteParentCertificateFileName { get; set; }
+        public int ConnectingTimeout { get; set; } = 3;
+
         #endregion
     }
 }

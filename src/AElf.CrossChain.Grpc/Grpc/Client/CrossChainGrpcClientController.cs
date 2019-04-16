@@ -42,9 +42,9 @@ namespace AElf.CrossChain.Grpc
             _grpcCrossChainClients[crossChainCommunicationContext.RemoteChainId] = client;
         }
 
-        public async Task<ChainInitializationContext> RequestChainInitializationContext(string uri, int chainId)
+        public async Task<ChainInitializationContext> RequestChainInitializationContext(string uri, int chainId, int timeout)
         {
-            var clientForParentChain = new GrpcClientForParentChain(uri, chainId);
+            var clientForParentChain = new GrpcClientForParentChain(uri, chainId, timeout);
             var response = await TryRequest(clientForParentChain, c => c.RequestChainInitializationContext(chainId));
             return response?.SideChainInitializationContext;
         }
@@ -59,8 +59,8 @@ namespace AElf.CrossChain.Grpc
             string uri = grpcClientBase.ToUriStr();
 
             if (!grpcClientBase.RemoteIsSideChain)
-                return new GrpcClientForParentChain(uri, grpcClientBase.LocalChainId);
-            var clientToSideChain = new GrpcClientForSideChain(uri);
+                return new GrpcClientForParentChain(uri, grpcClientBase.LocalChainId, grpcClientBase.Timeout);
+            var clientToSideChain = new GrpcClientForSideChain(uri, grpcClientBase.Timeout);
             return clientToSideChain;
         }
 

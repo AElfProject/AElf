@@ -33,7 +33,8 @@ namespace AElf.CrossChain.Grpc
                 TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
                 TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
                 LocalChainId = chainId,
-                LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort
+                LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort,
+                Timeout = _grpcCrossChainConfigOption.ConnectingTimeout
             });
         }
 
@@ -60,7 +61,7 @@ namespace AElf.CrossChain.Grpc
         public async Task<ChainInitializationContext> RequestChainInitializationContextAsync(int chainId)
         {
             string uri = string.Join(":", _grpcCrossChainConfigOption.RemoteParentChainNodeIp, _grpcCrossChainConfigOption.RemoteParentChainNodePort);
-            var chainInitializationContext = await _crossChainGrpcClientController.RequestChainInitializationContext(uri, chainId);
+            var chainInitializationContext = await _crossChainGrpcClientController.RequestChainInitializationContext(uri, chainId, _grpcCrossChainConfigOption.ConnectingTimeout);
             return chainInitializationContext;
         }
 
