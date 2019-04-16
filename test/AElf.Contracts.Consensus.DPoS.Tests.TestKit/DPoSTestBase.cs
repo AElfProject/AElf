@@ -166,6 +166,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name,
+                    LockTokenForElection = DPoSContractConsts.LockTokenForElection,
                     NativeTokenSymbol = "ELF"
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),

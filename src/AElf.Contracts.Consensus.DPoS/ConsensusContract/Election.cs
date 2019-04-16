@@ -105,7 +105,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 From = Context.Sender,
                 To = Context.Self,
                 Symbol = State.NativeTokenSymbol.Value,
-                Amount = DPoSContractConsts.LockTokenForElection,
+                Amount = State.LockTokenForElection.Value,
                 LockId = Context.TransactionId,
                 Usage = "Lock for announcing election."
             });
@@ -137,7 +137,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 To = Context.Self,
                 Symbol = State.NativeTokenSymbol.Value,
                 LockId = State.HistoryMap[publicKey.ToStringValue()].AnnouncementTransactionId,
-                Amount = DPoSContractConsts.LockTokenForElection,
+                Amount = State.LockTokenForElection.Value,
                 Usage = "Unlock and quit election."
             });
 
