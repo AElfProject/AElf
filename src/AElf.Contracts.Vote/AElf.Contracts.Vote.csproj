@@ -27,9 +27,6 @@
         <Content Include="..\..\protobuf\vote_contract.proto">
         <Link>Protobuf/Proto/vote_contract.proto</Link>
         </Content>
-        <Content Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
-        </Content>
         <Content Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
         </Content>
