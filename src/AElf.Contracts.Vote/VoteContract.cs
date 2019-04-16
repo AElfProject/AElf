@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Runtime.CompilerServices;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
@@ -49,10 +50,12 @@ namespace AElf.Contracts.Vote
             var votingEventHash = votingEvent.GetHash();
 
             Assert(State.VotingEvents[votingEventHash] == null, "Voting event already exists.");
-            Assert(State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
             {
                 Symbol = input.AcceptedCurrency
-            }).LockWhiteList.Contains(Context.Self), "Claimed accepted token is not available for voting.");
+            });
+            var whiteList = tokenInfo.LockWhiteList;
+            Assert(whiteList.Contains(Context.Self), "Claimed accepted token is not available for voting.");
 
             // Initialize voting event.
             votingEvent.AcceptedCurrency = input.AcceptedCurrency;
