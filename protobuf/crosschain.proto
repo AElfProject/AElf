@@ -74,4 +74,5 @@ message ChainInitializationContext{
     Address Creator = 2;
     google.protobuf.Timestamp CreatedTime = 3;
     repeated bytes ExtraInformation = 4;
+    int64 ParentChainHeightOfCreation = 5;
 }

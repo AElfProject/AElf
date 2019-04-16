@@ -103,7 +103,8 @@ namespace AElf.CrossChain.Grpc
             return merklepathList;
         }
         
-        private async Task<IResponseIndexingMessage> CreateParentChainResponse(Block block, int remoteSideChainId)
+        private async Task<IResponseIndexingMessage> CreateParentChainResponse(Block block, int remoteSideChainId,
+            long parentChainHeightOfCreation)
         {
             var responseParentChainBlockData = new ResponseParentChainBlockData
             {
@@ -117,11 +118,15 @@ namespace AElf.CrossChain.Grpc
                     }
                 }
             };
-            foreach (var symbol in _crossChainConfigOption.ExtraDataSymbols)
+            if(block.Height >= parentChainHeightOfCreation)
             {
-                var extraData = _blockExtraDataExtractor.ExtractOtherExtraData(symbol, block.Header);
-                if(extraData != null)
-                    responseParentChainBlockData.BlockData.ExtraData.Add(symbol, extraData);
+                // only pack extra information after side chain creation
+                foreach (var symbol in _crossChainConfigOption.ExtraDataSymbols)
+                {
+                    var extraData = _blockExtraDataExtractor.ExtractOtherExtraData(symbol, block.Header);
+                    if(extraData != null)
+                        responseParentChainBlockData.BlockData.ExtraData.Add(symbol, extraData);
+                }
             }
             
             var transactionStatusMerkleRoot =
@@ -142,7 +147,7 @@ namespace AElf.CrossChain.Grpc
             return responseParentChainBlockData;
         }
 
-        private IResponseIndexingMessage CreateSideChainBlockData(Block block)
+        private IResponseIndexingMessage CreateSideChainResponse(Block block)
         {
             var transactionStatusMerkleRoot = _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header); 
             return new ResponseSideChainBlockData
@@ -163,14 +168,17 @@ namespace AElf.CrossChain.Grpc
         {
             var requestedHeight = request.NextHeight;
             var remoteChainId = request.FromChainId;
+            var parentChainHeightOfCreation = requestSideChain ? 0 :
+                (await _crossChainDataProvider.GetChainInitializationContextAsync(remoteChainId))
+                .ParentChainHeightOfCreation;
             while (true)
             {
                 var block = await GetIrreversibleBlock(requestedHeight);
                 if (block == null)
                     return;
                 var res = requestSideChain
-                    ? CreateSideChainBlockData(block)
-                    : await CreateParentChainResponse(block, remoteChainId);
+                    ? CreateSideChainResponse(block)
+                    : await CreateParentChainResponse(block, remoteChainId, parentChainHeightOfCreation);
                 await responseStream.WriteAsync((T) res);
                 requestedHeight++;
             }

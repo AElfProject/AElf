@@ -130,7 +130,7 @@ namespace AElf.Contracts.CrossChain
             Assert(sideChainInfo.SideChainStatus > SideChainStatus.Review, "Incorrect side chain status.");
             var res = new ChainInitializationContext
             {
-                CreatedTime = sideChainInfo.CreatedTime,
+                ParentChainHeightOfCreation = sideChainInfo.ParentChainHeightOfCreation,
                 ChainId = chainId.Value,
                 Creator = sideChainInfo.Proposer
             };
