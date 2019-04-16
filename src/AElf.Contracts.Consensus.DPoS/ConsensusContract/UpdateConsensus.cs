@@ -202,7 +202,6 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             var result = currentRound.GenerateNextRoundInformation(blockTime, blockchainStartTimestamp, out nextRound);
-            nextRound.BlockchainAge = CurrentAge;
             return result;
         }
 
