@@ -65,7 +65,8 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    ParentChainId = parentChainId == 0 ? ChainHelpers.ConvertBase58ToChainId("AELF") : parentChainId
+                    ParentChainId = parentChainId == 0 ? ChainHelpers.ConvertBase58ToChainId("AELF") : parentChainId,
+                    NativeTokenSymbol = "ELF"
                 });
 
             await Tester.MineAsync(new List<Transaction> {tx});
