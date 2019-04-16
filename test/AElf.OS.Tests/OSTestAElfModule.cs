@@ -53,7 +53,6 @@ namespace AElf.OS
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-
         }
     }
 }
