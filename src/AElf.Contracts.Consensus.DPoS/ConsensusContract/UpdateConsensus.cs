@@ -6,6 +6,7 @@ using AElf.Consensus.DPoS;
 using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -191,7 +192,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 }
             }
 
-            var result = currentRound.GenerateNextRoundInformation(blockTime, blockchainStartTimestamp, out nextRound);
+            var result = currentRound.GenerateNextRoundInformation(blockTime, blockTime.ToTimestamp(), out nextRound);
             nextRound.BlockchainAge = CurrentAge;
             return result;
         }

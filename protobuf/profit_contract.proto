@@ -18,9 +18,9 @@ service ProfitContract {
     }
     rpc CreateProfitItem (CreateProfitItemInput) returns (Hash) {
     }
-    rpc AddReceiver (AddReceiverInput) returns (google.protobuf.Empty) {
+    rpc AddWeight (UpdateWeightInput) returns (google.protobuf.Empty) {
     }
-    rpc RemoveReceiver (RemoveReceiverInput) returns (google.protobuf.Empty) {
+    rpc RemoveWeight (UpdateWeightInput) returns (google.protobuf.Empty) {
     }
     rpc Profit (ProfitInput) returns (google.protobuf.Empty) {
     }

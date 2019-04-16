@@ -15,6 +15,7 @@ message CreateProfitItemInput {
     Address creator = 2;
     sint64 total_weight = 3;
     bool is_total_weight_fixed = 4;
+    sint64 total_amount = 5;
 }
 
 message ProfitItem {
@@ -24,6 +25,7 @@ message ProfitItem {
     repeated ReceiverInformation receivers = 4;
     sint64 total_weight = 5;
     bool is_total_weight_fixed = 6;
+    sint64 total_amount = 7;
 }
 
 message ReceiverInformation {
@@ -32,15 +34,10 @@ message ReceiverInformation {
     sint64 weight = 3;
 }
 
-message AddReceiverInput {
+message UpdateWeightInput {
     Address receiver = 1;
     string item_name = 2;
     sint64 weight = 3;
-}
-
-message RemoveReceiverInput {
-    Address receiver = 1;
-    string item_name = 2;
 }
 
 message ProfitInput {

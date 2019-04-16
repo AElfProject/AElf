@@ -7,6 +7,8 @@ namespace AElf.Contracts.Profit
     {
         public BoolState Initialized { get; set; }
 
-        public MappedState<Hash, ProfitItem> ProfitsMap { get; set; }
+        public MappedState<Hash, ProfitItem> ProfitItemsMap { get; set; }
+
+        public MappedState<Hash, Address, long> WeightsMap { get; set; }
     }
 }
