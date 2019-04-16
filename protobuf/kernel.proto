@@ -154,11 +154,6 @@ message BlockHeaderList {
     repeated BlockHeader Headers = 1;
 }
 
-message BlockExtraData {
-    Hash SideChainTransactionsRoot = 1;
-    bytes ConsensusInformation = 2;
-}
-
 message BlockHeader {
     int32 Version = 1;
     Hash PreviousBlockHash = 2;

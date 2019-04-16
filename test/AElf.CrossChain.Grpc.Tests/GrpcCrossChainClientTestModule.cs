@@ -73,7 +73,7 @@ eAkW/Qv4MEnbgaq97yC2lPkyrd19N2fh5oBT
 
             services.AddTransient(o =>
             {
-                var mockService = new Mock<ICrossChainDataProducer>();
+                var mockService = new Mock<ICrossChainMemCacheService>();
                 mockService.Setup(m=>m.GetChainHeightNeeded(It.IsAny<int>()))
                     .Returns(15);
                 

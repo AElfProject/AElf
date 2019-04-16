@@ -6,10 +6,12 @@ namespace AElf.CrossChain.Cache
     public class CrossChainDataConsumerTest : CrossChainTestBase
     {
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
+        private readonly ICrossChainMemCacheService _crossChainMemCacheService;
 
         public CrossChainDataConsumerTest()
         {
             _crossChainDataConsumer = GetRequiredService<ICrossChainDataConsumer>();
+            _crossChainMemCacheService = GetRequiredService<ICrossChainMemCacheService>();
         }
         
         [Fact]
@@ -54,39 +56,10 @@ namespace AElf.CrossChain.Cache
         }
 
         [Fact]
-        public void CachedCount_Empty()
-        {
-            var count = _crossChainDataConsumer.GetCachedChainCount();
-            Assert.True(0 == count);
-        }
-        
-        [Fact]
-        public void CachedCount_NotEmpty()
-        {
-            int chainId = 123;
-            var dict = new Dictionary<int, BlockInfoCache>
-            {
-                {chainId, new BlockInfoCache(1)}
-            };
-            CreateFakeCache(dict);
-            var count = _crossChainDataConsumer.GetCachedChainCount();
-            Assert.True(1 == count);
-        }
-
-        [Fact]
-        public void RegisterNewChain_NotNull()
-        {
-            int chainId = 123;
-            _crossChainDataConsumer.TryRegisterNewChainCache(chainId, 1);
-            var count = _crossChainDataConsumer.GetCachedChainCount();
-            Assert.True(1 == count);
-        }
-
-        [Fact]
         public void TryTake_After_RegisterNewChain()
         {
             int chainId = 123;
-            _crossChainDataConsumer.TryRegisterNewChainCache(chainId, 1);
+            _crossChainMemCacheService.TryRegisterNewChainCache(chainId, 1);
             var blockInfoCache = MultiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = new SideChainBlockData
@@ -103,7 +76,7 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WrongIndex_After_RegisterNewChain()
         {
             int chainId = 123;
-            _crossChainDataConsumer.TryRegisterNewChainCache(chainId, 1);
+            _crossChainMemCacheService.TryRegisterNewChainCache(chainId, 1);
             var blockInfoCache = MultiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = new SideChainBlockData

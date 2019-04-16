@@ -31,13 +31,13 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task ParentChainClient_StartIndexingRequest_WithException()
         {
-            await Assert.ThrowsAsync<RpcException>(()=>parentClient.StartIndexingRequest(0, _crossChainDataProducer));  
+            await Assert.ThrowsAsync<RpcException>(()=>parentClient.StartIndexingRequest(0, 1, _crossChainDataProducer));  
         }
         
         [Fact]
         public async Task SideChainClient_StartIndexingRequest_WithException()
         {
-            await Assert.ThrowsAsync<RpcException>(()=>sideClient.StartIndexingRequest(0, _crossChainDataProducer));
+            await Assert.ThrowsAsync<RpcException>(()=>sideClient.StartIndexingRequest(0, 1, _crossChainDataProducer));
         }
 
         [Fact]
