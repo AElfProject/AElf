@@ -44,7 +44,7 @@ namespace AElf.Blockchains.BasicBaseChain
                                     
             Configure<TokenInitialOptions>(option =>
             {
-                var nodeType = config.GetValue<NodeType>("NodeType");
+                var nodeType = config.GetValue<NodeType>("NodeType", NodeType.MainNet);
                 switch (nodeType)
                 {
                     case NodeType.MainNet:

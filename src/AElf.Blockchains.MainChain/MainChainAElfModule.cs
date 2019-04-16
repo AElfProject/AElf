@@ -52,7 +52,7 @@ namespace AElf.Blockchains.MainChain
             
             Configure<ChainOptions>(option =>
             {
-                var nodeType = config.GetValue<NodeType>("NodeType");
+                var nodeType = config.GetValue<NodeType>("NodeType", NodeType.MainNet);
                 switch (nodeType)
                 {
                     case NodeType.MainNet:
