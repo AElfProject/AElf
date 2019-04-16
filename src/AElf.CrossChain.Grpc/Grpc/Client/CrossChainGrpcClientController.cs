@@ -17,10 +17,12 @@ namespace AElf.CrossChain.Grpc
 //        private ILocalEventBus LocalEventBus { get; }
 
         private readonly Dictionary<int, IGrpcCrossChainClient> _grpcCrossChainClients = new Dictionary<int, IGrpcCrossChainClient>();
-        
-        public CrossChainGrpcClientController(ICrossChainDataProducer crossChainDataProducer)
+        private readonly ICrossChainMemCacheService _crossChainMemCacheService;
+        public CrossChainGrpcClientController(ICrossChainDataProducer crossChainDataProducer, 
+            ICrossChainMemCacheService crossChainMemCacheService)
         {
             _crossChainDataProducer = crossChainDataProducer;
+            _crossChainMemCacheService = crossChainMemCacheService;
 //            LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -32,7 +34,7 @@ namespace AElf.CrossChain.Grpc
             if(_grpcCrossChainClients.ContainsKey(crossChainCommunicationContext.RemoteChainId))
                 return;
             if (crossChainCommunicationContext.RemoteIsSideChain && 
-                !_crossChainDataProducer.GetCachedChainIds().Contains(crossChainCommunicationContext.RemoteChainId)) 
+                !_crossChainMemCacheService.GetCachedChainIds().Contains(crossChainCommunicationContext.RemoteChainId)) 
                 return; // dont create client for not cached remote side chain
             var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext);
             var reply = await TryRequest(client, c => c.TryHandShakeAsync(crossChainCommunicationContext.LocalChainId,
@@ -71,13 +73,14 @@ namespace AElf.CrossChain.Grpc
         public void RequestCrossChainIndexing()
         {
             //Logger.LogTrace("Request cross chain indexing ..");
-            var chainIds = _crossChainDataProducer.GetCachedChainIds();
+            var chainIds = _crossChainMemCacheService.GetCachedChainIds();
             foreach (var chainId in chainIds)
             {
                 Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
                 if(!_grpcCrossChainClients.TryGetValue(chainId, out var client))
                     continue;
-                var task = TryRequest(client, c => c.StartIndexingRequest(chainId, _crossChainDataProducer));
+                var targetHeigt = _crossChainMemCacheService.GetChainHeightNeeded(chainId);
+                var task = TryRequest(client, c => c.StartIndexingRequest(chainId, targetHeigt, _crossChainDataProducer));
             }
         }
 

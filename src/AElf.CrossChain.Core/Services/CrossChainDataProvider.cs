@@ -16,16 +16,18 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainContractReader _crossChainContractReader;
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
+        private readonly ICrossChainMemCacheService _crossChainMemCacheService;
         public ILogger<CrossChainDataProvider> Logger { get; set; }
 
         private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData =
             new Dictionary<Hash, CrossChainBlockData>();
         private KeyValuePair<long, Hash> _libHeightToHash;
         public CrossChainDataProvider(ICrossChainContractReader crossChainContractReader,
-            ICrossChainDataConsumer crossChainDataConsumer, ILocalLibService localLibService)
+            ICrossChainDataConsumer crossChainDataConsumer, ICrossChainMemCacheService crossChainMemCacheService)
         {
             _crossChainContractReader = crossChainContractReader;
             _crossChainDataConsumer = crossChainDataConsumer;
+            _crossChainMemCacheService = crossChainMemCacheService;
         }
 
         public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
@@ -153,7 +155,7 @@ namespace AElf.CrossChain
 
         public void RegisterNewChain(int chainId)
         {
-            _crossChainDataConsumer.TryRegisterNewChainCache(chainId);
+            _crossChainMemCacheService.TryRegisterNewChainCache(chainId);
         }
 
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
@@ -211,7 +213,7 @@ namespace AElf.CrossChain
             var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(eventData.BlockHash, eventData.BlockHeight);
             foreach (var chainIdHeight in dict)
             {
-                _crossChainDataConsumer.TryRegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value + 1);
+                _crossChainMemCacheService.TryRegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value + 1);
             }
             // clear useless cache
             var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight + 1 < eventData.BlockHeight)

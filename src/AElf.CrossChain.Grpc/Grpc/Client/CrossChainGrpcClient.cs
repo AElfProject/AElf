@@ -14,9 +14,9 @@ namespace AElf.CrossChain.Grpc
         protected int LocalChainId;
         protected int Timeout;
         
-        public async Task<bool> StartIndexingRequest(int chainId, ICrossChainDataProducer crossChainDataProducer)
+        public async Task<bool> StartIndexingRequest(int chainId, long targetHeight,
+            ICrossChainDataProducer crossChainDataProducer)
         {
-            var targetHeight = crossChainDataProducer.GetChainHeightNeeded(chainId);
             var requestData = new RequestCrossChainBlockData
             {
                 FromChainId = LocalChainId,
@@ -162,7 +162,8 @@ namespace AElf.CrossChain.Grpc
     {
         //Task StartDuplexStreamingCall(int chainId, CancellationToken cancellationToken);
         Task<IndexingHandShakeReply> TryHandShakeAsync(int chainId, int localListeningPort);
-        Task<bool> StartIndexingRequest(int chainId, ICrossChainDataProducer crossChainDataProducer);
+        Task<bool> StartIndexingRequest(int chainId, long targetHeight,
+            ICrossChainDataProducer crossChainDataProducer);
         Task<ChainInitializationResponse> RequestChainInitializationContext(int chainId);
     }
 }
