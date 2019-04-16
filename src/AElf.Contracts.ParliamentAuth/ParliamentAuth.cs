@@ -84,9 +84,9 @@ namespace AElf.Contracts.ParliamentAuth
 
         public override BoolValue Approve(ApproveInput approval)
         {
-            byte[] pubKey = Context.RecoverPublicKey();
             ValidateProposalContract();
             var representatives = GetRepresentatives();
+            byte[] pubKey = Context.RecoverPublicKey();
             Assert(representatives.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)),
                 "Not authorized approval.");
             State.ProposalContract.Approve.Send(new Approval
@@ -100,13 +100,13 @@ namespace AElf.Contracts.ParliamentAuth
 
         public override Empty Release(Hash proposalId)
         {
+            Assert(!State.ProposalReleaseStatus[proposalId].Value, "Proposal already released");
             // check expired time of proposal
             ValidateProposalContract();
             var proposal = State.ProposalContract.GetProposal.Call(proposalId);
             var organization = State.Organisations[proposal.OrganizationAddress];
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(),
                 "Expired proposal.");
-            Assert(!State.ProposalReleaseStatus[proposalId].Value, "Proposal already released");
 
             // check approvals
             Assert(CheckApprovals(proposalId, organization.ReleaseThreshold), "Not authorized to release.");

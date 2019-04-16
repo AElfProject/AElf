@@ -1,77 +1,102 @@
-using System;
-using System.Linq;
 using Acs3;
-using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Sdk.CSharp.State;
 using Google.Protobuf.WellKnownTypes;
+using ApproveInput = Acs3.ApproveInput;
 
 namespace AElf.Contracts.ReferendumAuth
 {
-    public partial class ReferencedunAuthContract : ReferendumAuthContractContainer.ReferendumAuthContractBase
+    public partial class ReferendumAuthContract : ReferendumAuthContractContainer.ReferendumAuthContractBase
     {
+        #region View
+
+        public override Organization GetOrganization(Address address)
+        {
+            var organization = State.Organisations[address];
+            Assert(organization != null, "No registered organization.");
+            return organization;
+        }
+        public override GetProposalOutput GetProposal(Hash proposalId)
+        {
+            ValidateProposalContract();
+            var proposal = State.ProposalContract.GetProposal.Call(proposalId);
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var result = new GetProposalOutput
+            {
+                ProposalHash = proposalId,
+                ContractMethodName = proposal.ContractMethodName,
+                ExpiredTime = proposal.ExpiredTime,
+                OrganizationAddress = proposal.OrganizationAddress,
+                Params = proposal.Params,
+                Proposer = proposal.Proposer,
+                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() &&
+                                !State.ProposalReleaseStatus[proposalId].Value &&
+                                IsReadyToRelease(proposalId, organization.OrganizationAddress)
+            };
+
+            return result;
+        }
+
+        #endregion
+        
         public override Empty Initialize(ReferendumAuthContractInitializationInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.Initialized.Value = true;
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-            State.ParliamentAuthContractSystemName.Value = input.ParliamentAuthContractSystemName;
-            State.AssociationAuthContractSystemName.Value = input.AssociationAuthContractSystemName;
-            State.TokenContractAddressSystemName.Value = input.TokenContractSystemName;
+            State.TokenContractSystemName.Value = input.TokenContractSystemName;
             return new Empty();
         }
-
-        public override Hash CreateProposal(Proposal proposal)
+        
+        public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            Assert(State.Initialized.Value, "Contract not initialized.");
-            CheckParliamentAddress();
-            
-            // check validity of proposal
-            Assert(
-                proposal.Name != null
-                //&& proposal.MultiSigAccount != null
-                && proposal.ToAddress != null
-                && proposal.Params != null
-                && proposal.Proposer == Context.Sender, "Invalid proposal.");
-            DateTime timestamp = proposal.ExpiredTime.ToDateTime();
-
-            Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
-
-            Hash hash = Hash.FromMessage(proposal);
-            var existing = State.Proposals[hash];
-            Assert(existing == null, "Proposal already created.");
-
-            State.Proposals[hash] = new ProposalInfo
+            Address organizationAddress =
+                Context.ConvertVirtualAddressToContractAddress(Hash.FromTwoHashes(Hash.FromMessage(Context.Self),
+                    Hash.FromMessage(input)));
+            if(State.Organisations[organizationAddress] == null)
             {
-                ProposalHash = hash,
-                Proposal = proposal,
-                IsReleased = false
-            };
-            return hash;
+                var organization = new Organization
+                {
+                    ReleaseThreshold = input.ReleaseThreshold,
+                    OrganizationAddress = organizationAddress
+                };
+                State.Organisations[organizationAddress] = organization;
+            }
+            return organizationAddress;
         }
 
-        public override BoolValue Approve(Approval approval)
+        public override Hash CreateProposal(CreateProposalInput proposal)
         {
-            // check validity of proposal 
-            Hash hash = approval.ProposalHash;
+            ValidateProposalContract();
+            State.ProposalContract.CreateProposal.Send(new ProposalContract.CreateProposalInput
+            {
+                ContractMethodName = proposal.ContractMethodName,
+                ToAddress = proposal.ToAddress,
+                ExpiredTime = proposal.ExpiredTime,
+                Params = proposal.Params,
+                OrganizationAddress = proposal.OrganizationAddress,
+                Proposer = Context.Sender
+            });
+            return Hash.FromMessage(proposal);
+        }
 
-            var proposalInfo = State.Proposals[hash];
-            // check authorization and permission 
-            Assert(proposalInfo != null, "Proposal not found.");
-            var proposal = proposalInfo.Proposal;
-            Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(), "Expired proposal.");
+        public override BoolValue Approve(ApproveInput approval)
+        {
+            ValidateProposalContract();
+            var proposal = State.ProposalContract.GetProposal.Call(approval.ProposalHash);
+            var organization = GetOrganization(proposal.OrganizationAddress);
 
             var lockedVoteAmount = Int64Value.Parser.ParseFrom(approval.InputData).Value;
             
-            Assert(State.LockedVoteAmount[Context.Sender][hash] == null, "Cannot approve more than once.");
-            State.LockedVoteAmount[Context.Sender][hash] = new VoteInfo
+            Assert(State.LockedVoteAmount[Context.Sender][approval.ProposalHash] == null, "Cannot approve more than once.");
+            State.LockedVoteAmount[Context.Sender][approval.ProposalHash] = new VoteInfo
                 {Amount = lockedVoteAmount, LockId = Context.TransactionId};
+            State.ApprovedVoteAmount[approval.ProposalHash].Value += lockedVoteAmount;
             
             State.TokenContract.Lock.Send(new LockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = ReferendumConsts.VoteTokenInfoName,
+                Symbol = organization.TokenSymbol,
                 Amount = lockedVoteAmount,
                 LockId = Context.TransactionId,
                 Usage = "Referendum."
@@ -81,69 +106,38 @@ namespace AElf.Contracts.ReferendumAuth
 
         public override Empty Release(Hash proposalId)
         {
-            var proposalInfo = State.Proposals[proposalId];
-            Assert(proposalInfo != null, "Proposal not found.");
-            Assert(IsReadyToRelease(proposalInfo), "Not authorized to release.");
+            Assert(!State.ProposalReleaseStatus[proposalId].Value, "Proposal already released");
+            ValidateProposalContract();
+            var proposal = State.ProposalContract.GetProposal.Call(proposalId);
+            Assert(IsReadyToRelease(proposalId, proposal.OrganizationAddress), "Not authorized to release.");
 
-            // check expired time of proposal
-            var proposal = proposalInfo.Proposal;
             Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(),"Expired proposal.");
-            Assert(!proposalInfo.IsReleased, "Proposal already released");
-            // check approvals
-           
-            Context.SendInline(proposal.ToAddress, proposal.Name, proposal.Params);
-            proposalInfo.IsReleased = true;
-            State.Proposals[proposalId] = proposalInfo;
+            Context.SendInline(proposal.ToAddress, proposal.ContractMethodName, proposal.Params);
+            State.ProposalReleaseStatus[proposalId] = new BoolValue{Value = true};
+
             return new Empty();
         }
 
         public override Empty ReclaimVote(Hash proposalId)
         {
-            var proposalInfo = State.Proposals[proposalId];
-            Assert(proposalInfo != null, "Not found proposal.");
+            ValidateProposalContract();
+            var proposal = State.ProposalContract.GetProposal.Call(proposalId);
             var vote = State.LockedVoteAmount[Context.Sender][proposalId];
             Assert(vote != null, "Nothing to reclaim.");
-            Assert(proposalInfo.IsReleased || Context.CurrentBlockTime > proposalInfo.Proposal.ExpiredTime.ToDateTime(),
+            Assert(State.ProposalReleaseStatus[proposalId].Value || Context.CurrentBlockTime > proposal.ExpiredTime.ToDateTime(),
                 "Unable to reclaim at this time.");
+            
+            var organization = GetOrganization(proposal.OrganizationAddress);
             State.TokenContract.Unlock.Send(new UnlockInput
             {
                 Amount = vote.Amount,
                 From = Context.Sender,
                 LockId = vote.LockId,
-                Symbol = ReferendumConsts.VoteTokenInfoName,
+                Symbol = organization.TokenSymbol,
                 To = Context.Self,
                 Usage = "Referendum."
             });
             return new Empty();
-        }
-
-        public override GetProposalOutput GetProposal(Hash proposalId)
-        {
-            var proposalInfo = State.Proposals[proposalId];
-            Assert(proposalInfo != null, "Not found proposal.");
-
-            var proposal = proposalInfo.Proposal;
-            var result = new GetProposalOutput
-            {
-                Proposal = proposal,
-                CanBeReleased = false
-            };
-
-            if (proposalInfo.IsReleased)
-            {
-                result.Status = ProposalStatus.Released;
-            }
-            else if (Context.CurrentBlockTime > proposalInfo.Proposal.ExpiredTime.ToDateTime())
-            {
-                result.Status = ProposalStatus.Expired;
-            }
-            else
-            {
-                result.Status = ProposalStatus.Active;
-                result.CanBeReleased = IsReadyToRelease(proposalInfo);
-            }
-
-            return result;
         }
     }
 }

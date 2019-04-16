@@ -33,6 +33,7 @@ message CreateProposalInput{
     google.protobuf.Timestamp expiredTime = 5;
     Address organizationAddress = 6;
 }
+
 message GetProposalOutput{
     Hash proposalHash = 1;
     string contractMethodName = 2;

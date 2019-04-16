@@ -33,7 +33,8 @@ namespace AElf.Contracts.AssociationAuth
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() &&
-                                !State.ProposalReleaseStatus[proposalId].Value && CheckApprovals(proposalId)
+                                !State.ProposalReleaseStatus[proposalId].Value &&
+                                CheckApprovals(proposalId, proposal.OrganizationAddress)
             };
 
             return result;
@@ -90,10 +91,10 @@ namespace AElf.Contracts.AssociationAuth
     
         public override BoolValue Approve(ApproveInput approval)
         {
-            byte[] pubKey = Context.RecoverPublicKey();
             ValidateProposalContract();
             var proposal = State.ProposalContract.GetProposal.Call(approval.ProposalHash);
             var organization = GetOrganization(proposal.OrganizationAddress);
+            byte[] pubKey = Context.RecoverPublicKey();
             Assert(organization.Reviewers.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)),
                 "Not authorized approval.");
             State.ProposalContract.Approve.Send(new Approval
