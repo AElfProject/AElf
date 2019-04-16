@@ -15,7 +15,7 @@ namespace AElf.Contracts.Vote
 {
     public class VoteContractTestBase : ContractTestBase<VoteContractTestAElfModule>
     {
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[1];
+        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address TokenContractAddress { get; set; }

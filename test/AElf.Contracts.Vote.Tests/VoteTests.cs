@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -45,7 +47,23 @@ namespace AElf.Contracts.Vote
                 var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
             
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            } 
+                transactionResult.Error.Contains("Topic cannot be null or empty").ShouldBeTrue(); 
+            }
+            
+            //without option
+            {
+                var input = new VotingRegisterInput
+                {
+                    Topic = "test topic",
+                    TotalEpoch = 2,
+                    ActiveDays = 10
+                };
+                
+                var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
+            
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Options cannot be null or empty").ShouldBeTrue(); 
+            }
             
             //endless vote event
             {
@@ -53,7 +71,11 @@ namespace AElf.Contracts.Vote
                 {
                     Topic = "bp election topic",
                     TotalEpoch = 1,
-                    ActiveDays = int.MaxValue
+                    ActiveDays = int.MaxValue,
+                    Options =
+                    {
+                        Address.Generate().GetFormatted()
+                    }
                 };
 
                 var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
@@ -70,7 +92,11 @@ namespace AElf.Contracts.Vote
                     TotalEpoch = 1,
                     ActiveDays = 100,
                     StartTimestamp = DateTime.UtcNow.ToTimestamp(),
-                    AcceptedCurrency = "UTC"
+                    AcceptedCurrency = "UTC",
+                    Options =
+                    {
+                        Address.Generate().GetFormatted()
+                    }
                 };
                 
                 var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
@@ -165,6 +191,159 @@ namespace AElf.Contracts.Vote
             }
         }
 
+        [Fact]
+        public async Task VoteContract_VoteSuccess()
+        {
+            await GenerateNewVoteEvent("topic1", 2, 100, 4, false);
+
+            var voteAmount = 10_000L;
+            var voteUser = SampleECKeyPairs.KeyPairs[1]; 
+            var beforeBalance = await GetUserBalance(voteUser.PublicKey);
+                
+            var input = new VoteInput
+            {
+                Topic = "topic1",
+                Sponsor = DefaultSender,
+                Option = Options[1],
+                Amount = voteAmount
+            };
+            var voteUserStub = GetVoteContractTester(voteUser);
+                
+            var transactionResult = (await voteUserStub.Vote.SendAsync(input)).TransactionResult;
+                
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var afterBalance = await GetUserBalance(voteUser.PublicKey);
+            beforeBalance.ShouldBe(afterBalance + voteAmount);
+        }
+
+        [Fact]
+        public async Task VoteContract_AddOption()
+        {
+            var topic = "vote test";
+            await GenerateNewVoteEvent(topic, 1, 10, 1, false);
+            
+            //operate with not sponsor
+            {
+                var otherVoteStub = GetVoteContractTester(SampleECKeyPairs.KeyPairs[1]);
+                var option = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[1].PublicKey).GetFormatted();
+
+                var transactionResult = (await otherVoteStub.AddOption.SendAsync(new AddOptionInput
+                {
+                    Option = option,
+                    Sponsor = DefaultSender,
+                    Topic = topic,
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Only sponsor can update options").ShouldBeTrue();
+            }
+            //add exist
+            {
+                var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
+                {
+                    Option = Options[0],
+                    Sponsor = DefaultSender,
+                    Topic = topic,
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Option already exists").ShouldBeTrue();
+            }
+            //success
+            {
+                var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
+                {
+                    Option = Address.Generate().GetFormatted(),
+                    Sponsor = DefaultSender,
+                    Topic = topic,
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+        }
+
+        [Fact]
+        public async Task VoteContract_RemoveOption()
+        {
+            var topic = "vote test";
+            await GenerateNewVoteEvent(topic, 1, 10, 1, false);
+            
+            //operate with not sponsor
+            {
+                var otherVoteStub = GetVoteContractTester(SampleECKeyPairs.KeyPairs[1]);
+                var option = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[1].PublicKey).GetFormatted();
+
+                var transactionResult = (await otherVoteStub.RemoveOption.SendAsync(new RemoveOptionInput
+                {
+                    Option = option,
+                    Sponsor = DefaultSender,
+                    Topic = topic,
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Only sponsor can update options").ShouldBeTrue();
+            }
+            //remove not exist
+            {
+                var transactionResult = (await VoteContractStub.RemoveOption.SendAsync(new RemoveOptionInput
+                {
+                    Option = Address.Generate().GetFormatted(),
+                    Sponsor = DefaultSender,
+                    Topic = topic,
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Option doesn't exist").ShouldBeTrue();
+            }
+            //success
+            {
+                var transactionResult = (await VoteContractStub.RemoveOption.SendAsync(new RemoveOptionInput
+                {
+                    Option = Options[0],
+                    Sponsor = DefaultSender,
+                    Topic = topic,
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+        }
+
+        [Fact]
+        public async Task VoteContract_GetVotingHistories()
+        {
+            var topic = "vote test";
+            await GenerateNewVoteEvent(topic, 1, 10, 3, false);
+            
+            //without vote
+            {
+                var votes = (await VoteContractStub.GetVotingHistories.CallAsync(
+                    Address.Generate())).Votes;
+                
+                votes.Count.ShouldBe(0);
+            }
+            //with one vote
+            {
+                var voteUser = SampleECKeyPairs.KeyPairs[2];
+                await UserVote(voteUser, topic, DefaultSender, Options[0], 1000L);
+                
+                var votes = (await VoteContractStub.GetVotingHistories.CallAsync(
+                    Address.FromPublicKey(voteUser.PublicKey))).Votes;
+                
+                votes.Values.First().ActiveVotes.Count.ShouldBe(1);
+            }
+            //with multiple votes
+            {
+                var voteUser = SampleECKeyPairs.KeyPairs[2];
+                await UserVote(voteUser, topic, DefaultSender, Options[1], 1000L);
+                
+                var votes = (await VoteContractStub.GetVotingHistories.CallAsync(
+                    Address.FromPublicKey(voteUser.PublicKey))).Votes;
+                
+                votes.Values.First().ActiveVotes.Count.ShouldBe(2);
+            }
+        }
+        
         private async Task<TransactionResult> GenerateNewVoteEvent(string topic, int totalEpoch, int activeDays, int optionCount, bool delegated)
         {
             Options = GenerateOptions(optionCount);
@@ -186,6 +365,23 @@ namespace AElf.Contracts.Vote
 
             return transactionResult;
         }
+
+        private async Task<TransactionResult> UserVote(ECKeyPair voteUser, string topic, Address sponsor, string option, long amount)
+        {
+            var input = new VoteInput
+            {
+                Topic = topic,
+                Sponsor = sponsor,
+                Option = option,
+                Amount = amount
+            };
+            
+            var voteUserStub = GetVoteContractTester(voteUser);
+            var transactionResult = (await voteUserStub.Vote.SendAsync(input)).TransactionResult;
+
+            return transactionResult;
+        }
+
         private List<string> GenerateOptions(int count = 1)
         {
             var addressList = new List<string>(); 
@@ -196,7 +392,6 @@ namespace AElf.Contracts.Vote
 
             return addressList;
         }
-
         private async Task<long> GetUserBalance(byte[] publicKey)
         {
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
