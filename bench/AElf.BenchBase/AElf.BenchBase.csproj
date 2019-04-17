@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Pro.NBench.xUnit" Version="1.0.4"/>
+        <PackageReference Include="Pro.NBench.xUnit" Version="1.0.5"/>
     </ItemGroup>
 
     <ItemGroup>
