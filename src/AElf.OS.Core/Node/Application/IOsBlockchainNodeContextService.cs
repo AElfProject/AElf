@@ -68,7 +68,6 @@ namespace AElf.OS.Node.Application
             });
         }
 
-        //TODO: Add AddGenesisSmartContract test case [Case]
         public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
             Hash name, Action<SystemTransactionMethodCallList> action)
         {
