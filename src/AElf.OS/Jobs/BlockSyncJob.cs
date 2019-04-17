@@ -43,7 +43,6 @@ namespace AElf.OS.Jobs
 
         public async Task ExecuteAsync(BlockSyncJobArgs args)
         {
-            //TODO: BlockSyncJobArgs parameter data should be checked first
             Logger.LogDebug($"Start block sync job, target height: {args.BlockHeight}, target block hash: {args.BlockHash}, peer: {args.SuggestedPeerPubKey}");
 
             var chain = await _blockchainService.GetChainAsync();
