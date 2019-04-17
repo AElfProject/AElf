@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Infrastructure;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
 using BenchmarkDotNet.Attributes;
@@ -15,12 +18,14 @@ namespace AElf.Benchmark
     {
         private IBlockExecutingService _blockExecutingService;
         private IBlockchainService _blockchainService;
+        private ITransactionResultManager _transactionResultManager;
+        private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
         private OSTestHelper _osTestHelper;
 
         private List<Transaction> _transactions;
         private Block _block;
-        
-        [Params(1, 10, 100, 1000, 3000, 5000)]
+
+        [Params(1, 10, 100, 1000, 3000, 5000)] 
         public int TransactionCount;
 
         [GlobalSetup]
@@ -28,8 +33,14 @@ namespace AElf.Benchmark
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
+            _transactionResultManager = GetRequiredService<ITransactionResultManager>();
+            _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
-            
+        }
+
+        [IterationSetup]
+        public async Task IterationSetup()
+        {
             var chain = await _blockchainService.GetChainAsync();
 
             _block = new Block
@@ -50,7 +61,19 @@ namespace AElf.Benchmark
         [Benchmark]
         public async Task ExecuteBlock()
         {
-            await _blockExecutingService.ExecuteBlockAsync(_block.Header, _transactions);
+            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, _transactions);
+        }
+
+        [IterationCleanup]
+        public async Task IterationCleanup()
+        {
+            await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
+            foreach (var transaction in _transactions)
+            {
+                _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
+                _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),
+                    _block.Header.GetPreMiningHash());
+            }
         }
     }
 }

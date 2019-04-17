@@ -11,6 +11,7 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
@@ -100,20 +101,29 @@ namespace AElf.OS
             await StartNode();
             var chain = await _blockchainService.GetChainAsync();
 
-            var genesisBlock = await _blockchainService.GetBlockByHashAsync(chain.GenesisBlockHash);
-            BestBranchBlockList.Add(genesisBlock);
+            if (chain.BestChainHeight == 1)
+            {
+                var genesisBlock = await _blockchainService.GetBlockByHashAsync(chain.GenesisBlockHash);
+                BestBranchBlockList.Add(genesisBlock);
 
-            BestBranchBlockList.AddRange(await AddBestBranch());
+                BestBranchBlockList.AddRange(await AddBestBranch());
 
-            ForkBranchBlockList =
-                await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
+                ForkBranchBlockList =
+                    await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
 
-            UnlinkedBranchBlockList = await AddForkBranch(Hash.FromString("UnlinkBlock"), 9);
+                UnlinkedBranchBlockList = await AddForkBranch(Hash.FromString("UnlinkBlock"), 9);
 
-            // Set lib
-            chain = await _blockchainService.GetChainAsync();
-            await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
-                BestBranchBlockList[4].GetHash());
+                // Set lib
+                chain = await _blockchainService.GetChainAsync();
+                await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
+                    BestBranchBlockList[4].GetHash());
+            }
+
+            _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+            {
+                 BlockHash = chain.BestChainHash,
+                 BlockHeight = chain.BestChainHeight
+            });
         }
 
         public async Task DisposeMock()
@@ -137,23 +147,6 @@ namespace AElf.OS
             return transaction;
         }
         
-        public async Task<Transaction> GenerateInvalidTransaction()
-        {
-            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
-
-            var transaction = GenerateTransaction(null,
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
-                nameof(TokenContract.Transfer),
-                new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
-
-            transaction.Sigs.Add(ByteString.CopyFromUtf8("invalid signature1"));
-            transaction.Sigs.Add(ByteString.CopyFromUtf8("invalid signature2"));
-
-            return transaction;
-        }
-        
-        
-
         public async Task<List<Transaction>> GenerateTransferTransactions(int count)
         {
             var transactions = new List<Transaction>();
