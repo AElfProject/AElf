@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Google.Protobuf;
@@ -24,7 +25,7 @@ namespace AElf.Contracts.ParliamentAuth
             return representatives;
         }
         
-        private bool CheckApprovals(Hash proposalId, int releaseThreshold)
+        private bool CheckApprovals(Hash proposalId, double releaseThreshold)
         {
             ValidateProposalContract();
             var approved = State.ProposalContract.GetApprovedResult.Call(proposalId);
@@ -40,7 +41,7 @@ namespace AElf.Contracts.ParliamentAuth
                 return weights + reviewer.Weight;
             });
 
-            return validApprovalWeights >= releaseThreshold;
+            return validApprovalWeights >= Math.Ceiling(releaseThreshold * representatives.Count());
         }
         
         private void ValidateProposalContract()
@@ -57,6 +58,14 @@ namespace AElf.Contracts.ParliamentAuth
                 return;
             State.ProposalContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
+        }
+
+        private Address CalculateOrganizationAddress(Hash organizationHash)
+        {
+            Address organizationAddress =
+                Context.ConvertVirtualAddressToContractAddress(Hash.FromTwoHashes(Hash.FromMessage(Context.Self),
+                    organizationHash));
+            return organizationAddress;
         }
     }
 }

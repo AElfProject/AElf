@@ -19,6 +19,9 @@ service ParliamentAuthContract {
     rpc GetOrganization (Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
+    rpc GetOrganizationAddress (CreateOrganizationInput) returns (Address){
+        option (aelf.is_view) = true;
+    }
 }
 
 message ParliamentAuthInitializationInput{
@@ -32,11 +35,11 @@ message Representative{
 }
 
 message CreateOrganizationInput{
-    int32 releaseThreshold = 1;
+    double releaseThresholdInFractionalNumber = 1;
 }
 
 message Organization{
-    int32 releaseThreshold = 1;
+    double releaseThresholdInFractionalNumber = 1;
     Address organizationAddress = 2;
     Hash organizationHash = 3;
 }

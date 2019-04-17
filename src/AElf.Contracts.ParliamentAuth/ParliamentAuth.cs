@@ -33,7 +33,7 @@ namespace AElf.Contracts.ParliamentAuth
                 Proposer = proposal.Proposer,
                 CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() &&
                                 !State.ProposalReleaseStatus[proposalId].Value &&
-                                CheckApprovals(proposalId, organization.ReleaseThreshold)
+                                CheckApprovals(proposalId, organization.ReleaseThresholdInFractionalNumber)
             };
 
             return result;
@@ -52,14 +52,12 @@ namespace AElf.Contracts.ParliamentAuth
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
             var organizationHash = Hash.FromMessage(input);
-            Address organizationAddress =
-                Context.ConvertVirtualAddressToContractAddress(Hash.FromTwoHashes(Hash.FromMessage(Context.Self),
-                    organizationHash));
+            Address organizationAddress = CalculateOrganizationAddress(organizationHash);
             if(State.Organisations[organizationAddress] == null)
             {
                 var organization =new Organization
                 {
-                    ReleaseThreshold = input.ReleaseThreshold,
+                    ReleaseThresholdInFractionalNumber = input.ReleaseThresholdInFractionalNumber,
                     OrganizationAddress = organizationAddress,
                     OrganizationHash = organizationHash
                 };
@@ -67,7 +65,14 @@ namespace AElf.Contracts.ParliamentAuth
             }
             return organizationAddress;
         }
-        
+
+        public override Address GetOrganizationAddress(CreateOrganizationInput input)
+        {
+            var organizationHash = Hash.FromMessage(input);
+            var organizationAddress = CalculateOrganizationAddress(organizationHash);
+            return organizationAddress;
+        }
+
         public override Hash CreateProposal(CreateProposalInput proposal)
         {
             ValidateProposalContract();
@@ -110,7 +115,7 @@ namespace AElf.Contracts.ParliamentAuth
 
             // check approvals
             var organization = GetOrganization(proposal.OrganizationAddress);
-            Assert(CheckApprovals(proposalId, organization.ReleaseThreshold), "Not authorized to release.");
+            Assert(CheckApprovals(proposalId, organization.ReleaseThresholdInFractionalNumber), "Not authorized to release.");
             var virtualHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), organization.OrganizationHash);
             Context.SendVirtualInline(virtualHash, proposal.ToAddress, proposal.ContractMethodName, proposal.Params);
 
