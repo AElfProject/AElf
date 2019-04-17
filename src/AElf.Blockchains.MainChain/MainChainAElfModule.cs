@@ -99,8 +99,7 @@ namespace AElf.Blockchains.MainChain
             crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize), new AElf.Contracts.CrossChain.InitializeInput
             {
                 ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                NativeTokenSymbol = tokenInitialOptions.Symbol
+                TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
             });
             dto.InitializationSmartContracts.AddGenesisSmartContract<CrossChainContract>(
                 CrossChainSmartContractAddressNameProvider.Name, crossChainMethodCallList);
@@ -120,7 +119,6 @@ namespace AElf.Blockchains.MainChain
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name,
                     LockTokenForElection = tokenInitialOptions.LockForElection,
-                    NativeTokenSymbol = tokenInitialOptions.Symbol
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
@@ -143,7 +141,6 @@ namespace AElf.Blockchains.MainChain
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    NativeTokenSymbol = tokenInitialOptions.Symbol
                 });
             return dividendMethodCallList;
         }

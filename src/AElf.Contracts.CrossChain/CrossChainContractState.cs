@@ -14,8 +14,6 @@ namespace AElf.Contracts.CrossChain
         public Int64State SideChainSerialNumber { get; set; }
         
         public MappedState<long, CrossChainBlockData> IndexedCrossChainBlockData { get; set; }
-        
-        public StringState NativeTokenSymbol { get; set; }
 
         #region side chain
 
