@@ -1,10 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs3;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -171,6 +174,42 @@ namespace AElf.Contracts.CrossChain
             return chainId != State.ParentChainId.Value
                 ? GetCousinChainMerkleTreeRoot(parentChainHeight)
                 : GetParentChainMerkleTreeRoot(parentChainHeight);
+        }
+
+        private Address GetOwnerAddress()
+        {
+            if (State.Owner.Value != null) 
+                return State.Owner.Value;
+            ValidateContractState(State.ParliamentAuthContract, State.ParliamentAuthContractSystemName.Value);
+            var organizationInput = new CreateOrganizationInput
+            {
+                ReleaseThresholdInFractionalNumber = 2d / 3
+            };
+            Address organizationAddress = State.ParliamentAuthContract.GetOrganizationAddress.Call(organizationInput);
+            State.Owner.Value = organizationAddress;
+
+            return State.Owner.Value;
+        }
+        
+        private void CheckOwnerAuthority()
+        {
+            var owner = GetOwnerAddress();
+            Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
+        }
+        
+        private Hash Propose(int waitingPeriod, Address targetAddress, string invokingMethod, IMessage input)
+        {
+            var expiredTime = Context.CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime();
+            var proposal = new CreateProposalInput
+            {
+                ContractMethodName = invokingMethod,
+                OrganizationAddress = GetOwnerAddress(),
+                ExpiredTime = Timestamp.FromDateTime(expiredTime),
+                Params = input.ToByteString(),
+                ToAddress = targetAddress
+            };
+            State.ParliamentAuthContract.CreateProposal.Send(proposal);
+            return Hash.FromMessage(proposal);
         }
     }
 }
