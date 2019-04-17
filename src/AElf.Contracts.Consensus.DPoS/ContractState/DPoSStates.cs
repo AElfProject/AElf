@@ -75,8 +75,6 @@ namespace AElf.Contracts.Consensus.DPoS
         /// </summary>
         public MappedState<Int64Value, Int64Value> TermToFirstRoundMap { get; set; }
         
-        public StringState NativeTokenSymbol { get; set; }
-
         public Int64State LockTokenForElection { get; set; }
     }
 }

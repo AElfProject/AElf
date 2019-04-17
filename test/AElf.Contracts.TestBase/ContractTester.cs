@@ -262,8 +262,7 @@ namespace AElf.Contracts.TestBase
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name,
-                    LockTokenForElection = DPoSContractConsts.LockTokenForElection,
-                    NativeTokenSymbol = "ELF"
+                    LockTokenForElection = DPoSContractConsts.LockTokenForElection
                 });
             var firstRound = initialMiners.ToMiners()
                 .GenerateFirstRoundOfNewTerm(miningInterval, startTimestamp.ToDateTime());

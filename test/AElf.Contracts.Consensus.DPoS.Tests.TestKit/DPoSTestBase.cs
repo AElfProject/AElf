@@ -166,8 +166,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name,
-                    LockTokenForElection = DPoSContractConsts.LockTokenForElection,
-                    NativeTokenSymbol = "ELF"
+                    LockTokenForElection = DPoSContractConsts.LockTokenForElection
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(
@@ -189,8 +188,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 new InitialDividendContractInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    NativeTokenSymbol = "ELF"
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
             return dividendMethodCallList;
         }

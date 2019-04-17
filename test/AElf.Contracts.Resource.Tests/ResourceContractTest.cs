@@ -80,8 +80,7 @@ namespace AElf.Contracts.Resource.Tests
                 new FeeReceiver.InitializeInput()
                 {
                     ElfTokenAddress = TokenContractAddress,
-                    FoundationAddress = foundationAddress,
-                    NativeTokenSymbol = "ELF"
+                    FoundationAddress = foundationAddress
                 });
             feeReceiverResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -93,8 +92,7 @@ namespace AElf.Contracts.Resource.Tests
                 {
                     ElfTokenAddress = TokenContractAddress,
                     FeeAddress = feeAddress,
-                    ResourceControllerAddress = feeAddress,
-                    NativeTokenSymbol = "ELF"
+                    ResourceControllerAddress = feeAddress
                 });
             resourceResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }

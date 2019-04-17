@@ -157,8 +157,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 new InitialDividendContractInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    NativeTokenSymbol = "ELF"
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
 
             var tokenContractCallList = new SystemTransactionMethodCallList();

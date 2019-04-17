@@ -118,7 +118,7 @@ namespace AElf.Blockchains.MainChain
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name,
-                    LockTokenForElection = tokenInitialOptions.LockForElection,
+                    LockTokenForElection = tokenInitialOptions.LockForElection
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,

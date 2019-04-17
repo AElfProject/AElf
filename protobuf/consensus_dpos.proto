@@ -194,7 +194,6 @@ message InitialDPoSContractInput {
     Hash tokenContractSystemName = 1;
     Hash dividendsContractSystemName = 2;
     sint64 lockTokenForElection = 3;
-    string nativeTokenSymbol = 4;
 }
 
 message InitialDividendContractInput {

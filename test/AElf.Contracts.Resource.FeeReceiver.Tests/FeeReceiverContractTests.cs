@@ -160,8 +160,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
                 new InitializeInput()
                 {
                     ElfTokenAddress = TokenContractAddress,
-                    FoundationAddress = foundationAddress,
-                    NativeTokenSymbol = "ELF"
+                    FoundationAddress = foundationAddress
                 });
             feeReceiverResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
