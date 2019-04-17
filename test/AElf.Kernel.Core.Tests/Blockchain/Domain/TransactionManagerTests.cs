@@ -69,8 +69,6 @@ namespace AElf.Kernel.Blockchain.Domain
             //                P = ByteString.CopyFrom(keyPair.PublicKey.Q.GetEncoded())
             //            };
             //            tx.Sigs.Add(sig);
-            
-            tx.Fee = 1;
             tx.MethodName = "hello world";
 
             // Serialize and hash the transaction
