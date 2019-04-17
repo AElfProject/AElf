@@ -11,7 +11,6 @@ option csharp_namespace = "AElf.Kernel";
 message InitialElectionContractInput {
     Hash vote_contract_system_name = 1;
     Hash token_contract_system_name = 2;
-    string native_token_symbol = 4;
 }
 
 message AnnounceElectionInput {

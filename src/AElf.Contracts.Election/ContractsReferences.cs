@@ -13,7 +13,5 @@ namespace AElf.Contracts.Election
         
         public SingletonState<Hash> VoteContractSystemName { get; set; }
         public SingletonState<Hash> TokenContractSystemName { get; set; }
-        
-        public StringState NativeTokenSymbol { get; set; }
     }
 }
