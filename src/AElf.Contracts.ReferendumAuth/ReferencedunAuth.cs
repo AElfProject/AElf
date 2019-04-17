@@ -15,12 +15,12 @@ namespace AElf.Contracts.ReferendumAuth
             Assert(organization != null, "No registered organization.");
             return organization;
         }
-        public override GetProposalOutput GetProposal(Hash proposalId)
+        public override ProposalOutput GetProposal(Hash proposalId)
         {
             ValidateProposalContract();
             var proposal = State.ProposalContract.GetProposal.Call(proposalId);
             var organization = State.Organisations[proposal.OrganizationAddress];
-            var result = new GetProposalOutput
+            var result = new ProposalOutput
             {
                 ProposalHash = proposalId,
                 ContractMethodName = proposal.ContractMethodName,

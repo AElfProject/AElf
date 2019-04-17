@@ -16,7 +16,7 @@ service AuthorizationContract {
     }
     rpc Release (Hash) returns (google.protobuf.Empty) {
     }
-    rpc GetProposal(Hash) returns (GetProposalOutput) {
+    rpc GetProposal(Hash) returns (ProposalOutput) {
         option (aelf.is_view) = true;
     }
 }
@@ -34,7 +34,7 @@ message CreateProposalInput{
     Address organizationAddress = 6;
 }
 
-message GetProposalOutput{
+message ProposalOutput{
     Hash proposalHash = 1;
     string contractMethodName = 2;
     Address toAddress = 3;

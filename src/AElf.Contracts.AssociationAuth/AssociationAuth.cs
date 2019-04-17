@@ -4,7 +4,6 @@ using AElf.Contracts.ProposalContract;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using CreateProposalInput = Acs3.CreateProposalInput;
-using GetProposalOutput = Acs3.GetProposalOutput;
 
 namespace AElf.Contracts.AssociationAuth
 {
@@ -19,12 +18,12 @@ namespace AElf.Contracts.AssociationAuth
             return organization;
         }
         
-        public override GetProposalOutput GetProposal(Hash proposalId)
+        public override ProposalOutput GetProposal(Hash proposalId)
         {
             ValidateProposalContract();
             var proposal = State.ProposalContract.GetProposal.Call(proposalId);
 
-            var result = new GetProposalOutput
+            var result = new ProposalOutput
             {
                 ProposalHash = proposalId,
                 ContractMethodName = proposal.ContractMethodName,

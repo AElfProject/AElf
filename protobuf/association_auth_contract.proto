@@ -42,9 +42,3 @@ message Reviewer {
 message AssociationAuthContractInitializationInput{
     Hash proposalContractSystemName = 1;
 }
-
-enum ProposalStatus{
-    Active = 0;
-    Released = 1;
-    Expired = 2;
-}
