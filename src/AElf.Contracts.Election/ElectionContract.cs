@@ -16,7 +16,7 @@ namespace AElf.Contracts.Election
             State.TokenContract.Create.Send(new CreateInput
             {
                 Symbol = ElectionContractConsts.VoteSymbol,
-                TokenName = "Elf Vote token",
+                TokenName = "Vote token",
                 Issuer = Context.Self,
                 Decimals = 2,
                 IsBurnable = true,
@@ -26,7 +26,7 @@ namespace AElf.Contracts.Election
 
             State.TokenContract.Issue.Send(new IssueInput
             {
-                Symbol = ElectionContractConsts.Symbol,
+                Symbol = Context.NativeTokenSymbol,
                 Amount = ElectionContractConsts.VotesTotalSupply,
                 To = Context.Self,
                 Memo = "Power!"
@@ -36,7 +36,7 @@ namespace AElf.Contracts.Election
             {
                 Topic = ElectionContractConsts.Topic,
                 Delegated = true,
-                AcceptedCurrency = ElectionContractConsts.Symbol,
+                AcceptedCurrency = Context.NativeTokenSymbol,
                 ActiveDays = int.MaxValue,
                 TotalEpoch = int.MaxValue
             });
@@ -77,7 +77,7 @@ namespace AElf.Contracts.Election
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = ElectionContractConsts.Symbol,
+                Symbol = Context.NativeTokenSymbol,
                 Amount = ElectionContractConsts.LockTokenForElection,
                 LockId = Context.TransactionId,
                 Usage = "Lock for announcing election."
@@ -103,7 +103,7 @@ namespace AElf.Contracts.Election
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = ElectionContractConsts.Symbol,
+                Symbol = Context.NativeTokenSymbol,
                 LockId = State.Histories[publicKey].AnnouncementTransactionId,
                 Amount = ElectionContractConsts.LockTokenForElection,
                 Usage = "Quit election."
@@ -132,7 +132,7 @@ namespace AElf.Contracts.Election
             State.TokenContract.Lock.Send(new LockInput
             {
                 From = Context.Sender,
-                Symbol = ElectionContractConsts.Symbol,
+                Symbol = Context.NativeTokenSymbol,
                 LockId = Context.TransactionId,
                 Amount = input.Amount,
                 To = Context.Self,

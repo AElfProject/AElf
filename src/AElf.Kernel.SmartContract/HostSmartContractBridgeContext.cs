@@ -7,6 +7,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
@@ -17,13 +18,16 @@ namespace AElf.Kernel.SmartContract
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IAccountService _accountService;
+        private readonly TokenInitialOptions _tokenInitialOptions;
 
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService)
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService,
+            IOptionsSnapshot<TokenInitialOptions> tokenInitialOptions)
         {
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _accountService = accountService;
+            _tokenInitialOptions = tokenInitialOptions.Value;
             var self = this;
             Address GetAddress() => self.Transaction.To;
             _lazyStateProvider = new Lazy<IStateProvider>(
@@ -100,6 +104,8 @@ namespace AElf.Kernel.SmartContract
         public long CurrentHeight => TransactionContext.BlockHeight;
         public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();
+
+        public string NativeTokenSymbol => _tokenInitialOptions.Symbol;
 
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {

@@ -104,7 +104,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = "ELF",
+                Symbol = Context.NativeTokenSymbol,
                 Amount = State.LockTokenForElection.Value,
                 LockId = Context.TransactionId,
                 Usage = "Lock for announcing election."
@@ -135,7 +135,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = "ELF",
+                Symbol = Context.NativeTokenSymbol,
                 LockId = State.HistoryMap[publicKey.ToStringValue()].AnnouncementTransactionId,
                 Amount = State.LockTokenForElection.Value,
                 Usage = "Unlock and quit election."
@@ -169,7 +169,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = "ELF",
+                Symbol = Context.NativeTokenSymbol,
                 Amount = amount,
                 LockId = Context.TransactionId,
                 Usage = "Lock for getting tickets."
@@ -350,7 +350,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = "ELF",
+                Symbol = Context.NativeTokenSymbol,
                 Amount = votingRecord.Count,
                 LockId = votingRecord.TransactionId,
                 Usage = $"Withdraw locked token of transaction {txId.ToHex()}: {votingRecord}"
@@ -407,7 +407,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     From = Context.Sender,
                     To = Context.Self,
-                    Symbol = "ELF",
+                    Symbol = Context.NativeTokenSymbol,
                     Amount = votingRecord.Count,
                     LockId = votingRecord.TransactionId,
                     Usage = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"

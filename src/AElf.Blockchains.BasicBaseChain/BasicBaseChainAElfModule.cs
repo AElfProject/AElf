@@ -2,6 +2,7 @@
 using AElf.CrossChain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Grpc;

@@ -144,7 +144,7 @@ namespace AElf.Contracts.CrossChain
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = "ELF",
+                Symbol = Context.NativeTokenSymbol,
                 Amount = amount,
                 Memo = "Recharge."
             });
@@ -332,7 +332,7 @@ namespace AElf.Contracts.CrossChain
                 Transfer(new TransferInput
                 {
                     To = Context.Sender,
-                    Symbol = "ELF",
+                    Symbol = Context.NativeTokenSymbol,
                     Amount = indexingPrice,
                     Memo = "Index fee."
                 });

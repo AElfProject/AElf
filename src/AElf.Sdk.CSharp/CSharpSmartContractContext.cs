@@ -43,6 +43,8 @@ namespace AElf.Sdk.CSharp
         public DateTime CurrentBlockTime => _smartContractBridgeContextImplementation.CurrentBlockTime;
 
         public Hash PreviousBlockHash => _smartContractBridgeContextImplementation.PreviousBlockHash;
+        
+        public string NativeTokenSymbol => _smartContractBridgeContextImplementation.NativeTokenSymbol; 
 
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
