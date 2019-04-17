@@ -9,6 +9,8 @@ namespace AElf.Contracts.Profit
 
         public MappedState<Hash, ProfitItem> ProfitItemsMap { get; set; }
 
-        public MappedState<Hash, Address, long> WeightsMap { get; set; }
+        public MappedState<Address, long> PeriodWeightsMap { get; set; }
+
+        public MappedState<Hash, Address, ProfitDetails> ProfitDetailsMap { get; set; }
     }
 }

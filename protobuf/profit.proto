@@ -16,6 +16,7 @@ message CreateProfitItemInput {
     sint64 total_weight = 3;
     bool is_total_weight_fixed = 4;
     sint64 total_amount = 5;
+    string token_symbol = 6;
 }
 
 message ProfitItem {
@@ -26,6 +27,8 @@ message ProfitItem {
     sint64 total_weight = 5;
     bool is_total_weight_fixed = 6;
     sint64 total_amount = 7;
+    sint64 current_period = 8;
+    string token_symbol = 9;
 }
 
 message ReceiverInformation {
@@ -34,17 +37,45 @@ message ReceiverInformation {
     sint64 weight = 3;
 }
 
-message UpdateWeightInput {
+message AddWeightInput {
     Address receiver = 1;
     string item_name = 2;
     sint64 weight = 3;
+    sint64 end_period = 4;
+}
+
+message SubWeightInput {
+    Address receiver = 1;
+    string item_name = 2;
 }
 
 message ProfitInput {
     string item_name = 1;
+    Address creator = 2;
+
 }
 
 message ReleaseProfitInput {
     string item_name = 1;
-    
+    sint64 period = 2;
+    sint64 amount = 3;
+}
+
+message ProfitDetails {
+    repeated ProfitDetail Details = 1;
+}
+
+message ProfitDetail {
+    sint64 start_period = 1;
+    sint64 end_period = 2;
+    sint64 weight = 3;
+    sint64 last_profit_period = 4;
+}
+
+message AddDividendsInput {
+    Hash profit_id = 1;
+    Address creator = 2;
+    string item_name = 3;
+    sint64 period = 4;
+    sint64 amount = 5;
 }
