@@ -42,7 +42,6 @@ namespace AElf.Contracts.Resource.FeeReceiver
             Assert(!initialized, "Already initialized.");
             State.TokenContract.Value = input.ElfTokenAddress;
             State.FoundationAddress.Value = input.FoundationAddress;
-            State.NativeTokenSymbol.Value = input.NativeTokenSymbol;
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -64,7 +63,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
                 {
                     To = State.FoundationAddress.Value,
                     Amount = amount,
-                    Symbol = State.NativeTokenSymbol.Value
+                    Symbol = "ELF"
                 });
             }
             State.OwedToFoundation.Value = owed.Sub(amount);
@@ -92,7 +91,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             var bal = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Owner = Context.Self,
-                Symbol = State.NativeTokenSymbol.Value
+                Symbol = "ELF"
             }).Balance;
             var owed = State.OwedToFoundation.Value;
             var preBurnAmount = bal.Sub(owed);
@@ -101,7 +100,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             {
                 State.TokenContract.Burn.Send(new BurnInput
                 {
-                    Symbol = State.NativeTokenSymbol.Value,
+                    Symbol = "ELF",
                     Amount = half
                 });
             }
