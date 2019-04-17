@@ -12,7 +12,6 @@ namespace AElf.CrossChain.Cache
         public CrossChainDataProducerTest()
         {
             _crossChainDataProducer = GetRequiredService<ICrossChainDataProducer>();
-            _crossChainMemCacheService = GetRequiredService<ICrossChainMemCacheService>();
         }
         
         [Fact]

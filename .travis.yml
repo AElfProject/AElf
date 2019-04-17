@@ -30,7 +30,7 @@ script:
 after_script:
   - curl -s https://codecov.io/bash > codecov
   - chmod +x codecov
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./codecov -f "./results/coverage.opencover.xml" -t $CODECOV_TOKEN          ; fi 
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./codecov -f "./test/results/coverage.opencover.xml" -t $CODECOV_TOKEN          ; fi 
 deploy:
   - provider: script
     script:
