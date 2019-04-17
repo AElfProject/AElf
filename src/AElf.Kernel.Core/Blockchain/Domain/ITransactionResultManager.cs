@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.Infrastructure;
 
 namespace AElf.Kernel.Blockchain.Domain
 {
@@ -21,18 +22,18 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task AddTransactionResultAsync(TransactionResult transactionResult, Hash disambiguationHash)
         {
-            await _transactionResultStore.SetAsync(transactionResult.TransactionId.Xor(disambiguationHash).ToHex(),
+            await _transactionResultStore.SetAsync(transactionResult.TransactionId.Xor(disambiguationHash).ToStorageKey(),
                 transactionResult);
         }
 
         public async Task RemoveTransactionResultAsync(Hash txId, Hash disambiguationHash)
         {
-            await _transactionResultStore.RemoveAsync(txId.Xor(disambiguationHash).ToHex());
+            await _transactionResultStore.RemoveAsync(txId.Xor(disambiguationHash).ToStorageKey());
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash)
         {
-            return await _transactionResultStore.GetAsync(txId.Xor(disambiguationHash).ToHex());
+            return await _transactionResultStore.GetAsync(txId.Xor(disambiguationHash).ToStorageKey());
         }
     }
 }

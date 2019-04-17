@@ -327,7 +327,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
         
         [Fact]
-        public async Task Get_BlockInfo_Success()
+        public async Task Get_BlockInfo_By_Height_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
             var transactions = new List<Transaction>();
@@ -341,7 +341,38 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             var response =
                 await GetResponseAsObjectAsync<BlockDto>(
-                    "/api/chain/blockInfo?blockHeight=12&includeTransactions=true");
+                    "/api/chain/blockInfo?blockHashOrHeight=12&includeTransactions=true");
+
+            response.BlockHash.ShouldBe(block.GetHash().ToHex());
+            response.Header.PreviousBlockHash.ShouldBe(block.Header.PreviousBlockHash.ToHex());
+            response.Header.MerkleTreeRootOfTransactions.ShouldBe(block.Header.MerkleTreeRootOfTransactions.ToHex());
+            response.Header.MerkleTreeRootOfWorldState.ShouldBe(block.Header.MerkleTreeRootOfWorldState.ToHex());
+            response.Header.Height.ShouldBe(block.Height);
+            response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
+            response.Header.ChainId.ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
+            response.Header.Bloom.ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
+            response.Body.TransactionsCount.ShouldBe(3);
+
+            var responseTransactions = response.Body.Transactions;
+            responseTransactions.Count.ShouldBe(3);
+        }
+        
+        [Fact]
+        public async Task Get_BlockInfo_By_BlockHash_Success()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var transactions = new List<Transaction>();
+            for (int i = 0; i < 3; i++)
+            {
+                transactions.Add(await _osTestHelper.GenerateTransferTransaction());
+            }
+
+            await _osTestHelper.BroadcastTransactions(transactions);
+            var block = await _osTestHelper.MinedOneBlock();
+
+            var response =
+                await GetResponseAsObjectAsync<BlockDto>(
+                    $"/api/chain/blockInfo?blockHashOrHeight={block.GetHash().ToHex()}&includeTransactions=true");
 
             response.BlockHash.ShouldBe(block.GetHash().ToHex());
             response.Header.PreviousBlockHash.ShouldBe(block.Header.PreviousBlockHash.ToHex());
@@ -361,9 +392,20 @@ namespace AElf.WebApp.Application.Chain.Tests
         public async Task Get_BlockInfo_ReturnNotFound()
         {
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                "/api/chain/blockInfo?blockHeight=100",
+                "/api/chain/blockInfo?blockHashOrHeight=100",
                 expectedStatusCode: HttpStatusCode.Forbidden);
-
+            response.Error.Code.ShouldBe(Error.NotFound.ToString());
+            response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
+            
+            response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                $"/api/chain/blockInfo?blockHashOrHeight={Hash.Empty.ToHex()}",
+                expectedStatusCode: HttpStatusCode.Forbidden);
+            response.Error.Code.ShouldBe(Error.NotFound.ToString());
+            response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
+            
+            response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                "/api/chain/blockInfo?blockHashOrHeight=7526008f73d931f48a9246648f3147aacf5bd9b2c79f93a708a86f77baaed865",
+                expectedStatusCode: HttpStatusCode.Forbidden);
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
         }
@@ -389,7 +431,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             await _osTestHelper.MinedOneBlock();
 
             var blockInfo = await GetResponseAsObjectAsync<BlockDto>(
-                "/api/chain/blockInfo?blockHeight=12&includeTransactions=true");
+                "/api/chain/blockInfo?blockHashOrHeight=12&includeTransactions=true");
 
 
             var blockState = await GetResponseAsObjectAsync<BlockStateDto>(
@@ -413,7 +455,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             await _osTestHelper.MinedOneBlock();
 
             var blockInfo = await GetResponseAsObjectAsync<BlockDto>(
-                "/api/chain/blockInfo?blockHeight=12&includeTransactions=true");
+                "/api/chain/blockInfo?blockHashOrHeight=12&includeTransactions=true");
 
             //Continue generate block 
             for (int i = 0; i < 10; i++)
