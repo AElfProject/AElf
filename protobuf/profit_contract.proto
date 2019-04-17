@@ -28,5 +28,8 @@ service ProfitContract {
     }
     rpc ReleaseProfit (ReleaseProfitInput) returns (google.protobuf.Empty) {
     }
-    
+    rpc RegisterSubProfitItem (RegisterSubProfitItemInput) returns (google.protobuf.Empty) {
+    }
+    rpc CancelSubProfitItem (CancelSubProfitItemInput) returns (google.protobuf.Empty) {
+    }
 }

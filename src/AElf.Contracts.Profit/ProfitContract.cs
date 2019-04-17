@@ -22,15 +22,62 @@ namespace AElf.Contracts.Profit
         public override Hash CreateProfitItem(CreateProfitItemInput input)
         {
             var profitId = GetProfitId(input.Creator, input.ItemName);
+            Assert(State.ProfitItemsMap[profitId] != null, "Profit item already exists.");
             State.ProfitItemsMap[profitId] = new ProfitItem
             {
                 Creator = input.Creator,
                 ItemName = input.ItemName,
                 ProfitId = GetProfitId(input.Creator, input.ItemName),
-                TotalWeight = input.IsTotalWeightFixed ? input.TotalWeight : 0,
-                IsTotalWeightFixed = input.IsTotalWeightFixed
+                InitialWeight = input.IsTotalWeightFixed ? input.InitialWeight : 0,
+                IsTotalWeightFixed = input.IsTotalWeightFixed,
+                IsSubProfitItem = input.IsSubProfitItem
             };
             return profitId;
+        }
+
+        public override Empty RegisterSubProfitItem(RegisterSubProfitItemInput input)
+        {
+            var profitItemId = GetProfitId(Context.Sender, input.ItemName);
+            var profitItem = State.ProfitItemsMap[profitItemId];
+            Assert(profitItem != null, "Profit item not found.");
+
+            if (profitItem == null)
+            {
+                return new Empty();
+            }
+            
+            var subProfitItemId = GetProfitId(input.SubItemCreator, input.SubItemName);
+            var subProfitItem = State.ProfitItemsMap[subProfitItemId];
+            Assert(subProfitItem != null, "Sub profit item not found.");
+
+            if (subProfitItem == null)
+            {
+                return new Empty();
+            }
+
+            Assert(subProfitItem.IsSubProfitItem, "Cannot register sub profit item.");
+
+            Assert(!State.RegisterMap[profitItemId][subProfitItemId], "Sub profit item already registered.");
+
+            State.RegisterMap[profitItemId][subProfitItemId] = true;
+
+            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItemId);
+            AddWeight(new AddWeightInput
+            {
+                ItemName = input.ItemName,
+                Weight = input.SubItemWeight,
+                Receiver = virtualAddress
+            });
+
+            profitItem.SubProfitItems.Add(new SubProfitItem
+            {
+                Creator = input.SubItemCreator,
+                ItemName = input.SubItemName,
+                Weight = input.SubItemWeight
+            });
+            State.ProfitItemsMap[profitItemId] = profitItem;
+
+            return new Empty();
         }
 
         public override Empty AddWeight(AddWeightInput input)
@@ -45,6 +92,22 @@ namespace AElf.Contracts.Profit
             if (profitItem == null)
             {
                 return new Empty();
+            }
+
+            profitItem.TotalWeight += input.Weight;
+
+            if (profitItem.IsTotalWeightFixed)
+            {
+                Assert(profitItem.TotalWeight <= profitItem.InitialWeight,
+                    "Total weight cannot exceed initial weight if total weight fixed.");
+            }
+
+            State.ProfitItemsMap[profitId] = profitItem;
+
+            if (input.EndPeriod == 0)
+            {
+                // Which means this profit receiver will never expired.
+                input.EndPeriod = long.MaxValue;
             }
 
             var profitDetail = new ProfitDetail
@@ -67,12 +130,6 @@ namespace AElf.Contracts.Profit
             }
 
             State.ProfitDetailsMap[profitId][input.Receiver] = currentProfitDetails;
-
-            if (!profitItem.IsTotalWeightFixed)
-            {
-                profitItem.TotalWeight += input.Weight;
-                State.ProfitItemsMap[profitId] = profitItem;
-            }
 
             return new Empty();
         }
@@ -109,11 +166,8 @@ namespace AElf.Contracts.Profit
 
             State.ProfitDetailsMap[profitId][input.Receiver] = currentDetail;
 
-            if (!profitItem.IsTotalWeightFixed)
-            {
-                profitItem.TotalWeight -= weights;
-                State.ProfitItemsMap[profitId] = profitItem;
-            }
+            profitItem.TotalWeight -= weights;
+            State.ProfitItemsMap[profitId] = profitItem;
 
             return new Empty();
         }
@@ -129,6 +183,8 @@ namespace AElf.Contracts.Profit
             {
                 return new Empty();
             }
+            
+            Assert(profitItem.TotalWeight > 0, "Invalid total weight.");
 
             Assert(input.Amount <= profitItem.TotalAmount, "Insufficient profits amount.");
 
@@ -143,6 +199,21 @@ namespace AElf.Contracts.Profit
             }.ToByteString());
 
             State.PeriodWeightsMap[virtualAddress] = profitItem.TotalWeight;
+
+            foreach (var subProfitItem in profitItem.SubProfitItems)
+            {
+                var subProfitItemId = GetProfitId(subProfitItem.Creator, subProfitItem.ItemName);
+                var subSalt = GetReleasedPeriodProfitsVirtualAddressSalt(subProfitItemId, input.Period);
+                var subProfitItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSalt);
+
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = virtualAddress,
+                    To = subProfitItemVirtualAddress,
+                    Amount = subProfitItem.Weight * input.Amount / profitItem.TotalWeight,
+                    Symbol = profitItem.TokenSymbol
+                });
+            }
 
             return new Empty();
         }
