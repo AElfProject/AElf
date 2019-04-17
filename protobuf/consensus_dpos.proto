@@ -200,7 +200,6 @@ message InitialDPoSContractInput {
 message InitialDividendContractInput {
     Hash tokenContractSystemName = 1;
     Hash consensusContractSystemName = 2;
-    string nativeTokenSymbol = 3;
 }
 
 message DPoSStrategyInput {

@@ -86,7 +86,7 @@ namespace AElf.Blockchains.MainChain
                 GenerateConsensusInitializationCallList(dposOptions, tokenInitialOptions));
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
-                DividendsSmartContractAddressNameProvider.Name, GenerateDividendInitializationCallList(tokenInitialOptions));
+                DividendsSmartContractAddressNameProvider.Name, GenerateDividendInitializationCallList());
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name,
                 GenerateTokenInitializationCallList(zeroContractAddress,
@@ -133,14 +133,14 @@ namespace AElf.Blockchains.MainChain
             return consensusMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateDividendInitializationCallList(TokenInitialOptions tokenInitialOptions)
+        private SystemTransactionMethodCallList GenerateDividendInitializationCallList()
         {
             var dividendMethodCallList = new SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeDividendContract),
                 new InitialDividendContractInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
             return dividendMethodCallList;
         }
