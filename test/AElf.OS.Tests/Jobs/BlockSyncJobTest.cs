@@ -7,13 +7,13 @@ using Xunit;
 
 namespace AElf.OS.Jobs
 {
-    public sealed class ForkDownloadJobTest : NetWorkTestBase
+    public sealed class BlockSyncJobTest : NetWorkTestBase
     {
         private readonly IBlockchainService _blockChainService;
         private readonly BlockSyncJob _job;
         private readonly ITaskQueueManager _taskQueueManager;
 
-        public ForkDownloadJobTest()
+        public BlockSyncJobTest()
         {
             _blockChainService = GetRequiredService<IBlockchainService>();
             _job = GetRequiredService<BlockSyncJob>();
