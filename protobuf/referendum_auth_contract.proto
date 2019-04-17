@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+import "common.proto";
+import "aelf_options.proto";
+import "acs3.proto";
+import "google/protobuf/empty.proto";
+option csharp_namespace = "AElf.Contracts.ReferendumAuth";
+
+service ReferendumAuthContract {
+    option (aelf.csharp_state) = "AElf.Contracts.ReferendumAuth.ReferendumAuthState";
+    option (aelf.base) = "acs3.proto";
+    // Actions
+    rpc Initialize(ReferendumAuthContractInitializationInput) returns (google.protobuf.Empty){
+    }
+    rpc ReclaimVote(Hash) returns (google.protobuf.Empty){
+    }
+    rpc CreateOrganization (CreateOrganizationInput) returns (Address) {
+    }
+    rpc GetOrganization (Address) returns (Organization) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message ReferendumAuthContractInitializationInput{
+    Hash tokenContractSystemName = 1;
+}
+
+message CreateOrganizationInput{
+    int64 releaseThreshold = 1;
+    string tokenSymbol = 2;
+}
+
+message Organization{
+    int64 releaseThreshold = 1;
+    string tokenSymbol = 2;
+    Address organizationAddress = 3;
+    Hash organizationHash = 4;
+}
+
+message VoteInfo{
+    int64 amount = 1;
+    Hash lockId = 2;
+}   
