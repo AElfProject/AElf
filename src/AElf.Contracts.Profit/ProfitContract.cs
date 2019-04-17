@@ -36,12 +36,17 @@ namespace AElf.Contracts.Profit
         public override Empty AddWeight(AddWeightInput input)
         {
             Assert(input.Weight >= 0, "Invalid weight.");
-            
+
             var profitId = GetProfitId(Context.Sender, input.ItemName);
             var profitItem = State.ProfitItemsMap[profitId];
-            
+
             Assert(profitItem != null, "Profit item not found.");
-            
+
+            if (profitItem == null)
+            {
+                return new Empty();
+            }
+
             var profitDetail = new ProfitDetail
             {
                 StartPeriod = profitItem.CurrentPeriod,
@@ -74,18 +79,22 @@ namespace AElf.Contracts.Profit
 
         public override Empty SubWeight(SubWeightInput input)
         {
-            Assert(input.Weight >= 0, "Invalid weight.");
-            
             var profitId = GetProfitId(Context.Sender, input.ItemName);
             var profitItem = State.ProfitItemsMap[profitId];
-            
+
             Assert(profitItem != null, "Profit item not found.");
-            
+
             var currentDetail = State.ProfitDetailsMap[profitId][input.Receiver];
-            
+
             Assert(currentDetail != null, "Profit detail not found.");
 
-            var detailsNeedToRemove = currentDetail.Details.Where(d => d.EndPeriod <= profitItem.CurrentPeriod);
+            if (currentDetail == null || profitItem == null)
+            {
+                return new Empty();
+            }
+
+            var detailsNeedToRemove =
+                currentDetail.Details.Where(d => d.EndPeriod <= profitItem.CurrentPeriod).ToList();
 
             if (!detailsNeedToRemove.Any())
             {
@@ -99,7 +108,7 @@ namespace AElf.Contracts.Profit
             }
 
             State.ProfitDetailsMap[profitId][input.Receiver] = currentDetail;
-            
+
             if (!profitItem.IsTotalWeightFixed)
             {
                 profitItem.TotalWeight -= weights;
@@ -113,10 +122,16 @@ namespace AElf.Contracts.Profit
         {
             var profitId = GetProfitId(Context.Sender, input.ItemName);
             var profitItem = State.ProfitItemsMap[profitId];
-            
+
             Assert(profitItem != null, "Profit item not found.");
+
+            if (profitItem == null)
+            {
+                return new Empty();
+            }
+
             Assert(input.Amount <= profitItem.TotalAmount, "Insufficient profits amount.");
-            
+
             var salt = GetReleasedPeriodProfitsVirtualAddressSalt(profitId, input.Period);
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(salt);
             Context.SendVirtualInline(salt, State.TokenContract.Value, "Transfer", new TransferInput
@@ -128,15 +143,20 @@ namespace AElf.Contracts.Profit
             }.ToByteString());
 
             State.PeriodWeightsMap[virtualAddress] = profitItem.TotalWeight;
-            
+
             return new Empty();
         }
-        
+
         public override Empty AddDividends(AddDividendsInput input)
         {
             var profitId = GetProfitId(input.Creator, input.ItemName);
             var profitItem = State.ProfitItemsMap[profitId];
             Assert(profitItem != null, "Profit item not found.");
+
+            if (profitItem == null)
+            {
+                return new Empty();
+            }
 
             var salt = GetReleasedPeriodProfitsVirtualAddressSalt(profitId, input.Period);
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(salt);
@@ -157,10 +177,15 @@ namespace AElf.Contracts.Profit
             var profitId = GetProfitId(input.Creator, input.ItemName);
             var profitItem = State.ProfitItemsMap[profitId];
             Assert(profitItem != null, "Profit item not found.");
-            
+
             var profitDetails = State.ProfitDetailsMap[profitId][Context.Sender];
-            
+
             Assert(profitDetails != null, "Profit details not found.");
+
+            if (profitDetails == null || profitItem == null)
+            {
+                return new Empty();
+            }
 
             foreach (var profitDetail in profitDetails.Details)
             {
@@ -188,7 +213,7 @@ namespace AElf.Contracts.Profit
                     });
                 }
             }
-            
+
             return new Empty();
         }
 
