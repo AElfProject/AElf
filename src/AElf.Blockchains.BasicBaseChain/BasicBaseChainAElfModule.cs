@@ -66,13 +66,7 @@ namespace AElf.Blockchains.BasicBaseChain
                         option.LockForElection = 10_0000;
                         break;
                     case NodeType.CustomNet:
-                        option.Symbol = config.GetValue<string>("TokenInitial:Symbol");
-                        option.Name = config.GetValue<string>("TokenInitial:Name");
-                        option.TotalSupply = config.GetValue<int>("TokenInitial:TotalSupply");
-                        option.Decimals = config.GetValue<int>("TokenInitial:Decimals");
-                        option.IsBurnable = config.GetValue<bool>("TokenInitial:IsBurnable");
-                        option.DividendPoolRatio = config.GetValue<double>("TokenInitial:DividendPoolRatio");
-                        option.LockForElection = config.GetValue<long>("TokenInitial:LockForElection");
+                        config.GetSection("TokenInitial").Bind(option);
                         break;
                 }
             });
