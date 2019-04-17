@@ -62,7 +62,6 @@ namespace AElf.Kernel.Blockchain.Domain
             var tx = new Transaction();
             tx.From = Address.Generate();
             tx.To = adrTo ?? Address.Generate();
-            tx.IncrementId = nonce;
             
             //todo review probably useless - or a proper sig is needed
             //            var sig = new Sig
