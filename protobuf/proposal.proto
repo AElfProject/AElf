@@ -24,26 +24,27 @@ service ProposalContract {
 }
 
 message CreateProposalInput{
-    string contractMethodName = 2;
-    Address toAddress = 3;
-    bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
-    Address organizationAddress = 6;
-    Address Proposer = 7;
+     string contractMethodName = 2;
+     Address toAddress = 3;
+     bytes params = 4;
+     google.protobuf.Timestamp expiredTime = 5;
+     Address organizationAddress = 6;
+     Address Proposer = 7;
+     Hash ProposalId = 8;
 }
 
 message ApprovedResult {
-    Hash proposalHash = 1;
+    Hash proposalId = 1;
     repeated Approval approvals = 5;
 }
 
 message Approval {
-    Hash proposalHash = 1;
+    Hash proposalId = 1;
     bytes publicKey = 2;
 }
 
 message GetProposalOutput{
-    Hash proposalHash = 1;
+    Hash proposalId = 1;
     string contractMethodName = 2;
     Address toAddress = 3;
     bytes params = 4;
@@ -53,7 +54,7 @@ message GetProposalOutput{
 }
 
 message ProposalInfo {
-    Hash proposalHash = 1;
+    Hash proposalId = 1;
     string contractMethodName = 2;
     Address toAddress = 3;
     bytes params = 4;

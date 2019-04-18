@@ -56,7 +56,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             if (State.ConsensusContract.Value != null)
                 return;
-            State.ProposalContract.Value =
+            State.ConsensusContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
         }
 

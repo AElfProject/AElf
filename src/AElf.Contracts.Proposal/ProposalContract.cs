@@ -13,21 +13,20 @@ namespace AElf.Contracts.Proposal
         {
             // check validity of proposal
             Assert(
-                proposal.ContractMethodName != null
+                proposal.ProposalId != null
+                && !string.IsNullOrEmpty(proposal.ContractMethodName)
                 && proposal.ToAddress != null
-                && proposal.Params != null
                 && proposal.Proposer != null, "Invalid proposal.");
             DateTime timestamp = proposal.ExpiredTime.ToDateTime();
 
             Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
 
-            Hash hash = Hash.FromMessage(proposal);
-            var existing = State.Proposals[hash];
+            var existing = State.Proposals[proposal.ProposalId];
             Assert(existing == null, "Proposal already created.");
 
-            State.Proposals[hash] = new ProposalInfo
+            State.Proposals[proposal.ProposalId] = new ProposalInfo
             {
-                ProposalHash = hash,
+                ProposalHash = proposal.ProposalId,
                 ContractMethodName = proposal.ContractMethodName,
                 ToAddress = proposal.ToAddress,
                 ExpiredTime = proposal.ExpiredTime,
@@ -35,7 +34,7 @@ namespace AElf.Contracts.Proposal
                 Sender = Context.Sender,
                 Proposer = proposal.Proposer
             };
-            return hash;
+            return proposal.ProposalId;
         }
 
         public override BoolValue Approve(Approval approval)

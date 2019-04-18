@@ -43,12 +43,3 @@ message Organization{
     Address organizationAddress = 2;
     Hash organizationHash = 3;
 }
-
-message ProposalInfo {
-    Hash proposalHash = 1;
-    string contractMethodName = 2;
-    Address toAddress = 3;
-    bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
-    Address sender = 6;
-}

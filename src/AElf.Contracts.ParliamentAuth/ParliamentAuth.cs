@@ -25,7 +25,7 @@ namespace AElf.Contracts.ParliamentAuth
             var organization = State.Organisations[proposal.OrganizationAddress];
             var result = new ProposalOutput
             {
-                ProposalHash = proposalId,
+                ProposalId = proposalId,
                 ContractMethodName = proposal.ContractMethodName,
                 ExpiredTime = proposal.ExpiredTime,
                 OrganizationAddress = proposal.OrganizationAddress,
@@ -43,6 +43,7 @@ namespace AElf.Contracts.ParliamentAuth
         public override Empty Initialize(ParliamentAuthInitializationInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
             State.ProposalContractSystemName.Value = input.ProposalContractSystemName;
             State.Initialized.Value = true;
@@ -76,6 +77,7 @@ namespace AElf.Contracts.ParliamentAuth
         public override Hash CreateProposal(CreateProposalInput proposal)
         {
             ValidateProposalContract();
+            var proposalId = Hash.FromMessage(proposal);
             State.ProposalContract.CreateProposal.Send(new ProposalContract.CreateProposalInput
             {
                 ContractMethodName = proposal.ContractMethodName,
@@ -83,9 +85,10 @@ namespace AElf.Contracts.ParliamentAuth
                 ExpiredTime = proposal.ExpiredTime,
                 Params = proposal.Params,
                 OrganizationAddress = proposal.OrganizationAddress,
-                Proposer = Context.Sender
+                Proposer = Context.Sender,
+                ProposalId = proposalId
             });
-            return Hash.FromMessage(proposal);
+            return proposalId;
         }
 
         public override BoolValue Approve(ApproveInput approval)
@@ -97,7 +100,7 @@ namespace AElf.Contracts.ParliamentAuth
                 "Not authorized approval.");
             State.ProposalContract.Approve.Send(new Approval
             {
-                ProposalHash = approval.ProposalHash,
+                ProposalId = approval.ProposalId,
                 PublicKey = ByteString.CopyFrom(pubKey)
             });
 

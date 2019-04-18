@@ -22,7 +22,7 @@ service AuthorizationContract {
 }
 
 message ApproveInput {
-    Hash proposalHash = 1;
+    Hash proposalId = 1;
     bytes inputData= 2;
 }
 
@@ -35,7 +35,7 @@ message CreateProposalInput{
 }
 
 message ProposalOutput{
-    Hash proposalHash = 1;
+    Hash proposalId = 1;
     string contractMethodName = 2;
     Address toAddress = 3;
     bytes params = 4;
