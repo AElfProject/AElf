@@ -2,7 +2,7 @@ namespace AElf.Kernel.SmartContract
 {
     public class TokenInitialOptions
     {
-        public string Symbol { get; set; }
+        public string Symbol { get; set; } = "ELF";
         public string Name { get; set; }
         public int TotalSupply { get; set; }
         public int Decimals { get; set; }
