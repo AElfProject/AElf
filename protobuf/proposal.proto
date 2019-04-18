@@ -29,8 +29,8 @@ message CreateProposalInput{
      bytes params = 4;
      google.protobuf.Timestamp expiredTime = 5;
      Address organizationAddress = 6;
-     Address Proposer = 7;
-     Hash ProposalId = 8;
+     Address proposer = 7;
+     Hash proposalId = 8;
 }
 
 message ApprovedResult {
@@ -40,7 +40,7 @@ message ApprovedResult {
 
 message Approval {
     Hash proposalId = 1;
-    bytes publicKey = 2;
+    //bytes publicKey = 2;  with
 }
 
 message GetProposalOutput{

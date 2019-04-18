@@ -16,7 +16,8 @@ namespace AElf.Contracts.Proposal
                 proposal.ProposalId != null
                 && !string.IsNullOrEmpty(proposal.ContractMethodName)
                 && proposal.ToAddress != null
-                && proposal.Proposer != null, "Invalid proposal.");
+                && proposal.Proposer != null
+                && proposal.ExpiredTime != null, "Invalid proposal.");
             DateTime timestamp = proposal.ExpiredTime.ToDateTime();
 
             Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");

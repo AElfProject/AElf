@@ -208,6 +208,7 @@ namespace AElf.Contracts.CrossChain
                 Params = input.ToByteString(),
                 ToAddress = targetAddress
             };
+            ValidateContractState(State.ParliamentAuthContract, State.ParliamentAuthContractSystemName.Value);
             State.ParliamentAuthContract.CreateProposal.Send(proposal);
             return Hash.FromMessage(proposal);
         }
