@@ -23,23 +23,24 @@ namespace AElf.Contract.CrossChain.Tests
         protected Address CrossChainContractAddress;
         protected Address TokenContractAddress;
         protected Address ConsensusContractAddress;
+        protected Address ParliamentAddress;
 
         protected long _totalSupply;
         protected long _balanceOfStarter;
         public CrossChainContractTestBase()
         {
-            Tester = new ContractTester<CrossChainContractTestAElfModule>(CrossChainContractTestHelper.EcKeyPair);
             AsyncHelper.RunSync(() =>
                 Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply, out _,
                     out _balanceOfStarter)));
             CrossChainContractAddress = Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             ConsensusContractAddress = Tester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
+            ParliamentAddress = Tester.GetContractAddress(ParliamentAuthContractAddressNameProvider.Name);
         }
 
         protected async Task ApproveBalance(long amount)
         {
-            var callOwner = Address.FromPublicKey(CrossChainContractTestHelper.GetPubicKey());
+            var callOwner = Address.FromPublicKey(Tester.KeyPair.PublicKey);
 
             var approveResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.Approve), new ApproveInput
@@ -65,7 +66,8 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    ParentChainId = parentChainId == 0 ? ChainHelpers.ConvertBase58ToChainId("AELF") : parentChainId
+                    ParentChainId = parentChainId == 0 ? ChainHelpers.ConvertBase58ToChainId("AELF") : parentChainId,
+                    ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name
                 });
 
             await Tester.MineAsync(new List<Transaction> {tx});
