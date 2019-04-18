@@ -12,17 +12,6 @@ In aelf, a smart contract essentially has three parts: the interface, the state,
 
 Smart contracts in AElf are spread across the Kernel, the runtim and the SDK. The kernel defines the fundamental components and infrastructure associated with smart contracts. It also defines the abstractions for execution. Smart contract also heavily rely on the runtime modules and the sdk project.
 
-### Smart contract interactions
-
-* bridge context and host
-* contract and chain interactions
-* executive
-* smart contract context
-
-### Runtime
-
-### Sdk
-
 Smart contracts, along with the blockchains data, form the heart of a blockchain system. They define through some predefined logic how and according to what rules the state of the blockchain is modified. 
 A smart contract is a collection of methods that each act upon a certain set of state variables.
 
