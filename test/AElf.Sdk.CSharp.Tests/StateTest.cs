@@ -1,18 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Sdk;
-using AElf.Types.CSharp;
-using Google.Protobuf;
 using Moq;
-using Newtonsoft.Json;
 using Shouldly;
 using Xunit;
 

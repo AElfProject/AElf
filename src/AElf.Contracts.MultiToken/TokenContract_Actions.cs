@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
-using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Approved = AElf.Contracts.MultiToken.Messages.Approved;
 
@@ -26,7 +24,7 @@ namespace AElf.Contracts.MultiToken
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
-                
+                LockWhiteList = {input.LockWhiteList}
             });
 
             foreach (var address in input.LockWhiteList)

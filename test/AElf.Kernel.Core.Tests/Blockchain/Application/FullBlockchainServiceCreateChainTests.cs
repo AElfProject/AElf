@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;

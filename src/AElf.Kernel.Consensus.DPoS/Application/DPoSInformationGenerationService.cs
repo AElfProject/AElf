@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;

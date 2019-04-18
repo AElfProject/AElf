@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -13,7 +9,6 @@ using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Grpc.Core.Logging;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -131,17 +126,14 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
         {
-            if (an?.BlockHash == null)
+            if (an?.BlockHash == null || an?.BlockTime == null)
             {
                 Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
                 return Task.FromResult(new VoidReply());
             }
 
             var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
-            if (peerInPool != null)
-            {
-                peerInPool.HandlerRemoteAnnounce(an);
-            }
+            peerInPool?.HandlerRemoteAnnounce(an);
 
             Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
             

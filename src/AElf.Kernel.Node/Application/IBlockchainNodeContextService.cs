@@ -1,8 +1,5 @@
 using System;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
@@ -10,8 +7,6 @@ using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.Kernel.Types;
-using Google.Protobuf;
 
 namespace AElf.Kernel.Node.Application
 {

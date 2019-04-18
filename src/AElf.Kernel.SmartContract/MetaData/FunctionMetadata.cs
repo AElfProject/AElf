@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Kernel;
 using QuickGraph;
 using QuickGraph.Algorithms;
-using AElf.Common;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.MetaData;
 
 // ReSharper disable once CheckNamespace

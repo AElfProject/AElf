@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using Shouldly;

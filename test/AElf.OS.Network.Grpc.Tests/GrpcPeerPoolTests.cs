@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Cryptography;
+using AElf.Kernel;
 using AElf.OS.Network.Grpc;
 using Grpc.Core;
 using Shouldly;
@@ -8,7 +8,6 @@ using Xunit;
 
 namespace AElf.OS.Network
 {
-    // todo more unit tests can be done here 
     public class GrpcPeerPoolTests : GrpcNetworkTestBase
     {
         private const string TestIp = "127.0.0.1:6800";

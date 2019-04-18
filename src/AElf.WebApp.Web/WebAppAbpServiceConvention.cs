@@ -32,13 +32,6 @@ namespace AElf.WebApp.Web
             if (!actionNameInUrl.IsNullOrEmpty())
             {
                 url += $"/{actionNameInUrl.ToCamelCase()}";
-
-                //Add secondary Id
-                var secondaryIds = action.Parameters.Where(p => p.ParameterName.EndsWith("Id", StringComparison.Ordinal)).ToList();
-                if (secondaryIds.Count == 1)
-                {
-                    url += $"/{{{secondaryIds[0].ParameterName}}}";
-                }
             }
 
             return url;

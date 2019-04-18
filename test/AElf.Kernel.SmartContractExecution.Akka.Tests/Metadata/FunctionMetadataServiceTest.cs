@@ -1,7 +1,6 @@
 ﻿//using System;
 //using System.Collections.Generic;
 //using System.Threading.Tasks;
-//using AElf.Common;
 //using AElf.Kernel.Managers;
 //using AElf.Kernel.SmartContract;
 //using AElf.Kernel.SmartContract.Domain;
@@ -9,7 +8,7 @@
 //using AElf.Kernel.Core.Tests.Concurrency.Scheduling;
 //using AElf.Sdk.CSharp;
 //using AElf.TestBase;
-//using AElf.Types.CSharp.MetadataAttribute;
+//using AElf.CSharp.Core.MetadataAttribute;
 //using Akka.Routing;
 //using Xunit;
 

@@ -4,6 +4,11 @@
         <IsPackable>true</IsPackable>
         <RootNamespace>AElf.Contracts.TokenConverter</RootNamespace>
     </PropertyGroup>
+
+    <PropertyGroup>
+        <NoWarn>0436</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
@@ -13,8 +18,9 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="..\..\protobuf\aelf_options.proto">

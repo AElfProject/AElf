@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Events;
 using Shouldly;
-using Volo.Abp.EventBus.Local;
 using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Application

@@ -1,13 +1,10 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Linq;
-using AElf.Kernel.Infrastructure;
 
 namespace AElf.Kernel.SmartContract.Application
 {

@@ -1,10 +1,8 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
-using Moq;
 using Xunit;
 
 namespace AElf.OS.Network

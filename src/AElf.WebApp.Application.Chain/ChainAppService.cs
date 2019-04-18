@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -14,7 +13,6 @@ using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
@@ -39,7 +37,7 @@ namespace AElf.WebApp.Application.Chain
 
         Task<long> GetBlockHeight();
 
-        Task<BlockDto> GetBlockInfo(long blockHeight, bool includeTransactions = false);
+        Task<BlockDto> GetBlockInfo(string blockHashOrHeight, bool includeTransactions = false);
 
         Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus();
 
@@ -231,9 +229,30 @@ namespace AElf.WebApp.Application.Chain
             return chainContext.BestChainHeight;
         }
         
-        public async Task<BlockDto> GetBlockInfo(long blockHeight, bool includeTransactions = false)
+        public async Task<BlockDto> GetBlockInfo(string blockHashOrHeight, bool includeTransactions = false)
         {
-            var blockInfo = await GetBlockAtHeight(blockHeight);
+            Block blockInfo = null;
+            if (long.TryParse(blockHashOrHeight, out var blockHeight))
+            {
+                if (blockHeight == 0)
+                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+                blockInfo = await GetBlockAtHeight(blockHeight);
+            }
+            
+            if (blockInfo == null)
+            {
+                Hash blockHash;
+                try
+                {
+                    blockHash = Hash.LoadHex(blockHashOrHeight);
+                }
+                catch
+                {
+                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+                }
+                blockInfo = await GetBlock(blockHash);
+            }
+            
             if (blockInfo == null)
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());

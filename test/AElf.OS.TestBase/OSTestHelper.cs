@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
@@ -12,6 +11,7 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
@@ -19,14 +19,11 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.Kernel.Types.SmartContract;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
-using AElf.Types.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
-using Volo.Abp.Threading;
 
 namespace AElf.OS
 {
@@ -104,20 +101,29 @@ namespace AElf.OS
             await StartNode();
             var chain = await _blockchainService.GetChainAsync();
 
-            var genesisBlock = await _blockchainService.GetBlockByHashAsync(chain.GenesisBlockHash);
-            BestBranchBlockList.Add(genesisBlock);
+            if (chain.BestChainHeight == 1)
+            {
+                var genesisBlock = await _blockchainService.GetBlockByHashAsync(chain.GenesisBlockHash);
+                BestBranchBlockList.Add(genesisBlock);
 
-            BestBranchBlockList.AddRange(await AddBestBranch());
+                BestBranchBlockList.AddRange(await AddBestBranch());
 
-            ForkBranchBlockList =
-                await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
+                ForkBranchBlockList =
+                    await AddForkBranch(BestBranchBlockList[4].GetHash(), BestBranchBlockList[4].Height);
 
-            UnlinkedBranchBlockList = await AddForkBranch(Hash.FromString("UnlinkBlock"), 9);
+                UnlinkedBranchBlockList = await AddForkBranch(Hash.FromString("UnlinkBlock"), 9);
 
-            // Set lib
-            chain = await _blockchainService.GetChainAsync();
-            await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
-                BestBranchBlockList[4].GetHash());
+                // Set lib
+                chain = await _blockchainService.GetChainAsync();
+                await _blockchainService.SetIrreversibleBlockAsync(chain, BestBranchBlockList[4].Height,
+                    BestBranchBlockList[4].GetHash());
+            }
+
+            _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+            {
+                 BlockHash = chain.BestChainHash,
+                 BlockHeight = chain.BestChainHeight
+            });
         }
 
         public async Task DisposeMock()
@@ -140,7 +146,7 @@ namespace AElf.OS
 
             return transaction;
         }
-
+        
         public async Task<List<Transaction>> GenerateTransferTransactions(int count)
         {
             var transactions = new List<Transaction>();

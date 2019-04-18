@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.ChainController;
 using AElf.Kernel.Consensus;
@@ -14,7 +13,6 @@ using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel

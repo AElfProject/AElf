@@ -17,6 +17,7 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
@@ -54,6 +55,15 @@ namespace AElf.WebApp.Web
                 options.InputFormatters.Add(new ProtobufInputFormatter());
                 options.OutputFormatters.Add(new ProtobufOutputFormatter());
                 
+                var jsonFormatter = (JsonOutputFormatter) options.OutputFormatters.FirstOrDefault(f => f is JsonOutputFormatter);
+                if (jsonFormatter != null)
+                {
+                    var defaultContractResolver = new DefaultContractResolver
+                    {
+                        NamingStrategy = new UpperCamelCaseNamingStrategy()
+                    };
+                    jsonFormatter.PublicSerializerSettings.ContractResolver = defaultContractResolver;
+                }
             });
 
             context.Services.AddMvc().AddJsonOptions(options =>
