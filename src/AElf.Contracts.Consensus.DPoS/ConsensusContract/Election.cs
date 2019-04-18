@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf.WellKnownTypes;
 using VoteInput = AElf.Consensus.DPoS.VoteInput;
 using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
@@ -104,7 +105,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = Context.NativeTokenSymbol,
+                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
                 Amount = State.LockTokenForElection.Value,
                 LockId = Context.TransactionId,
                 Usage = "Lock for announcing election."
@@ -135,7 +136,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = Context.NativeTokenSymbol,
+                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
                 LockId = State.HistoryMap[publicKey.ToStringValue()].AnnouncementTransactionId,
                 Amount = State.LockTokenForElection.Value,
                 Usage = "Unlock and quit election."
@@ -169,7 +170,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = Context.NativeTokenSymbol,
+                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
                 Amount = amount,
                 LockId = Context.TransactionId,
                 Usage = "Lock for getting tickets."
@@ -350,7 +351,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = Context.NativeTokenSymbol,
+                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
                 Amount = votingRecord.Count,
                 LockId = votingRecord.TransactionId,
                 Usage = $"Withdraw locked token of transaction {txId.ToHex()}: {votingRecord}"
@@ -407,7 +408,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     From = Context.Sender,
                     To = Context.Self,
-                    Symbol = Context.NativeTokenSymbol,
+                    Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
                     Amount = votingRecord.Count,
                     LockId = votingRecord.TransactionId,
                     Usage = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"

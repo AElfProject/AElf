@@ -59,24 +59,11 @@ namespace AElf.Blockchains.BasicBaseChain
                     ChainHelpers.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
             });
 
-            switch (nodeType)
+            Configure<HostSmartContractBridgeContextOptions>(options =>
             {
-                case NetType.MainNet:
-
-                    Configure<HostSmartContractBridgeContextOptions>(options =>
-                    {
-                        options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
-                    });
-
-                    break;
-                case NetType.TestNet:
-                    Configure<HostSmartContractBridgeContextOptions>(options =>
-                    {
-                        options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELFT";
-                    });
-
-                    break;
-            }
+                options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
+                    .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
+            });
         }
     }
 

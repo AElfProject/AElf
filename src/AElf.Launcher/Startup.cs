@@ -35,7 +35,7 @@ namespace AElf.Launcher
                     AddApplication<MainChainAElfModule>(services);
                     break;
             }
-
+            
             return services.BuildAutofacServiceProvider();
         }
         

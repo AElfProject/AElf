@@ -43,9 +43,9 @@ namespace AElf.Sdk.CSharp
         public DateTime CurrentBlockTime => _smartContractBridgeContextImplementation.CurrentBlockTime;
 
         public Hash PreviousBlockHash => _smartContractBridgeContextImplementation.PreviousBlockHash;
-        
-        public string NativeTokenSymbol => _smartContractBridgeContextImplementation.NativeTokenSymbol; 
 
+        public ContextVariableDictionary Variables => _smartContractBridgeContextImplementation.Variables;
+        
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
             return _smartContractBridgeContextImplementation.RecoverPublicKey(signature, hash);

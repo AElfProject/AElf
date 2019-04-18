@@ -1,4 +1,4 @@
-namespace AElf.Kernel.SmartContract
+namespace AElf.Blockchains.BasicBaseChain
 {
     public class TokenInitialOptions
     {

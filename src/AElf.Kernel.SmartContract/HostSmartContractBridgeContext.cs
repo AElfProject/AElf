@@ -115,9 +115,6 @@ namespace AElf.Kernel.SmartContract
         public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();
 
-        //TODO: remove 
-        public string NativeTokenSymbol => Variables.NativeSymbol;
-
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
             var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);

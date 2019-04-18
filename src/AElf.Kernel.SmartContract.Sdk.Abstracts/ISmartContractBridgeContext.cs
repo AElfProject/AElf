@@ -46,8 +46,6 @@ namespace AElf.Kernel.SmartContract.Sdk
         DateTime CurrentBlockTime { get; }
         Hash PreviousBlockHash { get; }
 
-        string NativeTokenSymbol { get; }
-
         // TODO: Remove RecoverPublicKey(byte[] signature, byte[] hash)
         byte[] RecoverPublicKey(byte[] signature, byte[] hash);
 

@@ -1,5 +1,6 @@
 ﻿using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election
@@ -26,7 +27,7 @@ namespace AElf.Contracts.Election
 
             State.TokenContract.Issue.Send(new IssueInput
             {
-                Symbol = Context.NativeTokenSymbol,
+                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
                 Amount = ElectionContractConsts.VotesTotalSupply,
                 To = Context.Self,
                 Memo = "Power!"
@@ -36,7 +37,7 @@ namespace AElf.Contracts.Election
             {
                 Topic = ElectionContractConsts.Topic,
                 Delegated = true,
-                AcceptedCurrency = Context.NativeTokenSymbol,
+                AcceptedCurrency = Context.Variables[ContextVariableDictionary.NativeSymbolName],
                 ActiveDays = int.MaxValue,
                 TotalEpoch = int.MaxValue
             });
@@ -77,7 +78,7 @@ namespace AElf.Contracts.Election
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = Context.NativeTokenSymbol,
+                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
                 Amount = ElectionContractConsts.LockTokenForElection,
                 LockId = Context.TransactionId,
                 Usage = "Lock for announcing election."
@@ -103,7 +104,7 @@ namespace AElf.Contracts.Election
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = Context.NativeTokenSymbol,
+                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
                 LockId = State.Histories[publicKey].AnnouncementTransactionId,
                 Amount = ElectionContractConsts.LockTokenForElection,
                 Usage = "Quit election."
@@ -132,7 +133,7 @@ namespace AElf.Contracts.Election
             State.TokenContract.Lock.Send(new LockInput
             {
                 From = Context.Sender,
-                Symbol = Context.NativeTokenSymbol,
+                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
                 LockId = Context.TransactionId,
                 Amount = input.Amount,
                 To = Context.Self,
