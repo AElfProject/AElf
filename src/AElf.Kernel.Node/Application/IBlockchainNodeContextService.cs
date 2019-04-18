@@ -65,6 +65,12 @@ namespace AElf.Kernel.Node.Application
             await _smartContractAddressUpdateService.UpdateSmartContractAddressesAsync(
                 await _blockchainService.GetBlockHeaderByHashAsync(chain.BestChainHash));
 
+            await _consensusService.TriggerConsensusAsync(new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            });
+
             return context;
         }
 
