@@ -18,7 +18,7 @@
     * [Messages](Contract/msgs.md)
     * [Contract base](Contract/base.md)
     * [Deploy guide](Contract/depl.md)
-    * [Update guide](Contract/upd.md)   
+   <!-- * [Update guide](Contract/upd.md) -->
 * [Cross chain](crosschain/crosschain.md)
     * [Introduction](crosschain/intro.md)
     * [Architecture](crosschain/archi.md)
@@ -31,7 +31,7 @@
     * [Crosschain tokens](publicchain/crosschainmultitok.md)
     * [Resource system](publicchain/resources.md)
     * [Authority contract](publicchain/auth.md)
-    * [Multilevel chain system](publicchain/multilvlchain.md)
+    <!--* [Multilevel chain system](publicchain/multilvlchain.md)-->
 * [Architecture](Architecture/architecture.md)
     * [Introduction](Architecture/introduction.md)
     * [Implementations](Architecture/implementations.md)
