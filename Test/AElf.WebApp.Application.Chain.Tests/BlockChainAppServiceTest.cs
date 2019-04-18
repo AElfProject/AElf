@@ -8,6 +8,7 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
@@ -25,6 +26,8 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
+        private readonly IBlockchainStateMergingService _blockchainStateMergingService;
+        private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly OSTestHelper _osTestHelper;
 
         public BlockChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
@@ -32,6 +35,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             _blockchainService = GetRequiredService<IBlockchainService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _txHub = GetRequiredService<ITxHub>();
+            _blockchainStateMergingService = GetRequiredService<IBlockchainStateMergingService>();
+            _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
         }
         
@@ -442,6 +447,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             blockState.ShouldNotBeNull();
             blockState.BlockHash.ShouldBe(block.BlockHash);
             blockState.BlockHeight.ShouldBe(12);
+            blockState.PreviousHash.ShouldBe(block.Header.PreviousBlockHash);
             blockState.Changes.ShouldNotBeNull();
         }
         
@@ -455,10 +461,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             }
 
             await _osTestHelper.BroadcastTransactions(transactions);
-            await _osTestHelper.MinedOneBlock();
-
-            var block = await GetResponseAsObjectAsync<BlockDto>(
-                "/api/blockChain/blockByHeight?blockHeight=12&includeTransactions=true");
+            var block = await _osTestHelper.MinedOneBlock();
 
             //Continue generate block 
             for (int i = 0; i < 10; i++)
@@ -468,11 +471,22 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             //Check Block State
             var blockState = await GetResponseAsObjectAsync<BlockStateDto>(
-                $"/api/blockChain/blockState?blockHash={block.BlockHash}");
+                $"/api/blockChain/blockState?blockHash={block.GetHash().ToHex()}");
             blockState.ShouldNotBeNull();
-            blockState.BlockHash.ShouldBe(block.BlockHash);
+            blockState.BlockHash.ShouldBe(block.GetHash().ToHex());
             blockState.BlockHeight.ShouldBe(12);
+            blockState.PreviousHash.ShouldBe(block.Header.PreviousBlockHash.ToHex());
             blockState.Changes.ShouldNotBeNull();
+
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            await _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet.BlockHeight,
+                blockStateSet.BlockHash);
+
+            var errorResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                $"/api/blockChain/blockState?blockHash={block.GetHash().ToHex()}",
+                expectedStatusCode: HttpStatusCode.Forbidden);
+            errorResponse.Error.Code.ShouldBe(Error.NotFound.ToString());
+            errorResponse.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
         }
         
         [Fact]

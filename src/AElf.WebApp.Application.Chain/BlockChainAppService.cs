@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.Extensions.Logging;
@@ -54,7 +53,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly ITxHub _txHub;
-        public IStateStore<BlockStateSet> _blockStateSets;
+        private readonly IBlockchainStateManager _blockchainStateManager;
         public ILogger<BlockChainAppService> Logger { get; set; }
         
         public ILocalEventBus LocalEventBus { get; set; }
@@ -65,7 +64,7 @@ namespace AElf.WebApp.Application.Chain
             ITransactionManager transactionManager,
             ITransactionResultQueryService transactionResultQueryService,
             ITxHub txHub,
-            IStateStore<BlockStateSet> blockStateSets
+            IBlockchainStateManager blockchainStateManager
             )
         {
             _blockchainService = blockchainService;
@@ -74,7 +73,7 @@ namespace AElf.WebApp.Application.Chain
             _transactionManager = transactionManager;
             _transactionResultQueryService = transactionResultQueryService;
             _txHub = txHub;
-            _blockStateSets = blockStateSets;
+            _blockchainStateManager = blockchainStateManager;
             
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -367,8 +366,7 @@ namespace AElf.WebApp.Application.Chain
         
         public async Task<BlockStateDto> GetBlockState(string blockHash)
         {
-            var stateStorageKey = Hash.LoadHex(blockHash).ToStorageKey();
-            var blockState = await _blockStateSets.GetAsync(stateStorageKey);
+            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(Hash.LoadHex(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound],Error.NotFound.ToString());
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
