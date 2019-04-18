@@ -14,7 +14,7 @@ namespace AElf.Contracts.Vote
 {
     public class VoteTests : VoteContractTestBase
     {
-        private List<string> Options = new List<string>();
+        private List<string> _options = new List<string>();
         public VoteTests()
         {
             InitializeContracts();
@@ -108,7 +108,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_RegisterSuccess()
         {
-            Options = GenerateOptions(3);
+            _options = GenerateOptions(3);
             var input = new VotingRegisterInput
             {
                 Topic = "Topic1",
@@ -117,7 +117,7 @@ namespace AElf.Contracts.Vote
                 StartTimestamp = DateTime.UtcNow.ToTimestamp(),
                 Options =
                 {
-                    Options
+                    _options
                 },
                 AcceptedCurrency = "ELF"
             };
@@ -177,7 +177,7 @@ namespace AElf.Contracts.Vote
                 {
                     Topic = "topic1",
                     Sponsor = DefaultSender,
-                    Option = Options[1],
+                    Option = _options[1],
                     Amount = 2000_000L
                 };
                 var otherKeyPair = SampleECKeyPairs.KeyPairs[1];
@@ -203,7 +203,7 @@ namespace AElf.Contracts.Vote
             {
                 Topic = "topic1",
                 Sponsor = DefaultSender,
-                Option = Options[1],
+                Option = _options[1],
                 Amount = voteAmount
             };
             var voteUserStub = GetVoteContractTester(voteUser);
@@ -241,7 +241,7 @@ namespace AElf.Contracts.Vote
             {
                 var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
                 {
-                    Option = Options[0],
+                    Option = _options[0],
                     Sponsor = DefaultSender,
                     Topic = topic,
                 })).TransactionResult;
@@ -299,7 +299,7 @@ namespace AElf.Contracts.Vote
             {
                 var transactionResult = (await VoteContractStub.RemoveOption.SendAsync(new RemoveOptionInput
                 {
-                    Option = Options[0],
+                    Option = _options[0],
                     Sponsor = DefaultSender,
                     Topic = topic,
                 })).TransactionResult;
@@ -341,8 +341,8 @@ namespace AElf.Contracts.Vote
             }
             //success
             {
-                await UserVote(voteUsrer, topic, DefaultSender, Options[0], 200);
-                await UserVote(voteUsrer, topic, DefaultSender, Options[1], 800);
+                await UserVote(voteUsrer, topic, DefaultSender, _options[0], 200);
+                await UserVote(voteUsrer, topic, DefaultSender, _options[1], 800);
                 
                 var votingHistory = await VoteContractStub.GetVotingHistory.CallAsync(
                     new GetVotingHistoryInput
@@ -371,7 +371,7 @@ namespace AElf.Contracts.Vote
             //with one vote
             {
                 var voteUser = SampleECKeyPairs.KeyPairs[2];
-                await UserVote(voteUser, topic, DefaultSender, Options[0], 1000L);
+                await UserVote(voteUser, topic, DefaultSender, _options[0], 1000L);
                 
                 var votes = (await VoteContractStub.GetVotingHistories.CallAsync(
                     Address.FromPublicKey(voteUser.PublicKey))).Votes;
@@ -381,7 +381,7 @@ namespace AElf.Contracts.Vote
             //with multiple votes
             {
                 var voteUser = SampleECKeyPairs.KeyPairs[2];
-                await UserVote(voteUser, topic, DefaultSender, Options[1], 1000L);
+                await UserVote(voteUser, topic, DefaultSender, _options[1], 1000L);
                 
                 var votes = (await VoteContractStub.GetVotingHistories.CallAsync(
                     Address.FromPublicKey(voteUser.PublicKey))).Votes;
@@ -398,7 +398,7 @@ namespace AElf.Contracts.Vote
             //totalEpoch is 1
             {
                 await GenerateNewVoteEvent(topic, 1, 10, 3, false);
-                await UserVote(voteUser, topic, DefaultSender, Options[1], 1000L);
+                await UserVote(voteUser, topic, DefaultSender, _options[1], 1000L);
 
                 var transactionResult = (await VoteContractStub.UpdateEpochNumber.SendAsync(
                     new UpdateEpochNumberInput
@@ -444,7 +444,7 @@ namespace AElf.Contracts.Vote
                 var voteUser = SampleECKeyPairs.KeyPairs[2];
                 var voteUserStub = GetVoteContractTester(voteUser);
                 await GenerateNewVoteEvent(topic, 1, 100, 2, false);
-                await UserVote(voteUser, topic, DefaultSender, Options[0], 200);
+                await UserVote(voteUser, topic, DefaultSender, _options[0], 200);
 
                 var votingHistory = await VoteContractStub.GetVotingHistory.CallAsync(new GetVotingHistoryInput
                 {
@@ -471,7 +471,7 @@ namespace AElf.Contracts.Vote
                 var voteUserStub = GetVoteContractTester(voteUser);
                 
                 await GenerateNewVoteEvent(topic, 1, 100, 2, false);
-                await UserVote(voteUser, topic, DefaultSender, Options[0], voteAmount);
+                await UserVote(voteUser, topic, DefaultSender, _options[0], voteAmount);
                 
                 var beforeBalance = await GetUserBalance(voteUser.PublicKey);
                 
@@ -507,8 +507,8 @@ namespace AElf.Contracts.Vote
                 var voteUserStub = GetVoteContractTester(voteUser);
                 
                 await GenerateNewVoteEvent(topic, 2, 100, 2, false);
-                await UserVote(voteUser, topic, DefaultSender, Options[0], voteAmount);
-                await UserVote(voteUser, topic, DefaultSender, Options[1], voteAmount);
+                await UserVote(voteUser, topic, DefaultSender, _options[0], voteAmount);
+                await UserVote(voteUser, topic, DefaultSender, _options[1], voteAmount);
                 
                 var beforeBalance = await GetUserBalance(voteUser.PublicKey);
                 
@@ -551,8 +551,8 @@ namespace AElf.Contracts.Vote
                 var voteUserStub = GetVoteContractTester(voteUser);
                 
                 await GenerateNewVoteEvent(topic, 3, 100, 2, false);
-                await UserVote(voteUser, topic, DefaultSender, Options[0], voteAmount);
-                await UserVote(voteUser, topic, DefaultSender, Options[1], voteAmount);
+                await UserVote(voteUser, topic, DefaultSender, _options[0], voteAmount);
+                await UserVote(voteUser, topic, DefaultSender, _options[1], voteAmount);
                 
                 await VoteContractStub.UpdateEpochNumber.SendAsync(new UpdateEpochNumberInput
                 {
@@ -560,7 +560,7 @@ namespace AElf.Contracts.Vote
                     EpochNumber = 2
                 });
                 
-                await UserVote(voteUser, topic, DefaultSender, Options[1], voteAmount);
+                await UserVote(voteUser, topic, DefaultSender, _options[1], voteAmount);
                 
                 var beforeBalance = await GetUserBalance(voteUser.PublicKey);
                 
@@ -618,7 +618,7 @@ namespace AElf.Contracts.Vote
             var topic = "vote test";
             var voteUser = SampleECKeyPairs.KeyPairs[2];
             await GenerateNewVoteEvent(topic, 1, 10, 3, false);
-            await UserVote(voteUser, topic, DefaultSender, Options[1], 1000L);
+            await UserVote(voteUser, topic, DefaultSender, _options[1], 1000L);
 
             var votingResult = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput
             {
@@ -634,7 +634,7 @@ namespace AElf.Contracts.Vote
         
         private async Task<TransactionResult> GenerateNewVoteEvent(string topic, int totalEpoch, int activeDays, int optionCount, bool delegated)
         {
-            Options = GenerateOptions(optionCount);
+            _options = GenerateOptions(optionCount);
             var input = new VotingRegisterInput
             {
                 Topic = topic,
@@ -643,7 +643,7 @@ namespace AElf.Contracts.Vote
                 StartTimestamp = DateTime.UtcNow.ToTimestamp(),
                 Options =
                 {
-                    Options
+                    _options
                 },
                 AcceptedCurrency = "ELF",
                 Delegated = delegated

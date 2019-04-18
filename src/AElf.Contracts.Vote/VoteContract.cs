@@ -13,6 +13,9 @@ namespace AElf.Contracts.Vote
     {
         public override Empty InitialVoteContract(InitialVoteContractInput input)
         {
+            var contractOwner = State.BasicContractZero.GetContractOwner.Call(Context.Self);
+            Assert(Context.Sender == contractOwner, "Only contract owner can initialize this contract.");
+
             Assert(!State.Initialized.Value, "Already initialized.");
 
             State.TokenContractSystemName.Value = input.TokenContractSystemName;

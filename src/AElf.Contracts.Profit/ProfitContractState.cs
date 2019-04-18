@@ -11,12 +11,6 @@ namespace AElf.Contracts.Profit
 
         public MappedState<Address, ReleasedProfitsInformation> ReleasedProfitsMap { get; set; }
 
-        // TODO: Remove.
-        /// <summary>
-        /// id of profit item 1 -> id of profit item 2 -> is profit item 2 sharing profit item 1's profits.
-        /// </summary>
-        public MappedState<Hash, Hash, bool> RegisterMap { get; set; }
-
         public MappedState<Hash, Address, ProfitDetails> ProfitDetailsMap { get; set; }
     }
 }
