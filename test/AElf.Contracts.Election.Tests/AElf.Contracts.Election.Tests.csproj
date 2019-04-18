@@ -21,7 +21,6 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
     </ItemGroup>
-
     <ItemGroup>
         <Content Include="..\..\protobuf\common.proto">
             <Link>Protobuf/Proto/common.proto</Link>
@@ -51,13 +50,16 @@
             <Link>Protobuf/Proto/election_contract.proto</Link>
         </Content>
     </ItemGroup>
-
+    <ItemGroup>
+        <Folder Include="Protobuf\Generated" />
+    </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto vote_contract.proto token_contract.proto election_contract.proto" />
         <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto vote_contract.proto token_contract.proto election_contract.proto" />
     </Target>
-    
-    <ItemGroup>
-      <Folder Include="Protobuf\Proto" />
-    </ItemGroup>
+    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Compile Include="./Protobuf/Generated/*.cs" />
+        </ItemGroup>
+    </Target>
 </Project>
