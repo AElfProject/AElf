@@ -16,9 +16,6 @@
         <Content Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf/Proto/acs3.proto</Link>
         </Content>
-        <Content Include="..\..\protobuf\proposal.proto">
-            <Link>Protobuf/Proto/proposal.proto</Link>
-        </Content>
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Protobuf\Proto" />

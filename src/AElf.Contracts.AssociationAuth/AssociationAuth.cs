@@ -31,8 +31,7 @@ namespace AElf.Contracts.AssociationAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() &&
-                                !State.ProposalReleaseStatus[proposalId].Value && CheckApprovals(approved, organization)
+                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() && CheckApprovals(approved, organization)
             };
 
             return result;
@@ -41,15 +40,6 @@ namespace AElf.Contracts.AssociationAuth
         #endregion view
 
         #region Actions
-
-        public override Empty Initialize(AssociationAuthContractInitializationInput input)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.ProposalContractSystemName.Value = input.ProposalContractSystemName;
-            State.Initialized.Value = true;
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-            return new Empty();
-        }
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
@@ -76,7 +66,6 @@ namespace AElf.Contracts.AssociationAuth
         public override Hash CreateProposal(CreateProposalInput proposal)
         {
             // check authorization of proposer public key
-            
             CheckProposerAuthority(proposal.OrganizationAddress);
             Assert(
                 !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
@@ -106,16 +95,11 @@ namespace AElf.Contracts.AssociationAuth
             Assert(proposalInfo != null, "Not found proposal.");
             var approved = State.Approved[approvalInput.ProposalId];
             // check approval not existed
-            var approval = new Approval
-            {
-                ProposalHash = approvalInput.ProposalId,
-                Sender = Context.Sender
-            };
-            Assert(approved == null || !approved.Approvals.Contains(approval), "Approval already existed.");
+            Assert(approved == null || !approved.ApprovedReviewer.Contains(Context.Sender), "Approval already existed.");
             var organization = GetOrganization(proposalInfo.OrganizationAddress);
             var reviewer = organization.Reviewers.FirstOrDefault(r => r.Address.Equals(Context.Sender));
             Assert(reviewer != null,"Not authorized approval.");
-            approved.Approvals.Add(approval);
+            approved.ApprovedReviewer.Add(Context.Sender);
             approved.ApprovedWeight += reviewer.Weight;
             State.Approved[approvalInput.ProposalId] = approved;
 

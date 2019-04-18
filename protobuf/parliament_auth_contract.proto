@@ -23,29 +23,29 @@ service ParliamentAuthContract {
 
 message ParliamentAuthInitializationInput{
     Hash consensusContractSystemName = 1;
-    Hash proposalContractSystemName = 2;
-}
-
-message Representative{
-    bytes PubKey = 1;
-    int32 Weight = 2;
 }
 
 message CreateOrganizationInput{
-    int32 releaseThreshold = 1;
+    double releaseThresholdInFraction = 1;
 }
 
 message Organization{
-    int32 releaseThreshold = 1;
+    double releaseThresholdInFraction = 1;
     Address organizationAddress = 2;
     Hash organizationHash = 3;
 }
 
 message ProposalInfo {
-    Hash proposalHash = 1;
+    Hash proposalId = 1;
     string contractMethodName = 2;
     Address toAddress = 3;
     bytes params = 4;
     google.protobuf.Timestamp expiredTime = 5;
-    Address sender = 6;
+    Address proposer = 6;
+    Address organizationAddress =7;
+}
+
+message ApprovedResult {
+    Hash proposalId = 1;
+    repeated Address approvedRepresentatives = 2;
 }

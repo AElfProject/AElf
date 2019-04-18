@@ -13,10 +13,9 @@ namespace AElf.Contracts.ParliamentAuth
         public BoolState Initialized { get; set; }
         
         public SingletonState<Hash> ConsensusContractSystemName { get; set; }
-        internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract {get; set; }
-        public SingletonState<Hash> ProposalContractSystemName { get; set; }
-        public MappedState<Hash, BoolValue> ProposalReleaseStatus { get; set; }
-        internal ProposalContractContainer.ProposalContractReferenceState ProposalContract { get; set; }        
+        internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract {get; set; }    
         internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
+        public MappedState<Hash, ProposalInfo> Proposals { get; set; }
+        public MappedState<Hash, ApprovedResult> Approved { get; set; }
     }
 }
