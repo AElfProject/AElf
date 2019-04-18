@@ -34,6 +34,21 @@ namespace AElf.Contracts.Profit
                 TokenSymbol = input.TokenSymbol,
                 CurrentPeriod = 1
             };
+
+            var createdProfitItems = State.CreatedProfitItemsMap[Context.Sender];
+            if (createdProfitItems == null)
+            {
+                createdProfitItems = new CreatedProfitItems
+                {
+                    ProfitIds = {profitId}
+                };
+            }
+            else
+            {
+                createdProfitItems.ProfitIds.Add(profitId);
+            }
+
+            State.CreatedProfitItemsMap[Context.Sender] = createdProfitItems;
             return profitId;
         }
 
@@ -142,9 +157,9 @@ namespace AElf.Contracts.Profit
         {
             Assert(input.ProfitId != null, "Invalid profit id.");
             Assert(input.Receiver != null, "Invalid receiver address.");
-            
+
             var profitItem = State.ProfitItemsMap[input.ProfitId];
-            
+
             Assert(profitItem != null, "Profit item not found.");
 
             var currentDetail = State.ProfitDetailsMap[input.ProfitId][input.Receiver];

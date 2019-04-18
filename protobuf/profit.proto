@@ -87,3 +87,7 @@ message ReleasedProfitsInformation {
     sint64 profits_amount = 2;
     bool is_released = 3;
 }
+
+message CreatedProfitItems {
+    repeated Hash ProfitIds = 1;
+}

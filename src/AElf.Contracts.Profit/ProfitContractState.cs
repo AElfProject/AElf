@@ -12,5 +12,7 @@ namespace AElf.Contracts.Profit
         public MappedState<Address, ReleasedProfitsInformation> ReleasedProfitsMap { get; set; }
 
         public MappedState<Hash, Address, ProfitDetails> ProfitDetailsMap { get; set; }
+
+        public MappedState<Address, CreatedProfitItems> CreatedProfitItemsMap { get; set; }
     }
 }
