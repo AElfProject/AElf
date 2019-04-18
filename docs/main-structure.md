@@ -3,6 +3,7 @@
 * [Getting started](Introduction/main.md)
     * [Before you start](Introduction/before.md)
     * [Running a node](Introduction/quickstart.md)
+    * [Configuration](Introduction/config.md)
 * [Command line interface](cli/cli.md)
     * [Introduction](cli/intro.md)
     * [Commands](cli/methods.md)
