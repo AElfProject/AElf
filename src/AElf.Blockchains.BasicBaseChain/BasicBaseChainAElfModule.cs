@@ -44,9 +44,7 @@ namespace AElf.Blockchains.BasicBaseChain
         {
             var config = context.Services.GetConfiguration();
             var chainType = config.GetValue("ChainType", ChainType.MainChain);
-
-            //TODO: change node type to net type
-            var nodeType = config.GetValue("NodeType", NodeType.MainNet);
+            var nodeType = config.GetValue("NetType", NetType.MainNet);
 
             //TODO: don't write here, should in startup file
             context.Services.AddConfiguration(new ConfigurationBuilderOptions
@@ -63,7 +61,7 @@ namespace AElf.Blockchains.BasicBaseChain
 
             switch (nodeType)
             {
-                case NodeType.MainNet:
+                case NetType.MainNet:
 
                     Configure<HostSmartContractBridgeContextOptions>(options =>
                     {
@@ -71,7 +69,7 @@ namespace AElf.Blockchains.BasicBaseChain
                     });
 
                     break;
-                case NodeType.TestNet:
+                case NetType.TestNet:
                     Configure<HostSmartContractBridgeContextOptions>(options =>
                     {
                         options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELFT";
@@ -89,7 +87,7 @@ namespace AElf.Blockchains.BasicBaseChain
         SideChain
     }
 
-    public enum NodeType
+    public enum NetType
     {
         MainNet,
         TestNet,
