@@ -99,9 +99,9 @@ namespace AElf.Cryptography.Tests
 
             //Open account with timeout
             _keyStore.DefaultTimeoutToClose = TimeSpan.FromMilliseconds(50);
-            _keyStore.OpenAsync(addString, "123").Wait();
+            await _keyStore.OpenAsync(addString, "123");
             
-            Thread.Sleep(100);
+            Thread.Sleep(200); //update due to window ci io speed issue may cased case failed.
             var keyPairInfo = _keyStore.GetAccountKeyPair(addString);
             keyPairInfo.ShouldBeNull();
         }

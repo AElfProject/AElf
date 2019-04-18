@@ -5,11 +5,11 @@ using Volo.Abp.Modularity;
 namespace AElf.Contracts.Election
 {
     [DependsOn(typeof(ContractTestModule))]
-    public class ElectionTestModule : ContractTestModule
+    public class ElectionContractTestModule : ContractTestModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<ElectionTestModule>();
+            context.Services.AddAssemblyOf<ElectionContractTestModule>();
         }
     }
 }

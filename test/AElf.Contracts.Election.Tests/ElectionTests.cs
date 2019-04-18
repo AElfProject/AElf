@@ -1,6 +1,6 @@
 namespace AElf.Contracts.Election
 {
-    public class ElectionTests : ElectionTestBase
+    public class ElectionTests : ElectionContractTestBase
     {
         public ElectionTests()
         {
