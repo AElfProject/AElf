@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -14,6 +16,7 @@ namespace AElf.Kernel.ChainController.Application
     public class ChainCreationService : IChainCreationService
     {
         private readonly IBlockchainService _blockchainService;
+        private readonly IAccountService _accountService;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         public ILogger<ChainCreationService> Logger { get; set; }
@@ -21,13 +24,14 @@ namespace AElf.Kernel.ChainController.Application
         public ILocalEventBus LocalEventBus { get; set; }
 
         public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
-            IBlockchainExecutingService blockchainExecutingService)
+            IBlockchainExecutingService blockchainExecutingService, IAccountService accountService)
         {
             _blockchainService = blockchainService;
             _blockExecutingService = blockExecutingService;
             _blockchainExecutingService = blockchainExecutingService;
             Logger = NullLogger<ChainCreationService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
+            _accountService = accountService;
         }
 
         /// <summary>
@@ -47,12 +51,14 @@ namespace AElf.Kernel.ChainController.Application
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),
                     ChainId = _blockchainService.GetChainId()
                 };
-                
-                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions); 
+
+                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions);
+                block.Header.Sig = ByteString.CopyFrom(await _accountService.SignAsync(block.GetHash().DumpByteArray()));
+                block.Header.P = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
+
                 var chain = await _blockchainService.CreateChainAsync(block);
-                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain,
-                    BlockAttachOperationStatus.LongestChainFound);
-                    
+                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, BlockAttachOperationStatus.LongestChainFound);
+
                 return await _blockchainService.GetChainAsync();
             }
             catch (Exception e)

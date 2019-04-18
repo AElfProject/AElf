@@ -88,9 +88,8 @@ namespace AElf.Kernel.Services
             //var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
 
-            var generatedTxns =
-                _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight,
-                    previousBlockHash);
+            var generatedTxns = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
+                                    previousBlockHeight, previousBlockHash);
 
             foreach (var txn in generatedTxns)
             {
@@ -126,8 +125,9 @@ namespace AElf.Kernel.Services
 
         private async Task SignBlockAsync(Block block)
         {
-            var publicKey = await _accountService.GetPublicKeyAsync();
-            block.Sign(publicKey, data => _accountService.SignAsync(data));
+            var signature = await _accountService.SignAsync(block.GetHash().DumpByteArray());
+            block.Header.Sig = ByteString.CopyFrom(signature);
+            block.Header.P = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
         }
 
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight,

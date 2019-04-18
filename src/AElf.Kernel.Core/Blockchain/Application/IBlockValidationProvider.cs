@@ -1,13 +1,14 @@
 using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using AElf.Kernel.Account.Application;
 
 namespace AElf.Kernel.Blockchain.Application
 {
     public interface IBlockValidationProvider
     {
+        Task<bool> ValidateBeforeAttachAsync(IBlock block);
         Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block);
-
         Task<bool> ValidateBlockAfterExecuteAsync(IBlock block);
     }
 
@@ -80,29 +81,37 @@ namespace AElf.Kernel.Blockchain.Application
 
     public class BlockValidationProvider : IBlockValidationProvider
     {
-        public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
+        private IBlockchainService _blockchainServce;
+        public BlockValidationProvider(IBlockchainService blockchainService)
+        {
+            _blockchainServce = blockchainService;
+        }
+
+        public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
             if (block?.Header == null || block.Body == null)
-            {
                 return false;
-            }
 
             if (block.Body.TransactionsCount == 0)
-            {
                 return false;
-            }
+
+            if (_blockchainServce.GetChainId() != block.Header.ChainId)
+                return false;
+
+            if (!block.VerifySignature())
+                return false;
 
             if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
-            {
                 return false;
-            }
 
             // TODO: Time span maybe configurable.
             if (block.Header.Time.ToDateTime() - DateTime.UtcNow > TimeSpan.FromMilliseconds(2000))
-            {
                 return false;
-            }
+            return true;
+        }
 
+        public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
+        {
             return true;
         }
 
