@@ -85,14 +85,8 @@ Every contract can have a state and for this you need to define a class derived 
 
 We have implemented a custom plugin to generate the service code from the proto definitions. You will need to copy it from the clonned repo to the current directory:
 
-For macos:
 ```bash
-cp path/to/aelfrepo/scripts/contract_csharp_plugin_osx .
-```
-
-For Linux:
-```bash
-cp path/to/aelfrepo/scripts/contract_csharp_plugin_linux .
+cp path/to/aelfrepo/scripts/contract_csharp_plugin .
 ```
 
 Create the folder for the generated files:
@@ -102,7 +96,7 @@ mkdir ./Protobuf/Generated
 
 Execute the following command to generate the C# files:
 ```bash
-protoc --proto_path=./Protobuf/Proto --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs --contract_out=./Protobuf/Generated --plugin=protoc-gen-contract=contract_csharp_plugin_osx hello_world.proto
+protoc --proto_path=./Protobuf/Proto --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs --contract_out=./Protobuf/Generated --plugin=protoc-gen-contract=contract_csharp_plugin hello_world.proto
 ```
 
 This example also has a dependency on Protobuf so we need to add the depency:

@@ -42,6 +42,16 @@ aelf-cli call 4QjhKLWacRXrQYpT7rzf74k5XZFCx8yF3X7FXbzKD4wwEo6
 
 ```sh
 dotnet add test-aelf.csproj package AElf.Sdk.CSharp
-# If you meet problem, please use add the version of the package.
-# dotnet add test-aelf.csproj package AElf.Sdk.CSharp --version 0.7.0-alpha.1
+# If you meet problem, please add the version of the package. The Daily Build version in myget.
+# dotnet add package AElf.Sdk.CSharp --version 0.7.0-alpha.1-18003 --source https://www.myget.org/F/aelf-project-dev/api/v3/index.json Writing /var/folders/9f/fclc6h3s51v17s0gdxzpcgt00000gn/T/tmpHSmuWg.tmp
+
+# Follow the steps in the hello world demo of smart contract.
+
+dotnet build test-aelf.csproj
+
+6558d71135bca0ec2c1e7751b4c3bf65a102f872ddcb5e8537fb4b0cf89041fc
+```
+
+```js
+dotnet publish AElf.sln /p:NoBuild=false --configuration Debug -o /Users/huangzongzhe/workspace/hoopox/AElf-dev/AElfRelease
 ```
