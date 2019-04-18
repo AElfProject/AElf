@@ -15,12 +15,11 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
-    <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
     <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
     <ProjectReference Include="..\..\src\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj" />
     <ProjectReference Include="..\..\src\AElf.OS\AElf.OS.csproj" />
-    <ProjectReference Include="..\AElf.Runtime.CSharp.Tests\AElf.Runtime.CSharp.Tests.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
+    <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
     <ProjectReference Include="..\AElf.Test.Helpers\AElf.Test.Helpers.csproj" />
     <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
   </ItemGroup>

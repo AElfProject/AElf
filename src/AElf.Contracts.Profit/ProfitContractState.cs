@@ -9,7 +9,7 @@ namespace AElf.Contracts.Profit
 
         public MappedState<Hash, ProfitItem> ProfitItemsMap { get; set; }
 
-        public MappedState<Address, long> PeriodWeightsMap { get; set; }
+        public MappedState<Address, ReleasedProfitsInformation> ReleasedProfitsMap { get; set; }
 
         // TODO: Remove.
         /// <summary>

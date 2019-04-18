@@ -43,7 +43,6 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
             
-            // TODO: One of `Treasury`'s Send Address is `Voters`' Receive Address
             var subProfitItemId = input.SubProfitId;
             var subProfitItem = State.ProfitItemsMap[subProfitItemId];
             Assert(subProfitItem != null, "Sub profit item not found.");
@@ -59,18 +58,17 @@ namespace AElf.Contracts.Profit
 
             State.RegisterMap[input.ProfitId][input.SubProfitId] = true;
 
-            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItemId);
+            var subProfitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItemId);
             AddWeight(new AddWeightInput
             {
-                ItemName = input.ItemName,
+                ProfitId = input.ProfitId,
                 Weight = input.SubItemWeight,
-                Receiver = virtualAddress
+                Receiver = subProfitVirtualAddress
             });
 
             profitItem.SubProfitItems.Add(new SubProfitItem
             {
-                Creator = input.SubItemCreator,
-                ItemName = input.SubItemName,
+                ProfitId = input.SubProfitId,
                 Weight = input.SubItemWeight
             });
             State.ProfitItemsMap[input.ProfitId] = profitItem;
@@ -80,7 +78,6 @@ namespace AElf.Contracts.Profit
 
         public override Empty AddWeight(AddWeightInput input)
         {
-            // TODO: Use profit id directly.
             Assert(input.Weight >= 0, "Invalid weight.");
 
             var profitId = input.ProfitId;
@@ -122,8 +119,13 @@ namespace AElf.Contracts.Profit
             {
                 currentProfitDetails.Details.Add(profitDetail);
             }
-            
-            // TODO: Remove expired details.
+
+            // Remove details too old.
+            foreach (var detail in currentProfitDetails.Details.Where(d =>
+                d.EndPeriod + ProfitContractConsts.KeepDetailsNumber <= profitItem.CurrentPeriod))
+            {
+                currentProfitDetails.Details.Remove(detail);
+            }
 
             State.ProfitDetailsMap[profitId][input.Receiver] = currentProfitDetails;
 
@@ -179,31 +181,34 @@ namespace AElf.Contracts.Profit
             }
             
             Assert(profitItem.TotalWeight > 0, "Invalid total weight.");
+            
+            var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
-            Assert(input.Amount <= profitItem.TotalAmount, "Insufficient profits amount.");
-
-            var salt = GetReleasedPeriodProfitsVirtualAddressSalt(input.ProfitId, input.Period);
-            // TODO: Use map to restore amount of each period.
-            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(salt);
-            Context.SendVirtualInline(salt, State.TokenContract.Value, "Transfer", new TransferInput
+            var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
-                To = virtualAddress,
-                Symbol = profitItem.TokenSymbol,
-                Amount = input.Amount,
-                Memo = $"Release dividends for {input.ItemName} (period {input.Period})."
-            }.ToByteString());
+                Owner = profitVirtualAddress,
+                Symbol = profitItem.TokenSymbol
+            }).Balance;
 
-            State.PeriodWeightsMap[virtualAddress] = profitItem.TotalWeight;
+            Assert(input.Amount <= balance, "Insufficient profits amount.");
+
+            var virtualAddress = GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, input.Period);
+ 
+            State.ReleasedProfitsMap[virtualAddress] = new ReleasedProfitsInformation
+            {
+                TotalWeight = profitItem.TotalWeight,
+                ProfitsAmount = input.Amount
+            };
 
             foreach (var subProfitItem in profitItem.SubProfitItems)
             {
-                var subSalt = GetReleasedPeriodProfitsVirtualAddressSalt(subProfitItem.ProfitId, input.Period);
-                var subProfitItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSalt);
+                var subProfitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItem.ProfitId);
+                var targetVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(subProfitVirtualAddress, input.Period);
 
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = virtualAddress,
-                    To = subProfitItemVirtualAddress,
+                    To = targetVirtualAddress,
                     Amount = subProfitItem.Weight.Mul(input.Amount).Div(profitItem.TotalWeight),
                     Symbol = profitItem.TokenSymbol
                 });
@@ -222,16 +227,16 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
-            var salt = GetReleasedPeriodProfitsVirtualAddressSalt(input.ProfitId, input.Period);
-            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(salt);
-            Context.SendVirtualInline(salt, State.TokenContract.Value, "TransferFrom", new TransferFromInput
+            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
+            var targetVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
-                To = virtualAddress,
+                To = targetVirtualAddress,
                 Symbol = profitItem.TokenSymbol,
                 Amount = input.Amount,
                 Memo = $"Add dividends for {input.ProfitId} (period {input.Period})."
-            }.ToByteString());
+            });
 
             return new Empty();
         }
@@ -250,6 +255,8 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
+            var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
+
             for (var i = 0; i < Math.Min(ProfitContractConsts.ProfitLimit, profitDetails.Details.Count); i++)
             {
                 var profitDetail = profitDetails.Details[i];
@@ -260,20 +267,14 @@ namespace AElf.Contracts.Profit
 
                 for (var period = profitDetail.LastProfitPeriod; period < profitItem.CurrentPeriod; period++)
                 {
-                    var salt = GetReleasedPeriodProfitsVirtualAddressSalt(input.ProfitId, period);
-                    var virtualAddress = Context.ConvertVirtualAddressToContractAddress(salt);
-                    var totalWeights = State.PeriodWeightsMap[virtualAddress];
-                    var totalProfits = State.TokenContract.GetBalance.Call(new GetBalanceInput
-                    {
-                        Owner = virtualAddress,
-                        Symbol = profitItem.TokenSymbol
-                    }).Balance;
+                    var targetVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
+                    var releasedProfitsInformation = State.ReleasedProfitsMap[targetVirtualAddress];
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
                     {
-                        From = virtualAddress,
+                        From = targetVirtualAddress,
                         To = Context.Sender,
                         Symbol = profitItem.TokenSymbol,
-                        Amount = profitDetail.Weight.Mul(totalProfits).Div(totalWeights)
+                        Amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount).Div(releasedProfitsInformation.TotalWeight)
                     });
                 }
             }
@@ -281,9 +282,9 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
-        private Hash GetReleasedPeriodProfitsVirtualAddressSalt(Hash profitId, long period)
+        private Address GetReleasedPeriodProfitsVirtualAddress(Address profitId, long period)
         {
-            return Hash.FromRawBytes(profitId.Value.Concat(period.ToString().CalculateHash()).ToArray());
+            return Address.FromBytes(period.ToString().CalculateHash().Concat(profitId.Value).ToArray());
         }
     }
 }
