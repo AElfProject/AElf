@@ -16,13 +16,8 @@ install:
   - ps: (new-object net.webclient).DownloadFile('https://github.com/protocolbuffers/protobuf/releases/download/v3.7.0/protoc-3.7.0-win64.zip', 'c:\protoc-3.7.0-win64.zip')
   - cmd: unzip c:\protoc-3.7.0-win64.zip  -d c:\protoc\
   - cmd: set PATH=%PATH%;c:\protoc\bin\
-  - ps: (new-object net.webclient).DownloadFile('https://github.com/AElfProject/contract-plugin/releases/download/v1.0.2/contract_csharp_plugin-v1.0.2-win32.zip', 'c:\projects\aelf\scripts\contract_csharp_plugin-v1.0.2-win32.zip')
-  - cmd: unzip -o c:\projects\aelf\scripts\contract_csharp_plugin-v1.0.2-win32.zip -d c:\projects\aelf\scripts\
-  - cmd: dir c:\projects\aelf\scripts\
+  - ps: Invoke-WebRequest http://cakebuild.net/download/bootstrapper/windows -OutFile build.ps1
+
 
 build_script:
-  - ps: dotnet build AElf.Console.sln
-  - ps: dotnet build AElf.sln
-  - ps: dotnet test AElf.sln
-  - ps: dotnet build AElf.Management.sln
-  - ps: dotnet test AElf.Management.sln
+  - ps: .\build.ps1 -Target build1
