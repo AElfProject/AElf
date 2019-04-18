@@ -1,5 +1,15 @@
 ## Smart contract architecture
 
+At its core, a blockchain platform can be viewed as a distributed multi-tenant database which holds the state of all the smart contracts deployed on it. After deployment, each smart contract will have a unique address. The address is used to scope the state and as the identifier for state queries and updates. The methods defined in smart contract code provides the permission checks and logics for queries and updates.
+
+In aelf, a smart contract essentially has three parts: the interface, the state, and the business logics.
+
+1. the interface - aelf supports smart contracts coded in multiple languages. Protobuf format is adopted as the cross-language definition of the contract.
+
+2. the state - the language specific SDKs provide some prototypes for the state of different types.
+
+3. the buisness logic - aelf provides protobuf plugins to generate the smart contract skeleton from the contract's proto definition. Developers just need to fill the logics for each method.
+
 Smart contracts in AElf are spread across the Kernel, the runtim and the SDK. The kernel defines the fundamental components and infrastructure associated with smart contracts. It also defines the abstractions for execution. Smart contract also heavily rely on the runtime modules and the sdk project.
 
 ### Smart contract interactions
