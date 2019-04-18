@@ -55,21 +55,6 @@ namespace AElf.WebApp.Application.Chain.Tests
             var height = long.Parse(response);
             height.ShouldBe(currentHeight + 1);
         }
-        
-        [Fact]
-        public async Task GetChainInformationTest()
-        {
-            var chainId = _blockchainService.GetChainId();
-            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
-
-            var response = await GetResponseAsObjectAsync<GetChainInformationOutput>("/api/blockChain/chainInformation");
-
-            var responseZeroContractAddress = response.GenesisContractAddress;
-            var responseChainId = ChainHelpers.ConvertBase58ToChainId(response.ChainId);
-
-            responseZeroContractAddress.ShouldBe(basicContractZero.GetFormatted());
-            responseChainId.ShouldBe(chainId);
-        }
 
         [Fact]
         public async Task Call_Success()
@@ -258,7 +243,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
         
         [Fact]
-        public async Task Get_TransactionsResult_Success()
+        public async Task Get_TransactionResults_Success()
         {
             // Generate 20 transactions and mined
             var transactions = new List<Transaction>();
@@ -271,18 +256,18 @@ namespace AElf.WebApp.Application.Chain.Tests
             var block = await _osTestHelper.MinedOneBlock();
 
             var response = await GetResponseAsObjectAsync<List<TransactionResultDto>>(
-                $"/api/blockChain/transactionsResult?blockHash={block.GetHash().ToHex()}&offset=0&limit=15");
+                $"/api/blockChain/transactionResults?blockHash={block.GetHash().ToHex()}&offset=0&limit=15");
 
             response.Count.ShouldBe(15);
 
             response = await GetResponseAsObjectAsync<List<TransactionResultDto>>(
-                $"/api/blockChain/transactionsResult?blockHash={block.GetHash().ToHex()}&offset=15&limit=15");
+                $"/api/blockChain/transactionResults?blockHash={block.GetHash().ToHex()}&offset=15&limit=15");
    
             response.Count.ShouldBe(5);
         }
         
         [Fact]
-        public async Task Get_NotExisted_TransactionsResult()
+        public async Task Get_NotExisted_TransactionResults()
         {
             var block = new Block
             {
@@ -290,7 +275,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             var blockHash = block.GetHash().ToHex();
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/blockChain/transactionsResult?blockHash={blockHash}&offset=0&limit=10",
+                $"/api/blockChain/transactionResults?blockHash={blockHash}&offset=0&limit=10",
                 expectedStatusCode: HttpStatusCode.Forbidden);
 
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
@@ -298,7 +283,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
         
         [Fact]
-        public async Task Get_TransactionsResult_With_InvalidParameter()
+        public async Task Get_TransactionResults_With_InvalidParameter()
         {
             var block = new Block
             {
@@ -307,20 +292,20 @@ namespace AElf.WebApp.Application.Chain.Tests
             var blockHash = block.GetHash().ToHex();
             
             var response1 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/blockChain/transactionsResult?blockHash={blockHash}&offset=-3&limit=10",
+                $"/api/blockChain/transactionResults?blockHash={blockHash}&offset=-3&limit=10",
                 expectedStatusCode: HttpStatusCode.Forbidden);
             
             response1.Error.Code.ShouldBe(Error.InvalidOffset.ToString());
             response1.Error.Message.Contains("Offset must greater than or equal to 0").ShouldBeTrue();
             
             var response2 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/blockChain/transactionsResult?blockHash={blockHash}&offset=0&limit=-5",
+                $"/api/blockChain/transactionResults?blockHash={blockHash}&offset=0&limit=-5",
                 expectedStatusCode: HttpStatusCode.Forbidden);
             response2.Error.Code.ShouldBe(Error.InvalidLimit.ToString());
             response2.Error.Message.Contains("Limit must between 0 and 100").ShouldBeTrue();
             
             var response3 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/blockChain/transactionsResult?blockHash={blockHash}&offset=0&limit=120",
+                $"/api/blockChain/transactionResults?blockHash={blockHash}&offset=0&limit=120",
                 expectedStatusCode: HttpStatusCode.Forbidden);
             response3.Error.Code.ShouldBe(Error.InvalidLimit.ToString());
             response3.Error.Message.Contains("Limit must between 0 and 100").ShouldBeTrue();
@@ -419,9 +404,21 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task Get_Chain_Status_Success()
         {
+            var chain = await _blockchainService.GetChainAsync();
+            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
+            
             var response = await GetResponseAsObjectAsync<ChainStatusDto>("/api/blockChain/chainStatus");
             response.Branches.ShouldNotBeNull();
+            var responseChainId = ChainHelpers.ConvertBase58ToChainId(response.ChainId);
+            responseChainId.ShouldBe(chain.Id);
+            response.GenesisContractAddress.ShouldBe(basicContractZero.GetFormatted());
             response.BestChainHeight.ShouldBe(11);
+            response.BestChainHash.ShouldBe(chain.BestChainHash?.ToHex());
+            response.LongestChainHeight = chain.LongestChainHeight;
+            response.LongestChainHash = chain.LongestChainHash?.ToHex();
+            response.GenesisBlockHash = chain.GenesisBlockHash.ToHex();
+            response.LastIrreversibleBlockHash = chain.LastIrreversibleBlockHash?.ToHex();
+            response.LastIrreversibleBlockHeight = chain.LastIrreversibleBlockHeight;
         }
         
         [Fact]

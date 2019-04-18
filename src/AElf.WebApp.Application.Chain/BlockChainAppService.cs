@@ -21,8 +21,6 @@ namespace AElf.WebApp.Application.Chain
 {
     public interface IBlockChainAppService : IApplicationService
     {
-        Task<GetChainInformationOutput> GetChainInformation();
-
         Task<string> Call(string rawTransaction);
 
         Task<byte[]> GetFileDescriptorSet(string address);
@@ -33,7 +31,7 @@ namespace AElf.WebApp.Application.Chain
 
         Task<TransactionResultDto> GetTransactionResult(string transactionId);
 
-        Task<List<TransactionResultDto>> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10);
+        Task<List<TransactionResultDto>> GetTransactionResults(string blockHash, int offset = 0, int limit = 10);
 
         Task<long> GetBlockHeight();
 
@@ -80,17 +78,6 @@ namespace AElf.WebApp.Application.Chain
             
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
-        }
-        
-        public Task<GetChainInformationOutput> GetChainInformation()
-        {
-            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
-
-            return Task.FromResult(new GetChainInformationOutput
-            {
-                GenesisContractAddress = basicContractZero?.GetFormatted(),
-                ChainId = ChainHelpers.ConvertChainIdToBase58(_blockchainService.GetChainId())
-            });
         }
 
         public async Task<string> Call(string rawTransaction)
@@ -172,7 +159,7 @@ namespace AElf.WebApp.Application.Chain
             return output;
         }
 
-        public async Task<List<TransactionResultDto>> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10)
+        public async Task<List<TransactionResultDto>> GetTransactionResults(string blockHash, int offset = 0, int limit = 10)
         {
             if (offset < 0)
             {
@@ -344,6 +331,8 @@ namespace AElf.WebApp.Application.Chain
         
         public async Task<ChainStatusDto> GetChainStatus()
         {
+            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
+     
             var chain = await _blockchainService.GetChainAsync();
             var branches = JsonConvert.DeserializeObject<Dictionary<string,long>>(chain.Branches.ToString());
             var formattedNotLinkedBlocks = new List<NotLinkedBlockDto>();
@@ -362,6 +351,8 @@ namespace AElf.WebApp.Application.Chain
 
             return new ChainStatusDto()
             {
+                ChainId = ChainHelpers.ConvertChainIdToBase58(chain.Id),
+                GenesisContractAddress = basicContractZero?.GetFormatted(),
                 Branches = branches,
                 NotLinkedBlocks = formattedNotLinkedBlocks,
                 LongestChainHeight = chain.LongestChainHeight,
