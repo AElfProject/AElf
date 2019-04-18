@@ -41,3 +41,4 @@ aelf.chain.getTxResult('d40654c3f95a8a1b163f6d8b9112b0b72273ba74d02d2233b0c869db
 //     ReadableReturnValue: '{ "Value": "Hello world!" }',
 //     ...
 // }
+```
