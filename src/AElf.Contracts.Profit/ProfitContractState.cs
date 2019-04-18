@@ -11,6 +11,7 @@ namespace AElf.Contracts.Profit
 
         public MappedState<Address, long> PeriodWeightsMap { get; set; }
 
+        // TODO: Remove.
         /// <summary>
         /// id of profit item 1 -> id of profit item 2 -> is profit item 2 sharing profit item 1's profits.
         /// </summary>

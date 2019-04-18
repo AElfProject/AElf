@@ -1,6 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -21,24 +23,19 @@ namespace AElf.Contracts.Profit
 
         public override Hash CreateProfitItem(CreateProfitItemInput input)
         {
-            var profitId = GetProfitId(input.Creator, input.ItemName);
-            Assert(State.ProfitItemsMap[profitId] != null, "Profit item already exists.");
+            var profitId = Hash.FromRawBytes(Context.Self.Value.Concat(Context.TransactionId).ToArray());
             State.ProfitItemsMap[profitId] = new ProfitItem
             {
-                Creator = input.Creator,
-                ItemName = input.ItemName,
-                ProfitId = GetProfitId(input.Creator, input.ItemName),
-                InitialWeight = input.IsTotalWeightFixed ? input.InitialWeight : 0,
-                IsTotalWeightFixed = input.IsTotalWeightFixed,
-                IsSubProfitItem = input.IsSubProfitItem
+                IsSubProfitItem = input.IsSubProfitItem,
+                TokenSymbol = input.TokenSymbol,
+                CurrentPeriod = 1
             };
             return profitId;
         }
 
         public override Empty RegisterSubProfitItem(RegisterSubProfitItemInput input)
         {
-            var profitItemId = GetProfitId(Context.Sender, input.ItemName);
-            var profitItem = State.ProfitItemsMap[profitItemId];
+            var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
 
             if (profitItem == null)
@@ -46,7 +43,8 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
             
-            var subProfitItemId = GetProfitId(input.SubItemCreator, input.SubItemName);
+            // TODO: One of `Treasury`'s Send Address is `Voters`' Receive Address
+            var subProfitItemId = input.SubProfitId;
             var subProfitItem = State.ProfitItemsMap[subProfitItemId];
             Assert(subProfitItem != null, "Sub profit item not found.");
 
@@ -57,9 +55,9 @@ namespace AElf.Contracts.Profit
 
             Assert(subProfitItem.IsSubProfitItem, "Cannot register sub profit item.");
 
-            Assert(!State.RegisterMap[profitItemId][subProfitItemId], "Sub profit item already registered.");
+            Assert(!State.RegisterMap[input.ProfitId][input.SubProfitId], "Sub profit item already registered.");
 
-            State.RegisterMap[profitItemId][subProfitItemId] = true;
+            State.RegisterMap[input.ProfitId][input.SubProfitId] = true;
 
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItemId);
             AddWeight(new AddWeightInput
@@ -75,16 +73,17 @@ namespace AElf.Contracts.Profit
                 ItemName = input.SubItemName,
                 Weight = input.SubItemWeight
             });
-            State.ProfitItemsMap[profitItemId] = profitItem;
+            State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             return new Empty();
         }
 
         public override Empty AddWeight(AddWeightInput input)
         {
+            // TODO: Use profit id directly.
             Assert(input.Weight >= 0, "Invalid weight.");
 
-            var profitId = GetProfitId(Context.Sender, input.ItemName);
+            var profitId = input.ProfitId;
             var profitItem = State.ProfitItemsMap[profitId];
 
             Assert(profitItem != null, "Profit item not found.");
@@ -95,12 +94,6 @@ namespace AElf.Contracts.Profit
             }
 
             profitItem.TotalWeight += input.Weight;
-
-            if (profitItem.IsTotalWeightFixed)
-            {
-                Assert(profitItem.TotalWeight <= profitItem.InitialWeight,
-                    "Total weight cannot exceed initial weight if total weight fixed.");
-            }
 
             State.ProfitItemsMap[profitId] = profitItem;
 
@@ -119,6 +112,7 @@ namespace AElf.Contracts.Profit
             var currentProfitDetails = State.ProfitDetailsMap[profitId][input.Receiver];
             if (currentProfitDetails == null)
             {
+                // TODO: Deduct Resource token of Profit Contract from DAPP Developer because this behaviour will add a new key.
                 currentProfitDetails = new ProfitDetails
                 {
                     Details = {profitDetail}
@@ -128,6 +122,8 @@ namespace AElf.Contracts.Profit
             {
                 currentProfitDetails.Details.Add(profitDetail);
             }
+            
+            // TODO: Remove expired details.
 
             State.ProfitDetailsMap[profitId][input.Receiver] = currentProfitDetails;
 
@@ -136,12 +132,11 @@ namespace AElf.Contracts.Profit
 
         public override Empty SubWeight(SubWeightInput input)
         {
-            var profitId = GetProfitId(Context.Sender, input.ItemName);
-            var profitItem = State.ProfitItemsMap[profitId];
+            var profitItem = State.ProfitItemsMap[input.ProfitId];
 
             Assert(profitItem != null, "Profit item not found.");
 
-            var currentDetail = State.ProfitDetailsMap[profitId][input.Receiver];
+            var currentDetail = State.ProfitDetailsMap[input.ProfitId][input.Receiver];
 
             Assert(currentDetail != null, "Profit detail not found.");
 
@@ -164,18 +159,17 @@ namespace AElf.Contracts.Profit
                 currentDetail.Details.Remove(profitDetail);
             }
 
-            State.ProfitDetailsMap[profitId][input.Receiver] = currentDetail;
+            State.ProfitDetailsMap[input.ProfitId][input.Receiver] = currentDetail;
 
             profitItem.TotalWeight -= weights;
-            State.ProfitItemsMap[profitId] = profitItem;
+            State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             return new Empty();
         }
 
         public override Empty ReleaseProfit(ReleaseProfitInput input)
         {
-            var profitId = GetProfitId(Context.Sender, input.ItemName);
-            var profitItem = State.ProfitItemsMap[profitId];
+            var profitItem = State.ProfitItemsMap[input.ProfitId];
 
             Assert(profitItem != null, "Profit item not found.");
 
@@ -188,7 +182,8 @@ namespace AElf.Contracts.Profit
 
             Assert(input.Amount <= profitItem.TotalAmount, "Insufficient profits amount.");
 
-            var salt = GetReleasedPeriodProfitsVirtualAddressSalt(profitId, input.Period);
+            var salt = GetReleasedPeriodProfitsVirtualAddressSalt(input.ProfitId, input.Period);
+            // TODO: Use map to restore amount of each period.
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(salt);
             Context.SendVirtualInline(salt, State.TokenContract.Value, "Transfer", new TransferInput
             {
@@ -202,15 +197,14 @@ namespace AElf.Contracts.Profit
 
             foreach (var subProfitItem in profitItem.SubProfitItems)
             {
-                var subProfitItemId = GetProfitId(subProfitItem.Creator, subProfitItem.ItemName);
-                var subSalt = GetReleasedPeriodProfitsVirtualAddressSalt(subProfitItemId, input.Period);
+                var subSalt = GetReleasedPeriodProfitsVirtualAddressSalt(subProfitItem.ProfitId, input.Period);
                 var subProfitItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSalt);
 
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = virtualAddress,
                     To = subProfitItemVirtualAddress,
-                    Amount = subProfitItem.Weight * input.Amount / profitItem.TotalWeight,
+                    Amount = subProfitItem.Weight.Mul(input.Amount).Div(profitItem.TotalWeight),
                     Symbol = profitItem.TokenSymbol
                 });
             }
@@ -220,8 +214,7 @@ namespace AElf.Contracts.Profit
 
         public override Empty AddDividends(AddDividendsInput input)
         {
-            var profitId = GetProfitId(input.Creator, input.ItemName);
-            var profitItem = State.ProfitItemsMap[profitId];
+            var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
 
             if (profitItem == null)
@@ -229,7 +222,7 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
-            var salt = GetReleasedPeriodProfitsVirtualAddressSalt(profitId, input.Period);
+            var salt = GetReleasedPeriodProfitsVirtualAddressSalt(input.ProfitId, input.Period);
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(salt);
             Context.SendVirtualInline(salt, State.TokenContract.Value, "TransferFrom", new TransferFromInput
             {
@@ -237,7 +230,7 @@ namespace AElf.Contracts.Profit
                 To = virtualAddress,
                 Symbol = profitItem.TokenSymbol,
                 Amount = input.Amount,
-                Memo = $"Add dividends for {input.ItemName} (period {input.Period}) created by {input.Creator}."
+                Memo = $"Add dividends for {input.ProfitId} (period {input.Period})."
             }.ToByteString());
 
             return new Empty();
@@ -245,11 +238,10 @@ namespace AElf.Contracts.Profit
 
         public override Empty Profit(ProfitInput input)
         {
-            var profitId = GetProfitId(input.Creator, input.ItemName);
-            var profitItem = State.ProfitItemsMap[profitId];
+            var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
 
-            var profitDetails = State.ProfitDetailsMap[profitId][Context.Sender];
+            var profitDetails = State.ProfitDetailsMap[input.ProfitId][Context.Sender];
 
             Assert(profitDetails != null, "Profit details not found.");
 
@@ -258,8 +250,9 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
-            foreach (var profitDetail in profitDetails.Details)
+            for (var i = 0; i < Math.Min(ProfitContractConsts.ProfitLimit, profitDetails.Details.Count); i++)
             {
+                var profitDetail = profitDetails.Details[i];
                 if (profitDetail.LastProfitPeriod == 0)
                 {
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
@@ -267,7 +260,7 @@ namespace AElf.Contracts.Profit
 
                 for (var period = profitDetail.LastProfitPeriod; period < profitItem.CurrentPeriod; period++)
                 {
-                    var salt = GetReleasedPeriodProfitsVirtualAddressSalt(profitId, period);
+                    var salt = GetReleasedPeriodProfitsVirtualAddressSalt(input.ProfitId, period);
                     var virtualAddress = Context.ConvertVirtualAddressToContractAddress(salt);
                     var totalWeights = State.PeriodWeightsMap[virtualAddress];
                     var totalProfits = State.TokenContract.GetBalance.Call(new GetBalanceInput
@@ -280,17 +273,12 @@ namespace AElf.Contracts.Profit
                         From = virtualAddress,
                         To = Context.Sender,
                         Symbol = profitItem.TokenSymbol,
-                        Amount = profitDetail.Weight * totalProfits / totalWeights
+                        Amount = profitDetail.Weight.Mul(totalProfits).Div(totalWeights)
                     });
                 }
             }
 
             return new Empty();
-        }
-
-        private Hash GetProfitId(Address creator, string itemName)
-        {
-            return Hash.FromRawBytes(creator.Value.Concat(itemName.CalculateHash()).ToArray());
         }
 
         private Hash GetReleasedPeriodProfitsVirtualAddressSalt(Hash profitId, long period)

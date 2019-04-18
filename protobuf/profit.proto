@@ -4,7 +4,6 @@ option csharp_namespace = "AElf.Kernel";
 
 import "common.proto";
 import "kernel.proto";
-import "google/protobuf/timestamp.proto";
 
 message InitializeProfitContractInput {
     Hash token_contract_system_name = 1;
@@ -22,50 +21,37 @@ message CreateProfitItemInput {
 
 message ProfitItem {
     Hash profit_id = 1;
-    Address creator = 2;
-    string item_name = 3;
-    repeated ReceiverInformation receivers = 4;
-    sint64 total_weight = 5;
-    bool is_total_weight_fixed = 6;
-    sint64 total_amount = 7;
-    sint64 current_period = 8;
-    string token_symbol = 9;
-    bool is_sub_profit_item = 10;
-    repeated SubProfitItem sub_profit_items = 11;
-    sint64 initial_weight = 12;
+    sint64 total_weight = 2;
+    sint64 total_amount = 3;
+    sint64 current_period = 4;
+    string token_symbol = 5;
+    bool is_sub_profit_item = 6;
+    repeated SubProfitItem sub_profit_items = 7;
 }
 
 message SubProfitItem {
-    Address creator = 1;
-    string item_name = 2;
-    sint64 weight = 3;
-}
-
-message ReceiverInformation {
-    Address receiver = 1;
-    string item_name = 2;
-    sint64 weight = 3;
+    Hash profit_id = 1;
+    sint64 weight = 2;
 }
 
 message AddWeightInput {
     Address receiver = 1;
-    string item_name = 2;
+    Hash profit_id = 2;
     sint64 weight = 3;
     sint64 end_period = 4;
 }
 
 message SubWeightInput {
     Address receiver = 1;
-    string item_name = 2;
+    Hash profit_id = 2;
 }
 
 message ProfitInput {
-    string item_name = 1;
-    Address creator = 2;
+    string profit_id = 1;
 }
 
 message ReleaseProfitInput {
-    string item_name = 1;
+    Hash profit_id = 1;
     sint64 period = 2;
     sint64 amount = 3;
     Address creator = 4;
@@ -84,17 +70,13 @@ message ProfitDetail {
 
 message AddDividendsInput {
     Hash profit_id = 1;
-    Address creator = 2;
-    string item_name = 3;
-    sint64 period = 4;
-    sint64 amount = 5;
+    sint64 amount = 2;
 }
 
 message RegisterSubProfitItemInput {
-    string item_name = 1;
-    string sub_item_name = 2;
-    Address sub_item_creator = 3;
-    sint64 sub_item_weight = 4;
+    Hash profit_id = 1;
+    Hash sub_profit_id = 2;
+    sint64 sub_item_weight = 3;
 }
 
 message CancelSubProfitItemInput {
