@@ -47,6 +47,8 @@
         * [AElf API](SDK/javascript/AElf.md)
         * [AElf.wallet API](SDK/javascript/Wallet.md)
 * [Tutorials](tutorials/main.md)
+    * [How to dev a DAPP](tutorials/devDapp.md)
+    * [How to set up a private chain](tutorials/privateChain.md)
 * [Resources](Resources/resources.md)
     * [Wallet and Block Explorer](Resources/walletAndExplorer.md)
     * [Browser Extension](Resources/browserExtension.md)
