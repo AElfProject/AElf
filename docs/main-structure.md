@@ -16,7 +16,7 @@
     * [Service](Contract/service.md)
     * [Event](Contract/events.md)
     * [Messages](Contract/msgs.md)
-    * [Contract base](Contract/base.md)
+    <!-- * [Contract base](Contract/base.md) -->
     * [Deploy guide](Contract/depl.md)
    <!-- * [Update guide](Contract/upd.md) -->
 * [Cross chain](crosschain/crosschain.md)

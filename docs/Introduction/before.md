@@ -18,17 +18,3 @@ We currently support two key-value databases to store our nodes data: redis or s
 
 You also need to install protobuf compiler https://developers.google.com/protocol-buffers/.
 
-#JS 
-
-The js sdk requires NPM.
-
-//TODO: osx or linux may need command lines
-
-osx
-```
-brew install protobuf
-brew install nodejs
-brew install npm 
-npm -i n 
-.....
-```
