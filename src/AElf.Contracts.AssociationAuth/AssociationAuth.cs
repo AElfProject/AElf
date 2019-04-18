@@ -1,7 +1,6 @@
+using System;
 using System.Linq;
 using Acs3;
-using AElf.Contracts.ProposalContract;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using CreateProposalInput = Acs3.CreateProposalInput;
 
@@ -20,20 +19,20 @@ namespace AElf.Contracts.AssociationAuth
         
         public override ProposalOutput GetProposal(Hash proposalId)
         {
-            ValidateProposalContract();
-            var proposal = State.ProposalContract.GetProposal.Call(proposalId);
+            var proposal = State.Proposals[proposalId];
+            var approved = State.Approved[proposalId];
+            var organization = GetOrganization(proposal.OrganizationAddress);
 
             var result = new ProposalOutput
             {
-                ProposalHash = proposalId,
+                ProposalId = proposalId,
                 ContractMethodName = proposal.ContractMethodName,
                 ExpiredTime = proposal.ExpiredTime,
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() &&
-                                !State.ProposalReleaseStatus[proposalId].Value &&
-                                CheckApprovals(proposalId, proposal.OrganizationAddress)
+                                !State.ProposalReleaseStatus[proposalId].Value && CheckApprovals(approved, organization)
             };
 
             return result;
@@ -77,55 +76,57 @@ namespace AElf.Contracts.AssociationAuth
         public override Hash CreateProposal(CreateProposalInput proposal)
         {
             // check authorization of proposer public key
+            
             CheckProposerAuthority(proposal.OrganizationAddress);
-            ValidateProposalContract();
-            State.ProposalContract.CreateProposal.Send(new ProposalContract.CreateProposalInput
+            Assert(
+                !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
+                && proposal.ToAddress != null
+                && proposal.OrganizationAddress != null
+                && proposal.ExpiredTime != null, "Invalid proposal.");
+            DateTime timestamp = proposal.ExpiredTime.ToDateTime();
+            Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
+            Hash hash = Hash.FromMessage(proposal);
+            State.Proposals[hash] = new ProposalInfo
             {
                 ContractMethodName = proposal.ContractMethodName,
-                ToAddress = proposal.ToAddress,
                 ExpiredTime = proposal.ExpiredTime,
                 Params = proposal.Params,
+                ToAddress = proposal.ToAddress,
                 OrganizationAddress = proposal.OrganizationAddress,
+                ProposalId = hash,
                 Proposer = Context.Sender
-            });
-            return Hash.FromMessage(proposal);
+            };
+            
+            return hash;
         }
     
-        public override BoolValue Approve(ApproveInput approval)
+        public override Empty Approve(ApproveInput approvalInput)
         {
-            ValidateProposalContract();
-            var proposal = State.ProposalContract.GetProposal.Call(approval.ProposalHash);
-            var organization = GetOrganization(proposal.OrganizationAddress);
-            byte[] pubKey = Context.RecoverPublicKey();
-            Assert(organization.Reviewers.Any(r => r.PubKey.ToByteArray().SequenceEqual(pubKey)),
-                "Not authorized approval.");
-            State.ProposalContract.Approve.Send(new Approval
+            var proposalInfo = State.Proposals[approvalInput.ProposalId];
+            Assert(proposalInfo != null, "Not found proposal.");
+            var approved = State.Approved[approvalInput.ProposalId];
+            // check approval not existed
+            var approval = new Approval
             {
-                ProposalHash = approval.ProposalHash,
-                PublicKey = ByteString.CopyFrom(pubKey)
-            });
+                ProposalHash = approvalInput.ProposalId,
+                Sender = Context.Sender
+            };
+            Assert(approved == null || !approved.Approvals.Contains(approval), "Approval already existed.");
+            var organization = GetOrganization(proposalInfo.OrganizationAddress);
+            var reviewer = organization.Reviewers.FirstOrDefault(r => r.Address.Equals(Context.Sender));
+            Assert(reviewer != null,"Not authorized approval.");
+            approved.Approvals.Add(approval);
+            approved.ApprovedWeight += reviewer.Weight;
+            State.Approved[approvalInput.ProposalId] = approved;
 
-            return new BoolValue {Value = true};
-        }
-
-        public override Empty Release(Hash proposalId)
-        {
-            // check expired time of proposal
-            ValidateProposalContract();
-            var proposal = State.ProposalContract.GetProposal.Call(proposalId);
-
-            Assert(Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime(),
-                "Expired proposal.");
-            Assert(!State.ProposalReleaseStatus[proposalId].Value, "Proposal already released");
-
-            // check approvals
-            Assert(CheckApprovals(proposalId, proposal.OrganizationAddress), "Not authorized to release.");
-            
-            var organization = GetOrganization(proposal.OrganizationAddress);
-            var virtualHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), organization.OrganizationHash);
-            Context.SendVirtualInline(virtualHash, proposal.ToAddress, proposal.ContractMethodName, proposal.Params);
-
-            State.ProposalReleaseStatus[proposalId] = new BoolValue{Value = true};
+            if (CheckApprovals(approved, organization))
+            {
+                var virtualHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), organization.OrganizationHash);
+                Context.SendVirtualInline(virtualHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
+                    proposalInfo.Params);
+                State.Proposals[approvalInput.ProposalId] = null;
+                State.Approved[approvalInput.ProposalId] = null;
+            }
             return new Empty();
         }
 

@@ -12,17 +12,17 @@ option (aelf.identity) = "acs3";
 service AuthorizationContract {
     rpc CreateProposal (CreateProposalInput) returns (Hash) {
     }
-    rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) {
+    rpc Approve (ApproveInput) returns (google.protobuf.Empty) {
     }
-    rpc Release (Hash) returns (google.protobuf.Empty) {
-    }
+//    rpc Release (Hash) returns (google.protobuf.Empty) {
+//    }
     rpc GetProposal(Hash) returns (ProposalOutput) {
         option (aelf.is_view) = true;
     }
 }
 
 message ApproveInput {
-    Hash proposalHash = 1;
+    Hash proposalId = 1;
     bytes inputData= 2;
 }
 
@@ -35,7 +35,7 @@ message CreateProposalInput{
 }
 
 message ProposalOutput{
-    Hash proposalHash = 1;
+    Hash proposalId = 1;
     string contractMethodName = 2;
     Address toAddress = 3;
     bytes params = 4;
