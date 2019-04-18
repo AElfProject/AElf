@@ -45,28 +45,6 @@ namespace AElf.Blockchains.MainChain
         {
             Logger = NullLogger<MainChainAElfModule>.Instance;
         }
-        
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var config = context.Services.GetConfiguration();
-            
-            Configure<ChainOptions>(option =>
-            {
-                var nodeType = config.GetValue<NodeType>("NodeType", NodeType.MainNet);
-                switch (nodeType)
-                {
-                    case NodeType.MainNet:
-                        option.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
-                        break;
-                    case NodeType.TestNet:
-                        option.ChainId = ChainHelpers.ConvertBase58ToChainId("TEST");
-                        break;
-                    case NodeType.CustomNet:
-                        option.ChainId = ChainHelpers.ConvertBase58ToChainId(config["ChainId"]);
-                        break;
-                }
-            });
-        }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {

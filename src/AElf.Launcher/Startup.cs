@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Blockchains.BasicBaseChain;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
 using Microsoft.AspNetCore.Builder;
@@ -10,12 +11,6 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Launcher
 {
-    public enum ChainType
-    {
-        Main,
-        Side
-    }
-    
     public class Startup
     {
         private readonly IConfiguration _configuration;
@@ -29,11 +24,11 @@ namespace AElf.Launcher
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
 
-            var chainType = _configuration.GetValue<ChainType>("ChainType");
+            var chainType = _configuration.GetValue<ChainType>("ChainType", ChainType.MainChain);
 
             switch (chainType)
             {
-                case ChainType.Side:
+                case ChainType.SideChain:
                     AddApplication<SideChainAElfModule>(services);
                     break;
                 default:

@@ -42,42 +42,35 @@ namespace AElf.Blockchains.BasicBaseChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var config = context.Services.GetConfiguration();
-                                    
-            Configure<TokenInitialOptions>(option =>
+            var chainType = config.GetValue("ChainType", ChainType.MainChain);
+            var nodeType = config.GetValue("NodeType", NodeType.MainNet);
+
+            context.Services.AddConfiguration(new ConfigurationBuilderOptions
             {
-                var nodeType = config.GetValue<NodeType>("NodeType", NodeType.MainNet);
-                switch (nodeType)
-                {
-                    case NodeType.MainNet:
-                        option.Symbol = "ELF";
-                        option.Name = "elf token";
-                        option.TotalSupply = 10_0000_0000;
-                        option.Decimals = 2;
-                        option.IsBurnable = true;
-                        option.DividendPoolRatio = 0.2;
-                        option.LockForElection = 10_0000;
-                        break;
-                    case NodeType.TestNet:
-                        option.Symbol = "ELFTEST";
-                        option.Name = "elf test token";
-                        option.TotalSupply = 10_0000_0000;
-                        option.Decimals = 2;
-                        option.IsBurnable = true;
-                        option.DividendPoolRatio = 0.2;
-                        option.LockForElection = 10_0000;
-                        break;
-                    case NodeType.CustomNet:
-                        config.GetSection("TokenInitial").Bind(option);
-                        break;
-                }
+                EnvironmentName = $"{chainType}.{nodeType}"
+            });
+
+            Configure<TokenInitialOptions>(context.Services.GetConfiguration().GetSection("TokenInitial"));
+            Configure<ChainOptions>(option =>
+            {
+                option.ChainId =
+                    ChainHelpers.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
             });
         }
     }
-    
+
+
+    public enum ChainType
+    {
+        MainChain,
+        SideChain
+    }
+
     public enum NodeType
     {
         MainNet,
         TestNet,
         CustomNet
     }
+
 }
