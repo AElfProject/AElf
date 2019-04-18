@@ -37,8 +37,10 @@ namespace AElf.WebApp.Application.Chain
 
         Task<long> GetBlockHeight();
 
-        Task<BlockDto> GetBlockInfo(string blockHashOrHeight, bool includeTransactions = false);
+        Task<BlockDto> GetBlock(string blockHash, bool includeTransactions = false);
 
+        Task<BlockDto> GetBlockByHeight(long blockHeight, bool includeTransactions = false);
+        
         Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus();
 
         Task<ChainStatusDto> GetChainStatus();
@@ -229,29 +231,66 @@ namespace AElf.WebApp.Application.Chain
             return chainContext.BestChainHeight;
         }
         
-        public async Task<BlockDto> GetBlockInfo(string blockHashOrHeight, bool includeTransactions = false)
+        public async Task<BlockDto> GetBlock(string blockHash, bool includeTransactions = false)
         {
-            Block blockInfo = null;
-            if (long.TryParse(blockHashOrHeight, out var blockHeight))
+            Hash realBlockHash;
+            try
             {
-                if (blockHeight == 0)
-                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-                blockInfo = await GetBlockAtHeight(blockHeight);
+                realBlockHash = Hash.LoadHex(blockHash);
             }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash],Error.InvalidBlockHash.ToString());
+            }
+
+            var block = await GetBlock(realBlockHash);
             
-            if (blockInfo == null)
+            if (block == null)
             {
-                Hash blockHash;
-                try
-                {
-                    blockHash = Hash.LoadHex(blockHashOrHeight);
-                }
-                catch
-                {
-                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-                }
-                blockInfo = await GetBlock(blockHash);
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
+
+            var blockDto = new BlockDto
+            {
+                BlockHash = block.GetHash().ToHex(),
+                Header = new BlockHeaderDto
+                {
+                    PreviousBlockHash = block.Header.PreviousBlockHash.ToHex(),
+                    MerkleTreeRootOfTransactions = block.Header.MerkleTreeRootOfTransactions.ToHex(),
+                    MerkleTreeRootOfWorldState = block.Header.MerkleTreeRootOfWorldState.ToHex(),
+                    Extra = block.Header.BlockExtraDatas.ToString(),
+                    Height = block.Header.Height,
+                    Time = block.Header.Time.ToDateTime(),
+                    ChainId = ChainHelpers.ConvertChainIdToBase58(block.Header.ChainId),
+                    Bloom = block.Header.Bloom.ToByteArray().ToHex()
+                },
+                Body = new BlockBodyDto()
+                {
+                    TransactionsCount = block.Body.TransactionsCount,
+                    Transactions = new List<string>()
+                }
+            };
+
+            if (includeTransactions)
+            {
+                var transactions = block.Body.Transactions;
+                var txs = new List<string>();
+                foreach (var txHash in transactions)
+                {
+                    txs.Add(txHash.ToHex());
+                }
+
+                blockDto.Body.Transactions = txs;
+            }
+
+            return blockDto;
+        }
+
+        public async Task<BlockDto> GetBlockByHeight(long blockHeight, bool includeTransactions = false)
+        {
+            if (blockHeight == 0)
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            var blockInfo = await GetBlockAtHeight(blockHeight);
             
             if (blockInfo == null)
             {
