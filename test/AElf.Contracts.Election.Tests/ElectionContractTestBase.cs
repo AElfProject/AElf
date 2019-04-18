@@ -157,8 +157,8 @@ namespace AElf.Contracts.Election
             electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {
-                    TokenContractSystemName = TokenContractSystemName,
-                    VoteContractSystemName = VoteContractSystemName
+                    VoteContractSystemName = VoteContractSystemName,
+                    TokenContractSystemName = TokenContractSystemName
                 });
 
             return electionMethodCallList;
