@@ -3,6 +3,7 @@ using AElf.CrossChain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
@@ -43,8 +44,11 @@ namespace AElf.Blockchains.BasicBaseChain
         {
             var config = context.Services.GetConfiguration();
             var chainType = config.GetValue("ChainType", ChainType.MainChain);
+
+            //TODO: change node type to net type
             var nodeType = config.GetValue("NodeType", NodeType.MainNet);
 
+            //TODO: don't write here, should in startup file
             context.Services.AddConfiguration(new ConfigurationBuilderOptions
             {
                 EnvironmentName = $"{chainType}.{nodeType}"
@@ -56,6 +60,25 @@ namespace AElf.Blockchains.BasicBaseChain
                 option.ChainId =
                     ChainHelpers.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
             });
+
+            switch (nodeType)
+            {
+                case NodeType.MainNet:
+
+                    Configure<HostSmartContractBridgeContextOptions>(options =>
+                    {
+                        options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
+                    });
+
+                    break;
+                case NodeType.TestNet:
+                    Configure<HostSmartContractBridgeContextOptions>(options =>
+                    {
+                        options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELFT";
+                    });
+
+                    break;
+            }
         }
     }
 
@@ -72,5 +95,4 @@ namespace AElf.Blockchains.BasicBaseChain
         TestNet,
         CustomNet
     }
-
 }
