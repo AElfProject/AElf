@@ -19,7 +19,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface IChainAppService : IApplicationService
+    public interface IBlockChainAppService : IApplicationService
     {
         Task<GetChainInformationOutput> GetChainInformation();
 
@@ -46,7 +46,7 @@ namespace AElf.WebApp.Application.Chain
         Task<BlockStateDto> GetBlockState(string blockHash);
     }
     
-    public class ChainAppService : IChainAppService
+    public class BlockChainAppService : IBlockChainAppService
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -55,11 +55,11 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly ITxHub _txHub;
         public IStateStore<BlockStateSet> _blockStateSets;
-        public ILogger<ChainAppService> Logger { get; set; }
+        public ILogger<BlockChainAppService> Logger { get; set; }
         
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public ChainAppService(IBlockchainService blockchainService,
+        public BlockChainAppService(IBlockchainService blockchainService,
             ISmartContractAddressService smartContractAddressService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ITransactionManager transactionManager,
@@ -76,7 +76,7 @@ namespace AElf.WebApp.Application.Chain
             _txHub = txHub;
             _blockStateSets = blockStateSets;
             
-            Logger = NullLogger<ChainAppService>.Instance;
+            Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
         
@@ -311,7 +311,7 @@ namespace AElf.WebApp.Application.Chain
 
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
             {
-                var block = await this.GetBlock(Hash.LoadBase64(notLinkedBlock.Value));
+                var block = await GetBlock(Hash.LoadBase64(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new NotLinkedBlockDto
                     {
                         BlockHash = block.GetHash().ToHex(),
@@ -347,24 +347,6 @@ namespace AElf.WebApp.Application.Chain
         private async Task<Block> GetBlock(Hash blockHash)
         {
             return await _blockchainService.GetBlockByHashAsync(blockHash);
-        }
-        
-        private async Task<string> GetTransactionParameters(Transaction tx)
-        {
-            string output = null;
-            try
-            {
-                var chainContext = await GetChainContextAsync();
-
-                output = await _transactionReadOnlyExecutionService.GetTransactionParametersAsync(
-                    chainContext, tx);
-            }
-            catch (InvalidCastException ex)
-            {
-                Logger.LogWarning($"Unsupported type conversion error： {ex}");
-            }
-
-            return output;
         }
         
         private async Task<Block> GetBlockAtHeight(long height)
