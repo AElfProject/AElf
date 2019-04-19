@@ -23,7 +23,7 @@ namespace AElf.Contracts.ParliamentAuth
             var organization = GetOrganization(organizationAddress);
         }
         
-        private bool CheckApprovals(ApprovedResult approvedResult, Organization organization,
+        private bool IsReadyToRelease(ApprovedResult approvedResult, Organization organization,
             IEnumerable<Address> representatives)
         {
             var validApprovalWeights = approvedResult.ApprovedRepresentatives.Aggregate(0,
@@ -40,5 +40,10 @@ namespace AElf.Contracts.ParliamentAuth
             State.ConsensusContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
         }
+
+        private bool IsValidRepresentative(IEnumerable<Address> representatives)
+        {
+            return representatives.Any(r => r.Equals(Context.Sender));
+        } 
     }
 }

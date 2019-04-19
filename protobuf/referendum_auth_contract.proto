@@ -11,9 +11,9 @@ service ReferendumAuthContract {
     option (aelf.csharp_state) = "AElf.Contracts.ReferendumAuth.ReferendumAuthState";
     option (aelf.base) = "acs3.proto";
     // Actions
-    rpc Initialize(ReferendumAuthContractInitializationInput) returns (google.protobuf.Empty){
+    rpc Initialize (ReferendumAuthContractInitializationInput) returns (google.protobuf.Empty) {
     }
-    rpc ReclaimVote(Hash) returns (google.protobuf.Empty){
+    rpc ReclaimVoteToken (Hash) returns (google.protobuf.Empty) {
     }
     rpc CreateOrganization (CreateOrganizationInput) returns (Address) {
     }
@@ -38,7 +38,7 @@ message Organization{
     Hash organizationHash = 4;
 }
 
-message VoteInfo{
+message Receipt{
     int64 amount = 1;
     string tokenSymbol = 2;
     Hash lockId = 3;

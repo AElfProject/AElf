@@ -34,7 +34,7 @@ namespace AElf.Contracts.ParliamentAuth
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() &&
-                                CheckApprovals(approved, organization, representatives)
+                                IsReadyToRelease(approved, organization, representatives)
             };
 
             return result;
@@ -51,10 +51,8 @@ namespace AElf.Contracts.ParliamentAuth
         
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            var organizationHash = Hash.FromMessage(input);
-            Address organizationAddress =
-                Context.ConvertVirtualAddressToContractAddress(Hash.FromTwoHashes(Hash.FromMessage(Context.Self),
-                    organizationHash));
+            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
+            Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             if(State.Organisations[organizationAddress] == null)
             {
                 var organization =new Organization
@@ -108,15 +106,14 @@ namespace AElf.Contracts.ParliamentAuth
             // check approval not existed
             Assert(approved == null || !approved.ApprovedRepresentatives.Contains(Context.Sender),
                 "Approval already existed.");
-            var representatives = GetRepresentatives();
-            Assert(representatives.Any(r => r.Equals(Context.Sender)), "Not authorized approval.");
+            var representatives = GetRepresentatives().ToArray();
+            Assert(IsValidRepresentative(representatives), "Not authorized approval.");
             approved.ApprovedRepresentatives.Add(Context.Sender);
             State.Approved[approvalInput.ProposalId] = approved;
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
-            if (CheckApprovals(approved, organization, representatives))
+            if (IsReadyToRelease(approved, organization, representatives))
             {
-                var virtualHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), organization.OrganizationHash);
-                Context.SendVirtualInline(virtualHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
+                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
                     proposalInfo.Params);
                 State.Proposals[approvalInput.ProposalId] = null;
                 State.Approved[approvalInput.ProposalId] = null;

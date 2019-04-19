@@ -16,7 +16,7 @@ namespace AElf.Contracts.AssociationAuth
                    proposerPerm >= organization.ProposerThreshold, "Unable to propose.");
         }
         
-        private bool CheckApprovals(ApprovedResult approved, Organization organization)
+        private bool IsReadyToRelease(ApprovedResult approved, Organization organization)
         {
             return approved.ApprovedWeight >= organization.ReleaseThreshold;
         }

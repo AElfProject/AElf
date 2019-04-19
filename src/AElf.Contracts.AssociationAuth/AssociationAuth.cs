@@ -31,7 +31,7 @@ namespace AElf.Contracts.AssociationAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() && CheckApprovals(approved, organization)
+                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() && IsReadyToRelease(approved, organization)
             };
 
             return result;
@@ -43,10 +43,8 @@ namespace AElf.Contracts.AssociationAuth
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            var organizationHash = Hash.FromMessage(input);
-            Address organizationAddress =
-                Context.ConvertVirtualAddressToContractAddress(Hash.FromTwoHashes(Hash.FromMessage(Context.Self),
-                    organizationHash));
+            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
+            Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             if(State.Organisations[organizationAddress] == null)
             {
                 var organization =new Organization
@@ -103,7 +101,7 @@ namespace AElf.Contracts.AssociationAuth
             }
             var approved = State.Approved[approvalInput.ProposalId];
             // check approval not existed
-            Assert(approved == null || !approved.ApprovedReviewer.Contains(Context.Sender), "Approval already existed.");
+            Assert(approved == null || !approved.ApprovedReviewer.Contains(Context.Sender), "Approval already exists.");
             var organization = GetOrganization(proposalInfo.OrganizationAddress);
             var reviewer = organization.Reviewers.FirstOrDefault(r => r.Address.Equals(Context.Sender));
             Assert(reviewer != null,"Not authorized approval.");
@@ -111,10 +109,9 @@ namespace AElf.Contracts.AssociationAuth
             approved.ApprovedWeight += reviewer.Weight;
             State.Approved[approvalInput.ProposalId] = approved;
 
-            if (CheckApprovals(approved, organization))
+            if (IsReadyToRelease(approved, organization))
             {
-                var virtualHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), organization.OrganizationHash);
-                Context.SendVirtualInline(virtualHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
+                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
                     proposalInfo.Params);
                 State.Proposals[approvalInput.ProposalId] = null;
                 State.Approved[approvalInput.ProposalId] = null;

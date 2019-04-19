@@ -7,16 +7,10 @@ namespace AElf.Contracts.ReferendumAuth
 {
     public partial class ReferendumAuthContract
     {
-        private bool IsReadyToRelease(Hash proposalId, Address organizationAddress)
+        private bool IsReadyToRelease(Hash proposalId, Organization organization)
         {
-            var approvedVoteAmount = State.ApprovedVoteAmount[proposalId];
-            return approvedVoteAmount.Value >= ReleaseThreshold(organizationAddress);
-        }
-        
-        private long ReleaseThreshold(Address organizationAddress)
-        {
-            var organization = GetOrganization(organizationAddress);
-            return organization.ReleaseThreshold;
+            var approvedVoteAmount = State.ApprovedTokenAmount[proposalId];
+            return approvedVoteAmount.Value >= organization.ReleaseThreshold;
         }
     }
 }

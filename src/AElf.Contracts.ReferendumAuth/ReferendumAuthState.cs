@@ -9,13 +9,11 @@ namespace AElf.Contracts.ReferendumAuth
     public class ReferendumAuthState : ContractState
     {
         public BoolState Initialized { get; set; }
-
-        public MappedState<Address, Hash, VoteInfo> LockedVoteAmount { get; set; }
-        public MappedState<Hash, Int64Value> ApprovedVoteAmount { get; set; }
-        internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
+        public MappedState<Address, Hash, Receipt> LockedTokenAmount { get; set; }
+        public MappedState<Hash, Int64Value> ApprovedTokenAmount { get; set; }
         public MappedState<Address, Organization> Organisations { get; set; }
-        public MappedState<Hash, BoolValue> ProposalReleaseStatus { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
+        internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
         public SingletonState<Hash> TokenContractSystemName { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
     }

@@ -31,7 +31,7 @@ namespace AElf.Contracts.ReferendumAuth
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() && 
-                                IsReadyToRelease(proposalId, organization.OrganizationAddress)
+                                IsReadyToRelease(proposalId, organization)
             };
 
             return result;
@@ -50,10 +50,8 @@ namespace AElf.Contracts.ReferendumAuth
         
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            var organizationHash = Hash.FromMessage(input);
-            Address organizationAddress =
-                Context.ConvertVirtualAddressToContractAddress(Hash.FromTwoHashes(Hash.FromMessage(Context.Self),
-                    organizationHash));
+            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
+            Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             if(State.Organisations[organizationAddress] == null)
             {
                 var organization = new Organization
@@ -96,54 +94,52 @@ namespace AElf.Contracts.ReferendumAuth
                 State.Proposals[approval.ProposalId] = null;
                 return new BoolValue{Value = false};
             }
-            var lockedVoteAmount = Int64Value.Parser.ParseFrom(approval.InputData).Value;
+            var lockedTokenAmount = Int64Value.Parser.ParseFrom(approval.InputData).Value;
 
-            Assert(State.LockedVoteAmount[Context.Sender][approval.ProposalId] == null,
+            Assert(State.LockedTokenAmount[Context.Sender][approval.ProposalId] == null,
                 "Cannot approve more than once.");
             var organization = GetOrganization(proposalInfo.OrganizationAddress);
-            State.LockedVoteAmount[Context.Sender][approval.ProposalId] = new VoteInfo
+            State.LockedTokenAmount[Context.Sender][approval.ProposalId] = new Receipt
             {
-                Amount = lockedVoteAmount,
+                Amount = lockedTokenAmount,
                 LockId = Context.TransactionId,
                 TokenSymbol = organization.TokenSymbol
             };
-            State.ApprovedVoteAmount[approval.ProposalId].Value += lockedVoteAmount;
+            State.ApprovedTokenAmount[approval.ProposalId].Value += lockedTokenAmount;
 
             State.TokenContract.Lock.Send(new LockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
                 Symbol = organization.TokenSymbol,
-                Amount = lockedVoteAmount,
+                Amount = lockedTokenAmount,
                 LockId = Context.TransactionId,
                 Usage = "Referendum."
             });
 
-            if (State.ApprovedVoteAmount[approval.ProposalId].Value >= organization.ReleaseThreshold)
+            if (IsReadyToRelease(approval.ProposalId, organization))
             {
-                var virtualHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), organization.OrganizationHash);
-                Context.SendVirtualInline(virtualHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
+                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
                     proposalInfo.Params);
                 State.Proposals[approval.ProposalId] = null;
-                State.ProposalReleaseStatus[approval.ProposalId] = new BoolValue{Value = true};
             }
             return new BoolValue{Value = true};
         }
 
-        public override Empty ReclaimVote(Hash proposalId)
+        public override Empty ReclaimVoteToken(Hash proposalId)
         {
-            var vote = State.LockedVoteAmount[Context.Sender][proposalId];
-            Assert(vote != null, "Nothing to reclaim.");
+            var voteToken = State.LockedTokenAmount[Context.Sender][proposalId];
+            Assert(voteToken != null, "Nothing to reclaim.");
             var proposal = State.Proposals[proposalId];
             Assert(proposal == null ||
                 Context.CurrentBlockTime > proposal.ExpiredTime.ToDateTime(), "Unable to reclaim at this time.");
-            State.LockedVoteAmount[Context.Sender][proposalId] = null;
+            State.LockedTokenAmount[Context.Sender][proposalId] = null;
             State.TokenContract.Unlock.Send(new UnlockInput
             {
-                Amount = vote.Amount,
+                Amount = voteToken.Amount,
                 From = Context.Sender,
-                LockId = vote.LockId,
-                Symbol = vote.TokenSymbol,
+                LockId = voteToken.LockId,
+                Symbol = voteToken.TokenSymbol,
                 To = Context.Self,
                 Usage = "Referendum."
             });
