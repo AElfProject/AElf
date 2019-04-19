@@ -33,6 +33,8 @@ namespace AElf.Benchmark
         private Transaction _transaction;
         private Block _block;
         private Address _contractAddress;
+        
+        private const ulong _fibonacci16Result =987;
 
         [GlobalSetup]
         public async Task GlobalSetup()
@@ -100,8 +102,17 @@ namespace AElf.Benchmark
         [IterationCleanup]
         public async Task IterationCleanup()
         {
+            var txResult =
+                await _transactionResultManager.GetTransactionResultAsync(_transaction.GetHash(),
+                    _block.Header.GetPreMiningHash());
+
+            var calResult = UInt64Value.Parser.ParseFrom(txResult.ReturnValue).Value;
+            if (calResult != _fibonacci16Result)
+            {
+                throw new Exception("execute fail");
+            }
+
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            _transactionResultManager.RemoveTransactionResultAsync(_transaction.GetHash(), _block.GetHash());
             _transactionResultManager.RemoveTransactionResultAsync(_transaction.GetHash(),
                 _block.Header.GetPreMiningHash());
         }
