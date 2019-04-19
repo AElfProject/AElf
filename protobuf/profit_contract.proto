@@ -32,4 +32,12 @@ service ProfitContract {
     }
     rpc CancelSubProfitItem (CancelSubProfitItemInput) returns (google.protobuf.Empty) {
     }
+    
+    // Views
+    rpc GetCreatedProfitItems (GetCreatedProfitItemsInput) returns (CreatedProfitItems) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetProfitItem (Hash) returns (ProfitItem) {
+        option (aelf.is_view) = true;
+    }
 }

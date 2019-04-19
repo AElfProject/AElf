@@ -12,6 +12,7 @@ namespace AElf.Contracts.Profit
     {
         public override Empty InitializeProfitContract(InitializeProfitContractInput input)
         {
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             var contractOwner = State.BasicContractZero.GetContractOwner.Call(Context.Self);
             Assert(Context.Sender == contractOwner, "Only contract owner can initialize this contract.");
 
@@ -25,13 +26,14 @@ namespace AElf.Contracts.Profit
 
         public override Hash CreateProfitItem(CreateProfitItemInput input)
         {
-            Assert(input.TokenSymbol != null && input.TokenSymbol.Any(), "Invalid binded token symbol.");
+            Assert(input.TokenSymbol != null && input.TokenSymbol.Any(), "Invalid token symbol.");
 
-            var profitId = Hash.FromRawBytes(Context.Self.Value.Concat(Context.TransactionId).ToArray());
+            var profitId = Context.TransactionId;
             State.ProfitItemsMap[profitId] = new ProfitItem
             {
                 Creator = Context.Sender,
                 TokenSymbol = input.TokenSymbol,
+                ExpiredPeriodNumber = input.ExpiredPeriodNumber,
                 CurrentPeriod = 1
             };
 
@@ -143,7 +145,7 @@ namespace AElf.Contracts.Profit
 
             // Remove details too old.
             foreach (var detail in currentProfitDetails.Details.Where(d =>
-                d.EndPeriod + ProfitContractConsts.KeepDetailsNumber < profitItem.CurrentPeriod))
+                d.EndPeriod + profitItem.ExpiredPeriodNumber < profitItem.CurrentPeriod))
             {
                 currentProfitDetails.Details.Remove(detail);
             }
@@ -193,6 +195,14 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
+        /// <summary>
+        /// There should be at least one pre-condition to release profits if this is a sub profit item:
+        /// Higher level profit item has already released.
+        /// Otherwise this profit item maybe has nothing to release.
+        /// This pre-condition should be met before calling this method.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty ReleaseProfit(ReleaseProfitInput input)
         {
             var profitItem = State.ProfitItemsMap[input.ProfitId];
@@ -245,13 +255,11 @@ namespace AElf.Contracts.Profit
             foreach (var subProfitItem in profitItem.SubProfitItems)
             {
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItem.ProfitId);
-                var subItemProfitsReceivingVirtualAddress =
-                    GetReleasedPeriodProfitsVirtualAddress(subItemVirtualAddress, input.Period);
 
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = profitsReceivingVirtualAddress,
-                    To = subItemProfitsReceivingVirtualAddress,
+                    To = subItemVirtualAddress,
                     Amount = subProfitItem.Weight.Mul(input.Amount).Div(profitItem.TotalWeight),
                     Symbol = profitItem.TokenSymbol
                 });
@@ -284,15 +292,29 @@ namespace AElf.Contracts.Profit
             }
 
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
-            var targetVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            if (input.Period == 0)
             {
-                From = Context.Sender,
-                To = targetVirtualAddress,
-                Symbol = profitItem.TokenSymbol,
-                Amount = input.Amount,
-                Memo = $"Add dividends for {input.ProfitId} (period {input.Period})."
-            });
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = virtualAddress,
+                    Symbol = profitItem.TokenSymbol,
+                    Amount = input.Amount,
+                    Memo = $"Add dividends for {input.ProfitId}."
+                });
+            }
+            else
+            {
+                var targetVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = targetVirtualAddress,
+                    Symbol = profitItem.TokenSymbol,
+                    Amount = input.Amount,
+                    Memo = $"Add dividends for {input.ProfitId} (period {input.Period})."
+                });
+            }
 
             return new Empty();
         }
@@ -327,18 +349,31 @@ namespace AElf.Contracts.Profit
                 {
                     var targetVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
                     var releasedProfitsInformation = State.ReleasedProfitsMap[targetVirtualAddress];
-                    State.TokenContract.TransferFrom.Send(new TransferFromInput
+                    if (releasedProfitsInformation.IsReleased)
                     {
-                        From = targetVirtualAddress,
-                        To = Context.Sender,
-                        Symbol = profitItem.TokenSymbol,
-                        Amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
-                            .Div(releasedProfitsInformation.TotalWeight)
-                    });
+                        State.TokenContract.TransferFrom.Send(new TransferFromInput
+                        {
+                            From = targetVirtualAddress,
+                            To = Context.Sender,
+                            Symbol = profitItem.TokenSymbol,
+                            Amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
+                                .Div(releasedProfitsInformation.TotalWeight)
+                        });
+                    }
                 }
             }
 
             return new Empty();
+        }
+
+        public override CreatedProfitItems GetCreatedProfitItems(GetCreatedProfitItemsInput input)
+        {
+            return State.CreatedProfitItemsMap[input.Creator];
+        }
+
+        public override ProfitItem GetProfitItem(Hash input)
+        {
+            return State.ProfitItemsMap[input];
         }
 
         private Address GetReleasedPeriodProfitsVirtualAddress(Address profitId, long period)

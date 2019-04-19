@@ -97,6 +97,8 @@ For a profit item `Creator` to remove an Address to receive profits of one `Prof
 
 For a profit item `Creator` to release an amount of profits to a virtual address calculated by `ProfitItem` and current period number.
 
+If this `ProfitItem` has `SubProfitItem`s, transfer tokens to `SubProfitItem`s' virtual addresses.
+
 ### Notes
 
 </details>

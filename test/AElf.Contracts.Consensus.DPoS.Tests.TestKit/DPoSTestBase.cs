@@ -39,8 +39,6 @@ namespace AElf.Contracts.Consensus.DPoS
         protected IECKeyPairProvider ECKeyPairProvider =>
             Application.ServiceProvider.GetRequiredService<IECKeyPairProvider>();
         
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
-
         protected Address ConsensusContractAddress { get; set; }
         
         protected Address DividendContractAddress { get; set; }

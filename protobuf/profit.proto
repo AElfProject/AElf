@@ -12,6 +12,7 @@ message InitializeProfitContractInput {
 message CreateProfitItemInput {
     sint64 total_weight = 1;
     string token_symbol = 2;
+    sint64 expired_period_number = 3;
 }
 
 message ProfitItem {
@@ -23,6 +24,7 @@ message ProfitItem {
     bool is_sub_profit_item = 6;
     repeated SubProfitItem sub_profit_items = 7;
     Address creator = 8;
+    sint64 expired_period_number = 9;
 }
 
 message SubProfitItem {
@@ -90,4 +92,8 @@ message ReleasedProfitsInformation {
 
 message CreatedProfitItems {
     repeated Hash ProfitIds = 1;
+}
+
+message GetCreatedProfitItemsInput {
+    Address creator = 1;
 }

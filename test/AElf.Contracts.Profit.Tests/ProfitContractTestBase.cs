@@ -1,47 +1,41 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Volo.Abp.Threading;
 
-namespace AElf.Contracts.Vote
+namespace AElf.Contracts.Profit
 {
-    public class VoteContractTestBase : ContractTestBase<VoteContractTestAElfModule>
+    public class ProfitContractTestBase : ContractTestBase<ProfitContractTestAElfModule>
     {
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected Address TokenContractAddress { get; set; }
-        protected Address VoteContractAddress { get; set; }
+        protected Address ProfitContractAddress { get; set; }
+
+        internal List<ProfitContractContainer.ProfitContractStub> Creators => CreatorMinerKeyPair
+            .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
+
+        protected List<ECKeyPair> CreatorMinerKeyPair => SampleECKeyPairs.KeyPairs.Take(4).ToList();
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
 
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
 
-        internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
+        internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
 
         protected void InitializeContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
 
-            //deploy vote contract
-            VoteContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(VoteContract).Assembly.Location)),
-                        Name = VoteSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateVoteInitializationCallList()
-                    })).Output;
-            VoteContractStub = GetVoteContractTester(DefaultSenderKeyPair);
-            
             //deploy token contract
             TokenContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
@@ -53,6 +47,17 @@ namespace AElf.Contracts.Vote
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
+            
+            ProfitContractAddress = AsyncHelper.RunSync(() =>
+                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
+                    new SystemContractDeploymentInput
+                    {
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ProfitContract).Assembly.Location)),
+                        Name = ProfitSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = GenerateProfitInitializationCallList()
+                    })).Output;
+            ProfitContractStub = GetProfitContractTester(DefaultSenderKeyPair);
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -65,16 +70,16 @@ namespace AElf.Contracts.Vote
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
-        internal VoteContractContainer.VoteContractStub GetVoteContractTester(ECKeyPair keyPair)
+        internal ProfitContractContainer.ProfitContractStub GetProfitContractTester(ECKeyPair keyPair)
         {
-            return GetTester<VoteContractContainer.VoteContractStub>(VoteContractAddress, keyPair);
+            return GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, keyPair);
         }
 
-        private SystemTransactionMethodCallList GenerateVoteInitializationCallList()
+        private SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
             var voteMethodCallList = new SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
-                new InitialVoteContractInput
+            voteMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),
+                new InitializeProfitContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                 });
@@ -101,26 +106,24 @@ namespace AElf.Contracts.Vote
                 }
             });
 
-            //issue default user
+            // For creating `Treasury` profit item.
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = symbol,
-                Amount = totalSupply - 20 * 100_000L,
-                To = DefaultSender,
+                Amount = (long) (totalSupply * 0.2),
+                To = ContractZeroAddress,
                 Memo = "Issue token to default user for vote.",
             });
-            
-            //issue some amount to voter
-            for (int i = 1; i < 20; i++)
-            {
-                tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+
+            CreatorMinerKeyPair.ForEach(creatorKeyPair => tokenContractCallList.Add(nameof(TokenContract.Issue),
+                new IssueInput
                 {
                     Symbol = symbol,
-                    Amount = 100_000L,
-                    To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
+                    Amount = (long) (totalSupply * 0.2),
+                    To = Address.FromPublicKey(creatorKeyPair.PublicKey),
                     Memo = "set voters few amount for voting."
-                });
-            }
+                }));
+            
 
             return tokenContractCallList;
         }
