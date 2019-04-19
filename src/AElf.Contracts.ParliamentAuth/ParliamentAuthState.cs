@@ -1,8 +1,7 @@
+using Acs3;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.ProposalContract;
 using AElf.Sdk.CSharp.State;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.ParliamentAuth
 {

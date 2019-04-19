@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 using Acs3;
-using AElf.Contracts.ProposalContract;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using CreateProposalInput = Acs3.CreateProposalInput;
 
@@ -94,10 +92,18 @@ namespace AElf.Contracts.ParliamentAuth
             return Hash.FromMessage(proposal);
         }
 
-        public override Empty Approve(ApproveInput approvalInput)
+        public override BoolValue Approve(ApproveInput approvalInput)
         {
             var proposalInfo = State.Proposals[approvalInput.ProposalId];
             Assert(proposalInfo != null, "Not found proposal.");
+            DateTime timestamp = proposalInfo.ExpiredTime.ToDateTime();
+            if (Context.CurrentBlockTime > timestamp)
+            {
+                // expired proposal
+                State.Proposals[approvalInput.ProposalId] = null;
+                State.Approved[approvalInput.ProposalId] = null;
+                return new BoolValue{Value = false};
+            }
             var approved = State.Approved[approvalInput.ProposalId];
             // check approval not existed
             Assert(approved == null || !approved.ApprovedRepresentatives.Contains(Context.Sender),
@@ -115,7 +121,7 @@ namespace AElf.Contracts.ParliamentAuth
                 State.Proposals[approvalInput.ProposalId] = null;
                 State.Approved[approvalInput.ProposalId] = null;
             }
-            return new Empty();
+            return new BoolValue{Value = true};
         }
     }
 }
