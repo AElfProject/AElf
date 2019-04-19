@@ -5,21 +5,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Content Include="..\..\protobuf\common.proto">
+        <None Include="..\..\protobuf\common.proto">
             <Link>Protobuf/Proto/common.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\referendum_auth_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\referendum_auth_contract.proto">
             <Link>Protobuf/Proto/referendum_auth_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\acs3.proto">
+        </None>
+        <None Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf/Proto/acs3.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\token_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\proposal.proto">
+        </None>
+        <None Include="..\..\protobuf\proposal.proto">
             <Link>Protobuf/Proto/proposal.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
 
     <ItemGroup>

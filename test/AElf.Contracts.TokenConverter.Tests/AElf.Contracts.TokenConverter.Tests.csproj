@@ -23,18 +23,18 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
     </ItemGroup>
     <ItemGroup>
-      <Content Include="..\..\protobuf\aelf_options.proto">
+      <None Include="..\..\protobuf\aelf_options.proto">
         <Link>Protobuf/Proto/aelf_options.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\common.proto">
+      </None>
+      <None Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\token_contract.proto">
+      </None>
+      <None Include="..\..\protobuf\token_contract.proto">
         <Link>Protobuf/Proto/token_contract.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\token_converter_contract.proto">
+      </None>
+      <None Include="..\..\protobuf\token_converter_contract.proto">
         <Link>Protobuf/Proto/token_converter_contract.proto</Link>
-      </Content>
+      </None>
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">

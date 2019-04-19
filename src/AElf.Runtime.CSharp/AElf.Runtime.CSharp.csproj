@@ -18,9 +18,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\..\protobuf\descriptor_equivalent.proto">
+        <None Include="..\..\protobuf\descriptor_equivalent.proto">
             <Link>Protobuf/descriptor_equivalent.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Command="protoc --proto_path=../../protobuf --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs descriptor_equivalent.proto" />

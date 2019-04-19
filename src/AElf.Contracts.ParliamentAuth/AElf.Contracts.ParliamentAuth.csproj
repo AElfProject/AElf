@@ -10,24 +10,24 @@
     </ItemGroup>
     
     <ItemGroup>
-        <Content Include="..\..\protobuf\aelf_options.proto">
+        <None Include="..\..\protobuf\aelf_options.proto">
             <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\common.proto">
+        </None>
+        <None Include="..\..\protobuf\common.proto">
             <Link>Protobuf/Proto/common.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\parliament_auth_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\parliament_auth_contract.proto">
             <Link>Protobuf/Proto/parliament_auth_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\acs3.proto">
+        </None>
+        <None Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf/Proto/acs3.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\dpos_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\dpos_contract.proto">
             <Link>Protobuf/Proto/dpos_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\proposal.proto">
+        </None>
+        <None Include="..\..\protobuf\proposal.proto">
             <Link>Protobuf/Proto/proposal.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Protobuf\Generated" />
