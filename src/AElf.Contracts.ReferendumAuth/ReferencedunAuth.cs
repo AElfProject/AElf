@@ -91,10 +91,10 @@ namespace AElf.Contracts.ReferendumAuth
             if (Context.CurrentBlockTime > timestamp)
             {
                 // expired proposal
-                State.Proposals[approval.ProposalId] = null;
+                //State.Proposals[approval.ProposalId] = null;
                 return new BoolValue{Value = false};
             }
-            var lockedTokenAmount = Int64Value.Parser.ParseFrom(approval.InputData).Value;
+            var lockedTokenAmount = approval.Quantity;
 
             Assert(State.LockedTokenAmount[Context.Sender][approval.ProposalId] == null,
                 "Cannot approve more than once.");
@@ -121,7 +121,7 @@ namespace AElf.Contracts.ReferendumAuth
             {
                 Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
                     proposalInfo.Params);
-                State.Proposals[approval.ProposalId] = null;
+                //State.Proposals[approval.ProposalId] = null;
             }
             return new BoolValue{Value = true};
         }
