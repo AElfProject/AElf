@@ -44,7 +44,7 @@ namespace AElf.Contracts.Profit
             {
                 input.ExpiredPeriodNumber = ProfitContractConsts.DefaultExpiredPeriodNumber;
             }
-            
+
             var profitId = Context.TransactionId;
             State.ProfitItemsMap[profitId] = new ProfitItem
             {
@@ -163,8 +163,9 @@ namespace AElf.Contracts.Profit
             }
 
             // Remove details too old.
-            foreach (var detail in currentProfitDetails.Details.Where(d => d.EndPeriod != long.MaxValue &&
-                d.EndPeriod.Add(profitItem.ExpiredPeriodNumber) < profitItem.CurrentPeriod))
+            foreach (var detail in currentProfitDetails.Details.Where(
+                d => d.EndPeriod != long.MaxValue &&
+                     d.EndPeriod.Add(profitItem.ExpiredPeriodNumber) < profitItem.CurrentPeriod))
             {
                 currentProfitDetails.Details.Remove(detail);
             }
@@ -206,7 +207,14 @@ namespace AElf.Contracts.Profit
                 currentDetail.Details.Remove(profitDetail);
             }
 
-            State.ProfitDetailsMap[input.ProfitId][input.Receiver] = currentDetail;
+            if (currentDetail.Details.Count != 0)
+            {
+                State.ProfitDetailsMap[input.ProfitId][input.Receiver] = currentDetail;
+            }
+            else
+            {
+                //State.ProfitDetailsMap[input.ProfitId][input.Receiver] = null;
+            }
 
             profitItem.TotalWeight -= weights;
             State.ProfitItemsMap[input.ProfitId] = profitItem;
@@ -321,7 +329,8 @@ namespace AElf.Contracts.Profit
             }
             else
             {
-                var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+                var releasedProfitsVirtualAddress =
+                    GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = Context.Sender,
@@ -342,6 +351,7 @@ namespace AElf.Contracts.Profit
                 {
                     releasedProfitsInformation.ProfitsAmount += input.Amount;
                 }
+
                 State.ReleasedProfitsMap[releasedProfitsVirtualAddress] = releasedProfitsInformation;
             }
 
@@ -376,7 +386,8 @@ namespace AElf.Contracts.Profit
                     period < Math.Min(profitItem.CurrentPeriod, profitDetail.EndPeriod + 1);
                     period++)
                 {
-                    var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
+                    var releasedProfitsVirtualAddress =
+                        GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
                     var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
                     if (releasedProfitsInformation.IsReleased)
                     {
@@ -413,7 +424,8 @@ namespace AElf.Contracts.Profit
                 : GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
         }
 
-        public override ReleasedProfitsInformation GetReleasedProfitsInformation(GetReleasedProfitsInformationInput input)
+        public override ReleasedProfitsInformation GetReleasedProfitsInformation(
+            GetReleasedProfitsInformationInput input)
         {
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
             var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
