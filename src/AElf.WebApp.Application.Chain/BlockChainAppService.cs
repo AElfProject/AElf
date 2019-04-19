@@ -79,6 +79,11 @@ namespace AElf.WebApp.Application.Chain
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
+        /// <summary>
+        /// Call a read-only method on a contract.
+        /// </summary>
+        /// <param name="rawTransaction">raw transaction</param>
+        /// <returns></returns>
         public async Task<string> Call(string rawTransaction)
         {
             try
@@ -94,6 +99,12 @@ namespace AElf.WebApp.Application.Chain
             }
         }
         
+
+        /// <summary>
+        /// Get the protobuf definitions related to a contract
+        /// </summary>
+        /// <param name="address">contract address</param>
+        /// <returns></returns>
         public async Task<byte[]> GetFileDescriptorSet(string address)
         {
             try
@@ -107,6 +118,12 @@ namespace AElf.WebApp.Application.Chain
             }
         }
         
+
+        /// <summary>
+        /// Broadcast a transaction
+        /// </summary>
+        /// <param name="rawTransaction">raw transaction</param>
+        /// <returns></returns>
         public async Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction)
         {
             var txIds = await PublishTransactionsAsync(new []{rawTransaction});
@@ -116,6 +133,12 @@ namespace AElf.WebApp.Application.Chain
             };
         }
         
+
+        /// <summary>
+        /// Broadcast multiple transactions
+        /// </summary>
+        /// <param name="rawTransactions">raw transactions</param>
+        /// <returns></returns>
         public async Task<string[]> BroadcastTransactions(string rawTransactions)
         {
             var txIds = await PublishTransactionsAsync(rawTransactions.Split(","));
@@ -123,6 +146,11 @@ namespace AElf.WebApp.Application.Chain
             return txIds;
         }
         
+        /// <summary>
+        /// Get the current status of a transaction
+        /// </summary>
+        /// <param name="transactionId">transaction id</param>
+        /// <returns></returns>
         public async Task<TransactionResultDto> GetTransactionResult(string transactionId)
         {
             Hash transactionHash;
@@ -158,6 +186,14 @@ namespace AElf.WebApp.Application.Chain
             return output;
         }
 
+        /// <summary>
+        /// Get multiple transaction results.
+        /// </summary>
+        /// <param name="blockHash">block hash</param>
+        /// <param name="offset">offset</param>
+        /// <param name="limit">limit</param>
+        /// <returns></returns>
+        /// <exception cref="UserFriendlyException"></exception>
         public async Task<List<TransactionResultDto>> GetTransactionResults(string blockHash, int offset = 0, int limit = 10)
         {
             if (offset < 0)
@@ -211,12 +247,22 @@ namespace AElf.WebApp.Application.Chain
             return output;
         }
         
+        /// <summary>
+        /// Get the height of the current chain.
+        /// </summary>
+        /// <returns></returns>
         public async Task<long> GetBlockHeight()
         {
             var chainContext = await _blockchainService.GetChainAsync();
             return chainContext.BestChainHeight;
         }
         
+        /// <summary>
+        /// Get information about a given block by block hash. Otionally with the list of its transactions.
+        /// </summary>
+        /// <param name="blockHash">block hash</param>
+        /// <param name="includeTransactions">include transactions or not</param>
+        /// <returns></returns>
         public async Task<BlockDto> GetBlock(string blockHash, bool includeTransactions = false)
         {
             Hash realBlockHash;
@@ -272,6 +318,12 @@ namespace AElf.WebApp.Application.Chain
             return blockDto;
         }
 
+        /// <summary>
+        /// Get information about a given block by block height. Otionally with the list of its transactions.
+        /// </summary>
+        /// <param name="blockHeight">block height</param>
+        /// <param name="includeTransactions">include transactions or not</param>
+        /// <returns></returns>
         public async Task<BlockDto> GetBlockByHeight(long blockHeight, bool includeTransactions = false)
         {
             if (blockHeight == 0)
@@ -319,6 +371,10 @@ namespace AElf.WebApp.Application.Chain
             return blockDto;
         }
         
+        /// <summary>
+        /// Get the transaction pool status.
+        /// </summary>
+        /// <returns></returns>
         public async Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus()
         {
             var queued= await _txHub.GetTransactionPoolSizeAsync();
@@ -328,6 +384,10 @@ namespace AElf.WebApp.Application.Chain
             };
         }
         
+        /// <summary>
+        /// Get the current status of the block chain.
+        /// </summary>
+        /// <returns></returns>
         public async Task<ChainStatusDto> GetChainStatus()
         {
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
@@ -364,6 +424,11 @@ namespace AElf.WebApp.Application.Chain
             };
         }
         
+        /// <summary>
+        /// Get the current state about a given block
+        /// </summary>
+        /// <param name="blockHash">block hash</param>
+        /// <returns></returns>
         public async Task<BlockStateDto> GetBlockState(string blockHash)
         {
             var blockState = await _blockchainStateManager.GetBlockStateSetAsync(Hash.LoadHex(blockHash));
