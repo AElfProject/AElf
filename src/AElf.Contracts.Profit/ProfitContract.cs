@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Org.BouncyCastle.Crypto.Tls;
 
 namespace AElf.Contracts.Profit
 {
@@ -31,7 +32,13 @@ namespace AElf.Contracts.Profit
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }
-            Assert(input.TokenSymbol != null && input.TokenSymbol.Any(), "Invalid token symbol.");
+
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            {
+                Symbol = input.TokenSymbol
+            });
+            Assert(input.TokenSymbol != null && input.TokenSymbol.Any() && tokenInfo.TotalSupply != 0,
+                "Invalid token symbol.");
 
             if (input.ExpiredPeriodNumber == 0)
             {
@@ -41,6 +48,7 @@ namespace AElf.Contracts.Profit
             var profitId = Context.TransactionId;
             State.ProfitItemsMap[profitId] = new ProfitItem
             {
+                VirtualAddress = Context.ConvertVirtualAddressToContractAddress(profitId),
                 Creator = Context.Sender,
                 TokenSymbol = input.TokenSymbol,
                 ExpiredPeriodNumber = input.ExpiredPeriodNumber,
@@ -142,7 +150,7 @@ namespace AElf.Contracts.Profit
             var currentProfitDetails = State.ProfitDetailsMap[profitId][input.Receiver];
             if (currentProfitDetails == null)
             {
-                // TODO: Deduct Resource token of Profit Contract from DApp Developer because this behaviour will add a new key.
+                // TODO: Reduce Resource token of Profit Contract from DApp Developer because this behaviour will add a new key.
                 currentProfitDetails = new ProfitDetails
                 {
                     Details = {profitDetail}
@@ -312,16 +320,16 @@ namespace AElf.Contracts.Profit
             }
             else
             {
-                var targetVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+                var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = Context.Sender,
-                    To = targetVirtualAddress,
+                    To = releasedProfitsVirtualAddress,
                     Symbol = profitItem.TokenSymbol,
                     Amount = input.Amount,
                     Memo = $"Add dividends for {input.ProfitId} (period {input.Period})."
                 });
-                var releasedProfitsInformation = State.ReleasedProfitsMap[targetVirtualAddress];
+                var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
                 if (releasedProfitsInformation == null)
                 {
                     releasedProfitsInformation = new ReleasedProfitsInformation
@@ -333,7 +341,7 @@ namespace AElf.Contracts.Profit
                 {
                     releasedProfitsInformation.ProfitsAmount += input.Amount;
                 }
-                State.ReleasedProfitsMap[targetVirtualAddress] = releasedProfitsInformation;
+                State.ReleasedProfitsMap[releasedProfitsVirtualAddress] = releasedProfitsInformation;
             }
 
             return new Empty();
@@ -367,13 +375,13 @@ namespace AElf.Contracts.Profit
                     period < Math.Min(profitItem.CurrentPeriod, profitDetail.EndPeriod + 1);
                     period++)
                 {
-                    var targetVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
-                    var releasedProfitsInformation = State.ReleasedProfitsMap[targetVirtualAddress];
+                    var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
+                    var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
                     if (releasedProfitsInformation.IsReleased)
                     {
                         State.TokenContract.TransferFrom.Send(new TransferFromInput
                         {
-                            From = targetVirtualAddress,
+                            From = releasedProfitsVirtualAddress,
                             To = Context.Sender,
                             Symbol = profitItem.TokenSymbol,
                             Amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
@@ -402,6 +410,13 @@ namespace AElf.Contracts.Profit
             return input.Period == 0
                 ? virtualAddress
                 : GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+        }
+
+        public override ReleasedProfitsInformation GetReleasedProfitsInformation(GetReleasedProfitsInformationInput input)
+        {
+            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
+            var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+            return State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
         }
 
         private Address GetReleasedPeriodProfitsVirtualAddress(Address profitId, long period)

@@ -43,4 +43,7 @@ service ProfitContract {
     rpc GetProfitItemVirtualAddress (GetProfitItemVirtualAddressInput) returns (Address) {
         option (aelf.is_view) = true;
     }
+    rpc GetReleasedProfitsInformation (GetReleasedProfitsInformationInput) returns (ReleasedProfitsInformation) {
+        option (aelf.is_view) = true;
+    }
 }

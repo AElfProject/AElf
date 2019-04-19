@@ -16,7 +16,7 @@ message CreateProfitItemInput {
 }
 
 message ProfitItem {
-    Hash profit_id = 1;
+    Address virtual_address = 1;
     sint64 total_weight = 2;
     sint64 total_amount = 3;
     sint64 current_period = 4;
@@ -98,6 +98,11 @@ message GetCreatedProfitItemsInput {
 }
 
 message GetProfitItemVirtualAddressInput {
+    Hash profit_id = 1;
+    sint64 period = 2;
+}
+
+message GetReleasedProfitsInformationInput {
     Hash profit_id = 1;
     sint64 period = 2;
 }
