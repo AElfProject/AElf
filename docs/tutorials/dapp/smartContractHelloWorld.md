@@ -61,7 +61,7 @@ message HelloReturn {
 }
 ```
 
-AElf contracts are implemented based on gRPC services. The previous code is the definition of the service and we will later use grpc to generate the C# code based on this definition. 
+AElf contracts are implemented based on gRPC services. The previous code is the definition of the service and we will later use grpc to generate the C# code based on this definition.
 
 This service defines one contract method that takes no arguments and return a message of type **HelloReturn** that is define below it. This message only contains one field of type string.
 
@@ -140,7 +140,7 @@ dotnet bin/Release/netcoreapp2.2/AElf.Launcher.dll
 In the previous terminal, alias the cli:
 
 ```bash
-alias aelf-cli="dotnet path/to/aelf/AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
+alias aelf-cli="dotnet path/to/aelf/src/AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
 ```
 
 Start the CLI and execute the following command, note that here we explicitly specify the datadir (the directory where you keep your keys).
