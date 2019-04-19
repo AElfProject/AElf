@@ -14,8 +14,8 @@ service AuthorizationContract {
     }
     rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) {
     }
-    rpc Release (Hash) returns (google.protobuf.Empty) {
-    }
+//    rpc Release (Hash) returns (google.protobuf.Empty) {
+//    }
     rpc GetProposal(Hash) returns (ProposalOutput) {
         option (aelf.is_view) = true;
     }
