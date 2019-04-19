@@ -29,7 +29,6 @@ namespace AElf.Contracts.Vote
             })).TransactionResult;
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
 
         [Fact]

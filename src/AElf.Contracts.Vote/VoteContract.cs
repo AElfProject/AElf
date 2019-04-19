@@ -13,8 +13,8 @@ namespace AElf.Contracts.Vote
     {
         public override Empty InitialVoteContract(InitialVoteContractInput input)
         {
-            var contractOwner = State.BasicContractZero.GetContractOwner.Call(Context.Self);
-            Assert(Context.Sender == contractOwner, "Only contract owner can initialize this contract.");
+            Assert(Context.Sender == Context.GetZeroSmartContractAddress(),
+                "Only zero contract can initialize this contract.");
 
             Assert(!State.Initialized.Value, "Already initialized.");
 
@@ -59,12 +59,12 @@ namespace AElf.Contracts.Vote
             var votingEventHash = votingEvent.GetHash();
 
             Assert(State.VotingEvents[votingEventHash] == null, "Voting event already exists.");
-            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
-                Symbol = input.AcceptedCurrency
-            });
-            var whiteList = tokenInfo.LockWhiteList;
-            Assert(whiteList.Contains(Context.Self), "Claimed accepted token is not available for voting.");
+                Symbol = input.AcceptedCurrency,
+                Address = Context.Self
+            }).Value;
+            Assert(isInWhiteList, "Claimed accepted token is not available for voting.");
 
             // Initialize voting event.
             votingEvent.AcceptedCurrency = input.AcceptedCurrency;

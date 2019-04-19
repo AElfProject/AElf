@@ -40,4 +40,7 @@ service ProfitContract {
     rpc GetProfitItem (Hash) returns (ProfitItem) {
         option (aelf.is_view) = true;
     }
+    rpc GetProfitItemVirtualAddress (GetProfitItemVirtualAddressInput) returns (Address) {
+        option (aelf.is_view) = true;
+    }
 }

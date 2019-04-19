@@ -12,9 +12,8 @@ namespace AElf.Contracts.Profit
     {
         public override Empty InitializeProfitContract(InitializeProfitContractInput input)
         {
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-            var contractOwner = State.BasicContractZero.GetContractOwner.Call(Context.Self);
-            Assert(Context.Sender == contractOwner, "Only contract owner can initialize this contract.");
+            Assert(Context.Sender == Context.GetZeroSmartContractAddress(),
+                "Only zero contract can initialize this contract.");
 
             Assert(!State.Initialized.Value, "Already initialized.");
             State.Initialized.Value = true;
@@ -28,6 +27,7 @@ namespace AElf.Contracts.Profit
         {
             if (State.TokenContract.Value == null)
             {
+                State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }
@@ -296,11 +296,6 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
-            if (input.Period == 0)
-            {
-                input.Period = profitItem.CurrentPeriod;
-            }
-
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
             if (input.Period == 0)
             {
@@ -312,6 +307,8 @@ namespace AElf.Contracts.Profit
                     Amount = input.Amount,
                     Memo = $"Add dividends for {input.ProfitId}."
                 });
+                profitItem.TotalAmount += input.Amount;
+                State.ProfitItemsMap[input.ProfitId] = profitItem;
             }
             else
             {
@@ -324,6 +321,19 @@ namespace AElf.Contracts.Profit
                     Amount = input.Amount,
                     Memo = $"Add dividends for {input.ProfitId} (period {input.Period})."
                 });
+                var releasedProfitsInformation = State.ReleasedProfitsMap[targetVirtualAddress];
+                if (releasedProfitsInformation == null)
+                {
+                    releasedProfitsInformation = new ReleasedProfitsInformation
+                    {
+                        ProfitsAmount = input.Amount
+                    };
+                }
+                else
+                {
+                    releasedProfitsInformation.ProfitsAmount += input.Amount;
+                }
+                State.ReleasedProfitsMap[targetVirtualAddress] = releasedProfitsInformation;
             }
 
             return new Empty();
@@ -386,9 +396,17 @@ namespace AElf.Contracts.Profit
             return State.ProfitItemsMap[input];
         }
 
+        public override Address GetProfitItemVirtualAddress(GetProfitItemVirtualAddressInput input)
+        {
+            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
+            return input.Period == 0
+                ? virtualAddress
+                : GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+        }
+
         private Address GetReleasedPeriodProfitsVirtualAddress(Address profitId, long period)
         {
-            return Address.FromBytes(period.ToString().CalculateHash().Concat(profitId.Value).ToArray());
+            return Address.FromPublicKey(period.ToString().CalculateHash().Concat(profitId.Value).ToArray());
         }
     }
 }

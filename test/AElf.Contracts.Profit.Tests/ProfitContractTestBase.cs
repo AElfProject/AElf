@@ -44,6 +44,17 @@ namespace AElf.Contracts.Profit
             BasicContractZeroStub = GetContractZeroTester(StarterKeyPair);
 
             ECKeyPairProvider.SetECKeyPair(StarterKeyPair);
+            
+            ProfitContractAddress = AsyncHelper.RunSync(() =>
+                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
+                    new SystemContractDeploymentInput
+                    {
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ProfitContract).Assembly.Location)),
+                        Name = ProfitSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = GenerateProfitInitializationCallList()
+                    })).Output;
+            ProfitContractStub = GetProfitContractTester(StarterKeyPair);
 
             //deploy token contract
             TokenContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
@@ -55,17 +66,7 @@ namespace AElf.Contracts.Profit
                         Name = TokenSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
-
-            ProfitContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ProfitContract).Assembly.Location)),
-                        Name = ProfitSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateProfitInitializationCallList()
-                    })).Output;
-            ProfitContractStub = GetProfitContractTester(StarterKeyPair);
+            TokenContractStub = GetTokenContractTester(StarterKeyPair);
         }
 
         protected async Task CreateTreasury()

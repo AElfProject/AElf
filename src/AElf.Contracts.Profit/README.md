@@ -1,5 +1,15 @@
 # Profit Contract
 
+## Usage
+
+<details>
+
+  <summary><b>How to create a profit item</b></summary>
+
+Call `CreateProfitItem` and provide the token symbol you gonna use in this item. Also you can set the `ExpiredPeriodNumber`.
+
+</details>
+
 ## Actions 
 <details>
 
@@ -34,6 +44,8 @@ For anyone to create a `ProfitItem`.
 - A `ProfitItem` will be identified by a Hash value which called `ProfitId`. This Hash value is calculated from `TransactionId` of `CreateProfitItem` transction and the address of `Profit Contract`.
 
 - To create a `ProfitItem`, the creator need to provide its binded token symbol. Like for item `Treasury` created by `AElf Consensus Contract`, the binded token symbol is `ELF`.
+
+- `ExpiredPeriodNumber` is optional.
 
 - `CurrentPeriod` will start from 1, and increase every time when the creator call `ReleaseProfits` in the future.
 
