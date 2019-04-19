@@ -1,6 +1,7 @@
 using System;
 using Acs3;
 using AElf.Contracts.MultiToken.Messages;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.ReferendumAuth
 {
@@ -16,14 +17,6 @@ namespace AElf.Contracts.ReferendumAuth
         {
             var organization = GetOrganization(organizationAddress);
             return organization.ReleaseThreshold;
-        }
-       
-        private void ValidateProposalContract()
-        {
-            if (State.ProposalContract.Value != null)
-                return;
-            State.ProposalContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.ProposalContractSystemName.Value);
         }
     }
 }
