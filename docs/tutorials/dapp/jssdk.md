@@ -4,7 +4,7 @@ Please see `Develop Smart Contract` at first.
 
 You can get the [document](https://github.com/AElfProject/aelf-sdk.js) of JS SDK.
 
-You can get the [demo](https://github.com/AElfProject/aelf-boilerplate/);
+You can get the [demo](https://github.com/AElfProject/aelf-boilerplate/).
 
 ## Install JS SDK
 
