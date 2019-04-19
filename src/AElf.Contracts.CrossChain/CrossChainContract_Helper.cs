@@ -183,7 +183,7 @@ namespace AElf.Contracts.CrossChain
             ValidateContractState(State.ParliamentAuthContract, State.ParliamentAuthContractSystemName.Value);
             var organizationInput = new CreateOrganizationInput
             {
-                ReleaseThresholdInFractionalNumber = 2d / 3
+                ReleaseThresholdInFraction = 2d / 3
             };
             Address organizationAddress = State.ParliamentAuthContract.GetOrganizationAddress.Call(organizationInput);
             State.Owner.Value = organizationAddress;

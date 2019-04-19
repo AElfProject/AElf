@@ -61,7 +61,7 @@ namespace AElf.Contracts.TestBase
         private IAbpApplicationWithInternalServiceProvider Application { get; }
 
         public ECKeyPair KeyPair { get; }
-        private List<ECKeyPair> _initialMinerList = new List<ECKeyPair>();
+        public List<ECKeyPair> InitialMinerList = new List<ECKeyPair>();
 
         public string PublicKey => KeyPair.PublicKey.ToHex();
 
@@ -78,9 +78,9 @@ namespace AElf.Contracts.TestBase
             for (var i = 0; i < 3; i++)
             {
                 var generateKeyPair = CryptoHelpers.GenerateKeyPair();
-                _initialMinerList.Add(generateKeyPair);
+                InitialMinerList.Add(generateKeyPair);
             }
-            KeyPair = keyPair ?? _initialMinerList[0];
+            KeyPair = keyPair ?? InitialMinerList[0];
 
             Application =
                 AbpApplicationFactory.Create<TContractTestAElfModule>(options =>
@@ -95,7 +95,7 @@ namespace AElf.Contracts.TestBase
                     {
                         var miners = new List<string>();
 
-                        foreach (var minerKeyPair in _initialMinerList)
+                        foreach (var minerKeyPair in InitialMinerList)
                         {
                             miners.Add(minerKeyPair.PublicKey.ToHex());
                         }
@@ -649,8 +649,7 @@ namespace AElf.Contracts.TestBase
             var parliamentContractCallList = new SystemTransactionMethodCallList();
             parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuthInitializationInput
             {
-                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                ProposalContractSystemName = ProposalSmartContractAddressNameProvider.Name
+                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
             });
             return list =>
             {
@@ -661,7 +660,6 @@ namespace AElf.Contracts.TestBase
                 list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider
                     .Name);
                 list.AddGenesisSmartContract<CrossChainContract>(CrossChainSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract<Proposal.ProposalContract>(ProposalSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<ParliamentAuthContract>(ParliamentAuthContractAddressNameProvider.Name,
                     parliamentContractCallList);
             };

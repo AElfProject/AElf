@@ -40,18 +40,26 @@ namespace AElf.Contracts.ParliamentAuth
             return result;
         }
 
+        public override Address GetOrganizationAddress(CreateOrganizationInput input)
+        {
+            var organizationHash = GenerateOrganizationVirtualHash(input);
+            Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            return organizationAddress;
+        }
+
         #endregion view
         public override Empty Initialize(ParliamentAuthInitializationInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Initialized.Value = true;
             return new Empty();
         }
         
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
+            var organizationHash = GenerateOrganizationVirtualHash(input);
             Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             if(State.Organisations[organizationAddress] == null)
             {
@@ -108,6 +116,7 @@ namespace AElf.Contracts.ParliamentAuth
                 "Approval already existed.");
             var representatives = GetRepresentatives().ToArray();
             Assert(IsValidRepresentative(representatives), "Not authorized approval.");
+            approved = approved ?? new ApprovedResult();
             approved.ApprovedRepresentatives.Add(Context.Sender);
             State.Approved[approvalInput.ProposalId] = approved;
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
@@ -115,8 +124,8 @@ namespace AElf.Contracts.ParliamentAuth
             {
                 Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
                     proposalInfo.Params);
-                State.Proposals[approvalInput.ProposalId] = null;
-                State.Approved[approvalInput.ProposalId] = null;
+                //State.Proposals[approvalInput.ProposalId] = null;
+                //State.Approved[approvalInput.ProposalId] = null;
             }
             return new BoolValue{Value = true};
         }

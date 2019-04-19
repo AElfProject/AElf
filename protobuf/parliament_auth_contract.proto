@@ -19,6 +19,9 @@ service ParliamentAuthContract {
     rpc GetOrganization (Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
+    rpc GetOrganizationAddress (CreateOrganizationInput) returns (Address){
+        option (aelf.is_view) = true;
+    }
 }
 
 message ParliamentAuthInitializationInput{
