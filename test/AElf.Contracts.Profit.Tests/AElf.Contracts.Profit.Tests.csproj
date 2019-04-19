@@ -46,8 +46,8 @@
         <Folder Include="Protobuf\Generated" />
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh profit.proto basic_contract_zero.proto token_contract.proto profit_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat profit.proto basic_contract_zero.proto token_contract.proto profit_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto token_contract.proto profit_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto token_contract.proto profit_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
