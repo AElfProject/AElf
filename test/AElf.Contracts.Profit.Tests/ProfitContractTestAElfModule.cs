@@ -1,3 +1,4 @@
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.TestKit;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -10,6 +11,7 @@ namespace AElf.Contracts.Profit
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<ProfitContractTestAElfModule>();
+            context.Services.AddSingleton<IECKeyPairProvider, ECKeyPairProvider>();
         }
     }
 }

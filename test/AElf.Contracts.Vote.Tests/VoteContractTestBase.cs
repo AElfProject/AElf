@@ -19,6 +19,7 @@ namespace AElf.Contracts.Vote
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
+        protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
 

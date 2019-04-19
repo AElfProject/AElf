@@ -30,9 +30,6 @@ namespace AElf.Contracts.Consensus.DPoS
         protected const int VotersCount = 10;
         protected const int MiningInterval = 4000;
 
-        protected ISmartContractAddressService ContractAddressService =>
-            Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
-
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
         

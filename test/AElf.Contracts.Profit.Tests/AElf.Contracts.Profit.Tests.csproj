@@ -20,6 +20,7 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS.Tests.TestKit\AElf.Contracts.Consensus.DPoS.Tests.TestKit.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="..\..\protobuf\common.proto">

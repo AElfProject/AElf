@@ -26,8 +26,18 @@ namespace AElf.Contracts.Profit
 
         public override Hash CreateProfitItem(CreateProfitItemInput input)
         {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+            }
             Assert(input.TokenSymbol != null && input.TokenSymbol.Any(), "Invalid token symbol.");
 
+            if (input.ExpiredPeriodNumber == 0)
+            {
+                input.ExpiredPeriodNumber = ProfitContractConsts.DefaultExpiredPeriodNumber;
+            }
+            
             var profitId = Context.TransactionId;
             State.ProfitItemsMap[profitId] = new ProfitItem
             {
