@@ -34,9 +34,6 @@ namespace AElf.Benchmark
         private Block _block;
         private Address _contractAddress;
 
-        [Params(10ul, 16ul)] 
-        public ulong N;
-
         [GlobalSetup]
         public async Task GlobalSetup()
         {
@@ -90,12 +87,12 @@ namespace AElf.Benchmark
             _transaction = _osTestHelper.GenerateTransaction(Address.Generate(), _contractAddress,
                 "Fibonacci", new UInt64Value
                 {
-                    Value = N
+                    Value = 16
                 });
         }
 
         [Benchmark]
-        public async Task Fibonacci()
+        public async Task Fibonacci16()
         {
             _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, new List<Transaction> {_transaction});
         }
