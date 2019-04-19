@@ -8,6 +8,7 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
@@ -20,18 +21,22 @@ using Xunit.Abstractions;
 
 namespace AElf.WebApp.Application.Chain.Tests
 {
-    public sealed class ChainAppServiceTest : WebAppTestBase
+    public sealed class BlockChainAppServiceTest : WebAppTestBase
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
+        private readonly IBlockchainStateMergingService _blockchainStateMergingService;
+        private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly OSTestHelper _osTestHelper;
 
-        public ChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
+        public BlockChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _txHub = GetRequiredService<ITxHub>();
+            _blockchainStateMergingService = GetRequiredService<IBlockchainStateMergingService>();
+            _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
         }
         
@@ -39,7 +44,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         public async Task GetBlockHeightTest()
         {
             // Get current height
-            var response = await GetResponseAsStringAsync("/api/chain/blockHeight");
+            var response = await GetResponseAsStringAsync("/api/blockChain/blockHeight");
             var currentHeight = long.Parse(response);
 
             var chain = await _blockchainService.GetChainAsync();
@@ -51,24 +56,9 @@ namespace AElf.WebApp.Application.Chain.Tests
             await _osTestHelper.MinedOneBlock();
 
             // Get latest height
-            response = await GetResponseAsStringAsync("/api/chain/blockHeight");
+            response = await GetResponseAsStringAsync("/api/blockChain/blockHeight");
             var height = long.Parse(response);
             height.ShouldBe(currentHeight + 1);
-        }
-        
-        [Fact]
-        public async Task GetChainInformationTest()
-        {
-            var chainId = _blockchainService.GetChainId();
-            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
-
-            var response = await GetResponseAsObjectAsync<GetChainInformationOutput>("/api/chain/chainInformation");
-
-            var responseZeroContractAddress = response.GenesisContractAddress;
-            var responseChainId = ChainHelpers.ConvertBase58ToChainId(response.ChainId);
-
-            responseZeroContractAddress.ShouldBe(basicContractZero.GetFormatted());
-            responseChainId.ShouldBe(chainId);
         }
 
         [Fact]
@@ -86,7 +76,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"rawTransaction", transaction.ToByteArray().ToHex()}
             };
 
-            var response = await PostResponseAsStringAsync("/api/chain/call",paramters);
+            var response = await PostResponseAsStringAsync("/api/blockChain/call",paramters);
             response.ShouldNotBeNullOrEmpty();
         }
 
@@ -97,7 +87,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             {
                 {"rawTransaction", "0a200a1e4604ccbdaa377fd7022b56436b99309e8b71cc5d78e909d271dbd1aeee6412200a1eaaa58b6cf58d4ef337f6dc55b701fd57d622015a3548a91a4e40892aa355180b220436957f93320c476574546f6b656e496e666f3a060a04454c46324a416246d781d80759d8ae6bb895b17203a3c9d4e89f083d7d89d9b6cbbf1c67ded52e134108fc8b3646f6549313868ce3e68a7117815cc0c2107ef1a986430a12ba002"}
             };
-            var response = await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/call",paramters,expectedStatusCode: HttpStatusCode.Forbidden);
+            var response = await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/call",paramters,expectedStatusCode: HttpStatusCode.Forbidden);
             
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
@@ -116,7 +106,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             
             var broadcastTransactionResponse =
-                await PostResponseAsObjectAsync<BroadcastTransactionOutput>("/api/chain/broadcastTransaction", parameters);
+                await PostResponseAsObjectAsync<BroadcastTransactionOutput>("/api/blockChain/broadcastTransaction", parameters);
 
             broadcastTransactionResponse.TransactionId.ShouldBe(transactionHash.ToHex());
 
@@ -133,7 +123,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"rawTransaction",fakeTransaction}
             };
             var response =
-                await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/broadcastTransaction",
+                await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/broadcastTransaction",
                     parameters, expectedStatusCode: HttpStatusCode.Forbidden);
 
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
@@ -152,7 +142,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"rawTransaction",transaction.ToByteArray().ToHex()}
             };
             var response = await PostResponseAsObjectAsync<WebAppErrorResponse>(
-                "/api/chain/broadcastTransaction", parameters, expectedStatusCode: HttpStatusCode.Forbidden);
+                "/api/blockChain/broadcastTransaction", parameters, expectedStatusCode: HttpStatusCode.Forbidden);
 
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
@@ -175,7 +165,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"rawTransactions",rawTransactions}
             };
             var broadcastTransactionsResponse =
-                await PostResponseAsObjectAsync<string[]>("/api/chain/broadcastTransactions", parameters);
+                await PostResponseAsObjectAsync<string[]>("/api/blockChain/broadcastTransactions", parameters);
             var responseTransactionIds = broadcastTransactionsResponse.ToList();
 
             responseTransactionIds.Count.ShouldBe(2);
@@ -184,7 +174,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             existTransaction.Transactions.Select(x=>x.GetHash().ToHex()).ShouldContain(responseTransactionIds[0]);
             existTransaction.Transactions.Select(x=>x.GetHash().ToHex()).ShouldContain(responseTransactionIds[1]);
 
-            var getTransactionPoolStatusResponse = await GetResponseAsObjectAsync<GetTransactionPoolStatusOutput>("/api/chain/transactionPoolStatus");
+            var getTransactionPoolStatusResponse = await GetResponseAsObjectAsync<GetTransactionPoolStatusOutput>("/api/blockChain/transactionPoolStatus");
             getTransactionPoolStatusResponse.Queued.ShouldBe(2);
         }
         
@@ -198,7 +188,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             // Before mined
             var response = await GetResponseAsObjectAsync<TransactionResultDto>(
-                $"/api/chain/transactionResult?transactionId={transactionHex}");
+                $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.Pending.ToString());
@@ -207,7 +197,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             // After mined
             response = await GetResponseAsObjectAsync<TransactionResultDto>(
-                $"/api/chain/transactionResult?transactionId={transactionHex}");
+                $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.Mined.ToString());
@@ -225,7 +215,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             // After executed
             var transactionHex = transactionList[1].GetHash().ToHex();
             var response = await GetResponseAsObjectAsync<TransactionResultDto>(
-                $"/api/chain/transactionResult?transactionId={transactionHex}");
+                $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.Failed.ToString());
@@ -240,7 +230,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var transactionHex = transaction.GetHash().ToHex();
 
             var response = await GetResponseAsObjectAsync<TransactionResultDto>(
-                $"/api/chain/transactionResult?transactionId={transactionHex}");
+                $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.NotExisted.ToString());
@@ -251,14 +241,14 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             var fakeTransactionId = "FakeTransactionId";
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/transactionResult?transactionId={fakeTransactionId}", expectedStatusCode: HttpStatusCode.Forbidden);           
+                $"/api/blockChain/transactionResult?transactionId={fakeTransactionId}", expectedStatusCode: HttpStatusCode.Forbidden);           
 
             response.Error.Code.ShouldBe(Error.InvalidTransactionId.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransactionId]);
         }
         
         [Fact]
-        public async Task Get_TransactionsResult_Success()
+        public async Task Get_TransactionResults_Success()
         {
             // Generate 20 transactions and mined
             var transactions = new List<Transaction>();
@@ -271,18 +261,18 @@ namespace AElf.WebApp.Application.Chain.Tests
             var block = await _osTestHelper.MinedOneBlock();
 
             var response = await GetResponseAsObjectAsync<List<TransactionResultDto>>(
-                $"/api/chain/transactionsResult?blockHash={block.GetHash().ToHex()}&offset=0&limit=15");
+                $"/api/blockChain/transactionResults?blockHash={block.GetHash().ToHex()}&offset=0&limit=15");
 
             response.Count.ShouldBe(15);
 
             response = await GetResponseAsObjectAsync<List<TransactionResultDto>>(
-                $"/api/chain/transactionsResult?blockHash={block.GetHash().ToHex()}&offset=15&limit=15");
+                $"/api/blockChain/transactionResults?blockHash={block.GetHash().ToHex()}&offset=15&limit=15");
    
             response.Count.ShouldBe(5);
         }
         
         [Fact]
-        public async Task Get_NotExisted_TransactionsResult()
+        public async Task Get_NotExisted_TransactionResults()
         {
             var block = new Block
             {
@@ -290,7 +280,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             var blockHash = block.GetHash().ToHex();
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/transactionsResult?blockHash={blockHash}&offset=0&limit=10",
+                $"/api/blockChain/transactionResults?blockHash={blockHash}&offset=0&limit=10",
                 expectedStatusCode: HttpStatusCode.Forbidden);
 
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
@@ -298,7 +288,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
         
         [Fact]
-        public async Task Get_TransactionsResult_With_InvalidParameter()
+        public async Task Get_TransactionResults_With_InvalidParameter()
         {
             var block = new Block
             {
@@ -307,27 +297,27 @@ namespace AElf.WebApp.Application.Chain.Tests
             var blockHash = block.GetHash().ToHex();
             
             var response1 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/transactionsResult?blockHash={blockHash}&offset=-3&limit=10",
+                $"/api/blockChain/transactionResults?blockHash={blockHash}&offset=-3&limit=10",
                 expectedStatusCode: HttpStatusCode.Forbidden);
             
             response1.Error.Code.ShouldBe(Error.InvalidOffset.ToString());
             response1.Error.Message.Contains("Offset must greater than or equal to 0").ShouldBeTrue();
             
             var response2 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/transactionsResult?blockHash={blockHash}&offset=0&limit=-5",
+                $"/api/blockChain/transactionResults?blockHash={blockHash}&offset=0&limit=-5",
                 expectedStatusCode: HttpStatusCode.Forbidden);
             response2.Error.Code.ShouldBe(Error.InvalidLimit.ToString());
             response2.Error.Message.Contains("Limit must between 0 and 100").ShouldBeTrue();
             
             var response3 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/transactionsResult?blockHash={blockHash}&offset=0&limit=120",
+                $"/api/blockChain/transactionResults?blockHash={blockHash}&offset=0&limit=120",
                 expectedStatusCode: HttpStatusCode.Forbidden);
             response3.Error.Code.ShouldBe(Error.InvalidLimit.ToString());
             response3.Error.Message.Contains("Limit must between 0 and 100").ShouldBeTrue();
         }
         
         [Fact]
-        public async Task Get_BlockInfo_By_Height_Success()
+        public async Task Get_Block_By_BlockHeight_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
             var transactions = new List<Transaction>();
@@ -341,7 +331,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             var response =
                 await GetResponseAsObjectAsync<BlockDto>(
-                    "/api/chain/blockInfo?blockHashOrHeight=12&includeTransactions=true");
+                    "/api/blockChain/blockByHeight?blockHeight=12&includeTransactions=true");
 
             response.BlockHash.ShouldBe(block.GetHash().ToHex());
             response.Header.PreviousBlockHash.ShouldBe(block.Header.PreviousBlockHash.ToHex());
@@ -358,7 +348,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
         
         [Fact]
-        public async Task Get_BlockInfo_By_BlockHash_Success()
+        public async Task Get_Block_By_BlockHash_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
             var transactions = new List<Transaction>();
@@ -372,7 +362,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             var response =
                 await GetResponseAsObjectAsync<BlockDto>(
-                    $"/api/chain/blockInfo?blockHashOrHeight={block.GetHash().ToHex()}&includeTransactions=true");
+                    $"/api/blockChain/block?blockHash={block.GetHash().ToHex()}&includeTransactions=true");
 
             response.BlockHash.ShouldBe(block.GetHash().ToHex());
             response.Header.PreviousBlockHash.ShouldBe(block.Header.PreviousBlockHash.ToHex());
@@ -389,22 +379,28 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
         
         [Fact]
-        public async Task Get_BlockInfo_ReturnNotFound()
+        public async Task Get_Block_ReturnNotFound()
         {
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                "/api/chain/blockInfo?blockHashOrHeight=100",
+                "/api/blockChain/blockByHeight?blockHeight=0",
                 expectedStatusCode: HttpStatusCode.Forbidden);
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
             
             response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/blockInfo?blockHashOrHeight={Hash.Empty.ToHex()}",
+                "/api/blockChain/blockByHeight?blockHeight=100",
                 expectedStatusCode: HttpStatusCode.Forbidden);
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
             
             response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                "/api/chain/blockInfo?blockHashOrHeight=7526008f73d931f48a9246648f3147aacf5bd9b2c79f93a708a86f77baaed865",
+                $"/api/blockChain/block?blockHash={Hash.Empty.ToHex()}",
+                expectedStatusCode: HttpStatusCode.Forbidden);
+            response.Error.Code.ShouldBe(Error.NotFound.ToString());
+            response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
+            
+            response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                "/api/blockChain/block?blockHash=7526008f73d931f48a9246648f3147aacf5bd9b2c79f93a708a86f77baaed865",
                 expectedStatusCode: HttpStatusCode.Forbidden);
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
@@ -413,9 +409,21 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task Get_Chain_Status_Success()
         {
-            var response = await GetResponseAsObjectAsync<ChainStatusDto>("/api/chain/chainStatus");
+            var chain = await _blockchainService.GetChainAsync();
+            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
+            
+            var response = await GetResponseAsObjectAsync<ChainStatusDto>("/api/blockChain/chainStatus");
             response.Branches.ShouldNotBeNull();
+            var responseChainId = ChainHelpers.ConvertBase58ToChainId(response.ChainId);
+            responseChainId.ShouldBe(chain.Id);
+            response.GenesisContractAddress.ShouldBe(basicContractZero.GetFormatted());
             response.BestChainHeight.ShouldBe(11);
+            response.BestChainHash.ShouldBe(chain.BestChainHash?.ToHex());
+            response.LongestChainHeight = chain.LongestChainHeight;
+            response.LongestChainHash = chain.LongestChainHash?.ToHex();
+            response.GenesisBlockHash = chain.GenesisBlockHash.ToHex();
+            response.LastIrreversibleBlockHash = chain.LastIrreversibleBlockHash?.ToHex();
+            response.LastIrreversibleBlockHeight = chain.LastIrreversibleBlockHeight;
         }
         
         [Fact]
@@ -430,15 +438,16 @@ namespace AElf.WebApp.Application.Chain.Tests
             await _osTestHelper.BroadcastTransactions(transactions);
             await _osTestHelper.MinedOneBlock();
 
-            var blockInfo = await GetResponseAsObjectAsync<BlockDto>(
-                "/api/chain/blockInfo?blockHashOrHeight=12&includeTransactions=true");
+            var block = await GetResponseAsObjectAsync<BlockDto>(
+                "/api/blockChain/blockByHeight?blockHeight=12&includeTransactions=true");
 
 
             var blockState = await GetResponseAsObjectAsync<BlockStateDto>(
-                    $"/api/chain/blockState?blockHash={blockInfo.BlockHash}");
+                    $"/api/blockChain/blockState?blockHash={block.BlockHash}");
             blockState.ShouldNotBeNull();
-            blockState.BlockHash.ShouldBe(blockInfo.BlockHash);
+            blockState.BlockHash.ShouldBe(block.BlockHash);
             blockState.BlockHeight.ShouldBe(12);
+            blockState.PreviousHash.ShouldBe(block.Header.PreviousBlockHash);
             blockState.Changes.ShouldNotBeNull();
         }
         
@@ -452,10 +461,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             }
 
             await _osTestHelper.BroadcastTransactions(transactions);
-            await _osTestHelper.MinedOneBlock();
-
-            var blockInfo = await GetResponseAsObjectAsync<BlockDto>(
-                "/api/chain/blockInfo?blockHashOrHeight=12&includeTransactions=true");
+            var block = await _osTestHelper.MinedOneBlock();
 
             //Continue generate block 
             for (int i = 0; i < 10; i++)
@@ -465,29 +471,40 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             //Check Block State
             var blockState = await GetResponseAsObjectAsync<BlockStateDto>(
-                $"/api/chain/blockState?blockHash={blockInfo.BlockHash}");
+                $"/api/blockChain/blockState?blockHash={block.GetHash().ToHex()}");
             blockState.ShouldNotBeNull();
-            blockState.BlockHash.ShouldBe(blockInfo.BlockHash);
+            blockState.BlockHash.ShouldBe(block.GetHash().ToHex());
             blockState.BlockHeight.ShouldBe(12);
+            blockState.PreviousHash.ShouldBe(block.Header.PreviousBlockHash.ToHex());
             blockState.Changes.ShouldNotBeNull();
+
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            await _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet.BlockHeight,
+                blockStateSet.BlockHash);
+
+            var errorResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                $"/api/blockChain/blockState?blockHash={block.GetHash().ToHex()}",
+                expectedStatusCode: HttpStatusCode.Forbidden);
+            errorResponse.Error.Code.ShouldBe(Error.NotFound.ToString());
+            errorResponse.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
         }
         
         [Fact]
         public async Task Query_NonExist_Api_Failed()
         {
-            var getResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/TestMethod",
+            var getResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/TestMethod",
                 expectedStatusCode: HttpStatusCode.NotFound);
             getResponse.ShouldBeNull();
-            var postResponse = await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/TestMethod",new Dictionary<string, string>(),
+            var postResponse = await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/TestMethod",new Dictionary<string, string>(),
                 expectedStatusCode: HttpStatusCode.NotFound);
             postResponse.ShouldBeNull();
-            var deleteResponse = await DeleteResponseAsObjectAsync<WebAppErrorResponse>("/api/chain/TestMethod",
+            var deleteResponse = await DeleteResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/TestMethod",
                 expectedStatusCode: HttpStatusCode.NotFound);
             deleteResponse.ShouldBeNull();
         }
         
         [Fact]
-        public async Task Get_FileDescriptorSet_Success()
+        public async Task Get_ContractFileDescriptorSet_Success()
         {
             // Generate a transaction and broadcast
             var transaction = await _osTestHelper.GenerateTransferTransaction();
@@ -496,7 +513,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             await _osTestHelper.MinedOneBlock();
             
             var response = await GetResponseAsStringAsync(
-                $"/api/chain/fileDescriptorSet?address={transaction.To.GetFormatted()}");
+                $"/api/blockChain/contractFileDescriptorSet?address={transaction.To.GetFormatted()}");
             response.ShouldNotBeEmpty();
             var set = FileDescriptorSet.Parser.ParseFrom(ByteString.FromBase64(response.Substring(1,response.Length-2)));
             set.ShouldNotBeNull();
@@ -504,19 +521,19 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
         
         [Fact]
-        public async Task Get_FileDescriptorSet_Failed()
+        public async Task Get_ContractFileDescriptorSet_Failed()
         {
             var addressInfo = Address.Generate().GetFormatted();
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/fileDescriptorSet?address={addressInfo}", expectedStatusCode: HttpStatusCode.Forbidden);
+                $"/api/blockChain/contractFileDescriptorSet?address={addressInfo}", expectedStatusCode: HttpStatusCode.Forbidden);
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
 
             addressInfo = "invalid address";
-            var response1 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/chain/fileDescriptorSet?address={addressInfo}", expectedStatusCode: HttpStatusCode.Forbidden);
-            response.Error.Code.ShouldBe(Error.NotFound.ToString());
-            response1.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
+            var errorResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                $"/api/blockChain/contractFileDescriptorSet?address={addressInfo}", expectedStatusCode: HttpStatusCode.Forbidden);
+            errorResponse.Error.Code.ShouldBe(Error.NotFound.ToString());
+            errorResponse.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
         }
         
         private Task<List<Transaction>> GenerateTwoInitializeTransaction()
