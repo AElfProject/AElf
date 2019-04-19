@@ -34,6 +34,7 @@ namespace AElf.Contracts.TestBase
             services.AddSingleton(o => Mock.Of<INetworkService>());
             
             // When testing contract and packaging transactions, no need to generate and schedule real consensus stuff.
+            context.Services.AddSingleton(o => Mock.Of<IConsensusService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             
