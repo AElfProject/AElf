@@ -11,8 +11,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class PeerConnectedEventHandler : ILocalEventHandler<PeerConnectedEventData>,
-        ILocalEventHandler<AnnouncementReceivedEventData>
+    public class PeerConnectedEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>
     {
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
 
@@ -34,11 +33,6 @@ namespace AElf.OS.Handlers
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
             await ProcessNewBlock(eventData, eventData.SenderPubKey);
-        }
-
-        public async Task HandleEventAsync(PeerConnectedEventData eventData)
-        {
-            //await ProcessNewBlock(eventData, eventData.Peer);
         }
 
         private async Task ProcessNewBlock(AnnouncementReceivedEventData header, string senderPubKey)

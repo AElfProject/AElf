@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+import "common.proto";
+import "aelf_options.proto";
+import "acs3.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+option csharp_namespace = "AElf.Contracts.AssociationAuth";
+
+service AssociationAuthContract {
+    option (aelf.csharp_state) = "AElf.Contracts.AssociationAuth.AssociationAuthState";
+    option (aelf.base) = "acs3.proto";
+    // Actions    
+    rpc CreateOrganization (CreateOrganizationInput) returns (Address) {        
+    }
+    //view
+    rpc GetOrganization (Address) returns (Organization) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message CreateOrganizationInput{
+    repeated Reviewer reviewers = 1;
+    int32 releaseThreshold = 2;
+    int32 proposerThreshold = 3;
+}
+
+message Organization{
+    int32 releaseThreshold = 1;
+    repeated Reviewer reviewers = 2;
+    int32 proposerThreshold = 3;
+    Address organizationAddress = 4;
+    Hash organizationHash = 5;
+}
+
+message Reviewer {
+    Address address  = 1;
+    int32 weight = 2;
+}
+
+message ProposalInfo {
+    Hash proposalId = 1;
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Address proposer = 6;
+    Address organizationAddress = 7;
+}
+
+message ApprovedResult {
+    Hash proposalId = 1;
+    int32 approvedWeight = 2;
+    repeated Address approvedReviewer = 3;
+}
