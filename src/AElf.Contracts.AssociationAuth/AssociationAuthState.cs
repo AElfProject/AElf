@@ -1,6 +1,4 @@
-using AElf.Contracts.Genesis;
 using AElf.Sdk.CSharp.State;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.AssociationAuth
 {

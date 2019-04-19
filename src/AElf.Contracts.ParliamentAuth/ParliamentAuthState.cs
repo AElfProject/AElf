@@ -1,4 +1,3 @@
-using Acs3;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
 using AElf.Sdk.CSharp.State;

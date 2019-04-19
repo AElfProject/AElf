@@ -1,5 +1,4 @@
 using System.Linq;
-using Google.Protobuf;
 
 namespace AElf.Contracts.AssociationAuth
 {
