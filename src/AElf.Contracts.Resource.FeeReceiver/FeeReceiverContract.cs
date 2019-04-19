@@ -64,7 +64,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
                 {
                     To = State.FoundationAddress.Value,
                     Amount = amount,
-                    Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                    Symbol = Context.Variables.NativeSymbol,
                 });
             }
             State.OwedToFoundation.Value = owed.Sub(amount);
@@ -92,7 +92,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             var bal = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Owner = Context.Self,
-                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                Symbol = Context.Variables.NativeSymbol,
             }).Balance;
             var owed = State.OwedToFoundation.Value;
             var preBurnAmount = bal.Sub(owed);
@@ -101,7 +101,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             {
                 State.TokenContract.Burn.Send(new BurnInput
                 {
-                    Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                    Symbol = Context.Variables.NativeSymbol,
                     Amount = half
                 });
             }

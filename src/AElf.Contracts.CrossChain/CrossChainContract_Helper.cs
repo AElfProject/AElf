@@ -61,7 +61,7 @@ namespace AElf.Contracts.CrossChain
             var balance = GetBalance(new GetBalanceInput
             {
                 Owner = Context.Sender,
-                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                Symbol = Context.Variables.NativeSymbol
             });
 
             Assert(balance > 0);
@@ -71,7 +71,7 @@ namespace AElf.Contracts.CrossChain
                 From = Context.Sender,
                 To = Context.Self,
                 Amount = sideChainInfo.LockedTokenAmount,
-                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                Symbol = Context.Variables.NativeSymbol
             });
             State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
             // Todo: enable resource
@@ -93,7 +93,7 @@ namespace AElf.Contracts.CrossChain
                 {
                     To = sideChainInfo.Proposer,
                     Amount = balance,
-                    Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                    Symbol = Context.Variables.NativeSymbol
                 });
             State.IndexingBalance[chainId] = 0;
 

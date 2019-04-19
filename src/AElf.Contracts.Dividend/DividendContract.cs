@@ -47,7 +47,7 @@ namespace AElf.Contracts.Dividend
             {
                 To = targetAddress,
                 Amount = amount,
-                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                Symbol = Context.Variables.NativeSymbol,
                 Memo = "Send dividends."
             });
             return new Empty();
@@ -110,7 +110,7 @@ namespace AElf.Contracts.Dividend
             {
                 To = dividendsOwnerAddress,
                 Amount = totalDividendsAmount,
-                Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                Symbol = Context.Variables.NativeSymbol,
                 Memo = "Transfer dividends."
             });
 

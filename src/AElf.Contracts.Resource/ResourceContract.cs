@@ -154,7 +154,7 @@ namespace AElf.Contracts.Resource
                     From = Context.Sender,
                     To = Context.Self,
                     Amount = elfForRes,
-                    Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                    Symbol = Context.Variables.NativeSymbol,
                     Memo = $"Buying {resourceType.ToUpper()} with {paidElf} elf tokens."
                 });
             }
@@ -166,7 +166,7 @@ namespace AElf.Contracts.Resource
                     From = Context.Sender,
                     To = State.FeeAddress.Value,
                     Amount = fees,
-                    Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                    Symbol = Context.Variables.NativeSymbol,
                     Memo = $"Charged {fees} fees for buying {resourceType.ToUpper()}"
                 });
             }
@@ -198,7 +198,7 @@ namespace AElf.Contracts.Resource
                 {
                     To = Context.Sender,
                     Amount = amount,
-                    Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                    Symbol = Context.Variables.NativeSymbol,
                     Memo = $"Selling {resToSell} {resourceType.ToUpper()}s"
                 });
             }
@@ -208,7 +208,7 @@ namespace AElf.Contracts.Resource
                 State.TokenContract.Transfer.Send(new TransferInput
                 {
                     To = State.FeeAddress.Value,
-                    Symbol = Context.Variables[ContextVariableDictionary.NativeSymbolName],
+                    Symbol = Context.Variables.NativeSymbol,
                     Amount = fees,
                     Memo = $"Charged {fees} fees for selling {resourceType.ToUpper()}s"
                 });
