@@ -22,7 +22,7 @@ namespace AElf.WebApp.Application.Chain
     {
         Task<string> Call(string rawTransaction);
 
-        Task<byte[]> GetFileDescriptorSet(string address);
+        Task<byte[]> GetContractFileDescriptorSet(string address);
 
         Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction);
 
@@ -105,7 +105,7 @@ namespace AElf.WebApp.Application.Chain
         /// </summary>
         /// <param name="address">contract address</param>
         /// <returns></returns>
-        public async Task<byte[]> GetFileDescriptorSet(string address)
+        public async Task<byte[]> GetContractFileDescriptorSet(string address)
         {
             try
             {

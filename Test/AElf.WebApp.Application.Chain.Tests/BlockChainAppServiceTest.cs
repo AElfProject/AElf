@@ -504,7 +504,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
         
         [Fact]
-        public async Task Get_FileDescriptorSet_Success()
+        public async Task Get_ContractFileDescriptorSet_Success()
         {
             // Generate a transaction and broadcast
             var transaction = await _osTestHelper.GenerateTransferTransaction();
@@ -513,7 +513,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             await _osTestHelper.MinedOneBlock();
             
             var response = await GetResponseAsStringAsync(
-                $"/api/blockChain/fileDescriptorSet?address={transaction.To.GetFormatted()}");
+                $"/api/blockChain/contractFileDescriptorSet?address={transaction.To.GetFormatted()}");
             response.ShouldNotBeEmpty();
             var set = FileDescriptorSet.Parser.ParseFrom(ByteString.FromBase64(response.Substring(1,response.Length-2)));
             set.ShouldNotBeNull();
@@ -521,19 +521,19 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
         
         [Fact]
-        public async Task Get_FileDescriptorSet_Failed()
+        public async Task Get_ContractFileDescriptorSet_Failed()
         {
             var addressInfo = Address.Generate().GetFormatted();
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/blockChain/fileDescriptorSet?address={addressInfo}", expectedStatusCode: HttpStatusCode.Forbidden);
+                $"/api/blockChain/contractFileDescriptorSet?address={addressInfo}", expectedStatusCode: HttpStatusCode.Forbidden);
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
 
             addressInfo = "invalid address";
-            var response1 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
-                $"/api/blockChain/fileDescriptorSet?address={addressInfo}", expectedStatusCode: HttpStatusCode.Forbidden);
-            response.Error.Code.ShouldBe(Error.NotFound.ToString());
-            response1.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
+            var errorResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                $"/api/blockChain/contractFileDescriptorSet?address={addressInfo}", expectedStatusCode: HttpStatusCode.Forbidden);
+            errorResponse.Error.Code.ShouldBe(Error.NotFound.ToString());
+            errorResponse.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
         }
         
         private Task<List<Transaction>> GenerateTwoInitializeTransaction()
