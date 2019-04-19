@@ -12,6 +12,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\test\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
+      <ProjectReference Include="..\AElf.Benchmark.PerformanceTestContract\AElf.Benchmark.PerformanceTestContract.csproj" />
     </ItemGroup>
 
 </Project>

@@ -2,22 +2,13 @@ syntax = "proto3";
 
 import "aelf_options.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Benchmark.PerformanceTestContract";
 
 service PerformanceTestContract {
     option (aelf.csharp_state) = "AElf.Benchmark.PerformanceTestContract.PerformanceTestContractState";
     //Actions
-    rpc Fibonacci(UInt64Input) returns (UInt64Output) {
+    rpc Fibonacci(google.protobuf.UInt64Value) returns (google.protobuf.UInt64Value) {
     }
-}
-
-//Input
-message UInt64Input {
-    uint64 UInt64Value = 1;
-}
-
-//Output
-message UInt64Output {
-    uint64 UInt64Value = 1;
 }
