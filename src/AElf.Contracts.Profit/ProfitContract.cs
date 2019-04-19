@@ -110,6 +110,7 @@ namespace AElf.Contracts.Profit
                 ProfitId = input.SubProfitId,
                 Weight = input.SubItemWeight
             });
+            profitItem.TotalWeight += input.SubItemWeight;
             State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             return new Empty();
@@ -162,8 +163,8 @@ namespace AElf.Contracts.Profit
             }
 
             // Remove details too old.
-            foreach (var detail in currentProfitDetails.Details.Where(d =>
-                d.EndPeriod + profitItem.ExpiredPeriodNumber < profitItem.CurrentPeriod))
+            foreach (var detail in currentProfitDetails.Details.Where(d => d.EndPeriod != long.MaxValue &&
+                d.EndPeriod.Add(profitItem.ExpiredPeriodNumber) < profitItem.CurrentPeriod))
             {
                 currentProfitDetails.Details.Remove(detail);
             }
@@ -417,6 +418,11 @@ namespace AElf.Contracts.Profit
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
             var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
             return State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
+        }
+
+        public override ProfitDetails GetProfitDetails(GetProfitDetailsInput input)
+        {
+            return State.ProfitDetailsMap[input.ProfitId][input.Receiver];
         }
 
         private Address GetReleasedPeriodProfitsVirtualAddress(Address profitId, long period)

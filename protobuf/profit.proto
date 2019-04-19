@@ -106,3 +106,8 @@ message GetReleasedProfitsInformationInput {
     Hash profit_id = 1;
     sint64 period = 2;
 }
+
+message GetProfitDetailsInput {
+    Hash profit_id = 1;
+    Address receiver = 2;
+}

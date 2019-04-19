@@ -46,4 +46,7 @@ service ProfitContract {
     rpc GetReleasedProfitsInformation (GetReleasedProfitsInformationInput) returns (ReleasedProfitsInformation) {
         option (aelf.is_view) = true;
     }
+    rpc GetProfitDetails (GetProfitDetailsInput) returns (ProfitDetails) {
+        option (aelf.is_view) = true;
+    }
 }
