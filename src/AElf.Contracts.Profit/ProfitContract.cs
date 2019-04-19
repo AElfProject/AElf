@@ -5,7 +5,6 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Crypto.Tls;
 
 namespace AElf.Contracts.Profit
 {
