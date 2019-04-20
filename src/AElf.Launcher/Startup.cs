@@ -11,6 +11,19 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Launcher
 {
+    public enum ChainType
+    {
+        MainChain,
+        SideChain
+    }
+
+    public enum NetType
+    {
+        MainNet,
+        TestNet,
+        CustomNet
+    }
+    
     public class Startup
     {
         private readonly IConfiguration _configuration;
@@ -24,7 +37,10 @@ namespace AElf.Launcher
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
 
-            var chainType = _configuration.GetValue<ChainType>("ChainType", ChainType.MainChain);
+            var chainType = _configuration.GetValue("ChainType", ChainType.MainChain);
+            var netType = _configuration.GetValue("NetType", NetType.MainNet);
+
+            services.GetHostingEnvironment().EnvironmentName = $"{chainType}.{netType}";
 
             switch (chainType)
             {

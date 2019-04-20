@@ -42,16 +42,6 @@ namespace AElf.Blockchains.BasicBaseChain
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var config = context.Services.GetConfiguration();
-            var chainType = config.GetValue("ChainType", ChainType.MainChain);
-            var nodeType = config.GetValue("NetType", NetType.MainNet);
-
-            //TODO: don't write here, should in startup file
-            context.Services.AddConfiguration(new ConfigurationBuilderOptions
-            {
-                EnvironmentName = $"{chainType}.{nodeType}"
-            });
-
             Configure<TokenInitialOptions>(context.Services.GetConfiguration().GetSection("TokenInitial"));
             Configure<ChainOptions>(option =>
             {
@@ -65,19 +55,5 @@ namespace AElf.Blockchains.BasicBaseChain
                     .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
             });
         }
-    }
-
-
-    public enum ChainType
-    {
-        MainChain,
-        SideChain
-    }
-
-    public enum NetType
-    {
-        MainNet,
-        TestNet,
-        CustomNet
     }
 }
