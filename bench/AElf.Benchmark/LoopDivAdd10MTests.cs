@@ -49,7 +49,7 @@ namespace AElf.Benchmark
         public async Task IterationSetup()
         {
             _transaction = _osTestHelper.GenerateTransaction(Address.Generate(), _contractAddress,
-                nameof(PerformanceTestContract.PerformanceTestContract.DivAdd), new DivAddTestInput()
+                nameof(PerformanceTestContract.PerformanceTestContract.LoopDivAdd), new DivAddTestInput()
                 {
                     X = 100,
                     Y = 300,

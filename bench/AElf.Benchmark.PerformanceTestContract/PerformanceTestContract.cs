@@ -18,7 +18,7 @@ namespace AElf.Benchmark.PerformanceTestContract
             return CalculateFibonacci(n - 1) + CalculateFibonacci(n - 2);
         }
 
-        public override Int32Value Nop(PerformanceTesteInput input)
+        public override Int32Value LoopExpNop(PerformanceTesteInput input)
         {
             for (uint i = 0; i < input.N; i++)
             {
@@ -28,7 +28,7 @@ namespace AElf.Benchmark.PerformanceTestContract
             return new Int32Value {Value = input.Seed};
         }
 
-        public override DoubleValue DivAdd(DivAddTestInput input)
+        public override DoubleValue LoopDivAdd(DivAddTestInput input)
         {
             var r = input.X;
             for (uint i = 0; i < input.N; i++) 

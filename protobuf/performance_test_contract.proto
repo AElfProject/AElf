@@ -12,10 +12,10 @@ service PerformanceTestContract {
     rpc Fibonacci (google.protobuf.UInt64Value) returns (google.protobuf.UInt64Value) {
     }
 
-    rpc Nop(PerformanceTesteInput)returns (google.protobuf.Int32Value) {
+    rpc LoopExpNop(PerformanceTesteInput)returns (google.protobuf.Int32Value) {
     }
     
-    rpc DivAdd(DivAddTestInput) returns (google.protobuf.DoubleValue){
+    rpc LoopDivAdd(DivAddTestInput) returns (google.protobuf.DoubleValue){
         
     }
 }

@@ -49,7 +49,7 @@ namespace AElf.Benchmark
         public async Task IterationSetup()
         {
             _transaction = _osTestHelper.GenerateTransaction(Address.Generate(), _contractAddress,
-                nameof(PerformanceTestContract.PerformanceTestContract.Nop), new PerformanceTesteInput()
+                nameof(PerformanceTestContract.PerformanceTestContract.LoopExpNop), new PerformanceTesteInput()
                 {
                     Exponent = 0,
                     Seed = _executeResult,
