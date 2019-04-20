@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
-        <IsPackable>true</IsPackable>
+        <IsPackable>false</IsPackable>
         <RootNamespace>AElf.Contract.Profit</RootNamespace>
     </PropertyGroup>
     <PropertyGroup>
