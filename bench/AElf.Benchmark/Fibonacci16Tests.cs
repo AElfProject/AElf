@@ -19,12 +19,10 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Benchmark
 {
+    [MarkdownExporterAttribute.GitHub]
     public class Fibonacci16Tests : BenchmarkTestBase
     {
         private IBlockchainService _blockchainService;
-        private ISmartContractAddressService _smartContractAddressService;
-        private IAccountService _accountService;
-        private ITransactionResultService _transactionResultService;
         private ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private OSTestHelper _osTestHelper;
 
@@ -40,40 +38,18 @@ namespace AElf.Benchmark
         public async Task GlobalSetup()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
-            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
-            _accountService = GetRequiredService<IAccountService>();
-            _transactionResultService = GetRequiredService<ITransactionResultService>();
             _transactionReadOnlyExecutionService = GetRequiredService<ITransactionReadOnlyExecutionService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
 
-            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
-
-            var transaction = _osTestHelper.GenerateTransaction(Address.Generate(), basicContractZero,
-                nameof(ISmartContractZero.DeploySmartContract), new ContractDeploymentInput()
-                {
-                    Category = 0,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(PerformanceTestContract.PerformanceTestContract)
-                        .Assembly.Location))
-                });
-
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
-            transaction.Sigs.Add(ByteString.CopyFrom(signature));
-
-            await _osTestHelper.BroadcastTransactions(new List<Transaction> {transaction});
-            await _osTestHelper.MinedOneBlock();
-
-            var txResult = await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
-
-            _contractAddress = Address.Parser.ParseFrom(txResult.ReturnValue);
+            _contractAddress = await _osTestHelper.DeployContract<PerformanceTestContract.PerformanceTestContract>();
+            _chain = await _blockchainService.GetChainAsync();
         }
 
         [IterationSetup]
         public async Task IterationSetup()
         {
-            _chain = await _blockchainService.GetChainAsync();
-
             _transaction = _osTestHelper.GenerateTransaction(Address.Generate(), _contractAddress,
-                "Fibonacci", new UInt64Value
+                nameof(PerformanceTestContract.PerformanceTestContract.Fibonacci), new UInt64Value
                 {
                     Value = 16
                 });

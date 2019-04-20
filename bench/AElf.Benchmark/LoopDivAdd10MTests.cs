@@ -19,12 +19,10 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Benchmark
 {
+    [MarkdownExporterAttribute.GitHub]
     public class LoopDivAdd10MTests : BenchmarkTestBase
     {
         private IBlockchainService _blockchainService;
-        private ISmartContractAddressService _smartContractAddressService;
-        private IAccountService _accountService;
-        private ITransactionResultService _transactionResultService;
         private ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private OSTestHelper _osTestHelper;
 
@@ -33,49 +31,29 @@ namespace AElf.Benchmark
         private Address _contractAddress;
         private Chain _chain;
         private TransactionTrace _transactionTrace;
+
+        private const double executeResult = 501.67224080267556; 
         
         [GlobalSetup]
         public async Task GlobalSetup()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
-            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
-            _accountService = GetRequiredService<IAccountService>();
-            _transactionResultService = GetRequiredService<ITransactionResultService>();
             _transactionReadOnlyExecutionService = GetRequiredService<ITransactionReadOnlyExecutionService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
 
-            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
-
-            var transaction = _osTestHelper.GenerateTransaction(Address.Generate(), basicContractZero,
-                nameof(ISmartContractZero.DeploySmartContract), new ContractDeploymentInput()
-                {
-                    Category = 0,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(PerformanceTestContract.PerformanceTestContract)
-                        .Assembly.Location))
-                });
-
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
-            transaction.Sigs.Add(ByteString.CopyFrom(signature));
-
-            await _osTestHelper.BroadcastTransactions(new List<Transaction> {transaction});
-            await _osTestHelper.MinedOneBlock();
-
-            var txResult = await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
-
-            _contractAddress = Address.Parser.ParseFrom(txResult.ReturnValue);
+            _contractAddress = await _osTestHelper.DeployContract<PerformanceTestContract.PerformanceTestContract>();
+            _chain = await _blockchainService.GetChainAsync();
         }
 
         [IterationSetup]
         public async Task IterationSetup()
         {
-            _chain = await _blockchainService.GetChainAsync();
-
             _transaction = _osTestHelper.GenerateTransaction(Address.Generate(), _contractAddress,
-                "DivAdd", new DivAddTestInput()
+                nameof(PerformanceTestContract.PerformanceTestContract.DivAdd), new DivAddTestInput()
                 {
-                    X = 1,
-                    Y = 1,
-                    K = 1,
+                    X = 100,
+                    Y = 300,
+                    K = 500,
                     N = 10000000
                 });
         }
@@ -95,6 +73,11 @@ namespace AElf.Benchmark
         [IterationCleanup]
         public async Task IterationCleanup()
         {
+            var calResult = DoubleValue.Parser.ParseFrom(_transactionTrace.ReturnValue).Value;
+            if (calResult != executeResult)
+            {
+                throw new Exception("execute fail");
+            }
         }
     }
 }
