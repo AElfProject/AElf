@@ -29,11 +29,11 @@ message ParliamentAuthInitializationInput{
 }
 
 message CreateOrganizationInput{
-    double releaseThresholdInFraction = 1;
+    sint32 releaseThreshold = 1;
 }
 
 message Organization{
-    double releaseThresholdInFraction = 1;
+    sint32 releaseThreshold = 1;
     Address organizationAddress = 2;
     Hash organizationHash = 3;
 }
@@ -46,9 +46,5 @@ message ProposalInfo {
     google.protobuf.Timestamp expiredTime = 5;
     Address proposer = 6;
     Address organizationAddress =7;
-}
-
-message ApprovedResult {
-    Hash proposalId = 1;
-    repeated Address approvedRepresentatives = 2;
+    repeated Address approvedRepresentatives = 8;
 }

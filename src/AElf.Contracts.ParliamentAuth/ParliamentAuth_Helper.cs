@@ -7,12 +7,12 @@ namespace AElf.Contracts.ParliamentAuth
 {
     public partial class ParliamentAuthContract
     {
-        private IEnumerable<Address> GetRepresentatives()
+        private List<Address> GetRepresentatives()
         {
             ValidateConsensusContract();
             var miner = State.ConsensusContract.GetCurrentMiners.Call(new Empty());
             var representatives = miner.MinerList.PublicKeys.Select(publicKey =>
-                Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey)));
+                Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey))).ToList();
             return representatives;
         }
 
@@ -22,14 +22,13 @@ namespace AElf.Contracts.ParliamentAuth
             var organization = GetOrganization(organizationAddress);
         }
         
-        private bool IsReadyToRelease(ApprovedResult approvedResult, Organization organization,
+        private bool IsReadyToRelease(ProposalInfo proposal, Organization organization,
             IEnumerable<Address> representatives)
         {
-            var validApprovalWeights = approvedResult.ApprovedRepresentatives.Aggregate(0,
+            var validApprovalWeights = proposal.ApprovedRepresentatives.Aggregate(0,
                 (weights, address) =>
                     weights + (representatives.FirstOrDefault(r => r.Equals(address)) == null ? 0 : 1));
-            return validApprovalWeights >=
-                   Math.Ceiling(organization.ReleaseThresholdInFraction * representatives.Count());
+            return validApprovalWeights * 10000 >= organization.ReleaseThreshold * representatives.Count();
         }
         
         private void ValidateConsensusContract()

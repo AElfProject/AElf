@@ -23,7 +23,6 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(proposal != null, "Not found proposal.");
             var organization = State.Organisations[proposal.OrganizationAddress];
             var representatives = GetRepresentatives();
-            var approved = State.Approved[proposalId];
 
             var result = new ProposalOutput
             {
@@ -34,7 +33,7 @@ namespace AElf.Contracts.ParliamentAuth
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() &&
-                                IsReadyToRelease(approved, organization, representatives)
+                                IsReadyToRelease(proposal, organization, representatives)
             };
 
             return result;
@@ -65,7 +64,7 @@ namespace AElf.Contracts.ParliamentAuth
             {
                 var organization =new Organization
                 {
-                    ReleaseThresholdInFraction = input.ReleaseThresholdInFraction,
+                    ReleaseThreshold = input.ReleaseThreshold,
                     OrganizationAddress = organizationAddress,
                     OrganizationHash = organizationHash
                 };
@@ -106,26 +105,23 @@ namespace AElf.Contracts.ParliamentAuth
             if (Context.CurrentBlockTime > timestamp)
             {
                 // expired proposal
-                State.Proposals[approvalInput.ProposalId] = null;
-                State.Approved[approvalInput.ProposalId] = null;
+                // TODO: Set null to delete data from state db.
+                //State.Proposals[approvalInput.ProposalId] = null;
                 return new BoolValue{Value = false};
             }
-            var approved = State.Approved[approvalInput.ProposalId];
             // check approval not existed
-            Assert(approved == null || !approved.ApprovedRepresentatives.Contains(Context.Sender),
+            Assert(!proposalInfo.ApprovedRepresentatives.Contains(Context.Sender),
                 "Approval already existed.");
-            var representatives = GetRepresentatives().ToArray();
+            var representatives = GetRepresentatives();
             Assert(IsValidRepresentative(representatives), "Not authorized approval.");
-            approved = approved ?? new ApprovedResult();
-            approved.ApprovedRepresentatives.Add(Context.Sender);
-            State.Approved[approvalInput.ProposalId] = approved;
+            proposalInfo.ApprovedRepresentatives.Add(Context.Sender);
+            State.Proposals[approvalInput.ProposalId] = proposalInfo;
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
-            if (IsReadyToRelease(approved, organization, representatives))
+            if (IsReadyToRelease(proposalInfo, organization, representatives))
             {
                 Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
                     proposalInfo.Params);
                 //State.Proposals[approvalInput.ProposalId] = null;
-                //State.Approved[approvalInput.ProposalId] = null;
             }
             return new BoolValue{Value = true};
         }

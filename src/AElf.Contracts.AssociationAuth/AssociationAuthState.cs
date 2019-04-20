@@ -6,6 +6,5 @@ namespace AElf.Contracts.AssociationAuth
     {
         public MappedState<Address, Organization> Organisations { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
-        public MappedState<Hash, ApprovedResult> Approved { get; set; }
     }
 }

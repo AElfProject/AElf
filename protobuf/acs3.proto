@@ -14,8 +14,6 @@ service AuthorizationContract {
     }
     rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) {
     }
-//    rpc Release (Hash) returns (google.protobuf.Empty) {
-//    }
     rpc GetProposal(Hash) returns (ProposalOutput) {
         option (aelf.is_view) = true;
     }
@@ -23,7 +21,7 @@ service AuthorizationContract {
 
 message ApproveInput {
     Hash proposalId = 1;
-    bytes inputData= 2;
+    sint64 quantity= 2;
 }
 
 message CreateProposalInput{
