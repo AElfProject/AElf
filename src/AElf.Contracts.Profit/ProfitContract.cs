@@ -240,7 +240,13 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
+            Assert(Context.Sender == profitItem.Creator, "Only creator can release profits.");
+
             // Update current_period.
+            var releasingPeriod = profitItem.CurrentPeriod;
+
+            Assert(input.Period == releasingPeriod, "Invalid period.");
+
             profitItem.CurrentPeriod += 1;
             State.ProfitItemsMap[input.ProfitId] = profitItem;
 
@@ -257,7 +263,7 @@ namespace AElf.Contracts.Profit
             Assert(input.Amount <= balance, "Insufficient profits amount.");
 
             var profitsReceivingVirtualAddress =
-                GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, input.Period);
+                GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, releasingPeriod);
 
             var releasedProfitInformation = State.ReleasedProfitsMap[profitsReceivingVirtualAddress];
             if (releasedProfitInformation == null)

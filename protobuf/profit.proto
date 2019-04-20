@@ -51,7 +51,6 @@ message ReleaseProfitInput {
     Hash profit_id = 1;
     sint64 period = 2;
     sint64 amount = 3;
-    Address creator = 4;
 }
 
 message ProfitDetails {
