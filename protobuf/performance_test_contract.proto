@@ -14,10 +14,21 @@ service PerformanceTestContract {
 
     rpc Nop(PerformanceTesteInput)returns (google.protobuf.Int32Value) {
     }
+    
+    rpc DivAdd(DivAddTestInput) returns (google.protobuf.DoubleValue){
+        
+    }
 }
 
 message PerformanceTesteInput {
     int32 Exponent = 1;
     int32 Seed = 2;
     uint32 n =3;
+}
+
+message DivAddTestInput{
+    double X =1;
+    double Y =2;
+    double K = 3;
+    uint32 N = 4;
 }

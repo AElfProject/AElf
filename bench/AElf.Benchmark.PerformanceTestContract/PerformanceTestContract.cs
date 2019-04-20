@@ -27,5 +27,17 @@ namespace AElf.Benchmark.PerformanceTestContract
 
             return new Int32Value {Value = input.Seed};
         }
+
+        public override DoubleValue DivAdd(DivAddTestInput input)
+        {
+            var r = input.X;
+            for (uint i = 0; i < input.N; i += 1) 
+            {
+                r /= input.Y;
+                r += input.K;
+            }
+
+            return new DoubleValue {Value = r};
+        }
     }
 }
