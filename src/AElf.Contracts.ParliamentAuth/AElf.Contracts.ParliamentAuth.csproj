@@ -25,9 +25,6 @@
         <Content Include="..\..\protobuf\dpos_contract.proto">
             <Link>Protobuf/Proto/dpos_contract.proto</Link>
         </Content>
-        <Content Include="..\..\protobuf\proposal.proto">
-            <Link>Protobuf/Proto/proposal.proto</Link>
-        </Content>
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Protobuf\Generated" />
@@ -36,8 +33,8 @@
     <ItemGroup>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_base.sh acs3.proto; ../../scripts/generate_contract_reference.sh consensus_dpos.proto dpos_contract.proto proposal.proto basic_contract_zero.proto; ../../scripts/generate_contract_code.sh parliament_auth_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_base.bat acs3.proto &amp; ..\..\scripts\generate_contract_reference.bat consensus_dpos.proto dpos_contract.proto proposal.proto basic_contract_zero.proto &amp; ..\..\scripts\generate_contract_code.bat parliament_auth_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_base.sh acs3.proto; ../../scripts/generate_contract_reference.sh consensus_dpos.proto dpos_contract.proto basic_contract_zero.proto; ../../scripts/generate_contract_code.sh parliament_auth_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_base.bat acs3.proto &amp; ..\..\scripts\generate_contract_reference.bat consensus_dpos.proto dpos_contract.proto basic_contract_zero.proto &amp; ..\..\scripts\generate_contract_code.bat parliament_auth_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
