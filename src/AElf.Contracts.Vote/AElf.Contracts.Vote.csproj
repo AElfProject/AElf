@@ -5,30 +5,33 @@
         <PackageId>AElf.Contracts.Vote</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
-    
+
     <ItemGroup>
-        <Content Include="..\..\protobuf\common.proto">
+        <None Include="..\..\protobuf\common.proto">
             <Link>Protobuf/Proto/common.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\kernel.proto">
+        </None>
+        <None Include="..\..\protobuf\kernel.proto">
             <Link>Protobuf/Proto/kernel.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\aelf_options.proto">
+        </None>
+        <None Include="..\..\protobuf\aelf_options.proto">
             <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\vote.proto">
-          <Link>Protobuf/Proto/vote.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\vote_contract.proto">
-        <Link>Protobuf/Proto/vote_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\basic_contract_zero.proto">
+        </None>
+        <None Include="..\..\protobuf\vote.proto">
+            <Link>Protobuf/Proto/vote.proto</Link>
+        </None>
+        <None Include="..\..\protobuf\vote_contract.proto">
+            <Link>Protobuf/Proto/vote_contract.proto</Link>
+        </None>
+        <None Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </Content>
+        </None>
+        <None Include="..\..\protobuf\dpos_contract.proto">
+            <Link>Protobuf/Proto/dpos_contract.proto</Link>
+        </None>
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">

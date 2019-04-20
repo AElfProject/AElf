@@ -11,33 +11,33 @@
     </ItemGroup>
     
     <ItemGroup>
-        <Content Include="..\..\protobuf\common.proto">
+        <None Include="..\..\protobuf\common.proto">
             <Link>Protobuf/Proto/common.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\kernel.proto">
+        </None>
+        <None Include="..\..\protobuf\kernel.proto">
             <Link>Protobuf/Proto/kernel.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\aelf_options.proto">
+        </None>
+        <None Include="..\..\protobuf\aelf_options.proto">
             <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\vote.proto">
+        </None>
+        <None Include="..\..\protobuf\vote.proto">
             <Link>Protobuf/Proto/vote.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\vote_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf/Proto/vote_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\token_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\basic_contract_zero.proto">
+        </None>
+        <None Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\election.proto">
+        </None>
+        <None Include="..\..\protobuf\election.proto">
             <Link>Protobuf/Proto/election.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\election_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\election_contract.proto">
             <Link>Protobuf/Proto/election_contract.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
