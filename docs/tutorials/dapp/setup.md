@@ -56,10 +56,12 @@ Total tests: 1. Passed: 1. Failed: 0. Skipped: 0.
 
 ## Run the JS SDK Demo
 
+You need install [Nodejs](https://nodejs.org/) at first.
+
 The following commands will demonstrate the capabilities of the js sdk, execute them in order:
 
 ```bash
-cd Web/JSSDK
+cd ../../../web/JSSDK/
 npm install
 npm start
 ```
@@ -70,14 +72,20 @@ You should see the results in the terminal or in the browser dev tool.
 
 To use the browser extension you must follow the following instructions:
 
+1.Install the exntension.
+
+click to install [dev version](https://chrome.google.com/webstore/detail/aelf-explorer-extension-d/mlmlhipeonlflbcclinpbmcjdnpnmkpf)
+
 [extension repo](https://github.com/hzz780/aelf-web-extension)
 
-Next go into the extensions folder and run the app with the following commands:
+2.Next go into the extensions folder and run the app with the following commands:
 
 ```bash
-cd ../../Web/browserExtension
+cd ../browserExtension/
 npm install
 npm start
 ```
 
 To see the plugin in action you can navigate to the following address in your browser: [http://localhost:3000](http://localhost:3000)
+
+Please open dev tool to see the results.
