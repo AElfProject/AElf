@@ -21,24 +21,24 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <None Include="..\..\protobuf\common.proto">
+        <Content Include="..\..\protobuf\common.proto">
             <Link>Protobuf/Proto/common.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\aelf_options.proto">
+        </Content>
+        <Content Include="..\..\protobuf\aelf_options.proto">
             <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\vote.proto">
+        </Content>
+        <Content Include="..\..\protobuf\vote.proto">
             <Link>Protobuf/Proto/vote.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\vote_contract.proto">
+        </Content>
+        <Content Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf/Proto/vote_contract.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\token_contract.proto">
+        </Content>
+        <Content Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\basic_contract_zero.proto">
+        </Content>
+        <Content Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </None>
+        </Content>
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Protobuf\Generated" />

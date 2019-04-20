@@ -41,9 +41,6 @@
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
         </Content>
     </ItemGroup>
-    <ItemGroup>
-        <Folder Include="Protobuf\Generated" />
-    </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto token_contract.proto profit_contract.proto" />
         <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto token_contract.proto profit_contract.proto" />
