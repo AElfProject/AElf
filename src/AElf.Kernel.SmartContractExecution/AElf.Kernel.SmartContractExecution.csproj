@@ -22,9 +22,9 @@
     </ItemGroup>
   </Target>
   <ItemGroup>
-    <Content Include="..\..\protobuf\execution.proto">
+    <None Include="..\..\protobuf\execution.proto">
       <Link>Protobuf/Proto/execution.proto</Link>
-    </Content>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />

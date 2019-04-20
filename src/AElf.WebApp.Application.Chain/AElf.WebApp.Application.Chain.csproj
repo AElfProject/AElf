@@ -5,6 +5,8 @@
         <RootNamespace>AElf.WebApp.Application.Chain</RootNamespace>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);1591</NoWarn>
+        <PackageId>AElf.WebApp.Application.Chain</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
