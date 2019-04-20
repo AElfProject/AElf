@@ -280,6 +280,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Consensus.DPos.Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Consensus.DPoS.Types.Tests", "test\AElf.Consensus.DPoS.Types.Tests\AElf.Consensus.DPoS.Types.Tests.csproj", "{2A3267D8-415E-40AC-BB37-531D1AE9FB9A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AssociationAuth.Tests", "test\AElf.Contracts.AssociationAuth.Tests\AElf.Contracts.AssociationAuth.Tests.csproj", "{0D0F83C6-EB18-4DCE-9191-EF72794B7E58}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -790,6 +792,10 @@ Global
 		{2A3267D8-415E-40AC-BB37-531D1AE9FB9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A3267D8-415E-40AC-BB37-531D1AE9FB9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2A3267D8-415E-40AC-BB37-531D1AE9FB9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D0F83C6-EB18-4DCE-9191-EF72794B7E58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D0F83C6-EB18-4DCE-9191-EF72794B7E58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D0F83C6-EB18-4DCE-9191-EF72794B7E58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D0F83C6-EB18-4DCE-9191-EF72794B7E58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -934,5 +940,6 @@ Global
 		{165D8639-ED9E-4056-BAA2-5AB53491EF25} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{0E65C39D-0E43-45EF-A585-F08690DBA486} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{2A3267D8-415E-40AC-BB37-531D1AE9FB9A} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{0D0F83C6-EB18-4DCE-9191-EF72794B7E58} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal
