@@ -1,4 +1,4 @@
-## Enterprise development
+# Enterprise development
 
 This section describes how buisnesses can easily use AElf's framework to build their own chain software. 
 
