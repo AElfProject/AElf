@@ -4,6 +4,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.CrossChain;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -145,7 +146,7 @@ namespace AElf.Contracts.CrossChain
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = "ELF",
+                Symbol = Context.Variables.NativeSymbol,
                 Amount = amount,
                 Memo = "Recharge."
             });
@@ -319,7 +320,7 @@ namespace AElf.Contracts.CrossChain
                 Transfer(new TransferInput
                 {
                     To = Context.Sender,
-                    Symbol = "ELF",
+                    Symbol = Context.Variables.NativeSymbol,
                     Amount = indexingPrice,
                     Memo = "Index fee."
                 });

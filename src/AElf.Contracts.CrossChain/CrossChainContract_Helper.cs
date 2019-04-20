@@ -3,11 +3,9 @@ using System.Linq;
 using Acs3;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
-using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -63,7 +61,7 @@ namespace AElf.Contracts.CrossChain
             var balance = GetBalance(new GetBalanceInput
             {
                 Owner = Context.Sender,
-                Symbol = "ELF"
+                Symbol = Context.Variables.NativeSymbol
             });
 
             Assert(balance > 0);
@@ -73,7 +71,7 @@ namespace AElf.Contracts.CrossChain
                 From = Context.Sender,
                 To = Context.Self,
                 Amount = sideChainInfo.LockedTokenAmount,
-                Symbol = "ELF"
+                Symbol = Context.Variables.NativeSymbol
             });
             State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
             // Todo: enable resource
@@ -95,7 +93,7 @@ namespace AElf.Contracts.CrossChain
                 {
                     To = sideChainInfo.Proposer,
                     Amount = balance,
-                    Symbol = "ELF"
+                    Symbol = Context.Variables.NativeSymbol
                 });
             State.IndexingBalance[chainId] = 0;
 

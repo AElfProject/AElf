@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Blockchains.BasicBaseChain;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
 using Microsoft.AspNetCore.Builder;
@@ -12,8 +13,15 @@ namespace AElf.Launcher
 {
     public enum ChainType
     {
-        Main,
-        Side
+        MainChain,
+        SideChain
+    }
+
+    public enum NetType
+    {
+        MainNet,
+        TestNet,
+        CustomNet
     }
     
     public class Startup
@@ -29,18 +37,21 @@ namespace AElf.Launcher
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
 
-            var chainType = _configuration.GetValue<ChainType>("ChainType");
+            var chainType = _configuration.GetValue("ChainType", ChainType.MainChain);
+            var netType = _configuration.GetValue("NetType", NetType.MainNet);
+
+            services.GetHostingEnvironment().EnvironmentName = $"{chainType}.{netType}";
 
             switch (chainType)
             {
-                case ChainType.Side:
+                case ChainType.SideChain:
                     AddApplication<SideChainAElfModule>(services);
                     break;
                 default:
                     AddApplication<MainChainAElfModule>(services);
                     break;
             }
-
+            
             return services.BuildAutofacServiceProvider();
         }
         

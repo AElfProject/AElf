@@ -165,7 +165,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name,
+                    LockTokenForElection = DPoSContractConsts.LockTokenForElection
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(

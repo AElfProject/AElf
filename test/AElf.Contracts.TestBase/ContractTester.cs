@@ -265,7 +265,8 @@ namespace AElf.Contracts.TestBase
                 new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name,
+                    LockTokenForElection = DPoSContractConsts.LockTokenForElection
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
@@ -281,7 +282,8 @@ namespace AElf.Contracts.TestBase
                 new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name,
+                    LockTokenForElection = DPoSContractConsts.LockTokenForElection
                 });
             var firstRound = initialMiners.ToMiners()
                 .GenerateFirstRoundOfNewTerm(miningInterval, startTimestamp.ToDateTime());
