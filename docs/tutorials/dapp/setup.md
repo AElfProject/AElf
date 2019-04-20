@@ -40,7 +40,17 @@ To actually run the node, use the follwing command.
 dotnet run bin/Debug/netcoreapp2.2/AElf.Boilerplate.Launcher
 ```
 
-At this point the smart contract has been deplyed and is ready to use.
+At this point the smart contract has been deployed and is ready to use.
+
+If you want to run the tests, simply navigate to the HelloWorldContract.Test folder. From here run:
+
+```bash
+dotnet test
+```
+The output should look somewhat like this:
+```bash 
+Total tests: 1. Passed: 1. Failed: 0. Skipped: 0.
+```
 
 ## Run the JS SDK Demo
 
