@@ -57,6 +57,41 @@ namespace AElf.Contract.TestContract
                 new Empty())).BoolValue;
             result.ShouldBeTrue();
         }
+        
+        [Fact]
+        public async Task UpdateContract_And_Call_Old_Method()
+        {
+            var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
+                new ContractUpdateInput
+                {
+                    Address = Basic1ContractAddress,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(Basic11Contract).Assembly.Location)) 
+                }
+            )).TransactionResult;
+            
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            //execute new action method
+            transactionResult = (await TestBasic1ContractStub.UserPlayBet.SendAsync(
+                new BetInput
+                {
+                    Int64Value = 100
+                })).TransactionResult;
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            //check result
+            var winData = (await TestBasic1ContractStub.QueryUserWinMoney.CallAsync(
+                DefaultSender)).Int64Value;
+            if (winData > 0)
+            {
+                winData.ShouldBeGreaterThanOrEqualTo(100);
+                return;
+            }
+            var loseData = (await TestBasic1ContractStub.QueryUserLoseMoney.CallAsync(
+                DefaultSender)).Int64Value;
+            (winData + loseData).ShouldBe(100);
+        }
+
 
         [Fact]
         public async Task UpdateContract_WithoutOwner_Failed()
