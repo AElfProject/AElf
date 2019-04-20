@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -25,9 +24,6 @@ namespace AElf.Contracts.Profit
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         
-        protected IECKeyPairProvider ECKeyPairProvider =>
-            Application.ServiceProvider.GetRequiredService<IECKeyPairProvider>();
-
         internal List<ProfitContractContainer.ProfitContractStub> Creators => CreatorMinerKeyPair
             .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
 
@@ -42,8 +38,6 @@ namespace AElf.Contracts.Profit
         protected void InitializeContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(StarterKeyPair);
-
-            ECKeyPairProvider.SetECKeyPair(StarterKeyPair);
             
             ProfitContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
