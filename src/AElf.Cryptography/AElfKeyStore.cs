@@ -145,12 +145,12 @@ namespace AElf.Cryptography
             if (keyPair?.PrivateKey == null || keyPair.PublicKey == null)
                 throw new InvalidKeyPairException("Invalid keypair (null reference).", null);
 
-            if (string.IsNullOrEmpty(password))
-            {
-                // Why here we can just invoke Console.WriteLine? should we use Logger?
-                Console.WriteLine("Invalid password.");
-                return false;
-            }
+//            if (string.IsNullOrEmpty(password))
+//            {
+//                // Why here we can just invoke Console.WriteLine? should we use Logger?
+//                Console.WriteLine("Invalid password.");
+//                return false;
+//            }
 
             // Ensure path exists
             GetOrCreateKeystoreDir();

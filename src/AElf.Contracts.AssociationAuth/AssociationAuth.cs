@@ -20,7 +20,6 @@ namespace AElf.Contracts.AssociationAuth
         public override ProposalOutput GetProposal(Hash proposalId)
         {
             var proposal = State.Proposals[proposalId];
-            var approved = State.Approved[proposalId];
             var organization = GetOrganization(proposal.OrganizationAddress);
 
             var result = new ProposalOutput
@@ -31,7 +30,7 @@ namespace AElf.Contracts.AssociationAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() && IsReadyToRelease(approved, organization)
+                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() && IsReadyToRelease(proposal, organization)
             };
 
             return result;
@@ -95,26 +94,23 @@ namespace AElf.Contracts.AssociationAuth
             if (Context.CurrentBlockTime > timestamp)
             {
                 // expired proposal
-                State.Proposals[approvalInput.ProposalId] = null;
-                State.Approved[approvalInput.ProposalId] = null;
+                //State.Proposals[approvalInput.ProposalId] = null;
                 return new BoolValue{Value = false};
             }
-            var approved = State.Approved[approvalInput.ProposalId];
             // check approval not existed
-            Assert(approved == null || !approved.ApprovedReviewer.Contains(Context.Sender), "Approval already exists.");
+            Assert(proposalInfo.ApprovedReviewer.Contains(Context.Sender), "Approval already exists.");
             var organization = GetOrganization(proposalInfo.OrganizationAddress);
             var reviewer = organization.Reviewers.FirstOrDefault(r => r.Address.Equals(Context.Sender));
             Assert(reviewer != null,"Not authorized approval.");
-            approved.ApprovedReviewer.Add(Context.Sender);
-            approved.ApprovedWeight += reviewer.Weight;
-            State.Approved[approvalInput.ProposalId] = approved;
+            proposalInfo.ApprovedReviewer.Add(Context.Sender);
+            proposalInfo.ApprovedWeight += reviewer.Weight;
+            State.Proposals[approvalInput.ProposalId] = proposalInfo;
 
-            if (IsReadyToRelease(approved, organization))
+            if (IsReadyToRelease(proposalInfo, organization))
             {
                 Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
                     proposalInfo.Params);
-                State.Proposals[approvalInput.ProposalId] = null;
-                State.Approved[approvalInput.ProposalId] = null;
+                //State.Proposals[approvalInput.ProposalId] = null;
             }
             return new BoolValue{Value = true};
         }

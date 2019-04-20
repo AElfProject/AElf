@@ -46,10 +46,6 @@ message ProposalInfo {
     google.protobuf.Timestamp expiredTime = 5;
     Address proposer = 6;
     Address organizationAddress = 7;
-}
-
-message ApprovedResult {
-    Hash proposalId = 1;
-    int32 approvedWeight = 2;
-    repeated Address approvedReviewer = 3;
+    int32 approvedWeight = 8;
+    repeated Address approvedReviewer = 9;
 }

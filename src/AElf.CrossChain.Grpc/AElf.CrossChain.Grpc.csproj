@@ -7,20 +7,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
-      <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
-      <ProjectReference Include="..\AElf.CrossChain.Types\AElf.CrossChain.Types.csproj" />
+        <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+        <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
+        <ProjectReference Include="..\AElf.CrossChain.Types\AElf.CrossChain.Types.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\..\protobuf\header_info.proto">
+        <None Include="..\..\protobuf\header_info.proto">
             <Link>./Grpc/Protobuf/header_info.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Grpc" Version="1.19.0" />
-      <PackageReference Include="Grpc.Tools" Version="1.19.0" />
+        <PackageReference Include="Grpc" Version="1.19.0" />
+        <PackageReference Include="Grpc.Tools" Version="1.19.0" />
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

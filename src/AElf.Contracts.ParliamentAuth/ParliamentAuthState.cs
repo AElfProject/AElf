@@ -14,6 +14,5 @@ namespace AElf.Contracts.ParliamentAuth
         internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract {get; set; }    
         internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
-        public MappedState<Hash, ApprovedResult> Approved { get; set; }
     }
 }

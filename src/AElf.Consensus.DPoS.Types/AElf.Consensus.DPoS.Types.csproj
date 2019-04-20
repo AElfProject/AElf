@@ -23,9 +23,9 @@
     </Target>
 
     <ItemGroup>
-      <Content Include="..\..\protobuf\consensus_dpos.proto">
+      <None Include="..\..\protobuf\consensus_dpos.proto">
         <Link>Protobuf/Proto/consensus_dpos.proto</Link>
-      </Content>
+      </None>
     </ItemGroup>
 
 </Project>

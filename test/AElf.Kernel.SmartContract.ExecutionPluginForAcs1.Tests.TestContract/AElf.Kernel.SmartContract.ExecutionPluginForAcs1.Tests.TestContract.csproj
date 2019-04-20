@@ -10,15 +10,15 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\protobuf\acs1.proto">
+      <None Include="..\..\protobuf\acs1.proto">
         <Link>Protobuf/Proto/acs1.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\aelf_options.proto">
+      </None>
+      <None Include="..\..\protobuf\aelf_options.proto">
         <Link>Protobuf/Proto/aelf_options.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\acs1_plugin_test_contract.proto">
+      </None>
+      <None Include="..\..\protobuf\acs1_plugin_test_contract.proto">
         <Link>Protobuf/Proto/acs1_plugin_test_contract.proto</Link>
-      </Content>
+      </None>
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
