@@ -10,29 +10,61 @@ git clone https://github.com/AElfProject/aelf-boilerplate
 
 ### Build and run
 
+Add this line to your global nuget config:
+
+```xml
+<add key="myget" value="https://www.myget.org/F/aelf-project-dev/api/v3/index.json" protocolVersion="3" />
+```
+
 In this tutorial we'll use visual studio code to illustrate the steps but of course, you can use another IDE.
 
-First open the folder you have just cloned. If asked to add dependencies and restor, say yes to both.
+First open the folder you have just cloned. If asked to add dependencies and restore, say yes to both.
+
+<p align="center">
+  <img src="dep-yes.png" width="300">
+</p>
+
+Open vscodes terminal and build the project with the following command:
+
+```bash
+dotnet run bin/Debug/netcoreapp2.2/AElf.Boilerplate.Launcher
+```
+
+<p align="center">
+  <img src="term.png" width="400">
+</p>
+
+To actually run the node, use the follwing command.
+
+```bash
+dotnet run bin/Debug/netcoreapp2.2/AElf.Boilerplate.Launcher
+```
+
+At this point the smart contract has been deplyed and is ready to use.
 
 ## Run the JS SDK Demo
+
+The following commands will demonstrate the capabilities of the js sdk, execute them in order:
 
 ```bash
 cd Web/JSSDK
 npm install
 node index.js
-// You will get the results
 ```
+
+You should see the results.
 
 ## Run the browser extension Demo
 
-Install the browser extension at first
+To use the browser extension you must follow the following instructions:
 
 [extension repo](https://github.com/hzz780/aelf-web-extension)
+
+Next go into the extensions folder and run the app with the following commands:
 
 ```bash
 cd Web/browserExtension
 npm install
 node app.js
 ```
-
-open [http://localhost:3000](http://localhost:3000)
+To see the plugin in action you can navigate to the following address in your browser: [http://localhost:3000](http://localhost:3000)
