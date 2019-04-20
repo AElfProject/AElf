@@ -123,6 +123,7 @@ namespace AElf.Contracts.Profit
         public async Task ProfitContract_AddProfits()
         {
             const int amount = 1000;
+            
             var creator = Creators[0];
             var tokenContractStub = GetTokenContractTester(CreatorMinerKeyPair[0]);
 
@@ -188,7 +189,73 @@ namespace AElf.Contracts.Profit
             }
         }
 
-        private async Task<Hash> CreateProfitItem()
+        [Fact]
+        public async Task ProfitContract_RegisterSubProfitItem()
+        {
+            const int weight1 = 80;
+            const int weight2 = 20;
+
+            var creator = Creators[0];
+
+            var profitId = await CreateProfitItem();
+            var subProfitId1 = await CreateProfitItem(1);
+            var subProfitId2 = await CreateProfitItem(2);
+
+            var subProfitItem1 = await creator.GetProfitItem.CallAsync(subProfitId1);
+            var subProfitItem2 = await creator.GetProfitItem.CallAsync(subProfitId2);
+
+            await creator.RegisterSubProfitItem.SendAsync(new RegisterSubProfitItemInput
+            {
+                ProfitId = profitId,
+                SubProfitId = subProfitId1,
+                SubItemWeight = weight1
+            });
+
+            var profitDetails1 = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                ProfitId = profitId,
+                Receiver = subProfitItem1.VirtualAddress
+            });
+
+            // Check the total_weight of profit item.
+            {
+                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
+                profitItem.TotalWeight.ShouldBe(weight1);
+            }
+
+            profitDetails1.Details.Count.ShouldBe(1);
+            profitDetails1.Details.First().StartPeriod.ShouldBe(1);
+            profitDetails1.Details.First().EndPeriod.ShouldBe(long.MaxValue);
+            profitDetails1.Details.First().LastProfitPeriod.ShouldBe(0);
+            profitDetails1.Details.First().Weight.ShouldBe(weight1);
+            
+            await creator.RegisterSubProfitItem.SendAsync(new RegisterSubProfitItemInput
+            {
+                ProfitId = profitId,
+                SubProfitId = subProfitId2,
+                SubItemWeight = weight2
+            });
+
+            var profitDetails2 = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                ProfitId = profitId,
+                Receiver = subProfitItem2.VirtualAddress
+            });
+            
+            // Check the total_weight of profit item.
+            {
+                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
+                profitItem.TotalWeight.ShouldBe(weight1 + weight2);
+            }
+            
+            profitDetails2.Details.Count.ShouldBe(1);
+            profitDetails2.Details.First().StartPeriod.ShouldBe(1);
+            profitDetails2.Details.First().EndPeriod.ShouldBe(long.MaxValue);
+            profitDetails2.Details.First().LastProfitPeriod.ShouldBe(0);
+            profitDetails2.Details.First().Weight.ShouldBe(weight2);
+        }
+
+        private async Task<Hash> CreateProfitItem(int returnIndex = 0)
         {
             var creator = Creators[0];
             var creatorAddress = Address.FromPublicKey(CreatorMinerKeyPair[0].PublicKey);
@@ -203,7 +270,7 @@ namespace AElf.Contracts.Profit
                 Creator = creatorAddress
             })).ProfitIds;
 
-            return createdProfitIds.First();
+            return createdProfitIds[returnIndex];
         }
     }
 }

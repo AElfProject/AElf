@@ -30,10 +30,10 @@
             <Link>Protobuf/Proto/aelf_options.proto</Link>
         </Content>
         <Content Include="..\..\protobuf\profit.proto">
-            <Link>Protobuf/Proto/vote.proto</Link>
+            <Link>Protobuf/Proto/profit.proto</Link>
         </Content>
         <Content Include="..\..\protobuf\profit_contract.proto">
-            <Link>Protobuf/Proto/vote_contract.proto</Link>
+            <Link>Protobuf/Proto/profit_contract.proto</Link>
         </Content>
         <Content Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
