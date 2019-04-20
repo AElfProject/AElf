@@ -23,7 +23,12 @@ namespace AElf.Runtime.CSharp
             var path = Path.Combine(_sdkDir, assemblyName.Name + ".dll");
             if (!File.Exists(path))
             {
-                return null;
+                var assembly = Assembly.Load(assemblyName);
+
+                if (assembly == null)
+                    return null;
+
+                path = assembly.Location;
             }
 
             if (!_cachedSdkStreams.TryGetValue(path, out var ms))
