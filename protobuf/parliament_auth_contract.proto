@@ -26,7 +26,6 @@ service ParliamentAuthContract {
 
 message ParliamentAuthInitializationInput{
     Hash consensusContractSystemName = 1;
-    sint32 defaultOrganizationReleaseThreshold =2;
 }
 
 message CreateOrganizationInput{

@@ -8,6 +8,7 @@ using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.CrossChain;
@@ -73,6 +74,8 @@ namespace AElf.Blockchains.MainChain
                 ResourceSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
                 ResourceFeeReceiverSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ParliamentAuthContract>(
+                ParliamentAuthContractAddressNameProvider.Name, GenerateParliamentInitializationCallList());
             var crossChainMethodCallList = new SystemTransactionMethodCallList();
             crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize), new AElf.Contracts.CrossChain.InitializeInput
             {
@@ -169,6 +172,16 @@ namespace AElf.Blockchains.MainChain
                 CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
             });
             return tokenContractCallList;
+        }
+
+        private SystemTransactionMethodCallList GenerateParliamentInitializationCallList()
+        {
+            var parliamentContractCallList = new SystemTransactionMethodCallList();
+            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuthInitializationInput
+            {
+                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
+            });
+            return parliamentContractCallList;
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)

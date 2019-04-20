@@ -6,5 +6,6 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
     </ItemGroup>
 </Project>

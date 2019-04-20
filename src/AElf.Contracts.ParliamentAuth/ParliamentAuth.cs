@@ -52,8 +52,8 @@ namespace AElf.Contracts.ParliamentAuth
             State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Initialized.Value = true;
-            State.DefaultOrganizationAddress.Value = CreateOrganization(new CreateOrganizationInput
-                {ReleaseThreshold = input.DefaultOrganizationReleaseThreshold}); 
+            State.DefaultOrganizationAddress.Value =
+                CreateOrganization(new CreateOrganizationInput {ReleaseThreshold = _defaultOrganizationReleaseThreshold});
             return new Empty();
         }
         

@@ -48,5 +48,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             return Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
         }
+
+        private int _defaultOrganizationReleaseThreshold = 6666; // 2/3 for default parliament organization
     }
 }

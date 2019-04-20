@@ -6,6 +6,7 @@ using AElf.Contracts.CrossChain;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.ParliamentAuth;
 using AElf.CrossChain;
 using AElf.CrossChain.Grpc;
 using AElf.Kernel;
@@ -59,6 +60,9 @@ namespace AElf.Blockchains.SideChain
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name, GenerateTokenInitializationCallList());
             
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ParliamentAuthContract>(
+                ParliamentAuthContractAddressNameProvider.Name, GenerateParliamentInitializationCallList());
+            
             var crossChainOption = context.ServiceProvider.GetService<IOptionsSnapshot<CrossChainConfigOption>>()
                 .Value;
             int parentChainId = crossChainOption.ParentChainId;
@@ -111,6 +115,16 @@ namespace AElf.Blockchains.SideChain
                 ParentChainId = parentChainId
             });
             return crossChainMethodCallList;
+        }
+        
+        private SystemTransactionMethodCallList GenerateParliamentInitializationCallList()
+        {
+            var parliamentContractCallList = new SystemTransactionMethodCallList();
+            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuthInitializationInput
+            {
+                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
+            });
+            return parliamentContractCallList;
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
