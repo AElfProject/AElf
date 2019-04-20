@@ -1,8 +1,6 @@
 # How to develop a DAPP by Browser Extension
 
-Please see `Develop Smart Contract` at first.
-
-And `How to develop a DAPP by JS SDK` will help you too.
+`Use JS SDK` will help you.
 
 You can get the [document](https://github.com/hzz780/aelf-web-extension) of the Extension.
 
@@ -69,7 +67,7 @@ nightElfCheck.check.then(message => {
 ```js
 const aelf = new window.NightElf.AElf({
     // Enter your test address in this location
-    httpProvider: 'http://127.0.0.1:1728/chain',
+    httpProvider: 'http://127.0.0.1:1235/chain',
     appName: 'appName'
 });
 
@@ -93,6 +91,7 @@ aelf.login({
         method: 'LOGIN',
         contracts: [{
             chainId: 'AELF',
+            // In the demo: helloWorldAddress = 2UEEa5yiFhuh6JDfTGrbAFqoqzbKkY4Vk9YZDXAdw16wkMw
             contractAddress: helloWorldAddress,
             contractName: 'hello world',
             description: 'hello world contract',
