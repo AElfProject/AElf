@@ -69,7 +69,7 @@ nightElfCheck.check.then(message => {
 ```js
 const aelf = new window.NightElf.AElf({
     // Enter your test address in this location
-    httpProvider: 'http://127.0.0.1:1728/chain',
+    httpProvider: 'http://127.0.0.1:1235/chain',
     appName: 'appName'
 });
 
@@ -93,6 +93,7 @@ aelf.login({
         method: 'LOGIN',
         contracts: [{
             chainId: 'AELF',
+            // In the demo: helloWorldAddress = 2UEEa5yiFhuh6JDfTGrbAFqoqzbKkY4Vk9YZDXAdw16wkMw
             contractAddress: helloWorldAddress,
             contractName: 'hello world',
             description: 'hello world contract',
