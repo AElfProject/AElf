@@ -25,8 +25,8 @@
         </ItemGroup>
     </Target>
     <ItemGroup>
-        <Content Include="..\..\protobuf\network_types.proto">
+        <None Include="..\..\protobuf\network_types.proto">
             <Link>Network/Proto/network_types.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
 </Project>
