@@ -10,11 +10,10 @@ option csharp_namespace = "AElf.Contracts.AssociationAuth";
 service AssociationAuthContract {
     option (aelf.csharp_state) = "AElf.Contracts.AssociationAuth.AssociationAuthState";
     option (aelf.base) = "acs3.proto";
-    // Actions
-    rpc Initialize(AssociationAuthContractInitializationInput) returns (google.protobuf.Empty){
-    }
+    // Actions    
     rpc CreateOrganization (CreateOrganizationInput) returns (Address) {        
     }
+    //view
     rpc GetOrganization (Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
@@ -35,10 +34,18 @@ message Organization{
 }
 
 message Reviewer {
-    bytes pubKey = 1;
+    Address address  = 1;
     int32 weight = 2;
 }
 
-message AssociationAuthContractInitializationInput{
-    Hash proposalContractSystemName = 1;
+message ProposalInfo {
+    Hash proposalId = 1;
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Address proposer = 6;
+    Address organizationAddress = 7;
+    int32 approvedWeight = 8;
+    repeated Address approvedReviewer = 9;
 }
