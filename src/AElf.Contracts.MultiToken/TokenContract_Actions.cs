@@ -193,9 +193,9 @@ namespace AElf.Contracts.MultiToken
 
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
-            if (allowance >= input.Amount)
+            if (allowance < input.Amount)
             {
-                Assert(true, "Insufficient allowance.");
+                Assert(false, "Insufficient allowance.");
             }
             else
             {
