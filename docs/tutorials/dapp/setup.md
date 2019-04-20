@@ -46,6 +46,7 @@ At this point the smart contract has been deployed and is ready to use.
 If you want to run the tests, simply navigate to the HelloWorldContract.Test folder. From here run:
 
 ```bash
+cd ../../test/HelloWorldContract.Test/
 dotnet test
 ```
 The output should look somewhat like this:
@@ -74,7 +75,7 @@ To use the browser extension you must follow the following instructions:
 Next go into the extensions folder and run the app with the following commands:
 
 ```bash
-cd Web/browserExtension
+cd ../../Web/browserExtension
 npm install
 npm start
 ```
