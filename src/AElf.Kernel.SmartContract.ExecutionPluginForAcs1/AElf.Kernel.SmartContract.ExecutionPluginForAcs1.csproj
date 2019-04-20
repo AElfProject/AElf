@@ -10,12 +10,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\..\protobuf\acs1.proto">
+        <None Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf/Proto/acs1.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\token_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh acs1.proto token_contract.proto"/>

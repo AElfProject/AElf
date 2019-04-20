@@ -3,6 +3,9 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <RootNamespace>AElf.WebApp.Application</RootNamespace>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <PackageId>AElf.WebApp.Application.Core</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>

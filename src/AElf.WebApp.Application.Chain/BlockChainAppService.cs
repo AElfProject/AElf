@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.Extensions.Logging;
@@ -19,13 +18,11 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface IChainAppService : IApplicationService
+    public interface IBlockChainAppService : IApplicationService
     {
-        Task<GetChainInformationOutput> GetChainInformation();
-
         Task<string> Call(string rawTransaction);
 
-        Task<byte[]> GetFileDescriptorSet(string address);
+        Task<byte[]> GetContractFileDescriptorSet(string address);
 
         Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction);
 
@@ -33,12 +30,14 @@ namespace AElf.WebApp.Application.Chain
 
         Task<TransactionResultDto> GetTransactionResult(string transactionId);
 
-        Task<List<TransactionResultDto>> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10);
+        Task<List<TransactionResultDto>> GetTransactionResults(string blockHash, int offset = 0, int limit = 10);
 
         Task<long> GetBlockHeight();
 
-        Task<BlockDto> GetBlockInfo(string blockHashOrHeight, bool includeTransactions = false);
+        Task<BlockDto> GetBlock(string blockHash, bool includeTransactions = false);
 
+        Task<BlockDto> GetBlockByHeight(long blockHeight, bool includeTransactions = false);
+        
         Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus();
 
         Task<ChainStatusDto> GetChainStatus();
@@ -46,7 +45,7 @@ namespace AElf.WebApp.Application.Chain
         Task<BlockStateDto> GetBlockState(string blockHash);
     }
     
-    public class ChainAppService : IChainAppService
+    public class BlockChainAppService : IBlockChainAppService
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -54,18 +53,18 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly ITxHub _txHub;
-        public IStateStore<BlockStateSet> _blockStateSets;
-        public ILogger<ChainAppService> Logger { get; set; }
+        private readonly IBlockchainStateManager _blockchainStateManager;
+        public ILogger<BlockChainAppService> Logger { get; set; }
         
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public ChainAppService(IBlockchainService blockchainService,
+        public BlockChainAppService(IBlockchainService blockchainService,
             ISmartContractAddressService smartContractAddressService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ITransactionManager transactionManager,
             ITransactionResultQueryService transactionResultQueryService,
             ITxHub txHub,
-            IStateStore<BlockStateSet> blockStateSets
+            IBlockchainStateManager blockchainStateManager
             )
         {
             _blockchainService = blockchainService;
@@ -74,23 +73,17 @@ namespace AElf.WebApp.Application.Chain
             _transactionManager = transactionManager;
             _transactionResultQueryService = transactionResultQueryService;
             _txHub = txHub;
-            _blockStateSets = blockStateSets;
+            _blockchainStateManager = blockchainStateManager;
             
-            Logger = NullLogger<ChainAppService>.Instance;
+            Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
-        
-        public Task<GetChainInformationOutput> GetChainInformation()
-        {
-            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
 
-            return Task.FromResult(new GetChainInformationOutput
-            {
-                GenesisContractAddress = basicContractZero?.GetFormatted(),
-                ChainId = ChainHelpers.ConvertChainIdToBase58(_blockchainService.GetChainId())
-            });
-        }
-
+        /// <summary>
+        /// Call a read-only method on a contract.
+        /// </summary>
+        /// <param name="rawTransaction">raw transaction</param>
+        /// <returns></returns>
         public async Task<string> Call(string rawTransaction)
         {
             try
@@ -106,7 +99,13 @@ namespace AElf.WebApp.Application.Chain
             }
         }
         
-        public async Task<byte[]> GetFileDescriptorSet(string address)
+
+        /// <summary>
+        /// Get the protobuf definitions related to a contract
+        /// </summary>
+        /// <param name="address">contract address</param>
+        /// <returns></returns>
+        public async Task<byte[]> GetContractFileDescriptorSet(string address)
         {
             try
             {
@@ -119,6 +118,12 @@ namespace AElf.WebApp.Application.Chain
             }
         }
         
+
+        /// <summary>
+        /// Broadcast a transaction
+        /// </summary>
+        /// <param name="rawTransaction">raw transaction</param>
+        /// <returns></returns>
         public async Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction)
         {
             var txIds = await PublishTransactionsAsync(new []{rawTransaction});
@@ -128,6 +133,12 @@ namespace AElf.WebApp.Application.Chain
             };
         }
         
+
+        /// <summary>
+        /// Broadcast multiple transactions
+        /// </summary>
+        /// <param name="rawTransactions">raw transactions</param>
+        /// <returns></returns>
         public async Task<string[]> BroadcastTransactions(string rawTransactions)
         {
             var txIds = await PublishTransactionsAsync(rawTransactions.Split(","));
@@ -135,6 +146,11 @@ namespace AElf.WebApp.Application.Chain
             return txIds;
         }
         
+        /// <summary>
+        /// Get the current status of a transaction
+        /// </summary>
+        /// <param name="transactionId">transaction id</param>
+        /// <returns></returns>
         public async Task<TransactionResultDto> GetTransactionResult(string transactionId)
         {
             Hash transactionHash;
@@ -170,7 +186,15 @@ namespace AElf.WebApp.Application.Chain
             return output;
         }
 
-        public async Task<List<TransactionResultDto>> GetTransactionsResult(string blockHash, int offset = 0, int limit = 10)
+        /// <summary>
+        /// Get multiple transaction results.
+        /// </summary>
+        /// <param name="blockHash">block hash</param>
+        /// <param name="offset">offset</param>
+        /// <param name="limit">limit</param>
+        /// <returns></returns>
+        /// <exception cref="UserFriendlyException"></exception>
+        public async Task<List<TransactionResultDto>> GetTransactionResults(string blockHash, int offset = 0, int limit = 10)
         {
             if (offset < 0)
             {
@@ -223,35 +247,88 @@ namespace AElf.WebApp.Application.Chain
             return output;
         }
         
+        /// <summary>
+        /// Get the height of the current chain.
+        /// </summary>
+        /// <returns></returns>
         public async Task<long> GetBlockHeight()
         {
             var chainContext = await _blockchainService.GetChainAsync();
             return chainContext.BestChainHeight;
         }
         
-        public async Task<BlockDto> GetBlockInfo(string blockHashOrHeight, bool includeTransactions = false)
+        /// <summary>
+        /// Get information about a given block by block hash. Otionally with the list of its transactions.
+        /// </summary>
+        /// <param name="blockHash">block hash</param>
+        /// <param name="includeTransactions">include transactions or not</param>
+        /// <returns></returns>
+        public async Task<BlockDto> GetBlock(string blockHash, bool includeTransactions = false)
         {
-            Block blockInfo = null;
-            if (long.TryParse(blockHashOrHeight, out var blockHeight))
+            Hash realBlockHash;
+            try
             {
-                if (blockHeight == 0)
-                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-                blockInfo = await GetBlockAtHeight(blockHeight);
+                realBlockHash = Hash.LoadHex(blockHash);
             }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash],Error.InvalidBlockHash.ToString());
+            }
+
+            var block = await GetBlock(realBlockHash);
             
-            if (blockInfo == null)
+            if (block == null)
             {
-                Hash blockHash;
-                try
-                {
-                    blockHash = Hash.LoadHex(blockHashOrHeight);
-                }
-                catch
-                {
-                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-                }
-                blockInfo = await GetBlock(blockHash);
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
+
+            var blockDto = new BlockDto
+            {
+                BlockHash = block.GetHash().ToHex(),
+                Header = new BlockHeaderDto
+                {
+                    PreviousBlockHash = block.Header.PreviousBlockHash.ToHex(),
+                    MerkleTreeRootOfTransactions = block.Header.MerkleTreeRootOfTransactions.ToHex(),
+                    MerkleTreeRootOfWorldState = block.Header.MerkleTreeRootOfWorldState.ToHex(),
+                    Extra = block.Header.BlockExtraDatas.ToString(),
+                    Height = block.Header.Height,
+                    Time = block.Header.Time.ToDateTime(),
+                    ChainId = ChainHelpers.ConvertChainIdToBase58(block.Header.ChainId),
+                    Bloom = block.Header.Bloom.ToByteArray().ToHex()
+                },
+                Body = new BlockBodyDto()
+                {
+                    TransactionsCount = block.Body.TransactionsCount,
+                    Transactions = new List<string>()
+                }
+            };
+
+            if (includeTransactions)
+            {
+                var transactions = block.Body.Transactions;
+                var txs = new List<string>();
+                foreach (var txHash in transactions)
+                {
+                    txs.Add(txHash.ToHex());
+                }
+
+                blockDto.Body.Transactions = txs;
+            }
+
+            return blockDto;
+        }
+
+        /// <summary>
+        /// Get information about a given block by block height. Otionally with the list of its transactions.
+        /// </summary>
+        /// <param name="blockHeight">block height</param>
+        /// <param name="includeTransactions">include transactions or not</param>
+        /// <returns></returns>
+        public async Task<BlockDto> GetBlockByHeight(long blockHeight, bool includeTransactions = false)
+        {
+            if (blockHeight == 0)
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            var blockInfo = await GetBlockAtHeight(blockHeight);
             
             if (blockInfo == null)
             {
@@ -294,6 +371,10 @@ namespace AElf.WebApp.Application.Chain
             return blockDto;
         }
         
+        /// <summary>
+        /// Get the transaction pool status.
+        /// </summary>
+        /// <returns></returns>
         public async Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus()
         {
             var queued= await _txHub.GetTransactionPoolSizeAsync();
@@ -303,15 +384,21 @@ namespace AElf.WebApp.Application.Chain
             };
         }
         
+        /// <summary>
+        /// Get the current status of the block chain.
+        /// </summary>
+        /// <returns></returns>
         public async Task<ChainStatusDto> GetChainStatus()
         {
+            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
+     
             var chain = await _blockchainService.GetChainAsync();
             var branches = JsonConvert.DeserializeObject<Dictionary<string,long>>(chain.Branches.ToString());
             var formattedNotLinkedBlocks = new List<NotLinkedBlockDto>();
 
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
             {
-                var block = await this.GetBlock(Hash.LoadBase64(notLinkedBlock.Value));
+                var block = await GetBlock(Hash.LoadBase64(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new NotLinkedBlockDto
                     {
                         BlockHash = block.GetHash().ToHex(),
@@ -323,6 +410,8 @@ namespace AElf.WebApp.Application.Chain
 
             return new ChainStatusDto()
             {
+                ChainId = ChainHelpers.ConvertChainIdToBase58(chain.Id),
+                GenesisContractAddress = basicContractZero?.GetFormatted(),
                 Branches = branches,
                 NotLinkedBlocks = formattedNotLinkedBlocks,
                 LongestChainHeight = chain.LongestChainHeight,
@@ -335,10 +424,14 @@ namespace AElf.WebApp.Application.Chain
             };
         }
         
+        /// <summary>
+        /// Get the current state about a given block
+        /// </summary>
+        /// <param name="blockHash">block hash</param>
+        /// <returns></returns>
         public async Task<BlockStateDto> GetBlockState(string blockHash)
         {
-            var stateStorageKey = Hash.LoadHex(blockHash).ToStorageKey();
-            var blockState = await _blockStateSets.GetAsync(stateStorageKey);
+            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(Hash.LoadHex(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound],Error.NotFound.ToString());
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
@@ -347,24 +440,6 @@ namespace AElf.WebApp.Application.Chain
         private async Task<Block> GetBlock(Hash blockHash)
         {
             return await _blockchainService.GetBlockByHashAsync(blockHash);
-        }
-        
-        private async Task<string> GetTransactionParameters(Transaction tx)
-        {
-            string output = null;
-            try
-            {
-                var chainContext = await GetChainContextAsync();
-
-                output = await _transactionReadOnlyExecutionService.GetTransactionParametersAsync(
-                    chainContext, tx);
-            }
-            catch (InvalidCastException ex)
-            {
-                Logger.LogWarning($"Unsupported type conversion error： {ex}");
-            }
-
-            return output;
         }
         
         private async Task<Block> GetBlockAtHeight(long height)

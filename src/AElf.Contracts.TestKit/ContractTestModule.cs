@@ -10,6 +10,7 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool;
@@ -62,6 +63,11 @@ namespace AElf.Contracts.TestKit
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
+            
+            Configure<HostSmartContractBridgeContextOptions>(options =>
+            {
+                options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
+            });
 
             #region Infra
 

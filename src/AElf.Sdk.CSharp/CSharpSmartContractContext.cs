@@ -44,6 +44,8 @@ namespace AElf.Sdk.CSharp
 
         public Hash PreviousBlockHash => _smartContractBridgeContextImplementation.PreviousBlockHash;
 
+        public ContextVariableDictionary Variables => _smartContractBridgeContextImplementation.Variables;
+        
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
             return _smartContractBridgeContextImplementation.RecoverPublicKey(signature, hash);
