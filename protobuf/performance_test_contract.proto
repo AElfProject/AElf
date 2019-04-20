@@ -9,6 +9,18 @@ option csharp_namespace = "AElf.Benchmark.PerformanceTestContract";
 service PerformanceTestContract {
     option (aelf.csharp_state) = "AElf.Benchmark.PerformanceTestContract.PerformanceTestContractState";
     //Actions
-    rpc Fibonacci(google.protobuf.UInt64Value) returns (google.protobuf.UInt64Value) {
+    rpc Fibonacci (google.protobuf.UInt64Value) returns (google.protobuf.UInt64Value) {
     }
+
+    rpc Exp(ExpInput)returns (google.protobuf.DoubleValue) {
+    }
+    
+    rpc ExpUnroll16(ExpInput) returns (google.protobuf.DoubleValue) {
+    }
+}
+
+message ExpInput {
+    double Exponent = 1;
+    double Seed = 2;
+    uint32 n =3;
 }

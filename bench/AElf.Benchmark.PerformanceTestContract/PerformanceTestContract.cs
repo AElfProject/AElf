@@ -17,5 +17,39 @@ namespace AElf.Benchmark.PerformanceTestContract
                 return n;
             return CalculateFibonacci(n - 1) + CalculateFibonacci(n - 2);
         }
+
+        public override DoubleValue Exp(ExpInput input)
+        {
+            var e = input.Seed;
+            for (uint i = 0; i < input.N; i += 1) {
+                e = Math.Pow(e, input.Exponent);
+            }
+            
+            return new DoubleValue {Value = e};
+        }
+
+        public override DoubleValue ExpUnroll16(ExpInput input)
+        {
+            var e = input.Seed;
+            for (uint i = 0; i < input.N; i += 16) {
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+                e = Math.Pow(e, input.Exponent);
+            }
+            return new DoubleValue {Value = e};
+        }
     }
 }
