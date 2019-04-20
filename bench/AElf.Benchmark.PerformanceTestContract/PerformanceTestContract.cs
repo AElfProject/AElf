@@ -21,34 +21,11 @@ namespace AElf.Benchmark.PerformanceTestContract
         public override DoubleValue Exp(ExpInput input)
         {
             var e = input.Seed;
-            for (uint i = 0; i < input.N; i += 1) {
+            for (uint i = 0; i < input.N; i++)
+            {
                 e = Math.Pow(e, input.Exponent);
             }
-            
-            return new DoubleValue {Value = e};
-        }
 
-        public override DoubleValue ExpUnroll16(ExpInput input)
-        {
-            var e = input.Seed;
-            for (uint i = 0; i < input.N; i += 16) {
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-                e = Math.Pow(e, input.Exponent);
-            }
             return new DoubleValue {Value = e};
         }
     }

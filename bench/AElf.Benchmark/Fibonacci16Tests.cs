@@ -19,7 +19,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Benchmark
 {
-    public class FibonacciTests : BenchmarkTestBase
+    public class Fibonacci16Tests : BenchmarkTestBase
     {
         private IBlockchainService _blockchainService;
         private ISmartContractAddressService _smartContractAddressService;

@@ -14,9 +14,6 @@ service PerformanceTestContract {
 
     rpc Exp(ExpInput)returns (google.protobuf.DoubleValue) {
     }
-    
-    rpc ExpUnroll16(ExpInput) returns (google.protobuf.DoubleValue) {
-    }
 }
 
 message ExpInput {
