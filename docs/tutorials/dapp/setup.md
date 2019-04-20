@@ -10,12 +10,6 @@ git clone https://github.com/AElfProject/aelf-boilerplate
 
 ### Build and run
 
-Add this line to your global nuget config:
-
-```xml
-<add key="myget" value="https://www.myget.org/F/aelf-project-dev/api/v3/index.json" protocolVersion="3" />
-```
-
 In this tutorial we'll use visual studio code to illustrate the steps but of course, you can use another IDE.
 
 First open the folder you have just cloned. If asked to add dependencies and restore, say yes to both.
@@ -25,6 +19,13 @@ First open the folder you have just cloned. If asked to add dependencies and res
 </p>
 
 Open vscodes terminal and build the project with the following command:
+
+```bash
+cd boilerplate/chain/src/AElf.Boilerplate.Launcher/
+dotnet build
+```
+
+then run:
 
 ```bash
 dotnet run bin/Debug/netcoreapp2.2/AElf.Boilerplate.Launcher
