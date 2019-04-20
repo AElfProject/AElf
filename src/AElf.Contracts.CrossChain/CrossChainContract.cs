@@ -188,8 +188,6 @@ namespace AElf.Contracts.CrossChain
             //CheckAuthority(Context.Genesis);
             var info = State.SideChainInfos[chainId];
             Assert(info != null, "Not existed side chain.");
-
-            // TODO: Only privileged account can trigger this method
             Assert(info.SideChainStatus == SideChainStatus.Active, "Unable to dispose this side chain.");
 
             UnlockTokenAndResource(info);
