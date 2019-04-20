@@ -12,24 +12,24 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\protobuf\aelf_options.proto">
+      <None Include="..\..\protobuf\aelf_options.proto">
         <Link>Protobuf/Proto/aelf_options.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\common.proto">
+      </None>
+      <None Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
-      </Content>
-        <Content Include="..\..\protobuf\crosschain.proto">
+      </None>
+        <None Include="..\..\protobuf\crosschain.proto">
             <Link>Protobuf/Proto/crosschain.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\token_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
-        </Content>
-      <Content Include="..\..\protobuf\cross_chain_contract.proto">
+        </None>
+      <None Include="..\..\protobuf\cross_chain_contract.proto">
         <Link>Protobuf/Proto/cross_chain_contract.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\kernel.proto">
+      </None>
+      <None Include="..\..\protobuf\kernel.proto">
         <Link>Protobuf/Proto/kernel.proto</Link>
-      </Content>
+      </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto token_contract.proto dpos_sidechain_contract.proto consensus_dpos.proto; ../../scripts/generate_contract_code.sh cross_chain_contract.proto" />

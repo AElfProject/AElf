@@ -12,30 +12,30 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\protobuf\aelf_options.proto">
+      <None Include="..\..\protobuf\aelf_options.proto">
         <Link>Protobuf/Proto/aelf_options.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\common.proto">
+      </None>
+      <None Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
-      </Content>
-        <Content Include="..\..\protobuf\kernel.proto">
+      </None>
+        <None Include="..\..\protobuf\kernel.proto">
             <Link>Protobuf/Proto/kernel.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\consensus_dpos.proto">
+        </None>
+        <None Include="..\..\protobuf\consensus_dpos.proto">
             <Link>Protobuf/Proto/consensus_dpos.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\dpos_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\dpos_contract.proto">
             <Link>Protobuf/Proto/dpos_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\token_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\basic_contract_zero.proto">
+        </None>
+        <None Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </Content>
-      <Content Include="..\..\protobuf\dividend_contract.proto">
+        </None>
+      <None Include="..\..\protobuf\dividend_contract.proto">
         <Link>Protobuf/Proto/dividend_contract.proto</Link>
-      </Content>
+      </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh dpos_contract.proto token_contract.proto basic_contract_zero.proto; ../../scripts/generate_contract_code.sh dividend_contract.proto" />
