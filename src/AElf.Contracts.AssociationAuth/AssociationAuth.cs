@@ -20,8 +20,9 @@ namespace AElf.Contracts.AssociationAuth
         public override ProposalOutput GetProposal(Hash proposalId)
         {
             var proposal = State.Proposals[proposalId];
+            Assert(proposal !=null,"Invalid proposal Id.");
+            
             var organization = GetOrganization(proposal.OrganizationAddress);
-
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -30,6 +31,7 @@ namespace AElf.Contracts.AssociationAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
+                ToAddress = proposal.ToAddress,
                 CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() && IsReadyToRelease(proposal, organization)
             };
 
@@ -67,7 +69,6 @@ namespace AElf.Contracts.AssociationAuth
             Assert(
                 !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
                 && proposal.ToAddress != null
-                && proposal.OrganizationAddress != null
                 && proposal.ExpiredTime != null, "Invalid proposal.");
             DateTime timestamp = proposal.ExpiredTime.ToDateTime();
             Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");

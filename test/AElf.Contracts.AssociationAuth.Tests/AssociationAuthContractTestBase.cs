@@ -5,6 +5,7 @@ using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 
 namespace AElf.Contracts.AssociationAuth
@@ -13,10 +14,15 @@ namespace AElf.Contracts.AssociationAuth
     {
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected Address Reviewer1 => Address.FromPublicKey(SampleECKeyPairs.KeyPairs[1].PublicKey);
-        protected Address Reviewer2 => Address.FromPublicKey(SampleECKeyPairs.KeyPairs[2].PublicKey);
-        protected Address Reviewer3 => Address.FromPublicKey(SampleECKeyPairs.KeyPairs[3].PublicKey);
+        protected ECKeyPair Reviewer1KeyPair => SampleECKeyPairs.KeyPairs[1];
+        protected ECKeyPair Reviewer2KeyPair => SampleECKeyPairs.KeyPairs[2];
+        protected ECKeyPair Reviewer3KeyPair => SampleECKeyPairs.KeyPairs[3];
+        protected Address Reviewer1 => Address.FromPublicKey(Reviewer1KeyPair.PublicKey);
+        protected Address Reviewer2 => Address.FromPublicKey(Reviewer2KeyPair.PublicKey);
+        protected Address Reviewer3 => Address.FromPublicKey(Reviewer3KeyPair.PublicKey);
         
+        protected IBlockTimeProvider BlockTimeProvider =>
+            Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
         protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address AssociationAuthContractAddress { get; set; }
         
