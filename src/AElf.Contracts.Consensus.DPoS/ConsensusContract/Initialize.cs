@@ -14,6 +14,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.DividendContractSystemName.Value = input.DividendsContractSystemName;
+            State.LockTokenForElection.Value = input.LockTokenForElection;
 
             State.Initialized.Value = true;
 

@@ -6,10 +6,10 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj"/>
+        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Remove="IResourcePath.cs"/>
+        <Compile Remove="IResourcePath.cs" />
     </ItemGroup>
     <ItemGroup>
         <None Include="..\..\protobuf\consensus.proto">
@@ -33,7 +33,7 @@
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.g.cs"/>
+            <Compile Include="./Protobuf/Generated/*.g.cs" />
         </ItemGroup>
     </Target>
 </Project>
