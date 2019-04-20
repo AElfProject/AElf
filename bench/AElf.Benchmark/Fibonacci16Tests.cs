@@ -25,14 +25,14 @@ namespace AElf.Benchmark
         private ISmartContractAddressService _smartContractAddressService;
         private IAccountService _accountService;
         private ITransactionResultService _transactionResultService;
-        private ITransactionResultManager _transactionResultManager;
-        private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
-        private IBlockExecutingService _blockExecutingService;
+        private ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private OSTestHelper _osTestHelper;
 
         private Transaction _transaction;
         private Block _block;
         private Address _contractAddress;
+        private Chain _chain;
+        private TransactionTrace _transactionTrace;
         
         private const ulong _fibonacci16Result =987;
 
@@ -43,9 +43,7 @@ namespace AElf.Benchmark
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _accountService = GetRequiredService<IAccountService>();
             _transactionResultService = GetRequiredService<ITransactionResultService>();
-            _transactionResultManager = GetRequiredService<ITransactionResultManager>();
-            _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
-            _blockExecutingService = GetRequiredService<IBlockExecutingService>();
+            _transactionReadOnlyExecutionService = GetRequiredService<ITransactionReadOnlyExecutionService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
 
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
@@ -72,19 +70,7 @@ namespace AElf.Benchmark
         [IterationSetup]
         public async Task IterationSetup()
         {
-            var chain = await _blockchainService.GetChainAsync();
-
-            _block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    ChainId = chain.Id,
-                    Height = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                },
-                Body = new BlockBody()
-            };
+            _chain = await _blockchainService.GetChainAsync();
 
             _transaction = _osTestHelper.GenerateTransaction(Address.Generate(), _contractAddress,
                 "Fibonacci", new UInt64Value
@@ -96,25 +82,23 @@ namespace AElf.Benchmark
         [Benchmark]
         public async Task Fibonacci16()
         {
-            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, new List<Transaction> {_transaction});
+            _transactionTrace = await _transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
+                {
+                    BlockHash = _chain.BestChainHash,
+                    BlockHeight = _chain.BestChainHeight
+                },
+                _transaction,
+                DateTime.UtcNow);
         }
 
         [IterationCleanup]
         public async Task IterationCleanup()
         {
-            var txResult =
-                await _transactionResultManager.GetTransactionResultAsync(_transaction.GetHash(),
-                    _block.Header.GetPreMiningHash());
-
-            var calResult = UInt64Value.Parser.ParseFrom(txResult.ReturnValue).Value;
+            var calResult = UInt64Value.Parser.ParseFrom(_transactionTrace.ReturnValue).Value;
             if (calResult != _fibonacci16Result)
             {
                 throw new Exception("execute fail");
             }
-
-            await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            _transactionResultManager.RemoveTransactionResultAsync(_transaction.GetHash(),
-                _block.Header.GetPreMiningHash());
         }
     }
 }

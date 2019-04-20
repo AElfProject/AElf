@@ -18,15 +18,14 @@ namespace AElf.Benchmark.PerformanceTestContract
             return CalculateFibonacci(n - 1) + CalculateFibonacci(n - 2);
         }
 
-        public override DoubleValue Exp(ExpInput input)
+        public override Int32Value Nop(PerformanceTesteInput input)
         {
-            var e = input.Seed;
             for (uint i = 0; i < input.N; i++)
             {
-                e = Math.Pow(e, input.Exponent);
+                
             }
 
-            return new DoubleValue {Value = e};
+            return new Int32Value {Value = input.Seed};
         }
     }
 }

@@ -19,20 +19,20 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Benchmark
 {
-    public class Exponent32b100kTests : BenchmarkTestBase
+    public class LoopExpNop1MTests : BenchmarkTestBase
     {
         private IBlockchainService _blockchainService;
         private ISmartContractAddressService _smartContractAddressService;
         private IAccountService _accountService;
         private ITransactionResultService _transactionResultService;
-        private ITransactionResultManager _transactionResultManager;
-        private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
-        private IBlockExecutingService _blockExecutingService;
+        private ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private OSTestHelper _osTestHelper;
 
         private Transaction _transaction;
         private Block _block;
         private Address _contractAddress;
+        private Chain _chain;
+        private TransactionTrace _transactionTrace;
         
         [GlobalSetup]
         public async Task GlobalSetup()
@@ -41,9 +41,7 @@ namespace AElf.Benchmark
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _accountService = GetRequiredService<IAccountService>();
             _transactionResultService = GetRequiredService<ITransactionResultService>();
-            _transactionResultManager = GetRequiredService<ITransactionResultManager>();
-            _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
-            _blockExecutingService = GetRequiredService<IBlockExecutingService>();
+            _transactionReadOnlyExecutionService = GetRequiredService<ITransactionReadOnlyExecutionService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
 
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
@@ -70,41 +68,37 @@ namespace AElf.Benchmark
         [IterationSetup]
         public async Task IterationSetup()
         {
-            var chain = await _blockchainService.GetChainAsync();
-
-            _block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    ChainId = chain.Id,
-                    Height = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                },
-                Body = new BlockBody()
-            };
+            _chain = await _blockchainService.GetChainAsync();
 
             _transaction = _osTestHelper.GenerateTransaction(Address.Generate(), _contractAddress,
-                "Exp", new ExpInput
+                "Nop", new PerformanceTesteInput()
                 {
-                    Exponent = 2^256-1,
-                    Seed = 6364136223846793005,
-                    N = 100000
+                    Exponent = 0,
+                    Seed = 15,
+                    N = 1000000
                 });
         }
 
         [Benchmark]
-        public async Task Exp32b100k()
+        public async Task LoopExpNop1M()
         {
-            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, new List<Transaction> {_transaction});
+            _transactionTrace = await _transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
+                {
+                    BlockHash = _chain.BestChainHash,
+                    BlockHeight = _chain.BestChainHeight
+                },
+                _transaction,
+                DateTime.UtcNow);
         }
 
         [IterationCleanup]
         public async Task IterationCleanup()
         {
-            await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            _transactionResultManager.RemoveTransactionResultAsync(_transaction.GetHash(),
-                _block.Header.GetPreMiningHash());
+            var calResult = UInt64Value.Parser.ParseFrom(_transactionTrace.ReturnValue).Value;
+            if (calResult != 15)
+            {
+                throw new Exception("execute fail");
+            }
         }
     }
 }

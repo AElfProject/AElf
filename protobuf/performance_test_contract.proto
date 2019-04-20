@@ -12,12 +12,12 @@ service PerformanceTestContract {
     rpc Fibonacci (google.protobuf.UInt64Value) returns (google.protobuf.UInt64Value) {
     }
 
-    rpc Exp(ExpInput)returns (google.protobuf.DoubleValue) {
+    rpc Nop(PerformanceTesteInput)returns (google.protobuf.Int32Value) {
     }
 }
 
-message ExpInput {
-    double Exponent = 1;
-    double Seed = 2;
+message PerformanceTesteInput {
+    int32 Exponent = 1;
+    int32 Seed = 2;
     uint32 n =3;
 }
