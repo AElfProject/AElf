@@ -195,15 +195,12 @@ namespace AElf.Contracts.MultiToken
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
             if (allowance < input.Amount)
             {
-                Assert(false, "Insufficient allowance.");
-            }
-            else
-            {
-                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = input.To}).Value)
+                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
                 {
                     DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
                     return new Empty();
                 }
+                Assert(false, "Insufficient allowance.");
             }
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
