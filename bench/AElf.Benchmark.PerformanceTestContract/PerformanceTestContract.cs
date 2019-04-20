@@ -31,7 +31,7 @@ namespace AElf.Benchmark.PerformanceTestContract
         public override DoubleValue DivAdd(DivAddTestInput input)
         {
             var r = input.X;
-            for (uint i = 0; i < input.N; i += 1) 
+            for (uint i = 0; i < input.N; i++) 
             {
                 r /= input.Y;
                 r += input.K;
