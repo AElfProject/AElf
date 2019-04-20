@@ -59,10 +59,10 @@ The following commands will demonstrate the capabilities of the js sdk, execute 
 ```bash
 cd Web/JSSDK
 npm install
-node index.js
+npm start
 ```
 
-You should see the results.
+You should see the results in the terminal or in the browser dev tool.
 
 ## Run the browser extension Demo
 
@@ -75,6 +75,7 @@ Next go into the extensions folder and run the app with the following commands:
 ```bash
 cd Web/browserExtension
 npm install
-node app.js
+npm start
 ```
+
 To see the plugin in action you can navigate to the following address in your browser: [http://localhost:3000](http://localhost:3000)
