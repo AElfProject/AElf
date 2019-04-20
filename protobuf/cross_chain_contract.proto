@@ -30,6 +30,9 @@ service CrossChainContract {
     }
     rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
     }
+    
+    rpc ChangOwnerAddress(Address) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) {

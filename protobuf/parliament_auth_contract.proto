@@ -19,13 +19,14 @@ service ParliamentAuthContract {
     rpc GetOrganization (Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
-    rpc GetOrganizationAddress (CreateOrganizationInput) returns (Address){
+    rpc GetDefaultOrganizationAddress (google.protobuf.Empty) returns (Address){
         option (aelf.is_view) = true;
     }
 }
 
 message ParliamentAuthInitializationInput{
     Hash consensusContractSystemName = 1;
+    sint32 defaultOrganizationReleaseThreshold =2;
 }
 
 message CreateOrganizationInput{

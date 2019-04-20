@@ -331,5 +331,12 @@ namespace AElf.Contracts.CrossChain
         }
         
         #endregion Cross chain actions
+
+        public override Empty ChangOwnerAddress(Address input)
+        {
+            CheckOwnerAuthority();
+            State.Owner.Value = input;
+            return new Empty();
+        }
     }
 }

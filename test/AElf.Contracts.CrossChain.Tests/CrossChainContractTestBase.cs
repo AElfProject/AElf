@@ -70,12 +70,7 @@ namespace AElf.Contract.CrossChain.Tests
                     ParentChainId = parentChainId == 0 ? ChainHelpers.ConvertBase58ToChainId("AELF") : parentChainId,
                     ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name
                 });
-            var parliamentTransaction = await Tester.GenerateTransactionAsync(ParliamentAddress,
-                nameof(ParliamentAuthContract.CreateOrganization), new CreateOrganizationInput
-                {
-                    ReleaseThresholdInFraction = 2d / 3
-                });
-            await Tester.MineAsync(new List<Transaction> {crossChainInitializationTransaction, parliamentTransaction});
+            await Tester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});
 
         }
 

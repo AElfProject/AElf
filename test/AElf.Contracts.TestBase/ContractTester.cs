@@ -649,7 +649,8 @@ namespace AElf.Contracts.TestBase
             var parliamentContractCallList = new SystemTransactionMethodCallList();
             parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuthInitializationInput
             {
-                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
+                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                DefaultOrganizationReleaseThreshold = 6666
             });
             return list =>
             {

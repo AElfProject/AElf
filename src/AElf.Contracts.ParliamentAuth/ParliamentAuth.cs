@@ -39,11 +39,10 @@ namespace AElf.Contracts.ParliamentAuth
             return result;
         }
 
-        public override Address GetOrganizationAddress(CreateOrganizationInput input)
+        public override Address GetDefaultOrganizationAddress(Empty input)
         {
-            var organizationHash = GenerateOrganizationVirtualHash(input);
-            Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
-            return organizationAddress;
+            Assert(State.Initialized.Value, "Not initialized.");
+            return State.DefaultOrganizationAddress.Value;
         }
 
         #endregion view
@@ -53,6 +52,8 @@ namespace AElf.Contracts.ParliamentAuth
             State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Initialized.Value = true;
+            State.DefaultOrganizationAddress.Value = CreateOrganization(new CreateOrganizationInput
+                {ReleaseThreshold = input.DefaultOrganizationReleaseThreshold}); 
             return new Empty();
         }
         
