@@ -2,6 +2,7 @@
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf.WellKnownTypes;
 using AddDividendsInput = AElf.Consensus.DPoS.AddDividendsInput;
 using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
@@ -47,7 +48,7 @@ namespace AElf.Contracts.Dividend
             {
                 To = targetAddress,
                 Amount = amount,
-                Symbol = "ELF",
+                Symbol = Context.Variables.NativeSymbol,
                 Memo = "Send dividends."
             });
             return new Empty();
@@ -110,7 +111,7 @@ namespace AElf.Contracts.Dividend
             {
                 To = dividendsOwnerAddress,
                 Amount = totalDividendsAmount,
-                Symbol = "ELF",
+                Symbol = Context.Variables.NativeSymbol,
                 Memo = "Transfer dividends."
             });
 
