@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain
- {
+{
      [DependsOn(typeof(SmartContractAElfModule))]
      public class CrossChainAElfModule : AElfModule
      {

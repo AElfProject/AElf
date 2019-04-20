@@ -76,11 +76,11 @@ namespace AElf.CrossChain.Grpc
             var chainIds = _crossChainMemCacheService.GetCachedChainIds();
             foreach (var chainId in chainIds)
             {
-                Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
                 if(!_grpcCrossChainClients.TryGetValue(chainId, out var client))
                     continue;
-                var targetHeigt = _crossChainMemCacheService.GetChainHeightNeeded(chainId);
-                var task = TryRequest(client, c => c.StartIndexingRequest(chainId, targetHeigt, _crossChainDataProducer));
+                Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
+                var targetHeight = _crossChainMemCacheService.GetChainHeightNeeded(chainId);
+                var task = TryRequest(client, c => c.StartIndexingRequest(chainId, targetHeight, _crossChainDataProducer));
             }
         }
 

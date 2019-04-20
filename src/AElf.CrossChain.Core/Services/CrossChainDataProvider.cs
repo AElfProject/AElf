@@ -1,10 +1,7 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
-using AElf.Kernel;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
@@ -12,7 +9,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainDataProvider : ICrossChainDataProvider, ISingletonDependency, ILocalEventHandler<NewIrreversibleBlockFoundEvent>
+    public class CrossChainDataProvider : ICrossChainDataProvider, ISingletonDependency
     {
         private readonly ICrossChainContractReader _crossChainContractReader;
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
@@ -207,7 +204,7 @@ namespace AElf.CrossChain
             return null;
         }
 
-        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        public async Task HandleNewIrreversibleBlockFoundEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             // create cache for new chain
             var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(eventData.BlockHash, eventData.BlockHeight);
