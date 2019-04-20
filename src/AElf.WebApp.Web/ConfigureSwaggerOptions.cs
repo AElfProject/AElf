@@ -1,11 +1,17 @@
+using System;
+using System.IO;
+using System.Xml.Linq;
+using System.Xml.XPath;
+using AElf.WebApp.Application.Chain;
+using AElf.WebApp.Application.Net;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.Swagger;
+using Swashbuckle.AspNetCore.SwaggerGen;
+
 namespace AElf.WebApp.Web
 {
-    using Microsoft.AspNetCore.Mvc.ApiExplorer;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Options;
-    using Swashbuckle.AspNetCore.Swagger;
-    using Swashbuckle.AspNetCore.SwaggerGen;
-
     /// <summary>
     /// Configures the Swagger generation options.
     /// </summary>
@@ -20,7 +26,7 @@ namespace AElf.WebApp.Web
         /// Initializes a new instance of the <see cref="ConfigureSwaggerOptions"/> class.
         /// </summary>
         /// <param name="provider">The <see cref="IApiVersionDescriptionProvider">provider</see> used to generate Swagger documents.</param>
-        public ConfigureSwaggerOptions( IApiVersionDescriptionProvider provider ) => this._provider = provider;
+        public ConfigureSwaggerOptions( IApiVersionDescriptionProvider provider ) => _provider = provider;
 
         /// <inheritdoc />
         public void Configure( SwaggerGenOptions options )
@@ -31,6 +37,14 @@ namespace AElf.WebApp.Web
             {
                 options.SwaggerDoc( description.GroupName, CreateInfoForApiVersion( description ) );
             }
+            options.IncludeXmlComments(() =>
+            {
+                var xmlFile = $"{typeof(ChainApplicationWebAppAElfModule).Assembly.GetName().Name}.xml";
+                var webApiDocument = XDocument.Load(Path.Combine(AppContext.BaseDirectory, xmlFile));
+                xmlFile = $"{typeof(NetApplicationWebAppAElfModule).Assembly.GetName().Name}.xml";
+                webApiDocument.Root?.Add(XDocument.Load(Path.Combine(AppContext.BaseDirectory, xmlFile)).Root?.Elements());
+                return new XPathDocument(webApiDocument.CreateReader());
+            });
         }
 
         static Info CreateInfoForApiVersion( ApiVersionDescription description )

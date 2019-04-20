@@ -1,5 +1,19 @@
 # Setup
 
+In order to develop your smart contract and dAPP to interact with it, AElf provides a framework that facilitates the process: AElf Boilerplate.
+
+## Clone the repo
+
+```bash
+git clone https://github.com/AElfProject/aelf-boilerplate
+```
+
+### Build and run
+
+In this tutorial we'll use visual studio code to illustrate the steps but of course, you can use another IDE.
+
+First open the folder you have just cloned. If asked to add dependencies and restor, say yes to both.
+
 ## Run the JS SDK Demo
 
 ```bash
