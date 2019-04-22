@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using PageInfo = AElf.Consensus.DPoS.PageInfo;
 using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS

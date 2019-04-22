@@ -1,4 +1,3 @@
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 
@@ -16,5 +15,9 @@ namespace AElf.Contracts.Election
 
         public SingletonState<int> CurrentTermNumber { get; set; }
 
+        /// <summary>
+        /// Vote Id -> Lock Time (days)
+        /// </summary>
+        public MappedState<Hash, int> LockTimeMap { get; set; }
     }
 }

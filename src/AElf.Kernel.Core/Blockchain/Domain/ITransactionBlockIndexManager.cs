@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.Infrastructure;
 
 namespace AElf.Kernel.Blockchain.Domain
 {
@@ -21,12 +21,12 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task<TransactionBlockIndex> GetTransactionBlockIndexAsync(Hash transactionId)
         {
-            return await _transactionBlockIndexes.GetAsync(transactionId.ToHex());
+            return await _transactionBlockIndexes.GetAsync(transactionId.ToStorageKey());
         }
 
         public async Task SetTransactionBlockIndexAsync(Hash transactionId, TransactionBlockIndex transactionBlockIndex)
         {
-            await _transactionBlockIndexes.SetAsync(transactionId.ToHex(), transactionBlockIndex);
+            await _transactionBlockIndexes.SetAsync(transactionId.ToStorageKey(), transactionBlockIndex);
         }
     }
 }

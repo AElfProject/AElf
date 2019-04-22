@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -12,7 +11,6 @@ using AElf.OS;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
-using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -36,6 +34,7 @@ namespace AElf.Contracts.TestBase
             services.AddSingleton(o => Mock.Of<INetworkService>());
             
             // When testing contract and packaging transactions, no need to generate and schedule real consensus stuff.
+            context.Services.AddSingleton(o => Mock.Of<IConsensusService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             

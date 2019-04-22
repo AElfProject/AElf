@@ -1,6 +1,5 @@
-﻿using System;
-using AElf.Common;
-using AElf.Contracts.MultiToken.Messages;
+﻿using AElf.Contracts.MultiToken.Messages;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -155,7 +154,7 @@ namespace AElf.Contracts.Resource
                     From = Context.Sender,
                     To = Context.Self,
                     Amount = elfForRes,
-                    Symbol = "ELF",
+                    Symbol = Context.Variables.NativeSymbol,
                     Memo = $"Buying {resourceType.ToUpper()} with {paidElf} elf tokens."
                 });
             }
@@ -167,7 +166,7 @@ namespace AElf.Contracts.Resource
                     From = Context.Sender,
                     To = State.FeeAddress.Value,
                     Amount = fees,
-                    Symbol = "ELF",
+                    Symbol = Context.Variables.NativeSymbol,
                     Memo = $"Charged {fees} fees for buying {resourceType.ToUpper()}"
                 });
             }
@@ -199,7 +198,7 @@ namespace AElf.Contracts.Resource
                 {
                     To = Context.Sender,
                     Amount = amount,
-                    Symbol = "ELF",
+                    Symbol = Context.Variables.NativeSymbol,
                     Memo = $"Selling {resToSell} {resourceType.ToUpper()}s"
                 });
             }
@@ -209,7 +208,7 @@ namespace AElf.Contracts.Resource
                 State.TokenContract.Transfer.Send(new TransferInput
                 {
                     To = State.FeeAddress.Value,
-                    Symbol = "ELF",
+                    Symbol = Context.Variables.NativeSymbol,
                     Amount = fees,
                     Memo = $"Charged {fees} fees for selling {resourceType.ToUpper()}s"
                 });

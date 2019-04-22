@@ -1,4 +1,3 @@
-using AElf.Common;
 using AElf.Kernel;
 
 namespace AElf.Contracts.Vote

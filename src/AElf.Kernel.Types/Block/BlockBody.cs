@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
 
-// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public partial class BlockBody : IBlockBody

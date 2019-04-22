@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using AElf.Common;
 using AElf.Kernel;
 using Newtonsoft.Json.Linq;
 

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Acs1;
-using AElf.Common;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -532,14 +531,14 @@ namespace AElf.Contracts.MultiToken
 
             var transactionResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.SetFeePoolAddress),
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendSmartContractAddressNameProvider.Name);
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             //set again
             transactionResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.SetFeePoolAddress),
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendSmartContractAddressNameProvider.Name);
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Fee pool address already set.").ShouldBeTrue();

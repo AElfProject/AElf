@@ -1,6 +1,5 @@
-﻿using System;
-using AElf.Common;
-using AElf.Contracts.MultiToken.Messages;
+﻿using AElf.Contracts.MultiToken.Messages;
+using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -65,7 +64,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
                 {
                     To = State.FoundationAddress.Value,
                     Amount = amount,
-                    Symbol = "ELF"
+                    Symbol = Context.Variables.NativeSymbol,
                 });
             }
             State.OwedToFoundation.Value = owed.Sub(amount);
@@ -93,7 +92,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             var bal = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Owner = Context.Self,
-                Symbol = "ELF"
+                Symbol = Context.Variables.NativeSymbol,
             }).Balance;
             var owed = State.OwedToFoundation.Value;
             var preBurnAmount = bal.Sub(owed);
@@ -102,7 +101,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             {
                 State.TokenContract.Burn.Send(new BurnInput
                 {
-                    Symbol = "ELF",
+                    Symbol = Context.Variables.NativeSymbol,
                     Amount = half
                 });
             }

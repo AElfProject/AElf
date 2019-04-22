@@ -1,5 +1,4 @@
 using System;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
@@ -81,7 +80,6 @@ namespace AElf.Contracts.Genesis
         {
             if (name != null)
                 Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
-
 
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment

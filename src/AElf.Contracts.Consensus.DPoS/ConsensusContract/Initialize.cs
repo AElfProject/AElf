@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using Google.Protobuf.WellKnownTypes;
 
@@ -15,6 +14,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.DividendContractSystemName.Value = input.DividendsContractSystemName;
+            State.LockTokenForElection.Value = input.LockTokenForElection;
 
             State.Initialized.Value = true;
 

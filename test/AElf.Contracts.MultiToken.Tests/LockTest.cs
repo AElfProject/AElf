@@ -1,5 +1,5 @@
+using System;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken.Messages;
@@ -42,7 +42,7 @@ namespace AElf.Contracts.MultiToken
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 20,
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
                 Memo = "Issue ",
             });
 
@@ -56,9 +56,15 @@ namespace AElf.Contracts.MultiToken
             });
             AsyncHelper.RunSync(() => Starter.InitialChainAsync(list =>
             {
-                list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name,
-                    tokenContractCallList);
+                list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
+                
+                //test extension AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts, Hash name, Action<SystemTransactionMethodCallList> action)
+                void Action(SystemTransactionMethodCallList x)
+                {
+                    x.Value.Add(tokenContractCallList.Value);
+                }
+
+                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, Action);
             }));
         }
 

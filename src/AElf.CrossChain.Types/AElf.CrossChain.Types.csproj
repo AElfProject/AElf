@@ -12,9 +12,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\..\protobuf\crosschain.proto">
+        <None Include="..\..\protobuf\crosschain.proto">
             <Link>./Protobuf/Proto/crosschain.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
     
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">

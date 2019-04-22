@@ -1,27 +1,20 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
-using AElf.Common;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
-using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Shouldly;
-using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
 {

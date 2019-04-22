@@ -1,32 +1,41 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
-using AElf.Types.CSharp;
 using Google.Protobuf;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract
 {
+    public class HostSmartContractBridgeContextOptions
+    {
+        public Dictionary<string, string> ContextVariables { get; set; } = new Dictionary<string, string>();
+    }
+
     public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, ITransientDependency
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IAccountService _accountService;
 
+
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService)
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService,
+            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options)
         {
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _accountService = accountService;
+
+            Variables = new ContextVariableDictionary(options.Value.ContextVariables);
+
             var self = this;
             Address GetAddress() => self.Transaction.To;
             _lazyStateProvider = new Lazy<IStateProvider>(
@@ -54,6 +63,7 @@ namespace AElf.Kernel.SmartContract
         private readonly Lazy<IStateProvider> _lazyStateProvider;
 
         public IStateProvider StateProvider => _lazyStateProvider.Value;
+
         public Address GetContractAddressByName(Hash hash)
         {
             return _smartContractBridgeService.GetAddressByContractName(hash);
@@ -71,6 +81,7 @@ namespace AElf.Kernel.SmartContract
         }
 
         public int ChainId => _smartContractBridgeService.GetChainId();
+        public ContextVariableDictionary Variables { get; }
 
         public void LogDebug(Func<string> func)
         {
@@ -81,7 +92,7 @@ namespace AElf.Kernel.SmartContract
         }
 
         public void FireLogEvent(LogEvent logEvent)
-        {    
+        {
             TransactionContext.Trace.Logs.Add(logEvent);
         }
 

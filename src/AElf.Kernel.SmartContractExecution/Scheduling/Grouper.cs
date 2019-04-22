@@ -2,10 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Types;
 using Org.BouncyCastle.Security;
-using AElf.Kernel;
-using AElf.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 

@@ -1,7 +1,6 @@
 using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;

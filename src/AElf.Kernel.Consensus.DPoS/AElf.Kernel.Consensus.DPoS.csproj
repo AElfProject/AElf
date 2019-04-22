@@ -7,6 +7,10 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
+    <PropertyGroup>
+      <NoWarn>0436</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
       <ProjectReference Include="..\AElf.Consensus.DPoS.Types\AElf.Consensus.DPoS.Types.csproj" />
       <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
@@ -24,12 +28,6 @@
     <ItemGroup>
       <Content Include="..\..\protobuf\aelf_options.proto">
         <Link>Protobuf/Proto/aelf_options.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\auth.proto">
-        <Link>Protobuf/Proto/auth.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\authorization_contract.proto">
-        <Link>Protobuf/Proto/authorization_contract.proto</Link>
       </Content>
       <Content Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>

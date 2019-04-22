@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Common;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
-using AElf.Types.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Approved = AElf.Contracts.MultiToken.Messages.Approved;
 
@@ -25,15 +23,14 @@ namespace AElf.Contracts.MultiToken
                 TotalSupply = input.TotalSupply,
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
-                IsBurnable = input.IsBurnable,
-                
+                IsBurnable = input.IsBurnable
             });
 
             foreach (var address in input.LockWhiteList)
             {
                 State.LockWhiteLists[input.Symbol][address] = true;
             }
-            
+
             return new Empty();
         }
 
@@ -43,7 +40,7 @@ namespace AElf.Contracts.MultiToken
             State.CrossChainContractSystemName.Value = input.CrossChainContractSystemName;
             return new Empty();
         }
-        
+
         public override Empty CreateNativeToken(CreateNativeTokenInput input)
         {
             Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already created.");
@@ -55,6 +52,7 @@ namespace AElf.Contracts.MultiToken
                 var address = State.BasicContractZero.GetContractAddressByName.Call(systemContractName);
                 whiteList.Add(address);
             }
+
             var createInput = new CreateInput
             {
                 Symbol = input.Symbol,
@@ -80,7 +78,7 @@ namespace AElf.Contracts.MultiToken
             State.Balances[input.To][input.Symbol] = input.Amount;
             return new Empty();
         }
-        
+
         public override Empty IssueNativeToken(IssueNativeTokenInput input)
         {
             Assert(input.ToSystemContractName != null, "To address not filled.");
@@ -102,7 +100,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
             AssertValidToken(input.TokenInfo.Symbol, input.Amount);
@@ -123,8 +120,9 @@ namespace AElf.Contracts.MultiToken
             Context.LogDebug(() => $"transferTransactionHash == {transferTransactionHash}");
             Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionHash] == null,
                 "Token already claimed.");
-            
-            var crossChainTransferInput = CrossChainTransferInput.Parser.ParseFrom(transferTransaction.Params.ToByteArray());
+
+            var crossChainTransferInput =
+                CrossChainTransferInput.Parser.ParseFrom(transferTransaction.Params.ToByteArray());
             var symbol = crossChainTransferInput.TokenInfo.Symbol;
             var amount = crossChainTransferInput.Amount;
             var receivingAddress = crossChainTransferInput.To;
@@ -132,7 +130,7 @@ namespace AElf.Contracts.MultiToken
 
             Context.LogDebug(() =>
                 $"symbol == {symbol}, amount == {amount}, receivingAddress == {receivingAddress}, targetChainId == {targetChainId}");
-            
+
             Assert(receivingAddress.Equals(Context.Sender) && targetChainId == Context.ChainId,
                 "Unable to receive cross chain token.");
             if (State.CrossChainContractReferenceState.Value == null)
@@ -151,10 +149,10 @@ namespace AElf.Contracts.MultiToken
             var verificationResult =
                 State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Verification failed.");
-            
+
             // Create token if it doesnt exist.
             var existing = State.TokenInfos[symbol];
-            if(existing == null)
+            if (existing == null)
                 RegisterTokenInfo(crossChainTransferInput.TokenInfo);
 
             State.VerifiedCrossChainTransferTransaction[transferTransactionHash] = input;
@@ -162,7 +160,7 @@ namespace AElf.Contracts.MultiToken
             State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);
             return new Empty();
         }
-        
+
         public override Empty Lock(LockInput input)
         {
             AssertLockAddress(input.Symbol, input.To);
@@ -192,8 +190,18 @@ namespace AElf.Contracts.MultiToken
         public override Empty TransferFrom(TransferFromInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
+
+            // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
-            Assert(allowance >= input.Amount, $"Insufficient allowance.");
+            if (allowance < input.Amount)
+            {
+                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
+                {
+                    DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
+                    return new Empty();
+                }
+                Assert(false, "Insufficient allowance.");
+            }
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
@@ -254,6 +262,7 @@ namespace AElf.Contracts.MultiToken
             {
                 return new Empty();
             }
+
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.Symbol == State.NativeTokenSymbol.Value, "The paid fee is not in native token.");
             var fromAddress = Context.Sender;
@@ -283,7 +292,7 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
-        
+
         public override Empty SetFeePoolAddress(Hash dividendContractSystemName)
         {
             var dividendContractAddress =
@@ -295,6 +304,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         #region ForTests
+
         /*
         public void Create2(string symbol, int decimals, bool isBurnable, Address issuer, string tokenName,
             long totalSupply, Address whiteAddress)
@@ -333,6 +343,7 @@ namespace AElf.Contracts.MultiToken
 
 
         */
+
         #endregion
     }
 }

@@ -1,5 +1,4 @@
-﻿using AElf.Common;
-using AElf.Contracts.Consensus.DPoS;
+﻿using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -19,7 +18,6 @@ using AElf.OS.Rpc.ChainController;
 using AElf.OS.Rpc.Net;
 using AElf.OS.Rpc.Wallet;
 using AElf.Runtime.CSharp;
-using AElf.Runtime.CSharp.ExecutiveTokenPlugin;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -85,7 +83,7 @@ namespace AElf.TestLauncher
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
                 ResourceSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(

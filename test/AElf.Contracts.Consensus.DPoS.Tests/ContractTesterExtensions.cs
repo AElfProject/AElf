@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken;
@@ -139,7 +138,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public static Address GetDividendsContractAddress(
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
-            return contractTester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name);
+            return contractTester.GetContractAddress(DividendSmartContractAddressNameProvider.Name);
         }
 
         public static async Task<TransactionResult> ExecuteTokenContractMethodWithMiningAsync(
@@ -177,7 +176,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 20,
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
                 Memo = "Issue elf token."
             });
 
@@ -195,7 +194,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
-                    list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name,
+                    list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name,
                         dividendMethodCallList);
                     list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name,
                         tokenContractCallList);

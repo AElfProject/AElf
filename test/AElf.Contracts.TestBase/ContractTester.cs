@@ -1,11 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Consensus.DPoS;
-using AElf.Contracts.Authorization;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividend;
@@ -31,7 +29,7 @@ using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
-using AElf.Types.CSharp;
+using AElf.CSharp.Core;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -245,7 +243,8 @@ namespace AElf.Contracts.TestBase
                 new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
+                    LockTokenForElection = 100_000
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
@@ -261,7 +260,8 @@ namespace AElf.Contracts.TestBase
                 new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
+                    LockTokenForElection = 100_000
                 });
             var firstRound = initialMiners.ToMiners()
                 .GenerateFirstRoundOfNewTerm(miningInterval, startTimestamp.ToDateTime());
@@ -617,7 +617,7 @@ namespace AElf.Contracts.TestBase
             {
                 Symbol = "ELF",
                 Amount = InitialDividendToken,
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name
+                ToSystemContractName = DividendSmartContractAddressNameProvider.Name
             });
             callList.Add(nameof(TokenContract.Issue), new IssueInput
             {
@@ -628,7 +628,7 @@ namespace AElf.Contracts.TestBase
 
             return list =>
             {
-                list.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
                 //TODO: support initialize method, make the tester auto issue elf token
                 list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, callList);
                 list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);

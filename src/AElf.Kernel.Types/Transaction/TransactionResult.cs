@@ -3,7 +3,7 @@
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
-    public partial class TransactionResult 
+    public partial class TransactionResult
     {
         partial void OnConstruction()
         {

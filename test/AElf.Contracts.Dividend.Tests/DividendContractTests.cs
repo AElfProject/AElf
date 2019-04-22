@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Consensus.DPoS;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -32,7 +31,7 @@ namespace AElf.Contracts.Dividend
             BasicZeroContractAddress = Tester.GetZeroContractAddress();
             ConsensusContractAddress = Tester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
-            DividendContractAddress = Tester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name);
+            DividendContractAddress = Tester.GetContractAddress(DividendSmartContractAddressNameProvider.Name);
         }
 
         [Fact]
