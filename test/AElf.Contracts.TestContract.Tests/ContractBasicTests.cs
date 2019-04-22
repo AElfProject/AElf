@@ -1,6 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract;
+using AElf.Contracts.TestContract.Basic1;
 using AElf.Contracts.TestContract.Basic11;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
@@ -58,6 +59,21 @@ namespace AElf.Contract.TestContract
                 new Empty())).BoolValue;
             result.ShouldBeTrue();
         }
+
+        [Fact]
+        public async Task UpdateContract_WithSameCode_Failed()
+        {
+            var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
+                new ContractUpdateInput
+                {
+                    Address = Basic1ContractAddress,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(Basic1Contract).Assembly.Location)) 
+                }
+            )).TransactionResult;
+            
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.Contains("Code is not changed").ShouldBeTrue();
+        } 
         
         [Fact]
         public async Task UpdateContract_And_Call_Old_Method()
