@@ -7,7 +7,7 @@ namespace AElf.Kernel
     {
         partial void OnConstruction()
         {
-            Bloom = ByteString.CopyFrom(new Bloom().Data);
+            Bloom = ByteString.CopyFrom(new byte[256]);
         }
 
         public byte[] Serialize()
