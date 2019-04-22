@@ -5,11 +5,13 @@ using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Dividend;
+using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
+using AElf.Contracts.Vote;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -55,32 +57,43 @@ namespace AElf.Blockchains.MainChain
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero)
             };
-            
+
             var dposOptions = context.ServiceProvider.GetService<IOptionsSnapshot<DPoSOptions>>().Value;
             var zeroContractAddress = context.ServiceProvider.GetRequiredService<ISmartContractAddressService>()
                 .GetZeroSmartContractAddress();
 
+            // Consensus Contract
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
                 GenerateConsensusInitializationCallList(dposOptions, tokenInitialOptions));
 
+            // Dividend Contract
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
-                DividendsSmartContractAddressNameProvider.Name, GenerateDividendInitializationCallList());
+                DividendSmartContractAddressNameProvider.Name, GenerateDividendInitializationCallList());
+
+            // Token Contract
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name,
-                GenerateTokenInitializationCallList(zeroContractAddress,
-                    context.ServiceProvider.GetService<IOptions<DPoSOptions>>().Value.InitialMiners, tokenInitialOptions));
+                GenerateTokenInitializationCallList(zeroContractAddress, dposOptions.InitialMiners, tokenInitialOptions));
+
+            // Resource Contract
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
                 ResourceSmartContractAddressNameProvider.Name);
+
+            // Fee Receiver Contract
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
                 ResourceFeeReceiverSmartContractAddressNameProvider.Name);
-            var crossChainMethodCallList = new SystemTransactionMethodCallList();
-            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize), new AElf.Contracts.CrossChain.InitializeInput
-            {
-                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
-            });
+
+            // Cross Chain Contract
             dto.InitializationSmartContracts.AddGenesisSmartContract<CrossChainContract>(
-                CrossChainSmartContractAddressNameProvider.Name, crossChainMethodCallList);
+                CrossChainSmartContractAddressNameProvider.Name, GenerateCrossChainInitializationCallList());
+
+            // Vote Contract
+            dto.InitializationSmartContracts.AddGenesisSmartContract<VoteContract>(
+                VoteSmartContractAddressNameProvider.Name, GenerateVoteInitializationCallList());
+
+            // Election Contract
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ElectionContract>(
+                ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
@@ -95,7 +108,7 @@ namespace AElf.Blockchains.MainChain
                 new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name,
+                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
                     LockTokenForElection = tokenInitialOptions.LockForElection
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
@@ -143,7 +156,7 @@ namespace AElf.Blockchains.MainChain
             {
                 Symbol = tokenInitialOptions.Symbol,
                 Amount = (long) (tokenInitialOptions.TotalSupply * tokenInitialOptions.DividendPoolRatio),
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
 
@@ -162,13 +175,48 @@ namespace AElf.Blockchains.MainChain
 
             // Set fee pool address to dividend contract address.
             tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendSmartContractAddressNameProvider.Name);
 
             tokenContractCallList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
             {
                 CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
             });
             return tokenContractCallList;
+        }
+
+        private SystemTransactionMethodCallList GenerateCrossChainInitializationCallList()
+        {
+            var crossChainMethodCallList = new SystemTransactionMethodCallList();
+            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
+                new AElf.Contracts.CrossChain.InitializeInput
+                {
+                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+                });
+            return crossChainMethodCallList;
+        }
+
+        private SystemTransactionMethodCallList GenerateVoteInitializationCallList()
+        {
+            var voteContractMethodCallList = new SystemTransactionMethodCallList();
+            voteContractMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
+                new InitialVoteContractInput
+                {
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+                });
+            return voteContractMethodCallList;
+        }
+
+        private SystemTransactionMethodCallList GenerateElectionInitializationCallList()
+        {
+            var electionContractMethodCallList = new SystemTransactionMethodCallList();
+            electionContractMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
+                new InitialElectionContractInput
+                {
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name
+                });
+            return electionContractMethodCallList;
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)
