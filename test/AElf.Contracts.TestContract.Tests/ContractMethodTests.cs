@@ -68,7 +68,9 @@ namespace AElf.Contract.TestContract
         {
             for (int i = 0; i < 10; i++)
             {
-                await TestBasic1ContractStub.UserPlayBet.SendAsync(new BetInput
+                var testUser = SampleECKeyPairs.KeyPairs[i];
+                var basicStub = GetTestBasic1ContractStub(testUser);
+                await basicStub.UserPlayBet.SendAsync(new BetInput
                 {
                     Int64Value = 100
                 });
