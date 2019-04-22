@@ -85,6 +85,7 @@ namespace AElf.Contracts.ParliamentAuth
             DateTime timestamp = proposal.ExpiredTime.ToDateTime();
             Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
             Hash hash = Hash.FromMessage(proposal);
+            Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = new ProposalInfo
             {
                 ContractMethodName = proposal.ContractMethodName,
