@@ -97,8 +97,8 @@ namespace AElf.Blockchains.MainChain
                 VoteSmartContractAddressNameProvider.Name, GenerateVoteInitializationCallList());
 
             // Election Contract
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ElectionContract>(
-                ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
+            // dto.InitializationSmartContracts.AddGenesisSmartContract<ElectionContract>(
+            //    ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
