@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -174,6 +175,17 @@ namespace AElf.Contracts.Election
                 });
 
             return electionMethodCallList;
+        }
+        
+        internal async Task<long> GetUserBalance(byte[] publicKey)
+        {
+            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = "ELF",
+                Owner = Address.FromPublicKey(publicKey)
+            })).Balance;
+
+            return balance;
         }
     }
 }

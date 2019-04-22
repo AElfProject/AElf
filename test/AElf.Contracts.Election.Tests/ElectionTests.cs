@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
@@ -26,83 +27,6 @@ namespace AElf.Contracts.Election
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
-        }
-
-        [Fact]
-        public async Task AnnounceElection_Without_EnoughToken()
-        {
-            
-        }
-
-        [Fact]
-        public async Task AnnounceElection_Success()
-        {
-            
-        }
-
-        [Fact]
-        public async Task AnnounceElection_Twice()
-        {
-            
-        }
-
-        [Fact]
-        public async Task QuitElection_WithCandidate()
-        {
-            
-        }
-
-        [Fact]
-        public async Task QuitElection_WithCommonUser()
-        {
-            
-        }
-
-        [Fact]
-        public async Task UserVote_Candidate_Success()
-        {
-            
-        }
-
-        [Fact]
-        public async Task UserVote_Candidate_Failed()
-        {
-            
-        }
-
-        [Fact]
-        public async Task UserWithdraw_Success()
-        {
-            
-        }
-        [Fact]
-        public async Task UserWithdraw_Failed()
-        {
-            
-        }
-
-        [Fact]
-        public async Task UpdateTermNumber_Success()
-        {
-            
-        } 
-        
-        [Fact]
-        public async Task UpdateTermNumber_Failed()
-        {
-            
-        }
-
-        [Fact]
-        public async Task GetElectionResult()
-        {
-            
-        }
-
-        [Fact]
-        public async Task GetTicketsInformation()
-        {
-            
         }
 
         private async Task<TransactionResult> UserAnnounceElection(ECKeyPair userKeyPair)
