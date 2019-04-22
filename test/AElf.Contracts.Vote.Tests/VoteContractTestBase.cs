@@ -17,9 +17,9 @@ namespace AElf.Contracts.Vote
     {
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
+        protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
 
@@ -78,7 +78,6 @@ namespace AElf.Contracts.Vote
                 new InitialVoteContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
                 });
 
             return voteMethodCallList;

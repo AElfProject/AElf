@@ -32,4 +32,28 @@ service ElectionContract {
     rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
         option (aelf.is_view) = true;
     }
+    rpc GetTicketsInformation (StringInput) returns (ElectionTickets) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableNotWithdrawnTicketsInfo (PageableElectionTicketsInfoInput) returns (ElectionTickets) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryAlias (StringInput) returns (StringOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTicketsCount (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableCandidatesHistoryInfo (PageInfo) returns (CandidateHistoryDictionary) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableTicketsHistories (PageableElectionTicketsInfoInput) returns (ElectionTicketsHistories) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotesCount (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryCurrentDividendsForVoters (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
 }
