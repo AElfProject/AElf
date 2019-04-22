@@ -22,7 +22,6 @@ namespace AElf.Contracts.AssociationAuth
             var proposal = State.Proposals[proposalId];
             Assert(proposal !=null,"Invalid proposal Id.");
             
-            var organization = GetOrganization(proposal.OrganizationAddress);
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,

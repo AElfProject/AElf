@@ -21,9 +21,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             var proposal = State.Proposals[proposalId];
             Assert(proposal != null, "Not found proposal.");
-            var organization = State.Organisations[proposal.OrganizationAddress];
-            var representatives = GetRepresentatives();
-
+            
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -32,8 +30,7 @@ namespace AElf.Contracts.ParliamentAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() &&
-                                IsReadyToRelease(proposal, organization, representatives)
+                ToAddress = proposal.ToAddress
             };
 
             return result;
