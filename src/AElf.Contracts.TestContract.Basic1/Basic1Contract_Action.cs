@@ -1,4 +1,5 @@
 using System;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.Basic1
@@ -37,20 +38,19 @@ namespace AElf.Contracts.TestContract.Basic1
         public override Empty UserPlayBet(BetInput input)
         {
             Assert(input.Int64Value >= State.MinBet.Value && input.Int64Value <=State.MaxBet.Value, $"Input balance not in boundary({State.MinBet.Value}, {State.MaxBet.Value}).");
-            Assert(input.Int64Value > State.WinerHistory[Context.Sender]);
+            Assert(input.Int64Value > State.WinerHistory[Context.Sender], "Should bet bigger than your reward money.");
+            State.TotalBetBalance.Value = State.TotalBetBalance.Value.Add(input.Int64Value);
             
             var result = WinOrLose(input.Int64Value);
-            State.LoserHistory[Context.Sender] += input.Int64Value;
 
             if (result == 0)
             {
-                State.TotalBetBalance.Value += input.Int64Value;
-                State.LoserHistory[Context.Sender] += result;
+                State.LoserHistory[Context.Sender] = State.LoserHistory[Context.Sender].Add(input.Int64Value);
             }
             else
             {
-                State.RewardBalance.Value += result;
-                State.WinerHistory[Context.Sender] += result;
+                State.RewardBalance.Value = State.RewardBalance.Value.Add(result);
+                State.WinerHistory[Context.Sender] = State.WinerHistory[Context.Sender].Add(result);
             }
             
             return new Empty();
@@ -58,7 +58,7 @@ namespace AElf.Contracts.TestContract.Basic1
 
         private long WinOrLose(long betAmount)
         {
-            Random rd = new Random();
+            var rd = new Random(DateTime.UtcNow.Millisecond);
             var data = rd.Next(1, 1000);
             if (data % 100 == 1)
                 return betAmount * 1000;
