@@ -15,8 +15,7 @@ namespace AElf.Contracts.Election
             InitializeContracts();
         }
         
-        //[Fact(Skip = "With issue right now, wait fix.")]
-        [Fact]
+        [Fact(Skip = "With issue right now, wait fix.")]
         public async Task ElectionContract_InitializeMultiTimes()
         {
             var transactionResult = (await ElectionContractStub.InitialElectionContract.SendAsync(new InitialElectionContractInput
