@@ -1,7 +1,9 @@
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using Shouldly;
 using Xunit;
 
@@ -346,7 +348,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_WithIncorrectPeriod()
+        public async Task ProfitContract_ReleaseProfits_InvalidPeriod()
         {
             const int amount = 100;
 
@@ -372,7 +374,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("period");
+            executionResult.TransactionResult.Error.ShouldContain("Invalid period.");
         }
 
         [Fact]
@@ -399,21 +401,126 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_InvalidProfitId()
+        public async Task ProfitContract_ReleaseProfits_ProfitItemNotFound()
         {
+            const int amount = 100;
 
+            var user = Creators[0];
+
+            var executionResult = await user.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            {
+                ProfitId = Hash.Generate(),
+                Amount = amount,
+                Period = 1
+            });
+            
+            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            executionResult.TransactionResult.Error.ShouldContain("Profit item not found.");
         }
 
         [Fact]
         public async Task ProfitContract_ReleaseProfits()
         {
+            const int amount = 100;
 
+            var creator = Creators[0];
+            
+            var profitId = await CreateProfitItem();
+            var profitItem = await creator.GetProfitItem.CallAsync(profitId);
+
+            await TransferToProfitItemVirtualAddress(profitItem.VirtualAddress, amount * 2);
+            
+            await creator.AddWeight.SendAsync(new AddWeightInput
+            {
+                Receiver = Address.Generate(),
+                ProfitId = profitId,
+                Weight = 100
+            });
+
+            // First time.
+            {
+                var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+                {
+                    ProfitId = profitId,
+                    Amount = amount,
+                    Period = 1
+                });
+            
+                executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+
+            // Second time.
+            {
+                var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+                {
+                    ProfitId = profitId,
+                    Amount = amount,
+                    Period = 2
+                });
+            
+                executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
         }
 
         [Fact]
         public async Task ProfitContract_ReleaseProfits_WithSubProfitItems()
         {
+            const int amount = 100;
+            const int weight1 = 80;
+            const int weight2 = 20;
 
+            var creator = Creators[0];
+
+            var profitId = await CreateProfitItem();
+            var subProfitId1 = await CreateProfitItem(1);
+            var subProfitId2 = await CreateProfitItem(2);
+
+            await TransferToProfitItemVirtualAddress(profitId);
+
+            await creator.RegisterSubProfitItem.SendAsync(new RegisterSubProfitItemInput
+            {
+                ProfitId = profitId,
+                SubProfitId = subProfitId1,
+                SubItemWeight = weight1
+            });
+
+            await creator.RegisterSubProfitItem.SendAsync(new RegisterSubProfitItemInput
+            {
+                ProfitId = profitId,
+                SubProfitId = subProfitId2,
+                SubItemWeight = weight2
+            });
+
+            var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            {
+                ProfitId = profitId,
+                Amount = amount,
+                Period = 1
+            });
+
+            //executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            {
+                var subProfitItem = await creator.GetProfitItem.CallAsync(subProfitId1);
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = subProfitItem.VirtualAddress,
+                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                })).Balance;
+
+                //balance.ShouldBe(amount.Mul(weight1).Div(weight1 + weight2));
+            }
+            
+            {
+                var subProfitItem = await creator.GetProfitItem.CallAsync(subProfitId2);
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = subProfitItem.VirtualAddress,
+                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                })).Balance;
+
+                //balance.ShouldBe(amount.Mul(weight2).Div(weight1 + weight2));
+            }
         }
 
         private async Task<Hash> CreateProfitItem(int returnIndex = 0)
