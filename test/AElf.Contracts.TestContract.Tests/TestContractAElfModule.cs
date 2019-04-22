@@ -2,14 +2,14 @@ using AElf.Contracts.TestKit;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Contracts.Election
+namespace AElf.Contract.TestContract
 {
     [DependsOn(typeof(ContractTestModule))]
-    public class ElectionTestModule : ContractTestModule
+    public class TestContractAElfModule : ContractTestModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<ElectionTestModule>();
+            context.Services.AddAssemblyOf<TestContractAElfModule>();
         }
     }
 }
