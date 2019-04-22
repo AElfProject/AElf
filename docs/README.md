@@ -18,7 +18,7 @@ This Gitbook contains various different types of documentation and depending on 
 
 #### Guides and tutorials
 
-- [**tutorials**](tutorials/main.md) - groups end-to-end guides and tutorials about various topics.  
+- [**tutorials**](tutorials/main.md) - groups end-to-end guides and tutorials about various topics.
 - [**getting started**](Introduction/main.md) - if you've never run an AElf node, we recommend you start with this section contains.
 
 #### AElf concepts
