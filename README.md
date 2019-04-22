@@ -17,6 +17,7 @@ AElf is a blockchain system aiming to achieve scalability and extensibility thro
 
 For more information you can follow these links:
 * [Official website](https://aelf.io)
+* [Documentation](https://docs.aelf.io/v/dev/)
 * [White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1) 
 
 ## Getting Started
