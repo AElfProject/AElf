@@ -14,12 +14,12 @@
     * [Command line interface](cli/cli.md)
         * [Introduction](cli/intro.md)
         * [Commands](cli/methods.md)
-* [AElf protocol](Protocol/protocol.md)
+* [AElf protocol](Protocol/main.md)
     * [Addresses](Protocol/addresses.md)
     * [Transactions](Protocol/txs.md)
     * [Blocks](Protocol/blocks.md)
 <!-- * [Multitoken contract](multitoken/contract.md) -->
-* [Smart contracts](Contract/contracts.md)
+* [Smart contracts](Contract/main.md)
     * [Architecture](Contract/archi.md)
     * [Service](Contract/service.md)
     * [Event](Contract/events.md)
@@ -27,7 +27,7 @@
     <!-- * [Contract base](Contract/base.md) -->
     * [Deploy guide](Contract/depl.md)
    <!-- * [Update guide](Contract/upd.md) -->
-* [Cross chain](crosschain/crosschain.md)
+* [Cross chain](crosschain/main.md)
     * [Introduction](crosschain/intro.md)
     * [Architecture](crosschain/archi.md)
     * [Crosschain verification](crosschain/verif.md)
@@ -40,7 +40,7 @@
     * [Resource system](publicchain/resources.md)
     * [Authority contract](publicchain/auth.md)
     <!--* [Multilevel chain system](publicchain/multilvlchain.md)-->
-* [Architecture](Architecture/architecture.md)
+* [Architecture](Architecture/main.md)
     * [Introduction](Architecture/introduction.md)
     * [Implementations](Architecture/implementations.md)
 * [Performance](perf/perf.md)
