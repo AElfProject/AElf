@@ -13,6 +13,7 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
+using PageInfo = AElf.Consensus.DPoS.PageInfo;
 using VoteInput = AElf.Consensus.DPoS.VoteInput;
 using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 

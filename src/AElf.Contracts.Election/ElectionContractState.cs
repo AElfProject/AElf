@@ -14,5 +14,10 @@ namespace AElf.Contracts.Election
         public MappedState<string, CandidateHistory> Histories { get; set; }
 
         public SingletonState<int> CurrentTermNumber { get; set; }
+
+        /// <summary>
+        /// Vote Id -> Lock Time (days)
+        /// </summary>
+        public MappedState<Hash, int> LockTimeMap { get; set; }
     }
 }
