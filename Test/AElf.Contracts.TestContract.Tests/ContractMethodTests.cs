@@ -6,10 +6,9 @@ using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Crypto.Operators;
 using Shouldly;
 using Xunit;
-using Transaction = System.Transactions.Transaction;
+using StringInput = AElf.Contracts.TestContract.Basic2.StringInput;
 
 namespace AElf.Contract.TestContract
 {
