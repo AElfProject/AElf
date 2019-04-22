@@ -37,12 +37,12 @@ The next section describes what happens once the side chain node has been starte
 For effective indexing, cache layer is used to store cross chain data received from remote nodes, and make it available and correct. Cross chain data is cached by chain id and  block height with a count limit. The cache layer can give the data if cached when the node needs. So cache layer decouples communication part and node running logic.
 
 
-### Cross Chain Contract
+### Cross chain contract
 
 Apart from the data in block, most cross chain data will be stored by cross chain contract. Cross chain data cached by the node is packed in transaction during mining process and calculated result is stored by the contract. Actually, the cross chain data in block is the result of calculation in this contract. Only with data in this contract can cross chain verification work correctly.
 
 
-### Data Flow
+### Data flow
 Conceptually the node is like described in the following diagram:
 
 <p align="center">
