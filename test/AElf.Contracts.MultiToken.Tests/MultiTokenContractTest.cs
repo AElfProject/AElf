@@ -531,14 +531,14 @@ namespace AElf.Contracts.MultiToken
 
             var transactionResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.SetFeePoolAddress),
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendSmartContractAddressNameProvider.Name);
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             //set again
             transactionResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContract.SetFeePoolAddress),
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendSmartContractAddressNameProvider.Name);
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Fee pool address already set.").ShouldBeTrue();

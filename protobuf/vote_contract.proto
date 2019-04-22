@@ -30,6 +30,9 @@ service VoteContract {
     }
     
     // View
+    rpc GetVotingEvent (GetVotingEventInput) returns (VotingEvent) {
+        option (aelf.is_view) = true;
+    }
     rpc GetVotingResult (GetVotingResultInput) returns (VotingResult) {
         option (aelf.is_view) = true;
     }

@@ -30,17 +30,12 @@ namespace AElf.Contracts.Consensus.DPoS
         protected const int VotersCount = 10;
         protected const int MiningInterval = 4000;
 
-        protected ISmartContractAddressService ContractAddressService =>
-            Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
-
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
         
         protected IECKeyPairProvider ECKeyPairProvider =>
             Application.ServiceProvider.GetRequiredService<IECKeyPairProvider>();
         
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
-
         protected Address ConsensusContractAddress { get; set; }
         
         protected Address DividendContractAddress { get; set; }
@@ -81,7 +76,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(DividendContract).Assembly.Location)),
-                        Name = DividendsSmartContractAddressNameProvider.Name,
+                        Name = DividendSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateDividendInitializationCallList()
                     })).Output;
             
@@ -165,7 +160,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
+                    LockTokenForElection = 100_000
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(
@@ -214,7 +210,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 Symbol = symbol,
                 Amount = (long)(totalSupply * 0.2),
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
 
@@ -231,7 +227,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Set fee pool address to dividend contract address.
             tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendSmartContractAddressNameProvider.Name);
 
             return tokenContractCallList;
         }

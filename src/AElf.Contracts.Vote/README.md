@@ -9,9 +9,11 @@ This method will be called once by an inline transaction right after `Vote Contr
 
 ### Purpose
 
-Set contract system name of `Token Contract` and `Consensus Contract` in order to get their addresses in the future.
+Set contract system name of `Token Contract` in order to get its addresses in the future.
 
 ### Notes
+
+- Sender must be the owner of `Vote Contract`, which should be the address of `Basic Contract Zero`.
 
 - Contract system names can neither be same nor empty.
 
