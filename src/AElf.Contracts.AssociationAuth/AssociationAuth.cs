@@ -32,7 +32,7 @@ namespace AElf.Contracts.AssociationAuth
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
-                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() && IsReadyToRelease(proposal, organization)
+                ApprovedWeight = proposal.ApprovedWeight,
             };
 
             return result;
@@ -99,7 +99,7 @@ namespace AElf.Contracts.AssociationAuth
                 return new BoolValue{Value = false};
             }
             // check approval not existed
-            Assert(proposalInfo.ApprovedReviewer.Contains(Context.Sender), "Approval already exists.");
+            Assert(!proposalInfo.ApprovedReviewer.Contains(Context.Sender), "Approval already exists.");
             var organization = GetOrganization(proposalInfo.OrganizationAddress);
             var reviewer = organization.Reviewers.FirstOrDefault(r => r.Address.Equals(Context.Sender));
             Assert(reviewer != null,"Not authorized approval.");

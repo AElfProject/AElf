@@ -1,11 +1,17 @@
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Contracts.MultiToken;
+using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
+using ApproveInput = Acs3.ApproveInput;
 
 namespace AElf.Contracts.AssociationAuth
 {
@@ -13,6 +19,7 @@ namespace AElf.Contracts.AssociationAuth
     {
         private CreateOrganizationInput _createOrganizationInput = new CreateOrganizationInput();
         private CreateProposalInput _createProposalInput = new CreateProposalInput();
+        private GetBalanceInput _getBalanceInput = new GetBalanceInput();
         private Address _organizationAddress;
         public AssociationAuthTests() {
             DeployContracts();
@@ -46,12 +53,12 @@ namespace AElf.Contracts.AssociationAuth
             var proposalId = Create_Proposal();
             var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId.Result);
             getProposal.Output.Proposer.ShouldBe(Reviewer2);
-            getProposal.Output.ContractMethodName.ShouldBe("Test");
-            getProposal.Output.CanBeReleased.ShouldBe(false);
+            getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContract.GetBalance));
             getProposal.Output.ProposalId.ShouldBe(proposalId.Result);
             getProposal.Output.OrganizationAddress.ShouldBe(_organizationAddress);
-            getProposal.Output.ToAddress.ShouldBe(Address.FromString("Test"));
-            getProposal.Output.Params.ShouldBe(ByteString.CopyFromUtf8("Test"));
+            getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
+            getProposal.Output.Params.ShouldBe(_getBalanceInput.ToByteString());
+            getProposal.Output.ApprovedWeight.ShouldBe(0);
         }
         
         [Fact]
@@ -98,7 +105,7 @@ namespace AElf.Contracts.AssociationAuth
                 //"Expired proposal."
                 var blockTime = BlockTimeProvider.GetBlockTime();
                 _createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5).ToTimestamp();
-                Thread.Sleep(5);
+                Thread.Sleep(10);
                 var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Expired proposal.").ShouldBeTrue();
@@ -116,6 +123,15 @@ namespace AElf.Contracts.AssociationAuth
                 _createProposalInput.OrganizationAddress = _organizationAddress;
                 AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
 
+                var transactionResult =
+                    await AssociationAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Unable to propose.").ShouldBeTrue();
+            }
+            {
+                _createProposalInput.OrganizationAddress = _organizationAddress;
+                
+                AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
                 var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Unable to propose.").ShouldBeTrue();
@@ -130,20 +146,110 @@ namespace AElf.Contracts.AssociationAuth
                 ProposalId = Hash.FromString("Test")
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
         }
 
+        [Fact]
+        public async Task Approve_Proposal_NotAuthorizedApproval()
+        {
+            var proposalId = Create_Proposal();
+            AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
+            var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput
+            {
+                ProposalId = proposalId.Result
+            });
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.TransactionResult.Error.Contains("Not authorized approval.").ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task Approve_Proposal_ExpiredTime()
+        {
+            var proposalId = Create_Proposal();
+            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
+            BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
+            var transactionResult = await AssociationAuthContractStub.Approve.CallAsync(new ApproveInput
+            {
+                ProposalId = proposalId.Result
+            });
+            transactionResult.Value.ShouldBe(false);
+        }
+
+        [Fact]
+        public async Task Approve_Proposal_ApprovalAlreadyExists()
+        {
+            var proposalId = Create_Proposal();
+            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
+            
+            var transactionResult1 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId =proposalId.Result});
+            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult1.Output.Value.ShouldBe(true);
+            
+            Thread.Sleep(100);
+            var transactionResult2 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId =proposalId.Result});
+            transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult2.TransactionResult.Error.Contains("Approval already exists.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task Approve_And_ReleaseProposal_1()
+        {
+            var proposalId = Create_Proposal();
+            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
+            
+            var transactionResult1 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId =proposalId.Result});
+            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult1.Output.Value.ShouldBe(true);
+            
+            var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId.Result);
+            getProposal.Output.ApprovedWeight.ShouldBe(_createOrganizationInput.Reviewers[0].Weight);
+            //getProposal.Output.ApprovedReviewer[0].ShouldBe(_createOrganizationInput.Reviewers[0].Address);
+            
+            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
+            var transactionResult2 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId =proposalId.Result});
+            transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult2.Output.Value.ShouldBe(true);
+            
+            /* After release,the proposal will be deleted
+            var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId.Result);
+            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            getProposal.TransactionResult.Error.Contains("Invalid proposal Id.").ShouldBeTrue();
+            */
+        }
+
+        [Fact]
+        public async Task Approve_And_ReleaseProposal_2()
+        {
+            var proposalId = Create_Proposal();
+            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer3KeyPair);
+            var transactionResult1 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId =proposalId.Result});
+            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult1.Output.Value.ShouldBe(true);
+            
+            /* After release,the proposal will be deleted
+            var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId.Result);
+            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            getProposal.TransactionResult.Error.Contains("Invalid proposal Id.").ShouldBeTrue();
+            */
+        }
 
 
         public async Task<Hash> Create_Proposal()
         {
             _organizationAddress = Create_Organization().Result;
+
+            _getBalanceInput = new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            };
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
             _createProposalInput = new CreateProposalInput
             {
-                ContractMethodName = "Test",
-                ToAddress = Address.FromString("Test"),
-                Params = ByteString.CopyFromUtf8("Test"),
-                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1).ToTimestamp(),
+                ContractMethodName = nameof(TokenContract.GetBalance),
+                ToAddress = TokenContractAddress,
+                Params = _getBalanceInput.ToByteString(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2).ToTimestamp(),
                 OrganizationAddress = _organizationAddress
             };
             var proposal = await AssociationAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
