@@ -32,7 +32,7 @@
     * [Architecture](crosschain/archi.md)
     * [Crosschain verification](crosschain/verif.md)
     * [Set up](crosschain/setup.md)
-* [Public chain ecosystem](publicchain/publicchain.md)
+* [Public chain ecosystem](publicchain/main.md)
     * [Introduction](publicchain/intro.md)
     * [Architecture](publicchain/archi.md)
     * [AElf consensus](publicchain/dpos.md)
