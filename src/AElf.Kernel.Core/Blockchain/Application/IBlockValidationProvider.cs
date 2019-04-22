@@ -98,20 +98,26 @@ namespace AElf.Kernel.Blockchain.Application
             if (_blockchainServce.GetChainId() != block.Header.ChainId)
                 return false;
 
-            if (!block.VerifySignature())
+            if (block.Height != 1 && !block.VerifySignature())
                 return false;
 
             if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
                 return false;
 
-            // TODO: Time span maybe configurable.
-            if (block.Header.Time.ToDateTime() - DateTime.UtcNow > TimeSpan.FromMilliseconds(2000))
+            if (block.Height != 1 && block.Header.Time.ToDateTime() - DateTime.UtcNow > KernelConsts.AllowedFutureBlockTimeSpan)
                 return false;
+
             return true;
         }
 
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
+            if (block?.Header == null || block.Body == null)
+                return false;
+
+            if (block.Body.TransactionsCount == 0)
+                return false;
+
             return true;
         }
 

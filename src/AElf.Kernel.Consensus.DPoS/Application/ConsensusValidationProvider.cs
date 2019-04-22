@@ -36,6 +36,9 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 return true;
 
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
+            if (consensusExtraData == null || consensusExtraData.IsEmpty)
+                return false;
+
             var isValid = await _consensusService.ValidateConsensusBeforeExecutionAsync(new ChainContext
             {
                 BlockHash = block.Header.PreviousBlockHash,

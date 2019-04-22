@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +15,8 @@ namespace AElf.Contracts.TestKit
 {
     public class TransactionExecutor : ITransactionExecutor
     {
+        public ECKeyPair KeyPair { get; set; } = CryptoHelpers.GenerateKeyPair();
+
         private readonly IServiceProvider _serviceProvider;
 
         public TransactionExecutor(IServiceProvider serviceProvider)
@@ -31,6 +34,9 @@ namespace AElf.Contracts.TestKit
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 new List<Transaction> {transaction},
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
+            var signature = CryptoHelpers.SignWithPrivateKey(KeyPair.PrivateKey, block.GetHash().DumpByteArray());
+            block.Header.Sig = ByteString.CopyFrom(signature);
+            block.Header.P = ByteString.CopyFrom(KeyPair.PublicKey);
 
             await blockAttachService.AttachBlockAsync(block);
         }

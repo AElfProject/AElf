@@ -8,6 +8,7 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -22,6 +23,7 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 
@@ -119,7 +121,7 @@ namespace AElf.OS
                     BestBranchBlockList[4].GetHash());
             }
 
-            _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
             {
                  BlockHash = chain.BestChainHash,
                  BlockHeight = chain.BestChainHeight
@@ -193,10 +195,8 @@ namespace AElf.OS
                 previousBlockHash = chain.BestChainHash;
                 previousBlockHeight = chain.BestChainHeight;
             }
-
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(4000));
-
             await _blockAttachService.AttachBlockAsync(block);
                 
             return block;
@@ -224,7 +224,6 @@ namespace AElf.OS
 
             return block;
         }
-
 
         #region private methods
 
@@ -280,7 +279,6 @@ namespace AElf.OS
                 var transaction = await GenerateTransferTransaction();
                 await BroadcastTransactions(new List<Transaction> {transaction});
                 var block = await MinedOneBlock(chain.BestChainHash, chain.BestChainHeight);
-                
                 bestBranchBlockList.Add(block);
             }
 
@@ -293,19 +291,15 @@ namespace AElf.OS
 
             for (var i = 0; i < 5; i++)
             {
-//                var transaction = await GenerateTransferTransaction();
-//                await BroadcastTransactions(new List<Transaction> {transaction});
                 var block = await MinedOneBlock(previousHash,previousHeight);
-                
                 forkBranchBlockList.Add(block);
-
                 previousHeight++;
                 previousHash = block.GetHash();
             }
 
             return forkBranchBlockList;
         }
-        
+
         #endregion
     }
 }

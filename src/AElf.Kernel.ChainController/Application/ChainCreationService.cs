@@ -16,7 +16,6 @@ namespace AElf.Kernel.ChainController.Application
     public class ChainCreationService : IChainCreationService
     {
         private readonly IBlockchainService _blockchainService;
-        private readonly IAccountService _accountService;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
         public ILogger<ChainCreationService> Logger { get; set; }
@@ -24,14 +23,13 @@ namespace AElf.Kernel.ChainController.Application
         public ILocalEventBus LocalEventBus { get; set; }
 
         public ChainCreationService(IBlockchainService blockchainService, IBlockExecutingService blockExecutingService,
-            IBlockchainExecutingService blockchainExecutingService, IAccountService accountService)
+            IBlockchainExecutingService blockchainExecutingService)
         {
             _blockchainService = blockchainService;
             _blockExecutingService = blockExecutingService;
             _blockchainExecutingService = blockchainExecutingService;
             Logger = NullLogger<ChainCreationService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
-            _accountService = accountService;
         }
 
         /// <summary>
@@ -53,9 +51,6 @@ namespace AElf.Kernel.ChainController.Application
                 };
 
                 var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions);
-                block.Header.Sig = ByteString.CopyFrom(await _accountService.SignAsync(block.GetHash().DumpByteArray()));
-                block.Header.P = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
-
                 var chain = await _blockchainService.CreateChainAsync(block);
                 await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, BlockAttachOperationStatus.LongestChainFound);
 
