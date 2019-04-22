@@ -31,7 +31,7 @@ namespace AElf.Contracts.Dividend
             BasicZeroContractAddress = Tester.GetZeroContractAddress();
             ConsensusContractAddress = Tester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
-            DividendContractAddress = Tester.GetContractAddress(DividendsSmartContractAddressNameProvider.Name);
+            DividendContractAddress = Tester.GetContractAddress(DividendSmartContractAddressNameProvider.Name);
         }
 
         [Fact]

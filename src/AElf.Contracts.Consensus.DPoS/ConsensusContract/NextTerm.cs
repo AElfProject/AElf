@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using AddDividendsInput = AElf.Consensus.DPoS.AddDividendsInput;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
