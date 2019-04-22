@@ -91,7 +91,14 @@ namespace AElf.Contracts.AssociationAuth
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender
             });
-            
+            //issue default user
+            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+            {
+                Symbol = symbol,
+                Amount = totalSupply - 20 * 100_000L,
+                To = DefaultSender,
+                Memo = "Issue token to default user",
+            });
             return tokenContractCallList;
         }
     }

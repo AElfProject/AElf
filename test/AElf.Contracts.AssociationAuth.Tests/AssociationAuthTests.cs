@@ -1,11 +1,8 @@
-using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -19,7 +16,7 @@ namespace AElf.Contracts.AssociationAuth
     {
         private CreateOrganizationInput _createOrganizationInput = new CreateOrganizationInput();
         private CreateProposalInput _createProposalInput = new CreateProposalInput();
-        private GetBalanceInput _getBalanceInput = new GetBalanceInput();
+        private TransferInput _transferInput = new TransferInput();
         private Address _organizationAddress;
         public AssociationAuthTests() {
             DeployContracts();
@@ -28,7 +25,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Get_Organization()
         {
-            _organizationAddress = Create_Organization().Result;
+            _organizationAddress = await Create_Organization();
             var getOrganization = await AssociationAuthContractStub.GetOrganization.CallAsync(_organizationAddress);
             getOrganization.OrganizationAddress.ShouldBe(_organizationAddress);
             getOrganization.Reviewers[0].Address.ShouldBe(Reviewer1);
@@ -50,14 +47,14 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Get_Proposal()
         {
-            var proposalId = Create_Proposal();
-            var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId.Result);
+            var proposalId = await Create_Proposal();
+            var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId);
             getProposal.Output.Proposer.ShouldBe(Reviewer2);
-            getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContract.GetBalance));
-            getProposal.Output.ProposalId.ShouldBe(proposalId.Result);
+            getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContract.Transfer));
+            getProposal.Output.ProposalId.ShouldBe(proposalId);
             getProposal.Output.OrganizationAddress.ShouldBe(_organizationAddress);
             getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
-            getProposal.Output.Params.ShouldBe(_getBalanceInput.ToByteString());
+            getProposal.Output.Params.ShouldBe(_transferInput.ToByteString());
             getProposal.Output.ApprovedWeight.ShouldBe(0);
         }
         
@@ -72,7 +69,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Create_ProposalFailed()
         {
-            _organizationAddress = Create_Organization().Result;
+            _organizationAddress = await Create_Organization();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
             _createProposalInput = new CreateProposalInput
             {
@@ -152,11 +149,11 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Approve_Proposal_NotAuthorizedApproval()
         {
-            var proposalId = Create_Proposal();
+            var proposalId = await Create_Proposal();
             AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
             var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput
             {
-                ProposalId = proposalId.Result
+                ProposalId = proposalId
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Not authorized approval.").ShouldBeTrue();
@@ -165,12 +162,12 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Approve_Proposal_ExpiredTime()
         {
-            var proposalId = Create_Proposal();
+            var proposalId = await Create_Proposal();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
             BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
             var transactionResult = await AssociationAuthContractStub.Approve.CallAsync(new ApproveInput
             {
-                ProposalId = proposalId.Result
+                ProposalId = proposalId
             });
             transactionResult.Value.ShouldBe(false);
         }
@@ -178,15 +175,15 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Approve_Proposal_ApprovalAlreadyExists()
         {
-            var proposalId = Create_Proposal();
+            var proposalId = await Create_Proposal();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
             
-            var transactionResult1 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId =proposalId.Result});
+            var transactionResult1 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
             transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             transactionResult1.Output.Value.ShouldBe(true);
             
             Thread.Sleep(100);
-            var transactionResult2 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId =proposalId.Result});
+            var transactionResult2 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult2.TransactionResult.Error.Contains("Approval already exists.").ShouldBeTrue();
         }
@@ -194,19 +191,20 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Approve_And_ReleaseProposal_1()
         {
-            var proposalId = Create_Proposal();
+            var proposalId = await Create_Proposal();
+            await TransferForOrganizationAddress();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
             
-            var transactionResult1 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId =proposalId.Result});
+            var transactionResult1 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
             transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             transactionResult1.Output.Value.ShouldBe(true);
             
-            var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId.Result);
+            var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId);
             getProposal.Output.ApprovedWeight.ShouldBe(_createOrganizationInput.Reviewers[0].Weight);
             //getProposal.Output.ApprovedReviewer[0].ShouldBe(_createOrganizationInput.Reviewers[0].Address);
             
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
-            var transactionResult2 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId =proposalId.Result});
+            var transactionResult2 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             transactionResult2.Output.Value.ShouldBe(true);
             
@@ -215,40 +213,79 @@ namespace AElf.Contracts.AssociationAuth
             getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             getProposal.TransactionResult.Error.Contains("Invalid proposal Id.").ShouldBeTrue();
             */
+            
+            var getBalance =TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = "ELF",
+                Owner = Reviewer1
+            }).Result.Balance;
+            getBalance.ShouldBe(100);
         }
 
         [Fact]
         public async Task Approve_And_ReleaseProposal_2()
         {
-            var proposalId = Create_Proposal();
+            var proposalId = await Create_Proposal();
+            await TransferForOrganizationAddress();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer3KeyPair);
-            var transactionResult1 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId =proposalId.Result});
-            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            transactionResult1.Output.Value.ShouldBe(true);
+            var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult.Output.Value.ShouldBe(true);
             
             /* After release,the proposal will be deleted
             var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId.Result);
             getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             getProposal.TransactionResult.Error.Contains("Invalid proposal Id.").ShouldBeTrue();
             */
+
+            var getBalance =TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = "ELF",
+                Owner = Reviewer1
+            }).Result.Balance;
+            getBalance.ShouldBe(100);
+        }
+        
+        [Fact]
+        public async Task Approve_And_ReleaseProposalFailed()
+        {
+            var proposalId = await Create_Proposal();
+            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer3KeyPair);
+            var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            /* After release,the proposal will be deleted
+            var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId.Result);
+            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            getProposal.TransactionResult.Error.Contains("Invalid proposal Id.").ShouldBeTrue();
+            */
+            
+            var getBalance =TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = "ELF",
+                Owner = Reviewer1
+            }).Result.Balance;
+            getBalance.ShouldBe(0);
         }
 
 
         public async Task<Hash> Create_Proposal()
         {
-            _organizationAddress = Create_Organization().Result;
-
-            _getBalanceInput = new GetBalanceInput()
+            _organizationAddress = await Create_Organization();
+            
+            _transferInput = new TransferInput()
             {
-                Owner = DefaultSender,
-                Symbol = "ELF"
+                Symbol = "ELF",
+                Amount = 100,
+                To = Reviewer1,
+                Memo = "Transfer"
             };
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
             _createProposalInput = new CreateProposalInput
             {
-                ContractMethodName = nameof(TokenContract.GetBalance),
+                ContractMethodName = nameof(TokenContract.Transfer),
                 ToAddress = TokenContractAddress,
-                Params = _getBalanceInput.ToByteString(),
+                Params = _transferInput.ToByteString(),
                 ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2).ToTimestamp(),
                 OrganizationAddress = _organizationAddress
             };
@@ -273,6 +310,17 @@ namespace AElf.Contracts.AssociationAuth
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             return transactionResult.Output;
+        }
+
+        public async Task TransferForOrganizationAddress()
+        {
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                Symbol = "ELF",
+                Amount = 200,
+                To = _organizationAddress,
+                Memo = "transfer organization address"
+            });
         }
     }
 }
