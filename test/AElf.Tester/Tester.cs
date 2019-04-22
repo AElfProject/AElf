@@ -89,7 +89,7 @@ namespace AElf.Tester
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(ConsensusSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(DividendsSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
 
