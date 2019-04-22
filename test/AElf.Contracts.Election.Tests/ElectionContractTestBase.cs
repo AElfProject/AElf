@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -14,7 +15,6 @@ namespace AElf.Contracts.Election
 {
     public class ElectionContractTestBase : ContractTestBase<ElectionContractTestModule>
     {
-        protected readonly Hash ConsensusContractSystemName = Hash.FromString("AElf.ContractNames.Consensus");
         protected readonly Hash TokenContractSystemName = Hash.FromString("AElf.ContractNames.Token");
         protected readonly Hash VoteContractSystemName = Hash.FromString("AElf.ContractNames.Vote");
         protected readonly Hash ElectionContractSystemName = Hash.FromString("AElf.ContractNames.Election");
@@ -130,21 +130,35 @@ namespace AElf.Contracts.Election
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = symbol,
-                Amount = totalSupply - 20 * 100_000L,
+                Amount = totalSupply - 3500_000L,
                 To = DefaultSender,
                 Memo = "Issue token to default user for vote.",
             });
 
-            //issue some amount to voter
-            for (int i = 1; i < 20; i++)
+            //issue some amount for bp announcement and user vote
+            for (int i = 1; i <= 50; i++)
             {
-                tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                if (i <= 10)
                 {
-                    Symbol = symbol,
-                    Amount = 100_000L,
-                    To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
-                    Memo = "set voters few amount for voting."
-                });
+                    tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                    {
+                        Symbol = symbol,
+                        Amount = 150_000L,
+                        To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
+                        Memo = "set voters few amount for voting."
+                    });
+                }
+                else
+                {
+                    tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                    {
+                        Symbol = symbol,
+                        Amount = 50_000L,
+                        To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
+                        Memo = "set voters few amount for voting."
+                    });
+                }
+                
             }
 
             return tokenContractCallList;
@@ -161,6 +175,17 @@ namespace AElf.Contracts.Election
                 });
 
             return electionMethodCallList;
+        }
+        
+        internal async Task<long> GetUserBalance(byte[] publicKey)
+        {
+            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = "ELF",
+                Owner = Address.FromPublicKey(publicKey)
+            })).Balance;
+
+            return balance;
         }
     }
 }
