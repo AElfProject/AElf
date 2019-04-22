@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using AElf.Cryptography.SecretSharing;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Cryptography.Tests
