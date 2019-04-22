@@ -247,9 +247,6 @@ namespace AElf.Contracts.Profit
 
             Assert(input.Period == releasingPeriod, "Invalid period.");
 
-            profitItem.CurrentPeriod += 1;
-            State.ProfitItemsMap[input.ProfitId] = profitItem;
-
             Assert(profitItem.TotalWeight > 0, "Invalid total weight.");
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
@@ -284,18 +281,33 @@ namespace AElf.Contracts.Profit
 
             State.ReleasedProfitsMap[profitsReceivingVirtualAddress] = releasedProfitInformation;
 
+            // Start releasing.
+            
+            var remainAmount = input.Amount;
+
             foreach (var subProfitItem in profitItem.SubProfitItems)
             {
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItem.ProfitId);
 
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                var amount = subProfitItem.Weight.Mul(input.Amount).Div(profitItem.TotalWeight);
+                if (amount != 0)
                 {
-                    From = profitsReceivingVirtualAddress,
-                    To = subItemVirtualAddress,
-                    Amount = subProfitItem.Weight.Mul(input.Amount).Div(profitItem.TotalWeight),
-                    Symbol = profitItem.TokenSymbol
-                });
+                    State.TokenContract.TransferFrom.Send(new TransferFromInput
+                    {
+                        From = profitVirtualAddress,
+                        To = subItemVirtualAddress,
+                        Amount = amount,
+                        Symbol = profitItem.TokenSymbol
+                    });
+                }
 
+                remainAmount -= amount;
+
+                var subItem = State.ProfitItemsMap[subProfitItem.ProfitId];
+                subItem.TotalAmount += amount;
+                State.ProfitItemsMap[subProfitItem.ProfitId] = subItem;
+
+                // Update current_period of detail of sub profit item.
                 var subItemDetail = State.ProfitDetailsMap[input.ProfitId][subItemVirtualAddress];
                 foreach (var detail in subItemDetail.Details)
                 {
@@ -304,6 +316,20 @@ namespace AElf.Contracts.Profit
 
                 State.ProfitDetailsMap[input.ProfitId][subItemVirtualAddress] = subItemDetail;
             }
+
+            if (remainAmount != 0)
+            {
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = profitVirtualAddress,
+                    To = profitsReceivingVirtualAddress,
+                    Amount = remainAmount,
+                    Symbol = profitItem.TokenSymbol
+                });
+            }
+
+            profitItem.CurrentPeriod += 1;
+            State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             return new Empty();
         }
