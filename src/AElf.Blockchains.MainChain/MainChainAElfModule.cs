@@ -91,10 +91,6 @@ namespace AElf.Blockchains.MainChain
             dto.InitializationSmartContracts.AddGenesisSmartContract<VoteContract>(
                 VoteSmartContractAddressNameProvider.Name, GenerateVoteInitializationCallList());
 
-            // Election Contract
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ElectionContract>(
-                ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
-
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });

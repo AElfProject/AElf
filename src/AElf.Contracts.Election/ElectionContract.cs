@@ -13,7 +13,7 @@ namespace AElf.Contracts.Election
             State.VoteContractSystemName.Value = input.VoteContractSystemName;
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.Initialized.Value = true;
-
+            
             State.TokenContract.Create.Send(new CreateInput
             {
                 Symbol = ElectionContractConsts.VoteSymbol,
