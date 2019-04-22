@@ -7,27 +7,27 @@ If you've never run a node before, we invite you to go through the "Getting star
 ## This Gitbook
 
 This Gitbook contains various different types of documentation and depending on what you will use AElf for, you should navigate to different sections. Here are a few links you can follow to get you started:
-- [how to start a node](Introduction/quickstart.md)
-- [how to develop dApp](tutorials/dapp/main.md)
+- [**how to start a node**](Introduction/quickstart.md)
+- [**how to develop dApp**](tutorials/dapp/main.md)
 
 #### Guides and tutorials
 
-- [**tutorials**]() - groups end-to-end guides and tutorials about various topics.  
-- [**getting started**]() - if you've never run an AElf node, we recommend you start with this section contains.
+- [**tutorials**](tutorials/main.md) - groups end-to-end guides and tutorials about various topics.  
+- [**getting started**](Introduction/main.md) - if you've never run an AElf node, we recommend you start with this section contains.
 
 #### AElf concepts
 
-- [**protocol**]() - some articles about blockchain related concepts and how they are used in AElf.
-- [**smart contract**]() - a more advanced section with more in-depth explanations of AElf smart contracts.
-- [**cross chain**]() - information about how AElf implements side chains.
-- [**public chain ecosystem**]() - information related to AElf's public blockchain and ecosystem.
-- [**architecture**]() - this section is for **advanced** users, it explains the architectural concepts behind the nodes design.
+- [**protocol**](Protocol/protocol.md) - some articles about blockchain related concepts and how they are used in AElf.
+- [**smart contract**](Contract/contracts.md) - a more advanced section with more in-depth explanations of AElf smart contracts.
+- [**cross chain**](crosschain/crosschain.md) - information about how AElf implements side chains.
+- [**public chain ecosystem**](publicchain/publicchain.md) - information related to AElf's public blockchain and ecosystem.
+- [**architecture**](Architecture/architecture.md) - this section is for **advanced** users, it explains the architectural concepts behind the nodes design.
 
 #### References
 
-- [**command line**](cli/cli.md) - a reference for the available commands on AElf's CLI.
+- [**command line**](cli/methods.md) - a reference for the available commands on AElf's CLI.
 - [**web api**](Web/main.md) - a reference for the available methods on AElf's web api.
-- [**js sdk**](cli/cli.md) - a reference for the available APIs in the js SDK.
+- [**js sdk**](SDK/js.md) - a reference for the available APIs in the js SDK.
 
 Finally we have a more complete API references for the Command Line Interface, the js-sdk and the nodes RPC interface.
 
