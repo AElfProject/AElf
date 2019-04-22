@@ -131,8 +131,7 @@ namespace AElf.Kernel.SmartContract
                 TransactionContext.Transaction.GetHash().DumpByteArray());
         }
 
-        public T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args)
-            where T : IMessage<T>, new()
+        public T Call<T>(Address address, string methodName, ByteString args) where T : IMessage<T>, new()
         {
             TransactionTrace trace = AsyncHelper.RunSync(async () =>
             {
@@ -140,7 +139,7 @@ namespace AElf.Kernel.SmartContract
                 {
                     BlockHash = this.TransactionContext.PreviousBlockHash,
                     BlockHeight = this.TransactionContext.BlockHeight - 1,
-                    StateCache = stateCache
+                    StateCache = StateProvider.Cache
                 };
 
                 var tx = new Transaction()

@@ -6,19 +6,17 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {
-
     public class ContextVariableDictionary : ReadOnlyDictionary<string, string>
     {
         public ContextVariableDictionary(IDictionary<string, string> dictionary) : base(dictionary)
         {
-            
         }
 
         public string NativeSymbol => this[nameof(NativeSymbol)];
 
         public const string NativeSymbolName = nameof(NativeSymbol);
     }
-    
+
     //TODO: this assembly should not reference AElf.Kernel.Types,
     //BODY: because it may be changed very often, and may introduce new Type, if some DAPP user use it,
     //it will be very hard to remove the type in the assembly.
@@ -26,7 +24,7 @@ namespace AElf.Kernel.SmartContract.Sdk
     public interface ISmartContractBridgeContext
     {
         int ChainId { get; }
-        
+
         ContextVariableDictionary Variables { get; }
 
         void LogDebug(Func<string> func);
@@ -66,9 +64,7 @@ namespace AElf.Kernel.SmartContract.Sdk
 
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
 
-        T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args)
-            where T : IMessage<T>, new();
-
+        T Call<T>(Address address, string methodName, ByteString args) where T : IMessage<T>, new();
         void SendInline(Address toAddress, string methodName, ByteString args);
 
         void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);

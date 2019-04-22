@@ -12,10 +12,10 @@ namespace AElf.Sdk.CSharp
             context.FireLogEvent(eventData.ToLogEvent(context.Self));
         }
 
-        public static T Call<T>(this ISmartContractBridgeContext context, IStateCache stateCache, Address address,
+        public static T Call<T>(this ISmartContractBridgeContext context, Address address,
             string methodName, IMessage message) where T:IMessage<T>, new()
         {
-            return context.Call<T>(stateCache, address, methodName, ConvertToByteString(message));
+            return context.Call<T>(address, methodName, ConvertToByteString(message));
         }
 
         public static void SendInline(this ISmartContractBridgeContext context, Address toAddress, string methodName,
