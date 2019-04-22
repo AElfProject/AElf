@@ -11,7 +11,7 @@ option csharp_namespace = "AElf.Contracts.TestContract.Basic1";
 service Basic1Contract {
     option (aelf.csharp_state) = "AElf.Contracts.TestContract.Basic1.Basic1ContractState";
     //Actions
-    rpc InitialBasic1Contract(InitialBasic1ContractInput) returns (google.protobuf.Empty){
+    rpc InitialBasic1Contract(InitialBasicContractInput) returns (google.protobuf.Empty){
     }
     rpc UpdateBetLimit(BetLimitInput) returns (google.protobuf.Empty){
     }

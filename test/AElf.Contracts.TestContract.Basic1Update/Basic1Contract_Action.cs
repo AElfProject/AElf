@@ -8,14 +8,14 @@ namespace AElf.Contracts.TestContract.Basic11
     /// </summary>
     public partial class Basic11Contract : Basic11ContractContainer.Basic11ContractBase
     {
-        public override Empty InitialBasic11Contract(InitialBasic11ContractInput input)
+        public override Empty InitialBasic11Contract(InitialBasicContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             Assert(input.MinValue >0 && input.MaxValue >0 && input.MaxValue >= input.MinValue, "Invalid min/max value input setting.");
             
             State.Initialized.Value = true;
             State.ContractName.Value = input.ContractName;
-            State.ContractManager.Value = Context.Sender;
+            State.ContractManager.Value = input.Manager;
             State.MinBet.Value = input.MinValue;
             State.MaxBet.Value = input.MaxValue;
             State.MortgageBalance.Value = input.MortgageValue;
@@ -68,7 +68,7 @@ namespace AElf.Contracts.TestContract.Basic11
 
         public override Empty UpdateStopBet(Empty input)
         {
-            Assert(Context.Sender == State.ContractManager.Value, "Only manager can perform this action."); 
+            Assert(Context.Sender != State.ContractManager.Value, "Only manager can perform this action."); 
             State.MinBet.Value = 0;
             State.MaxBet.Value = 0;
 

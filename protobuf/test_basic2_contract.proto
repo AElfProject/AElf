@@ -32,9 +32,9 @@ service Basic2Contract {
     }
     rpc TestComplex2State(Complex2Input) returns (google.protobuf.Empty) {
     }
-    rpc TestMappedState(ProtobufInput) returns (google.protobuf.Empty) {
+    rpc TestMapped1State(ProtobufInput) returns (google.protobuf.Empty) {
     }
-    rpc TestMapped1State(Complex3Input) returns (google.protobuf.Empty) {
+    rpc TestMapped2State(Complex3Input) returns (google.protobuf.Empty) {
     }
     rpc TestExecuteExternalMethod(Int64Input) returns (google.protobuf.Empty) {
     }
@@ -60,7 +60,7 @@ service Basic2Contract {
     }
     rpc QueryComplex2State(google.protobuf.Empty) returns (Complex2Output) {
     }
-    rpc QueryMappedState1(google.protobuf.Empty) returns (ProtobufListOutput) {
+    rpc QueryMappedState1(ProtobufInput) returns (ProtobufMessage) {
     }
     rpc QueryMappedState2(Complex3Input) returns (TradeMessage) {
     }

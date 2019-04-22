@@ -46,27 +46,6 @@ namespace AElf.Contracts.TestContract.Basic2
             }; 
         }
 
-        public override ProtobufListOutput QueryMappedState1(Empty input)
-        {
-            return new ProtobufListOutput
-            {
-                Collection =
-                {
-                    new ProtobufMessage
-                    {
-                        BoolValue = true,
-                        Int64Value = State.Int64Info.Value,
-                        StringValue = State.StringInfo.Value
-                    },
-                    new ProtobufMessage
-                    {
-                        BoolValue = false,
-                        Int64Value = State.Int64Info.Value,
-                        StringValue = State.StringInfo.Value
-                    }
-                }
-            };
-        }
         public override Complex1Output QueryComplex1State(Empty input)
         {
             return new Complex1Output
@@ -95,12 +74,7 @@ namespace AElf.Contracts.TestContract.Basic2
         {
             return new ProtobufOutput
             {
-                ProtobufValue = new ProtobufMessage
-                {
-                    BoolValue = State.BoolInfo.Value,
-                    Int64Value = State.Int64Info.Value,
-                    StringValue = State.StringInfo.Value
-                }
+                ProtobufValue = State.ProtoInfo2.Value
             };
         }
 
@@ -120,9 +94,21 @@ namespace AElf.Contracts.TestContract.Basic2
             }; 
         }
 
+        public override ProtobufMessage QueryMappedState1(ProtobufInput input)
+        {
+            var result = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue];
+            if(result == null)
+                return new ProtobufMessage();
+
+            return result;
+        }
+        
         public override TradeMessage QueryMappedState2(Complex3Input input)
         {
             var message = State.Complex4Info[input.From][input.PairA][input.To][input.PairB];
+            if(message == null)
+                return new TradeMessage();
+            
             return new TradeMessage
             {
                 FromAmount = message.FromAmount,

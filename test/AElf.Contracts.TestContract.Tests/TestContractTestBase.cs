@@ -83,12 +83,13 @@ namespace AElf.Contract.TestContract
         {
             var basic1CallList = new SystemTransactionMethodCallList();
             basic1CallList.Add(nameof(Basic1Contract.InitialBasic1Contract),
-                new InitialBasic1ContractInput
+                new InitialBasicContractInput
                 {
                     ContractName = "Test Contract1",
                     MinValue = 10L,
                     MaxValue = 1000L,
-                    MortgageValue = 1000_000_000L 
+                    MortgageValue = 1000_000_000L,
+                    Manager = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[1].PublicKey)
                 });
 
             return basic1CallList;
@@ -102,6 +103,5 @@ namespace AElf.Contract.TestContract
 
             return basic2CallList;
         }
-        
     }
 }

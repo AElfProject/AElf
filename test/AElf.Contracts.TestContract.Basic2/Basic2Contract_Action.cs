@@ -1,4 +1,5 @@
 using System;
+using System.Transactions;
 using AElf.Contracts.TestContract.Basic1;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -43,7 +44,7 @@ namespace AElf.Contracts.TestContract.Basic2
 
         public override Empty TestUInt32State(UInt32Input input)
         {
-            State.UInt32Info.Value = State.UInt32Info.Value.Sub(input.UInt32Value);
+            State.UInt32Info.Value = State.UInt32Info.Value.Add(input.UInt32Value);
             
             return new Empty();
         }
@@ -57,7 +58,7 @@ namespace AElf.Contracts.TestContract.Basic2
 
         public override Empty TestUInt64State(UInt64Input input)
         {
-            State.UInt64Info.Value = State.UInt64Info.Value.Sub(input.UInt64Value);
+            State.UInt64Info.Value = State.UInt64Info.Value.Add(input.UInt64Value);
             
             return new Empty();
         }
@@ -102,7 +103,7 @@ namespace AElf.Contracts.TestContract.Basic2
             return new Empty();
         }
 
-        public override Empty TestMappedState(ProtobufInput input)
+        public override Empty TestMapped1State(ProtobufInput input)
         {
             var protobufMessage = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue];
             if(protobufMessage == null)
@@ -115,14 +116,20 @@ namespace AElf.Contracts.TestContract.Basic2
             }
             else
             {
-                State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue].Int64Value =
-                    input.ProtobufValue.Int64Value;
+                State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue] =
+                    new ProtobufMessage
+                    {
+                        BoolValue = true,
+                        Int64Value = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue].Int64Value
+                            .Add(input.ProtobufValue.Int64Value),
+                        StringValue = input.ProtobufValue.StringValue
+                    };
             }
 
           return new Empty();
         }
 
-        public override Empty TestMapped1State(Complex3Input input)
+        public override Empty TestMapped2State(Complex3Input input)
         {
             var tradeMessage = State.Complex4Info[input.From][input.PairA][input.To][input.PairB];
             if (tradeMessage == null)

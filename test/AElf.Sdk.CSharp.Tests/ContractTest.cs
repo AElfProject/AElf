@@ -191,6 +191,32 @@ namespace AElf.Sdk.CSharp.Tests
             fee2.ShouldBe(20UL);
         }
 
+        [Fact]
+        public void GetVirtualAddressHash_Test()
+        {
+            var hash = Contract.GetVirtualAddressHash(10);
+            hash.ShouldNotBeNull();
+            
+            var hash1 = Contract.GetVirtualAddressHash(10);
+            hash1.ShouldBe(hash);
+            
+            var hash2 = Contract.GetVirtualAddressHash(100);
+            hash2.ShouldNotBe(hash);
+        }
+
+
+        [Fact]
+        public void GetVirtualAddress_Test()
+        {
+            var address = Contract.GetVirtualAddress(10);
+            address.Value.ShouldNotBeNull();
+            
+            var address1 = Contract.GetVirtualAddress(10);
+            address1.ShouldBe(address);
+            
+            var address2 = Contract.GetVirtualAddress(100);
+            address2.ShouldNotBe(address);
+        }
         private void SwitchOwner(Address address)
         {
             var transactionContext = new TransactionContext()

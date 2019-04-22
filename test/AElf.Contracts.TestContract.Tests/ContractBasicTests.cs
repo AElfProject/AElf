@@ -22,18 +22,19 @@ namespace AElf.Contract.TestContract
         public async Task Initialize_MultiTimesContract()
         {
             var transactionResult = (await TestBasic1ContractStub.InitialBasic1Contract.SendAsync(
-                new InitialBasic1ContractInput
+                new InitialBasicContractInput
                 {
                     ContractName = "Test initialize again",
                     MinValue = 1000,
-                    MaxValue = 10000
+                    MaxValue = 10000,
+                    Manager = Address.Generate()
                 })).TransactionResult;
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
 
-        [Fact(Skip = "Failed to find handler for UpdateStopBet. We have 7 handlers.")]
+        [Fact(Skip = "Failed to find handler for UpdateStopBet.")]
         public async Task UpdateContract_WithOwner_Success()
         {
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
@@ -92,9 +93,8 @@ namespace AElf.Contract.TestContract
             (winData + loseData).ShouldBe(100);
         }
 
-
         [Fact]
-        public async Task UpdateContract_WithoutOwner_Failed()
+        public async Task UpdateContract_Without_Permission_Failed()
         {
             var otherUser = SampleECKeyPairs.KeyPairs[2];
             var otherZeroStub = GetContractZeroTester(otherUser);
@@ -111,7 +111,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task ChangeOwner_WithoutOwner()
+        public async Task ChangeOwner_Without_Permission_Failed()
         {
             var otherUser = SampleECKeyPairs.KeyPairs[2];
             var otherZeroStub = GetContractZeroTester(otherUser);
@@ -128,7 +128,7 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task ChangeOwner_WithOwner()
+        public async Task ChangeOwner_With_Permission_Success()
         {
             var otherUser = Address.Generate();
             var transactionResult = (await BasicContractZeroStub.ChangeContractOwner.SendAsync(

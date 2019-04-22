@@ -9,18 +9,12 @@ import "google/protobuf/timestamp.proto";
 option csharp_namespace = "AElf.Contracts.TestContract";
 
 //Input
-message InitialBasic1ContractInput {
+message InitialBasicContractInput {
     string ContractName = 1;
     int64 MinValue = 2;
     int64 MaxValue = 3;
     int64 MortgageValue = 4;
-}
-
-message InitialBasic11ContractInput {
-    string ContractName = 1;
-    int64 MinValue = 2;
-    int64 MaxValue = 3;
-    int64 MortgageValue = 4;
+    Address Manager = 5;
 }
 
 message BetLimitInput {
