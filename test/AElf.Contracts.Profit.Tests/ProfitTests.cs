@@ -123,7 +123,7 @@ namespace AElf.Contracts.Profit
         public async Task ProfitContract_AddProfits()
         {
             const int amount = 1000;
-            
+
             var creator = Creators[0];
             var tokenContractStub = GetTokenContractTester(CreatorMinerKeyPair[0]);
 
@@ -228,7 +228,7 @@ namespace AElf.Contracts.Profit
             profitDetails1.Details.First().EndPeriod.ShouldBe(long.MaxValue);
             profitDetails1.Details.First().LastProfitPeriod.ShouldBe(0);
             profitDetails1.Details.First().Weight.ShouldBe(weight1);
-            
+
             await creator.RegisterSubProfitItem.SendAsync(new RegisterSubProfitItemInput
             {
                 ProfitId = profitId,
@@ -241,18 +241,179 @@ namespace AElf.Contracts.Profit
                 ProfitId = profitId,
                 Receiver = subProfitItem2.VirtualAddress
             });
-            
+
             // Check the total_weight of profit item.
             {
                 var profitItem = await creator.GetProfitItem.CallAsync(profitId);
                 profitItem.TotalWeight.ShouldBe(weight1 + weight2);
             }
-            
+
             profitDetails2.Details.Count.ShouldBe(1);
             profitDetails2.Details.First().StartPeriod.ShouldBe(1);
             profitDetails2.Details.First().EndPeriod.ShouldBe(long.MaxValue);
             profitDetails2.Details.First().LastProfitPeriod.ShouldBe(0);
             profitDetails2.Details.First().Weight.ShouldBe(weight2);
+        }
+
+        [Fact]
+        public async Task ProfitContract_AddWeight()
+        {
+            var creator = Creators[0];
+
+            var profitId = await CreateProfitItem();
+
+            const int weight1 = 100;
+            const int weight2 = 200;
+            var receiver1 = Address.Generate();
+            var receiver2 = Address.Generate();
+
+            await creator.AddWeight.SendAsync(new AddWeightInput
+            {
+                Receiver = receiver1,
+                ProfitId = profitId,
+                Weight = weight1
+            });
+
+            // Check total_weight and profit_detail
+            {
+                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
+                profitItem.TotalWeight.ShouldBe(weight1);
+
+                var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                {
+                    ProfitId = profitId,
+                    Receiver = receiver1
+                });
+                profitDetails.Details.Count.ShouldBe(1);
+                profitDetails.Details[0].Weight.ShouldBe(weight1);
+                profitDetails.Details[0].EndPeriod.ShouldBe(long.MaxValue);
+                profitDetails.Details[0].StartPeriod.ShouldBe(1);
+                profitDetails.Details[0].LastProfitPeriod.ShouldBe(0);
+            }
+
+            const int endPeriod = 100;
+            await creator.AddWeight.SendAsync(new AddWeightInput
+            {
+                Receiver = receiver2,
+                ProfitId = profitId,
+                Weight = weight2,
+                EndPeriod = endPeriod
+            });
+
+            // Check total_weight and profit_detail
+            {
+                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
+                profitItem.TotalWeight.ShouldBe(weight1 + weight2);
+
+                var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                {
+                    ProfitId = profitId,
+                    Receiver = receiver2
+                });
+                profitDetails.Details.Count.ShouldBe(1);
+                profitDetails.Details[0].Weight.ShouldBe(weight2);
+                profitDetails.Details[0].EndPeriod.ShouldBe(endPeriod);
+                profitDetails.Details[0].StartPeriod.ShouldBe(1);
+                profitDetails.Details[0].LastProfitPeriod.ShouldBe(0);
+            }
+        }
+
+        [Fact]
+        public async Task ProfitContract_ReleaseProfits_WithoutEnoughBalance()
+        {
+            const int amount = 100;
+
+            var creator = Creators[0];
+
+            var profitId = await CreateProfitItem();
+            
+            await creator.AddWeight.SendAsync(new AddWeightInput
+            {
+                Receiver = Address.Generate(),
+                ProfitId = profitId,
+                Weight = 100
+            });
+
+            var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            {
+                ProfitId = profitId,
+                Amount = amount,
+                Period = 1
+            });
+
+            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            executionResult.TransactionResult.Error.ShouldContain("Insufficient profits amount.");
+        }
+
+        [Fact]
+        public async Task ProfitContract_ReleaseProfits_WithIncorrectPeriod()
+        {
+            const int amount = 100;
+
+            var creator = Creators[0];
+            
+            var profitId = await CreateProfitItem();
+            var profitItem = await creator.GetProfitItem.CallAsync(profitId);
+
+            await TransferToProfitItemVirtualAddress(profitItem.VirtualAddress);
+            
+            await creator.AddWeight.SendAsync(new AddWeightInput
+            {
+                Receiver = Address.Generate(),
+                ProfitId = profitId,
+                Weight = 100
+            });
+
+            var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            {
+                ProfitId = profitId,
+                Amount = amount,
+                Period = 2
+            });
+
+            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            executionResult.TransactionResult.Error.ShouldContain("period");
+        }
+
+        [Fact]
+        public async Task ProfitContract_ReleaseProfits_NotCreator()
+        {
+            const int amount = 100;
+
+            var profitId = await CreateProfitItem();
+
+            await TransferToProfitItemVirtualAddress(profitId);
+
+            // The actual creator is Creators[0]
+            var anotherGuy = Creators[1];
+
+            var executionResult = await anotherGuy.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            {
+                ProfitId = profitId,
+                Amount = amount,
+                Period = 1
+            });
+            
+            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            executionResult.TransactionResult.Error.ShouldContain("Only creator can release profits.");
+        }
+
+        [Fact]
+        public async Task ProfitContract_ReleaseProfits_InvalidProfitId()
+        {
+
+        }
+
+        [Fact]
+        public async Task ProfitContract_ReleaseProfits()
+        {
+
+        }
+
+        [Fact]
+        public async Task ProfitContract_ReleaseProfits_WithSubProfitItems()
+        {
+
         }
 
         private async Task<Hash> CreateProfitItem(int returnIndex = 0)
@@ -271,6 +432,27 @@ namespace AElf.Contracts.Profit
             })).ProfitIds;
 
             return createdProfitIds[returnIndex];
+        }
+
+        private async Task TransferToProfitItemVirtualAddress(Address virtualAddress, int amount = 100)
+        {
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = virtualAddress,
+                Amount = amount,
+                Symbol = ProfitContractTestConsts.NativeTokenSymbol
+            });
+        }
+        
+        private async Task TransferToProfitItemVirtualAddress(Hash profitId, int amount = 100)
+        {
+            var profitItem = await Creators[0].GetProfitItem.CallAsync(profitId);
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                To = profitItem.VirtualAddress,
+                Amount = amount,
+                Symbol = ProfitContractTestConsts.NativeTokenSymbol
+            });
         }
     }
 }
