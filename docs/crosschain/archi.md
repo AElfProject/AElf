@@ -19,10 +19,10 @@ The diagram above illustrates two nodes run by an entity: one main chain node an
 #### Side chain lifetime
 
 Side chain lifetime involves the following steps.
-1. Request side chain creation.
-2. Wait for accept on main chain.
-3. Start and initialize side chain and it will be indexed by main chain automatically.
-4. It is allowed to do cross chain verification iff side chain is indexed correctly.
+1. Request side chain creation.  
+2. Wait for accept on main chain.  
+3. Start and initialize side chain and it will be indexed by main chain automatically.  
+4. It is allowed to do cross chain verification iff side chain is indexed correctly.  
 
 The next section describes what happens once the side chain node has been started.
 
