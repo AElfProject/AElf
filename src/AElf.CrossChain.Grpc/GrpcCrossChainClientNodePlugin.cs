@@ -21,7 +21,8 @@ namespace AElf.CrossChain.Grpc
 
         public Task StartAsync(int chainId)
         {
-            if (!_grpcCrossChainConfigOption.LocalClient) 
+            if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.RemoteParentChainNodeIp) 
+                || _grpcCrossChainConfigOption.LocalServerPort == 0) 
                 return Task.CompletedTask;
             return _crossChainGrpcClientController.CreateClient(new GrpcCrossChainCommunicationContext
             {

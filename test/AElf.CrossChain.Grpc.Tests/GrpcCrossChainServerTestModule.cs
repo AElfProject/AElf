@@ -14,11 +14,6 @@ namespace AElf.CrossChain.Grpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             base.ConfigureServices(context);
-            Configure<GrpcCrossChainConfigOption>(option =>
-            {
-                option.LocalClient = false;
-                option.LocalServer = true;
-            });
             Configure<CrossChainConfigOption>(option=>
             {
                 option.ParentChainId = ChainHelpers.ConvertBase58ToChainId("AELF");

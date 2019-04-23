@@ -3,9 +3,6 @@ namespace AElf.CrossChain.Grpc
     public class GrpcCrossChainConfigOption
     {
         #region Local
-        public bool LocalServer { get; set; }
-        
-        public bool LocalClient { get; set; }
         public string LocalServerIP { get; set; }
         public int LocalServerPort { get; set; }
         #endregion

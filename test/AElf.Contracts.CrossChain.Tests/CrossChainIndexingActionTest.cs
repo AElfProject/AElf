@@ -73,10 +73,6 @@ namespace AElf.Contract.CrossChain.Tests
             {
                 ParentChainBlockData = {parentChainBlockData}
             };
-
-            var parentChainIdInState = await Tester.CallContractMethodAsync(
-                CrossChainContractAddress,
-                CrossChainConsts.GetParentChainIdMethodName, new Empty());
             
             var txRes = await ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 CrossChainConsts.CrossChainIndexingMethodName, crossChainBlockData);
@@ -367,9 +363,9 @@ namespace AElf.Contract.CrossChain.Tests
             await ApproveBalance(lockedTokenAmount);
             var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
 
-            
-            var tx1 = await GenerateTransactionAsync(CrossChainContractAddress, CrossChainConsts.RequestChainCreationMethodName,null,
-                sideChainCreationRequest);
+
+            var tx1 = await GenerateTransactionAsync(CrossChainContractAddress,
+                nameof(CrossChainContract.RequestChainCreation), null, sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx1});
             var sideChainId2 = ChainHelpers.GetChainId(2);
             var tx2 = await GenerateTransactionAsync(

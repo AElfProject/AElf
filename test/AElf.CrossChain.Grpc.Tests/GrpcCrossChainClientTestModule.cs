@@ -12,12 +12,6 @@ namespace AElf.CrossChain.Grpc
         {
             base.ConfigureServices(context);
             
-            Configure<GrpcCrossChainConfigOption>(option =>
-            {
-                option.LocalClient = true;
-                option.LocalServer = true;
-            });
-
             var services = context.Services;
             services.AddSingleton(provider =>
             {
