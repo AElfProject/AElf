@@ -1,5 +1,4 @@
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Sdk;
 using AElf.CSharp.Core;
 using Google.Protobuf;
 

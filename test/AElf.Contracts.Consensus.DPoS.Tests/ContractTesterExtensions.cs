@@ -152,7 +152,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> starter, List<ECKeyPair> minersKeyPairs = null,
             int miningInterval = 4000, Timestamp blockchainStartTimestamp = null)
         {
-            var dividendMethodCallList = new SystemTransactionMethodCallList();
+            var dividendMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeDividendContract),
                 new InitialDividendContractInput
                 {
@@ -160,7 +160,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
 
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",

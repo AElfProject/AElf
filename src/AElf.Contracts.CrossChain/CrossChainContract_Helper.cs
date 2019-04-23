@@ -5,7 +5,6 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
-using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -29,7 +28,7 @@ namespace AElf.Contracts.CrossChain
         {
             var txResultStatusRawBytes =
                 EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
-            return new MerklePath(path).ComputeRootWith(
+            return new MerklePath().AddRange(path).ComputeRootWith(
                 Hash.FromRawBytes(txId.DumpByteArray().Concat(txResultStatusRawBytes).ToArray()));
         }
 

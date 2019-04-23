@@ -50,11 +50,11 @@ message Transaction {
 message StatePath {
     repeated string parts = 1;
 }
-//
-//message ScopedStatePath {
-//    Address address = 1;
-//    StatePath path = 2;
-//}
+
+message ScopedStatePath {
+    Address address = 1;
+    StatePath path = 2;
+}
 //
 //message StateValue {
 //    bytes CurrentValue = 1;
@@ -65,10 +65,10 @@ message StatePath {
 //    StatePath StatePath = 1;
 //    StateValue StateValue = 2;
 //}
-//
-//message TransactionList {
-//    repeated Transaction Transactions = 1;
-//}
+
+message TransactionList {
+    repeated Transaction Transactions = 1;
+}
 
 enum TransactionResultStatus {
     NotExisted = 0;
@@ -201,24 +201,24 @@ message SmartContractRegistration {
 //    Hash Root = 2;
 //    int32 LeafCount = 3;
 //}
-//
-//message MerklePath {
-//    repeated Hash Path = 1;
-//}
-//
-//message StringList {
-//    repeated string Values = 1;
-//    string Remark = 2;
-//}
-//
-//message HashList {
-//    repeated Hash Values = 1;
-//}
-//
-//message LongList {
-//    repeated int64 Values = 1;
-//    string Remark = 2;
-//}
+
+message MerklePath {
+    repeated Hash Path = 1;
+}
+
+message StringList {
+    repeated string Values = 1;
+    string Remark = 2;
+}
+
+message HashList {
+    repeated Hash Values = 1;
+}
+
+message LongList {
+    repeated int64 Values = 1;
+    string Remark = 2;
+}
 //
 //message BlockAbstract {
 //    string MinerPublicKey = 1;
@@ -261,12 +261,12 @@ message SmartContractRegistration {
 //    int64 BlockHeight = 3;
 //    map<string, bytes> Changes = 4;
 //}
-//
-//message TransactionExecutingStateSet {
-//    int64 Version = 1;
-//    map<string, bytes> Writes = 2;
-//    map<string, bool> Reads = 3;
-//}
+
+message TransactionExecutingStateSet {
+    int64 Version = 1;
+    map<string, bytes> Writes = 2;
+    map<string, bool> Reads = 3;
+}
 //
 //enum ChainStateMergingStatus {
 //    Common = 0;
@@ -281,11 +281,11 @@ message SmartContractRegistration {
 //    Hash MergingBlockHash = 4;
 //    ChainStateMergingStatus Status = 5;
 //}
-//
-//message ActionResult {
-//    bool Success = 1;
-//    string ErrorMessage = 2;
-//}
+
+message ActionResult {
+    bool Success = 1;
+    string ErrorMessage = 2;
+}
 //
 //enum ChainBlockLinkExecutionStatus {
 //    ExecutionNone = 0;
@@ -323,42 +323,43 @@ message SmartContractRegistration {
 //message TransactionBlockIndex {
 //    Hash BlockHash = 1;
 //}
-//
-//message SystemTransactionMethodCall {
-//    string MethodName = 1;
-//    bytes Params = 2;
-//}
-//
-//message SystemTransactionMethodCallList {
-//    repeated SystemTransactionMethodCall Value = 1;
-//}
-//
-//message ContractDeploymentInput {
-//    sint32 category = 1;
-//    bytes code = 2;
-//}
-//
-//message SystemContractDeploymentInput {
-//    sint32 category = 1;
-//    bytes code = 2;
-//    Hash name = 3;
-//    SystemTransactionMethodCallList transactionMethodCallList = 4;
-//}
-//
-//message ContractUpdateInput {
-//    Address address = 1;
-//    bytes code = 2;
-//}
-//
-//message ChangeContractOwnerInput {
-//    Address contractAddress = 1;
-//    Address newOwner = 2;
-//}
-//
-//message ContractInfo
-//{
-//    uint64 SerialNumber=1;
-//    Address Owner = 2;
-//    int32 Category = 3;
-//    Hash CodeHash = 4;
-//}
+
+
+// Contracts
+
+message ContractInfo
+{
+    uint64 SerialNumber=1;
+    Address Owner = 2;
+    int32 Category = 3;
+    Hash CodeHash = 4;
+}
+
+message ContractDeploymentInput {
+    sint32 category = 1;
+    bytes code = 2;
+}
+
+message SystemContractDeploymentInput {
+    message SystemTransactionMethodCall {
+        string MethodName = 1;
+        bytes Params = 2;
+    }
+    message SystemTransactionMethodCallList {
+        repeated SystemTransactionMethodCall Value = 1;
+    }
+    sint32 category = 1;
+    bytes code = 2;
+    Hash name = 3;
+    SystemTransactionMethodCallList transactionMethodCallList = 4;
+}
+
+message ContractUpdateInput {
+    Address address = 1;
+    bytes code = 2;
+}
+
+message ChangeContractOwnerInput {
+    Address contractAddress = 1;
+    Address newOwner = 2;
+}

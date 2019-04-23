@@ -26,7 +26,7 @@ namespace AElf.Contracts.MultiToken
         public LockTest()
         {
             Starter = new ContractTester<MultiTokenContractTestAElfModule>();
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",
@@ -59,7 +59,7 @@ namespace AElf.Contracts.MultiToken
                 list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
                 
                 //test extension AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts, Hash name, Action<SystemTransactionMethodCallList> action)
-                void Action(SystemTransactionMethodCallList x)
+                void Action(SystemContractDeploymentInput.Types.SystemTransactionMethodCallList x)
                 {
                     x.Value.Add(tokenContractCallList.Value);
                 }

@@ -239,7 +239,7 @@ namespace AElf.OS
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
 
             var ownAddress = await _accountService.GetAccountAsync();
-            var callList = new SystemTransactionMethodCallList();
+            var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             callList.Add(nameof(TokenContract.CreateNativeToken), new CreateInput
             {
                 Symbol = "ELF",

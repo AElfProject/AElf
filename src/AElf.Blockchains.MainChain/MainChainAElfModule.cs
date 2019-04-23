@@ -31,6 +31,7 @@ using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
+using Vote;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -100,10 +101,10 @@ namespace AElf.Blockchains.MainChain
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
         }
 
-        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions,
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions,
             TokenInitialOptions tokenInitialOptions)
         {
-            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
                 new InitialDPoSContractInput
                 {
@@ -124,9 +125,9 @@ namespace AElf.Blockchains.MainChain
             return consensusMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateDividendInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateDividendInitializationCallList()
         {
-            var dividendMethodCallList = new SystemTransactionMethodCallList();
+            var dividendMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeDividendContract),
                 new InitialDividendContractInput
                 {
@@ -136,10 +137,10 @@ namespace AElf.Blockchains.MainChain
             return dividendMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateTokenInitializationCallList(Address issuer,
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList(Address issuer,
             List<string> tokenReceivers, TokenInitialOptions tokenInitialOptions)
         {
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = tokenInitialOptions.Symbol,
@@ -184,9 +185,9 @@ namespace AElf.Blockchains.MainChain
             return tokenContractCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateCrossChainInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateCrossChainInitializationCallList()
         {
-            var crossChainMethodCallList = new SystemTransactionMethodCallList();
+            var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
                 new AElf.Contracts.CrossChain.InitializeInput
                 {
@@ -196,9 +197,9 @@ namespace AElf.Blockchains.MainChain
             return crossChainMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateVoteInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
-            var voteContractMethodCallList = new SystemTransactionMethodCallList();
+            var voteContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             voteContractMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
                 new InitialVoteContractInput
                 {
@@ -207,9 +208,9 @@ namespace AElf.Blockchains.MainChain
             return voteContractMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateElectionInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateElectionInitializationCallList()
         {
-            var electionContractMethodCallList = new SystemTransactionMethodCallList();
+            var electionContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             electionContractMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {

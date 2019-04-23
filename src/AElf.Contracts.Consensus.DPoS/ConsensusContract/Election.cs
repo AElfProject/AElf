@@ -3,7 +3,6 @@ using System.Linq;
 using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf.WellKnownTypes;
 using VoteInput = AElf.Consensus.DPoS.VoteInput;
 using VotingRecord = AElf.Consensus.DPoS.VotingRecord;

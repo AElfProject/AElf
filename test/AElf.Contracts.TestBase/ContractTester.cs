@@ -236,9 +236,9 @@ namespace AElf.Contracts.TestBase
             return await osBlockchainNodeContextService.StartAsync(dto);
         }
 
-        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions)
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions)
         {
-            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
                 new InitialDPoSContractInput
                 {
@@ -252,10 +252,10 @@ namespace AElf.Contracts.TestBase
             return consensusMethodCallList;
         }
         
-        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(List<string> initialMiners,
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList(List<string> initialMiners,
             int miningInterval, Timestamp startTimestamp)
         {
-            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
                 new InitialDPoSContractInput
                 {
@@ -599,7 +599,7 @@ namespace AElf.Contracts.TestBase
             dividend = InitialDividendToken;
             balanceOfStarter = InitialBalanceOfStarter;
 
-            var callList = new SystemTransactionMethodCallList();
+            var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             callList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
             {
                 CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name

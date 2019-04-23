@@ -1,6 +1,7 @@
 using System.Linq;
+using AElf.Kernel;
 
-namespace AElf.Kernel.SmartContract.Sdk
+namespace AElf
 {
     public static class StateKeyExtensions
     {

@@ -15,7 +15,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
     {
         public static async Task InitialChainAndTokenAsync(this ContractTester<FeeReceiverContractTestAElfModule> starter)
         {
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",

@@ -96,9 +96,9 @@ namespace AElf.Contracts.Profit
             return GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, keyPair);
         }
 
-        private SystemTransactionMethodCallList GenerateProfitInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
-            var voteMethodCallList = new SystemTransactionMethodCallList();
+            var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             voteMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),
                 new InitializeProfitContractInput
                 {
@@ -108,10 +108,10 @@ namespace AElf.Contracts.Profit
             return voteMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
             const string symbol = "ELF";
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = symbol,

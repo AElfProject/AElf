@@ -71,9 +71,9 @@ namespace AElf.Blockchains.SideChain
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });
         }
 
-        private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
             {
                 CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
@@ -81,9 +81,9 @@ namespace AElf.Blockchains.SideChain
             return tokenContractCallList;
         }
         
-        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions, ChainInitializationContext chainInitializationContext)
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions, ChainInitializationContext chainInitializationContext)
         {
-            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             
             var miners = chainInitializationContext == null
                 ? dposOptions.InitialMiners.ToMiners()
@@ -101,9 +101,9 @@ namespace AElf.Blockchains.SideChain
             return consensusMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateCrossChainInitializationCallList(int parentChainId)
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateCrossChainInitializationCallList(int parentChainId)
         {
-            var crossChainMethodCallList = new SystemTransactionMethodCallList();
+            var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize), new AElf.Contracts.CrossChain.InitializeInput
             {
                 ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,

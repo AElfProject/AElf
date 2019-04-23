@@ -15,11 +15,20 @@
       <None Include="..\..\protobuf\aelf_options.proto">
         <Link>Protobuf/Proto/aelf_options.proto</Link>
       </None>
+        <None Include="..\..\protobuf\core.proto">
+            <Link>Protobuf/Proto/core.proto</Link>
+        </None>
       <None Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
       </None>
+        <None Include="..\..\protobuf\consensus.proto">
+            <Link>Protobuf/Proto/consensus.proto</Link>
+        </None>
         <None Include="..\..\protobuf\crosschain.proto">
             <Link>Protobuf/Proto/crosschain.proto</Link>
+        </None>
+        <None Include="..\..\protobuf\resource.proto">
+            <Link>Protobuf/Proto/resource.proto</Link>
         </None>
         <None Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
@@ -32,8 +41,8 @@
       </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto token_contract.proto dpos_sidechain_contract.proto consensus_dpos.proto; ../../scripts/generate_contract_code.sh cross_chain_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto token_contract.proto dpos_sidechain_contract.proto consensus_dpos.proto &amp; ..\..\scripts\generate_contract_code.bat cross_chain_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto token_contract.proto dpos_sidechain_contract.proto consensus.proto consensus_dpos.proto; ../../scripts/generate_contract_code.sh resource.proto cross_chain_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto token_contract.proto dpos_sidechain_contract.proto consensus.proto consensus_dpos.proto &amp; ..\..\scripts\generate_contract_code.bat resource.proto cross_chain_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

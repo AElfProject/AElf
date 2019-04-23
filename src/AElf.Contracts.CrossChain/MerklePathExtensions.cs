@@ -2,22 +2,24 @@ using System.Collections.Generic;
 
 namespace AElf.Kernel
 {
-    public partial class MerklePath
+    public static class MerklePathExtensions
     {
-        public MerklePath(IEnumerable<Hash> hashes)
+        public static MerklePath AddRange(this MerklePath merklePath, IEnumerable<Hash> hashes)
         {
-            Path.AddRange(hashes);
+            merklePath.Path.AddRange(hashes);
+            return merklePath;
         }
 
         /// <summary>
         /// Calculate the <see cref="BinaryMerkleTree.Root"/> with path and provided leaf.
         /// </summary>
+        /// <param name="merklePath"></param>
         /// <param name="leaf"></param>
         /// <returns></returns>
-        public Hash ComputeRootWith(Hash leaf)
+        public static Hash ComputeRootWith(this MerklePath merklePath, Hash leaf)
         {
             Hash hash = leaf.Clone();
-            foreach (var node in Path)
+            foreach (var node in merklePath.Path)
             {
                 hash = BinaryMerkleTree.CalculateRootFromMultiHash(new[] {hash, node});
             }
