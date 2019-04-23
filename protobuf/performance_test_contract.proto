@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+import "aelf_options.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Benchmark.PerformanceTestContract";
+
+service PerformanceTestContract {
+    option (aelf.csharp_state) = "AElf.Benchmark.PerformanceTestContract.PerformanceTestContractState";
+    //Actions
+    rpc Fibonacci (google.protobuf.UInt64Value) returns (google.protobuf.UInt64Value) {
+    }
+
+    rpc LoopExpNop(PerformanceTesteInput)returns (google.protobuf.Int32Value) {
+    }
+    
+    rpc LoopDivAdd(DivAddTestInput) returns (google.protobuf.DoubleValue){
+        
+    }
+}
+
+message PerformanceTesteInput {
+    int32 Exponent = 1;
+    int32 Seed = 2;
+    uint32 n =3;
+}
+
+message DivAddTestInput{
+    double X =1;
+    double Y =2;
+    double K = 3;
+    uint32 N = 4;
+}

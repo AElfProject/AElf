@@ -11,9 +11,14 @@ namespace AElf.Contracts.CrossChain
         //public AuthorizationContractReferenceState AuthorizationContract { get; set; }
         public SingletonState<Hash> ConsensusContractSystemName { get; set; }
         public SingletonState<Hash> TokenContractSystemName { get; set; }
+        
+        public SingletonState<Hash> ParliamentAuthContractSystemName { get; set; }
+
         public Int64State SideChainSerialNumber { get; set; }
         
         public MappedState<long, CrossChainBlockData> IndexedCrossChainBlockData { get; set; }
+        
+        public SingletonState<Address> Owner { get; set; }
 
         #region side chain
 
