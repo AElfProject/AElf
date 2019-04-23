@@ -100,6 +100,7 @@ namespace AElf.Contracts.ReferendumAuth
                 //State.Proposals[approval.ProposalId] = null;
                 return new BoolValue{Value = false};
             }
+            Assert(approval.Quantity > 0, "Invalid vote.");
             var lockedTokenAmount = approval.Quantity;
 
             Assert(State.LockedTokenAmount[Context.Sender][approval.ProposalId] == null,

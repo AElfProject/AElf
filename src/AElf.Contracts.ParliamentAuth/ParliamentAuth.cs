@@ -75,6 +75,8 @@ namespace AElf.Contracts.ParliamentAuth
         public override Hash CreateProposal(CreateProposalInput proposal)
         {
             CheckProposerAuthority(proposal.OrganizationAddress);
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            Assert(organization != null, "No registered organization.");
             Assert(
                 !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
                 && proposal.ToAddress != null

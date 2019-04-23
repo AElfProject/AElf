@@ -51,7 +51,7 @@ namespace AElf.Contracts.ParliamentAuth
             _organizationAddress = await Create_Organization();
             var getOrganization = await ParliamentAuthContractStub.GetOrganization.CallAsync(_organizationAddress);
             getOrganization.OrganizationAddress.ShouldBe(_organizationAddress);
-            getOrganization.ReleaseThreshold.ShouldBe((1/MinersCount)*10000);
+            getOrganization.ReleaseThreshold.ShouldBe(10000/MinersCount);
             getOrganization.OrganizationHash.ShouldBe(Hash.FromTwoHashes(
                 Hash.FromMessage(ParliamentAuthContractAddress), Hash.FromMessage(_createOrganizationInput)));
         }
@@ -87,7 +87,29 @@ namespace AElf.Contracts.ParliamentAuth
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
         }
-        
+
+        [Fact]
+        public async Task Create_OrganizationFailed()
+        {
+            _createOrganizationInput =  new CreateOrganizationInput
+            {
+                ReleaseThreshold = 0
+            };
+            {
+                var transactionResult =
+                    await ParliamentAuthContractStub.CreateOrganization.SendAsync(_createOrganizationInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
+            }
+            {
+                _createOrganizationInput.ReleaseThreshold = 100000;
+                var transactionResult =
+                    await ParliamentAuthContractStub.CreateOrganization.SendAsync(_createOrganizationInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
+            }
+        }
+
         [Fact]
         public async Task Create_ProposalFailed()
         {
@@ -308,7 +330,7 @@ namespace AElf.Contracts.ParliamentAuth
         {           
             _createOrganizationInput =  new CreateOrganizationInput
             {
-                ReleaseThreshold = (1/MinersCount)*10000
+                ReleaseThreshold = 10000 / MinersCount
             };
             var transactionResult =
                 await ParliamentAuthContractStub.CreateOrganization.SendAsync(_createOrganizationInput);

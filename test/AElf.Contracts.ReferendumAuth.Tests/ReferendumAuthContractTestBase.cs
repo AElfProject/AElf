@@ -96,6 +96,10 @@ namespace AElf.Contracts.ReferendumAuth
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
+                LockWhiteSystemContractNameList =
+                {
+                    Hash.FromString("AElf.ContractNames.ReferendumAuth")
+                }
             });
 
             //issue default user
@@ -108,7 +112,7 @@ namespace AElf.Contracts.ReferendumAuth
             });
             
             //issue some user
-            for (int i = 1; i < 10; i++)
+            for (int i = 1; i <6; i++)
             {
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {

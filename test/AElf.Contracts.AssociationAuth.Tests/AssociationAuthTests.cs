@@ -65,6 +65,44 @@ namespace AElf.Contracts.AssociationAuth
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
         }
+        
+        [Fact]
+        public async Task Create_OrganizationFailed()
+        {
+            var reviewer1 = new Reviewer{Address = Reviewer1,Weight = 1};
+            var reviewer2 = new Reviewer{Address = Reviewer2,Weight = 2};
+            var reviewer3 = new Reviewer{Address = Reviewer3,Weight = 3};
+            
+            _createOrganizationInput =  new CreateOrganizationInput
+            {
+                Reviewers = {reviewer1,reviewer2,reviewer3},
+                ReleaseThreshold = 2,
+                ProposerThreshold = 2
+            };
+            {
+                _createOrganizationInput.Reviewers[0].Weight = -1;
+                var transactionResult =
+                    await AssociationAuthContractStub.CreateOrganization.SendAsync(_createOrganizationInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
+            }
+            {
+                _createOrganizationInput.Reviewers[0].Weight = 1;
+                _createOrganizationInput.ProposerThreshold = 10;
+                var transactionResult =
+                    await AssociationAuthContractStub.CreateOrganization.SendAsync(_createOrganizationInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
+            }
+            {
+                _createOrganizationInput.ProposerThreshold = 2;
+                _createOrganizationInput.ReleaseThreshold = 10;
+                var transactionResult =
+                    await AssociationAuthContractStub.CreateOrganization.SendAsync(_createOrganizationInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
+            }
+        }
 
         [Fact]
         public async Task Create_ProposalFailed()
@@ -208,7 +246,6 @@ namespace AElf.Contracts.AssociationAuth
             
             var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId);
             getProposal.Output.ApprovedWeight.ShouldBe(_createOrganizationInput.Reviewers[0].Weight);
-            //getProposal.Output.ApprovedReviewer[0].ShouldBe(_createOrganizationInput.Reviewers[0].Address);
             
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
             var transactionResult2 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});

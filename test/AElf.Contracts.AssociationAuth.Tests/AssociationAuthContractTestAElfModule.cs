@@ -10,7 +10,6 @@ namespace AElf.Contracts.AssociationAuth
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<AssociationAuthContractTestAElfModule>();
-            context.Services.AddSingleton<ITransactionExecutor, AssociationAuthTransactionExecutor>();
         }
     }
 }
