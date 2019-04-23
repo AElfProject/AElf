@@ -31,10 +31,10 @@ namespace AElf.Sdk.CSharp
                 ConvertToByteString(message));
         }
 
-        public static T Call<T>(this CSharpSmartContractContext context, IStateCache stateCache, Address address,
+        public static T Call<T>(this CSharpSmartContractContext context, Address address,
             string methodName, IMessage message) where T : IMessage<T>, new()
         {
-            return context.Call<T>(stateCache, address, methodName, ConvertToByteString(message));
+            return context.Call<T>(address, methodName, ConvertToByteString(message));
         }
 
         public static void SendInline(this CSharpSmartContractContext context, Address toAddress, string methodName,

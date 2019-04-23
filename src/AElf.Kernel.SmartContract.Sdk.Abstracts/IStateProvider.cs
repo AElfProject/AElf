@@ -4,11 +4,15 @@ namespace AElf.Kernel.SmartContract.Sdk
 {
     public interface IStateProvider
     {
-        IStateCache Cache { get; set; }
         Task<byte[]> GetAsync(StatePath path);
     }
 
-    public interface IScopedStateProvider : IStateProvider
+    public interface ICachedStateProvider : IStateProvider
+    {
+        IStateCache Cache { get; set; }
+    }
+
+    public interface IScopedStateProvider : ICachedStateProvider
     {
         Address ContractAddress { get; }
     }

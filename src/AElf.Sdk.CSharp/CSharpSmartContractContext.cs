@@ -81,7 +81,7 @@ namespace AElf.Sdk.CSharp
             _smartContractBridgeContextImplementation.UpdateContract(address, registration, name);
         }
 
-        public T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args)
+        public T Call<T>(Address address, string methodName, ByteString args)
             where T : IMessage<T>, new()
         {
             return _smartContractBridgeContextImplementation.Call<T>(address, methodName, args);

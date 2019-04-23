@@ -38,7 +38,7 @@ namespace AElf.Kernel.SmartContract
 
             var self = this;
             Address GetAddress() => self.Transaction.To;
-            _lazyStateProvider = new Lazy<IStateProvider>(
+            _lazyStateProvider = new Lazy<ICachedStateProvider>(
                 () => new CachedStateProvider(
                     new ScopedStateProvider()
                     {
@@ -56,11 +56,12 @@ namespace AElf.Kernel.SmartContract
             set
             {
                 _transactionContext = value;
-                StateProvider.Cache = _transactionContext?.StateCache ?? new NullStateCache();
+                CachedStateProvider.Cache = _transactionContext?.StateCache ?? new NullStateCache();
             }
         }
 
-        private readonly Lazy<IStateProvider> _lazyStateProvider;
+        private readonly Lazy<ICachedStateProvider> _lazyStateProvider;
+        private ICachedStateProvider CachedStateProvider => _lazyStateProvider.Value;
 
         public IStateProvider StateProvider => _lazyStateProvider.Value;
 
@@ -139,7 +140,7 @@ namespace AElf.Kernel.SmartContract
                 {
                     BlockHash = this.TransactionContext.PreviousBlockHash,
                     BlockHeight = this.TransactionContext.BlockHeight - 1,
-                    StateCache = StateProvider.Cache
+                    StateCache = CachedStateProvider.Cache
                 };
 
                 var tx = new Transaction()
