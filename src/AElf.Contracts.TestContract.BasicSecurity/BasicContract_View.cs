@@ -1,10 +1,9 @@
-using AElf.Sdk.CSharp.State;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.Basic2
+namespace AElf.Contracts.TestContract.BasicSecurity
 {
-    public partial class Basic2Contract
+    public partial class BasicSecurityContract
     {
         public override BoolOutput QueryBoolState(Empty input)
         {
@@ -119,7 +118,7 @@ namespace AElf.Contracts.TestContract.Basic2
 
         public override Int64Output QueryExternalMethod1(Address input)
         {
-            var data = State.Basic1TestContract.QueryUserWinMoney.Call(input);
+            var data = State.BasicFunctionTestContract.QueryUserWinMoney.Call(input);
             
             return new Int64Output
             {
@@ -129,7 +128,7 @@ namespace AElf.Contracts.TestContract.Basic2
         
         public override Int64Output QueryExternalMethod2(Address input)
         {
-            var data = State.Basic1TestContract.QueryUserLoseMoney.Call(input);
+            var data = State.BasicFunctionTestContract.QueryUserLoseMoney.Call(input);
             
             return new Int64Output
             {

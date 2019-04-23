@@ -1,8 +1,8 @@
 using AElf.Sdk.CSharp.State;
 
-namespace AElf.Contracts.TestContract.Basic11
+namespace AElf.Contracts.TestContract.BasicFunction
 {
-    public class Basic11ContractState : ContractState
+    public class BasicFunctionContractState : ContractState
     {
         public BoolState Initialized { get; set; }
         public StringState ContractName { get; set; }

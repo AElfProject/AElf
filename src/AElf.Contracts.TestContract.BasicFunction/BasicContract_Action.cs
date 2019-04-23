@@ -1,14 +1,14 @@
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.Basic1
+namespace AElf.Contracts.TestContract.BasicFunction
 {
     /// <summary>
     /// Action methods
     /// </summary>
-    public partial class Basic1Contract : Basic1ContractContainer.Basic1ContractBase
+    public partial class BasicFunctionContract : BasicFunctionContractContainer.BasicFunctionContractBase
     {
-        public override Empty InitialBasic1Contract(InitialBasicContractInput input)
+        public override Empty InitialBasicFunctionContract(InitialBasicContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             Assert(input.MinValue >0 && input.MaxValue >0 && input.MaxValue >= input.MinValue, "Invalid min/max value input setting.");

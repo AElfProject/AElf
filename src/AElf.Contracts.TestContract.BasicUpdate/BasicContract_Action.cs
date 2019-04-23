@@ -1,14 +1,14 @@
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.Basic11
+namespace AElf.Contracts.TestContract.BasicUpdate
 {
     /// <summary>
     /// Action methods
     /// </summary>
-    public partial class Basic11Contract : Basic11ContractContainer.Basic11ContractBase
+    public partial class BasicUpdateContract : BasicUpdateContractContainer.BasicUpdateContractBase
     {
-        public override Empty InitialBasic11Contract(InitialBasicContractInput input)
+        public override Empty InitialBasicUpdateContract(InitialBasicContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             Assert(input.MinValue > 0 && input.MaxValue > 0 && input.MaxValue >= input.MinValue,

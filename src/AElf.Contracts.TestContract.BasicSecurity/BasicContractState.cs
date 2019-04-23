@@ -1,9 +1,9 @@
-using AElf.Contracts.TestContract.Basic1;
+using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp.State;
 
-namespace AElf.Contracts.TestContract.Basic2
+namespace AElf.Contracts.TestContract.BasicSecurity
 {
-    public partial class Basic2ContractState : ContractState
+    public partial class BasicSecurityContractState : ContractState
     {
         public BoolState Initialized { get; set; }
         
@@ -20,6 +20,6 @@ namespace AElf.Contracts.TestContract.Basic2
         public MappedState<string, string, string, string, TradeMessage> Complex4Info { get; set; }
         
         //reference contract
-        internal Basic1ContractContainer.Basic1ContractReferenceState Basic1TestContract { get; set; }
+        internal BasicFunctionContractContainer.BasicFunctionContractReferenceState BasicFunctionTestContract { get; set; }
     }
 }
