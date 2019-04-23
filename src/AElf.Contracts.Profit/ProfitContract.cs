@@ -210,6 +210,7 @@ namespace AElf.Contracts.Profit
 
             State.ProfitDetailsMap[input.ProfitId][input.Receiver] = currentDetail;
 
+            // TODO: Recover this after key deletion in contract feature impled.
 //            if (currentDetail.Details.Count != 0)
 //            {
 //                State.ProfitDetailsMap[input.ProfitId][input.Receiver] = currentDetail;

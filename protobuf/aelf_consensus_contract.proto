@@ -16,8 +16,6 @@ service AElfConsensusContract {
     // -> Process
     rpc InitialAElfConsensusContract (InitialAElfConsensusContractInput) returns (google.protobuf.Empty) {
     }
-    rpc ConfigStrategy (AElfConsensusStrategyInput) returns (google.protobuf.Empty) {
-    }
     rpc SetBlockchainAge (SetBlockchainAgeInput) returns (google.protobuf.Empty) {
     }
     rpc FirstRound (Round) returns (google.protobuf.Empty) {

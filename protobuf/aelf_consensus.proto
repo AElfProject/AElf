@@ -24,8 +24,7 @@ message ToUpdate {
 // The miners public key list for each term.
 message Miners {
     int64 TermNumber = 1;
-    repeated string PublicKeys = 2;
-    repeated Address Addresses = 3;
+    repeated bytes PublicKeys = 2;
 }
 
 // To query first round number of each term.
@@ -35,8 +34,7 @@ message TermNumberLookUp {
 
 // All the candidates.
 message Candidates {
-    repeated string PublicKeys = 1;
-    repeated Address Addresses = 2;
+    repeated bytes PublicKeys = 1;
 }
 
 // The ticket / voting information for one user.
@@ -178,11 +176,10 @@ enum AElfConsensusBehaviour {
 }
 
 message AElfConsensusTriggerInformation {
-    bytes PublicKey = 1;// A must-have.
-    Hash RandomHash = 2;// To calculate In Value.
-    Hash PreviousRandomHash = 3;// Random hash of previous round for validation.
-    AElfConsensusBehaviour Behaviour = 4;
-    int64 InitialTermNumber = 5;
+    bytes public_key = 1;// A must-have.
+    Hash random_hash = 2;// To calculate In Value.
+    Hash previous_random_hash = 3;// Random hash of previous round for validation.
+    AElfConsensusBehaviour behaviour = 4;
 }
 
 message CommandInput {
@@ -190,15 +187,10 @@ message CommandInput {
 }
 
 message InitialAElfConsensusContractInput {
-    Hash tokenContractSystemName = 1;
-    Hash dividendsContractSystemName = 2;
-    sint64 lockTokenForElection = 3;
-}
-
-message AElfConsensusStrategyInput {
-    bool isBlockchainAgeSettable = 1;// For testing.
-    bool isTimeSlotSkippable = 2;// Skip own time slot if failed to receive block from previous miner.
-    bool isVerbose = 3;
+    Hash election_contract_system_name = 1;
+    sint64 lock_token_for_election = 2;
+    bool is_term_changeable = 3;// If this is false, will always use initial miners to do the mining.
+    bool is_side_chain = 4;
 }
 
 message TermInfo {

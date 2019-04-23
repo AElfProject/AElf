@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Consensus.AElfConsensus</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <RootNamespace>AElf.Contracts.AElfConsensus</RootNamespace>
+        <RootNamespace>AElf.Contracts.Consensus.AElfConsensus</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
