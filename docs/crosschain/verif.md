@@ -10,12 +10,12 @@ Indexing is a continuous process, the main chain is permanently gathering inform
 
 #### Merkle tree
 
-Merkle tree is a basically binary tree structure. Node value (which is not leaf node) is the hash calculated from its children values until to the tree root. 
+Merkle tree is a basic binary tree structure. Node value (which is not a leaf node) is the hash calculated from its children values until to the tree root. 
 <!-- TODO: maybe a structure demo is needed here. -->
 
 #### Merkle roots
 
-When a transaction gets included in a side chains block the block will also include a merkle root of the transactions of this block. This root is local to this side chains blockchain and by itself of little value to other side chains because they follow a different protocol. So communication between side chains goes through the main chain in the form of a merkle path. During indexing process, main chain is going to calculate the root with the data from side chains, and side chains in turn get the root in future indexing. This root is used for final check in cross chain transaction verification.
+When a transaction gets included in a side chain's block the block will also include a merkle root of the transactions of this block. This root is local to this side chain's blockchain and by itself of little value to other side chains because they follow a different protocol. So communication between side chains goes through the main chain in the form of a merkle path. During indexing process, main chain is going to calculate the root with the data from side chains, and side chains in turn get the root in future indexing. This root is used for final check in cross chain transaction verification.
 
 #### Merkle path
 
