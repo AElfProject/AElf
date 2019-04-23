@@ -53,12 +53,14 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             if (block.Height == 1)
                 return true;
 
-            var byteString = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
+            var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
+            if (consensusExtraData == null || consensusExtraData.IsEmpty)
+                return false;
             var isValid = await _consensusService.ValidateConsensusAfterExecutionAsync(new ChainContext
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
-            }, byteString.ToByteArray());
+            }, consensusExtraData.ToByteArray());
 
             return isValid;
         }
