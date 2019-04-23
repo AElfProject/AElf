@@ -705,7 +705,7 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ProfitContract_ReleaseProfits_WithoutEnoughBalance()
         {
-            const int amount = 100;
+            const long amount = 100;
 
             var creator = Creators[0];
 
@@ -732,7 +732,7 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ProfitContract_ReleaseProfits_InvalidPeriod()
         {
-            const int amount = 100;
+            const long amount = 100;
 
             var creator = Creators[0];
 
@@ -761,7 +761,7 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ProfitContract_ReleaseProfits_NotCreator()
         {
-            const int amount = 100;
+            const long amount = 100;
 
             var profitId = await CreateProfitItem();
 
@@ -784,7 +784,7 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ProfitContract_ReleaseProfits_ProfitItemNotFound()
         {
-            const int amount = 100;
+            const long amount = 100;
 
             var user = Creators[0];
 
@@ -802,7 +802,7 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ProfitContract_ReleaseProfits()
         {
-            const int amount = 100;
+            const long amount = 100;
 
             var creator = Creators[0];
 
@@ -845,9 +845,9 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ProfitContract_ReleaseProfits_WithSubProfitItems()
         {
-            const int amount = 100;
-            const int weight1 = 80;
-            const int weight2 = 20;
+            const long amount = 100;
+            const long weight1 = 80;
+            const long weight2 = 20;
 
             var creator = Creators[0];
 
@@ -920,8 +920,8 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ProfitContract_Profit()
         {
-            const int weight = 100;
-            const int amount = 100;
+            const long weight = 100;
+            const long amount = 100;
 
             var creator = Creators[0];
             var receiver = Normal[0];
@@ -958,9 +958,9 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ProfitContract_Profit_TwoReceivers()
         {
-            const int weight1 = 100;
-            const int weight2 = 400;
-            const int amount = 100;
+            const long weight1 = 100;
+            const long weight2 = 400;
+            const long amount = 100;
 
             var creator = Creators[0];
             var receiver1 = Normal[0];
@@ -1021,10 +1021,10 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ProfitContract_Profit_RegisteredSubProfitItems()
         {
-            const int weight1 = 100;
-            const int weight2 = 400;
-            const int weight3 = 500;
-            const int amount = 100;
+            const long weight1 = 100;
+            const long weight2 = 400;
+            const long weight3 = 500;
+            const long amount = 100;
 
             var creator = Creators[0];
             var receiver1 = Normal[0];
@@ -1093,19 +1093,92 @@ namespace AElf.Contracts.Profit
         [Fact]
         public async Task ProfitContract_Profit_ProfitItemNotFound()
         {
-            throw new NotImplementedException();
+            var receiver = Normal[0];
+
+            var executionResult = await receiver.Profit.SendAsync(new ProfitInput
+            {
+                ProfitId = Hash.Generate()
+            });
+
+            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            executionResult.TransactionResult.Error.ShouldContain("Profit item not found.");
         }
 
         [Fact]
         public async Task ProfitContract_Profit_NotRegisteredBefore()
         {
-            throw new NotImplementedException();
+            const long amount = 100;
+
+            var creator = Creators[0];
+            var receiver = Normal[0];
+
+            var profitId = await CreateProfitItem();
+            
+            await TransferToProfitItemVirtualAddress(profitId);
+
+            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            {
+                ProfitId = profitId,
+                Amount = amount,
+                Period = 1
+            });
+            
+            var executionResult = await receiver.Profit.SendAsync(new ProfitInput
+            {
+                ProfitId = profitId
+            });
+
+            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            executionResult.TransactionResult.Error.ShouldContain("Profit details not found.");
         }
 
         [Fact]
         public async Task ProfitContract_Profit_MultiplePeriods()
         {
-            throw new NotImplementedException();
+            const int periodCount = 5;
+            const long weight = 100;
+            const long amount = 100;
+
+            var creator = Creators[0];
+            var receiver = Normal[0];
+            var receiverAddress = Address.FromPublicKey(NormalMinerKeyPair[0].PublicKey);
+
+            var profitId = await CreateProfitItem();
+
+            await TransferToProfitItemVirtualAddress(profitId, amount * periodCount);
+
+            await creator.AddWeight.SendAsync(new AddWeightInput
+            {
+                Receiver = receiverAddress,
+                ProfitId = profitId,
+                Weight = weight
+            });
+
+            for (var i = 0; i < periodCount; i++)
+            {
+                await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+                {
+                    ProfitId = profitId,
+                    Amount = amount,
+                    Period = i + 1
+                });
+            }
+
+            await receiver.Profit.SendAsync(new ProfitInput {ProfitId = profitId});
+
+            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = receiverAddress,
+                Symbol = ProfitContractTestConsts.NativeTokenSymbol
+            })).Balance;
+            balance.ShouldBe(amount * periodCount);
+
+            var details = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+            {
+                ProfitId = profitId,
+                Receiver = receiverAddress
+            });
+            details.Details[0].LastProfitPeriod.ShouldBe(periodCount);
         }
 
         private async Task<Hash> CreateProfitItem(int returnIndex = 0,
