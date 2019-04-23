@@ -20,7 +20,7 @@ namespace AElf.Types.Tests
             address3.ShouldNotBe(null);
 
             //Generate from byte
-            var bytes = new byte[30];
+            var bytes = new byte[32];
             new Random().NextBytes(bytes);
             var address4 = Address.FromBytes(bytes);
             address4.ShouldNotBe(null);
@@ -59,7 +59,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void Parse_Address_FromString()
         {
-            string addStr = "5rYq3rGiULxGS51xAYF6Una1RH2bhm3REEZdda6o5NJwvRF";
+            string addStr = "ddnF1dEsp51QbASCqQKPZ7vs2zXxUxyu5BuGRKFQAsT9JKrra";
             var address = Address.Parse(addStr);
             address.ShouldNotBe(null);
             var addStr1 = address.GetFormatted();
