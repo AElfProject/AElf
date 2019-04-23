@@ -1,7 +1,5 @@
 using System.Threading.Tasks;
-using AElf.Cryptography.Certificate;
 using AElf.Kernel.Node.Infrastructure;
-using Grpc.Core;
 using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain.Grpc
@@ -9,14 +7,12 @@ namespace AElf.CrossChain.Grpc
     public class GrpcCrossChainServerNodePlugin : INodePlugin
     {
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
-        private readonly ICertificateStore _certificateStore;
         private readonly ICrossChainServer _crossChainServer;
 
         public GrpcCrossChainServerNodePlugin(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
-            ICertificateStore certificateStore, ICrossChainServer crossChainServer)
+            ICrossChainServer crossChainServer)
         {
             _grpcCrossChainConfigOption = grpcCrossChainConfigOption.Value;
-            _certificateStore = certificateStore;
             _crossChainServer = crossChainServer;
         }
 
@@ -32,13 +28,6 @@ namespace AElf.CrossChain.Grpc
         {
             _crossChainServer.Dispose();
             return Task.CompletedTask;
-        }
-        
-        private KeyCertificatePair LoadKeyPair(string fileName)
-        {
-            var keyStore = _certificateStore.LoadKeyStore(fileName);
-            var cert = _certificateStore.LoadCertificate(fileName);
-            return new KeyCertificatePair(cert, keyStore);
         }
     }
 }

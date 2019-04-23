@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Cryptography.Certificate;
 using AElf.Kernel.Blockchain.Events;
 using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus;
@@ -11,15 +10,13 @@ namespace AElf.CrossChain.Grpc
         private readonly CrossChainGrpcClientController _crossChainGrpcClientController;
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
         private readonly CrossChainConfigOption _crossChainConfigOption;
-        private readonly ICertificateStore _certificateStore;
         public GrpcCrossChainClientNodePlugin(CrossChainGrpcClientController crossChainGrpcClientController, 
             IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
-            IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption, ICertificateStore certificateStore)
+            IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption)
         {
             _crossChainGrpcClientController = crossChainGrpcClientController;
             _grpcCrossChainConfigOption = grpcCrossChainConfigOption.Value;
             _crossChainConfigOption = crossChainConfigOption.Value;
-            _certificateStore = certificateStore;
         }
 
         public Task StartAsync(int chainId)
@@ -64,11 +61,6 @@ namespace AElf.CrossChain.Grpc
             string uri = string.Join(":", _grpcCrossChainConfigOption.RemoteParentChainNodeIp, _grpcCrossChainConfigOption.RemoteParentChainNodePort);
             var chainInitializationContext = await _crossChainGrpcClientController.RequestChainInitializationContext(uri, chainId, _grpcCrossChainConfigOption.ConnectingTimeout);
             return chainInitializationContext;
-        }
-
-        private string LoadCertificate(string fileName)
-        {
-            return _certificateStore.LoadCertificate(fileName);
         }
     }
 }

@@ -53,7 +53,6 @@ namespace AElf.CrossChain.Grpc
                     TargetPort = request.ListeningPort,
                     RemoteChainId = request.ChainId,
                     RemoteIsSideChain = true,
-                    CertificateFileName = ChainHelpers.ConvertChainIdToBase58(request.ChainId)
                 }
             });
             //Logger.LogWarning($"Hand shake from chain {request.ChainId}, ip {splitRes[1]}, port {request.ListeningPort}");

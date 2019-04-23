@@ -57,7 +57,6 @@ namespace AElf.CrossChain.Grpc
             {
                 ChainId = chainId,
                 ListeningPort = localListeningPort
-                // use formatted chainId as certificate name, which can be changed later.  
             }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
             return Task.FromResult(handShakeReply);
         }
