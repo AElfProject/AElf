@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
@@ -8,12 +9,12 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
@@ -23,7 +24,6 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 
@@ -41,6 +41,7 @@ namespace AElf.OS
         private readonly ITxHub _txHub;
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
         private readonly IBlockAttachService _blockAttachService;
+        private readonly ITransactionResultService _transactionResultService;
         
         private OsBlockchainNodeContext _blockchainNodeCtxt;
         
@@ -67,6 +68,7 @@ namespace AElf.OS
             ISmartContractAddressService smartContractAddressService,
             IBlockAttachService blockAttachService,
             IStaticChainInformationProvider staticChainInformationProvider,
+            ITransactionResultService transactionResultService,
             IOptionsSnapshot<ChainOptions> chainOptions)
         {
             _chainOptions = chainOptions.Value;
@@ -79,6 +81,7 @@ namespace AElf.OS
             _blockAttachService = blockAttachService;
             _txHub = txHub;
             _staticChainInformationProvider = staticChainInformationProvider;
+            _transactionResultService = transactionResultService;
 
             BestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
@@ -195,8 +198,10 @@ namespace AElf.OS
                 previousBlockHash = chain.BestChainHash;
                 previousBlockHeight = chain.BestChainHeight;
             }
+
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(4000));
+
             await _blockAttachService.AttachBlockAsync(block);
                 
             return block;
@@ -224,6 +229,29 @@ namespace AElf.OS
 
             return block;
         }
+
+        public async Task<Address> DeployContract<T>()
+        {
+            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
+
+            var transaction = GenerateTransaction(Address.Generate(), basicContractZero,
+                nameof(ISmartContractZero.DeploySmartContract), new ContractDeploymentInput()
+                {
+                    Category = 0,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(T).Assembly.Location))
+                });
+
+            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            transaction.Sigs.Add(ByteString.CopyFrom(signature));
+
+            await BroadcastTransactions(new List<Transaction> {transaction});
+            await MinedOneBlock();
+
+            var txResult = await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
+
+            return Address.Parser.ParseFrom(txResult.ReturnValue);
+        }
+
 
         #region private methods
 
@@ -279,6 +307,7 @@ namespace AElf.OS
                 var transaction = await GenerateTransferTransaction();
                 await BroadcastTransactions(new List<Transaction> {transaction});
                 var block = await MinedOneBlock(chain.BestChainHash, chain.BestChainHeight);
+                
                 bestBranchBlockList.Add(block);
             }
 
@@ -291,15 +320,19 @@ namespace AElf.OS
 
             for (var i = 0; i < 5; i++)
             {
+//                var transaction = await GenerateTransferTransaction();
+//                await BroadcastTransactions(new List<Transaction> {transaction});
                 var block = await MinedOneBlock(previousHash,previousHeight);
+                
                 forkBranchBlockList.Add(block);
+
                 previousHeight++;
                 previousHash = block.GetHash();
             }
 
             return forkBranchBlockList;
         }
-
+        
         #endregion
     }
 }

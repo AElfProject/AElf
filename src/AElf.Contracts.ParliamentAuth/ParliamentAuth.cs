@@ -39,18 +39,27 @@ namespace AElf.Contracts.ParliamentAuth
             return result;
         }
 
+        public override Address GetDefaultOrganizationAddress(Empty input)
+        {
+            Assert(State.Initialized.Value, "Not initialized.");
+            return State.DefaultOrganizationAddress.Value;
+        }
+
         #endregion view
         public override Empty Initialize(ParliamentAuthInitializationInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Initialized.Value = true;
+            State.DefaultOrganizationAddress.Value =
+                CreateOrganization(new CreateOrganizationInput {ReleaseThreshold = _defaultOrganizationReleaseThreshold});
             return new Empty();
         }
         
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
+            var organizationHash = GenerateOrganizationVirtualHash(input);
             Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             if(State.Organisations[organizationAddress] == null)
             {
@@ -76,6 +85,7 @@ namespace AElf.Contracts.ParliamentAuth
             DateTime timestamp = proposal.ExpiredTime.ToDateTime();
             Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
             Hash hash = Hash.FromMessage(proposal);
+            Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = new ProposalInfo
             {
                 ContractMethodName = proposal.ContractMethodName,
