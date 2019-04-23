@@ -71,7 +71,9 @@ namespace AElf.Contracts.AssociationAuth
                 && proposal.ExpiredTime != null, "Invalid proposal.");
             DateTime timestamp = proposal.ExpiredTime.ToDateTime();
             Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
+            //TODO: Proposals with the same input is not supported. 
             Hash hash = Hash.FromMessage(proposal);
+            Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = new ProposalInfo
             {
                 ContractMethodName = proposal.ContractMethodName,

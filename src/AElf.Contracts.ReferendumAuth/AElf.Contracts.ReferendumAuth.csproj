@@ -17,9 +17,6 @@
         <None Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </None>
-        <None Include="..\..\protobuf\proposal.proto">
-            <Link>Protobuf/Proto/proposal.proto</Link>
-        </None>
     </ItemGroup>
 
     <ItemGroup>
