@@ -48,9 +48,9 @@ message TransactionReceipt {
     int64 ExecutedBlockNumber = 7;
 }
 
-message StatePath {
-    repeated string parts = 1;
-}
+//message StatePath {
+//    repeated string parts = 1;
+//}
 
 message ScopedStatePath {
     Address address = 1;
@@ -185,11 +185,11 @@ message Block {
     BlockBody Body = 2;
 }
 
-message SmartContractRegistration {
-    int32 Category = 1;
-    bytes Code = 2;
-    Hash CodeHash = 3;
-}
+//message SmartContractRegistration {
+//    int32 Category = 1;
+//    bytes Code = 2;
+//    Hash CodeHash = 3;
+//}
 
 enum DataAccessMode {
     ReadOnlyAccountSharing = 0;
