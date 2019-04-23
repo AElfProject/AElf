@@ -1,6 +1,6 @@
 # Smart Contract Hello World
 
-This tutorial will guide you through the steps to create and deploy a simple contract in C# with AElfs Boilerplate project. It will be a simple Hello World contract to demonstrate how to use our framework  to create and test a contract. 
+This tutorial will guide you through the steps to create and deploy a simple contract in C# with AElf's Boilerplate project. It will be a simple Hello World contract to demonstrate how to use our framework to create and test a contract. 
 
 By looking at the folder structure you can see that there's the **Contract** and **Tests** folders. The contract folder is where you create the contract you are building and place the tests in the tests folder.
 
