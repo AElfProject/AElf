@@ -1,0 +1,147 @@
+syntax = "proto3";
+
+import "common.proto";
+import "kernel.proto";
+import "consensus.proto";
+import "aelf_consensus.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.AElfConsensus";
+
+service AElfConsensusContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.AElfConsensus.AElfConsensusContractState";
+    // Actions
+    // -> Process
+    rpc InitialAElfConsensusContract (InitialAElfConsensusContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc ConfigStrategy (AElfConsensusStrategyInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetBlockchainAge (SetBlockchainAgeInput) returns (google.protobuf.Empty) {
+    }
+    rpc FirstRound (Round) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateValue (ToUpdate) returns (google.protobuf.Empty) {
+    }
+    rpc NextRound (Round) returns (google.protobuf.Empty) {
+    }
+    rpc NextTerm (Round) returns (google.protobuf.Empty) {
+    }
+    rpc GetLIBOffset (google.protobuf.Empty) returns (SInt64Value) {
+    }
+    
+    // Views
+    rpc GetConsensusCommand (CommandInput) returns (ConsensusCommand) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetInformationToUpdateConsensus (AElfConsensusTriggerInformation) returns (AElfConsensusHeaderInformation) {
+        option (aelf.is_view) = true;
+    }
+    rpc GenerateConsensusTransactions (AElfConsensusTriggerInformation) returns (TransactionList) {
+        option (aelf.is_view) = true;
+    }
+    rpc ValidateConsensusBeforeExecution (AElfConsensusHeaderInformation) returns (ValidationResult) {
+        option (aelf.is_view) = true;
+    }
+    rpc ValidateConsensusAfterExecution (AElfConsensusHeaderInformation) returns (ValidationResult) {
+        option (aelf.is_view) = true;
+    }
+    
+    rpc GetRoundInformation (SInt64Value) returns (Round) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentRoundNumber (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentTermNumber (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc IsCandidate (PublicKey) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidatesList (google.protobuf.Empty) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidates (google.protobuf.Empty) returns (Candidates) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidateHistoryInformation (PublicKey) returns (CandidateInHistory) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCandidatesHistoryInfo (google.protobuf.Empty) returns (CandidateInHistoryDictionary) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableCandidatesHistoryInfo (PageInfo) returns (CandidateInHistoryDictionary) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentMiners (google.protobuf.Empty) returns (MinerListWithRoundNumber) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTicketsInformation (PublicKey) returns (Tickets) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotingRecord (Hash) returns (VotingRecord) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryObtainedNotExpiredVotes (PublicKey) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryObtainedVotes (PublicKey) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableTicketsInfo (PageableTicketsInfoInput) returns (Tickets) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableNotWithdrawnTicketsInfo (PageableTicketsInfoInput) returns (Tickets) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableTicketsHistories (PageableTicketsInfoInput) returns (TicketsHistories) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableElectionInfo (PageableElectionInfoInput) returns (TicketsDictionary) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetBlockchainAge (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentVictories (google.protobuf.Empty) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTermSnapshot (SInt64Value) returns (TermSnapshot) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryAlias (PublicKey) returns (Alias) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTermNumberByRoundNumber (SInt64Value) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotesCount (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTicketsCount (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryCurrentDividendsForVoters (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryCurrentDividends (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryAliasesInUse (google.protobuf.Empty) returns (StringList) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryMinedBlockCountInCurrentTerm (PublicKey) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+}
+
+// Events
+message IrreversibleBlockFound {
+    option (aelf.is_event) = true;
+    sint64 offset = 1;
+}

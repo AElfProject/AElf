@@ -282,7 +282,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Consensus.DPoS.Types.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Profit", "src\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj", "{111C8C9A-28CA-4FB3-84C3-C12A2693F303}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AElfConsensus", "src\AElf.Contracts.AElfConsensus\AElf.Contracts.AElfConsensus.csproj", "{0E09CFC2-BEE3-473E-BB88-07AA69D023A8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.AElfConsensus", "src\AElf.Contracts.Consensus.AElfConsensus\AElf.Contracts.Consensus.AElfConsensus.csproj", "{0E09CFC2-BEE3-473E-BB88-07AA69D023A8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Profit.Tests", "test\AElf.Contracts.Profit.Tests\AElf.Contracts.Profit.Tests.csproj", "{0ECB4B40-2B2B-415E-8FDD-89500A889D26}"
 EndProject
@@ -293,6 +293,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.Basic1Update", "src\AElf.Contracts.TestContract.Basic1Update\AElf.Contracts.TestContract.Basic1Update.csproj", "{F5506C6C-84DE-43C5-8189-C68620C689A4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.Basic2", "src\AElf.Contracts.TestContract.Basic2\AElf.Contracts.TestContract.Basic2.csproj", "{C810A6F5-0701-4926-A009-986C0D2F5DB5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Consensus.AElfConsensus.Types", "src\AElf.Consensus.AElfConsensus.Types\AElf.Consensus.AElfConsensus.Types.csproj", "{A739B1D0-AFF7-4D75-82E1-9A75033B0FE7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -832,6 +834,10 @@ Global
 		{C810A6F5-0701-4926-A009-986C0D2F5DB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C810A6F5-0701-4926-A009-986C0D2F5DB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C810A6F5-0701-4926-A009-986C0D2F5DB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A739B1D0-AFF7-4D75-82E1-9A75033B0FE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A739B1D0-AFF7-4D75-82E1-9A75033B0FE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A739B1D0-AFF7-4D75-82E1-9A75033B0FE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A739B1D0-AFF7-4D75-82E1-9A75033B0FE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -983,5 +989,6 @@ Global
 		{605ED554-816D-48D9-9F96-6350BC7F4718} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{F5506C6C-84DE-43C5-8189-C68620C689A4} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{C810A6F5-0701-4926-A009-986C0D2F5DB5} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
+		{A739B1D0-AFF7-4D75-82E1-9A75033B0FE7} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 	EndGlobalSection
 EndGlobal

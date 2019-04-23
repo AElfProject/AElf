@@ -142,7 +142,6 @@ namespace AElf.Contracts.Consensus.DPoS
                 var candidates = await candidate.GetCandidatesAsync();
                 candidates.PublicKeys.Count.ShouldBe(1);
                 candidates.Addresses.Count.ShouldBe(1);
-                candidates.IsInitialMiners.ShouldBeFalse();
             }
         }
 
