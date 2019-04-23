@@ -104,9 +104,9 @@ namespace AElf.Contracts.ReferendumAuth
                 LockId = Context.TransactionId,
                 TokenSymbol = organization.TokenSymbol
             };
-            State.ApprovedTokenAmount[approval.ProposalId].Value += lockedTokenAmount;
+            State.ApprovedTokenAmount[approval.ProposalId] += lockedTokenAmount;
 
-            State.TokenContract.Lock.Send(new LockInput
+            LockToken(new LockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -132,8 +132,8 @@ namespace AElf.Contracts.ReferendumAuth
             var proposal = State.Proposals[proposalId];
             Assert(proposal == null ||
                 Context.CurrentBlockTime > proposal.ExpiredTime.ToDateTime(), "Unable to reclaim at this time.");
-            State.LockedTokenAmount[Context.Sender][proposalId] = null;
-            State.TokenContract.Unlock.Send(new UnlockInput
+            // State.LockedTokenAmount[Context.Sender][proposalId] = null;
+            UnlockToken(new UnlockInput
             {
                 Amount = voteToken.Amount,
                 From = Context.Sender,
