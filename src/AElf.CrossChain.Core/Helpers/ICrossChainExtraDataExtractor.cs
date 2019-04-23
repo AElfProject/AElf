@@ -6,18 +6,18 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    public interface IBlockExtraDataExtractor
+    public interface ICrossChainExtraDataExtractor
     {
         CrossChainExtraData ExtractCrossChainData(BlockHeader header);
         Hash ExtractTransactionStatusMerkleTreeRoot(BlockHeader header);
         Dictionary<string, ByteString> ExtractCommonExtraDataForExchange(BlockHeader header);
     }
 
-    public class BlockExtraDataExtractor : IBlockExtraDataExtractor, ITransientDependency
+    public class CrossChainExtraDataExtractor : ICrossChainExtraDataExtractor, ITransientDependency
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
 
-        public BlockExtraDataExtractor(IBlockExtraDataService blockExtraDataService)
+        public CrossChainExtraDataExtractor(IBlockExtraDataService blockExtraDataService)
         {
             _blockExtraDataService = blockExtraDataService;
         }

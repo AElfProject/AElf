@@ -13,19 +13,17 @@ namespace AElf.CrossChain.Grpc
     {
         public ILogger<CrossChainGrpcServerBase> Logger { get; set; }
         public ILocalEventBus LocalEventBus { get; set; }
-        private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
+        private readonly ICrossChainExtraDataExtractor _crossChainExtraDataExtractor;
         private readonly ILocalLibService _localLibService;
-        private readonly CrossChainConfigOption _crossChainConfigOption;
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         
-        public CrossChainGrpcServerBase(IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption,
-            IBlockExtraDataExtractor blockExtraDataExtractor, ILocalLibService localLibService, ICrossChainDataProvider crossChainDataProvider)
+        public CrossChainGrpcServerBase(ICrossChainExtraDataExtractor crossChainExtraDataExtractor, 
+            ILocalLibService localLibService, ICrossChainDataProvider crossChainDataProvider)
         {
-            _blockExtraDataExtractor = blockExtraDataExtractor;
+            _crossChainExtraDataExtractor = crossChainExtraDataExtractor;
             _localLibService = localLibService;
             _crossChainDataProvider = crossChainDataProvider;
             LocalEventBus = NullLocalEventBus.Instance;
-            _crossChainConfigOption = crossChainConfigOption.Value;
         }
 
         public override async Task RequestIndexingFromParentChain(RequestCrossChainBlockData request, 
@@ -134,7 +132,7 @@ namespace AElf.CrossChain.Grpc
 
         private IResponseIndexingMessage CreateSideChainResponse(Block block)
         {
-            var transactionStatusMerkleRoot = _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header); 
+            var transactionStatusMerkleRoot = _crossChainExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header); 
             return new ResponseSideChainBlockData
             {
                 Success = block.Header != null,
@@ -178,16 +176,16 @@ namespace AElf.CrossChain.Grpc
             BlockHeader blockHeader, bool needOtherExtraData)
         {
             var transactionStatusMerkleRoot =
-                _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(blockHeader);
+                _crossChainExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(blockHeader);
             responseParentChainBlockData.BlockData.Root.TransactionStatusMerkleRoot = transactionStatusMerkleRoot;
             
-            var crossChainExtra = _blockExtraDataExtractor.ExtractCrossChainData(blockHeader);
+            var crossChainExtra = _crossChainExtraDataExtractor.ExtractCrossChainData(blockHeader);
             responseParentChainBlockData.BlockData.Root.CrossChainExtraData = crossChainExtra;
             
             if(needOtherExtraData)
             {
                 // only pack extra information after side chain creation
-                responseParentChainBlockData.BlockData.ExtraData.Add(_blockExtraDataExtractor.ExtractCommonExtraDataForExchange(blockHeader));
+                responseParentChainBlockData.BlockData.ExtraData.Add(_crossChainExtraDataExtractor.ExtractCommonExtraDataForExchange(blockHeader));
             }
 
             return responseParentChainBlockData;

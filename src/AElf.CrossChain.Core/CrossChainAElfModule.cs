@@ -29,8 +29,6 @@ namespace AElf.CrossChain
              Configure<CrossChainConfigOption>(option =>
              {
                  option.ParentChainId = ChainHelpers.ConvertBase58ToChainId(crossChainConfiguration["ParentChainId"]);
-                 option.ExtraDataSymbols = new List<string> {"Consensus"}
-                     .Concat(crossChainConfiguration.GetSection("ExtraDataSymbols").Get<List<string>>()).ToList();
              });
          }
      }

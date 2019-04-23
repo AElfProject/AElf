@@ -17,7 +17,6 @@ namespace AElf.CrossChain.Grpc
             Configure<CrossChainConfigOption>(option=>
             {
                 option.ParentChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
-                option.ExtraDataSymbols = new List<string>();
             });
 
             var services = context.Services;
@@ -50,7 +49,7 @@ namespace AElf.CrossChain.Grpc
 
             services.AddTransient(o =>
             {
-                var mockService = new Mock<IBlockExtraDataExtractor>();
+                var mockService = new Mock<ICrossChainExtraDataExtractor>();
                 mockService.Setup(m=>m.ExtractTransactionStatusMerkleTreeRoot(It.IsAny<BlockHeader>()))
                     .Returns(Hash.Generate);
                 return mockService.Object;
