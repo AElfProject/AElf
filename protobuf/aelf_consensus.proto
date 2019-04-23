@@ -158,13 +158,13 @@ enum TicketsHistoryType {
 }
 
 message AElfConsensusHeaderInformation {
-    bytes SenderPublicKey = 1;
-    Round Round = 2;
-    AElfConsensusBehaviour Behaviour = 3;
+    bytes sender_publicKey = 1;
+    Round round = 2;
+    AElfConsensusBehaviour behaviour = 3;
 }
 
 message AElfConsensusHint {
-    AElfConsensusBehaviour Behaviour = 1;
+    AElfConsensusBehaviour behaviour = 1;
 }
 
 enum AElfConsensusBehaviour {
@@ -191,6 +191,7 @@ message InitialAElfConsensusContractInput {
     sint64 lock_token_for_election = 2;
     bool is_term_changeable = 3;// If this is false, will always use initial miners to do the mining.
     bool is_side_chain = 4;
+    sint32 days_each_term = 5;
 }
 
 message TermInfo {

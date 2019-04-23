@@ -5,7 +5,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AElfConsensus
 {
-    public class AElfConsensusContract : AElfConsensusContractContainer.AElfConsensusContractBase
+    public partial class AElfConsensusContract : AElfConsensusContractContainer.AElfConsensusContractBase
     {
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
         {
@@ -16,9 +16,9 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             State.IsTermChangeable.Value = input.IsTermChangeable;
             State.IsSideChain.Value = input.IsSideChain;
 
+            State.DaysEachTerm.Value = input.IsSideChain ? int.MaxValue : input.DaysEachTerm;
+
             return new Empty();
         }
-        
-        
     }
 }
