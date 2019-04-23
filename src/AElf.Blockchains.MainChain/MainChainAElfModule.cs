@@ -206,7 +206,8 @@ namespace AElf.Blockchains.MainChain
                 new AElf.Contracts.CrossChain.InitializeInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name
                 });
             return crossChainMethodCallList;
         }

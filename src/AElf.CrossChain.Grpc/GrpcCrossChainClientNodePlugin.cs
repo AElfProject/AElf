@@ -43,6 +43,7 @@ namespace AElf.CrossChain.Grpc
             GrpcCrossChainCommunicationContext grpcCrossChainCommunicationContext =
                 (GrpcCrossChainCommunicationContext) receivedEventData.CrossChainCommunicationContextDto;
             grpcCrossChainCommunicationContext.LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort;
+            grpcCrossChainCommunicationContext.Timeout = _grpcCrossChainConfigOption.ConnectingTimeout;
             return _crossChainGrpcClientController.CreateClient(grpcCrossChainCommunicationContext);
         }
         public Task HandleEventAsync(BestChainFoundEventData eventData)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
 using AElf.Kernel;
+using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
@@ -26,7 +27,6 @@ namespace AElf.CrossChain.Grpc
 //            LocalEventBus = NullLocalEventBus.Instance;
         }
 
-
         #region Create client
 
         public async Task CreateClient(ICrossChainCommunicationContext crossChainCommunicationContext)
@@ -37,6 +37,8 @@ namespace AElf.CrossChain.Grpc
                 !_crossChainMemCacheService.GetCachedChainIds().Contains(crossChainCommunicationContext.RemoteChainId)) 
                 return; // dont create client for not cached remote side chain
             var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext);
+            Logger.LogTrace(
+                $"Try shake with chain {ChainHelpers.ConvertChainIdToBase58(crossChainCommunicationContext.RemoteChainId)}");
             var reply = await TryRequest(client, c => c.TryHandShakeAsync(crossChainCommunicationContext.LocalChainId,
                 ((GrpcCrossChainCommunicationContext) crossChainCommunicationContext).LocalListeningPort));
             if (reply == null || !reply.Result)
@@ -90,7 +92,7 @@ namespace AElf.CrossChain.Grpc
             {
                 return await requestFunc(client);
             }
-            catch (Exception e) //when (e is ChainCacheNotFoundException || e is RpcException)
+            catch (RpcException e)
             {
                 Logger.LogWarning(e.Message);
                 return default(T);

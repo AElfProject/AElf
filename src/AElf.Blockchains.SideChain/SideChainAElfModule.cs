@@ -112,6 +112,7 @@ namespace AElf.Blockchains.SideChain
             {
                 ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                 TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name,
                 ParentChainId = parentChainId
             });
             return crossChainMethodCallList;
