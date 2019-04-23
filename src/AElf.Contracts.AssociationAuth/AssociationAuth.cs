@@ -20,7 +20,7 @@ namespace AElf.Contracts.AssociationAuth
         public override ProposalOutput GetProposal(Hash proposalId)
         {
             var proposal = State.Proposals[proposalId];
-            Assert(proposal !=null,"Invalid proposal Id.");
+            Assert(proposal !=null,"Not found proposal.");
             
             var result = new ProposalOutput
             {

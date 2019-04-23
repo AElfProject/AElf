@@ -5,7 +5,7 @@ namespace AElf.Contracts.ReferendumAuth
         private bool IsReadyToRelease(Hash proposalId, Organization organization)
         {
             var approvedVoteAmount = State.ApprovedTokenAmount[proposalId];
-            return approvedVoteAmount.Value >= organization.ReleaseThreshold;
+            return approvedVoteAmount >= organization.ReleaseThreshold;
         }
     }
 }

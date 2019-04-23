@@ -300,6 +300,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ParliamentAuth.Tests", "test\AElf.Contracts.ParliamentAuth.Tests\AElf.Contracts.ParliamentAuth.Tests.csproj", "{68B98ED7-103C-4DC6-9C89-0B90F2809284}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ReferendumAuth.Tests", "test\AElf.Contracts.ReferendumAuth.Tests\AElf.Contracts.ReferendumAuth.Tests.csproj", "{3B0D744C-AFCD-441A-B960-07273CBAA9EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -850,6 +852,10 @@ Global
 		{68B98ED7-103C-4DC6-9C89-0B90F2809284}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68B98ED7-103C-4DC6-9C89-0B90F2809284}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68B98ED7-103C-4DC6-9C89-0B90F2809284}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B0D744C-AFCD-441A-B960-07273CBAA9EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B0D744C-AFCD-441A-B960-07273CBAA9EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B0D744C-AFCD-441A-B960-07273CBAA9EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B0D744C-AFCD-441A-B960-07273CBAA9EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1004,5 +1010,6 @@ Global
 		{F5506C6C-84DE-43C5-8189-C68620C689A4} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{C810A6F5-0701-4926-A009-986C0D2F5DB5} = {D9406971-FFD3-4D0D-9D2F-DFF10D38A0DC}
 		{68B98ED7-103C-4DC6-9C89-0B90F2809284} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{3B0D744C-AFCD-441A-B960-07273CBAA9EA} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal

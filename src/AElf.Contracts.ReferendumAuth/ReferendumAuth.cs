@@ -66,8 +66,15 @@ namespace AElf.Contracts.ReferendumAuth
 
         public override Hash CreateProposal(CreateProposalInput proposal)
         {
+            Assert(
+                !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
+                && proposal.ToAddress != null
+                && proposal.OrganizationAddress != null
+                && proposal.ExpiredTime != null, "Invalid proposal.");
             var organization = State.Organisations[proposal.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
+            DateTime timestamp = proposal.ExpiredTime.ToDateTime();
+            Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
             Hash hash = Hash.FromMessage(proposal);
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = new ProposalInfo
@@ -104,7 +111,8 @@ namespace AElf.Contracts.ReferendumAuth
                 LockId = Context.TransactionId,
                 TokenSymbol = organization.TokenSymbol
             };
-            State.ApprovedTokenAmount[approval.ProposalId].Value += lockedTokenAmount;
+            
+            State.ApprovedTokenAmount[approval.ProposalId] += lockedTokenAmount;
 
             State.TokenContract.Lock.Send(new LockInput
             {

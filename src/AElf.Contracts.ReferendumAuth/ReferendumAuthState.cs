@@ -9,7 +9,7 @@ namespace AElf.Contracts.ReferendumAuth
     {
         public BoolState Initialized { get; set; }
         public MappedState<Address, Hash, Receipt> LockedTokenAmount { get; set; }
-        public MappedState<Hash, Int64Value> ApprovedTokenAmount { get; set; }
+        public MappedState<Hash, long> ApprovedTokenAmount { get; set; }
         public MappedState<Address, Organization> Organisations { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
         internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
