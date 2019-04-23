@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+import "aelf_options.proto";
+import "common.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.Basic2";
+
+service Basic2Contract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.Basic2.Basic2ContractState";
+    //Actions
+    rpc InitialBasic2Contract(Address) returns (google.protobuf.Empty) {
+    }
+    rpc TestBoolState(BoolInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestInt32State(Int32Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestUInt32State(UInt32Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestInt64State(Int64Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestUInt64State(UInt64Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestStringState(StringInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestBytesState(BytesInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestProtobufState(ProtobufInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestComplex1State(Complex1Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestComplex2State(Complex2Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestMapped1State(ProtobufInput) returns (google.protobuf.Empty) {
+    }
+    rpc TestMapped2State(Complex3Input) returns (google.protobuf.Empty) {
+    }
+    rpc TestExecuteExternalMethod(Int64Input) returns (google.protobuf.Empty) {
+    }
+    
+    //View
+    rpc QueryBoolState(google.protobuf.Empty) returns (BoolOutput) {
+    }
+    rpc QueryInt32State(google.protobuf.Empty) returns (Int32Output){
+    }
+    rpc QueryUInt32State(google.protobuf.Empty) returns (UInt32Output) {
+    }
+    rpc QueryInt64State(google.protobuf.Empty) returns (Int64Output) {
+    }
+    rpc QueryUInt64State(google.protobuf.Empty) returns (UInt64Output) {
+    }
+    rpc QueryStringState(google.protobuf.Empty) returns (StringOutput) {
+    }
+    rpc QueryBytesState(google.protobuf.Empty) returns (BytesOutput) {
+    }
+    rpc QueryProtobufState(google.protobuf.Empty) returns (ProtobufOutput) {
+    }
+    rpc QueryComplex1State(google.protobuf.Empty) returns (Complex1Output) {
+    }
+    rpc QueryComplex2State(google.protobuf.Empty) returns (Complex2Output) {
+    }
+    rpc QueryMappedState1(ProtobufInput) returns (ProtobufMessage) {
+    }
+    rpc QueryMappedState2(Complex3Input) returns (TradeMessage) {
+    }
+    rpc QueryExternalMethod1(Address) returns (Int64Output) {
+    }
+    rpc QueryExternalMethod2(Address) returns (Int64Output) {
+    }
+}
+
+//Input
+message BoolInput {
+    bool BoolValue = 1;
+}
+
+message Int32Input {
+    int32 Int32Value = 1;
+}
+
+message UInt32Input {
+    uint32 UInt32Value = 1;
+}
+
+message Int64Input {
+    int64 Int64Value = 1;
+}
+
+message UInt64Input {
+    uint64 UInt64Value = 1;
+}
+
+message StringInput {
+    string StringValue = 1;
+}
+
+message BytesInput {
+    bytes BytesValue = 1;
+}
+
+message ProtobufInput {
+    ProtobufMessage ProtobufValue = 1;
+}
+
+message Complex1Input {
+    bool BoolValue = 1;
+    int32 Int32Value = 2;
+}
+
+message Complex2Input {
+    BoolInput BoolData = 1;
+    Int32Input Int32Data = 2;
+}
+
+message Complex3Input {
+    string from = 1;
+    string pairA = 2;
+    string to = 3;
+    string pairB = 4;
+    TradeMessage TradeDetails = 5;
+}
+
+message TradeMessage {
+    int64 fromAmount = 1;
+    int64 toAmount = 2;
+    google.protobuf.Timestamp Timestamp = 3;
+}
+
+message ProtobufMessage {
+    string StringValue = 1;
+    bool BoolValue = 2;
+    int64 Int64Value = 3;
+}
+
+//Output
+message BoolOutput {
+    bool BoolValue = 1;
+}
+
+message Int32Output {
+    int32 Int32Value = 1;
+}
+
+message UInt32Output {
+    uint32 UInt32Value = 1;
+}
+
+message UInt64Output {
+    uint64 UInt64Value = 1;
+}
+
+message Int64Output {
+    int64 Int64Value = 1;
+}
+
+message StringOutput {
+    string StringValue = 1;
+}
+
+message BytesOutput {
+    bytes BytesValue = 1;
+}
+
+message ProtobufOutput {
+    ProtobufMessage ProtobufValue = 1;
+}
+
+message ProtobufListOutput {
+    repeated ProtobufMessage Collection = 1;
+}
+
+message Complex1Output {
+    bool BoolValue = 1;
+    int32 Int32Value = 2;
+}
+
+message Complex2Output {
+    BoolOutput BoolData = 1;
+    Int32Output Int32Data = 2;
+}
