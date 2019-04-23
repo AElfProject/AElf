@@ -16,6 +16,8 @@ namespace AElf.Kernel.SmartContract.Application
         Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
+
+        void UpdateCache(Address address, SmartContractRegistration newRegistration);
     }
 
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
@@ -101,8 +103,19 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
-            GetPool(address).Add(executive);
+            if (_executivePools.TryGetValue(address, out var pool))
+            {
+                pool.Add(executive);
+            }
+
             await Task.CompletedTask;
+        }
+
+        public void UpdateCache(Address address, SmartContractRegistration newRegistration)
+        {
+            _addressSmartContractRegistrationMappingCache.AddOrUpdate(address, newRegistration,
+                (contractAddress, registration) => newRegistration);
+            _executivePools.TryRemove(address, out _);
         }
 
 
