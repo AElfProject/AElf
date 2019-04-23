@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Contracts.Genesis;
 using AElf.Database;
 using AElf.Kernel;
@@ -100,9 +102,9 @@ namespace AElf.Contracts.TestKit
             context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             context.Services.AddTransient(o => Mock.Of<IConsensusService>());
             context.Services.AddTransient(o => Mock.Of<IAccountService>());
-
             #endregion
 
+            context.Services.AddTransient<IAccount, Account>();
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
             context.Services.AddTransient<ITransactionExecutor, TransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();

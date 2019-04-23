@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
@@ -15,8 +13,6 @@ namespace AElf.Contracts.TestKit
 {
     public class TransactionExecutor : ITransactionExecutor
     {
-        public ECKeyPair KeyPair { get; set; } = CryptoHelpers.GenerateKeyPair();
-
         private readonly IServiceProvider _serviceProvider;
 
         public TransactionExecutor(IServiceProvider serviceProvider)
@@ -30,13 +26,13 @@ namespace AElf.Contracts.TestKit
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var minerService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
+            var account = _serviceProvider.GetRequiredService<IAccount>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 new List<Transaction> {transaction},
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
-            var signature = CryptoHelpers.SignWithPrivateKey(KeyPair.PrivateKey, block.GetHash().DumpByteArray());
-            block.Header.Sig = ByteString.CopyFrom(signature);
-            block.Header.P = ByteString.CopyFrom(KeyPair.PublicKey);
+            block.Header.Sig = ByteString.CopyFrom(account.Sign(block.GetHash().DumpByteArray()));
+            block.Header.P = ByteString.CopyFrom(account.GetPublicKey());
 
             await blockAttachService.AttachBlockAsync(block);
         }
