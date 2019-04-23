@@ -1,10 +1,9 @@
-# How to develop a DAPP
+# How to develop a dApp
 
-## What you'll learn
+This section will guide you through an example to show you how to develop a dApp with AElf's Boilerplate framework.
 
-Only a sample of what you'll learn
+- set up the development environment.
+- a detailed introduction to writing a smart contract with AElf Boilerplate.
+- build a dApp with the JS SDK to interact with the smart contract.
+- use browser extension to develop the dApp.
 
-- Set up the system.
-- Write some contracts
-- Use JS SDK to develop the DAPP
-- Use browser extension to develop the DAPP
