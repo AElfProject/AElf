@@ -10,6 +10,7 @@ Strictly speaking you don't need an IDE for this tutorial but it is highly recom
 - installation instructions [**here**](https://code.visualstudio.com/docs/setup/setup-overview).
 - working with C# [**here**](https://code.visualstudio.com/docs/languages/csharp).
 
+
 ## Clone the repo
 
 Open a terminal in your system and clone the tutorial with the following command:
@@ -21,6 +22,9 @@ git clone https://github.com/AElfProject/aelf-boilerplate
 This command will create a **aelf-boilerplate** folder with the code inside it.
 
 ### Build and run
+
+TODO: should call scripts in vs code terminal to install protobuf and other required
+
 
 If not already done open vscode and open the **aelf-boilerplate**.
 
