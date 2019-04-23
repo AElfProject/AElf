@@ -56,6 +56,7 @@ namespace AElf.Contracts.ParliamentAuth
         
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
+            Assert(input.ReleaseThreshold > 0 && input.ReleaseThreshold <= 10000, "Invalid organization.");
             var organizationHash = GenerateOrganizationVirtualHash(input);
             Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             if(State.Organisations[organizationAddress] == null)

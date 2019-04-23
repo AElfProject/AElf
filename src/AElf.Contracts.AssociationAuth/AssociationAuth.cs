@@ -43,6 +43,11 @@ namespace AElf.Contracts.AssociationAuth
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
+            var isValidWeight = input.Reviewers.All(r => r.Weight >= 0);
+            var canBeProposed = input.Reviewers.Any(r => r.Weight >= input.ProposerThreshold);
+            var canBeReleased = input.Reviewers.Aggregate(0, (i, reviewer) => i + reviewer.Weight) >
+                                input.ReleaseThreshold;
+            Assert(isValidWeight && canBeProposed && canBeReleased, "Invalid organization." );
             var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
             Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             if(State.Organisations[organizationAddress] == null)
