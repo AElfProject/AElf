@@ -29,7 +29,7 @@ namespace AElf.CrossChain
             
             var indexedCrossChainBlockData =
                 await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Height);
-            var extraData = _blockExtraDataExtractor.ExtractCrossChainExtraData(block.Header);
+            var extraData = _blockExtraDataExtractor.ExtractCrossChainData(block.Header);
             if (indexedCrossChainBlockData == null)
             {
                 return extraData == null;

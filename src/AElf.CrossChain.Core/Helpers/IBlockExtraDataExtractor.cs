@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
@@ -7,9 +8,9 @@ namespace AElf.CrossChain
 {
     public interface IBlockExtraDataExtractor
     {
-        CrossChainExtraData ExtractCrossChainExtraData(BlockHeader header);
+        CrossChainExtraData ExtractCrossChainData(BlockHeader header);
         Hash ExtractTransactionStatusMerkleTreeRoot(BlockHeader header);
-        ByteString ExtractOtherExtraData(string symbol, BlockHeader header);
+        Dictionary<string, ByteString> ExtractCommonExtraDataForExchange(BlockHeader header);
     }
 
     public class BlockExtraDataExtractor : IBlockExtraDataExtractor, ITransientDependency
@@ -21,7 +22,7 @@ namespace AElf.CrossChain
             _blockExtraDataService = blockExtraDataService;
         }
 
-        public CrossChainExtraData ExtractCrossChainExtraData(BlockHeader header)
+        public CrossChainExtraData ExtractCrossChainData(BlockHeader header)
         {
             var bytes = _blockExtraDataService.GetExtraDataFromBlockHeader("CrossChain", header);
             return bytes == ByteString.Empty || bytes == null ? null : CrossChainExtraData.Parser.ParseFrom(bytes);
@@ -32,9 +33,16 @@ namespace AElf.CrossChain
             return Hash.Parser.ParseFrom(_blockExtraDataService.GetMerkleTreeRootExtraDataForTransactionStatus(header));
         }
 
-        public ByteString ExtractOtherExtraData(string symbol, BlockHeader header)
+        public Dictionary<string, ByteString> ExtractCommonExtraDataForExchange(BlockHeader header)
         {
-            return _blockExtraDataService.GetExtraDataFromBlockHeader(symbol, header);
+            var res = new Dictionary<string, ByteString>();
+            foreach (var symbol in CrossChainConsts.SymbolsOfExchangedExtraData)
+            {
+                var extraData = _blockExtraDataService.GetExtraDataFromBlockHeader(symbol, header);
+                if(extraData != null)
+                    res.Add(symbol, extraData);
+            }
+            return res;
         }
 
     }

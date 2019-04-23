@@ -117,26 +117,12 @@ namespace AElf.CrossChain.Grpc
                     }
                 }
             };
-            if(block.Height >= parentChainHeightOfCreation)
-            {
-                // only pack extra information after side chain creation
-                foreach (var symbol in _crossChainConfigOption.ExtraDataSymbols)
-                {
-                    var extraData = _blockExtraDataExtractor.ExtractOtherExtraData(symbol, block.Header);
-                    if(extraData != null)
-                        responseParentChainBlockData.BlockData.ExtraData.Add(symbol, extraData);
-                }
-            }
-            
-            var transactionStatusMerkleRoot =
-                _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header);
-            responseParentChainBlockData.BlockData.Root.TransactionStatusMerkleRoot = transactionStatusMerkleRoot;
-            
-            var crossChainExtra = _blockExtraDataExtractor.ExtractCrossChainExtraData(block.Header);
-            if (crossChainExtra == null) 
+            responseParentChainBlockData = FillExtraDataInResponse(responseParentChainBlockData, block.Header,
+                block.Height >= parentChainHeightOfCreation);
+
+            if (responseParentChainBlockData.BlockData.Root.CrossChainExtraData == null) 
                 return responseParentChainBlockData;
             
-            responseParentChainBlockData.BlockData.Root.CrossChainExtraData = crossChainExtra;
             var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockInfoResult(block);
             var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, remoteSideChainId);
             foreach (var (sideChainHeight, merklePath) in enumerableMerklePath)
@@ -186,6 +172,25 @@ namespace AElf.CrossChain.Grpc
         private async Task<Block> GetIrreversibleBlock(long height)
         {
             return await _localLibService.GetIrreversibleBlockByHeightAsync(height);
+        }
+
+        private ResponseParentChainBlockData FillExtraDataInResponse(ResponseParentChainBlockData responseParentChainBlockData, 
+            BlockHeader blockHeader, bool needOtherExtraData)
+        {
+            var transactionStatusMerkleRoot =
+                _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(blockHeader);
+            responseParentChainBlockData.BlockData.Root.TransactionStatusMerkleRoot = transactionStatusMerkleRoot;
+            
+            var crossChainExtra = _blockExtraDataExtractor.ExtractCrossChainData(blockHeader);
+            responseParentChainBlockData.BlockData.Root.CrossChainExtraData = crossChainExtra;
+            
+            if(needOtherExtraData)
+            {
+                // only pack extra information after side chain creation
+                responseParentChainBlockData.BlockData.ExtraData.Add(_blockExtraDataExtractor.ExtractCommonExtraDataForExchange(blockHeader));
+            }
+
+            return responseParentChainBlockData;
         }
     }
 }
