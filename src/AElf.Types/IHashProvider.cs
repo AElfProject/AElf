@@ -1,8 +1,7 @@
-﻿namespace AElf.Kernel
+namespace AElf
 {
     public interface IHashProvider
     {
         Hash GetHash();
-        Hash GetHashWithoutCache();
     }
 }

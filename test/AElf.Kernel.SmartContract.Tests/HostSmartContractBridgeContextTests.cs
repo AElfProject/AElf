@@ -113,7 +113,6 @@ namespace AElf.Kernel.SmartContract
             _bridgeContext.TransactionContext.PreviousBlockHash = newBlock.GetHash();
 
             var previousBlock = _bridgeContext.GetPreviousBlock();
-            previousBlock.Height.ShouldBe(newBlock.Height);
             previousBlock.GetHash().ShouldBe(newBlock.GetHash());
         }
 

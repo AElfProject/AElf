@@ -56,7 +56,7 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.RecoverPublicKey();
         }
 
-        public Block GetPreviousBlock()
+        public IBlockBase GetPreviousBlock()
         {
             return _smartContractBridgeContextImplementation.GetPreviousBlock();
         }

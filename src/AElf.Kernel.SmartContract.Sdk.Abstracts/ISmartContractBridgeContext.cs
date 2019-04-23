@@ -50,7 +50,7 @@ namespace AElf.Kernel.SmartContract.Sdk
         byte[] RecoverPublicKey();
 
         // TODO: Remove GetBlockByHeight
-        Block GetPreviousBlock();
+        IBlockBase GetPreviousBlock();
 
         bool VerifySignature(Transaction tx);
 
