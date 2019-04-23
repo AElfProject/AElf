@@ -46,7 +46,7 @@ deploy:
     on:
       tags: true
       all_branches: true
-      condition: "$REAL_BRANCH =~ ^master|release-.*$ && $TRAVIS_OS_NAME = linux"
+      condition: "$REAL_BRANCH =~ ^dev|^master|release-.*$ && $TRAVIS_OS_NAME = linux"
   - provider: script
     script:
       bash scripts/deploy_myget_daily.sh $DAILY_BUILD_VERSION_PREFIX $MYGET_API_KEY
