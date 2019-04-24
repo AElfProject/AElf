@@ -104,13 +104,13 @@ You should see the results in the terminal or in the browser dev tool.
 ### In the terminal
 
 <p align="center">
-  <img src="assets/jssdk-terminal.jpg" width="400">
+  <img src="assets/jssdk_terminal.jpg" width="400">
 </p>
 
 ### In the browser dev tool
 
 <p align="center">
-  <img src="assets/jssdk-browser.jpg" width="400">
+  <img src="assets/jssdk_browser.jpg" width="400">
 </p>
 
 ## Run the browser extension Demo
