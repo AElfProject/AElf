@@ -1,12 +1,39 @@
-# Smart Contract Hello World
+# Smart Contract
 
-This tutorial will guide you through the steps to create and deploy a simple contract in C# with AElf's Boilerplate project. It will be a simple Hello World contract to demonstrate how to use our framework to create and test a contract. 
+This article will guide you through how to use **AElf Boilerplate** project to implement and test a smart contract. This guide assumes you have completed the previous [Setup](setup.md) tutorial.
 
-By looking at the folder structure you can see that there's the **Contract** and **Tests** folders. The contract folder is where you create the contract you are building and place the tests in the tests folder.
+## Introduction
 
-Both the projects should be included in the solution.
+### Setup
 
-First lets look at the contract:
+To easily follow this tutorial you will need to open the the **AElf Boilerplate** root folder in Visual Studio Code and also open the **Integrated Terminal**.
+
+<p align="center">
+  <img src="aelf-root.png" width="200">
+</p>
+
+In the previous image you can see that the repository is composed of a **chain** and a **web** folder. The following content will help you understand the content of the **chain** folder.
+
+### Folder structure
+
+This section will introduce you to the structure of a smart contract developed with **Boilerplate** by introducing the *Hello World*  contract example. Here's an overview of the folders and files you will find in the **chain** folder:
+
+- **protobuf**: contains some protobuf message definitions, some common to all contracts, some for specific contracts.
+- scripts: build scripts - not important for this guide.
+- **src**:
+  - AElf.Boilerplate.Launcher: console project to launch the node.
+  - AElf.Boilerplate.Mainchain: a library for the node.
+  - **HelloWorldContract**: the implementation of the Hello World contract.
+- **test**:
+  - **HelloWorldContract.Test**: the tests for the Hello World contract.
+
+This guide will focus on the **HelloWorldContract** and **HelloWorldContract.Test** folders since the code we will modify is located in these.
+
+### Hello World contract
+
+#### Definition and implementation
+
+**Definition**: in AElf contracts are defined as services and are implemented using protobuf. Let's take a look at the **hello_world.proto** file located in the **protobuf/** folder:
 
 ```bash
 syntax = "proto3";
@@ -28,9 +55,28 @@ message HelloReturn {
 }
 ```
 
-It's a simple contract that defines one method and one type. It also needs a state:
+It's a simple contract that defines one method (**Hello**) and one type (**HelloReturn**). We won't go through every detail of the definition, for this you can check out the [Smart Contract section](../../Contract/main.md) of this Gitbook.
 
-```bash
+**Implementation**: 
+
+The implementation is located in the **src/HelloWorldContract** folder, it contains two important files: the **state* and the **service implentation**.
+
+```csharp
+using Google.Protobuf.WellKnownTypes;
+
+namespace HelloWorldContract
+{
+    public partial class HelloWorldContract : HelloWorldContractContainer.HelloWorldContractBase
+    {
+        public override HelloReturn Hello(Empty input)
+        {
+            return new HelloReturn {Value = "Hello world!"};
+        }
+    }
+}
+```
+
+```csharp
 using AElf.Sdk.CSharp.State;
 namespace HelloWorldContract
 {
@@ -40,7 +86,9 @@ namespace HelloWorldContract
 }
 ```
 
-Now lets look at the test:
+#### Testing
+
+Now lets look at the test :
 
 ```bash
 public class HelloWorldContractTest : HelloWorldContractTestBase
@@ -53,6 +101,16 @@ public class HelloWorldContractTest : HelloWorldContractTestBase
     }
 }
 ```
+
+### Adding some methods
+
+#### Modify the definition
+
+#### Implement the logic and state
+
+#### Test
+
+<!-- ### MoreTesting
 
 This way you can test your contract without running the node and test your scenarios programmaticaly. This will you most of AElfs internals so it's a very complete test. 
 Here the logic is simple, but it gives you the idea. On your contract stub you can call any method on the contract.
@@ -67,48 +125,6 @@ public override void ConfigureServices(ServiceConfigurationContext context)
     Configure<RunnerOptions>(o => { o.SdkDir = Path.GetDirectoryName(typeof(HelloWorldContractTestModule).Assembly.Location); });
     context.Services.AddSingleton<IRefBlockInfoProvider, RefBlockInfoProvider>();
 }
-```
-
-and the test base: 
-
-```bash 
-public class HelloWorldContractTestBase : ContractTestBase<HelloWorldContractTestModule>
-{
-    internal HelloWorldContractContainer.HelloWorldContractStub HelloWorldContractStub { get; set; }
-    internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
-
-    protected Address HelloWorldContractAddress { get; set; }
-
-    public HelloWorldContractTestBase()
-    {
-
-        var bb = ByteString.CopyFrom(File.ReadAllBytes(typeof(HelloWorldContract).Assembly.Location));
-        
-        BasicContractZeroStub =
-            GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress,
-                SampleECKeyPairs.KeyPairs[0]);
-        
-        HelloWorldContractAddress = AsyncHelper.RunSync(() =>
-            BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                new SystemContractDeploymentInput
-                {
-                    Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(HelloWorldContract).Assembly.Location)),
-                    Name = Hash.FromString("HelloWorldContract"),
-                    TransactionMethodCallList = GenerateTransactionMethodCallList()
-                })).Output;
-        HelloWorldContractStub =
-            GetTester<HelloWorldContractContainer.HelloWorldContractStub>(HelloWorldContractAddress,
-                SampleECKeyPairs.KeyPairs[0]);
-    }
-
-    private SystemTransactionMethodCallList GenerateTransactionMethodCallList()
-    {
-        var callList = new SystemTransactionMethodCallList();
-        callList.Add(nameof(HelloWorldContract.Hello), new Empty());
-        return callList;
-    }
-}
-```
+``` -->
 
 That's more or less everything. We recommend you write the contract in a test driven way, when you are ready you can run the launcher project and you will be able to call the contract through the RPC to start integration testing with some external client (or the CLI if you don't plan on building some sort of dApp).
