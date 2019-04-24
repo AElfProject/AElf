@@ -31,11 +31,9 @@ This command will create a **aelf-boilerplate** folder with the code inside it.
 
 ## Build and run
 
-#### Install script
+#### Open the project
 
-TODO run install script 
-
-If not already done open vscode and open the **aelf-boilerplate**.
+If not already done open vscode and open the **aelf-boilerplate** folder.
 
 If asked to add some "required assets" say **yes**. There may also be some dependencies to restore: for all of them choose **Restore**.
 
@@ -44,6 +42,18 @@ If asked to add some "required assets" say **yes**. There may also be some depen
 </p>
 
 Open vscode's terminal and build the project with the following command. Note: you can find out more about vscode's terminal [**here**](https://code.visualstudio.com/docs/editor/integrated-terminal).
+
+#### Install script
+
+If you don't already have protobuf installed, run the following script:
+
+```bash
+todo add script
+```
+
+Note: you can also [manually install](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) if you prefer.
+
+#### Build and run
 
 ```bash
 cd aelf-boilerplate/chain/src/AElf.Boilerplate.Launcher/
