@@ -2,7 +2,7 @@
 
 * [Tutorials](tutorials/main.md)
     * [How to dev a DAPP](tutorials/dapp/main.md)
-        * [Setup AElf Boilerplate](tutorials/dapp/setup.md)
+        * [Setup Env](tutorials/dapp/setup.md)
         * [Develop Smart Contract](tutorials/dapp/smartContractHelloWorld.md)
         * [Use JS SDK](tutorials/dapp/jssdk.md)
         * [Use browser extension](tutorials/dapp/browserExtension.md)
