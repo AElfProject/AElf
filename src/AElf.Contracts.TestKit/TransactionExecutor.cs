@@ -26,13 +26,9 @@ namespace AElf.Contracts.TestKit
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var minerService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
-            var account = _serviceProvider.GetRequiredService<IAccount>();
-
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 new List<Transaction> {transaction},
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
-            block.Header.Sig = ByteString.CopyFrom(account.Sign(block.GetHash().DumpByteArray()));
-            block.Header.P = ByteString.CopyFrom(account.GetPublicKey());
 
             await blockAttachService.AttachBlockAsync(block);
         }

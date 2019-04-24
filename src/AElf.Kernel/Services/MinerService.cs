@@ -63,9 +63,7 @@ namespace AElf.Kernel.Services
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IAccountService _accountService;
-
         private readonly IBlockExecutingService _blockExecutingService;
-
         public ILocalEventBus EventBus { get; set; }
 
         public MiningService(IAccountService accountService,
@@ -78,19 +76,15 @@ namespace AElf.Kernel.Services
             _systemTransactionGenerationService = systemTransactionGenerationService;
             _blockExecutingService = blockExecutingService;
             _accountService = accountService;
-
             EventBus = NullLocalEventBus.Instance;
         }
 
         private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
             long previousBlockHeight)
         {
-            //var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
-
             var generatedTxns = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
                                     previousBlockHeight, previousBlockHash);
-
             foreach (var txn in generatedTxns)
             {
                 await SignAsync(txn);
