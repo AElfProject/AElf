@@ -197,7 +197,8 @@ namespace AElf.Contracts.TestBase
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList(dposOptions));
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 
@@ -228,7 +229,8 @@ namespace AElf.Contracts.TestBase
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList(initialMiners, miningInterval, startTimestamp));
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 
@@ -280,8 +282,8 @@ namespace AElf.Contracts.TestBase
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
-            dto.InitializationSmartContracts
-                .AddConsensusSmartContract<AElf.Contracts.Consensus.DPoS.SideChain.ConsensusContract>();
+            dto.InitializationSmartContracts.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.SideChain.ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name);
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 
             await osBlockchainNodeContextService.StartAsync(dto);

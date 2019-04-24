@@ -52,7 +52,8 @@ namespace AElf.Blockchains.SideChain
             
             var dposOptions = context.ServiceProvider.GetService<IOptionsSnapshot<DPoSOptions>>().Value;
 
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList(dposOptions, chainInitializationContext));
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(

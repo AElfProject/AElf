@@ -235,7 +235,8 @@ namespace AElf.OS
                 ChainId = _chainOptions.ChainId
             };
 
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name);
 
             var ownAddress = await _accountService.GetAccountAsync();
             var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();

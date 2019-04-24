@@ -63,7 +63,8 @@ namespace AElf.Blockchains.MainChain
                 .GetZeroSmartContractAddress();
 
             // Consensus Contract
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList(dposOptions, tokenInitialOptions));
 
             // Dividend Contract

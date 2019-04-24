@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Infrastructure;
@@ -78,12 +77,6 @@ namespace AElf.OS.Node.Application
             genesisSmartContracts.AddGenesisSmartContract<T>(name, systemTransactionMethodCallList);
         }
 
-        public static void AddConsensusSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
-            SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList = null)
-        {
-            genesisSmartContracts.AddGenesisSmartContract(typeof(T), ConsensusSmartContractAddressNameProvider.Name,
-                systemTransactionMethodCallList);
-        }
     }
 
     public interface IOsBlockchainNodeContextService
