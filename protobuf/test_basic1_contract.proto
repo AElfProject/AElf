@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+import "aelf_options.proto";
+import "common.proto";
+import "test_basic.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.Basic1";
+
+service Basic1Contract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.Basic1.Basic1ContractState";
+    //Actions
+    rpc InitialBasic1Contract(InitialBasicContractInput) returns (google.protobuf.Empty){
+    }
+    rpc UpdateBetLimit(BetLimitInput) returns (google.protobuf.Empty){
+    }
+    rpc UserPlayBet(BetInput) returns (google.protobuf.Empty) {
+    }
+
+    //View
+    rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
+    }
+    rpc QueryRewardMoney(google.protobuf.Empty) returns (MoneyOutput) {
+    }
+    rpc QueryUserWinMoney(Address) returns (MoneyOutput) {
+    }
+    rpc QueryUserLoseMoney(Address) returns (MoneyOutput) {
+    }
+}

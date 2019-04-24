@@ -391,6 +391,37 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
+        public async Task QueryVotingRecord()
+        {
+            var topic = "vote test";
+            await GenerateNewVoteEvent(topic, 1, 10, 3, false);
+            
+            var voteUser = SampleECKeyPairs.KeyPairs[2];
+            await UserVote(voteUser, topic, DefaultSender, _options[0], 1000L);
+            
+            var votes = (await VoteContractStub.GetVotingHistories.CallAsync(
+                Address.FromPublicKey(voteUser.PublicKey))).Votes;
+            var hash = votes.Values.First().ActiveVotes.First();
+            
+            //with data
+            {
+                var record = await VoteContractStub.GetVotingRecord.CallAsync(hash);
+                
+                record.Topic.ShouldBe(topic);
+                record.Amount.ShouldBe(1000L);
+                record.Option.ShouldBe(_options[0]);
+                record.Voter.ShouldBe(Address.FromPublicKey(voteUser.PublicKey));
+            }
+            
+            //without data
+            {
+                var record = await VoteContractStub.GetVotingRecord.CallAsync(Hash.Generate());
+                
+                record.ShouldBe(new VotingRecord());
+            }
+        }
+
+        [Fact]
         public async Task VoteContract_UpdateEpochNumber()
         {
             var topic = "vote test";
@@ -611,6 +642,36 @@ namespace AElf.Contracts.Vote
                 EpochNumber = 0
             });
         }
+
+        [Fact]
+        public async Task GetVotingEvent()
+        {
+            await GenerateNewVoteEvent("topic1", 2, 100, 4, false);
+            
+            //without result
+            {
+                var votingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+                {
+                    Sponsor = DefaultSender,
+                    Topic = "topic"
+                });
+                
+                votingEvent.ShouldBe(new VotingEvent());
+            }
+            //with result
+            {
+                var votingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+                {
+                    Sponsor = DefaultSender,
+                    Topic = "topic1"
+                });
+                
+                votingEvent.ShouldNotBeNull();
+                votingEvent.Topic.ShouldBe("topic1");
+                votingEvent.Sponsor.ShouldBe(DefaultSender);
+                votingEvent.Options.ShouldBe(_options);
+            }
+        }
         
         [Fact]
         public async Task VoteContract_GetVotingResult()
@@ -680,6 +741,7 @@ namespace AElf.Contracts.Vote
 
             return addressList;
         }
+        
         private async Task<long> GetUserBalance(byte[] publicKey)
         {
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput

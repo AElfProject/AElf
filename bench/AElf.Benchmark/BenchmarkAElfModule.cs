@@ -16,33 +16,33 @@ namespace AElf.Benchmark
         {
             var services = context.Services;
 
-            services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p =>
-            {
-                var dbConnectionString = services.GetConfiguration().GetSection("ConnectionStrings:BlockchainDb").Value;
-
-                if (string.IsNullOrWhiteSpace(dbConnectionString))
-                {
-                    p.UseInMemoryDatabase();
-                }
-                else
-                {
-                    p.UseRedisDatabase();
-                }
-            });
-            
-            services.AddKeyValueDbContext<StateKeyValueDbContext>(p =>
-            {
-                var dbConnectionString = services.GetConfiguration().GetSection("ConnectionStrings:StateDb").Value;
-
-                if (string.IsNullOrWhiteSpace(dbConnectionString))
-                {
-                    p.UseInMemoryDatabase();
-                }
-                else
-                {
-                    p.UseRedisDatabase();
-                }
-            });
+//            services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p =>
+//            {
+//                var dbConnectionString = services.GetConfiguration().GetSection("ConnectionStrings:BlockchainDb").Value;
+//
+//                if (string.IsNullOrWhiteSpace(dbConnectionString))
+//                {
+//                    p.UseInMemoryDatabase();
+//                }
+//                else
+//                {
+//                    p.UseRedisDatabase();
+//                }
+//            });
+//            
+//            services.AddKeyValueDbContext<StateKeyValueDbContext>(p =>
+//            {
+//                var dbConnectionString = services.GetConfiguration().GetSection("ConnectionStrings:StateDb").Value;
+//
+//                if (string.IsNullOrWhiteSpace(dbConnectionString))
+//                {
+//                    p.UseInMemoryDatabase();
+//                }
+//                else
+//                {
+//                    p.UseRedisDatabase();
+//                }
+//            });
         }
     }
 }

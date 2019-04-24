@@ -15,7 +15,7 @@ service CrossChainContract {
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc RequestChainCreation (SideChainCreationRequest) returns (SInt32Value) {
+    rpc RequestChainCreation (SideChainCreationRequest) returns (RequestChainCreationOutput) {
     }
     rpc WithdrawRequest (SInt32Value) returns (google.protobuf.Empty) {
     }
@@ -23,11 +23,14 @@ service CrossChainContract {
     }
     rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
     }
-    rpc RequestChainDisposal (SInt32Value) returns (google.protobuf.Empty) {
+    rpc RequestChainDisposal (SInt32Value) returns (Hash) {
     }
     rpc DisposeSideChain (SInt32Value) returns (SInt64Value) {
     }
     rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
+    }
+    
+    rpc ChangOwnerAddress(Address) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -78,12 +81,18 @@ service CrossChainContract {
 message InitializeInput {
     Hash tokenContractSystemName = 1;
     Hash consensusContractSystemName = 2;
-    int32 parentChainId = 3;
+    Hash parliamentContractSystemName = 3;
+    int32 parentChainId = 4;
 }
 
 message RechargeInput {
     int32 chainId = 1;
     sint64 amount = 2;
+}
+
+message RequestChainCreationOutput{
+    int32 chainId =1;
+    Hash proposalId = 2;
 }
 
 message VerifyTransactionInput {

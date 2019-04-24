@@ -16,9 +16,6 @@
         <None Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf/Proto/acs3.proto</Link>
         </None>
-        <None Include="..\..\protobuf\proposal.proto">
-            <Link>Protobuf/Proto/proposal.proto</Link>
-        </None>
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Protobuf\Proto" />
