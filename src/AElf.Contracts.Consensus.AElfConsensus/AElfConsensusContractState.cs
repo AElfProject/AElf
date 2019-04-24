@@ -23,7 +23,5 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         public SingletonState<Timestamp> BlockchainStartTimestamp { get; set; }
 
         public MappedState<long, Round> Rounds { get; set; }
-        
-
     }
 }

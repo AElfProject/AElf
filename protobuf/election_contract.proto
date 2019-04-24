@@ -56,4 +56,8 @@ service ElectionContract {
     rpc QueryCurrentDividendsForVoters (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
+    
+    rpc GetVictories (google.protobuf.Empty) returns (PublicKeysList) {
+            option (aelf.is_view) = true;
+    }
 }

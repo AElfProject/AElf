@@ -14,9 +14,9 @@ message VotingRegisterInput {
     string topic = 1;
     google.protobuf.Timestamp start_timestamp = 2;
     string accepted_currency = 3;
-    sint32 active_days = 4;
+    sint64 active_days = 4;
     bool delegated = 5;
-    sint32 total_epoch = 6;
+    sint64 total_epoch = 6;
     repeated string options = 7;
 }
 
@@ -24,10 +24,10 @@ message VotingEvent {
     string topic = 1;
     Address sponsor = 2;
     string accepted_currency = 3;
-    sint32 active_days = 4;
+    sint64 active_days = 4;
     bool delegated = 5;
-    sint32 current_epoch = 6;
-    sint32 total_epoch = 7;
+    sint64 current_epoch = 6;
+    sint64 total_epoch = 7;
     repeated string options = 8;
     google.protobuf.Timestamp register_timestamp = 9;
     google.protobuf.Timestamp start_timestamp = 10;
@@ -50,28 +50,28 @@ message WithdrawInput {
 message GetVotingResultInput {
     string topic = 1;
     Address sponsor = 2;
-    sint32 epoch_number = 3;
+    sint64 epoch_number = 3;
 }
 
 message VotingResult {
     string topic = 1;
     Address sponsor = 2;
-    sint32 epoch_number = 3;
+    sint64 epoch_number = 3;
     map<string, sint64> results = 4;
-    sint32 voters_count = 5;
+    sint64 voters_count = 5;
     google.protobuf.Timestamp start_timestamp = 6;
     google.protobuf.Timestamp end_timestamp = 7;
 }
 
 message UpdateEpochNumberInput {
     string topic = 1;
-    sint32 epoch_number = 3;
+    sint64 epoch_number = 3;
 }
 
 message VotingRecord {
     string topic = 1;
     Address sponsor = 2;
-    sint32 epoch_number = 3;
+    sint64 epoch_number = 3;
     Address voter = 4;
     sint64 amount = 5;
     google.protobuf.Timestamp withdraw_timestamp = 6;

@@ -390,7 +390,6 @@ namespace AElf.Consensus.DPoS
             return new Miners
             {
                 PublicKeys = {minerPublicKeys},
-                Addresses = {minerPublicKeys.Select(p => Address.FromPublicKey(ByteArrayHelpers.FromHexString(p)))},
                 TermNumber = termNumber
             };
         }

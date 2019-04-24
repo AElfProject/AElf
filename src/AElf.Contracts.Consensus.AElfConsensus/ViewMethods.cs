@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using AElf.Consensus.AElfConsensus;
+using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -33,6 +36,353 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 currentRound.GetLogs(input.PublicKey.ToHex(), AElfConsensusHint.Parser.ParseFrom(command.Hint).Behaviour));
 
             return command;
+        }
+
+        public override AElfConsensusHeaderInformation GetInformationToUpdateConsensus(AElfConsensusTriggerInformation input)
+        {
+            // Some basic checks.
+            Assert(input.PublicKey.Any(), "Invalid public key.");
+
+            var publicKey = input.PublicKey;
+            var currentBlockTime = Context.CurrentBlockTime;
+            var behaviour = input.Behaviour;
+
+            Assert(TryToGetCurrentRoundInformation(out var currentRound),
+                    "Failed to get current round information.");
+
+            switch (behaviour)
+            {
+                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
+                case AElfConsensusBehaviour.UpdateValue:
+                    Assert(input.RandomHash != null, "Random hash should not be null.");
+
+                    var inValue = currentRound.CalculateInValue(input.RandomHash);
+                    var outValue = Hash.FromMessage(inValue);
+                    var signature = Hash.FromTwoHashes(outValue, input.RandomHash); // Just initial signature value.
+                    var previousInValue = Hash.Empty; // Just initial previous in value.
+
+                    if (TryToGetPreviousRoundInformation(out var previousRound) && !IsJustChangedTerm(out _))
+                    {
+                        signature = previousRound.CalculateSignature(inValue);
+                        if (input.PreviousRandomHash != Hash.Empty)
+                        {
+                            // If PreviousRandomHash is Hash.Empty, it means the sender unable or unwilling to publish his previous in value.
+                            previousInValue = previousRound.CalculateInValue(input.PreviousRandomHash);
+                        }
+                    }
+
+                    var updatedRound = currentRound.ApplyNormalConsensusData(publicKey.ToHex(), previousInValue,
+                        outValue, signature, currentBlockTime);
+
+                    ShareAndRecoverInValue(updatedRound, previousRound, inValue, publicKey.ToHex());
+
+                    // To publish Out Value.
+                    return new AElfConsensusHeaderInformation
+                    {
+                        SenderPublicKey = publicKey,
+                        Round = updatedRound,
+                        Behaviour = behaviour,
+                    };
+                case AElfConsensusBehaviour.NextRound:
+                    Assert(
+                        GenerateNextRoundInformation(currentRound, currentBlockTime, out var nextRound),
+                        "Failed to generate next round information.");
+                    nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks += 1;
+                    Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
+                    nextRound.ExtraBlockProducerOfPreviousRound = publicKey.ToHex();
+                    return new AElfConsensusHeaderInformation
+                    {
+                        SenderPublicKey = publicKey,
+                        Round = nextRound,
+                        Behaviour = behaviour
+                    };
+                case AElfConsensusBehaviour.NextTerm:
+                    Assert(TryToGetMiningInterval(out var miningInterval), "Failed to get mining interval.");
+                    var firstRoundOfNextTerm = GenerateFirstRoundOfNextTerm(publicKey.ToHex(), miningInterval);
+                    Assert(firstRoundOfNextTerm.RoundId != 0, "Failed to generate new round information.");
+                    var information = new AElfConsensusHeaderInformation
+                    {
+                        SenderPublicKey = publicKey,
+                        Round = firstRoundOfNextTerm,
+                        Behaviour = behaviour
+                    };
+                    return information;
+                default:
+                    return new AElfConsensusHeaderInformation();
+            }
+        }
+
+        private bool TryToGetMiningInterval(out int miningInterval)
+        {
+            miningInterval = 4000;
+            return true;
+        }
+        
+        private Round GenerateFirstRoundOfNextTerm(string senderPublicKey, int miningInterval)
+        {
+            Round round;
+            if (TryToGetTermNumber(out var termNumber) &&
+                TryToGetRoundNumber(out var roundNumber) &&
+                TryToGetVictories(out var victories))
+            {
+                round = victories.GenerateFirstRoundOfNewTerm(miningInterval, Context.CurrentBlockTime, roundNumber,
+                    termNumber);
+            }
+            else if (TryToGetCurrentRoundInformation(out round))
+            {
+                var miners = new Miners();
+                miners.PublicKeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k =>
+                    ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k))));
+                round = miners.GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), Context.CurrentBlockTime,
+                    round.RoundNumber, termNumber);
+            }
+
+            round.BlockchainAge = GetBlockchainAge();
+
+            if (round.RealTimeMinersInformation.ContainsKey(senderPublicKey))
+            {
+                round.RealTimeMinersInformation[senderPublicKey].ProducedBlocks = 1;
+            }
+            else
+            {
+                Assert(TryToGetCandidateHistory(senderPublicKey, out var history),
+                    "Failed to get sender's history information.");
+                history.ProducedBlocks += 1;
+                AddOrUpdateMinerHistoryInformation(history);
+            }
+
+            return round;
+        }
+
+        private long GetBlockchainAge()
+        {
+            return (long) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value.ToDateTime())
+                .TotalHours;
+        }
+
+        private bool TryToGetCandidateHistory(string publicKey, out CandidateHistory history)
+        {
+            // TODO: From Election Contract
+            throw new NotImplementedException();
+        }
+
+        private void AddOrUpdateMinerHistoryInformation(CandidateHistory history)
+        {
+            // TODO: To Election Contract
+            throw new NotImplementedException();
+        }
+
+        private bool TryToGetVictories(out Miners victories)
+        {
+            // TODO: From Election Contract
+            throw new NotImplementedException();
+        }
+        
+        private void ShareAndRecoverInValue(Round round, Round previousRound, Hash inValue, string publicKey)
+        {
+            var minersCount = round.RealTimeMinersInformation.Count;
+            var minimumCount = (int) (minersCount * 2d / 3);
+            minimumCount = minimumCount == 0 ? 1 : minimumCount;
+
+            var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToHex(), minimumCount, minersCount);
+            foreach (var pair in round.RealTimeMinersInformation.OrderBy(m => m.Value.Order))
+            {
+                var currentPublicKey = pair.Key;
+
+                if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
+                {
+                    return;
+                }
+
+                if (currentPublicKey == publicKey)
+                {
+                    continue;
+                }
+
+                // Encrypt every secret share with other miner's public key, then fill own EncryptedInValues field.
+                var plainMessage = Encoding.UTF8.GetBytes(secretShares[pair.Value.Order - 1]);
+                var receiverPublicKey = ByteArrayHelpers.FromHexString(currentPublicKey);
+                var encryptedInValue = Context.EncryptMessage(receiverPublicKey, plainMessage);
+                round.RealTimeMinersInformation[publicKey].EncryptedInValues
+                    .Add(currentPublicKey, ByteString.CopyFrom(encryptedInValue));
+
+                if (previousRound.RoundId == 0 || round.TermNumber != previousRound.TermNumber)
+                {
+                    continue;
+                }
+
+                if (!previousRound.RealTimeMinersInformation.ContainsKey(currentPublicKey))
+                {
+                    continue;
+                }
+
+                var encryptedInValues = previousRound.RealTimeMinersInformation[currentPublicKey].EncryptedInValues;
+                if (encryptedInValues.Any())
+                {
+                    var interestingMessage = encryptedInValues[publicKey];
+                    var senderPublicKey = ByteArrayHelpers.FromHexString(currentPublicKey);
+                    // Decrypt every miner's secret share then add a result to other miner's DecryptedInValues field.
+                    var decryptedInValue = Context.DecryptMessage(senderPublicKey, interestingMessage.ToByteArray());
+                    round.RealTimeMinersInformation[pair.Key].DecryptedPreviousInValues
+                        .Add(publicKey, ByteString.CopyFrom(decryptedInValue));
+                }
+
+                if (pair.Value.DecryptedPreviousInValues.Count < minimumCount)
+                {
+                    continue;
+                }
+
+                Context.LogDebug(() => "Now it's enough to recover previous in values.");
+
+                // Try to recover others' previous in value.
+                var orders = pair.Value.DecryptedPreviousInValues.Select((t, i) =>
+                        previousRound.RealTimeMinersInformation.Values
+                            .First(m => m.PublicKey == pair.Value.DecryptedPreviousInValues.Keys.ToList()[i]).Order)
+                    .ToList();
+
+                var previousInValue = Hash.LoadHex(SecretSharingHelper.DecodeSecret(
+                    pair.Value.DecryptedPreviousInValues.Values.ToList()
+                        .Select(s => Encoding.UTF8.GetString(s.ToByteArray())).ToList(),
+                    orders, minimumCount));
+                if (round.RealTimeMinersInformation[pair.Key].PreviousInValue != null &&
+                    round.RealTimeMinersInformation[pair.Key].PreviousInValue != previousInValue)
+                {
+                    Context.LogDebug(() => $"Different previous in value: {pair.Key}");
+                }
+
+                round.RealTimeMinersInformation[pair.Key].PreviousInValue = previousInValue;
+            }
+        }
+
+        private bool GenerateNextRoundInformation(Round currentRound, DateTime blockTime, out Round nextRound)
+        {
+            TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
+            if (TryToGetPreviousRoundInformation(out var previousRound))
+            {
+                var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);
+                var evilMinersCount = evilMinersPublicKey.Count;
+                if (evilMinersCount != 0)
+                {
+                    foreach (var publicKeyToRemove in evilMinersPublicKey)
+                    {
+                        var theOneFeelingLucky = GetNextAvailableMinerPublicKey(currentRound);
+
+                        if (theOneFeelingLucky == null)
+                        {
+                            break;
+                        }
+
+                        // Update history information of evil node.
+                        UpdateCandidateHistory(publicKeyToRemove,
+                            currentRound.RealTimeMinersInformation[publicKeyToRemove].ProducedBlocks,
+                            currentRound.RealTimeMinersInformation[publicKeyToRemove].MissedTimeSlots, true);
+
+                        // Transfer evil node's consensus information to the chosen backup.
+                        var minerInRound = currentRound.RealTimeMinersInformation[publicKeyToRemove];
+                        minerInRound.PublicKey = theOneFeelingLucky;
+                        minerInRound.ProducedBlocks = 0;
+                        minerInRound.MissedTimeSlots = 0;
+                        currentRound.RealTimeMinersInformation[theOneFeelingLucky] = minerInRound;
+
+                        currentRound.RealTimeMinersInformation.Remove(publicKeyToRemove);
+                    }
+                }
+            }
+
+            var result = currentRound.GenerateNextRoundInformation(blockTime, blockchainStartTimestamp, out nextRound);
+            return result;
+        }
+
+        private void UpdateCandidateHistory(string candidatePublicKey, long recentProducedBlocks, long recentMissedTimeSlots, bool isEvilNode = false)
+        {
+//            var history = State.HistoryMap[publicKeyToRemove.ToStringValue()];
+//            history.ProducedBlocks +=
+//                currentRound.RealTimeMinersInformation[publicKeyToRemove].ProducedBlocks;
+//            history.MissedTimeSlots += 
+//                currentRound.RealTimeMinersInformation[publicKeyToRemove].MissedTimeSlots;
+//            history.IsEvilNode = true;
+//            State.HistoryMap[publicKeyToRemove.ToStringValue()] = history;
+            throw new NotImplementedException();
+        }
+
+        private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
+        {
+            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
+                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey) && minerInCurrentRound.PreviousInValue != null
+                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue
+                where previousOutValue != null && Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
+                select minerInCurrentRound.PublicKey).ToList();
+        }
+
+        private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
+        {
+            // TODO: From Election Contract
+            throw new NotImplementedException();
+        }
+
+        private string GetNextAvailableMinerPublicKey(Round round)
+        {
+            string nextCandidate = null;
+
+            TryToGetRoundInformation(1, out var firstRound);
+            // Check out election snapshot.
+            if (TryToGetTermNumber(out var termNumber) && termNumber > 1 &&
+                TryToGetElectionSnapshot(termNumber - 1, out var snapshot))
+            {
+                nextCandidate = snapshot.CandidatesSnapshot
+                        // Except initial miners.
+                    .Where(cs => !firstRound.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
+                        // Except current miners.
+                    .Where(cs => !round.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
+                    .OrderByDescending(s => s.Votes)
+                    .FirstOrDefault(c => !round.RealTimeMinersInformation.ContainsKey(c.PublicKey))?.PublicKey;
+            }
+
+            // Check out initial miners.
+            return nextCandidate ?? firstRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
+                       !round.RealTimeMinersInformation.ContainsKey(k));
+        }
+
+        public override TransactionList GenerateConsensusTransactions(AElfConsensusTriggerInformation input)
+        {
+            // Some basic checks.
+            Assert(input.PublicKey.Any(), "Data to request consensus information should contain public key.");
+
+            var publicKey = input.PublicKey;
+            var consensusInformation = GetInformationToUpdateConsensus(input);
+            var round = consensusInformation.Round;
+            var behaviour = consensusInformation.Behaviour;
+            switch (behaviour)
+            {
+                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
+                case AElfConsensusBehaviour.UpdateValue:
+                    return new TransactionList
+                    {
+                        Transactions =
+                        {
+                            GenerateTransaction(nameof(UpdateValue),
+                                round.ExtractInformationToUpdateConsensus(publicKey.ToHex()))
+                        }
+                    };
+                case AElfConsensusBehaviour.NextRound:
+                    return new TransactionList
+                    {
+                        Transactions =
+                        {
+                            GenerateTransaction(nameof(NextRound), round)
+                        }
+                    };
+                case AElfConsensusBehaviour.NextTerm:
+                    return new TransactionList
+                    {
+                        Transactions =
+                        {
+                            GenerateTransaction(nameof(NextTerm), round)
+                        }
+                    };
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

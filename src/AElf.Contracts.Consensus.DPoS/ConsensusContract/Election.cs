@@ -44,7 +44,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     }
                 }
             }
-
+            
             var candidates = State.CandidatesField.Value;
             if (candidates != null)
             {

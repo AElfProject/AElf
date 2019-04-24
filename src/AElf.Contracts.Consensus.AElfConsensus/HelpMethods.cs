@@ -95,7 +95,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         /// <param name="dateTime"></param>
         /// <param name="isTimeSlotSkippable"></param>
         /// <returns></returns>
-        public ConsensusCommand GetConsensusCommand(AElfConsensusBehaviour behaviour, Round round, string publicKey,
+        private ConsensusCommand GetConsensusCommand(AElfConsensusBehaviour behaviour, Round round, string publicKey,
             DateTime dateTime, bool isTimeSlotSkippable = false)
         {
             var minerInRound = round.RealTimeMinersInformation[publicKey];
@@ -209,7 +209,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             };
         }
         
-        public bool TryToGetBlockchainStartTimestamp(out Timestamp timestamp)
+        private bool TryToGetBlockchainStartTimestamp(out Timestamp timestamp)
         {
             timestamp = State.BlockchainStartTimestamp.Value;
             return timestamp != null;
@@ -250,7 +250,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             return false;
         }
 
-        public bool TryToGetPreviousRoundInformation(out Round previousRound)
+        private bool TryToGetPreviousRoundInformation(out Round previousRound)
         {
             previousRound = new Round();
             if (TryToGetRoundNumber(out var roundNumber))
@@ -267,12 +267,23 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             return false;
         }
 
-        public bool TryToGetRoundInformation(long roundNumber, out Round roundInformation)
+        private bool TryToGetRoundInformation(long roundNumber, out Round roundInformation)
         {
             roundInformation = State.Rounds[roundNumber];
             return roundInformation != null;
         }
         
-        
+        private Transaction GenerateTransaction(string methodName, IMessage parameter)
+        {
+            var tx = new Transaction
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                MethodName = methodName,
+                Params = parameter.ToByteString()
+            };
+
+            return tx;
+        }
     }
 }

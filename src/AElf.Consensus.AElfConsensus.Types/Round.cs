@@ -115,6 +115,79 @@ namespace AElf.Consensus.AElfConsensus
         {
             return RealTimeMinersInformation.Values.First(m => m.Order == 1).ExpectedMiningTime.ToDateTime();
         }
+        
+        public Round ApplyNormalConsensusData(string publicKey, Hash previousInValue,
+            Hash outValue, Hash signature, DateTime dateTime)
+        {
+            if (!RealTimeMinersInformation.ContainsKey(publicKey))
+            {
+                return this;
+            }
+
+            RealTimeMinersInformation[publicKey].ActualMiningTime = dateTime.ToTimestamp();
+            RealTimeMinersInformation[publicKey].OutValue = outValue;
+            RealTimeMinersInformation[publicKey].Signature = signature;
+            RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
+            if (previousInValue != Hash.Empty)
+            {
+                RealTimeMinersInformation[publicKey].PreviousInValue = previousInValue;
+            }
+
+            var minersCount = RealTimeMinersInformation.Count;
+            var sigNum =
+                BitConverter.ToInt64(
+                    BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(),
+                    0);
+            var supposedOrderOfNextRound = GetAbsModulus(sigNum, minersCount) + 1;
+
+            // Check the existence of conflicts about OrderOfNextRound.
+            // If so, modify others'.
+            var conflicts = RealTimeMinersInformation.Values
+                .Where(i => i.FinalOrderOfNextRound == supposedOrderOfNextRound).ToList();
+
+            foreach (var orderConflictedMiner in conflicts)
+            {
+                // Though multiple conflicts should be wrong, we can still arrange their orders of next round.
+
+                for (var i = supposedOrderOfNextRound + 1; i < minersCount * 2; i++)
+                {
+                    var maybeNewOrder = i > minersCount ? i % minersCount : i;
+                    if (RealTimeMinersInformation.Values.All(m => m.FinalOrderOfNextRound != maybeNewOrder))
+                    {
+                        RealTimeMinersInformation[orderConflictedMiner.PublicKey].FinalOrderOfNextRound =
+                            maybeNewOrder;
+                        break;
+                    }
+                }
+            }
+
+            RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = supposedOrderOfNextRound;
+            // Initialize FinalOrderOfNextRound as the value of SupposedOrderOfNextRound
+            RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = supposedOrderOfNextRound;
+
+            return this;
+        }
+        
+        public Hash CalculateSignature(Hash inValue)
+        {
+            // Check the signatures
+            foreach (var minerInRound in RealTimeMinersInformation)
+            {
+                if (minerInRound.Value.Signature == null)
+                {
+                    minerInRound.Value.Signature = Hash.FromString(minerInRound.Key);
+                }
+            }
+
+            return Hash.FromTwoHashes(inValue,
+                RealTimeMinersInformation.Values.Aggregate(Hash.Empty,
+                    (current, minerInRound) => Hash.FromTwoHashes(current, minerInRound.Signature)));
+        }
+        
+        public Hash CalculateInValue(Hash randomHash)
+        {
+            return Hash.FromTwoHashes(Hash.FromMessage(new Int64Value {Value = RoundId}), randomHash);
+        }
 
         /// <summary>
         /// This method for now is able to handle the situation of a miner keeping offline so many rounds,
@@ -166,6 +239,55 @@ namespace AElf.Consensus.AElfConsensus
             return RealTimeMinersInformation.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value
                 .ExpectedMiningTime.ToDateTime()
                 .AddMilliseconds(GetMiningInterval());
+        }
+        
+        /// <summary>
+        /// Maybe tune other miners' supposed order of next round,
+        /// will record this purpose to their FinalOrderOfNextRound field.
+        /// </summary>
+        /// <param name="round"></param>
+        /// <param name="publicKey"></param>
+        /// <returns></returns>
+        public ToUpdate ExtractInformationToUpdateConsensus(string publicKey)
+        {
+            if (!RealTimeMinersInformation.ContainsKey(publicKey))
+            {
+                return null;
+            }
+
+            var tuneOrderInformation = RealTimeMinersInformation.Values
+                .Where(m => m.FinalOrderOfNextRound != m.SupposedOrderOfNextRound)
+                .ToDictionary(m => m.PublicKey, m => m.FinalOrderOfNextRound);
+
+            var decryptedPreviousInValues = RealTimeMinersInformation.Values.Where(v =>
+                    v.PublicKey != publicKey && v.DecryptedPreviousInValues.ContainsKey(publicKey))
+                .ToDictionary(info => info.PublicKey, info => info.DecryptedPreviousInValues[publicKey]);
+
+            var minersPreviousInValues =
+                RealTimeMinersInformation.Values.Where(info => info.PreviousInValue != null).ToDictionary(info => info.PublicKey,
+                    info => info.PreviousInValue);
+
+            var minerInRound = RealTimeMinersInformation[publicKey];
+            return new ToUpdate
+            {
+                OutValue = minerInRound.OutValue,
+                Signature = minerInRound.Signature,
+                PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
+                RoundId = RoundId,
+                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
+                ProducedBlocks = minerInRound.ProducedBlocks,
+                ActualMiningTime = minerInRound.ActualMiningTime,
+                SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,
+                TuneOrderInformation = {tuneOrderInformation},
+                EncryptedInValues = {minerInRound.EncryptedInValues},
+                DecryptedPreviousInValues = {decryptedPreviousInValues},
+                MinersPreviousInValues = {minersPreviousInValues}
+            };
+        }
+        
+        public long GetMinedBlocks()
+        {
+            return RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
         }
 
         public bool IsTimeToChangeTerm(Round previousRound, DateTime blockchainStartTime,
@@ -259,6 +381,11 @@ namespace AElf.Consensus.AElfConsensus
             logs.AppendLine($"Recent behaviour: {behaviour.ToString()}");
 
             return logs.ToString();
+        }
+        
+        private static int GetAbsModulus(long longValue, int intValue)
+        {
+            return Math.Abs((int) longValue % intValue);
         }
     }
 }
