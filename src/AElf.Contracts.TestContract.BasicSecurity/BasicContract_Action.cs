@@ -1,20 +1,19 @@
 using System;
-using System.Transactions;
-using AElf.Contracts.TestContract.Basic1;
+using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.Basic2
+namespace AElf.Contracts.TestContract.BasicSecurity
 {
-    public partial class Basic2Contract : Basic2ContractContainer.Basic2ContractBase
+    public partial class BasicSecurityContract : BasicSecurityContractContainer.BasicSecurityContractBase
     {
-        public override Empty InitialBasic2Contract(Address input)
+        public override Empty InitialBasicSecurityContract(Address input)
         {
             Assert(!State.Initialized.Value, "Already initialized."); 
             
             //set basic1 contract reference
             Assert(input != null, "Basic1Contract address is not exist.");
-            State.Basic1TestContract.Value = input;
+            State.BasicFunctionTestContract.Value = input;
             
             State.Initialized.Value = true;
             State.BoolInfo.Value = true;
@@ -156,7 +155,7 @@ namespace AElf.Contracts.TestContract.Basic2
             var betValue = input.Int64Value.Sub(feeValue);
             
             State.Int64Info.Value.Add(feeValue);
-            State.Basic1TestContract.UserPlayBet.Send(new BetInput
+            State.BasicFunctionTestContract.UserPlayBet.Send(new BetInput
             {
                 Int64Value = betValue
             });
