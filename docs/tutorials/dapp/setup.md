@@ -43,7 +43,7 @@ If asked to add some "required assets" say **yes**. There may also be some depen
   <img src="dep-yes.png" width="300">
 </p>
 
-Open vscode's terminal and build the project with the following command. Note: you can find out more about vscode's terminal [**here**](https://code.visualstudio.com/docs/editor/integrated-terminal).
+Open vscode's **Integrated Terminal** and build the project with the following command. Note: you can find out more about vscode's terminal [**here**](https://code.visualstudio.com/docs/editor/integrated-terminal).
 
 #### Install script
 
@@ -65,7 +65,7 @@ Note: if you prefer or have problems, you can refer to the following guide to [*
 #### Build and run
 
 ```bash
-cd aelf-boilerplate/chain/src/AElf.Boilerplate.Launcher/
+cd chain/src/AElf.Boilerplate.Launcher/
 dotnet build
 ```
 
