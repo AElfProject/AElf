@@ -1,14 +1,14 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract;
-using AElf.Contracts.TestContract.Basic2;
+using AElf.Contracts.TestContract.BasicSecurity;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
-using StringInput = AElf.Contracts.TestContract.Basic2.StringInput;
+using StringInput = AElf.Contracts.TestContract.BasicSecurity.StringInput;
 
 namespace AElf.Contract.TestContract
 {
@@ -23,7 +23,7 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Basic1Contract_UpdateBetLimit_WithoutPermission()
         {
-            var transactionResult = (await TestBasic1ContractStub.UpdateBetLimit.SendAsync(
+            var transactionResult = (await TestBasicFunctionContractStub.UpdateBetLimit.SendAsync(
                 new BetLimitInput
                 {
                     MinValue = 50,
@@ -37,7 +37,7 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Basic1Contract_UpdateBetLimit_WithException()
         {
-            var managerStub = GetTestBasic1ContractStub(SampleECKeyPairs.KeyPairs[1]);
+            var managerStub = GetTestBasicFunctionContractStub(SampleECKeyPairs.KeyPairs[1]);
             var transactionResult = (await managerStub.UpdateBetLimit.SendAsync(
                 new BetLimitInput
                 {
@@ -52,7 +52,7 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Basic1Contract_UpdateBetLimit_Success()
         {
-            var managerStub = GetTestBasic1ContractStub(SampleECKeyPairs.KeyPairs[1]);
+            var managerStub = GetTestBasicFunctionContractStub(SampleECKeyPairs.KeyPairs[1]);
             var transactionResult = (await managerStub.UpdateBetLimit.SendAsync(
                 new BetLimitInput
                 {
@@ -69,126 +69,126 @@ namespace AElf.Contract.TestContract
             for (int i = 0; i < 10; i++)
             {
                 var testUser = SampleECKeyPairs.KeyPairs[i];
-                var basicStub = GetTestBasic1ContractStub(testUser);
+                var basicStub = GetTestBasicFunctionContractStub(testUser);
                 await basicStub.UserPlayBet.SendAsync(new BetInput
                 {
                     Int64Value = 100
                 });
             }
 
-            var winMoney = (await TestBasic1ContractStub.QueryWinMoney.CallAsync(
+            var winMoney = (await TestBasicFunctionContractStub.QueryWinMoney.CallAsync(
                 new Empty())).Int64Value;
             winMoney.ShouldBe(1000);
 
-            var rewardMoney = (await TestBasic1ContractStub.QueryRewardMoney.CallAsync(
+            var rewardMoney = (await TestBasicFunctionContractStub.QueryRewardMoney.CallAsync(
                 new Empty())).Int64Value;
             rewardMoney.ShouldBeGreaterThanOrEqualTo(0);
         }
         
         #endregion 
         
-        #region Basic2 methods Test
+        #region BasicSecurity methods Test
 
         [Fact]
-        public async Task Basic2_BoolType_Test()
+        public async Task BasicSecurity_BoolType_Test()
         {
-            await TestBasic2ContractStub.TestBoolState.SendAsync(new BoolInput
+            await TestBasicSecurityContractStub.TestBoolState.SendAsync(new BoolInput
             {
                 BoolValue = false
             });
 
-            var queryResult = (await TestBasic2ContractStub.QueryBoolState.CallAsync(new Empty()
+            var queryResult = (await TestBasicSecurityContractStub.QueryBoolState.CallAsync(new Empty()
             )).BoolValue;
             
             queryResult.ShouldBeFalse();
         }
 
         [Fact]
-        public async Task Basic2_Int32Type_Test()
+        public async Task BasicSecurity_Int32Type_Test()
         {
-            await TestBasic2ContractStub.TestInt32State.SendAsync(new Int32Input
+            await TestBasicSecurityContractStub.TestInt32State.SendAsync(new Int32Input
             {
                 Int32Value = 30
             });
 
-            var queryResult = (await TestBasic2ContractStub.QueryInt32State.CallAsync(new Empty()
+            var queryResult = (await TestBasicSecurityContractStub.QueryInt32State.CallAsync(new Empty()
             )).Int32Value;
             
             queryResult.ShouldBe(30);
         }
 
         [Fact]
-        public async Task Basic2_UInt32Type_Test()
+        public async Task BasicSecurity_UInt32Type_Test()
         {
-            await TestBasic2ContractStub.TestUInt32State.SendAsync(new UInt32Input
+            await TestBasicSecurityContractStub.TestUInt32State.SendAsync(new UInt32Input
             {
                 UInt32Value = 45
             });
 
-            var queryResult = (await TestBasic2ContractStub.QueryUInt32State.CallAsync(new Empty()
+            var queryResult = (await TestBasicSecurityContractStub.QueryUInt32State.CallAsync(new Empty()
             )).UInt32Value;
             
             queryResult.ShouldBe(45U);
         }
         
         [Fact]
-        public async Task Basic2_Int64Type_Test()
+        public async Task BasicSecurity_Int64Type_Test()
         {
-            await TestBasic2ContractStub.TestInt64State.SendAsync(new Int64Input
+            await TestBasicSecurityContractStub.TestInt64State.SendAsync(new Int64Input
             {
                 Int64Value = 45
             });
 
-            var queryResult = (await TestBasic2ContractStub.QueryInt64State.CallAsync(new Empty()
+            var queryResult = (await TestBasicSecurityContractStub.QueryInt64State.CallAsync(new Empty()
             )).Int64Value;
             
             queryResult.ShouldBe(45L);
         }
         
         [Fact]
-        public async Task Basic2_UInt64Type_Test()
+        public async Task BasicSecurity_UInt64Type_Test()
         {
-            await TestBasic2ContractStub.TestUInt64State.SendAsync(new UInt64Input
+            await TestBasicSecurityContractStub.TestUInt64State.SendAsync(new UInt64Input
             {
                 UInt64Value = 45
             });
 
-            var queryResult = (await TestBasic2ContractStub.QueryUInt64State.CallAsync(new Empty()
+            var queryResult = (await TestBasicSecurityContractStub.QueryUInt64State.CallAsync(new Empty()
             )).UInt64Value;
             
             queryResult.ShouldBe(45UL);
         }
 
         [Fact]
-        public async Task Basic2_StringType_Test()
+        public async Task BasicSecurity_StringType_Test()
         {
-            await TestBasic2ContractStub.TestStringState.SendAsync(new StringInput
+            await TestBasicSecurityContractStub.TestStringState.SendAsync(new StringInput
             {
                 StringValue = "TestContract"
             });
 
-            var queryResult = (await TestBasic2ContractStub.QueryStringState.CallAsync(new Empty()
+            var queryResult = (await TestBasicSecurityContractStub.QueryStringState.CallAsync(new Empty()
             )).StringValue;
             queryResult.ShouldBe("TestContract");
         }
         
         [Fact]
-        public async Task Basic2_BytesType_Test()
+        public async Task BasicSecurity_BytesType_Test()
         {
-            await TestBasic2ContractStub.TestBytesState.SendAsync(new BytesInput
+            await TestBasicSecurityContractStub.TestBytesState.SendAsync(new BytesInput
             {
                 BytesValue = ByteString.CopyFromUtf8("test")
             });
 
-            var queryResult = (await TestBasic2ContractStub.QueryBytesState.CallAsync(new Empty()
+            var queryResult = (await TestBasicSecurityContractStub.QueryBytesState.CallAsync(new Empty()
             )).BytesValue;
             queryResult.ShouldBe(ByteString.CopyFromUtf8("test"));
         }
 
         [Fact]
-        public async Task Basic2_ProtobufType_Test()
+        public async Task BasicSecurity_ProtobufType_Test()
         {
-            await TestBasic2ContractStub.TestProtobufState.SendAsync(new ProtobufInput
+            await TestBasicSecurityContractStub.TestProtobufState.SendAsync(new ProtobufInput
             {
                 ProtobufValue = new ProtobufMessage
                 {
@@ -198,7 +198,7 @@ namespace AElf.Contract.TestContract
                 }
             });
 
-            var queryResult = (await TestBasic2ContractStub.QueryProtobufState.CallAsync(new Empty()
+            var queryResult = (await TestBasicSecurityContractStub.QueryProtobufState.CallAsync(new Empty()
             )).ProtobufValue;
             queryResult.BoolValue.ShouldBeFalse();
             queryResult.Int64Value.ShouldBe(100L);
@@ -206,23 +206,23 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task Basic2_Complex1Type_Test()
+        public async Task BasicSecurity_Complex1Type_Test()
         {
-            await TestBasic2ContractStub.TestComplex1State.SendAsync(new Complex1Input
+            await TestBasicSecurityContractStub.TestComplex1State.SendAsync(new Complex1Input
                 {
                     BoolValue = true,
                     Int32Value = 80
                 });
 
-            var queryResult = await TestBasic2ContractStub.QueryComplex1State.CallAsync(new Empty());
+            var queryResult = await TestBasicSecurityContractStub.QueryComplex1State.CallAsync(new Empty());
             queryResult.BoolValue.ShouldBeTrue();
             queryResult.Int32Value.ShouldBe(80);
         }
 
         [Fact]
-        public async Task Basic2_Complex2Type_Test()
+        public async Task BasicSecurity_Complex2Type_Test()
         {
-            await TestBasic2ContractStub.TestComplex2State.SendAsync(new Complex2Input
+            await TestBasicSecurityContractStub.TestComplex2State.SendAsync(new Complex2Input
             {
                 BoolData = new BoolInput
                 {
@@ -234,7 +234,7 @@ namespace AElf.Contract.TestContract
                 }
             });
 
-            var queryResult = await TestBasic2ContractStub.QueryComplex2State.CallAsync(new Empty());
+            var queryResult = await TestBasicSecurityContractStub.QueryComplex2State.CallAsync(new Empty());
             queryResult.BoolData.BoolValue.ShouldBeTrue();
             queryResult.Int32Data.Int32Value.ShouldBe(80);
         }
@@ -242,7 +242,7 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Basic_MappedType_Test()
         {
-            await TestBasic2ContractStub.TestMapped1State.SendAsync(new ProtobufInput
+            await TestBasicSecurityContractStub.TestMapped1State.SendAsync(new ProtobufInput
             {
                 ProtobufValue = new ProtobufMessage
                 {
@@ -252,7 +252,7 @@ namespace AElf.Contract.TestContract
             });
 
             //query check
-            var queryResult = await TestBasic2ContractStub.QueryMappedState1.CallAsync(new ProtobufInput
+            var queryResult = await TestBasicSecurityContractStub.QueryMappedState1.CallAsync(new ProtobufInput
             {
                 ProtobufValue = new ProtobufMessage
                 {
@@ -262,7 +262,7 @@ namespace AElf.Contract.TestContract
             });
             queryResult.Int64Value.ShouldBe(0);
             
-            var queryResult1 = await TestBasic2ContractStub.QueryMappedState1.CallAsync(new ProtobufInput
+            var queryResult1 = await TestBasicSecurityContractStub.QueryMappedState1.CallAsync(new ProtobufInput
             {
                 ProtobufValue = new ProtobufMessage
                 {
@@ -272,7 +272,7 @@ namespace AElf.Contract.TestContract
             });
             queryResult1.Int64Value.ShouldBe(100);
             
-            await TestBasic2ContractStub.TestMapped1State.SendAsync(new ProtobufInput
+            await TestBasicSecurityContractStub.TestMapped1State.SendAsync(new ProtobufInput
             {
                 ProtobufValue = new ProtobufMessage
                 {
@@ -281,7 +281,7 @@ namespace AElf.Contract.TestContract
                 }
             });
             
-            queryResult1 = await TestBasic2ContractStub.QueryMappedState1.CallAsync(new ProtobufInput
+            queryResult1 = await TestBasicSecurityContractStub.QueryMappedState1.CallAsync(new ProtobufInput
             {
                 ProtobufValue = new ProtobufMessage
                 {
@@ -300,7 +300,7 @@ namespace AElf.Contract.TestContract
             var to = Address.Generate().GetFormatted();
             var pairB = "USDT";
                     
-            await TestBasic2ContractStub.TestMapped2State.SendAsync(new Complex3Input
+            await TestBasicSecurityContractStub.TestMapped2State.SendAsync(new Complex3Input
             {
                 From = from,
                 PairA = pairA,
@@ -314,7 +314,7 @@ namespace AElf.Contract.TestContract
                 }
             });
 
-            var queryResult = (await TestBasic2ContractStub.QueryMappedState2.CallAsync(new Complex3Input
+            var queryResult = (await TestBasicSecurityContractStub.QueryMappedState2.CallAsync(new Complex3Input
             {
                 From = from,
                 PairA = pairA,
@@ -324,7 +324,7 @@ namespace AElf.Contract.TestContract
             queryResult.FromAmount.ShouldBe(1830);
             queryResult.ToAmount.ShouldBe(1000);
             
-            queryResult = (await TestBasic2ContractStub.QueryMappedState2.CallAsync(new Complex3Input
+            queryResult = (await TestBasicSecurityContractStub.QueryMappedState2.CallAsync(new Complex3Input
             {
                 From = from,
                 PairA = pairA,
