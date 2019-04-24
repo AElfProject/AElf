@@ -36,7 +36,8 @@ namespace AElf.CrossChain.Cache
         
         public bool TryAdd(IBlockInfo blockInfo)
         {
-            // TODO: Add cache size limit checking in case of continuous expanding.
+            if (ToBeIndexedBlockInfoQueue.Count() >= _cachedBoundedCapacity)
+                return false;
             // thread unsafe in some extreme cases, but it can be covered with caching mechanism.
             if (blockInfo.Height != TargetChainHeight())
                 return false;

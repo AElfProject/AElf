@@ -37,12 +37,12 @@ namespace AElf.CrossChain.Grpc
                     var response = serverStream.ResponseStream.Current;
 
                     // requestCrossChain failed or useless response
-                    if (!response.Success)
+                    if (!response.Success || !crossChainDataProducer.AddNewBlockInfo(response.BlockInfoResult))
                     {
-                        continue;
+                        serverStream.ResponseStream.Dispose();
+                        break;
                     }
-                    if(!crossChainDataProducer.AddNewBlockInfo(response.BlockInfoResult))
-                        continue;
+
                     crossChainDataProducer.Logger.LogTrace(
                         $"Received response from chain {ChainHelpers.ConvertChainIdToBase58(response.BlockInfoResult.ChainId)} at height {response.Height}");
                 }
