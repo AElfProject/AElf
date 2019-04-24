@@ -101,6 +101,18 @@ npm start
 
 You should see the results in the terminal or in the browser dev tool.
 
+### In the terminal
+
+<p align="center">
+  <img src="assets/jssdk-terminal.jpg" width="400">
+</p>
+
+### In the browser dev tool
+
+<p align="center">
+  <img src="assets/jssdk-browser.jpg" width="400">
+</p>
+
 ## Run the browser extension Demo
 
 To use the browser extension you must follow the following instructions:
@@ -122,3 +134,7 @@ npm start
 To see the plugin in action you can navigate to the following address in your browser: [http://localhost:3000](http://localhost:3000)
 
 Please open dev tool to see the results.
+
+<p align="center">
+  <img src="assets/extension.jpg" width="400">
+</p>
