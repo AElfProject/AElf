@@ -7,7 +7,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus
 {
-    [DependsOn(typeof(SmartContractExecutionAElfModule))]
+    [DependsOn(typeof(SmartContractExecutionAElfModule), typeof(ConsensusModule))]
     public class ConsensusAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

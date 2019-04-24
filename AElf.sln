@@ -288,6 +288,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Profit.Tests
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.AddressNameProviders", "AElf.AddressNameProviders", "{496833DB-4D91-41A6-80F0-9B79CD7ACACC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Consensus", "src\AElf.Consensus\AElf.Consensus.csproj", "{BAD2C050-B275-486C-9A3E-50A044BCB5AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -810,6 +812,10 @@ Global
 		{0ECB4B40-2B2B-415E-8FDD-89500A889D26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0ECB4B40-2B2B-415E-8FDD-89500A889D26}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0ECB4B40-2B2B-415E-8FDD-89500A889D26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAD2C050-B275-486C-9A3E-50A044BCB5AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAD2C050-B275-486C-9A3E-50A044BCB5AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAD2C050-B275-486C-9A3E-50A044BCB5AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAD2C050-B275-486C-9A3E-50A044BCB5AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -958,5 +964,6 @@ Global
 		{0ECB4B40-2B2B-415E-8FDD-89500A889D26} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{496833DB-4D91-41A6-80F0-9B79CD7ACACC} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{642B0C5E-4AC6-4910-A992-D9FB1FBBD6F4} = {496833DB-4D91-41A6-80F0-9B79CD7ACACC}
+		{BAD2C050-B275-486C-9A3E-50A044BCB5AF} = {496833DB-4D91-41A6-80F0-9B79CD7ACACC}
 	EndGlobalSection
 EndGlobal
