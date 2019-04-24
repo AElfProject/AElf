@@ -46,15 +46,12 @@ namespace AElf.OS.Consensus.DPos
             {
                 var mockService = new Mock<IDPoSInformationProvider>();
                 mockService.Setup(m=>m.GetCurrentMiners(It.IsAny<ChainContext>()))
-                    .Returns(Task.FromResult(new Miners
-                    {
-                        PublicKeys =
-                        {
+                    .Returns(async ()=>
+                        await Task.FromResult(new []{
                             "bp1-pubkey",
                             "bp2-pubkey",
                             "bp3-pubkey"
-                        }
-                    }));
+                        }));
                 return mockService.Object;
 
             });
