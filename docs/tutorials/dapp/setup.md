@@ -45,11 +45,18 @@ Open vscode's terminal and build the project with the following command. Note: y
 
 If you don't already have protobuf installed, run the following script:
 
+- On Mac or Linux: 
 ```bash
-todo add script
+sh Chain/scripts/install.sh
 ```
 
-Note: you can also [manually install](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) if you prefer.
+- On Windows:  
+Windows is slightly more complex. You need to open a PowerShell console as administrator. Enter your clone directory so your PowerShell is currently in the root of aelf-boilerplate clone. Run the following:
+```bash
+Chain/scripts/install.ps1
+```
+
+Note: if you prefer or have problems, you can refer to the following guide to [**manually install**](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) protobuf on your system.
 
 #### Build and run
 
