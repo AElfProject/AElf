@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using Xunit;
 
 namespace AElf.CrossChain
@@ -154,9 +155,8 @@ namespace AElf.CrossChain
                     SideChainHeight = 2
                 }
             };
-            var res = await _crossChainDataProvider.ValidateSideChainBlockDataAsync(list, Hash.Empty, 1);
-            Assert.False(res);
-            Assert.True(list.Count == 1);
+            await Assert.ThrowsAsync<ValidateNextTimeBlockValidationException>(() =>
+                _crossChainDataProvider.ValidateSideChainBlockDataAsync(list, Hash.Empty, 1));
         }
 
         [Fact]
