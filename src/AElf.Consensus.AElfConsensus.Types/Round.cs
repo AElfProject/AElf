@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -13,6 +14,48 @@ namespace AElf.Consensus.AElfConsensus
             RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
 
         public bool IsEmpty => RoundId == 0;
+
+        /// <summary>
+        /// Check the equality of time slots of miners.
+        /// Also, the mining interval shouldn't be 0.
+        /// </summary>
+        /// <returns></returns>
+        public ValidationResult CheckTimeSlots()
+        {
+            var miners = RealTimeMinersInformation.Values.OrderBy(m => m.Order).ToList();
+            if (miners.Count == 1)
+            {
+                // No need to check single node.
+                return new ValidationResult {Success = true};
+            }
+
+            if (miners.Any(m => m.ExpectedMiningTime == null))
+            {
+                return new ValidationResult {Success = false, Message = "Incorrect expected mining time."};
+            }
+
+            var baseMiningInterval =
+                (miners[1].ExpectedMiningTime.ToDateTime() - miners[0].ExpectedMiningTime.ToDateTime())
+                .TotalMilliseconds;
+
+            if (baseMiningInterval <= 0)
+            {
+                return new ValidationResult {Success = false, Message = $"Mining interval must greater than 0.\n{round}"};
+            }
+
+            for (var i = 1; i < miners.Count - 1; i++)
+            {
+                var miningInterval =
+                    (miners[i + 1].ExpectedMiningTime.ToDateTime() - miners[i].ExpectedMiningTime.ToDateTime())
+                    .TotalMilliseconds;
+                if (Math.Abs(miningInterval - baseMiningInterval) > baseMiningInterval)
+                {
+                    return new ValidationResult {Success = false, Message = "Time slots are so different."};
+                }
+            }
+
+            return new ValidationResult {Success = true};
+        }
 
         public Hash GetHash(bool isContainPreviousInValue = true)
         {

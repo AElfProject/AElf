@@ -30,15 +30,18 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             Assert(currentRound != null && currentRound.RoundId != 0, "Consensus not initialized.");
 
-            var command = GetConsensusCommand(behaviour, currentRound, input.PublicKey.ToHex(), Context.CurrentBlockTime);
+            var command = GetConsensusCommand(behaviour, currentRound, input.PublicKey.ToHex(),
+                Context.CurrentBlockTime);
 
             Context.LogDebug(() =>
-                currentRound.GetLogs(input.PublicKey.ToHex(), AElfConsensusHint.Parser.ParseFrom(command.Hint).Behaviour));
+                currentRound.GetLogs(input.PublicKey.ToHex(),
+                    AElfConsensusHint.Parser.ParseFrom(command.Hint).Behaviour));
 
             return command;
         }
 
-        public override AElfConsensusHeaderInformation GetInformationToUpdateConsensus(AElfConsensusTriggerInformation input)
+        public override AElfConsensusHeaderInformation GetInformationToUpdateConsensus(
+            AElfConsensusTriggerInformation input)
         {
             // Some basic checks.
             Assert(input.PublicKey.Any(), "Invalid public key.");
@@ -48,7 +51,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             var behaviour = input.Behaviour;
 
             Assert(TryToGetCurrentRoundInformation(out var currentRound),
-                    "Failed to get current round information.");
+                "Failed to get current round information.");
 
             switch (behaviour)
             {
@@ -112,12 +115,174 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             }
         }
 
+        public override TransactionList GenerateConsensusTransactions(AElfConsensusTriggerInformation input)
+        {
+            // Some basic checks.
+            Assert(input.PublicKey.Any(), "Data to request consensus information should contain public key.");
+
+            var publicKey = input.PublicKey;
+            var consensusInformation = GetInformationToUpdateConsensus(input);
+            var round = consensusInformation.Round;
+            var behaviour = consensusInformation.Behaviour;
+            switch (behaviour)
+            {
+                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
+                case AElfConsensusBehaviour.UpdateValue:
+                    return new TransactionList
+                    {
+                        Transactions =
+                        {
+                            GenerateTransaction(nameof(UpdateValue),
+                                round.ExtractInformationToUpdateConsensus(publicKey.ToHex()))
+                        }
+                    };
+                case AElfConsensusBehaviour.NextRound:
+                    return new TransactionList
+                    {
+                        Transactions =
+                        {
+                            GenerateTransaction(nameof(NextRound), round)
+                        }
+                    };
+                case AElfConsensusBehaviour.NextTerm:
+                    return new TransactionList
+                    {
+                        Transactions =
+                        {
+                            GenerateTransaction(nameof(NextTerm), round)
+                        }
+                    };
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public override ValidationResult ValidateConsensusBeforeExecution(AElfConsensusHeaderInformation input)
+        {
+            var publicKey = input.SenderPublicKey;
+
+            // Validate the sender.
+            if (TryToGetCurrentRoundInformation(out var currentRound) &&
+                !currentRound.RealTimeMinersInformation.ContainsKey(publicKey.ToHex()))
+            {
+                return new ValidationResult {Success = false, Message = "Sender is not a miner."};
+            }
+
+            // Validate the time slots.
+            var timeSlotsCheckResult = input.Round.CheckTimeSlots();
+            if (!timeSlotsCheckResult.Success)
+            {
+                return timeSlotsCheckResult;
+            }
+
+            var behaviour = input.Behaviour;
+
+            // Try to get current round information (for further validation).
+            if (currentRound == null)
+            {
+                return new ValidationResult
+                    {Success = false, Message = "Failed to get current round information."};
+            }
+
+            if (input.Round.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound > 0).Distinct()
+                    .Count() !=
+                input.Round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null))
+            {
+                return new ValidationResult
+                    {Success = false, Message = "Invalid FinalOrderOfNextRound."};
+            }
+
+            switch (behaviour)
+            {
+                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
+                case AElfConsensusBehaviour.UpdateValue:
+                    // Need to check round id when updating current round information.
+                    // This can tell the miner current block 
+                    if (!RoundIdMatched(input.Round))
+                    {
+                        return new ValidationResult {Success = false, Message = "Round Id not match."};
+                    }
+
+                    // Only one Out Value should be filled.
+                    // TODO: Miner can only update his information.
+                    if (!NewOutValueFilled(input.Round.RealTimeMinersInformation.Values))
+                    {
+                        return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
+                    }
+
+                    break;
+                case AElfConsensusBehaviour.NextRound:
+                    // None of in values should be filled.
+                    // TODO: Modified.
+                    if (input.Round.RealTimeMinersInformation.Values.Any(m => m.InValue != null))
+                    {
+                        return new ValidationResult {Success = false, Message = "Incorrect in values."};
+                    }
+
+                    break;
+                case AElfConsensusBehaviour.NextTerm:
+                    break;
+                case AElfConsensusBehaviour.Nothing:
+                    return new ValidationResult {Success = false, Message = "Invalid behaviour"};
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return new ValidationResult {Success = true};
+        }
+
+        private bool RoundIdMatched(Round round)
+        {
+            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDatabase))
+            {
+                return currentRoundInStateDatabase.RoundId == round.RoundId;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Check only one Out Value was filled during this updating.
+        /// </summary>
+        /// <param name="minersInformation"></param>
+        /// <returns></returns>
+        private bool NewOutValueFilled(IEnumerable<MinerInRound> minersInformation)
+        {
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                return currentRound.RealTimeMinersInformation.Values.Count(info => info.OutValue != null) + 1 ==
+                       minersInformation.Count(info => info.OutValue != null);
+            }
+
+            return false;
+        }
+
+        public override ValidationResult ValidateConsensusAfterExecution(AElfConsensusHeaderInformation input)
+        {
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                var isContainPreviousInValue =
+                    input.Behaviour != AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue;
+                if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
+                {
+                    Context.LogDebug(() => $"Round information of block header:\n{input.Round}");
+                    Context.LogDebug(() => $"Round information of executing result:\n{currentRound}");
+                    return new ValidationResult
+                    {
+                        Success = false, Message = "Current round information is different with consensus extra data."
+                    };
+                }
+            }
+
+            return new ValidationResult {Success = true};
+        }
+
         private bool TryToGetMiningInterval(out int miningInterval)
         {
-            miningInterval = 4000;
+            miningInterval = State.MiningInterval.Value;
             return true;
         }
-        
+
         private Round GenerateFirstRoundOfNextTerm(string senderPublicKey, int miningInterval)
         {
             Round round;
@@ -177,7 +342,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             // TODO: From Election Contract
             throw new NotImplementedException();
         }
-        
+
         private void ShareAndRecoverInValue(Round round, Round previousRound, Hash inValue, string publicKey)
         {
             var minersCount = round.RealTimeMinersInformation.Count;
@@ -293,7 +458,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             return result;
         }
 
-        private void UpdateCandidateHistory(string candidatePublicKey, long recentProducedBlocks, long recentMissedTimeSlots, bool isEvilNode = false)
+        private void UpdateCandidateHistory(string candidatePublicKey, long recentProducedBlocks,
+            long recentMissedTimeSlots, bool isEvilNode = false)
         {
 //            var history = State.HistoryMap[publicKeyToRemove.ToStringValue()];
 //            history.ProducedBlocks +=
@@ -308,9 +474,11 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
             return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
-                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey) && minerInCurrentRound.PreviousInValue != null
+                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey) &&
+                      minerInCurrentRound.PreviousInValue != null
                 let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue
-                where previousOutValue != null && Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
+                where previousOutValue != null &&
+                      Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
                 select minerInCurrentRound.PublicKey).ToList();
         }
 
@@ -330,9 +498,9 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 TryToGetElectionSnapshot(termNumber - 1, out var snapshot))
             {
                 nextCandidate = snapshot.CandidatesSnapshot
-                        // Except initial miners.
+                    // Except initial miners.
                     .Where(cs => !firstRound.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
-                        // Except current miners.
+                    // Except current miners.
                     .Where(cs => !round.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
                     .OrderByDescending(s => s.Votes)
                     .FirstOrDefault(c => !round.RealTimeMinersInformation.ContainsKey(c.PublicKey))?.PublicKey;
@@ -341,48 +509,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             // Check out initial miners.
             return nextCandidate ?? firstRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
                        !round.RealTimeMinersInformation.ContainsKey(k));
-        }
-
-        public override TransactionList GenerateConsensusTransactions(AElfConsensusTriggerInformation input)
-        {
-            // Some basic checks.
-            Assert(input.PublicKey.Any(), "Data to request consensus information should contain public key.");
-
-            var publicKey = input.PublicKey;
-            var consensusInformation = GetInformationToUpdateConsensus(input);
-            var round = consensusInformation.Round;
-            var behaviour = consensusInformation.Behaviour;
-            switch (behaviour)
-            {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
-                case AElfConsensusBehaviour.UpdateValue:
-                    return new TransactionList
-                    {
-                        Transactions =
-                        {
-                            GenerateTransaction(nameof(UpdateValue),
-                                round.ExtractInformationToUpdateConsensus(publicKey.ToHex()))
-                        }
-                    };
-                case AElfConsensusBehaviour.NextRound:
-                    return new TransactionList
-                    {
-                        Transactions =
-                        {
-                            GenerateTransaction(nameof(NextRound), round)
-                        }
-                    };
-                case AElfConsensusBehaviour.NextTerm:
-                    return new TransactionList
-                    {
-                        Transactions =
-                        {
-                            GenerateTransaction(nameof(NextTerm), round)
-                        }
-                    };
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
         }
     }
 }

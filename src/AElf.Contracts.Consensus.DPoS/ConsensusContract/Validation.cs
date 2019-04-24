@@ -7,7 +7,7 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class ConsensusContract
     {
-         public override ValidationResult ValidateConsensusBeforeExecution(DPoSHeaderInformation input)
+        public override ValidationResult ValidateConsensusBeforeExecution(DPoSHeaderInformation input)
         {
             var publicKey = input.SenderPublicKey;
 

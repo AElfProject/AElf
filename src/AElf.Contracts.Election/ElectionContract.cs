@@ -15,6 +15,7 @@ namespace AElf.Contracts.Election
             State.VoteContractSystemName.Value = input.VoteContractSystemName;
             State.ProfitContractSystemName.Value = input.ProfitContractSystemName;
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
+            State.DaysEachTerm.Value = input.DaysEachTerm;
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -322,7 +323,8 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.WelfareHash.Value,
                 Receiver = Context.Sender,
-                Weight = GetVotesWeight(input.Amount, lockTime)
+                Weight = GetVotesWeight(input.Amount, lockTime),
+                EndPeriod = GetEndPeriod(lockTime)
             });
 
             return new Empty();
@@ -383,6 +385,12 @@ namespace AElf.Contracts.Election
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             return (long) (((double) lockTime / 270 + 2.0 / 3.0) * votesAmount);
+        }
+
+        private long GetEndPeriod(long lockTime)
+        {
+            var treasury = State.ProfitContract.GetProfitItem.Call(State.TreasuryHash.Value);
+            return lockTime.Div(State.DaysEachTerm.Value).Add(treasury.CurrentPeriod);
         }
     }
 }
