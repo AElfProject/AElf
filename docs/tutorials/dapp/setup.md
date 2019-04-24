@@ -31,7 +31,7 @@ git clone https://github.com/AElfProject/aelf-boilerplate
 
 This command will create a **aelf-boilerplate** folder with the code inside it.
 
-## Build and run
+## Run the contract
 
 #### Open the project
 
