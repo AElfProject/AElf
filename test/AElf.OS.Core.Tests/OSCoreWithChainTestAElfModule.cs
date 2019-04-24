@@ -53,6 +53,8 @@ namespace AElf.OS
             {
                 var mockService = new Mock<IBlockValidationService>();
                 mockService.Setup(s =>
+                    s.ValidateBlockBeforeAttachAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
+                mockService.Setup(s =>
                     s.ValidateBlockBeforeExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
                 mockService.Setup(s =>
                     s.ValidateBlockAfterExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
