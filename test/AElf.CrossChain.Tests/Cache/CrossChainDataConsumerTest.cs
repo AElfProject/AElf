@@ -6,12 +6,12 @@ namespace AElf.CrossChain.Cache
     public class CrossChainDataConsumerTest : CrossChainTestBase
     {
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
-        private readonly ICrossChainMemCacheService _crossChainMemCacheService;
+        private readonly ICrossChainMemoryCacheService _crossChainMemoryCacheService;
 
         public CrossChainDataConsumerTest()
         {
             _crossChainDataConsumer = GetRequiredService<ICrossChainDataConsumer>();
-            _crossChainMemCacheService = GetRequiredService<ICrossChainMemCacheService>();
+            _crossChainMemoryCacheService = GetRequiredService<ICrossChainMemoryCacheService>();
         }
         
         [Fact]
@@ -59,7 +59,7 @@ namespace AElf.CrossChain.Cache
         public void TryTake_After_RegisterNewChain()
         {
             int chainId = 123;
-            _crossChainMemCacheService.TryRegisterNewChainCache(chainId, 1);
+            _crossChainMemoryCacheService.TryRegisterNewChainCache(chainId, 1);
             var blockInfoCache = MultiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = new SideChainBlockData
@@ -76,7 +76,7 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WrongIndex_After_RegisterNewChain()
         {
             int chainId = 123;
-            _crossChainMemCacheService.TryRegisterNewChainCache(chainId, 1);
+            _crossChainMemoryCacheService.TryRegisterNewChainCache(chainId, 1);
             var blockInfoCache = MultiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = new SideChainBlockData

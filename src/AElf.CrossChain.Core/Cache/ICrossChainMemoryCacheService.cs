@@ -3,7 +3,7 @@ using AElf.Kernel;
 
 namespace AElf.CrossChain.Cache
 {
-    public interface ICrossChainMemCacheService
+    public interface ICrossChainMemoryCacheService
     {
         void TryRegisterNewChainCache(int remoteChainId, long chainHeight = KernelConstants.GenesisBlockHeight);
         int GetCachedChainCount();

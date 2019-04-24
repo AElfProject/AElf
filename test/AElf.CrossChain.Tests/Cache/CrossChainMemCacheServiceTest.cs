@@ -6,17 +6,17 @@ namespace AElf.CrossChain.Cache
 {
     public class CrossChainMemCacheServiceTest :CrossChainTestBase
     {
-        private readonly ICrossChainMemCacheService _crossChainMemCacheService;
+        private readonly ICrossChainMemoryCacheService _crossChainMemoryCacheService;
 
         public CrossChainMemCacheServiceTest()
         {
-            _crossChainMemCacheService = GetRequiredService<ICrossChainMemCacheService>();
+            _crossChainMemoryCacheService = GetRequiredService<ICrossChainMemoryCacheService>();
         }
 
         [Fact]
         public void CachedCount_Empty()
         {
-            var count = _crossChainMemCacheService.GetCachedChainCount();
+            var count = _crossChainMemoryCacheService.GetCachedChainCount();
             Assert.True(0 == count);
         }
         
@@ -29,7 +29,7 @@ namespace AElf.CrossChain.Cache
                 {chainId, new BlockInfoCache(1)}
             };
             CreateFakeCache(dict);
-            var count = _crossChainMemCacheService.GetCachedChainCount();
+            var count = _crossChainMemoryCacheService.GetCachedChainCount();
             Assert.True(1 == count);
         }
 
@@ -37,8 +37,8 @@ namespace AElf.CrossChain.Cache
         public void RegisterNewChain_NotNull()
         {
             int chainId = 123;
-            _crossChainMemCacheService.TryRegisterNewChainCache(chainId, 1);
-            var count = _crossChainMemCacheService.GetCachedChainCount();
+            _crossChainMemoryCacheService.TryRegisterNewChainCache(chainId, 1);
+            var count = _crossChainMemoryCacheService.GetCachedChainCount();
             Assert.True(1 == count);
         }
         
@@ -46,7 +46,7 @@ namespace AElf.CrossChain.Cache
         public void GetChainHeightNeeded_NotExistChain()
         {
             int chainId = 123;
-            Assert.Throws<ChainCacheNotFoundException>(() => _crossChainMemCacheService.GetChainHeightNeeded(chainId));
+            Assert.Throws<ChainCacheNotFoundException>(() => _crossChainMemoryCacheService.GetChainHeightNeeded(chainId));
         }
         
         [Fact]
@@ -60,7 +60,7 @@ namespace AElf.CrossChain.Cache
                 }
             };
             CreateFakeCache(dict);
-            var neededHeight = _crossChainMemCacheService.GetChainHeightNeeded(chainId);
+            var neededHeight = _crossChainMemoryCacheService.GetChainHeightNeeded(chainId);
             Assert.True(neededHeight == 1);
         }
     }

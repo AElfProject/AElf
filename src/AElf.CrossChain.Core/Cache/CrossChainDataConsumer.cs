@@ -1,4 +1,3 @@
-using AElf.Kernel;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache

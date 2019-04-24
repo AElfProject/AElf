@@ -5,11 +5,11 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache
 {
-    public class CrossChainMemCacheService : ICrossChainMemCacheService, ITransientDependency
+    public class CrossChainMemoryCacheService : ICrossChainMemoryCacheService, ITransientDependency
     {
         private readonly IMultiChainBlockInfoCacheProvider _multiChainBlockInfoCacheProvider;
 
-        public CrossChainMemCacheService(IMultiChainBlockInfoCacheProvider multiChainBlockInfoCacheProvider)
+        public CrossChainMemoryCacheService(IMultiChainBlockInfoCacheProvider multiChainBlockInfoCacheProvider)
         {
             _multiChainBlockInfoCacheProvider = multiChainBlockInfoCacheProvider;
         }

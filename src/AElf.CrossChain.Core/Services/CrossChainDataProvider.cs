@@ -15,18 +15,18 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainContractReader _crossChainContractReader;
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
-        private readonly ICrossChainMemCacheService _crossChainMemCacheService;
+        private readonly ICrossChainMemoryCacheService _crossChainMemoryCacheService;
         public ILogger<CrossChainDataProvider> Logger { get; set; }
 
         private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData =
             new Dictionary<Hash, CrossChainBlockData>();
         private KeyValuePair<long, Hash> _libHeightToHash;
         public CrossChainDataProvider(ICrossChainContractReader crossChainContractReader,
-            ICrossChainDataConsumer crossChainDataConsumer, ICrossChainMemCacheService crossChainMemCacheService)
+            ICrossChainDataConsumer crossChainDataConsumer, ICrossChainMemoryCacheService crossChainMemoryCacheService)
         {
             _crossChainContractReader = crossChainContractReader;
             _crossChainDataConsumer = crossChainDataConsumer;
-            _crossChainMemCacheService = crossChainMemCacheService;
+            _crossChainMemoryCacheService = crossChainMemoryCacheService;
         }
 
         public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
@@ -172,7 +172,7 @@ namespace AElf.CrossChain
 
         public void RegisterNewChain(int chainId)
         {
-            _crossChainMemCacheService.TryRegisterNewChainCache(chainId);
+            _crossChainMemoryCacheService.TryRegisterNewChainCache(chainId);
         }
 
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
@@ -230,7 +230,7 @@ namespace AElf.CrossChain
             var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(eventData.BlockHash, eventData.BlockHeight);
             foreach (var chainIdHeight in dict)
             {
-                _crossChainMemCacheService.TryRegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value + 1);
+                _crossChainMemoryCacheService.TryRegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value + 1);
             }
             // clear useless cache
             var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight + 1 < eventData.BlockHeight)
