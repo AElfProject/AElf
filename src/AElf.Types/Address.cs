@@ -38,7 +38,6 @@ namespace AElf
             return new Address(hash);
         }
 
-
         //TODO: move this method into test project
         /// <summary>
         /// Creates an address from a string. This method is supposed to be used for test only.
@@ -63,7 +62,12 @@ namespace AElf
 
         public static byte[] TakeByAddressLength(byte[] raw)
         {
-            return raw.Take(TypeConsts.AddressHashLength).ToArray();
+            if (raw.Length > TypeConsts.AddressHashLength)
+                return raw.Take(TypeConsts.AddressHashLength).ToArray();
+            if (raw.Length < TypeConsts.AddressHashLength)
+                throw new ArgumentOutOfRangeException($"Address (sha256 of pubkey) bytes has to be " +
+                        $"{TypeConsts.AddressHashLength}. The input is {raw.Length} bytes long.");
+            return raw;
         }
 
         #region Predefined

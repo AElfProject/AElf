@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Linq;
+using System;
 using AElf.Cryptography;
 using Shouldly;
 using Xunit;
@@ -20,11 +21,10 @@ namespace AElf.Types.Tests
             address3.ShouldNotBe(null);
 
             //Generate from byte
-            var bytes = new byte[32];
-            new Random().NextBytes(bytes);
+            var bytes = Enumerable.Repeat((byte)0xEF, 32).ToArray();
             var address4 = Address.FromBytes(bytes);
             address4.ShouldNotBe(null);
-            
+
             bytes = new byte[10];
             Should.Throw<ArgumentOutOfRangeException>(() => {Address.FromBytes(bytes); });
 
@@ -32,6 +32,7 @@ namespace AElf.Types.Tests
             var pk = CryptoHelpers.GenerateKeyPair().PublicKey;
             var address5 = Address.FromPublicKey(pk);
             address5.ShouldNotBe(null);
+            address5.DumpByteArray().Length.ShouldBe(32);
         }
 
         [Fact]
