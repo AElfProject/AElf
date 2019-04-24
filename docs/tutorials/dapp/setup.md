@@ -1,7 +1,5 @@
 # Setup
 
-In order to develop your smart contract and a dApp to interact with it, AElf provides a framework that facilitates the process: **AElf Boilerplate**.
-
 You'll be guided through cloning the repository, running the example we provide as well as the unit tests. The first step you need to do is to follow the setup process in order to install all dependencies.
 
 ## Environment
