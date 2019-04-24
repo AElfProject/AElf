@@ -37,7 +37,6 @@ namespace AElf.Contracts.Vote
             Assert(!string.IsNullOrEmpty(input.Topic), "Topic cannot be null or empty.");
             Assert(input.TotalEpoch > 0, "Total epoch number must be greater than 0.");
             Assert(input.ActiveDays > 0, "Total active days must be greater than 0.");
-            Assert(input.Options != null && input.Options.Any(), "Options cannot be null or empty.");
 
             if (input.ActiveDays == int.MaxValue)
             {
@@ -96,7 +95,6 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
-        //TODO: User cannot vote when Event CurrentEpoch >= EpochNumber + 1
         public override Empty Vote(VoteInput input)
         {
             input.Topic = input.Topic.Trim();
@@ -104,6 +102,7 @@ namespace AElf.Contracts.Vote
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
 
             Assert(votingEvent.Options.Contains(input.Option), $"Option {input.Option} not found.");
+            Assert(votingEvent.CurrentEpoch <= votingEvent.TotalEpoch, "Current voting event already terminated.");
             if (votingEvent.Delegated)
             {
                 Assert(input.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
@@ -241,12 +240,13 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
-        //TODO: EpochNumber cannot update when CurrentEpoch >= EpochNumber + 1 
         public override Empty UpdateEpochNumber(UpdateEpochNumberInput input)
         {
             input.Topic = input.Topic.Trim();
             
             var votingEvent = AssertVotingEvent(input.Topic, Context.Sender);
+            
+            Assert(votingEvent.CurrentEpoch <= votingEvent.TotalEpoch + 1, "Current voting event already terminated.");
 
             // Update previous voting going information.
             var previousVotingGoingHash = new VotingResult

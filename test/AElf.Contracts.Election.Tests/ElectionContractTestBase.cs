@@ -7,6 +7,8 @@ using AElf.Contracts.TestKit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
+using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Volo.Abp.Threading;
@@ -15,13 +17,8 @@ namespace AElf.Contracts.Election
 {
     public class ElectionContractTestBase : ContractTestBase<ElectionContractTestModule>
     {
-        protected readonly Hash TokenContractSystemName = Hash.FromString("AElf.ContractNames.Token");
-        protected readonly Hash VoteContractSystemName = Hash.FromString("AElf.ContractNames.Vote");
-        protected readonly Hash ElectionContractSystemName = Hash.FromString("AElf.ContractNames.Election");
-        
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
         protected Address ElectionContractAddress { get; set; }
@@ -65,7 +62,7 @@ namespace AElf.Contracts.Election
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(VoteContract).Assembly.Location)),
-                        Name = VoteContractSystemName,
+                        Name = VoteSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateVoteInitializationCallList()
                     })).Output;
             VoteContractStub = GetVoteContractTester(DefaultSenderKeyPair);
@@ -77,7 +74,7 @@ namespace AElf.Contracts.Election
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
-                        Name = TokenContractSystemName,
+                        Name = TokenSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
@@ -89,7 +86,7 @@ namespace AElf.Contracts.Election
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ElectionContract).Assembly.Location)),
-                        Name = ElectionContractSystemName,
+                        Name = ElectionSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateElectionInitializationCallList()
                     })).Output;
             ElectionContractStub = GetElectionContractTester(DefaultSenderKeyPair);
@@ -101,7 +98,7 @@ namespace AElf.Contracts.Election
             voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
                 new InitialVoteContractInput
                 {
-                    TokenContractSystemName = TokenContractSystemName,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                 });
 
             return voteMethodCallList;
@@ -109,17 +106,15 @@ namespace AElf.Contracts.Election
 
         private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
-            const string symbol = "ELF";
-            const long totalSupply = 100_000_000;
             var tokenContractCallList = new SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
-                Symbol = symbol,
+                Symbol = ElectionContractTestConsts.NativeTokenSymbol,
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
-                TotalSupply = totalSupply,
-                Issuer = DefaultSender,
+                TotalSupply = ElectionContractTestConsts.NativeTokenTotalSupply,
+                Issuer = ContractZeroAddress,
                 LockWhiteSystemContractNameList =
                 {
                     Hash.FromString("AElf.ContractNames.Vote")
@@ -129,8 +124,8 @@ namespace AElf.Contracts.Election
             //issue default user
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
-                Symbol = symbol,
-                Amount = totalSupply - 3500_000L,
+                Symbol = ElectionContractTestConsts.NativeTokenSymbol,
+                Amount = ElectionContractTestConsts.NativeTokenTotalSupply - 3500_000L,
                 To = DefaultSender,
                 Memo = "Issue token to default user for vote.",
             });
@@ -142,7 +137,7 @@ namespace AElf.Contracts.Election
                 {
                     tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                     {
-                        Symbol = symbol,
+                        Symbol = ElectionContractTestConsts.NativeTokenSymbol,
                         Amount = 150_000L,
                         To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                         Memo = "set voters few amount for voting."
@@ -152,7 +147,7 @@ namespace AElf.Contracts.Election
                 {
                     tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                     {
-                        Symbol = symbol,
+                        Symbol = ElectionContractTestConsts.NativeTokenSymbol,
                         Amount = 50_000L,
                         To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                         Memo = "set voters few amount for voting."
@@ -170,8 +165,8 @@ namespace AElf.Contracts.Election
             electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {
-                    VoteContractSystemName = VoteContractSystemName,
-                    TokenContractSystemName = TokenContractSystemName
+                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
 
             return electionMethodCallList;

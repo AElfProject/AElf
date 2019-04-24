@@ -14,6 +14,13 @@ namespace AElf.Contracts.Election
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.Initialized.Value = true;
 
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+
+            State.TokenContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(input.TokenContractSystemName);
+            State.VoteContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(input.VoteContractSystemName);
+            
             State.TokenContract.Create.Send(new CreateInput
             {
                 Symbol = ElectionContractConsts.VoteSymbol,
@@ -27,7 +34,7 @@ namespace AElf.Contracts.Election
 
             State.TokenContract.Issue.Send(new IssueInput
             {
-                Symbol = Context.Variables.NativeSymbol,
+                Symbol = ElectionContractConsts.VoteSymbol,
                 Amount = ElectionContractConsts.VotesTotalSupply,
                 To = Context.Self,
                 Memo = "Power!"
