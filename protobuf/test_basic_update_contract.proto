@@ -6,12 +6,12 @@ import "test_basic.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
-option csharp_namespace = "AElf.Contracts.TestContract.Basic11";
+option csharp_namespace = "AElf.Contracts.TestContract.BasicUpdate";
 
-service Basic11Contract {
-    option (aelf.csharp_state) = "AElf.Contracts.TestContract.Basic11.Basic11ContractState";
+service BasicUpdateContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.BasicUpdate.BasicUpdateContractState";
     //Actions
-    rpc InitialBasic11Contract(InitialBasicContractInput) returns (google.protobuf.Empty){
+    rpc InitialBasicUpdateContract(InitialBasicContractInput) returns (google.protobuf.Empty){
     }
     rpc UpdateBetLimit(BetLimitInput) returns (google.protobuf.Empty){
     }
