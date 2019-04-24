@@ -29,9 +29,9 @@ This section will introduce you to the structure of a smart contract developed w
 
 This guide will focus on the **HelloWorldContract** and **HelloWorldContract.Test** folders since the code we will modify is located in these.
 
-### Hello World contract
+## Hello World contract
 
-#### Definition and implementation
+### Definition and implementation
 
 **Definition**: in AElf contracts are defined as services and are implemented using protobuf. Let's take a look at the **hello_world.proto** file located in the **protobuf/** folder:
 
@@ -57,9 +57,7 @@ message HelloReturn {
 
 It's a simple contract that defines one method **Hello** and one type **HelloReturn**. We won't go through every detail of the definition, for this you can check out the [Smart Contract section](../../Contract/main.md) of this Gitbook.
 
-**Implementation**: 
-
-The implementation is located in the **src/HelloWorldContract** folder, it contains two important files: the **state* and the **service implentation**.
+**Implementation**: the implementation is located in the **src/HelloWorldContract** folder, it contains two important files: the **state* and the **service implentation**.
 
 ```csharp
 using Google.Protobuf.WellKnownTypes;
@@ -86,7 +84,7 @@ namespace HelloWorldContract
 }
 ```
 
-#### Testing
+### Testing
 
 Now lets look at the test :
 
@@ -102,11 +100,11 @@ public class HelloWorldContractTest : HelloWorldContractTestBase
 }
 ```
 
-### Adding some methods
+## Adding some methods
 
 The following content will guide you through adding some methods and state to the Hello World contract.
 
-#### Modify the definition
+### Modify the definition
 
 Add the following to the "hello_world.proto" right after the **Hello** rpc method:
 
@@ -136,7 +134,7 @@ dotnet build
 
 If everything went well you should see the build log show ```Build succeeded.```
 
-#### Implement the logic and state
+### Implement the logic and state
 
 The first step is to add some state to our state definition. Open the **src/HelloWorldContract/HelloWorldContractState.cs** and add the following property to the **HelloWorldContractState** class:
 
@@ -172,7 +170,7 @@ dotnet build
 
 Should be success.
 
-#### Test
+### Test
 
 In the **Integrated Terminal** navigate to the test folder: 
 
