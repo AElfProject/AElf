@@ -207,7 +207,7 @@ namespace AElf.Contracts.Genesis
         public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
         {
             var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
-            return Address.FromBytes(Address.TakeByAddressLength(hash.DumpByteArray()));
+            return Address.FromBytes(hash.DumpByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, ulong serialNumber)
