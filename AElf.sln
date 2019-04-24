@@ -296,11 +296,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.SideChain.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.Tests", "test\AElf.Contracts.TestContract.Tests\AElf.Contracts.TestContract.Tests.csproj", "{85A88294-A9B6-476C-AFB8-CF69DC1C1ED8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.Basic1", "src\AElf.Contracts.TestContract.Basic1\AElf.Contracts.TestContract.Basic1.csproj", "{605ED554-816D-48D9-9F96-6350BC7F4718}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.BasicFunction", "src\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj", "{605ED554-816D-48D9-9F96-6350BC7F4718}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.Basic1Update", "src\AElf.Contracts.TestContract.Basic1Update\AElf.Contracts.TestContract.Basic1Update.csproj", "{F5506C6C-84DE-43C5-8189-C68620C689A4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.BasicUpdate", "src\AElf.Contracts.TestContract.BasicUpdate\AElf.Contracts.TestContract.BasicUpdate.csproj", "{F5506C6C-84DE-43C5-8189-C68620C689A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.Basic2", "src\AElf.Contracts.TestContract.Basic2\AElf.Contracts.TestContract.Basic2.csproj", "{C810A6F5-0701-4926-A009-986C0D2F5DB5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.BasicSecurity", "src\AElf.Contracts.TestContract.BasicSecurity\AElf.Contracts.TestContract.BasicSecurity.csproj", "{C810A6F5-0701-4926-A009-986C0D2F5DB5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
