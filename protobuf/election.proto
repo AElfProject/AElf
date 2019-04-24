@@ -13,6 +13,16 @@ message InitialElectionContractInput {
     Hash token_contract_system_name = 2;
 }
 
+message RegisterElectionVotingEventInput {
+    
+}
+
+enum CandidateState {
+    NotAnnounced = 0;
+    IsCandidate = 1;
+    IsEvilNode = 2;
+}
+
 message AnnounceElectionInput {
     string alias = 1;
 }
@@ -56,6 +66,7 @@ message CandidateHistory {
     Address Address = 11;
     Hash AnnouncementTransactionId = 12;
     bool IsEvilNode = 13;
+    CandidateState State = 14;
 }
 
 enum LockTimeUnit {

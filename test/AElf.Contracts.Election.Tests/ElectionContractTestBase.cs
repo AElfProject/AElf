@@ -55,7 +55,7 @@ namespace AElf.Contracts.Election
         {
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
 
-            //deploy vote contract
+            // Deploy Vote Contract
             VoteContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
@@ -67,19 +67,7 @@ namespace AElf.Contracts.Election
                     })).Output;
             VoteContractStub = GetVoteContractTester(DefaultSenderKeyPair);
 
-            //deploy token contract
-            TokenContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
-                        Name = TokenSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateTokenInitializationCallList()
-                    })).Output;
-            TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
-
-            //deploy election contract
+            // Deploy Election Contract
             ElectionContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
@@ -90,6 +78,18 @@ namespace AElf.Contracts.Election
                         TransactionMethodCallList = GenerateElectionInitializationCallList()
                     })).Output;
             ElectionContractStub = GetElectionContractTester(DefaultSenderKeyPair);
+
+            // Deploy Token Contract
+            TokenContractAddress = AsyncHelper.RunSync(() =>
+                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
+                    new SystemContractDeploymentInput
+                    {
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
+                        Name = TokenSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = GenerateTokenInitializationCallList()
+                    })).Output;
+            TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
         }
 
         private SystemTransactionMethodCallList GenerateVoteInitializationCallList()
@@ -115,7 +115,11 @@ namespace AElf.Contracts.Election
                 TokenName = "elf token",
                 TotalSupply = ElectionContractTestConsts.NativeTokenTotalSupply,
                 Issuer = ContractZeroAddress,
-                LockWhiteSystemContractNameList = {ElectionSmartContractAddressNameProvider.Name}
+                LockWhiteSystemContractNameList =
+                {
+                    ElectionSmartContractAddressNameProvider.Name,
+                    VoteSmartContractAddressNameProvider.Name
+                }
             });
 
             //issue default user

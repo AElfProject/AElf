@@ -4,6 +4,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.Contracts.Election
@@ -13,6 +14,9 @@ namespace AElf.Contracts.Election
         public ElectionTests()
         {
             InitializeContracts();
+            AsyncHelper.RunSync(async () =>
+                await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(
+                    new RegisterElectionVotingEventInput()));
         }
 
         [Fact]
@@ -82,7 +86,7 @@ namespace AElf.Contracts.Election
             var transactionResult = await UserAnnounceElection(userKeyPair);
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Voter can't announce election").ShouldBeTrue();
+            transactionResult.Error.ShouldContain("This public key already announced election.");
         }
 
         [Fact]

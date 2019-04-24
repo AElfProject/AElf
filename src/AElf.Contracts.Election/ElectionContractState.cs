@@ -7,7 +7,7 @@ namespace AElf.Contracts.Election
     {
         public BoolState Initialized { get; set; }
 
-        public MappedState<string, bool?> Candidates { get; set; }
+        public BoolState VotingEventRegistered { get; set; }
 
         public MappedState<string, Votes> Votes { get; set; }
 

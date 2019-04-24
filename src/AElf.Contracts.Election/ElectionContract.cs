@@ -13,14 +13,19 @@ namespace AElf.Contracts.Election
             State.VoteContractSystemName.Value = input.VoteContractSystemName;
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.Initialized.Value = true;
+            return new Empty();
+        }
 
+        public override Empty RegisterElectionVotingEvent(RegisterElectionVotingEventInput input)
+        {
+            Assert(!State.VotingEventRegistered.Value, "Already registered.");
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
 
             State.TokenContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(input.TokenContractSystemName);
+                State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             State.VoteContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(input.VoteContractSystemName);
-            
+                State.BasicContractZero.GetContractAddressByName.Call(State.VoteContractSystemName.Value);
+
             State.TokenContract.Create.Send(new CreateInput
             {
                 Symbol = ElectionContractConsts.VoteSymbol,
@@ -49,6 +54,7 @@ namespace AElf.Contracts.Election
                 TotalEpoch = long.MaxValue
             });
 
+            State.VotingEventRegistered.Value = true;
             return new Empty();
         }
 
@@ -64,14 +70,16 @@ namespace AElf.Contracts.Election
             Assert(
                 State.Votes[publicKey] == null || State.Votes[publicKey].ActiveVotes == null ||
                 State.Votes[publicKey].ActiveVotes.Count == 0, "Voter can't announce election.");
-            Assert(State.Candidates[publicKey] != true, "This public was either already announced or banned.");
-
-            State.Candidates[publicKey] = true;
 
             // Add this alias to history information of this candidate.
             var candidateHistory = State.Histories[publicKey];
+
             if (candidateHistory != null)
             {
+                Assert(candidateHistory.State != CandidateState.IsEvilNode,
+                    "This candidate already marked as evil node before.");
+                Assert(candidateHistory.State == CandidateState.NotAnnounced,
+                    "This public key already announced election.");
                 candidateHistory.AnnouncementTransactionId = Context.TransactionId;
                 State.Histories[publicKey] = candidateHistory;
             }
@@ -79,7 +87,8 @@ namespace AElf.Contracts.Election
             {
                 State.Histories[publicKey] = new CandidateHistory
                 {
-                    AnnouncementTransactionId = Context.TransactionId
+                    AnnouncementTransactionId = Context.TransactionId,
+                    State = CandidateState.IsCandidate
                 };
             }
 
@@ -106,8 +115,6 @@ namespace AElf.Contracts.Election
         public override Empty QuitElection(Empty input)
         {
             var publicKey = Context.RecoverPublicKey().ToHex();
-
-            State.Candidates[publicKey] = null;
 
             State.TokenContract.Unlock.Send(new UnlockInput
             {
@@ -174,7 +181,7 @@ namespace AElf.Contracts.Election
             var claimedLockDays = State.LockTimeMap[input];
             Assert(actualLockedDays >= claimedLockDays,
                 $"Still need {claimedLockDays - actualLockedDays} days to unlock your token.");
-            
+
             State.TokenContract.Unlock.Send(new UnlockInput
             {
                 From = votingRecord.Voter,
@@ -184,7 +191,7 @@ namespace AElf.Contracts.Election
                 To = votingRecord.Sponsor,
                 Usage = $"Withdraw votes for {ElectionContractConsts.Topic}"
             });
-            
+
             State.VoteContract.Withdraw.Send(new WithdrawInput
             {
                 VoteId = input
