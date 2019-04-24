@@ -2,14 +2,20 @@
 
 You'll be guided through cloning the repository, running the example we provide as well as the unit tests. The first step you need to do is to follow the setup process in order to install all dependencies.
 
+This part of the tutorial will teach you the following points:
+- setting the basic environment for developing contracts and dApps.
+- downloading **AElf Boilerplate**'s code and setting up Visual Studio Code.
+- running a template contract and basic interactions from a dApp frontend.
+
 ## Environment
 
 #### Minimum requirement
 
-If you don't have the following dependencies, please refer to your platforms installation guide:
+To successfully complete this tutorial you first need to install the following dependencies, please refer to your platforms installation guide:
 - Git for version control, follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
-- Dotnet core sdk for building and testing, you can [download it here](https://dotnet.microsoft.com/download).
-- **if** you are using Mac you should [install Homebrew](https://brew.sh/).
+- Dotnet core sdk for building and testing, you can [download it here](https://dotnet.microsoft.com/download). 
+
+Mac users also need to [install Homebrew](https://brew.sh/).
 
 #### IDE
 
@@ -45,11 +51,18 @@ Open vscode's terminal and build the project with the following command. Note: y
 
 If you don't already have protobuf installed, run the following script:
 
+- On Mac or Linux: 
 ```bash
-todo add script
+sh Chain/scripts/install.sh
 ```
 
-Note: you can also [manually install](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) if you prefer.
+- On Windows:  
+Windows is slightly more complex. You need to open a PowerShell console as administrator. Enter your clone directory so your PowerShell is currently in the root of aelf-boilerplate clone. Run the following:
+```bash
+Chain/scripts/install.ps1
+```
+
+Note: if you prefer or have problems, you can refer to the following guide to [**manually install**](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) protobuf on your system.
 
 #### Build and run
 
