@@ -1,17 +1,28 @@
 # Setup
 
-In order to develop your smart contract and a dApp to interact with it, AElf provides a framework that facilitates the process: AElf Boilerplate.
+In order to develop your smart contract and a dApp to interact with it, AElf provides a framework that facilitates the process: **AElf Boilerplate**.
 
-You'll be guided through cloning the repo, running the example we provide as well as the unit tests.
+You'll be guided through cloning the repository, running the example we provide as well as the unit tests. The first step you need to do is to follow the setup process in order to install all dependencies.
 
 ## Environment
+
+#### Minimum requirement
+
+If you don't have the following dependencies, please refer to your platforms installation guide:
+- Git for version control, follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+- Dotnet core sdk for building and testing, you can [download it here](https://dotnet.microsoft.com/download).
+- depending on the platform, you will need a packet manager:
+  - for Mac [Homebrew](https://brew.sh/)
+  - for Windows [Chocolatey](https://chocolatey.org/install)
+  - for Linux, currently no packet manager is needed.
+
+#### IDE
 
 Strictly speaking you don't need an IDE for this tutorial but it is highly recommended. If you don't already have one we recommend you try Visual Studio Code (vscode) with the C# extension:
 - installation instructions [**here**](https://code.visualstudio.com/docs/setup/setup-overview).
 - working with C# [**here**](https://code.visualstudio.com/docs/languages/csharp).
 
-
-## Clone the repo
+#### Clone the repository
 
 Open a terminal in your system and clone the tutorial with the following command:
 
@@ -21,14 +32,15 @@ git clone https://github.com/AElfProject/aelf-boilerplate
 
 This command will create a **aelf-boilerplate** folder with the code inside it.
 
-### Build and run
+## Build and run
 
-TODO: should call scripts in vs code terminal to install protobuf and other required
+#### Install script
 
+TODO run install script 
 
 If not already done open vscode and open the **aelf-boilerplate**.
 
-First open the folder you have just cloned. If asked to add some "required assets" say **yes**. There may also be some dependencies to restore: for all of them choose **Restore**.
+If asked to add some "required assets" say **yes**. There may also be some dependencies to restore: for all of them choose **Restore**.
 
 <p align="center">
   <img src="dep-yes.png" width="300">
