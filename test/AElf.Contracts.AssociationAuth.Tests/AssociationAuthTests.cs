@@ -57,7 +57,6 @@ namespace AElf.Contracts.AssociationAuth
             getProposal.Output.OrganizationAddress.ShouldBe(_organizationAddress);
             getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
             getProposal.Output.Params.ShouldBe(_transferInput.ToByteString());
-            getProposal.Output.ApprovedWeight.ShouldBe(0);
         }
         
         [Fact]
@@ -259,8 +258,13 @@ namespace AElf.Contracts.AssociationAuth
             transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             transactionResult1.Output.Value.ShouldBe(true);
             
-            var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId);
-            getProposal.Output.ApprovedWeight.ShouldBe(_createOrganizationInput.Reviewers[0].Weight);
+            //Reviewer weight < ReleaseThreshold, don't release 
+            var getBalance =TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = "ELF",
+                Owner = Reviewer1
+            }).Result.Balance;
+            getBalance.ShouldBe(0);
             
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
             var transactionResult2 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
@@ -272,7 +276,7 @@ namespace AElf.Contracts.AssociationAuth
 //            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
 //            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
                         
-            var getBalance =TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            getBalance =TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = "ELF",
                 Owner = Reviewer1

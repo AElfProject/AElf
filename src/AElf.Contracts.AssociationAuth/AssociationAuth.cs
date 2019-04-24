@@ -30,8 +30,7 @@ namespace AElf.Contracts.AssociationAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                ToAddress = proposal.ToAddress,
-                ApprovedWeight = proposal.ApprovedWeight,
+                ToAddress = proposal.ToAddress
             };
 
             return result;
