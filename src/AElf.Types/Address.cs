@@ -34,7 +34,7 @@ namespace AElf
 
         public static Address FromPublicKey(byte[] bytes)
         {
-            var hash = TakeByAddressLength(bytes.CalculateHash().CalculateHash());
+            var hash = bytes.CalculateHash().CalculateHash();
             return new Address(hash);
         }
 
@@ -47,7 +47,7 @@ namespace AElf
         /// <returns></returns>
         public static Address FromString(string name)
         {
-            return new Address(TakeByAddressLength(name.CalculateHash()));
+            return new Address(name.CalculateHash());
         }
 
         //TODO: move to test project
@@ -57,24 +57,14 @@ namespace AElf
         /// <returns></returns>
         public static Address Generate()
         {
-            return new Address(TakeByAddressLength(Guid.NewGuid().ToByteArray().CalculateHash()));
-        }
-
-        public static byte[] TakeByAddressLength(byte[] raw)
-        {
-            if (raw.Length > TypeConsts.AddressHashLength)
-                return raw.Take(TypeConsts.AddressHashLength).ToArray();
-            if (raw.Length < TypeConsts.AddressHashLength)
-                throw new ArgumentOutOfRangeException($"Address (sha256 of pubkey) bytes has to be " +
-                        $"{TypeConsts.AddressHashLength}. The input is {raw.Length} bytes long.");
-            return raw;
+            return new Address(Guid.NewGuid().ToByteArray().CalculateHash());
         }
 
         #region Predefined
 
         public static readonly Address AElf = FromString("AElf");
 
-        public static readonly Address Zero = new Address(TakeByAddressLength(new byte[] { }.CalculateHash()));
+        public static readonly Address Zero = new Address(new byte[] { }.CalculateHash());
 
         public static readonly Address Genesis = FromString("Genesis");
 

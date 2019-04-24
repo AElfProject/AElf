@@ -25,7 +25,7 @@ namespace AElf.Types.Tests
             var address4 = Address.FromBytes(bytes);
             address4.ShouldNotBe(null);
 
-            bytes = new byte[10];
+            bytes = Enumerable.Repeat((byte)32, 20).ToArray();
             Should.Throw<ArgumentOutOfRangeException>(() => {Address.FromBytes(bytes); });
 
             //Generate from public key
