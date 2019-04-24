@@ -61,7 +61,9 @@ namespace AElf.Contracts.Election
         {
             var publicKey = Context.RecoverPublicKey().ToHex();
 
-            Assert(State.Votes[publicKey].ActiveVotes.Count == 0, "Voter can't announce election.");
+            Assert(
+                State.Votes[publicKey] == null || State.Votes[publicKey].ActiveVotes == null ||
+                State.Votes[publicKey].ActiveVotes.Count == 0, "Voter can't announce election.");
             Assert(State.Candidates[publicKey] != true, "This public was either already announced or banned.");
 
             State.Candidates[publicKey] = true;

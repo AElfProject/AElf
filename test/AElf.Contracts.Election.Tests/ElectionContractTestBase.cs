@@ -115,10 +115,7 @@ namespace AElf.Contracts.Election
                 TokenName = "elf token",
                 TotalSupply = ElectionContractTestConsts.NativeTokenTotalSupply,
                 Issuer = ContractZeroAddress,
-                LockWhiteSystemContractNameList =
-                {
-                    Hash.FromString("AElf.ContractNames.Vote")
-                }
+                LockWhiteSystemContractNameList = {ElectionSmartContractAddressNameProvider.Name}
             });
 
             //issue default user
@@ -153,7 +150,7 @@ namespace AElf.Contracts.Election
                         Memo = "set voters few amount for voting."
                     });
                 }
-                
+
             }
 
             return tokenContractCallList;
@@ -171,7 +168,7 @@ namespace AElf.Contracts.Election
 
             return electionMethodCallList;
         }
-        
+
         internal async Task<long> GetUserBalance(byte[] publicKey)
         {
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
