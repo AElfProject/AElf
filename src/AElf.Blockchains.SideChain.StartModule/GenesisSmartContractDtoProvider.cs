@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
 using AElf.OS.Node.Application;
 using Volo.Abp.Threading;
 

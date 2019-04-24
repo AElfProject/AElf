@@ -16,7 +16,6 @@ using Vote;
 
 namespace AElf.Blockchains.MainChain
 {
-    // TODO: Split different contract and change this to plugin
     public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly DPoSOptions _dposOptions;
@@ -32,11 +31,6 @@ namespace AElf.Blockchains.MainChain
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
         {
             var l = new List<GenesisSmartContractDto>();
-            l.AddGenesisSmartContract<ConsensusContract>(ConsensusSmartContractAddressNameProvider.Name,
-                GenerateConsensusInitializationCallList());
-            l.AddGenesisSmartContract<DividendContract>(
-                DividendSmartContractAddressNameProvider.Name,
-                GenerateDividendInitializationCallList());
             l.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name,
                 GenerateTokenInitializationCallList(zeroContractAddress));
@@ -55,43 +49,6 @@ namespace AElf.Blockchains.MainChain
 //               ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
 
             return l;
-        }
-
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateConsensusInitializationCallList()
-        {
-            var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
-                new InitialDPoSContractInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
-                    LockTokenForElection = _tokenInitialOptions.LockForElection
-                });
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
-                _dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(_dposOptions.MiningInterval,
-                    _dposOptions.StartTimestamp.ToUniversalTime()));
-            consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
-                new DPoSStrategyInput
-                {
-                    IsBlockchainAgeSettable = _dposOptions.IsBlockchainAgeSettable,
-                    IsTimeSlotSkippable = _dposOptions.IsTimeSlotSkippable,
-                    IsVerbose = _dposOptions.Verbose
-                });
-            return consensusMethodCallList;
-        }
-
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateDividendInitializationCallList()
-        {
-            var dividendMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            dividendMethodCallList.Add(nameof(DividendContract.InitializeDividendContract),
-                new InitialDividendContractInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
-                });
-            return dividendMethodCallList;
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList(

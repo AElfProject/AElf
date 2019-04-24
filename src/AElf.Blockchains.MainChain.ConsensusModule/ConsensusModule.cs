@@ -6,9 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.Blockchains.SideChain
+namespace AElf.Blockchains.MainChain.ConsensusModule
 {
-    public class SideChainStartModule : AElfModule<SideChainStartModule>
+    public class ConsensusModule : AElfModule<ConsensusModule>
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

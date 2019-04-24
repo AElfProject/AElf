@@ -5,6 +5,9 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
+        <ProjectReference Include="..\AElf.Blockchains.MainChain.ConsensusModule\AElf.Blockchains.MainChain.ConsensusModule.csproj" />
+        <ProjectReference Include="..\AElf.Blockchains.MainChain.DividendModule\AElf.Blockchains.MainChain.DividendModule.csproj" />
         <ProjectReference Include="..\AElf.Blockchains.MainChain.StartModule\AElf.Blockchains.MainChain.StartModule.csproj" />
+        <!--<ProjectReference Include="..\AElf.Blockchains.MainChain.TokenModule\AElf.Blockchains.MainChain.TokenModule.csproj" />-->
     </ItemGroup>
 </Project>

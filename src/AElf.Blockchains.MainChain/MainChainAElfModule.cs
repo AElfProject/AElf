@@ -8,6 +8,8 @@ namespace AElf.Blockchains.MainChain
 {
     [DependsOn(
         typeof(BasicBaseChainAElfModule),
+        typeof(ConsensusModule.ConsensusModule),
+        typeof(DividendModule.DividendModule),
         typeof(MainChainStartModule)
     )]
     public class MainChainAElfModule : AElfModule
