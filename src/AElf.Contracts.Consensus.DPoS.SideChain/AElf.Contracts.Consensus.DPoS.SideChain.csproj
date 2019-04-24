@@ -12,9 +12,6 @@
       <None Include="..\..\protobuf\aelf_options.proto">
         <Link>Protobuf/Proto/aelf_options.proto</Link>
       </None>
-      <None Include="..\..\protobuf\consensus.proto">
-        <Link>Protobuf/Proto/consensus.proto</Link>
-      </None>
       <None Include="..\..\protobuf\consensus_dpos.proto">
         <Link>Protobuf/Proto/consensus_dpos.proto</Link>
       </None>
@@ -26,8 +23,8 @@
       </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh consensus.proto consensus_dpos.proto dpos_sidechain_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_code.bat consensus.proto consensus_dpos.proto dpos_sidechain_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh consensus_dpos.proto dpos_sidechain_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_code.bat consensus_dpos.proto dpos_sidechain_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

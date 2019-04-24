@@ -2,7 +2,6 @@ syntax = "proto3";
 
 import "common.proto";
 import "core.proto";
-import "consensus.proto";
 import "consensus_dpos.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";

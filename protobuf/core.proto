@@ -363,3 +363,21 @@ message ChangeContractOwnerInput {
     Address contractAddress = 1;
     Address newOwner = 2;
 }
+
+// Consensus
+
+message ConsensusCommand {
+    int32 NextBlockMiningLeftMilliseconds = 1;// How many milliseconds left to trigger the mining of next block.
+    int32 LimitMillisecondsOfMiningBlock = 2;// Time limit of mining next block.
+    bytes Hint = 3;// Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.
+    google.protobuf.Timestamp ExpectedMiningTime = 4;
+}
+
+message ValidationResult {
+    bool Success = 1;
+    string Message = 2;
+}
+
+message ConsensusInformation {
+    bytes Bytes = 1;
+}
