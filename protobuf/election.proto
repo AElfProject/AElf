@@ -10,11 +10,25 @@ option csharp_namespace = "AElf.Kernel";
 
 message InitialElectionContractInput {
     Hash vote_contract_system_name = 1;
-    Hash token_contract_system_name = 2;
+    Hash profit_contract_system_name = 2;
+    Hash token_contract_system_name = 3;
 }
 
 message RegisterElectionVotingEventInput {
     
+}
+
+message CreateTreasuryInput {
+    
+}
+
+message RegisterToTreasuryInput {
+    
+}
+
+message ReleaseTreasuryProfitsInput {
+    sint64 term_number = 1;
+    sint64 mined_blocks = 2;
 }
 
 enum CandidateState {
@@ -49,24 +63,30 @@ message ElectionResult {
 }
 
 message Votes {
-    repeated Hash active_votes = 1;
-    repeated Hash withdrawn_votes = 2;
+    repeated Hash active_votes_ids = 1;
+    repeated Hash withdrawn_votes_ids = 2;
+    repeated Hash obtained_active_votes_ids = 3;
+    repeated Hash obtained_withdrawn_votes_ids = 4;
+    sint64 valid_obtained_votes_amount = 5;
+    sint64 valid_voted_votes_amount = 6;
+    sint64 all_obtained_votes_amount = 7;
+    sint64 all_voted_votes_amount = 8;
+    repeated ElectionVotingRecord ElectionVotingRecords = 9;
 }
 
 message CandidateHistory {
-    string PublicKey = 1;
-    repeated int64 Terms = 2;
-    sint64 ProducedBlocks = 3;
-    sint64 MissedTimeSlots = 4;
-    sint64 ContinualAppointmentCount = 5;
-    sint64 ReappointmentCount = 6;
-    repeated string Aliases = 7;
-    string CurrentAlias = 8;
-    sint64 CurrentVotesNumber = 9;
-    Address Address = 11;
-    Hash AnnouncementTransactionId = 12;
-    bool IsEvilNode = 13;
-    CandidateState State = 14;
+    string public_key = 1;
+    repeated int64 terms = 2;
+    sint64 produced_blocks = 3;
+    sint64 missed_time_slots = 4;
+    sint64 continual_appointment_count = 5;
+    sint64 reappointment_count = 6;
+    repeated string aliases = 7;
+    string current_alias = 8;
+    sint64 current_votes_number = 9;
+    Hash announcement_transaction_id = 12;
+    bool is_evil_node = 13;
+    CandidateState state = 14;
 }
 
 enum LockTimeUnit {
@@ -74,33 +94,17 @@ enum LockTimeUnit {
     Mouths = 1;
 }
 
-// The ticket / voting information for one user.
-message ElectionTickets {
-    repeated ElectionVotingRecord election_voting_records = 1;
-    sint64 VotingRecordsCount = 2;
-    sint64 ObtainedTickets = 3;
-    sint64 VotedTickets = 4;
-    sint64 HistoryObtainedTickets = 5;
-    sint64 HistoryVotedTickets = 6;
-    repeated Hash VoteToTransactions = 8;
-    repeated Hash VoteFromTransactions = 9;
-    string PublicKey = 10;
-}
-
 message ElectionVotingRecord {
-    string From = 1;
-    string To = 2;
-    sint64 Count = 3;
-    sint64 RoundNumber = 4;
-    Hash TransactionId = 5;
-    sint64 VoteAge = 6;
-    repeated int32 LockDaysList = 7;// Can be renewed by adding items.
-    sint64 UnlockAge = 8;
-    sint64 TermNumber = 9;
-    google.protobuf.Timestamp UnlockTimestamp = 10;
-    google.protobuf.Timestamp WithdrawTimestamp = 11;
-    google.protobuf.Timestamp VoteTimestamp = 12;
-    bool IsWithdrawn = 13;
+    string voter = 1;
+    string candidate = 2;
+    sint64 amount = 3;
+    sint64 term_number = 4;
+    Hash vote_id = 5;
+    sint32 lock_time = 7;// Hours
+    google.protobuf.Timestamp unlock_timestamp = 10;
+    google.protobuf.Timestamp withdraw_timestamp = 11;
+    google.protobuf.Timestamp vote_timestamp = 12;
+    bool is_withdrawn = 13;
 }
 
 message PageableElectionTicketsInfoInput {

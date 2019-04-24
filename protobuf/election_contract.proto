@@ -17,6 +17,12 @@ service ElectionContract {
     }
     rpc RegisterElectionVotingEvent (RegisterElectionVotingEventInput) returns (google.protobuf.Empty) {
     }
+    rpc CreateTreasury (CreateTreasuryInput) returns (google.protobuf.Empty) {
+    }
+    rpc RegisterToTreasury (RegisterToTreasuryInput) returns (google.protobuf.Empty) {
+    }
+    rpc ReleaseTreasuryProfits (ReleaseTreasuryProfitsInput) returns (google.protobuf.Empty) {
+    }
     rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
@@ -32,10 +38,10 @@ service ElectionContract {
     rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
         option (aelf.is_view) = true;
     }
-    rpc GetTicketsInformation (StringInput) returns (ElectionTickets) {
+    rpc GetTicketsInformation (StringInput) returns (Votes) {
         option (aelf.is_view) = true;
     }
-    rpc GetPageableNotWithdrawnTicketsInfo (PageableElectionTicketsInfoInput) returns (ElectionTickets) {
+    rpc GetPageableNotWithdrawnTicketsInfo (PageableElectionTicketsInfoInput) returns (Votes) {
         option (aelf.is_view) = true;
     }
     rpc QueryAlias (StringInput) returns (StringOutput) {

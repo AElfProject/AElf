@@ -1,4 +1,5 @@
-﻿using AElf.Contracts.MultiToken.Messages;
+﻿using System.Linq;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf.WellKnownTypes;
@@ -11,6 +12,7 @@ namespace AElf.Contracts.Election
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.VoteContractSystemName.Value = input.VoteContractSystemName;
+            State.ProfitContractSystemName.Value = input.ProfitContractSystemName;
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.Initialized.Value = true;
             return new Empty();
@@ -58,6 +60,129 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        public override Empty CreateTreasury(CreateTreasuryInput input)
+        {
+            State.ProfitContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(State.ProfitContractSystemName.Value);
+
+            // Create profit items: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
+            // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectionMinerReward`
+            for (var i = 0; i < 7; i++)
+            {
+                State.ProfitContract.CreateProfitItem.Send(new CreateProfitItemInput
+                {
+                    TokenSymbol = Context.Variables.NativeSymbol
+                });
+            }
+
+            return new Empty();
+        }
+
+        public override Empty RegisterToTreasury(RegisterToTreasuryInput input)
+        {
+            var createdProfitIds = State.ProfitContract.GetCreatedProfitItems.Call(new GetCreatedProfitItemsInput
+            {
+                Creator = Context.Self
+            }).ProfitIds;
+
+            Assert(createdProfitIds.Count == 7, "Incorrect profit items count.");
+
+            var treasuryHash = createdProfitIds[0];
+            var welfareHash = createdProfitIds[1];
+            var subsidyHash = createdProfitIds[2];
+            var rewardHash = createdProfitIds[3];
+            var basicRewardHash = createdProfitIds[4];
+            var votesWeightRewardHash = createdProfitIds[5];
+            var reElectionRewardHash = createdProfitIds[6];
+
+            // Add profits to `Treasury`
+            State.ProfitContract.AddProfits.Send(new AddProfitsInput
+            {
+                ProfitId = treasuryHash,
+                Amount = ElectionContractConsts.VotesTotalSupply
+            });
+
+            // Register `CitizenWelfare` to `Treasury`
+            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            {
+                ProfitId = treasuryHash,
+                SubProfitId = welfareHash,
+                SubItemWeight = 20
+            });
+
+            // Register `BackupSubsidy` to `Treasury`
+            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            {
+                ProfitId = treasuryHash,
+                SubProfitId = subsidyHash,
+                SubItemWeight = 20
+            });
+
+            // Register `MinerReward` to `Treasury`
+            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            {
+                ProfitId = treasuryHash,
+                SubProfitId = rewardHash,
+                SubItemWeight = 60
+            });
+
+            // Register `MinerBasicReward` to `MinerReward`
+            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            {
+                ProfitId = rewardHash,
+                SubProfitId = basicRewardHash,
+                SubItemWeight = 66
+            });
+
+            // Register `MinerVotesWeightReward` to `MinerReward`
+            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            {
+                ProfitId = rewardHash,
+                SubProfitId = votesWeightRewardHash,
+                SubItemWeight = 17
+            });
+
+            // Register `ReElectionMinerReward` to `MinerReward`
+            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            {
+                ProfitId = rewardHash,
+                SubProfitId = reElectionRewardHash,
+                SubItemWeight = 17
+            });
+
+            return new Empty();
+        }
+
+        public override Empty ReleaseTreasuryProfits(ReleaseTreasuryProfitsInput input)
+        {
+            var createdProfitIds = State.ProfitContract.GetCreatedProfitItems.Call(new GetCreatedProfitItemsInput
+            {
+                Creator = Context.Self
+            }).ProfitIds;
+
+            Assert(createdProfitIds.Count >= 7, "Incorrect profit items count.");
+
+            var treasuryHash = createdProfitIds[0];
+            var rewardHash = createdProfitIds[3];
+
+            var totalReleasedAmount = input.MinedBlocks.Mul(ElectionContractConsts.ElfTokenPerBlock);
+            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
+            {
+                ProfitId = treasuryHash,
+                Amount = totalReleasedAmount,
+                Period = input.TermNumber
+            });
+
+            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
+            {
+                ProfitId = rewardHash,
+                Amount = totalReleasedAmount.Mul(60).Div(100),
+                Period = input.TermNumber
+            });
+
+            return new Empty();
+        }
+
         /// <summary>
         /// Actually this method is for adding an option of voting.
         /// </summary>
@@ -68,8 +193,8 @@ namespace AElf.Contracts.Election
             var publicKey = Context.RecoverPublicKey().ToHex();
 
             Assert(
-                State.Votes[publicKey] == null || State.Votes[publicKey].ActiveVotes == null ||
-                State.Votes[publicKey].ActiveVotes.Count == 0, "Voter can't announce election.");
+                State.Votes[publicKey] == null || State.Votes[publicKey].ActiveVotesIds == null ||
+                State.Votes[publicKey].ActiveVotesIds.Count == 0, "Voter can't announce election.");
 
             // Add this alias to history information of this candidate.
             var candidateHistory = State.Histories[publicKey];
@@ -133,6 +258,10 @@ namespace AElf.Contracts.Election
                 Option = publicKey
             });
 
+            var candidateHistory = State.Histories[publicKey];
+            candidateHistory.State = CandidateState.NotAnnounced;
+            State.Histories[publicKey] = candidateHistory;
+
             return new Empty();
         }
 
@@ -157,7 +286,7 @@ namespace AElf.Contracts.Election
                 LockId = Context.TransactionId,
                 Amount = input.Amount,
                 To = Context.Self,
-                Usage = $"Voting for {ElectionContractConsts.Topic}"
+                Usage = $"Voting for Mainchain Election."
             });
 
             State.VoteContract.Vote.Send(new VoteInput

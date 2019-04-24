@@ -4,7 +4,7 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContract
     {
-        public override ElectionTickets GetTicketsInformation(StringInput input)
+        public override Votes GetTicketsInformation(StringInput input)
         {
             var votingRecords = State.VoteContract.GetVotingHistory.Call(new GetVotingHistoryInput
             {
@@ -13,9 +13,8 @@ namespace AElf.Contracts.Election
                 Voter = Address.FromPublicKey(ByteArrayHelpers.FromHexString(input.Value))
             });
             
-            var electionTickets = new ElectionTickets
+            var electionTickets = new Votes
             {
-                PublicKey = input.Value,
                 
             };
 
