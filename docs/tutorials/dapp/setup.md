@@ -1,11 +1,9 @@
 # Setup
 
-You'll be guided through cloning the repository, running the example we provide as well as the unit tests. The first step you need to do is to follow the setup process in order to install all dependencies.
-
-This part of the tutorial will teach you the following points:
-- setting the basic environment for developing contracts and dApps.
+This article will get you started with AElf's Boilerplate project. You will learn the following items:
+- setting up the basic environment for developing contracts and dApps.
 - downloading **AElf Boilerplate**'s code and setting up Visual Studio Code.
-- running a template contract and basic interactions from a dApp frontend.
+- running a template contract and basic interactions from a dApp frontend with the Javascript SDK demo and the browser extension.
 
 ## Environment
 
@@ -94,7 +92,7 @@ The output should look somewhat like this:
 Total tests: 1. Passed: 1. Failed: 0. Skipped: 0.
 ```
 
-### Next
+## Next
 
 You've just seen a simple example of a smart contract run with our Boilerplate tutorial. When launching (with dotnet run) the contract was automatically deployed and ready to interact with. You also discovered how to navigate to the test folder and run the tests.
 
