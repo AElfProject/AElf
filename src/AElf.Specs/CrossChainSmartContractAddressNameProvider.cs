@@ -1,7 +1,6 @@
-using AElf.Kernel.SmartContract;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.CrossChain
+namespace AElf
 {
     public class CrossChainSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {

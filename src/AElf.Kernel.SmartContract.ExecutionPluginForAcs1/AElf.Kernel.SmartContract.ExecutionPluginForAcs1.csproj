@@ -6,7 +6,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
-        <ProjectReference Include="..\AElf.Token\AElf.Token.csproj" />
+        <ProjectReference Include="..\AElf.Specs\AElf.Specs.csproj" />
     </ItemGroup>
 
     <ItemGroup>

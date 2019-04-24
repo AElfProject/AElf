@@ -15,7 +15,6 @@
       <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
       <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />
-      <ProjectReference Include="..\AElf.Token\AElf.Token.csproj" />
     </ItemGroup>
 
     <ItemGroup>

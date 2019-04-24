@@ -7,9 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Consensus\AElf.Consensus.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
+      <ProjectReference Include="..\AElf.Specs\AElf.Specs.csproj" />
     </ItemGroup>
 
     <ItemGroup>

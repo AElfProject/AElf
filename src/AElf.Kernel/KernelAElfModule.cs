@@ -17,7 +17,7 @@ namespace AElf.Kernel
         typeof(NodeAElfModule),
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
-        typeof(TokenModule)
+        typeof(SpecsModule)
     )]
     public class KernelAElfModule : AElfModule<KernelAElfModule>
     {
