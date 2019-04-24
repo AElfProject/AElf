@@ -49,7 +49,6 @@ namespace AElf.Contracts.TestKit
         typeof(KernelAElfModule),
         typeof(NodeAElfModule),
         typeof(CoreOSAElfModule),
-        typeof(ConsensusAElfModule),
         typeof(SmartContractAElfModule),
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),

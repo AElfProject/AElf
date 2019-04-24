@@ -19,7 +19,6 @@ namespace AElf.Kernel
 {
     [DependsOn(
          typeof(KernelAElfModule),
-         typeof(ConsensusAElfModule),
          typeof(KernelCoreTestAElfModule),
          typeof(SmartContractTestAElfModule),
          typeof(SmartContractExecutionTestAElfModule),
