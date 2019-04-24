@@ -31,8 +31,6 @@ service ElectionContract {
     }
     rpc Withdraw (Hash) returns (google.protobuf.Empty) {
     }
-    rpc UpdateTermNumber (UpdateTermNumberInput) returns (google.protobuf.Empty) {
-    }
 
     // View
     rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {

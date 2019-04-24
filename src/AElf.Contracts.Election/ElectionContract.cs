@@ -2,6 +2,7 @@
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election
@@ -62,6 +63,8 @@ namespace AElf.Contracts.Election
 
         public override Empty CreateTreasury(CreateTreasuryInput input)
         {
+            Assert(!State.TreasuryCreated.Value, "Already created.");
+
             State.ProfitContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.ProfitContractSystemName.Value);
 
@@ -75,11 +78,15 @@ namespace AElf.Contracts.Election
                 });
             }
 
+            State.TreasuryCreated.Value = true;
+
             return new Empty();
         }
 
         public override Empty RegisterToTreasury(RegisterToTreasuryInput input)
         {
+            Assert(!State.TreasuryRegistered.Value, "Already created.");
+
             var createdProfitIds = State.ProfitContract.GetCreatedProfitItems.Call(new GetCreatedProfitItemsInput
             {
                 Creator = Context.Self
@@ -87,68 +94,70 @@ namespace AElf.Contracts.Election
 
             Assert(createdProfitIds.Count == 7, "Incorrect profit items count.");
 
-            var treasuryHash = createdProfitIds[0];
-            var welfareHash = createdProfitIds[1];
-            var subsidyHash = createdProfitIds[2];
-            var rewardHash = createdProfitIds[3];
-            var basicRewardHash = createdProfitIds[4];
-            var votesWeightRewardHash = createdProfitIds[5];
-            var reElectionRewardHash = createdProfitIds[6];
+            State.TreasuryHash.Value = createdProfitIds[0];
+            State.WelfareHash.Value = createdProfitIds[1];
+            State.SubsidyHash.Value = createdProfitIds[2];
+            State.RewardHash.Value = createdProfitIds[3];
+            State.BasicRewardHash.Value = createdProfitIds[4];
+            State.VotesWeightRewardHash.Value = createdProfitIds[5];
+            State.ReElectionRewardHash.Value = createdProfitIds[6];
 
             // Add profits to `Treasury`
             State.ProfitContract.AddProfits.Send(new AddProfitsInput
             {
-                ProfitId = treasuryHash,
+                ProfitId = State.TreasuryHash.Value,
                 Amount = ElectionContractConsts.VotesTotalSupply
             });
 
             // Register `CitizenWelfare` to `Treasury`
             State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
             {
-                ProfitId = treasuryHash,
-                SubProfitId = welfareHash,
+                ProfitId = State.TreasuryHash.Value,
+                SubProfitId = State.WelfareHash.Value,
                 SubItemWeight = 20
             });
 
             // Register `BackupSubsidy` to `Treasury`
             State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
             {
-                ProfitId = treasuryHash,
-                SubProfitId = subsidyHash,
+                ProfitId = State.TreasuryHash.Value,
+                SubProfitId = State.SubsidyHash.Value,
                 SubItemWeight = 20
             });
 
             // Register `MinerReward` to `Treasury`
             State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
             {
-                ProfitId = treasuryHash,
-                SubProfitId = rewardHash,
+                ProfitId = State.TreasuryHash.Value,
+                SubProfitId = State.RewardHash.Value,
                 SubItemWeight = 60
             });
 
             // Register `MinerBasicReward` to `MinerReward`
             State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
             {
-                ProfitId = rewardHash,
-                SubProfitId = basicRewardHash,
+                ProfitId = State.RewardHash.Value,
+                SubProfitId = State.BasicRewardHash.Value,
                 SubItemWeight = 66
             });
 
             // Register `MinerVotesWeightReward` to `MinerReward`
             State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
             {
-                ProfitId = rewardHash,
-                SubProfitId = votesWeightRewardHash,
+                ProfitId = State.RewardHash.Value,
+                SubProfitId = State.VotesWeightRewardHash.Value,
                 SubItemWeight = 17
             });
 
             // Register `ReElectionMinerReward` to `MinerReward`
             State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
             {
-                ProfitId = rewardHash,
-                SubProfitId = reElectionRewardHash,
+                ProfitId = State.RewardHash.Value,
+                SubProfitId = State.ReElectionRewardHash.Value,
                 SubItemWeight = 17
             });
+
+            State.TreasuryRegistered.Value = true;
 
             return new Empty();
         }
@@ -162,22 +171,26 @@ namespace AElf.Contracts.Election
 
             Assert(createdProfitIds.Count >= 7, "Incorrect profit items count.");
 
-            var treasuryHash = createdProfitIds[0];
-            var rewardHash = createdProfitIds[3];
-
             var totalReleasedAmount = input.MinedBlocks.Mul(ElectionContractConsts.ElfTokenPerBlock);
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
-                ProfitId = treasuryHash,
+                ProfitId = State.TreasuryHash.Value,
                 Amount = totalReleasedAmount,
                 Period = input.TermNumber
             });
 
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
-                ProfitId = rewardHash,
+                ProfitId = State.RewardHash.Value,
                 Amount = totalReleasedAmount.Mul(60).Div(100),
                 Period = input.TermNumber
+            });
+
+            // Update epoch of voting record btw.
+            State.VoteContract.UpdateEpochNumber.Send(new UpdateEpochNumberInput
+            {
+                EpochNumber = input.TermNumber,
+                Topic = ElectionContractConsts.Topic
             });
 
             return new Empty();
@@ -234,6 +247,13 @@ namespace AElf.Contracts.Election
                 Option = publicKey
             });
 
+            State.ProfitContract.AddWeight.Send(new AddWeightInput
+            {
+                ProfitId = State.SubsidyHash.Value,
+                Receiver = Context.Sender,
+                Weight = 1
+            });
+
             return new Empty();
         }
 
@@ -262,6 +282,12 @@ namespace AElf.Contracts.Election
             candidateHistory.State = CandidateState.NotAnnounced;
             State.Histories[publicKey] = candidateHistory;
 
+            State.ProfitContract.SubWeight.Send(new SubWeightInput
+            {
+                ProfitId = State.SubsidyHash.Value,
+                Receiver = Context.Sender
+            });
+
             return new Empty();
         }
 
@@ -286,7 +312,7 @@ namespace AElf.Contracts.Election
                 LockId = Context.TransactionId,
                 Amount = input.Amount,
                 To = Context.Self,
-                Usage = $"Voting for Mainchain Election."
+                Usage = "Voting for Mainchain Election."
             });
 
             State.VoteContract.Vote.Send(new VoteInput
@@ -297,6 +323,13 @@ namespace AElf.Contracts.Election
                 Option = input.CandidatePublicKey,
                 Voter = Context.Sender,
                 VoteId = Context.TransactionId
+            });
+
+            State.ProfitContract.AddWeight.Send(new AddWeightInput
+            {
+                ProfitId = State.WelfareHash.Value,
+                Receiver = Context.Sender,
+                Weight = GetVotesWeight(input.Amount, lockTime)
             });
 
             return new Empty();
@@ -329,17 +362,6 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        public override Empty UpdateTermNumber(UpdateTermNumberInput input)
-        {
-            State.VoteContract.UpdateEpochNumber.Send(new UpdateEpochNumberInput
-            {
-                EpochNumber = input.TermNumber,
-                Topic = ElectionContractConsts.Topic
-            });
-
-            return new Empty();
-        }
-
         public override ElectionResult GetElectionResult(GetElectionResultInput input)
         {
             var votingResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
@@ -357,6 +379,11 @@ namespace AElf.Contracts.Election
             };
 
             return result;
+        }
+
+        private long GetVotesWeight(long votesAmount, long lockTime)
+        {
+            return (long) (((double) lockTime / 270 + 2.0 / 3.0) * votesAmount);
         }
     }
 }
