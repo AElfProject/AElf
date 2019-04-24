@@ -2,14 +2,20 @@
 
 You'll be guided through cloning the repository, running the example we provide as well as the unit tests. The first step you need to do is to follow the setup process in order to install all dependencies.
 
+This part of the tutorial will teach you the following points:
+- setting the basic environment for developing contracts and dApps.
+- downloading **AElf Boilerplate**'s code and setting up Visual Studio Code.
+- running a template contract and basic interactions from a dApp frontend.
+
 ## Environment
 
 #### Minimum requirement
 
-If you don't have the following dependencies, please refer to your platforms installation guide:
+To successfully complete this tutorial you first need to install the following dependencies, please refer to your platforms installation guide:
 - Git for version control, follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
-- Dotnet core sdk for building and testing, you can [download it here](https://dotnet.microsoft.com/download).
-- **if** you are using Mac you should [install Homebrew](https://brew.sh/).
+- Dotnet core sdk for building and testing, you can [download it here](https://dotnet.microsoft.com/download). 
+
+Mac users also need to [install Homebrew](https://brew.sh/).
 
 #### IDE
 
