@@ -138,3 +138,16 @@ message StringOutput {
 message PublicKeysList {
     repeated bytes value = 1;
 }
+
+message TermSnapshot {
+    int64 EndRoundNumber = 1;
+    int64 TotalBlocks = 2;
+    repeated CandidateInTerm CandidatesSnapshot = 3;
+    int64 TermNumber = 4;
+}
+
+message CandidateInTerm {
+    string PublicKey = 1;
+    Address Address = 2;
+    int64 Votes = 3;
+}

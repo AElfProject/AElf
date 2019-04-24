@@ -25,6 +25,9 @@
         <None Include="..\..\protobuf\aelf_consensus.proto">
             <Link>Protobuf/Proto/aelf_consensus.proto</Link>
         </None>
+        <None Include="..\..\protobuf\election.proto">
+            <Link>Protobuf/Proto/election.proto</Link>
+        </None>
         <None Include="..\..\protobuf\election_contract.proto">
             <Link>Protobuf/Proto/election_contract.proto</Link>
         </None>

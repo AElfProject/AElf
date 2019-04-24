@@ -4,6 +4,8 @@ using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using AddDividendsInput = AElf.Consensus.DPoS.AddDividendsInput;
+using CandidateInTerm = AElf.Consensus.DPoS.CandidateInTerm;
+using TermSnapshot = AElf.Consensus.DPoS.TermSnapshot;
 
 namespace AElf.Contracts.Consensus.DPoS
 {

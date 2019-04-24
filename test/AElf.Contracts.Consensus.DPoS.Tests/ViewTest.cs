@@ -14,6 +14,7 @@ using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
 using PageInfo = AElf.Consensus.DPoS.PageInfo;
+using TermSnapshot = AElf.Consensus.DPoS.TermSnapshot;
 using VoteInput = AElf.Consensus.DPoS.VoteInput;
 using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
