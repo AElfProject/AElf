@@ -1,12 +1,12 @@
 using System;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.Basic11
+namespace AElf.Contracts.TestContract.BasicUpdate
 {
     /// <summary>
     /// View methods
     /// </summary>
-    public partial class Basic11Contract
+    public partial class BasicUpdateContract
     {
         public override MoneyOutput QueryWinMoney(Empty input)
         {
