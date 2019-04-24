@@ -1,4 +1,4 @@
-# Setup
+# Setup AElf Boilerplate
 
 This article will get you started with AElf's Boilerplate project. You will learn the following items:
 - setting up the basic environment for developing contracts and dApps.
