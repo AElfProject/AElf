@@ -9,7 +9,7 @@ This article will guide you through how to use **AElf Boilerplate** project to i
 To easily follow this tutorial you will need to open the the **AElf Boilerplate** root folder in Visual Studio Code and also open the **Integrated Terminal**.
 
 <p align="center">
-  <img src="aelf-root.png" width="200">
+  <img src="aelf-root.png" width="100">
 </p>
 
 In the previous image you can see that the repository is composed of a **chain** and a **web** folder. The following content will help you understand the content of the **chain** folder.
@@ -55,7 +55,7 @@ message HelloReturn {
 }
 ```
 
-It's a simple contract that defines one method (**Hello**) and one type (**HelloReturn**). We won't go through every detail of the definition, for this you can check out the [Smart Contract section](../../Contract/main.md) of this Gitbook.
+It's a simple contract that defines one method **Hello** and one type **HelloReturn**. We won't go through every detail of the definition, for this you can check out the [Smart Contract section](../../Contract/main.md) of this Gitbook.
 
 **Implementation**: 
 
@@ -104,11 +104,106 @@ public class HelloWorldContractTest : HelloWorldContractTestBase
 
 ### Adding some methods
 
+The following content will guide you through adding some methods and state to the Hello World contract.
+
 #### Modify the definition
+
+Add the following to the "hello_world.proto" right after the **Hello** rpc method:
+
+```bash
+rpc Visit (Visitor) returns (google.protobuf.Empty) { }
+rpc GetVisitors (google.protobuf.Empty) returns (VisitorList) { }
+```
+
+and the following two messages, after the **HelloReturn** message:
+
+```bash
+message Visitor {
+    string Name = 1;
+}
+
+message VisitorList {
+    repeated string Names = 1;
+}
+```
+
+Note: assuming you're at the root of AElf Boilerplate's clone, execute the following command to generate the protobuf messages and service base on the definition we just extended:
+
+```bash
+cd chain/src/HelloWorldContract/
+dotnet build
+```
+
+If everything went well you should see the build log show ```Build succeeded.```
 
 #### Implement the logic and state
 
+The first step is to add some state to our state definition. Open the **src/HelloWorldContract/HelloWorldContractState.cs** and add the following property to the **HelloWorldContractState** class:
+
+```csharp
+public SingletonState<VisitorList> Visitors { get; set; }
+```
+
+Override the service/contract methods previously define to **src/HelloWorldContract/HelloWorldContract**
+
+```csharp
+public override Empty Visit(Visitor visitor)
+{
+    if (State.Visitors.Value == null)
+        State.Visitors.Value = new VisitorList();
+            
+    State.Visitors.Value.Names.Add(visitor.Name);
+    
+    return new Empty();
+}
+
+public override VisitorList GetVisitors(Empty input)
+{
+    return State.Visitors.Value;
+}
+
+```
+
+Build everything:
+
+```bash
+dotnet build
+```
+
+Should be success.
+
 #### Test
+
+In the **Integrated Terminal** navigate to the test folder: 
+
+```bash
+cd ../../test/HelloWorldContract.Test/
+```
+
+Add the following test to **HelloWorldContractTest** located in the **test/HelloWorldContract.Test** folder:
+
+```csharp
+[Fact]
+public async Task VisitCall_AddsVisitorToVisitorList()
+{
+    await HelloWorldContractStub.Visit.SendAsync(new Visitor { Name = "Jon Snow"});
+
+
+    var result = await HelloWorldContractStub.GetVisitors.CallAsync(new Empty());
+    result.ShouldBe(new VisitorList { Names = { "Jon Snow" }});
+}
+```
+
+```bash
+dotnet test
+```
+
+You should see the following: 
+
+```bash
+Total tests: 2. Passed: 2. Failed: 0. Skipped: 0.
+Test Run Successful.
+```
 
 <!-- ### MoreTesting
 
