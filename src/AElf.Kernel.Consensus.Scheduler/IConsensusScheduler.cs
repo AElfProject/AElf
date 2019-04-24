@@ -1,5 +1,4 @@
 using AElf.Kernel.EventMessages;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.Application
 {
