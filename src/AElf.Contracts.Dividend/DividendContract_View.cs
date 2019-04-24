@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
