@@ -75,7 +75,7 @@ namespace AElf.OS.Jobs
 
                 var blockHeight = chain.LastIrreversibleBlockHeight;
                 var count = _networkOptions.BlockIdRequestCount;
-                var peerBestChainHeight = await _networkService.GetBestChainHeightAsync();
+                var peerBestChainHeight = await _networkService.GetBestChainHeightAsync(args.SuggestedPeerPubKey);
                 while (true)
                 {
                     // Limit block sync job count, control memory usage
@@ -88,8 +88,7 @@ namespace AElf.OS.Jobs
 
                     Logger.LogDebug($"Request blocks start with {blockHash}");
 
-                    var peer = peerBestChainHeight - blockHeight > InitialSyncLimit ? null : args.SuggestedPeerPubKey;
-                    var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, count, peer);
+                    var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, count, args.SuggestedPeerPubKey);
 
                     if (blocks == null || !blocks.Any())
                     {
@@ -118,7 +117,7 @@ namespace AElf.OS.Jobs
                             KernelConsts.UpdateChainQueueName);
                     }
 
-                    peerBestChainHeight = await _networkService.GetBestChainHeightAsync();
+                    peerBestChainHeight = await _networkService.GetBestChainHeightAsync(args.SuggestedPeerPubKey);
                     if (blocks.Last().Height >= peerBestChainHeight)
                     {
                         break;
