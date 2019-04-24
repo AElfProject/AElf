@@ -164,13 +164,6 @@ namespace AElf.Contracts.Election
 
         public override Empty ReleaseTreasuryProfits(ReleaseTreasuryProfitsInput input)
         {
-            var createdProfitIds = State.ProfitContract.GetCreatedProfitItems.Call(new GetCreatedProfitItemsInput
-            {
-                Creator = Context.Self
-            }).ProfitIds;
-
-            Assert(createdProfitIds.Count >= 7, "Incorrect profit items count.");
-
             var totalReleasedAmount = input.MinedBlocks.Mul(ElectionContractConsts.ElfTokenPerBlock);
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
@@ -357,6 +350,12 @@ namespace AElf.Contracts.Election
             State.VoteContract.Withdraw.Send(new WithdrawInput
             {
                 VoteId = input
+            });
+            
+            State.ProfitContract.SubWeight.Send(new SubWeightInput
+            {
+                ProfitId = State.WelfareHash.Value,
+                Receiver = Context.Sender
             });
 
             return new Empty();
