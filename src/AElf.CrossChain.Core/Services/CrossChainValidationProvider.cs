@@ -35,10 +35,8 @@ namespace AElf.CrossChain
                 return extraData == null;
             }
             
-            bool res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block);
-            if(!res)
-                throw new ValidateNextTimeBlockValidationException("Cross chain validation failed after execution.");
-            return true;
+            var res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block);
+            return res;
         }
 
         private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, 
