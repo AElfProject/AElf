@@ -1,11 +1,9 @@
 # Setup
 
-You'll be guided through cloning the repository, running the example we provide as well as the unit tests. The first step you need to do is to follow the setup process in order to install all dependencies.
-
-This part of the tutorial will teach you the following points:
-- setting the basic environment for developing contracts and dApps.
+This article will get you started with AElf's Boilerplate project. You will learn the following items:
+- setting up the basic environment for developing contracts and dApps.
 - downloading **AElf Boilerplate**'s code and setting up Visual Studio Code.
-- running a template contract and basic interactions from a dApp frontend.
+- running a template contract and basic interactions from a dApp frontend with the Javascript SDK demo and the browser extension.
 
 ## Environment
 
@@ -33,7 +31,7 @@ git clone https://github.com/AElfProject/aelf-boilerplate
 
 This command will create a **aelf-boilerplate** folder with the code inside it.
 
-## Build and run
+## Run the contract
 
 #### Open the project
 
@@ -45,7 +43,7 @@ If asked to add some "required assets" say **yes**. There may also be some depen
   <img src="dep-yes.png" width="300">
 </p>
 
-Open vscode's terminal and build the project with the following command. Note: you can find out more about vscode's terminal [**here**](https://code.visualstudio.com/docs/editor/integrated-terminal).
+Open vscode's **Integrated Terminal** and build the project with the following command. Note: you can find out more about vscode's terminal [**here**](https://code.visualstudio.com/docs/editor/integrated-terminal).
 
 #### Install script
 
@@ -67,7 +65,7 @@ Note: if you prefer or have problems, you can refer to the following guide to [*
 #### Build and run
 
 ```bash
-cd aelf-boilerplate/chain/src/AElf.Boilerplate.Launcher/
+cd chain/src/AElf.Boilerplate.Launcher/
 dotnet build
 ```
 
@@ -94,7 +92,7 @@ The output should look somewhat like this:
 Total tests: 1. Passed: 1. Failed: 0. Skipped: 0.
 ```
 
-### Next
+## Next
 
 You've just seen a simple example of a smart contract run with our Boilerplate tutorial. When launching (with dotnet run) the contract was automatically deployed and ready to interact with. You also discovered how to navigate to the test folder and run the tests.
 
