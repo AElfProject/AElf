@@ -19,7 +19,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Consensus.DPoS.Types\AElf.Consensus.DPoS.Types.csproj" />
       <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
       <ProjectReference Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
       <ProjectReference Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
