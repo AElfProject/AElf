@@ -50,6 +50,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             _organizationAddress = await Create_Organization();
             var getOrganization = await ParliamentAuthContractStub.GetOrganization.CallAsync(_organizationAddress);
+            
             getOrganization.OrganizationAddress.ShouldBe(_organizationAddress);
             getOrganization.ReleaseThreshold.ShouldBe(10000/MinersCount);
             getOrganization.OrganizationHash.ShouldBe(Hash.FromTwoHashes(
@@ -71,6 +72,7 @@ namespace AElf.Contracts.ParliamentAuth
             _defaultOrganizationAddress = await Get_DefaultOrganizationAddress();
             var proposalId = await Create_Proposal(_defaultOrganizationAddress);
             var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId);
+            
             getProposal.Output.Proposer.ShouldBe(DefaultSender);
             getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContract.Transfer));
             getProposal.Output.ProposalId.ShouldBe(proposalId);
@@ -82,7 +84,6 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Get_ProposalFailed()
         {
-            
             var transactionResult = await ParliamentAuthContractStub.GetProposal.SendAsync(Hash.FromString("Test"));
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
@@ -122,48 +123,55 @@ namespace AElf.Contracts.ParliamentAuth
                 ExpiredTime = blockTime.AddDays(1).ToTimestamp(),
                 OrganizationAddress =_defaultOrganizationAddress
             };
+            //"Invalid proposal."
+            //ContractMethodName is null or white space
             {
-                //"Invalid proposal."
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
+            //ToAddress is null
             {
                 _createProposalInput.ContractMethodName = "Test";
                 _createProposalInput.ToAddress = null;
+                
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
+            //ExpiredTime is null
             {
                 _createProposalInput.ExpiredTime = null;
                 _createProposalInput.ToAddress = Address.FromString("Test");
+                
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
+            //"Expired proposal."
             {
-                //"Expired proposal."
-                
                 _createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5).ToTimestamp();
                 Thread.Sleep(10);
+                
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Expired proposal.").ShouldBeTrue();
             }
+            //"No registered organization."
             {
-                //"No registered organization."
                 _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1).ToTimestamp();
                 _createProposalInput.OrganizationAddress = Address.FromString("NoRegisteredOrganizationAddress");
+                
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
             }
+            //"Proposal already exists."
             {
-                //"Proposal already exists."
                 _createProposalInput.OrganizationAddress = _defaultOrganizationAddress;
                 var transactionResult1 = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
                 var transactionResult2 = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult2.TransactionResult.Error.Contains("Proposal already exists.").ShouldBeTrue();
@@ -186,6 +194,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             _defaultOrganizationAddress = await Get_DefaultOrganizationAddress();
             var proposalId = await Create_Proposal(_defaultOrganizationAddress);
+            
             ParliamentAuthContractStub = GetParliamentAuthContractTester(TesterKeyPair);
             var transactionResult = await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput
             {
@@ -200,6 +209,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             _defaultOrganizationAddress = await Get_DefaultOrganizationAddress();
             var proposalId = await Create_Proposal(_defaultOrganizationAddress);
+            
             ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);
             BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
             var transactionResult = await ParliamentAuthContractStub.Approve.CallAsync(new ApproveInput
@@ -214,6 +224,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             _defaultOrganizationAddress = await Get_DefaultOrganizationAddress();
             var proposalId = await Create_Proposal(_defaultOrganizationAddress);
+            
             ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);            
             var transactionResult1 = await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
             transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -242,12 +253,11 @@ namespace AElf.Contracts.ParliamentAuth
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             transactionResult2.Output.Value.ShouldBe(true);
             
-            /* After release,the proposal will be deleted
-            var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId.Result);
-            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
-            */
-            
+//            After release,the proposal will be deleted
+//            var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId.Result);
+//            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+//            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
+                      
             var getBalance =TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = "ELF",
@@ -267,11 +277,11 @@ namespace AElf.Contracts.ParliamentAuth
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             transactionResult.Output.Value.ShouldBe(true);
             
-            /* After release,the proposal will be deleted
-            var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId.Result);
-            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
-            */
+//            After release,the proposal will be deleted
+//            var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId.Result);
+//            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+//            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
+            
 
             var getBalance =TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -290,12 +300,11 @@ namespace AElf.Contracts.ParliamentAuth
             var transactionResult = await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             
-            /* After release,the proposal will be deleted
-            var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId.Result);
-            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
-            */
-            
+//            After release,the proposal will be deleted
+//            var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId.Result);
+//            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+//            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
+                        
             var getBalance =TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = "ELF",

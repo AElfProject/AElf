@@ -135,17 +135,5 @@ namespace AElf.Contracts.ReferendumAuth
                 });
             return balanceResult.Balance;
         }
-
-        protected async Task ApproveToken(ECKeyPair keyPair,string symbol, Address spender,long amount)
-        {
-            TokenContractStub = GetTokenContractTester(keyPair);
-            await TokenContractStub.Approve.SendAsync(new ApproveInput
-            {
-                Symbol = symbol,
-                Spender = spender,
-                Amount = amount,
-                
-            });
-        }
     }
 }
