@@ -89,7 +89,7 @@ Next you will see how AElf's js sdk is used to interact with the contract.
 
 ## Run the JS SDK Demo
 
-To run this demo you'll need to install [Nodejs](https://nodejs.org/) first.
+To run this demo you'll need to install [Nodejs](https://nodejs.org/) first. ([Nodjs image in China](http://nodejs.cn/download/))
 
 The following commands will navigate to the SDK's folder and demonstrate the capabilities of the js sdk, execute them in order:
 
