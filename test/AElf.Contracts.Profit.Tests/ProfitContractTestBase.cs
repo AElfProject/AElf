@@ -27,7 +27,12 @@ namespace AElf.Contracts.Profit
         internal List<ProfitContractContainer.ProfitContractStub> Creators => CreatorMinerKeyPair
             .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
 
+        internal List<ProfitContractContainer.ProfitContractStub> Normal => NormalMinerKeyPair
+            .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
+        
         protected List<ECKeyPair> CreatorMinerKeyPair => SampleECKeyPairs.KeyPairs.Skip(1).Take(4).ToList();
+        
+        protected List<ECKeyPair> NormalMinerKeyPair => SampleECKeyPairs.KeyPairs.Skip(5).Take(5).ToList();
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
 

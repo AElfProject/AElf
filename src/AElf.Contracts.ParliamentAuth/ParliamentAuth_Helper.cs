@@ -42,6 +42,13 @@ namespace AElf.Contracts.ParliamentAuth
         private bool IsValidRepresentative(IEnumerable<Address> representatives)
         {
             return representatives.Any(r => r.Equals(Context.Sender));
-        } 
+        }
+
+        private Hash GenerateOrganizationVirtualHash(CreateOrganizationInput input)
+        {
+            return Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
+        }
+
+        private int _defaultOrganizationReleaseThreshold = 6666; // 2/3 for default parliament organization
     }
 }
