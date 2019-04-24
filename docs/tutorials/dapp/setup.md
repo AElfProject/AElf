@@ -11,10 +11,7 @@ You'll be guided through cloning the repository, running the example we provide 
 If you don't have the following dependencies, please refer to your platforms installation guide:
 - Git for version control, follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
 - Dotnet core sdk for building and testing, you can [download it here](https://dotnet.microsoft.com/download).
-- depending on the platform, you will need a packet manager:
-  - for Mac [Homebrew](https://brew.sh/)
-  - for Windows [Chocolatey](https://chocolatey.org/install)
-  - for Linux, currently no packet manager is needed.
+- **if** you are using Mac you should [install Homebrew](https://brew.sh/).
 
 #### IDE
 
