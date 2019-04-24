@@ -5,6 +5,6 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
-        <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />
+        <ProjectReference Include="..\AElf.Blockchains.SideChain.StartModule\AElf.Blockchains.SideChain.StartModule.csproj" />
     </ItemGroup>
 </Project>

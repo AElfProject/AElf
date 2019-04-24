@@ -24,6 +24,11 @@ namespace AElf.OS.Node.Application
             new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
     }
 
+    public interface IGenesisSmartContractDtoProvider
+    {
+        IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress);
+    }
+
     public class OsBlockchainNodeContextStartDto
     {
         public int ChainId { get; set; }

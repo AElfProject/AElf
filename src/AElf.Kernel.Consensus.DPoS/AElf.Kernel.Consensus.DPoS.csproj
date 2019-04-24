@@ -13,7 +13,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Consensus.DPoS.Types\AElf.Consensus.DPoS.Types.csproj" />
-      <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler.FluentScheduler\AElf.Kernel.Consensus.Scheduler.FluentScheduler.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
@@ -32,13 +31,16 @@
       <Content Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
       </Content>
+        <Content Include="..\..\protobuf\consensus_dpos.proto">
+            <Link>Protobuf/Proto/consensus_dpos.proto</Link>
+        </Content>
       <Content Include="..\..\protobuf\dpos_contract.proto">
         <Link>Protobuf/Proto/dpos_contract.proto</Link>
       </Content>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_event_only.sh dpos_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_event_only.bat dpos_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_event_only.bat consensus_dpos.proto dpos_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

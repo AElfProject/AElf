@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Infrastructure;
 
-namespace AElf.CrossChain.Grpc
+namespace AElf.CrossChain
 {
     public interface IChainInitializationPlugin : INodePlugin
     {

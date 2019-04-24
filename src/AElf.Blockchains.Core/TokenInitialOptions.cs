@@ -1,4 +1,4 @@
-namespace AElf.Blockchains.BasicBaseChain
+namespace AElf.Blockchains
 {
     public class TokenInitialOptions
     {

@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\AElf.Blockchains.Core\AElf.Blockchains.Core.csproj" />
         <ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
