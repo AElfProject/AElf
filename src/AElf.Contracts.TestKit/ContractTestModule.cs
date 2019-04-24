@@ -12,7 +12,6 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContractExecution;
-using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
@@ -56,7 +55,7 @@ namespace AElf.Contracts.TestKit
         typeof(TransactionPoolAElfModule),
         typeof(ChainControllerAElfModule),
         typeof(CSharpRuntimeAElfModule),
-        typeof(TokenKernelAElfModule)
+        typeof(TokenModule)
     )]
     public class ContractTestModule : AbpModule
     {

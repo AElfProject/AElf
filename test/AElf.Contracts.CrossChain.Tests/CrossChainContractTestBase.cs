@@ -10,7 +10,6 @@ using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Token;
 using Google.Protobuf;
 using Shouldly;
 using Volo.Abp.Threading;

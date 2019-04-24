@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Kernel;
-using AElf.Kernel.Token;
 using Google.Protobuf;
 
 namespace AElf.Contracts.MultiToken

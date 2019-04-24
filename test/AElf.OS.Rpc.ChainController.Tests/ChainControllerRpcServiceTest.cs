@@ -11,7 +11,6 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Runtime.CSharp;
 using Google.Protobuf;

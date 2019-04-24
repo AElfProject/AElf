@@ -4,7 +4,6 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.Token;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;

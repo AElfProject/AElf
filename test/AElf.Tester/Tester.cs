@@ -13,7 +13,6 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.Token;
 using AElf.OS.Network;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;

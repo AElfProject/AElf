@@ -11,7 +11,6 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract;
-using AElf.Kernel.Token;
 using AElf.CSharp.Core;
 using Google.Protobuf.WellKnownTypes;
 using Google.Protobuf;

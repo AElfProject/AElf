@@ -7,7 +7,6 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Xunit;

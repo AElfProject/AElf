@@ -18,7 +18,6 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS.Consensus.DPos;
 using AElf.OS.Node.Application;

@@ -11,7 +11,6 @@ using AElf.CrossChain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
