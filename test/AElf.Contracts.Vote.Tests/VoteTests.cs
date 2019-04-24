@@ -38,7 +38,6 @@ namespace AElf.Contracts.Vote
             {
                 var input = new VotingRegisterInput
                 {
-                    Topic = string.Empty,
                     TotalEpoch = 1
                 };
                 
@@ -48,26 +47,11 @@ namespace AElf.Contracts.Vote
                 transactionResult.Error.Contains("Topic cannot be null or empty").ShouldBeTrue(); 
             }
             
-            //without option
-            {
-                var input = new VotingRegisterInput
-                {
-                    Topic = "test topic",
-                    TotalEpoch = 2,
-                    ActiveDays = 10
-                };
-                
-                var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
-            
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Options cannot be null or empty").ShouldBeTrue(); 
-            }
-            
             //endless vote event
             {
                 var input = new VotingRegisterInput
                 {
-                    Topic = "bp election topic",
+                    Topic = Hash.FromString("bp election topic"),
                     TotalEpoch = 1,
                     ActiveDays = int.MaxValue,
                     Options =
@@ -86,7 +70,7 @@ namespace AElf.Contracts.Vote
             {
                 var input = new VotingRegisterInput
                 {
-                    Topic = "bp election topic",
+                    Topic = Hash.FromString("bp election topic"),
                     TotalEpoch = 1,
                     ActiveDays = 100,
                     StartTimestamp = DateTime.UtcNow.ToTimestamp(),
@@ -110,7 +94,7 @@ namespace AElf.Contracts.Vote
             _options = GenerateOptions(3);
             var input = new VotingRegisterInput
             {
-                Topic = "Topic1",
+                Topic = Hash.FromString("Topic1"),
                 TotalEpoch = 1,
                 ActiveDays = 100,
                 StartTimestamp = DateTime.UtcNow.ToTimestamp(),
@@ -139,7 +123,7 @@ namespace AElf.Contracts.Vote
             {
                 var input = new VoteInput
                 {
-                    Topic = "Not existed vote",
+                    Topic = Hash.FromString("Not existed vote"),
                     Sponsor = Address.Generate(),
                 };
 
@@ -151,11 +135,11 @@ namespace AElf.Contracts.Vote
             
             //without such option
             {
-                await GenerateNewVoteEvent("topic0", 2, 100, 4, true);
+                await GenerateNewVoteEvent(Hash.FromString("topic0"), 2, 100, 4, true);
                 
                 var input = new VoteInput
                 {
-                    Topic = "topic0",
+                    Topic = Hash.FromString("topic0"),
                     Sponsor = DefaultSender,
                     Option = "Somebody"
                 };
@@ -170,11 +154,11 @@ namespace AElf.Contracts.Vote
             
             //not enough token
             {
-                await GenerateNewVoteEvent("topic1", 2, 100, 4, false);
+                await GenerateNewVoteEvent(Hash.FromString("topic1"), 2, 100, 4, false);
                 
                 var input = new VoteInput
                 {
-                    Topic = "topic1",
+                    Topic = Hash.FromString("topic1"),
                     Sponsor = DefaultSender,
                     Option = _options[1],
                     Amount = 2000_000L
@@ -192,7 +176,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_VoteSuccess()
         {
-            await GenerateNewVoteEvent("topic1", 2, 100, 4, false);
+            await GenerateNewVoteEvent(Hash.FromString("topic1"), 2, 100, 4, false);
 
             var voteAmount = 10_000L;
             var voteUser = SampleECKeyPairs.KeyPairs[1]; 
@@ -200,7 +184,7 @@ namespace AElf.Contracts.Vote
                 
             var input = new VoteInput
             {
-                Topic = "topic1",
+                Topic = Hash.FromString("topic1"),
                 Sponsor = DefaultSender,
                 Option = _options[1],
                 Amount = voteAmount
@@ -218,7 +202,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_AddOption()
         {
-            var topic = "vote test";
+            var topic = Hash.FromString("vote test");
             await GenerateNewVoteEvent(topic, 1, 10, 1, false);
             
             //operate with not sponsor
@@ -264,7 +248,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_RemoveOption()
         {
-            var topic = "vote test";
+            var topic = Hash.FromString("vote test");
             await GenerateNewVoteEvent(topic, 1, 10, 1, false);
             
             //operate with not sponsor
@@ -310,7 +294,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_GetVotingHistory()
         {
-            var topic = "vote test";
+            var topic = Hash.FromString("vote test");
             var voteUsrer = SampleECKeyPairs.KeyPairs[2];
             await GenerateNewVoteEvent(topic, 1, 10, 3, false);
             
@@ -319,7 +303,7 @@ namespace AElf.Contracts.Vote
                 var votingHistory = await VoteContractStub.GetVotingHistory.CallAsync(
                     new GetVotingHistoryInput
                     {
-                        Topic = "test1",
+                        Topic = Hash.FromString("test1"),
                         Sponsor = DefaultSender,
                         Voter = Address.Generate()
                     });
@@ -357,7 +341,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_GetVotingHistories()
         {
-            var topic = "vote test";
+            var topic = Hash.FromString("vote test");
             await GenerateNewVoteEvent(topic, 1, 10, 3, false);
             
             //without vote
@@ -392,7 +376,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task QueryVotingRecord()
         {
-            var topic = "vote test";
+            var topic = Hash.FromString("vote test");
             await GenerateNewVoteEvent(topic, 1, 10, 3, false);
             
             var voteUser = SampleECKeyPairs.KeyPairs[2];
@@ -423,7 +407,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_UpdateEpochNumber()
         {
-            var topic = "vote test";
+            var topic = Hash.FromString("vote test");
             var voteUser = SampleECKeyPairs.KeyPairs[2];
             //totalEpoch is 1
             {
@@ -455,7 +439,6 @@ namespace AElf.Contracts.Vote
         {
             //not exist voting record
             {
-                var topic = "test1";
                 var voteUser = SampleECKeyPairs.KeyPairs[1];
                 var voteUserStub = GetVoteContractTester(voteUser);
                 
@@ -470,7 +453,7 @@ namespace AElf.Contracts.Vote
             }
             //withdraw ongoing event
             {
-                var topic = "test2";
+                var topic = Hash.FromString("test2");
                 var voteUser = SampleECKeyPairs.KeyPairs[2];
                 var voteUserStub = GetVoteContractTester(voteUser);
                 await GenerateNewVoteEvent(topic, 1, 100, 2, false);
@@ -495,7 +478,7 @@ namespace AElf.Contracts.Vote
             
             //withdraw one completed event
             {
-                var topic = "test3";
+                var topic = Hash.FromString("test3");
                 var voteUser = SampleECKeyPairs.KeyPairs[3];
                 var voteAmount = 500L;
                 var voteUserStub = GetVoteContractTester(voteUser);
@@ -531,7 +514,7 @@ namespace AElf.Contracts.Vote
             
             //withdraw multiple times of completed event
             {
-                var topic = "test4";
+                var topic = Hash.FromString("test4");
                 var voteUser = SampleECKeyPairs.KeyPairs[4];
                 var voteAmount = 500L;
                 var voteUserStub = GetVoteContractTester(voteUser);
@@ -575,7 +558,7 @@ namespace AElf.Contracts.Vote
             
             //withdraw all tokens after event completed
             {
-                var topic = "test5";
+                var topic = Hash.FromString("test5");
                 var voteUser = SampleECKeyPairs.KeyPairs[5];
                 var voteAmount = 500L;
                 var voteUserStub = GetVoteContractTester(voteUser);
@@ -636,23 +619,24 @@ namespace AElf.Contracts.Vote
         {
             var hash = Hash.FromMessage(new VotingResult
             {
-                Topic = "test3",
+                Topic = Hash.FromString("test3"),
                 Sponsor = DefaultSender,
                 EpochNumber = 0
             });
+            
         }
 
         [Fact]
         public async Task GetVotingEvent()
         {
-            await GenerateNewVoteEvent("topic1", 2, 100, 4, false);
+            await GenerateNewVoteEvent(Hash.FromString("topic1"), 2, 100, 4, false);
             
             //without result
             {
                 var votingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
                 {
                     Sponsor = DefaultSender,
-                    Topic = "topic"
+                    Topic = Hash.FromString("topic")
                 });
                 
                 votingEvent.ShouldBe(new VotingEvent());
@@ -662,11 +646,11 @@ namespace AElf.Contracts.Vote
                 var votingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
                 {
                     Sponsor = DefaultSender,
-                    Topic = "topic1"
+                    Topic = Hash.FromString("topic1")
                 });
                 
                 votingEvent.ShouldNotBeNull();
-                votingEvent.Topic.ShouldBe("topic1");
+                votingEvent.Topic.ShouldBe(Hash.FromString("topic1"));
                 votingEvent.Sponsor.ShouldBe(DefaultSender);
                 votingEvent.Options.ShouldBe(_options);
             }
@@ -675,7 +659,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_GetVotingResult()
         {
-            var topic = "vote test";
+            var topic = Hash.FromString("vote test");
             var voteUser = SampleECKeyPairs.KeyPairs[2];
             await GenerateNewVoteEvent(topic, 1, 10, 3, false);
             await UserVote(voteUser, topic, DefaultSender, _options[1], 1000L);
@@ -692,7 +676,7 @@ namespace AElf.Contracts.Vote
             votingResult.Results.Values.First().ShouldBe(1000L);
         }
         
-        private async Task<TransactionResult> GenerateNewVoteEvent(string topic, int totalEpoch, int activeDays, int optionCount, bool delegated)
+        private async Task<TransactionResult> GenerateNewVoteEvent(Hash topic, int totalEpoch, int activeDays, int optionCount, bool delegated)
         {
             _options = GenerateOptions(optionCount);
             var input = new VotingRegisterInput
@@ -714,7 +698,7 @@ namespace AElf.Contracts.Vote
             return transactionResult;
         }
 
-        private async Task<TransactionResult> UserVote(ECKeyPair voteUser, string topic, Address sponsor, string option, long amount)
+        private async Task<TransactionResult> UserVote(ECKeyPair voteUser, Hash topic, Address sponsor, string option, long amount)
         {
             var input = new VoteInput
             {

@@ -14,6 +14,15 @@ namespace AElf.Contracts.Election
         {
             InitializeContracts();
         }
+
+        [Fact]
+        public async Task ElectionContract_CheckElectionVotingEvent()
+        {
+            var electionVotingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+            {
+                Sponsor = ElectionContractAddress,
+            });
+        }
         
         [Fact]
         public async Task ElectionContract_InitializeMultiTimes()

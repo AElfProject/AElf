@@ -11,7 +11,7 @@ message InitialVoteContractInput {
 }
 
 message VotingRegisterInput {
-    string topic = 1;
+    Hash topic = 1;
     google.protobuf.Timestamp start_timestamp = 2;
     string accepted_currency = 3;
     sint64 active_days = 4;
@@ -21,7 +21,7 @@ message VotingRegisterInput {
 }
 
 message VotingEvent {
-    string topic = 1;
+    Hash topic = 1;
     Address sponsor = 2;
     string accepted_currency = 3;
     sint64 active_days = 4;
@@ -35,7 +35,7 @@ message VotingEvent {
 }
 
 message VoteInput {
-    string topic = 1;
+    Hash topic = 1;
     Address sponsor = 2;
     sint64 amount = 3;
     string option = 4;
@@ -48,13 +48,13 @@ message WithdrawInput {
 }
 
 message GetVotingResultInput {
-    string topic = 1;
+    Hash topic = 1;
     Address sponsor = 2;
     sint64 epoch_number = 3;
 }
 
 message VotingResult {
-    string topic = 1;
+    Hash topic = 1;
     Address sponsor = 2;
     sint64 epoch_number = 3;
     map<string, sint64> results = 4;
@@ -64,12 +64,12 @@ message VotingResult {
 }
 
 message UpdateEpochNumberInput {
-    string topic = 1;
+    Hash topic = 1;
     sint64 epoch_number = 3;
 }
 
 message VotingRecord {
-    string topic = 1;
+    Hash topic = 1;
     Address sponsor = 2;
     sint64 epoch_number = 3;
     Address voter = 4;
@@ -82,13 +82,13 @@ message VotingRecord {
 }
 
 message AddOptionInput {
-    string topic = 1;
+    Hash topic = 1;
     Address sponsor = 2;
     string option = 3;
 }
 
 message RemoveOptionInput {
-    string topic = 1;
+    Hash topic = 1;
     Address sponsor = 2;
     string option = 3;
 }
@@ -105,11 +105,11 @@ message VotingHistory {
 
 message GetVotingHistoryInput {
     Address voter = 1;
-    string topic = 2;
+    Hash topic = 2;
     Address sponsor = 3;
 }
 
 message GetVotingEventInput {
-    string topic = 1;
+    Hash topic = 1;
     Address sponsor = 2;
 }

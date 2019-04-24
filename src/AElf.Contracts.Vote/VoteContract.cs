@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Net.Mime;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
@@ -27,14 +26,12 @@ namespace AElf.Contracts.Vote
 
         public override Empty Register(VotingRegisterInput input)
         {
-            input.Topic = input.Topic.Trim();
-
             if (input.TotalEpoch == 0)
             {
                 input.TotalEpoch = 1;
             }
             
-            Assert(!string.IsNullOrEmpty(input.Topic), "Topic cannot be null or empty.");
+            Assert(input.Topic != null, "Topic cannot be null or empty.");
             Assert(input.TotalEpoch > 0, "Total epoch number must be greater than 0.");
             Assert(input.ActiveDays > 0, "Total active days must be greater than 0.");
 
@@ -97,8 +94,6 @@ namespace AElf.Contracts.Vote
 
         public override Empty Vote(VoteInput input)
         {
-            input.Topic = input.Topic.Trim();
-            
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
 
             Assert(votingEvent.Options.Contains(input.Option), $"Option {input.Option} not found.");
@@ -189,7 +184,10 @@ namespace AElf.Contracts.Vote
         {
             var votingRecord = State.VotingRecords[input.VoteId];
             Assert(votingRecord != null, "Voting record not found.");
-
+            if (votingRecord == null)
+            {
+                return new Empty();
+            }
             var votingEventHash = new VotingEvent
             {
                 Topic = votingRecord.Topic,
@@ -242,8 +240,6 @@ namespace AElf.Contracts.Vote
 
         public override Empty UpdateEpochNumber(UpdateEpochNumberInput input)
         {
-            input.Topic = input.Topic.Trim();
-            
             var votingEvent = AssertVotingEvent(input.Topic, Context.Sender);
             
             Assert(votingEvent.CurrentEpoch <= votingEvent.TotalEpoch + 1, "Current voting event already terminated.");
@@ -335,8 +331,16 @@ namespace AElf.Contracts.Vote
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
             var allVotes = State.VotingHistoriesMap[input.Voter];
             Assert(allVotes != null, "Voting record not found.");
+            if (allVotes == null)
+            {
+                return new VotingHistory();
+            }
             var votes = allVotes.Votes[votingEvent.GetHash().ToHex()];
             Assert(votes != null, "Voting record not found.");
+            if (votes == null)
+            {
+                return new VotingHistory();
+            }
             var activeVotes = votes.ActiveVotes;
             var withdrawnVotes = votes.WithdrawnVotes;
             return new VotingHistory
@@ -345,7 +349,7 @@ namespace AElf.Contracts.Vote
             };
         }
 
-        private VotingEvent AssertVotingEvent(string topic, Address sponsor)
+        private VotingEvent AssertVotingEvent(Hash topic, Address sponsor)
         {
             var votingEvent = new VotingEvent
             {
