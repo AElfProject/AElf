@@ -45,8 +45,8 @@ namespace AElf.Contracts.Election
                 Topic = ElectionContractConsts.Topic,
                 Delegated = true,
                 AcceptedCurrency = Context.Variables.NativeSymbol,
-                ActiveDays = int.MaxValue,
-                TotalEpoch = int.MaxValue
+                ActiveDays = long.MaxValue,
+                TotalEpoch = long.MaxValue
             });
 
             return new Empty();

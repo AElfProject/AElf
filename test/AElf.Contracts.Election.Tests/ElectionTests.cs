@@ -21,7 +21,17 @@ namespace AElf.Contracts.Election
             var electionVotingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
             {
                 Sponsor = ElectionContractAddress,
+                Topic = ElectionContractConsts.Topic
             });
+
+            electionVotingEvent.Topic.ShouldBe(ElectionContractConsts.Topic);
+            electionVotingEvent.Options.Count.ShouldBe(0);
+            electionVotingEvent.Sponsor.ShouldBe(ElectionContractAddress);
+            electionVotingEvent.TotalEpoch.ShouldBe(long.MaxValue);
+            electionVotingEvent.CurrentEpoch.ShouldBe(1);
+            electionVotingEvent.Delegated.ShouldBe(true);
+            electionVotingEvent.ActiveDays.ShouldBe(long.MaxValue);
+            electionVotingEvent.AcceptedCurrency.ShouldBe(ElectionContractTestConsts.NativeTokenSymbol);
         }
         
         [Fact]
