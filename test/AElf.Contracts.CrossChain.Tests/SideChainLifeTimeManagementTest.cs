@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Acs3;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -10,7 +8,6 @@ using AElf.CrossChain;
 using AElf.Cryptography;
 using AElf.Kernel;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
 namespace AElf.Contract.CrossChain.Tests
@@ -341,7 +338,7 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract();
             await ApproveBalance(lockedTokenAmount);
             
-            var sideChainCreationRequest = CreateSideChainCreationRequest(1, 0, ByteString.CopyFromUtf8("Test"));
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
 
             var txResult = await Tester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.RequestChainCreation), sideChainCreationRequest);
@@ -362,23 +359,9 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task Create_SideChain_ChainNotExit()
         {
             await InitializeCrossChainContract();
-            //create proposal            
-            var createProposalInput = new SInt32Value
-            {
-                Value = ChainHelpers.GetChainId(5)
-            };
-            var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContract.GetDefaultOrganizationAddress), new Empty())).ReturnValue);
-            var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContract.CreateProposal), new CreateProposalInput
-                {
-                    ContractMethodName = "CreateSideChain",
-                    ExpiredTime = DateTime.UtcNow.AddDays(1).ToTimestamp(),
-                    Params = createProposalInput.ToByteString(),
-                    ToAddress = CrossChainContractAddress,
-                    OrganizationAddress = organizationAddress
-                });
-            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+            //create proposal  
+            var chainId = ChainHelpers.GetChainId(5);
+            var proposalId = await CreateProposal(chainId, "CreateSideChain");
             var approveTransaction1 = await GenerateTransactionAsync(ParliamentAddress,
                 nameof(ParliamentAuthContract.Approve), Tester.InitialMinerList[0], new Acs3.ApproveInput
                 {
@@ -398,7 +381,41 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.True(tx2Result.Error.Contains("Side chain creation request not found."));
         }
         
+        [Fact]
+        public async Task Create_SideChain_WrongStatus()
+        {
+            long lockedTokenAmount = 10;           
+            await InitializeCrossChainContract();
+            await ApproveBalance(lockedTokenAmount);
+            
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
 
+            var txResult = await Tester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
+                nameof(CrossChainContract.RequestChainCreation), sideChainCreationRequest);
+            var chainId = RequestChainCreationOutput.Parser.ParseFrom(txResult.ReturnValue).ChainId;
+            var proposalId1 = RequestChainCreationOutput.Parser.ParseFrom(txResult.ReturnValue).ProposalId;
+            await ApproveWithMiners(proposalId1);
+       
+            var proposalId2 = await CreateProposal(chainId, "CreateSideChain");
+            var approveTransaction1 = await GenerateTransactionAsync(ParliamentAddress,
+                nameof(ParliamentAuthContract.Approve), Tester.InitialMinerList[0], new Acs3.ApproveInput
+                {
+                    ProposalId = proposalId2
+                });
+            await Tester.MineAsync(new List<Transaction> {approveTransaction1});
+            var tx1Result = await GetTransactionResult(approveTransaction1.GetHash());
+            Assert.True(tx1Result.Status == TransactionResultStatus.Mined);
+            var approveTransaction2 = await GenerateTransactionAsync(ParliamentAddress,
+                nameof(ParliamentAuthContract.Approve), Tester.InitialMinerList[1], new Acs3.ApproveInput
+                {
+                    ProposalId = proposalId2
+                });
+            await Tester.MineAsync(new List<Transaction> {approveTransaction2});
+            var tx2Result = await GetTransactionResult(approveTransaction2.GetHash());
+            Assert.True(tx2Result.Status == TransactionResultStatus.Failed);
+            Assert.True(tx2Result.Error.Contains("Side chain creation request not found."));
+        }
+        
         [Fact]
         public async Task Request_SideChain_Disposal()
         {
@@ -543,22 +560,9 @@ namespace AElf.Contract.CrossChain.Tests
         {
             await InitializeCrossChainContract();
             //create proposal
-            var createProposalInput = new SInt32Value
-            {
-                Value = ChainHelpers.GetChainId(5)
-            };
-            var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContract.GetDefaultOrganizationAddress), new Empty())).ReturnValue);
-            var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContract.CreateProposal), new CreateProposalInput
-                {
-                    ContractMethodName = "DisposeSideChain",
-                    ExpiredTime = DateTime.UtcNow.AddDays(1).ToTimestamp(),
-                    Params = createProposalInput.ToByteString(),
-                    ToAddress = CrossChainContractAddress,
-                    OrganizationAddress = organizationAddress
-                });
-            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+            var chainId = ChainHelpers.GetChainId(5);
+            var proposalId = await CreateProposal(chainId, "DisposeSideChain");
+            
             var approveTransaction1 = await GenerateTransactionAsync(ParliamentAddress,
                 nameof(ParliamentAuthContract.Approve), Tester.InitialMinerList[0], new Acs3.ApproveInput
                 {
@@ -591,23 +595,8 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(CrossChainContract.RequestChainCreation),
                 sideChainCreationRequest);
             var chainId = RequestChainCreationOutput.Parser.ParseFrom(requestChainCreationResult.ReturnValue).ChainId;
-                      
-            var createProposalInput = new SInt32Value
-            {
-                Value = chainId
-            };
-            var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContract.GetDefaultOrganizationAddress), new Empty())).ReturnValue);
-            var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContract.CreateProposal), new CreateProposalInput
-                {
-                    ContractMethodName = "DisposeSideChain",
-                    ExpiredTime = DateTime.UtcNow.AddDays(1).ToTimestamp(),
-                    Params = createProposalInput.ToByteString(),
-                    ToAddress = CrossChainContractAddress,
-                    OrganizationAddress = organizationAddress
-                });
-            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+            var proposalId = await CreateProposal(chainId, "DisposeSideChain");
+            
             var approveTransaction1 = await GenerateTransactionAsync(ParliamentAddress,
                 nameof(ParliamentAuthContract.Approve), Tester.InitialMinerList[0], new Acs3.ApproveInput
                 {
