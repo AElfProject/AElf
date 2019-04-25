@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -47,12 +49,11 @@ namespace AElf.Kernel.ChainController.Application
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),
                     ChainId = _blockchainService.GetChainId()
                 };
-                
-                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions); 
+
+                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions);
                 var chain = await _blockchainService.CreateChainAsync(block);
-                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain,
-                    BlockAttachOperationStatus.LongestChainFound);
-                    
+                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, BlockAttachOperationStatus.LongestChainFound);
+
                 return await _blockchainService.GetChainAsync();
             }
             catch (Exception e)
