@@ -57,6 +57,8 @@ message HelloReturn {
 
 It's a simple contract that defines one method **Hello** and one type **HelloReturn**. We won't go through every detail of the definition, for this you can check out the [Smart Contract section](../../Contract/main.md) of this Gitbook.
 
+Note: the definition contains **no logic**, at build time when running 
+
 **Implementation**: the implementation is located in the **src/HelloWorldContract** folder, it contains two important files: the **state** and the **service implementation**.
 
 ```csharp
@@ -171,6 +173,8 @@ dotnet build
 Should be success.
 
 ### Test
+
+Now we're going to add a test to verify the behavior of our new contract methods.
 
 In the **Integrated Terminal** navigate to the test folder: 
 
