@@ -1,27 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using Google.Protobuf;
 
 namespace AElf.Kernel
 {
     public static class BlockExtensions
     {
-        /// <summary>
-        /// block signature
-        /// </summary>
-        /// <param name="keyPair"></param>
-        /// <exception cref="NotImplementedException"></exception>
-        public static void Sign(this IBlock block, byte[] publicKey, Func<byte[], Task<byte[]>> sign)
-        {
-            var hash = block.GetHash();
-            var bytes = hash.DumpByteArray();
-            var signature = sign(bytes).Result;
-
-            block.Header.Sig = ByteString.CopyFrom(signature);
-            block.Header.P = ByteString.CopyFrom(publicKey);
-        }
-
         /// <summary>
         /// Add transaction Hashes to the block
         /// </summary>
@@ -48,10 +34,20 @@ namespace AElf.Kernel
             return block.Body.AddTransaction(tx);
         }
 
-        
         public static void FillTxsMerkleTreeRootInHeader(this IBlock block)
         {
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
+        }
+
+        public static bool VerifySignature(this IBlock block)
+        {
+            if (block.Header.Sig == null || block.Header.P == null)
+            {
+                return false;
+            }
+            var recoverResult = CryptoHelpers.RecoverPublicKey(block.Header.Sig.ToByteArray(), 
+                                        block.GetHash().DumpByteArray(), out var recoveredPublicKey);
+            return recoverResult && block.Header.P.ToByteArray().BytesEqual(recoveredPublicKey);
         }
     }
 }

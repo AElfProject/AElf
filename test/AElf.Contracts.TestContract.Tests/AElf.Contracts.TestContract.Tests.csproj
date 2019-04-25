@@ -20,10 +20,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Contracts.TestContract.BasicSecurity\AElf.Contracts.TestContract.BasicSecurity.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Contracts.TestContract.BasicUpdate\AElf.Contracts.TestContract.BasicUpdate.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestContract.Basic1\AElf.Contracts.TestContract.Basic1.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestContract.Basic1Update\AElf.Contracts.TestContract.Basic1Update.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestContract.Basic2\AElf.Contracts.TestContract.Basic2.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -36,22 +36,22 @@
         <Content Include="..\..\protobuf\test_basic.proto">
             <Link>Protobuf/Proto/test_basic.proto</Link>
         </Content>
-        <Content Include="..\..\protobuf\test_basic1_contract.proto">
-            <Link>Protobuf/Proto/test_basic1_contract.proto</Link>
+        <Content Include="..\..\protobuf\test_basic_function_contract.proto">
+            <Link>Protobuf/Proto/test_basic_function_contract.proto</Link>
         </Content>
-        <Content Include="..\..\protobuf\test_basic11_contract.proto">
-            <Link>Protobuf/Proto/test_basic11_contract.proto</Link>
+        <Content Include="..\..\protobuf\test_basic_update_contract.proto">
+            <Link>Protobuf/Proto/test_basic_update_contract.proto</Link>
         </Content>
-        <Content Include="..\..\protobuf\test_basic2_contract.proto">
-            <Link>Protobuf/Proto/test_basic2_contract.proto</Link>
+        <Content Include="..\..\protobuf\test_basic_security_contract.proto">
+            <Link>Protobuf/Proto/test_basic_security_contract.proto</Link>
         </Content>
         <Content Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
         </Content>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto test_basic.proto test_basic1_contract.proto test_basic11_contract.proto test_basic2_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto test_basic.proto test_basic1_contract.proto test_basic11_contract.proto test_basic2_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto test_basic.proto test_basic_function_contract.proto test_basic_update_contract.proto test_basic_security_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto test_basic.proto test_basic_function_contract.proto test_basic_update_contract.proto test_basic_security_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

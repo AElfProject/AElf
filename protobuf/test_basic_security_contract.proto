@@ -5,12 +5,12 @@ import "common.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
-option csharp_namespace = "AElf.Contracts.TestContract.Basic2";
+option csharp_namespace = "AElf.Contracts.TestContract.BasicSecurity";
 
-service Basic2Contract {
-    option (aelf.csharp_state) = "AElf.Contracts.TestContract.Basic2.Basic2ContractState";
+service BasicSecurityContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.BasicSecurity.BasicSecurityContractState";
     //Actions
-    rpc InitialBasic2Contract(Address) returns (google.protobuf.Empty) {
+    rpc InitialBasicSecurityContract(Address) returns (google.protobuf.Empty) {
     }
     rpc TestBoolState(BoolInput) returns (google.protobuf.Empty) {
     }

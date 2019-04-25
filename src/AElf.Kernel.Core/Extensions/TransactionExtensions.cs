@@ -7,12 +7,6 @@ namespace AElf.Kernel
     {
         public static long GetExpiryBlockNumber(this Transaction transaction)
         {
-            // TODO: Add ExpiryBlockNumber to Transaction
-//            if (transaction.ExpiryBlockNumber != 0)
-//            {
-//                return transaction.ExpiryBlockNumber;
-//            }
-
             return transaction.RefBlockNumber + KernelConstants.ReferenceBlockValidPeriod;
         }
         public static int Size(this Transaction transaction)

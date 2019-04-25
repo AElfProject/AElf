@@ -1,15 +1,14 @@
-using System;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.Basic1
+namespace AElf.Contracts.TestContract.BasicFunction
 {
     /// <summary>
     /// Action methods
     /// </summary>
-    public partial class Basic1Contract : Basic1ContractContainer.Basic1ContractBase
+    public partial class BasicFunctionContract : BasicFunctionContractContainer.BasicFunctionContractBase
     {
-        public override Empty InitialBasic1Contract(InitialBasicContractInput input)
+        public override Empty InitialBasicFunctionContract(InitialBasicContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             Assert(input.MinValue >0 && input.MaxValue >0 && input.MaxValue >= input.MinValue, "Invalid min/max value input setting.");
@@ -58,14 +57,15 @@ namespace AElf.Contracts.TestContract.Basic1
 
         private long WinOrLose(long betAmount)
         {
-            var rd = new Random(DateTime.UtcNow.Millisecond);
-            var data = rd.Next(1, 1000);
+            var data = State.TotalBetBalance.Value.Sub(State.RewardBalance.Value);
+            if(data < 0)
+                data = data *(-1);
+                
             if (data % 100 == 1)
                 return betAmount * 1000;
-            else if (data % 50 == 5)
+            if (data % 50 == 5)
                 return betAmount * 50;
-            else
-                return 0;
+            return 0;
         }
     }
 }
