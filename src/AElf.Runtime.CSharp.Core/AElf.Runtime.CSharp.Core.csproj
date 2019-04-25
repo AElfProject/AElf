@@ -15,6 +15,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
+      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
-
+    
 </Project>
