@@ -60,19 +60,6 @@ namespace AElf.Contract.CrossChain.Tests
                 });
         }
 
-        protected async Task TransferBalance(long amount, Address address)
-        {
-            var callOwner = Address.FromPublicKey(Tester.KeyPair.PublicKey);
-            var transferResult = await Tester.ExecuteContractWithMiningReturnBlockAsync(TokenContractAddress,
-                nameof(TokenContract.Transfer), new TransferInput
-                {
-                    Symbol = "ELF",
-                    To = address,
-                    Amount = amount,
-                    Memo = "Transfer to other users"
-                });
-        }
-
         protected async Task InitializeCrossChainContract(int parentChainId = 0)
         {
             var crossChainInitializationTransaction = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
