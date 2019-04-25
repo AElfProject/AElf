@@ -249,6 +249,11 @@ namespace AElf.WebApp.Application.Chain
             }
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            
+            var methodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+            output.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+            
             return output;
         }
 
@@ -305,6 +310,10 @@ namespace AElf.WebApp.Application.Chain
 
                     transactionResultDto.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
 
+                    var methodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+                    transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                        methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+                        
                     transactionResultDto.Status = transactionResult.Status.ToString();
                     output.Add(transactionResultDto);
                 }
