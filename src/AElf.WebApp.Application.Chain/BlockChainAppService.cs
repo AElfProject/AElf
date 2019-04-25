@@ -90,6 +90,10 @@ namespace AElf.WebApp.Application.Chain
             {
                 var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
+                if (!transaction.VerifySignature())
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
+                }
                 var response = await CallReadOnly(transaction);
                 return response?.ToHex();
             }

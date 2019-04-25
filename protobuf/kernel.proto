@@ -14,7 +14,7 @@ message Transaction {
     string MethodName = 6;
     bytes Params = 7;
     uint64 Fee = 8;
-    repeated bytes Sigs = 9;
+    bytes Signature = 9;
 }
 
 enum TransactionStatus {

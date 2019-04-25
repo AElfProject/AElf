@@ -19,23 +19,28 @@ namespace AElf.Kernel
         {
             return transaction.CalculateSize();
         }
-        
-        //TODO: VerifySignature method need update, remove sig count check logic.
-        public static bool VerifySignature(this Transaction tx)
-        {
-            if (tx.Sigs == null || tx.Sigs.Count == 0)
-            {
-                return false;
-            }
 
-            if (tx.Sigs.Count == 1)
-            {
-                var canBeRecovered = CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(),
-                    tx.GetHash().DumpByteArray(), out var pubKey);
-                return canBeRecovered && Address.FromPublicKey(pubKey).Equals(tx.From);
-            }
-            
+        public static bool VerifyFormat(this Transaction transaction)
+        {
+            if (transaction.To == null || transaction.From == null)
+                return false;
+            if (transaction.To == transaction.From)
+                return false;
+            if (transaction.RefBlockNumber < 0)
+                return false;
+            if (string.IsNullOrEmpty(transaction.MethodName))
+                return false;
             return true;
+        }
+
+        public static bool VerifySignature(this Transaction transaction)
+        {
+            if (!transaction.VerifyFormat())
+                return false;
+
+            var canBeRecovered = CryptoHelpers.RecoverPublicKey(transaction.Signature.ToByteArray(),
+                transaction.GetHash().DumpByteArray(), out var pubKey);
+            return canBeRecovered && Address.FromPublicKey(pubKey).Equals(transaction.From);
         }
     }
 }

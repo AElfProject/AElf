@@ -1,7 +1,10 @@
+using System.Net.Sockets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using Google.Protobuf;
@@ -11,6 +14,7 @@ namespace AElf.Kernel
 {
     public class KernelTestHelper
     {
+        private ECKeyPair _keyPair = CryptoHelpers.GenerateKeyPair();
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly IChainManager _chainManager;
@@ -100,15 +104,18 @@ namespace AElf.Kernel
         {
             var transaction = new Transaction
             {
-                From = Address.Zero,
+                From = Address.FromPublicKey(_keyPair.PublicKey),
                 To = Address.Zero,
                 MethodName = Guid.NewGuid().ToString(),
+                Params = ByteString.Empty,
                 RefBlockNumber = refBlockNumber,
                 RefBlockPrefix = refBlockHash == null
                     ? ByteString.Empty
                     : ByteString.CopyFrom(refBlockHash.DumpByteArray().Take(4).ToArray())
             };
 
+            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+            transaction.Signature = ByteString.CopyFrom(signature);
             return transaction;
         }
         

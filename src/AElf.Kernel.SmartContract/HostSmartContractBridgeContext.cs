@@ -127,7 +127,7 @@ namespace AElf.Kernel.SmartContract
         /// <returns>Public key byte array</returns>
         public byte[] RecoverPublicKey()
         {
-            return RecoverPublicKey(TransactionContext.Transaction.Sigs.First().ToByteArray(),
+            return RecoverPublicKey(TransactionContext.Transaction.Signature.ToByteArray(),
                 TransactionContext.Transaction.GetHash().DumpByteArray());
         }
 

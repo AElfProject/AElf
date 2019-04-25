@@ -397,7 +397,7 @@ namespace AElf.Contracts.TestBase
             };
 
             var signature = CryptoHelpers.SignWithPrivateKey(KeyPair.PrivateKey, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature));
+            tx.Signature = ByteString.CopyFrom(signature);
 
             return tx;
         }
@@ -428,7 +428,7 @@ namespace AElf.Contracts.TestBase
             };
 
             var signature = CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature));
+            tx.Signature = ByteString.CopyFrom(signature);
 
             return tx;
         }
@@ -553,7 +553,7 @@ namespace AElf.Contracts.TestBase
             {
                 var signature =
                     CryptoHelpers.SignWithPrivateKey(callerKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
-                transaction.Sigs.Add(ByteString.CopyFrom(signature));
+                transaction.Signature = ByteString.CopyFrom(signature);
             }
         }
 

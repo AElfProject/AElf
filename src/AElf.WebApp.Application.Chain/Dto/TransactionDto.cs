@@ -14,6 +14,6 @@ namespace AElf.WebApp.Application.Chain.Dto
         
         public string Params { get; set; }
         
-        public string[] Sigs { get; set; }
+        public string Signature { get; set; }
     }
 }

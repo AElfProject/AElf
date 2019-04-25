@@ -135,8 +135,8 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             // Generate unsigned transaction
             var transaction = await _osTestHelper.GenerateTransferTransaction();
-            transaction.Sigs.Clear();
-            
+            transaction.Signature = ByteString.CopyFrom(new byte[0]);
+
             var parameters = new Dictionary<string,string>
             {
                 {"rawTransaction",transaction.ToByteArray().ToHex()}
@@ -557,7 +557,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
                 var signature =
                     CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
-                transaction.Sigs.Add(ByteString.CopyFrom(signature));
+                transaction.Signature = ByteString.CopyFrom(signature);
 
                 transactionList.Add(transaction); 
             }
@@ -573,9 +573,9 @@ namespace AElf.WebApp.Application.Chain.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                 method, input);
             
-            var signature =
-                CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
-            transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            var signature = CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, 
+                    transaction.GetHash().DumpByteArray());
+            transaction.Signature = ByteString.CopyFrom(signature);
 
             return Task.FromResult(transaction);
         }

@@ -18,9 +18,9 @@ namespace AElf.Kernel
 
         private byte[] GetSignatureData()
         {
-            if (To == null)
+            if (To == null || From == null || string.IsNullOrEmpty(MethodName) || RefBlockNumber < 0)
             {
-                throw new InvalidOperationException($"Transaction.To cannot be empty: {this}");
+                throw new InvalidOperationException($"Trancation invalid: {this}");
             }
 
             var txData = new Transaction
@@ -29,8 +29,7 @@ namespace AElf.Kernel
                 To = To.Clone(),
                 MethodName = MethodName
             };
-            if (Params.Length != 0)
-                txData.Params = Params;
+            txData.Params = Params;
             txData.RefBlockNumber = RefBlockNumber;
             txData.RefBlockPrefix = RefBlockPrefix;
             return txData.ToByteArray();

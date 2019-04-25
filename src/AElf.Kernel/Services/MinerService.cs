@@ -102,11 +102,8 @@ namespace AElf.Kernel.Services
 
         private async Task SignAsync(Transaction notSignerTransaction)
         {
-            if (notSignerTransaction.Sigs.Count > 0)
-                return;
-            // sign tx
             var signature = await _accountService.SignAsync(notSignerTransaction.GetHash().DumpByteArray());
-            notSignerTransaction.Sigs.Add(ByteString.CopyFrom(signature));
+            notSignerTransaction.Signature = ByteString.CopyFrom(signature);
         }
 
         /// <summary>

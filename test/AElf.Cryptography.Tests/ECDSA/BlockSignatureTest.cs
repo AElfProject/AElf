@@ -19,15 +19,17 @@ namespace AElf.Cryptography.Tests.ECDSA
             tx.From = Address.FromPublicKey(keyPair.PublicKey);
             tx.To = Address.Generate();
             tx.Params = ByteString.CopyFrom(new byte[0]);
-            //Console.WriteLine("From: {0}", tx.From);
-            //Console.WriteLine("Public key: {0}", keyPair.PublicKey.ToHex());
-            
+            tx.MethodName = "TestMethod";
+            tx.Params = ByteString.Empty;
+            tx.RefBlockNumber = 1;
+            tx.RefBlockPrefix = ByteString.Empty;
+
             // Serialize and hash the transaction
             Hash hash = tx.GetHash();
 
             // Sign the hash
             var signature = CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, hash.DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature));
+            tx.Signature = ByteString.CopyFrom(signature);
             Assert.True(tx.VerifySignature());
         }
     }
