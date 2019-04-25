@@ -21,7 +21,6 @@ namespace AElf.Contracts.ReferendumAuth
             var proposal = State.Proposals[proposalId];
             Assert(proposal != null, "Proposal not found.");
 
-            var organization = State.Organisations[proposal.OrganizationAddress];
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -30,8 +29,7 @@ namespace AElf.Contracts.ReferendumAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() && 
-                                IsReadyToRelease(proposalId, organization)
+                ToAddress = proposal.ToAddress,
             };
 
             return result;
@@ -68,8 +66,15 @@ namespace AElf.Contracts.ReferendumAuth
 
         public override Hash CreateProposal(CreateProposalInput proposal)
         {
+            Assert(
+                !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
+                && proposal.ToAddress != null
+                && proposal.OrganizationAddress != null
+                && proposal.ExpiredTime != null, "Invalid proposal.");
             var organization = State.Organisations[proposal.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
+            DateTime timestamp = proposal.ExpiredTime.ToDateTime();
+            Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
             Hash hash = Hash.FromMessage(proposal);
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = new ProposalInfo
@@ -95,6 +100,7 @@ namespace AElf.Contracts.ReferendumAuth
                 //State.Proposals[approval.ProposalId] = null;
                 return new BoolValue{Value = false};
             }
+            Assert(approval.Quantity > 0, "Invalid vote.");
             var lockedTokenAmount = approval.Quantity;
 
             Assert(State.LockedTokenAmount[Context.Sender][approval.ProposalId] == null,
@@ -106,9 +112,9 @@ namespace AElf.Contracts.ReferendumAuth
                 LockId = Context.TransactionId,
                 TokenSymbol = organization.TokenSymbol
             };
-            State.ApprovedTokenAmount[approval.ProposalId].Value += lockedTokenAmount;
+            State.ApprovedTokenAmount[approval.ProposalId] += lockedTokenAmount;
 
-            State.TokenContract.Lock.Send(new LockInput
+            LockToken(new LockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
@@ -134,8 +140,8 @@ namespace AElf.Contracts.ReferendumAuth
             var proposal = State.Proposals[proposalId];
             Assert(proposal == null ||
                 Context.CurrentBlockTime > proposal.ExpiredTime.ToDateTime(), "Unable to reclaim at this time.");
-            State.LockedTokenAmount[Context.Sender][proposalId] = null;
-            State.TokenContract.Unlock.Send(new UnlockInput
+            // State.LockedTokenAmount[Context.Sender][proposalId] = null;
+            UnlockToken(new UnlockInput
             {
                 Amount = voteToken.Amount,
                 From = Context.Sender,

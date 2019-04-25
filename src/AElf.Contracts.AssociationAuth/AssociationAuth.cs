@@ -20,8 +20,8 @@ namespace AElf.Contracts.AssociationAuth
         public override ProposalOutput GetProposal(Hash proposalId)
         {
             var proposal = State.Proposals[proposalId];
-            var organization = GetOrganization(proposal.OrganizationAddress);
-
+            Assert(proposal !=null,"Not found proposal.");
+            
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -30,7 +30,7 @@ namespace AElf.Contracts.AssociationAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() && IsReadyToRelease(proposal, organization)
+                ToAddress = proposal.ToAddress
             };
 
             return result;
@@ -42,6 +42,11 @@ namespace AElf.Contracts.AssociationAuth
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
+            var isValidWeight = input.Reviewers.All(r => r.Weight >= 0);
+            var canBeProposed = input.Reviewers.Any(r => r.Weight >= input.ProposerThreshold);
+            var canBeReleased = input.Reviewers.Aggregate(0, (i, reviewer) => i + reviewer.Weight) >
+                                input.ReleaseThreshold;
+            Assert(isValidWeight && canBeProposed && canBeReleased, "Invalid organization." );
             var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
             Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             if(State.Organisations[organizationAddress] == null)
@@ -67,7 +72,6 @@ namespace AElf.Contracts.AssociationAuth
             Assert(
                 !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
                 && proposal.ToAddress != null
-                && proposal.OrganizationAddress != null
                 && proposal.ExpiredTime != null, "Invalid proposal.");
             DateTime timestamp = proposal.ExpiredTime.ToDateTime();
             Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
@@ -100,7 +104,7 @@ namespace AElf.Contracts.AssociationAuth
                 return new BoolValue{Value = false};
             }
             // check approval not existed
-            Assert(proposalInfo.ApprovedReviewer.Contains(Context.Sender), "Approval already exists.");
+            Assert(!proposalInfo.ApprovedReviewer.Contains(Context.Sender), "Approval already exists.");
             var organization = GetOrganization(proposalInfo.OrganizationAddress);
             var reviewer = organization.Reviewers.FirstOrDefault(r => r.Address.Equals(Context.Sender));
             Assert(reviewer != null,"Not authorized approval.");

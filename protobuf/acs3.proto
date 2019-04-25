@@ -40,5 +40,4 @@ message ProposalOutput{
     google.protobuf.Timestamp expiredTime = 5;
     Address organizationAddress = 6;
     Address proposer = 7;
-    bool canBeReleased = 8;
 }
