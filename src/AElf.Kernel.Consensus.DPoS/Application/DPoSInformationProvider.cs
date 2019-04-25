@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf.WellKnownTypes;
 

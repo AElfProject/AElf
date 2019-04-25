@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
