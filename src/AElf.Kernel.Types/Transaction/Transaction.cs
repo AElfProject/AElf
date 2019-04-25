@@ -20,7 +20,7 @@ namespace AElf.Kernel
         {
             if (To == null || From == null || string.IsNullOrEmpty(MethodName) || RefBlockNumber < 0)
             {
-                throw new InvalidOperationException($"Trancation invalid: {this}");
+                throw new InvalidOperationException($"Invalid trancation: {this}");
             }
 
             var txData = new Transaction

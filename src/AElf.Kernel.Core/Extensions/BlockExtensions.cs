@@ -39,12 +39,21 @@ namespace AElf.Kernel
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
         }
 
-        public static bool VerifySignature(this IBlock block)
+        public static bool VerifyFormat(this IBlock block)
         {
             if (block.Header.Sig == null || block.Header.P == null)
-            {
                 return false;
-            }
+            if (block.Body.Transactions.Count == 0)
+                return false;
+            
+            return true;
+        }
+
+        public static bool VerifySignature(this IBlock block)
+        {
+            if (!block.VerifyFormat())
+                return false;
+
             var recoverResult = CryptoHelpers.RecoverPublicKey(block.Header.Sig.ToByteArray(), 
                                         block.GetHash().DumpByteArray(), out var recoveredPublicKey);
             return recoverResult && block.Header.P.ToByteArray().BytesEqual(recoveredPublicKey);
