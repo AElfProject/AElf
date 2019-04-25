@@ -19,7 +19,7 @@ namespace AElf.Contracts.ParliamentAuth
         private void CheckProposerAuthority(Address organizationAddress)
         {
             // add some checks if needed. Any one can propose if no checking here.
-            var organization = GetOrganization(organizationAddress);
+            // TODO: proposer authority to be checked
         }
         
         private bool IsReadyToRelease(ProposalInfo proposal, Organization organization,

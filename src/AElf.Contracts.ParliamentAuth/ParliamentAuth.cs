@@ -21,9 +21,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             var proposal = State.Proposals[proposalId];
             Assert(proposal != null, "Not found proposal.");
-            var organization = State.Organisations[proposal.OrganizationAddress];
-            var representatives = GetRepresentatives();
-
+            
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -32,8 +30,7 @@ namespace AElf.Contracts.ParliamentAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                CanBeReleased = Context.CurrentBlockTime < proposal.ExpiredTime.ToDateTime() &&
-                                IsReadyToRelease(proposal, organization, representatives)
+                ToAddress = proposal.ToAddress
             };
 
             return result;
@@ -59,6 +56,7 @@ namespace AElf.Contracts.ParliamentAuth
         
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
+            Assert(input.ReleaseThreshold > 0 && input.ReleaseThreshold <= 10000, "Invalid organization.");
             var organizationHash = GenerateOrganizationVirtualHash(input);
             Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
             if(State.Organisations[organizationAddress] == null)
@@ -77,6 +75,8 @@ namespace AElf.Contracts.ParliamentAuth
         public override Hash CreateProposal(CreateProposalInput proposal)
         {
             CheckProposerAuthority(proposal.OrganizationAddress);
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            Assert(organization != null, "No registered organization.");
             Assert(
                 !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
                 && proposal.ToAddress != null
