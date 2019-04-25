@@ -22,6 +22,11 @@ namespace AElf.CrossChain
             return Task.FromResult(true);
         }
 
+        public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
+        {
+            return true;
+        }
+
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
             if (block.Height == KernelConstants.GenesisBlockHeight)

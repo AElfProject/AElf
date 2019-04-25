@@ -37,7 +37,7 @@ namespace AElf.Kernel.Blockchain.Application
             validateResult.ShouldBeFalse();
             
             block.Body.Transactions.Add(Hash.Empty);
-            validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
+            validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync( block);
             validateResult.ShouldBeFalse();
 
             block.Header.Time = DateTime.UtcNow.ToTimestamp();
