@@ -12,7 +12,7 @@ To easily follow this tutorial you will need to open the the **AElf Boilerplate*
   <img src="aelf-root.png" width="100">
 </p>
 
-In the previous image you can see that the repository is composed of a **chain** and a **web** folder. The following content will help you understand the content of the **chain** folder.
+In the previous image you can see that the repository is composed of a **chain** and a **web** folder. The following content will help you understand the content of the **chain** folder. Every path in the following tutorial will be relative to this folder.
 
 ### Folder structure
 
@@ -33,9 +33,9 @@ This guide will focus on the **HelloWorldContract** and **HelloWorldContract.Tes
 
 ### Definition and implementation
 
-**Definition**: in AElf contracts are defined as services and are implemented using protobuf. Let's take a look at the **hello_world.proto** file located in the **protobuf/** folder:
+**Definition**: in AElf, contracts are defined as services and are implemented using protobuf. Let's take a look at the **hello_world.proto** file located in the **protobuf/** folder:
 
-```bash
+```protobuf
 syntax = "proto3";
 
 import "aelf_options.proto";
@@ -57,7 +57,7 @@ message HelloReturn {
 
 It's a simple contract that defines one method **Hello** and one type **HelloReturn**. We won't go through every detail of the definition, for this you can check out the [Smart Contract section](../../Contract/main.md) of this Gitbook.
 
-**Implementation**: the implementation is located in the **src/HelloWorldContract** folder, it contains two important files: the **state* and the **service implentation**.
+**Implementation**: the implementation is located in the **src/HelloWorldContract** folder, it contains two important files: the **state** and the **service implementation**.
 
 ```csharp
 using Google.Protobuf.WellKnownTypes;
@@ -108,7 +108,7 @@ The following content will guide you through adding some methods and state to th
 
 Add the following to the "hello_world.proto" right after the **Hello** rpc method:
 
-```bash
+```protobuf
 rpc Visit (Visitor) returns (google.protobuf.Empty) { }
 rpc GetVisitors (google.protobuf.Empty) returns (VisitorList) { }
 ```
@@ -128,7 +128,7 @@ message VisitorList {
 Note: assuming you're at the root of AElf Boilerplate's clone, execute the following command to generate the protobuf messages and service base on the definition we just extended:
 
 ```bash
-cd chain/src/HelloWorldContract/
+cd src/HelloWorldContract/
 dotnet build
 ```
 
