@@ -92,7 +92,6 @@ namespace AElf.Contracts.Consensus.DPoS
             UpdateBlockchainAge(input.BlockchainAge);
 
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
-            //UpdateHistoryInformation(input);
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
             TryToFindLIB();

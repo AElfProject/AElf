@@ -12,7 +12,8 @@ message InitialElectionContractInput {
     Hash vote_contract_system_name = 1;
     Hash profit_contract_system_name = 2;
     Hash token_contract_system_name = 3;
-    sint32 days_each_term = 4;
+    Hash aelf_consensus_contract_system_name = 4;
+    sint32 days_each_term = 5;
 }
 
 message RegisterElectionVotingEventInput {
@@ -25,6 +26,17 @@ message CreateTreasuryInput {
 
 message RegisterToTreasuryInput {
     
+}
+
+message GetTermSnapshotInput {
+    sint64 term_number = 1;
+}
+
+message UpdateCandidateInformationInput {
+    string public_key = 1;
+    sint64 recently_produced_blocks = 2;
+    sint64 recently_missed_time_slots = 3;
+    bool is_evil_node = 4;
 }
 
 message ReleaseTreasuryProfitsInput {
@@ -161,3 +173,4 @@ message TermSnapshot {
     map<string, sint64> CandidatesVotes = 3;
     sint64 TermNumber = 4;
 }
+

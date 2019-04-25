@@ -33,8 +33,19 @@ service ElectionContract {
     }
     rpc Withdraw (Hash) returns (google.protobuf.Empty) {
     }
+    rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
+    }
 
     // View
+    rpc GetCandidateHistory (StringInput) returns (CandidateHistory) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVictories (google.protobuf.Empty) returns (PublicKeysList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTermSnapshot (GetTermSnapshotInput) returns (TermSnapshot) {
+        option (aelf.is_view) = true;
+    }
     rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
         option (aelf.is_view) = true;
     }
@@ -61,9 +72,5 @@ service ElectionContract {
     }
     rpc QueryCurrentDividendsForVoters (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
-    }
-    
-    rpc GetVictories (google.protobuf.Empty) returns (PublicKeysList) {
-            option (aelf.is_view) = true;
     }
 }

@@ -30,6 +30,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             Assert(currentRound != null && currentRound.RoundId != 0, "Consensus not initialized.");
 
+            if (currentRound == null) return new ConsensusCommand();
+
             var command = GetConsensusCommand(behaviour, currentRound, input.PublicKey.ToHex(),
                 Context.CurrentBlockTime);
 
@@ -204,7 +206,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     }
 
                     // Only one Out Value should be filled.
-                    // TODO: Miner can only update his information.
                     if (!NewOutValueFilled(input.Round.RealTimeMinersInformation.Values))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
@@ -213,7 +214,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     break;
                 case AElfConsensusBehaviour.NextRound:
                     // None of in values should be filled.
-                    // TODO: Modified.
                     if (input.Round.RealTimeMinersInformation.Values.Any(m => m.InValue != null))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect in values."};
@@ -325,10 +325,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             }
             else
             {
-                Assert(TryToGetCandidateHistory(senderPublicKey, out var history),
-                    "Failed to get sender's history information.");
-                history.ProducedBlocks += 1;
-                AddOrUpdateMinerHistoryInformation(history);
+                UpdateCandidateInformation(senderPublicKey, 1, 0);
             }
 
             return round;
@@ -342,20 +339,16 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
         private bool TryToGetCandidateHistory(string publicKey, out CandidateHistory history)
         {
-            // TODO: From Election Contract
-            throw new NotImplementedException();
-        }
-
-        private void AddOrUpdateMinerHistoryInformation(CandidateHistory history)
-        {
-            // TODO: To Election Contract
-            throw new NotImplementedException();
+            history = State.ElectionContract.GetCandidateHistory.Call(new StringInput {Value = publicKey});
+            return history.PublicKey == publicKey;
         }
 
         private bool TryToGetVictories(out Miners victories)
         {
-            // TODO: From Election Contract
-            throw new NotImplementedException();
+            var victoriesPublicKeys = State.ElectionContract.GetVictories.Call(new Empty());
+            victories = new Miners
+                {PublicKeys = {victoriesPublicKeys.Value}, TermNumber = State.CurrentTermNumber.Value};
+            return victories.PublicKeys.Any();
         }
 
         private void ShareAndRecoverInValue(Round round, Round previousRound, Hash inValue, string publicKey)
@@ -453,7 +446,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                         }
 
                         // Update history information of evil node.
-                        UpdateCandidateHistory(publicKeyToRemove,
+                        UpdateCandidateInformation(publicKeyToRemove,
                             currentRound.RealTimeMinersInformation[publicKeyToRemove].ProducedBlocks,
                             currentRound.RealTimeMinersInformation[publicKeyToRemove].MissedTimeSlots, true);
 
@@ -473,17 +466,16 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             return result;
         }
 
-        private void UpdateCandidateHistory(string candidatePublicKey, long recentProducedBlocks,
-            long recentMissedTimeSlots, bool isEvilNode = false)
+        private void UpdateCandidateInformation(string candidatePublicKey, long recentlyProducedBlocks,
+            long recentlyMissedTimeSlots, bool isEvilNode = false)
         {
-//            var history = State.HistoryMap[publicKeyToRemove.ToStringValue()];
-//            history.ProducedBlocks +=
-//                currentRound.RealTimeMinersInformation[publicKeyToRemove].ProducedBlocks;
-//            history.MissedTimeSlots += 
-//                currentRound.RealTimeMinersInformation[publicKeyToRemove].MissedTimeSlots;
-//            history.IsEvilNode = true;
-//            State.HistoryMap[publicKeyToRemove.ToStringValue()] = history;
-            throw new NotImplementedException();
+            State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
+            {
+                PublicKey = candidatePublicKey,
+                RecentlyProducedBlocks = recentlyProducedBlocks,
+                RecentlyMissedTimeSlots = recentlyMissedTimeSlots,
+                IsEvilNode = isEvilNode
+            });
         }
 
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
@@ -499,8 +491,12 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
         {
-            // TODO: From Election Contract
-            throw new NotImplementedException();
+            snapshot = State.ElectionContract.GetTermSnapshot.Call(new GetTermSnapshotInput
+            {
+                TermNumber = termNumber
+            });
+
+            return snapshot.TermNumber == termNumber;
         }
 
         private string GetNextAvailableMinerPublicKey(Round round)

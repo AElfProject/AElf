@@ -35,22 +35,11 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             }
             else
             {
-                // TODO: Add or update candidate history.
-/*                if (TryToGetMinerHistoryInformation(senderPublicKey, out var historyInformation))
+                State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
                 {
-                    historyInformation.ProducedBlocks += 1;
-                }
-                else
-                {
-                    historyInformation = new CandidateInHistory
-                    {
-                        PublicKey = senderPublicKey,
-                        ProducedBlocks = 1,
-                        CurrentAlias = senderPublicKey.Substring(0, DPoSContractConsts.AliasLimit)
-                    };
-                }*/
-
-                //AddOrUpdateMinerHistoryInformation(historyInformation);
+                    PublicKey = senderPublicKey,
+                    RecentlyProducedBlocks = 1
+                });
             }
 
             // Update miners list.

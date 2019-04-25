@@ -33,6 +33,6 @@ namespace AElf.Contracts.Election
         /// </summary>
         public MappedState<Hash, int> LockTimeMap { get; set; }
 
-
+        public MappedState<long, TermSnapshot> Snapshots { get; set; }
     }
 }
