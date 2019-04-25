@@ -39,7 +39,7 @@ namespace AElf.Contracts.CrossChain
         public override RequestChainCreationOutput RequestChainCreation(SideChainCreationRequest input)
         {
             // no need to check authority since invoked in transaction from normal address
-            Assert(input.LockedTokenAmount > 0 && input.LockedTokenAmount > input.IndexingPrice,
+            Assert(input.LockedTokenAmount > 0 && input.LockedTokenAmount > input.IndexingPrice && !input.ContractCode.IsEmpty,
                 "Invalid chain creation request.");
 
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
