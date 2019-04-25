@@ -10,10 +10,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
         public SingletonState<long> LockTokenForElection { get; set; }
 
-        public SingletonState<bool> IsTermChangeable { get; set; }
-
-        public SingletonState<bool> IsSideChain { get; set; }
-
         public SingletonState<int> DaysEachTerm { get; set; }
 
         public SingletonState<long> CurrentRoundNumber { get; set; }

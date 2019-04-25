@@ -13,11 +13,10 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             Assert(!State.Initialized.Value, "Already initialized.");
 
             State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
-            State.LockTokenForElection.Value = input.LockTokenForElection;
-            State.IsTermChangeable.Value = input.IsTermChangeable;
-            State.IsSideChain.Value = input.IsSideChain;
 
-            State.DaysEachTerm.Value = input.IsSideChain ? int.MaxValue : input.DaysEachTerm;
+            input.DaysEachTerm = input.DaysEachTerm == 0 ? int.MaxValue : input.DaysEachTerm;
+
+            State.DaysEachTerm.Value = input.IsSideChain || input.IsTermStayOne ? int.MaxValue : input.DaysEachTerm;
 
             return new Empty();
         }
@@ -132,7 +131,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 });
             }
         }
-
 
         private bool CalculateLIB(out long offset)
         {

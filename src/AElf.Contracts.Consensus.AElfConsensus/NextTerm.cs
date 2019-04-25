@@ -68,20 +68,14 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             // Update rounds information of next two rounds.
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 
-            if (State.IsTermChangeable.Value)
+            State.ElectionContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(State.ElectionContractSystemName.Value);
+            State.ElectionContract.ReleaseTreasuryProfits.Send(new ReleaseTreasuryProfitsInput
             {
-                State.ElectionContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.ElectionContractSystemName.Value);
-                State.ElectionContract.ReleaseTreasuryProfits.Send(new ReleaseTreasuryProfitsInput
-                {
-                    MinedBlocks = input.GetMinedBlocks(),
-                    TermNumber = termNumber
-                });
+                MinedBlocks = input.GetMinedBlocks(),
+                TermNumber = termNumber
+            });
                 
-                // TODO: Snapshot
-                
-            }
-
             Context.LogDebug(() => $"Changing term number to {input.TermNumber}");
             TryToFindLIB();
             return new Empty();

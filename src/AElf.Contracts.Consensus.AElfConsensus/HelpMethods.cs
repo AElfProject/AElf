@@ -59,7 +59,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             // and the terminate time will based on the order of this node (to avoid conflicts).
             
             // Side chain will go next round directly.
-            if (State.IsSideChain.Value)
+            if (State.DaysEachTerm.Value == int.MaxValue)
             {
                 return AElfConsensusBehaviour.NextRound;
             }

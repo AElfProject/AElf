@@ -5,6 +5,13 @@ option csharp_namespace = "AElf.Consensus.AElfConsensus";
 import "common.proto";
 import "google/protobuf/timestamp.proto";
 
+message InitialAElfConsensusContractInput {
+    Hash election_contract_system_name = 1;
+    bool is_term_stay_one = 2;
+    bool is_side_chain = 3;
+    sint32 days_each_term = 4;
+}
+
 // Just used as parameter of consensus contract method.
 message ToUpdate {
     Hash OutValue = 1;// Calculated from current in value.
@@ -97,13 +104,7 @@ message CommandInput {
     bytes PublicKey = 1;
 }
 
-message InitialAElfConsensusContractInput {
-    Hash election_contract_system_name = 1;
-    sint64 lock_token_for_election = 2;
-    bool is_term_changeable = 3;// If this is false, will always use initial miners to do the mining.
-    bool is_side_chain = 4;
-    sint32 days_each_term = 5;
-}
+
 
 message TermInfo {
     sint64 termNumber = 1;

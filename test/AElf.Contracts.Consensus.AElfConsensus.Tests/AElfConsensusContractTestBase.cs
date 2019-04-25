@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Consensus.AElfConsensus;
 using AElf.Contracts.Consensus.AElfConsensus;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
@@ -10,31 +11,38 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 
-namespace AElf.Contracts.Profit
+namespace AElf.Contracts.Consensus.AElfConsensus
 {
     public class AElfConsensusContractTestBase : ContractTestBase<AElfConsensusContractTestAElfModule>
     {
-        protected Hash TreasuryHash { get; set; }
+        protected const int InitialMinersCount = 5;
+
+        protected const int DaysEachTerm = 7;
+        
+        protected const int MiningInterval = 4000;
+        
         protected ECKeyPair StarterKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address Starter => Address.FromPublicKey(StarterKeyPair.PublicKey);
+        protected Address BootMinerAddress => Address.FromPublicKey(StarterKeyPair.PublicKey);
         protected Address AElfConsensusContractAddress { get; set; }
         protected Address ElectionContractAddress { get; set; }
         
-        internal List<AElfConsensusContractContainer.AElfConsensusContractStub> Creators => CreatorMinerKeyPair
+        internal List<AElfConsensusContractContainer.AElfConsensusContractStub> InitialMiners => InitialMinersKeyPair
             .Select(p => GetTester<AElfConsensusContractContainer.AElfConsensusContractStub>(ElectionContractAddress, p)).ToList();
 
-        internal List<AElfConsensusContractContainer.AElfConsensusContractStub> Normal => NormalMinerKeyPair
+        internal AElfConsensusContractContainer.AElfConsensusContractStub BootMiner => InitialMiners[0];
+        internal List<AElfConsensusContractContainer.AElfConsensusContractStub> BackupNodes => BackupNodesKeyPair
             .Select(p => GetTester<AElfConsensusContractContainer.AElfConsensusContractStub>(ElectionContractAddress, p)).ToList();
         
-        protected List<ECKeyPair> CreatorMinerKeyPair => SampleECKeyPairs.KeyPairs.Skip(1).Take(4).ToList();
+        protected List<ECKeyPair> InitialMinersKeyPair => SampleECKeyPairs.KeyPairs.Take(InitialMinersCount).ToList();
         
-        protected List<ECKeyPair> NormalMinerKeyPair => SampleECKeyPairs.KeyPairs.Skip(5).Take(5).ToList();
+        protected List<ECKeyPair> BackupNodesKeyPair => SampleECKeyPairs.KeyPairs.Skip(InitialMinersCount).Take(InitialMinersCount).ToList();
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
 
@@ -46,26 +54,27 @@ namespace AElf.Contracts.Profit
         {
             BasicContractZeroStub = GetContractZeroTester(StarterKeyPair);
             
+            // Deploy Election Contract.
             ElectionContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ElectionContract).Assembly.Location)),
-                        Name = ProfitSmartContractAddressNameProvider.Name,
+                        Name = ElectionSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateElectionInitializationCallList()
                     })).Output;
             AElfConsensusContractStub = GetAElfConsensusContractTester(StarterKeyPair);
 
-            //deploy token contract
+            // Deploy AElf Consensus Contract.
             AElfConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
                 .DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AElfConsensusContract).Assembly.Location)),
-                        Name = TokenSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateTokenInitializationCallList()
+                        Name = ConsensusSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = GenerateAElfConsensusInitializationCallList()
                     })).Output;
             ElectionContractStub = GetElectionContractTester(StarterKeyPair);
         }
@@ -91,9 +100,14 @@ namespace AElf.Contracts.Profit
             return electionMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+        private SystemTransactionMethodCallList GenerateAElfConsensusInitializationCallList()
         {
             var aelfConsensusMethodCallList = new SystemTransactionMethodCallList();
+            aelfConsensusMethodCallList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract), new InitialAElfConsensusContractInput
+            {
+                ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
+                DaysEachTerm = DaysEachTerm
+            });
             return aelfConsensusMethodCallList;
         }
     }
