@@ -20,7 +20,6 @@ namespace AElf.Kernel.SmartContractExecution
         {
             var transaction = new Transaction
             {
-                Fee = 1,
                 From = Address.Generate(),
                 To = Address.Generate(),
                 Params = ByteString.CopyFromUtf8("test"),

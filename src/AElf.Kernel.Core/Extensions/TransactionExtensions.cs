@@ -7,19 +7,13 @@ namespace AElf.Kernel
     {
         public static long GetExpiryBlockNumber(this Transaction transaction)
         {
-            // TODO: Add ExpiryBlockNumber to Transaction
-//            if (transaction.ExpiryBlockNumber != 0)
-//            {
-//                return transaction.ExpiryBlockNumber;
-//            }
-
             return transaction.RefBlockNumber + KernelConstants.ReferenceBlockValidPeriod;
         }
         public static int Size(this Transaction transaction)
         {
             return transaction.CalculateSize();
         }
-        
+
         //TODO: VerifySignature method need update, remove sig count check logic.
         public static bool VerifySignature(this Transaction tx)
         {
@@ -27,14 +21,12 @@ namespace AElf.Kernel
             {
                 return false;
             }
-
             if (tx.Sigs.Count == 1)
             {
                 var canBeRecovered = CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(),
                     tx.GetHash().DumpByteArray(), out var pubKey);
                 return canBeRecovered && Address.FromPublicKey(pubKey).Equals(tx.From);
             }
-            
             return true;
         }
     }
