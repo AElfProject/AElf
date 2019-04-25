@@ -251,11 +251,26 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             return new ValidationResult {Success = true};
         }
 
+        public override SInt64Value GetCurrentRoundNumber(Empty input)
+        {
+            return new SInt64Value {Value = State.CurrentRoundNumber.Value};
+        }
+
+        public override Round GetCurrentRoundInformation(Empty input)
+        {
+            return TryToGetCurrentRoundInformation(out var currentRound) ? currentRound : new Round();
+        }
+
+        public override Round GetRoundInformation(SInt64Value input)
+        {
+            return TryToGetRoundInformation(input.Value, out var round) ? round : new Round();
+        }
+
         private bool RoundIdMatched(Round round)
         {
-            if (TryToGetCurrentRoundInformation(out var currentRoundInStateDatabase))
+            if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                return currentRoundInStateDatabase.RoundId == round.RoundId;
+                return currentRound.RoundId == round.RoundId;
             }
 
             return false;

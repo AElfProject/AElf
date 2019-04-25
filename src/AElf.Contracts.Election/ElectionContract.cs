@@ -20,6 +20,13 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        public override Empty SetInitialMiners(PublicKeysList input)
+        {
+            Assert(State.InitialMiners.Value == null, "Initial miners already set.");
+            State.InitialMiners.Value = new PublicKeysList {Value = {input.Value}};
+            return new Empty();
+        }
+
         public override Empty RegisterElectionVotingEvent(RegisterElectionVotingEventInput input)
         {
             Assert(!State.VotingEventRegistered.Value, "Already registered.");

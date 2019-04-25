@@ -22,6 +22,9 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
 
+            State.ElectionContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(input.ElectionContractSystemName);
+
             return new Empty();
         }
 
@@ -53,7 +56,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             SetMiners(miners);
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
-
 
             return new Empty();
         }

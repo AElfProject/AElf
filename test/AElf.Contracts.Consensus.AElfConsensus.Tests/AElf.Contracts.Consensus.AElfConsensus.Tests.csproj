@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <IsPackable>false</IsPackable>
-        <RootNamespace>AElf.Contract.Consensus.AElfConsensus</RootNamespace>
+        <RootNamespace>AElf.Contracts.Consensus.AElfConsensus</RootNamespace>
     </PropertyGroup>
     <PropertyGroup>
         <NoWarn>0436</NoWarn>
