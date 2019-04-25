@@ -306,6 +306,32 @@ namespace AElf.Contract.CrossChain.Tests
                 rechargeInput);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
+
+        [Fact]
+        public async Task RechargeForSideChain_WrongStatus()
+        {
+            var parentChainId = 123;
+            long lockedTokenAmount = 10;
+            await InitializeCrossChainContract(parentChainId);
+
+            await ApproveBalance(lockedTokenAmount);
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+            var requestTxResult =await ExecuteContractWithMiningAsync(CrossChainContractAddress,
+                nameof(CrossChainContract.RequestChainCreation),
+                sideChainCreationRequest);
+            var chainId = RequestChainCreationOutput.Parser.ParseFrom(requestTxResult.ReturnValue).ChainId;
+            
+            var rechargeInput = new RechargeInput()
+            {
+                ChainId = chainId,
+                Amount = 100_000L
+            };
+            await ApproveBalance(100_000L);
+            var transactionResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress, nameof(CrossChainContract.Recharge),
+                rechargeInput);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.Contains("Side chain not found or not able to be recharged.").ShouldBeTrue();            
+        }
         
         #endregion
 

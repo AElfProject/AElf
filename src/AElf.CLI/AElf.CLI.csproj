@@ -5,6 +5,7 @@
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
     <Target Name="InstallAElfJS" AfterTargets="BeforeBuild">
+        <Exec Condition="'$(OS)' != 'Windows_NT'" Command="sudo rm -rf yarn.lock"/>
         <Exec Command="yarn install"/>
         <Exec Condition="'$(OS)' != 'Windows_NT'" Command="cp -f node_modules/aelf-sdk/dist/aelf.js Scripts/aelf.js"/>
         <Exec Condition="'$(OS)' == 'Windows_NT'" Command="copy /b/v/y node_modules\aelf-sdk\dist\aelf.js Scripts\aelf.js"/>

@@ -92,7 +92,7 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract(parentChainId);
 
             await ApproveBalance(lockedTokenAmount);
-            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
             var requestTxResult =await ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.RequestChainCreation),
                 sideChainCreationRequest);
