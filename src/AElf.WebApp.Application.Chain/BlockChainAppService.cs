@@ -124,6 +124,11 @@ namespace AElf.WebApp.Application.Chain
             }
         }
         
+        /// <summary>
+        /// Creates an unsigned serialized transaction 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public async Task<CreateRawTransactionOutput> CreateRawTransaction(CreateRawTransactionInput input)
         {
             var transaction = new Transaction
@@ -152,6 +157,11 @@ namespace AElf.WebApp.Application.Chain
             };
         }
 
+        /// <summary>
+        /// send a transaction
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public async Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input)
         {
             var transaction = Transaction.Parser.ParseFrom(ByteArrayHelpers.FromHexString(input.Transaction));
