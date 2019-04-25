@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using AElf.Consensus.DPoS;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;

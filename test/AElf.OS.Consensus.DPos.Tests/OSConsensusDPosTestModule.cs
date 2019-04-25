@@ -1,13 +1,8 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Consensus.DPoS;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Modularity;
-using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;

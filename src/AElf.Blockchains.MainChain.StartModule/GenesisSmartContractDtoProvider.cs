@@ -1,8 +1,5 @@
 using System.Collections.Generic;
-using AElf.Consensus.DPoS;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.Dividend;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -10,7 +7,6 @@ using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.Vote;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
 using AElf.OS.Node.Application;
 using Vote;
 
