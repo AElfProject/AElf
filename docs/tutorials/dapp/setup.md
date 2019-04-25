@@ -1,16 +1,27 @@
 # Setup
 
-In order to develop your smart contract and a dApp to interact with it, AElf provides a framework that facilitates the process: AElf Boilerplate.
-
-You'll be guided through cloning the repo, running the example we provide as well as the unit tests.
+This article will get you started with AElf's Boilerplate project. You will learn the following items:
+- setting up the basic environment for developing contracts and dApps.
+- downloading **AElf Boilerplate**'s code and setting up Visual Studio Code.
+- running a template contract and basic interactions from a dApp frontend with the Javascript SDK demo and the browser extension.
 
 ## Environment
+
+#### Minimum requirement
+
+To successfully complete this tutorial you first need to install the following dependencies, please refer to your platforms installation guide:
+- Git for version control, follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+- Dotnet core sdk for building and testing, you can [download it here](https://dotnet.microsoft.com/download). 
+
+Mac users also need to [install Homebrew](https://brew.sh/).
+
+#### IDE
 
 Strictly speaking you don't need an IDE for this tutorial but it is highly recommended. If you don't already have one we recommend you try Visual Studio Code (vscode) with the C# extension:
 - installation instructions [**here**](https://code.visualstudio.com/docs/setup/setup-overview).
 - working with C# [**here**](https://code.visualstudio.com/docs/languages/csharp).
 
-## Clone the repo
+#### Clone the repository
 
 Open a terminal in your system and clone the tutorial with the following command:
 
@@ -20,20 +31,41 @@ git clone https://github.com/AElfProject/aelf-boilerplate
 
 This command will create a **aelf-boilerplate** folder with the code inside it.
 
-### Build and run
+## Run the contract
 
-If not already done open vscode and open the **aelf-boilerplate**.
+#### Open the project
 
-First open the folder you have just cloned. If asked to add some "required assets" say **yes**. There may also be some dependencies to restore: for all of them choose **Restore**.
+If not already done open vscode and open the **aelf-boilerplate** folder.
+
+If asked to add some "required assets" say **yes**. There may also be some dependencies to restore: for all of them choose **Restore**.
 
 <p align="center">
   <img src="dep-yes.png" width="300">
 </p>
 
-Open vscode's terminal and build the project with the following command. Note: you can find out more about vscode's terminal [**here**](https://code.visualstudio.com/docs/editor/integrated-terminal).
+Open vscode's **Integrated Terminal** and build the project with the following command. Note: you can find out more about vscode's terminal [**here**](https://code.visualstudio.com/docs/editor/integrated-terminal).
+
+#### Install script
+
+If you don't already have protobuf installed, run the following script:
+
+- On Mac or Linux: 
+```bash
+sh Chain/scripts/install.sh
+```
+
+- On Windows:  
+Windows is slightly more complex. You need to open a PowerShell console as administrator. Enter your clone directory so your PowerShell is currently in the root of aelf-boilerplate clone. Run the following:
+```bash
+Chain/scripts/install.ps1
+```
+
+Note: if you prefer or have problems, you can refer to the following guide to [**manually install**](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md) protobuf on your system.
+
+#### Build and run
 
 ```bash
-cd aelf-boilerplate/chain/src/AElf.Boilerplate.Launcher/
+cd chain/src/AElf.Boilerplate.Launcher/
 dotnet build
 ```
 
@@ -60,7 +92,7 @@ The output should look somewhat like this:
 Total tests: 1. Passed: 1. Failed: 0. Skipped: 0.
 ```
 
-### Next
+## Next
 
 You've just seen a simple example of a smart contract run with our Boilerplate tutorial. When launching (with dotnet run) the contract was automatically deployed and ready to interact with. You also discovered how to navigate to the test folder and run the tests.
 
