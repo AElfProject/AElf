@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Consensus.DPoS;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Consensus.DPoS
+namespace AElf.Contracts.Dividend
 {
     public partial class Round
     {

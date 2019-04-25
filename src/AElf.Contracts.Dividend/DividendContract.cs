@@ -1,10 +1,7 @@
 ﻿using System;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
-using AddDividendsInput = AElf.Consensus.DPoS.AddDividendsInput;
-using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Dividend
 {

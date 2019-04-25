@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -11,9 +10,6 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -56,7 +52,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         protected DateTime BlockchainStartTime => DateTime.Parse("2019-01-01 00:00:00.000").ToUniversalTime();
 
-        protected void InitializeContracts(DPoSStrategyInput input = null)
+        protected void InitializeContracts()
         {
             ECKeyPairProvider.SetECKeyPair(BootMinerKeyPair);
             // Deploy useful contracts.
@@ -66,7 +62,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ConsensusContract).Assembly.Location)),
                     Name = ConsensusSmartContractAddressNameProvider.Name,
-                    TransactionMethodCallList = GenerateConsensusInitializationCallList(input)
+                    TransactionMethodCallList = GenerateConsensusInitializationCallList()
                 })).Output;
 
             DividendContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)

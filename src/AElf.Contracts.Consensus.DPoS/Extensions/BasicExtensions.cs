@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public static class BasicExtensions
+    internal static class BasicExtensions
     {
         public static bool IsEmpty(this Round round)
         {
@@ -443,6 +442,11 @@ namespace AElf.Contracts.Consensus.DPoS
         private static int GetAbsModulus(long longValue, int intValue)
         {
             return Math.Abs((int) longValue % intValue);
+        }
+
+        private static Timestamp GetArrangedTimestamp(this Timestamp timestamp, int order, int miningInterval)
+        {
+            return timestamp.ToDateTime().AddMilliseconds(miningInterval * order).ToTimestamp();
         }
     }
 }

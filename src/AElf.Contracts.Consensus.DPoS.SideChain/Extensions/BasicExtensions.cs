@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public static class BasicExtensions
+    internal static class BasicExtensions
     {
         public static bool IsEmpty(this Round round)
         {

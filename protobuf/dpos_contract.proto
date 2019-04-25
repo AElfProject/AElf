@@ -1,11 +1,14 @@
 syntax = "proto3";
 
+package dpos;
+
 import "common.proto";
 import "core.proto";
-import "consensus_dpos.proto";
+//import "consensus_dpos.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.DPoS";
 
@@ -151,6 +154,280 @@ service ConsensusContract {
     rpc QueryMinedBlockCountInCurrentTerm (PublicKey) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
+}
+
+
+// Just used as parameter of consensus contract method.
+message ToUpdate {
+    Hash OutValue = 1;// Calculated from current in value.
+    Hash Signature = 2;// Calculated from current in value and signatures of previous round.
+    int64 RoundId = 3;// To ensure the values to update will be apply to correct round by comparing round id.
+    int32 PromiseTinyBlocks = 4;// This value is 1 by default, except this miner wanna produce tiny blocks in one time slot.
+    Hash PreviousInValue = 5;// Publish previous in value for validation previous signature and previous out value.
+    google.protobuf.Timestamp ActualMiningTime = 6;
+    int32 SupposedOrderOfNextRound = 7;
+    map<string, int32> TuneOrderInformation = 8;
+    map<string, bytes> EncryptedInValues = 9;// For others to recover his in value of current round.
+    map<string, bytes> DecryptedPreviousInValues = 10;
+    int64 ProducedBlocks = 11;
+    map<string, Hash> MinersPreviousInValues = 12;
+}
+
+// The miners public key list for each term.
+message Miners {
+    int64 TermNumber = 1;
+    repeated string PublicKeys = 2;
+    repeated Address Addresses = 3;
+}
+
+// To query to first round number of each term.
+message TermNumberLookUp {
+    map<int64, int64> Map = 1;// Term number -> Round number.
+}
+
+// All the candidates.
+message Candidates {
+    repeated string PublicKeys = 1;
+    repeated Address Addresses = 2;
+    bool IsInitialMiners = 3;
+}
+
+// The ticket / voting information for one user.
+message Tickets {
+    repeated VotingRecord VotingRecords = 1;
+    int64 VotingRecordsCount = 2;
+    int64 ObtainedTickets = 3;
+    int64 VotedTickets = 4;
+    int64 HistoryObtainedTickets = 5;
+    int64 HistoryVotedTickets = 6;
+    repeated Hash VoteToTransactions = 8;
+    repeated Hash VoteFromTransactions = 9;
+    string PublicKey = 10;
+}
+
+// A voting record.
+message VotingRecord {
+    string From = 1;
+    string To = 2;
+    int64 Count = 3;
+    int64 RoundNumber = 4;
+    Hash TransactionId = 5;
+    int64 VoteAge = 6;
+    repeated int32 LockDaysList = 7;// Can be renewed by adding items.
+    int64 UnlockAge = 8;
+    int64 TermNumber = 9;
+    google.protobuf.Timestamp UnlockTimestamp = 10;
+    google.protobuf.Timestamp WithdrawTimestamp = 11;
+    google.protobuf.Timestamp VoteTimestamp = 12;
+    bool IsWithdrawn = 13;
+}
+
+// The snap shot of one term.
+message TermSnapshot {
+    int64 EndRoundNumber = 1;
+    int64 TotalBlocks = 2;
+    repeated CandidateInTerm CandidatesSnapshot = 3;
+    int64 TermNumber = 4;
+}
+
+// The information of a candidate of a specific term.
+message CandidateInTerm {
+    string PublicKey = 1;
+    Address Address = 2;
+    int64 Votes = 3;
+}
+
+// The information of a round.
+message Round {
+    int64 RoundNumber = 1;
+    map<string, MinerInRound> RealTimeMinersInformation = 2;
+    int64 MainChainMinersRoundNumber = 3;
+    int64 BlockchainAge = 4;
+    string ExtraBlockProducerOfPreviousRound = 7;
+    int64 TermNumber = 8;
+}
+
+// The information of a miner in a specific round.
+message MinerInRound {
+    int32 Order = 1;
+    bool IsExtraBlockProducer = 2;
+    Hash InValue = 3;
+    Hash OutValue = 4;
+    Hash Signature = 5;
+    google.protobuf.Timestamp ExpectedMiningTime = 6;
+    int64 ProducedBlocks = 7;
+    int64 MissedTimeSlots = 8;
+    string PublicKey = 9;
+    int32 PromisedTinyBlocks = 10;
+    string Alias = 11;
+    Hash PreviousInValue = 12;
+    int32 SupposedOrderOfNextRound = 13;
+    int32 FinalOrderOfNextRound = 14;
+    google.protobuf.Timestamp ActualMiningTime = 15;// Miners must fill actual mining time when they do the mining.
+    map<string, bytes> EncryptedInValues = 16;
+    map<string, bytes> DecryptedPreviousInValues = 17;
+}
+
+// The information of a candidate.
+message CandidateInHistory {
+    string PublicKey = 1;
+    repeated int64 Terms = 2;
+    int64 ProducedBlocks = 3;
+    int64 MissedTimeSlots = 4;
+    int64 ContinualAppointmentCount = 5;
+    int64 ReappointmentCount = 6;
+    repeated string Aliases = 7;
+    string CurrentAlias = 8;
+    int64 CurrentVotesNumber = 9;
+    Address Address = 11;
+    Hash AnnouncementTransactionId = 12;
+    bool IsEvilNode = 13;
+}
+
+message TicketsDictionary {
+    map<string, Tickets> Maps = 1;
+}
+
+message CandidateInHistoryDictionary {
+    map<string, CandidateInHistory> Maps = 1;
+    int32 CandidatesNumber = 3;
+}
+
+message TicketsHistories {
+    repeated TicketsHistory Values = 1;
+    int64 HistoriesNumber = 2;
+}
+
+message TicketsHistory {
+    string CandidateAlias = 1;
+    int64 VotesNumber = 2;
+    google.protobuf.Timestamp Timestamp = 3;
+    bool State = 4;
+    TicketsHistoryType Type = 5;
+}
+
+enum TicketsHistoryType {
+    None = 0;
+    Redeem = 1;
+    Vote = 2;
+}
+
+message DPoSHeaderInformation {
+    bytes SenderPublicKey = 1;
+    Round Round = 2;
+    DPoSBehaviour Behaviour = 3;
+}
+
+message DPoSHint {
+    DPoSBehaviour Behaviour = 1;
+}
+
+enum DPoSBehaviour {
+    UpdateValue = 0;
+    NextRound = 1;
+    NextTerm = 2;
+    UpdateValueWithoutPreviousInValue = 3;
+    Nothing = 4;
+}
+
+message DPoSTriggerInformation {
+    bytes PublicKey = 1;// A must-have.
+    Hash RandomHash = 2;// To calculate In Value.
+    Hash PreviousRandomHash = 3;// Random hash of previous round for validation.
+    DPoSBehaviour Behaviour = 4;
+    int64 InitialTermNumber = 5;
+}
+
+message CommandInput {
+    bytes PublicKey = 1;
+}
+
+message InitialDPoSContractInput {
+    Hash tokenContractSystemName = 1;
+    Hash dividendsContractSystemName = 2;
+    sint64 lockTokenForElection = 3;
+}
+
+message InitialDividendContractInput {
+    Hash tokenContractSystemName = 1;
+    Hash consensusContractSystemName = 2;
+}
+
+message DPoSStrategyInput {
+    bool isBlockchainAgeSettable = 1;// For testing.
+    bool isTimeSlotSkippable = 2;// Skip own time slot if failed to receive block from previous miner.
+    bool isVerbose = 3;
+}
+
+message TermInfo {
+    sint64 termNumber = 1;
+    sint64 roundNumber = 2;
+}
+
+message VoteInput {
+    string candidatePublicKey = 1;
+    sint64 amount = 2;
+    sint32 lockTime = 3;
+}
+
+message PageInfo {
+    sint32 start = 1;
+    sint32 length = 2;
+}
+
+message PageableTicketsInfoInput {
+    sint32 start = 1;
+    sint32 length = 2;
+    string publicKey = 3;
+}
+
+message PageableElectionInfoInput {
+    sint32 start = 1;
+    sint32 length = 2;
+    sint32 orderBy = 3;
+}
+
+message Alias {
+    string value = 1;
+}
+
+message PublicKey {
+    string hex = 1;
+}
+
+message FriendlyString {
+    string value = 1;
+}
+
+message MinerListWithRoundNumber {
+    Miners MinerList = 1;
+    int64 RoundNumber = 4;
+}
+
+message SendDividendsInput {
+    Address to = 1;
+    sint64 amount = 2;
+}
+
+message AddDividendsInput {
+    sint64 termNumber = 1;
+    sint64 dividendsAmount = 2;
+}
+
+message WeightsInfo {
+    sint64 termNumber = 1;
+    sint64 weights = 2;
+}
+
+message VoteInfo {
+    VotingRecord record = 1;
+    sint64 age = 2;
+}
+
+message CheckDividendsInput {
+    sint64 termNumber = 1;
+    sint64 ticketsAmount = 2;
+    sint32 lockTime = 3;
 }
 
 // Events

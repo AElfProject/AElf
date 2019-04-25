@@ -1,14 +1,13 @@
 using System;
 using System.Linq;
-using AElf.Consensus.DPoS;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.Consensus.DPoS
+namespace AElf.Contracts.Consensus.DPoS.SideChain
 {
     /// <summary>
     /// Extension methods of Round for dealing with miners' mining time.
     /// </summary>
-    public static class MiningTimeExtensions
+    internal static class MiningTimeExtensions
     {
         /// <summary>
         /// Simply read the expected mining time of provided public key from round information.

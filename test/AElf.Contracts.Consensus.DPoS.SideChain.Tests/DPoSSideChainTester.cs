@@ -7,6 +7,7 @@ using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 
 namespace AElf.Contracts.DPoS.SideChain
 {

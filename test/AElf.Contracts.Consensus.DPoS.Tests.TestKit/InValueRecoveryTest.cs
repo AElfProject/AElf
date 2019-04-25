@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AElf.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Cryptography.SecretSharing;
 using Google.Protobuf;
@@ -25,7 +24,7 @@ namespace AElf.Contracts.Consensus.DPoS
         }
 
         [Fact]
-        public async Task<Dictionary<string, DPoSTriggerInformation>> GenerateEncryptedMessagesTest()
+        internal async Task<Dictionary<string, DPoSTriggerInformation>> GenerateEncryptedMessagesTest()
         {
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 

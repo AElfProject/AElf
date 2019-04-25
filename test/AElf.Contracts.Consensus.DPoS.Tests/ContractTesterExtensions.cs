@@ -16,8 +16,8 @@ using AElf.Kernel.SmartContract;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using VoteInput = AElf.Consensus.DPoS.VoteInput;
-using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
+//using VoteInput = AElf.Consensus.DPoS.VoteInput;
+//using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -25,7 +25,7 @@ namespace AElf.Contracts.Consensus.DPoS
     /// <summary>
     /// Extensions for consensus testing.
     /// </summary>
-    public static class ContractTesterExtensions
+    internal static class ContractTesterExtensions
     {
         #region IConsensusSmartContract
 

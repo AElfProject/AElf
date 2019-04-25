@@ -1,5 +1,6 @@
+using System;
 using System.Collections.Generic;
-using AElf.Consensus.DPoS;
+using System.Linq;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel;
 using AElf.OS.Node.Application;

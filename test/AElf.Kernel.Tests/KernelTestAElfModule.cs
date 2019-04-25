@@ -88,9 +88,9 @@ namespace AElf.Kernel
                 return mockService.Object;
             });
             
-            services.AddTransient<IConsensusService, ConsensusService>();
-            
-            services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
+//            services.AddTransient<IConsensusService, ConsensusService>();
+//            
+//            services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
         }
     }
 }

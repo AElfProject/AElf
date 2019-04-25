@@ -13,9 +13,9 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
-using PageInfo = AElf.Consensus.DPoS.PageInfo;
-using VoteInput = AElf.Consensus.DPoS.VoteInput;
-using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
+//using PageInfo = AElf.Consensus.DPoS.PageInfo;
+//using VoteInput = AElf.Consensus.DPoS.VoteInput;
+//using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS
 {

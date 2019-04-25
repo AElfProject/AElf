@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Dividend
 {
@@ -103,7 +102,7 @@ namespace AElf.Contracts.Dividend
         public override SInt64Value GetAllAvailableDividends(PublicKey input)
         {
             var ticketsInformation = State.ConsensusContract.GetTicketsInformation.Call(
-                new PublicKey
+                new Consensus.DPoS.PublicKey
                 {
                     Hex = input.Hex
                 });
@@ -114,8 +113,10 @@ namespace AElf.Contracts.Dividend
 
             var dividends = ticketsInformation.VotingRecords
                 .Where(vr => vr.From == input.Hex)
-                .Aggregate<VotingRecord, long>(0,
-                    (current, votingRecord) => current + GetAvailableDividends(votingRecord).Value);
+                .Aggregate<Consensus.DPoS.VotingRecord, long>(0,
+                    (current, votingRecord) =>
+                        current + GetAvailableDividends(VotingRecord.Parser.ParseFrom(votingRecord.ToByteString()))
+                            .Value);
             return new SInt64Value {Value = dividends};
         }
 

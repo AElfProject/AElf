@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Kernel;
 using AElf.OS.Node.Application;
+using InitialDividendContractInput = AElf.Contracts.Dividend.InitialDividendContractInput;
 
 namespace AElf.Blockchains.MainChain.DividendModule
 {

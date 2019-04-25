@@ -1,5 +1,5 @@
 // ReSharper disable once CheckNamespace
-namespace AElf.Consensus.DPoS
+namespace AElf.Contracts.Consensus.DPoS
 {
     public partial class VotingRecord
     {

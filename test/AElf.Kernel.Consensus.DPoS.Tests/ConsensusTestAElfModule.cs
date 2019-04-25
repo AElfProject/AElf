@@ -14,6 +14,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
+using AElf.Contracts.Consensus.DPoS;
 
 namespace AElf.Kernel.Consensus
 {

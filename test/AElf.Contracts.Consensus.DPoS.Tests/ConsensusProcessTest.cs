@@ -12,7 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
-using VoteInput = AElf.Consensus.DPoS.VoteInput;
+//using VoteInput = AElf.Consensus.DPoS.VoteInput;
 
 namespace AElf.Contracts.Consensus.DPoS
 {

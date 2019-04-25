@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
@@ -12,6 +11,7 @@ using Google.Protobuf;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
+using AElf.Contracts.Consensus.DPoS;
 
 namespace AElf.Kernel.Consensus.DPoS
 {
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Consensus.DPoS
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextTerm);
 
             var dPoSTriggerInformation =
-                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
+                (AElf.Contracts.Consensus.DPoS.DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
                     .BlockHeaderExtraData);
             var publicKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());

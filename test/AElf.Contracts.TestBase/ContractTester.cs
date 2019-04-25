@@ -263,7 +263,7 @@ namespace AElf.Contracts.TestBase
         {
             var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
-                new InitialDPoSContractInput
+                new Consensus.DPoS.InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
@@ -280,7 +280,7 @@ namespace AElf.Contracts.TestBase
         {
             var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
-                new InitialDPoSContractInput
+                new Consensus.DPoS.InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,

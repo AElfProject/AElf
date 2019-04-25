@@ -1,10 +1,9 @@
 using System;
 using System.Linq;
-using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using Google.Protobuf;
 
-namespace AElf.Contracts.Consensus.DPoS
+namespace AElf.Contracts.Consensus.DPoS.SideChain
 {
     public static class ConsensusCommandExtensions
     {

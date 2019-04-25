@@ -6,6 +6,7 @@ using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
+using AElf.Contracts.Consensus.DPoS;
 
 namespace AElf.Kernel.Consensus
 {
