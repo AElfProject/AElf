@@ -40,7 +40,7 @@ namespace AElf.Consensus.AElfConsensus
 
             if (baseMiningInterval <= 0)
             {
-                return new ValidationResult {Success = false, Message = $"Mining interval must greater than 0.\n{round}"};
+                return new ValidationResult {Success = false, Message = $"Mining interval must greater than 0.\n{this}"};
             }
 
             for (var i = 1; i < miners.Count - 1; i++)

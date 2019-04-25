@@ -156,14 +156,8 @@ message PublicKeysList {
 }
 
 message TermSnapshot {
-    int64 EndRoundNumber = 1;
-    int64 TotalBlocks = 2;
-    repeated CandidateInTerm CandidatesSnapshot = 3;
-    int64 TermNumber = 4;
-}
-
-message CandidateInTerm {
-    string PublicKey = 1;
-    Address Address = 2;
-    int64 Votes = 3;
+    sint64 EndRoundNumber = 1;
+    sint64 TotalBlocks = 2;
+    map<string, sint64> CandidatesVotes = 3;
+    sint64 TermNumber = 4;
 }

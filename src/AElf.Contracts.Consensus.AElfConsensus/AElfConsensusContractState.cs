@@ -26,5 +26,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         
         public SingletonState<int> MiningInterval { get; set; }
 
+        public MappedState<long, long> FirstRoundNumberOfEachTerm { get; set; }
+
+        public MappedState<long, Miners> MinersMap { get; set; }
     }
 }

@@ -156,7 +156,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 var validMinersOfCurrentRound = currentRoundMiners.Values.Where(m => m.OutValue != null).ToList();
                 var validMinersCountOfCurrentRound = validMinersOfCurrentRound.Count;
 
-                var senderPublicKey = Context.RecoverPublicKey().ToHex();
                 if (validMinersCountOfCurrentRound >= minimumCount)
                 {
                     offset = minimumCount;

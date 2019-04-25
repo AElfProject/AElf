@@ -186,6 +186,9 @@ namespace AElf.Contracts.Election
                 EpochNumber = input.TermNumber,
                 Topic = ElectionContractConsts.Topic
             });
+            
+            // Take snapshot.
+            
 
             return new Empty();
         }

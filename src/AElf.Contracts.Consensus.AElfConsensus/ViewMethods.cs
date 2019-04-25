@@ -231,6 +231,26 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             return new ValidationResult {Success = true};
         }
 
+        public override ValidationResult ValidateConsensusAfterExecution(AElfConsensusHeaderInformation input)
+        {
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                var isContainPreviousInValue =
+                    input.Behaviour != AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue;
+                if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
+                {
+                    Context.LogDebug(() => $"Round information of block header:\n{input.Round}");
+                    Context.LogDebug(() => $"Round information of executing result:\n{currentRound}");
+                    return new ValidationResult
+                    {
+                        Success = false, Message = "Current round information is different with consensus extra data."
+                    };
+                }
+            }
+
+            return new ValidationResult {Success = true};
+        }
+
         private bool RoundIdMatched(Round round)
         {
             if (TryToGetCurrentRoundInformation(out var currentRoundInStateDatabase))
@@ -255,26 +275,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             }
 
             return false;
-        }
-
-        public override ValidationResult ValidateConsensusAfterExecution(AElfConsensusHeaderInformation input)
-        {
-            if (TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                var isContainPreviousInValue =
-                    input.Behaviour != AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue;
-                if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
-                {
-                    Context.LogDebug(() => $"Round information of block header:\n{input.Round}");
-                    Context.LogDebug(() => $"Round information of executing result:\n{currentRound}");
-                    return new ValidationResult
-                    {
-                        Success = false, Message = "Current round information is different with consensus extra data."
-                    };
-                }
-            }
-
-            return new ValidationResult {Success = true};
         }
 
         private bool TryToGetMiningInterval(out int miningInterval)
@@ -497,13 +497,13 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             if (TryToGetTermNumber(out var termNumber) && termNumber > 1 &&
                 TryToGetElectionSnapshot(termNumber - 1, out var snapshot))
             {
-                nextCandidate = snapshot.CandidatesSnapshot
+                nextCandidate = snapshot.CandidatesVotes
                     // Except initial miners.
-                    .Where(cs => !firstRound.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
+                    .Where(cs => !firstRound.RealTimeMinersInformation.ContainsKey(cs.Key))
                     // Except current miners.
-                    .Where(cs => !round.RealTimeMinersInformation.ContainsKey(cs.PublicKey))
-                    .OrderByDescending(s => s.Votes)
-                    .FirstOrDefault(c => !round.RealTimeMinersInformation.ContainsKey(c.PublicKey))?.PublicKey;
+                    .Where(cs => !round.RealTimeMinersInformation.ContainsKey(cs.Key))
+                    .OrderByDescending(s => s.Value)
+                    .FirstOrDefault(c => !round.RealTimeMinersInformation.ContainsKey(c.Key)).Key;
             }
 
             // Check out initial miners.
