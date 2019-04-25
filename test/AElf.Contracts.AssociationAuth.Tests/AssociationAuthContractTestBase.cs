@@ -6,7 +6,6 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,11 +76,11 @@ namespace AElf.Contracts.AssociationAuth
             return GetTester<AssociationAuthContractContainer.AssociationAuthContractStub>(AssociationAuthContractAddress, keyPair);
         }
         
-        private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = symbol,

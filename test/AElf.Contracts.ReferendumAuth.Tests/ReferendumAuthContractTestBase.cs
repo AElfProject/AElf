@@ -6,7 +6,6 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,9 +72,9 @@ namespace AElf.Contracts.ReferendumAuth
             return GetTester<ReferendumAuthContractContainer.ReferendumAuthContractStub>(ReferendumAuthContractAddress, keyPair);
         }
         
-        private SystemTransactionMethodCallList GenerateReferendumAuthInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateReferendumAuthInitializationCallList()
         {
-            var referendumAuthContractCallList = new SystemTransactionMethodCallList();
+            var referendumAuthContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             referendumAuthContractCallList.Add(nameof(ReferendumAuthContract.Initialize), new ReferendumAuthContractInitializationInput
             {
                 TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
@@ -83,11 +82,11 @@ namespace AElf.Contracts.ReferendumAuth
             return referendumAuthContractCallList;
         }
         
-        private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = symbol,
