@@ -84,7 +84,6 @@ namespace AElf.Kernel.TransactionPool.Domain
             result.TransactionStatus = TransactionStatus.UnknownTransactionStatus;
             result.IsExecutable.ShouldBeTrue();
         }
-        
 
         private List<TransactionReceipt> GenerateTransactionReceipts(int count)
         {
@@ -99,8 +98,7 @@ namespace AElf.Kernel.TransactionPool.Domain
                     {
                         From = Address.Generate(),
                         To = Address.Generate(),
-                        MethodName = "TestMethod",
-                        IncrementId = (ulong)i
+                        MethodName = "TestMethod"
                     },
                     ExecutedBlockNumber = i,
                     IsSystemTxn = false,

@@ -1,6 +1,8 @@
 # How to develop a dApp
 
-This section will guide you through an example to show you how to develop a dApp with AElf's Boilerplate framework.
+In order to develop smart contracts and and dApps to interact with them, AElf provides a framework that facilitates the process: **AElf Boilerplate**.
+
+This section will guide you through an example to show you how to develop a smart contract and its dApp with the Boilerplate framework. This section will show you:
 
 - set up the development environment.
 - a detailed introduction to writing a smart contract with AElf Boilerplate.

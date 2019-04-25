@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Jobs;
 using AElf.OS.Network;
@@ -68,7 +69,7 @@ namespace AElf.OS.Handlers
 
         private bool VerifyAnnouncement(PeerNewBlockAnnouncement announcement)
         {
-            var allowedFutureBlockTime = DateTime.UtcNow + OSConsts.AllowedFutureBlockTimeSpan;
+            var allowedFutureBlockTime = DateTime.UtcNow + KernelConsts.AllowedFutureBlockTimeSpan;
             if (allowedFutureBlockTime < announcement.BlockTime.ToDateTime())
             {
                 Logger.LogWarning($"Receive future block {announcement}");
