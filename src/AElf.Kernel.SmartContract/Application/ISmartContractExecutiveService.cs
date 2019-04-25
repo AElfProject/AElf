@@ -92,8 +92,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             // run smartcontract executive info and return executive
             var executive = await runner.RunAsync(reg);
-            //executive.ContractHash = reg.CodeHash;
-            //executive.ContractAddress = address;
+
             var context =
                 _hostSmartContractBridgeContextService.Create();
             executive.SetHostSmartContractBridgeContext(context);
@@ -105,7 +104,13 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (_executivePools.TryGetValue(address, out var pool))
             {
-                pool.Add(executive);
+                if (_addressSmartContractRegistrationMappingCache.TryGetValue(address, out var reg))
+                {
+                    if (reg.CodeHash == executive.ContractHash)
+                    {
+                        pool.Add(executive);
+                    }
+                }
             }
 
             await Task.CompletedTask;
