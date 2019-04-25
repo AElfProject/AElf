@@ -4,6 +4,10 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <RootNamespace>AElf.Blockchains.SideChain</RootNamespace>
     </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;0436</NoWarn>
+    </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />

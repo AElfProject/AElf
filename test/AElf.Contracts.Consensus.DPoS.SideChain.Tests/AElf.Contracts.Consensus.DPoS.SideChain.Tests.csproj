@@ -4,6 +4,9 @@
         <IsPackable>true</IsPackable>
         <RootNamespace>AElf.Contracts.Consensus.DPoS.SideChain</RootNamespace>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;0436</NoWarn>
+    </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
