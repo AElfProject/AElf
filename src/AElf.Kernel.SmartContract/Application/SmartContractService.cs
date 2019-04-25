@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContract.Application
             var runner = _smartContractRunnerContainer.GetRunner(newRegistration.Category);
             await Task.Run(() => runner.CodeCheck(newRegistration.Code.ToByteArray(), isPrivileged));
 
-            _smartContractExecutiveService.UpdateCache(contractAddress, newRegistration);
+            _smartContractExecutiveService.ClearExecutivePool(contractAddress);
 
             //Todo New version metadata handle it
 //            var oldRegistration = await GetContractByAddressAsync(contractAddress);
