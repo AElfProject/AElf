@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Sdk;
@@ -213,6 +214,90 @@ namespace AElf.Contracts.Election
 
             State.Snapshots[input.TermNumber] = snapshot;
 
+            // Update current miners history information.
+            var reElectionProfitAddWeights = new AddWeightsInput
+            {
+                ProfitId = State.ReElectionRewardHash.Value,
+                EndPeriod = input.TermNumber + 1,
+            };
+
+            var reElectionProfitSubWeights = new SubWeightsInput
+            {
+                ProfitId = State.ReElectionRewardHash.Value
+            };
+            
+            var basicRewardProfitAddWeights = new AddWeightsInput
+            {
+                ProfitId = State.BasicRewardHash.Value,
+                EndPeriod = input.TermNumber + 1
+            };
+            
+            var basicRewardProfitSubWeights = new SubWeightsInput
+            {
+                ProfitId = State.BasicRewardHash.Value
+            };
+            
+            var votesWeightRewardProfitAddWeights = new AddWeightsInput
+            {
+                ProfitId = State.VotesWeightRewardHash.Value,
+                EndPeriod = input.TermNumber + 1
+            };
+            
+            var votesWeightRewardProfitSubWeights = new SubWeightsInput
+            {
+                ProfitId = State.BasicRewardHash.Value
+            };
+
+            var victories = snapshot.CandidatesVotes.OrderByDescending(v => v.Value).Select(p => p.Key)
+                .Take(State.MinersCount.Value).ToList();
+            var currentMiners = State.AElfConsensusContract.GetCurrentMiners.Call(new Empty());
+            var currentMinersAddress = new List<Address>();
+            foreach (var publicKey in currentMiners.PublicKeys)
+            {
+                var address = Address.FromPublicKey(publicKey.ToByteArray());
+                
+                currentMinersAddress.Add(address);
+                
+                basicRewardProfitAddWeights.Weights.Add(new WeightMap {Receiver = address, Weight = 1});
+
+                var history = State.Histories[publicKey.ToHex()];
+                history.Terms.Add(input.TermNumber);
+
+                if (victories.Contains(publicKey.ToHex()))
+                {
+                    history.ContinualAppointmentCount += 1;
+                    reElectionProfitAddWeights.Weights.Add(new WeightMap
+                    {
+                        Receiver = address,
+                        Weight = history.ContinualAppointmentCount
+                    });
+                }
+                else
+                {
+                    history.ContinualAppointmentCount = 0;
+                }
+
+                var votes = State.Votes[publicKey.ToHex()];
+                votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
+                {
+                    Receiver = address, Weight = votes.ValidObtainedVotesAmount
+                });
+            }
+            reElectionProfitSubWeights.Receivers.AddRange(currentMinersAddress);
+            State.ProfitContract.SubWeights.Send(reElectionProfitSubWeights);
+            
+            State.ProfitContract.AddWeights.Send(reElectionProfitAddWeights);
+            
+            basicRewardProfitSubWeights.Receivers.AddRange(currentMinersAddress);
+            State.ProfitContract.SubWeights.Send(basicRewardProfitSubWeights);
+
+            State.ProfitContract.AddWeights.Send(basicRewardProfitAddWeights);
+            
+            State.ProfitContract.AddWeights.Send(votesWeightRewardProfitAddWeights);
+
+            votesWeightRewardProfitSubWeights.Receivers.AddRange(currentMinersAddress);
+            State.ProfitContract.SubWeights.Send(votesWeightRewardProfitSubWeights);
+
             return new Empty();
         }
 
@@ -291,13 +376,15 @@ namespace AElf.Contracts.Election
                 State.AElfConsensusContract.GetCurrentMiners.Call(new Empty()).PublicKeys.Contains(publicKeyByteString),
                 "Current miners cannot quit election.");
 
+            var history = State.Histories[publicKey];
+
             State.Candidates.Value.Value.Remove(publicKeyByteString);
             State.TokenContract.Unlock.Send(new UnlockInput
             {
                 From = Context.Sender,
                 To = Context.Self,
                 Symbol = Context.Variables.NativeSymbol,
-                LockId = State.Histories[publicKey].AnnouncementTransactionId,
+                LockId = history.AnnouncementTransactionId,
                 Amount = ElectionContractConsts.LockTokenForElection,
                 Usage = "Quit election."
             });
@@ -309,9 +396,9 @@ namespace AElf.Contracts.Election
                 Option = publicKey
             });
 
-            var candidateHistory = State.Histories[publicKey];
-            candidateHistory.State = CandidateState.NotAnnounced;
-            State.Histories[publicKey] = candidateHistory;
+            history.State = CandidateState.NotAnnounced;
+            history.AnnouncementTransactionId = Hash.Empty;
+            State.Histories[publicKey] = history;
 
             State.ProfitContract.SubWeight.Send(new SubWeightInput
             {

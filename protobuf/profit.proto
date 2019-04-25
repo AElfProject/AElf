@@ -43,6 +43,22 @@ message SubWeightInput {
     Hash profit_id = 2;
 }
 
+message AddWeightsInput {
+    Hash profit_id = 1;
+    repeated WeightMap weights = 2;
+    sint64 end_period = 4;
+}
+
+message SubWeightsInput {
+    repeated Address receivers = 1;
+    Hash profit_id = 2;
+}
+
+message WeightMap {
+    Address receiver = 1;
+    sint64 weight = 2;
+}
+
 message ProfitInput {
     Hash profit_id = 1;
 }

@@ -22,6 +22,10 @@ service ProfitContract {
     }
     rpc SubWeight (SubWeightInput) returns (google.protobuf.Empty) {
     }
+    rpc AddWeights (AddWeightsInput) returns (google.protobuf.Empty) {
+    }
+    rpc SubWeights (SubWeightsInput) returns (google.protobuf.Empty) {
+    }
     rpc AddProfits (AddProfitsInput) returns (google.protobuf.Empty) {
     }
     rpc Profit (ProfitInput) returns (google.protobuf.Empty) {

@@ -36,5 +36,7 @@ namespace AElf.Contracts.Election
         public MappedState<Hash, int> LockTimeMap { get; set; }
 
         public MappedState<long, TermSnapshot> Snapshots { get; set; }
+
+        public SingletonState<int> MinersCount { get; set; }
     }
 }

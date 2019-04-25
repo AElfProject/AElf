@@ -226,6 +226,32 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
+        public override Empty AddWeights(AddWeightsInput input)
+        {
+            foreach (var map in input.Weights)
+            {
+                AddWeight(new AddWeightInput
+                {
+                    ProfitId = input.ProfitId,
+                    Receiver = map.Receiver,
+                    Weight = map.Weight,
+                    EndPeriod = input.EndPeriod
+                });
+            }
+
+            return new Empty();
+        }
+
+        public override Empty SubWeights(SubWeightsInput input)
+        {
+            foreach (var receiver in input.Receivers)
+            {
+                SubWeight(new SubWeightInput {ProfitId = input.ProfitId, Receiver = receiver});
+            }
+
+            return new Empty();
+        }
+
         /// <summary>
         /// There should be at least one pre-condition to release profits if this is a sub profit item:
         /// Higher level profit item has already released.
