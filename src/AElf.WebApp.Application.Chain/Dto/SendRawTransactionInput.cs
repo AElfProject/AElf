@@ -5,5 +5,7 @@ namespace AElf.WebApp.Application.Chain.Dto
         public string Transaction { get; set; }
         
         public string Signature { get; set; }
+        
+        public bool ReturnTransaction { get; set; }
     }
 }

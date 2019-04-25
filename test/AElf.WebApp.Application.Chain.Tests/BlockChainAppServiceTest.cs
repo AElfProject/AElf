@@ -640,6 +640,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task SendRawTransactionTest()
         {
+            const string methodName = "Transfer";
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var chain = await _blockchainService.GetChainAsync();
@@ -652,7 +653,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"To",contractAddress.GetFormatted()},
                 {"RefBlockNumber",chain.BestChainHeight.ToString()},
                 {"RefBlockHash",chain.BestChainHash.ToHex()},
-                {"MethodName","Transfer"},
+                {"MethodName",methodName},
                 {"Params","{\"to\":{ \"Value\": \""+toAddress+"\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}"}
             };
             var createTransactionResponse =
@@ -661,18 +662,43 @@ namespace AElf.WebApp.Application.Chain.Tests
             var transactionHash = Hash.FromRawBytes(ByteArrayHelpers.FromHexString(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionHash.DumpByteArray());
-            parameters = new Dictionary<string,string>
+            parameters = new Dictionary<string, string>
             {
-                {"Transaction",createTransactionResponse.RawTransaction},
-                {"Signature",signature.ToHex()}
+                {"Transaction", createTransactionResponse.RawTransaction},
+                {"Signature", signature.ToHex()}
             };
             var sendTransactionResponse =
                 await PostResponseAsObjectAsync<SendRawTransactionOutput>(
                     "/api/blockChain/sendRawTransaction", parameters, useApplicationJson: true);
             
             sendTransactionResponse.TransactionId.ShouldBe(transactionHash.ToHex());
+            sendTransactionResponse.Transaction.ShouldBeNull();
             
             var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
+            existTransaction.Transactions[0].GetHash().ToHex().ShouldBe(sendTransactionResponse.TransactionId);
+
+            parameters = new Dictionary<string, string>
+            {
+                {"Transaction", createTransactionResponse.RawTransaction},
+                {"Signature", signature.ToHex()},
+                {"returnTransaction", "true"}
+            };
+            sendTransactionResponse =
+            await PostResponseAsObjectAsync<SendRawTransactionOutput>(
+                "/api/blockChain/sendRawTransaction", parameters, useApplicationJson: true);
+            
+            sendTransactionResponse.TransactionId.ShouldBe(transactionHash.ToHex());
+            sendTransactionResponse.Transaction.ShouldNotBeNull();
+            sendTransactionResponse.Transaction.To.ShouldBe(contractAddress.GetFormatted());
+            sendTransactionResponse.Transaction.From.ShouldBe(accountAddress.GetFormatted());
+            sendTransactionResponse.Transaction.MethodName.ShouldBe(methodName);
+            sendTransactionResponse.Transaction.Params.ShouldBe(
+                "{ \"to\": \""+Address.FromPublicKey(newUserKeyPair.PublicKey).GetFormatted()+"\", \"symbol\": \"ELF\", \"amount\": \"100\", \"memo\": \"test\" }");
+            sendTransactionResponse.Transaction.RefBlockNumber.ShouldBe(chain.BestChainHeight);
+            sendTransactionResponse.Transaction.RefBlockPrefix.ShouldBe(ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()).ToBase64());
+            sendTransactionResponse.Transaction.Sigs[0].ShouldBe(ByteString.CopyFrom(signature).ToBase64());
+            
+            existTransaction = await _txHub.GetExecutableTransactionSetAsync();
             existTransaction.Transactions[0].GetHash().ToHex().ShouldBe(sendTransactionResponse.TransactionId);
         }
         

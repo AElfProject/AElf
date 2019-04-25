@@ -134,34 +134,17 @@ namespace AElf.WebApp.Application.Chain
                 RefBlockPrefix = ByteString.CopyFrom(Hash.LoadHex(input.RefBlockHash).Value.Take(4).ToArray()),
                 MethodName = input.MethodName
             };
-            IEnumerable<FileDescriptor> fileDescriptors;
+            var methodDescriptor = await GetContractMethodDescriptorAsync(Address.Parse(input.To), input.MethodName);
+            if (methodDescriptor == null)
+                throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
+                    Error.NoMatchMethodInContractAddress.ToString());
             try
             {
-                fileDescriptors = await GetFileDescriptorsAsync(Address.Parse(input.To));
+                transaction.Params = methodDescriptor.InputType.Parser.ParseJson(input.Params).ToByteString();
             }
             catch
             {
-                throw new UserFriendlyException(Error.Message[Error.InvalidContractAddress],Error.InvalidContractAddress.ToString());
-            }
-            
-            foreach (var fileDescriptor in fileDescriptors)
-            {
-                var method = fileDescriptor.Services.Select(s => s.FindMethodByName(input.MethodName)).FirstOrDefault();
-                if (method == null) continue;
-                try
-                {
-                    transaction.Params = method.InputType.Parser.ParseJson(input.Params).ToByteString();
-                }
-                catch
-                {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidParams],Error.InvalidParams.ToString());
-                }
-                break;
-            }
-
-            if (transaction.Params.IsEmpty)
-            {
-                throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],Error.NoMatchMethodInContractAddress.ToString());
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],Error.InvalidParams.ToString());
             }
             return new CreateRawTransactionOutput
             {
@@ -174,10 +157,32 @@ namespace AElf.WebApp.Application.Chain
             var transaction = Transaction.Parser.ParseFrom(ByteArrayHelpers.FromHexString(input.Transaction));
             transaction.Sigs.Add(ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature)));
             var txIds = await PublishTransactionsAsync(new[] {transaction.ToByteArray().ToHex()});
-            return new SendRawTransactionOutput
+
+            var output = new SendRawTransactionOutput
             {
                 TransactionId = txIds[0]
             };
+
+            if (!input.ReturnTransaction) return output;
+            
+            var transactionDto = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            var contractMethodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+            if (contractMethodDescriptor == null)
+                throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
+                    Error.NoMatchMethodInContractAddress.ToString());
+            try
+            {
+                transactionDto.Params =
+                    JsonFormatter.ToDiagnosticString(
+                        contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],Error.InvalidParams.ToString());
+            }
+            output.Transaction = transactionDto;
+
+            return output;
         }
 
         /// <summary>
@@ -614,6 +619,28 @@ namespace AElf.WebApp.Application.Chain
                 BlockHeight = chain.BestChainHeight
             };
             return chainContext;
+        }
+        
+        private async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress, string methodName)
+        {
+            IEnumerable<FileDescriptor> fileDescriptors;
+            try
+            {
+                fileDescriptors = await GetFileDescriptorsAsync(contractAddress);
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidContractAddress],Error.InvalidContractAddress.ToString());
+            }
+            
+            foreach (var fileDescriptor in fileDescriptors)
+            {
+                var method = fileDescriptor.Services.Select(s => s.FindMethodByName(methodName)).FirstOrDefault();
+                if (method == null) continue;
+                return method;
+            }
+
+            return null;
         }
     }
 }
