@@ -24,7 +24,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             var block2 = GenerateBlockInformation(10, false);
             var result2 = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block2);
-            result2.ShouldBeTrue();
+            result2.ShouldBeFalse();
             
             var block3 = GenerateBlockInformation(10, true);
             var result3 = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block3);
@@ -40,7 +40,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             var block2 = GenerateBlockInformation(10, false);
             var result2 = await _blockValidationProvider.ValidateBlockAfterExecuteAsync(block2);
-            result2.ShouldBeTrue();
+            result2.ShouldBeFalse();
             
             var block3 = GenerateBlockInformation(10, true);
             var result3 = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block3);

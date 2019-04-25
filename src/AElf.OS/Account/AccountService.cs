@@ -20,14 +20,12 @@ namespace AElf.OS.Account
         public async Task<byte[]> SignAsync(byte[] data)
         {
             var signature = CryptoHelpers.SignWithPrivateKey((await GetAccountKeyPairAsync()).PrivateKey, data);
-
             return signature;
         }
 
         public async Task<bool> VerifySignatureAsync(byte[] signature, byte[] data, byte[] publicKey)
         {
             var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
-
             return recoverResult && publicKey.BytesEqual(recoverPublicKey);
         }
 

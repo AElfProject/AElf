@@ -97,9 +97,9 @@ namespace AElf.Cryptography
             publicKey = null;
             try
             {
+                Lock.AcquireWriterLock(Timeout.Infinite);
                 if (signature.Length != Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH)
                     return false;
-                Lock.AcquireWriterLock(Timeout.Infinite);
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 var recoveredPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
                 var recSig = new byte[65];
