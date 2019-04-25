@@ -108,6 +108,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
                 DaysEachTerm = DaysEachTerm
             });
+            
             return aelfConsensusMethodCallList;
         }
     }

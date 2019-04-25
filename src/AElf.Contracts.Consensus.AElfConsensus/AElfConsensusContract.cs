@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Consensus.AElfConsensus;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AElfConsensus
@@ -17,6 +19,41 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             input.DaysEachTerm = input.DaysEachTerm == 0 ? int.MaxValue : input.DaysEachTerm;
 
             State.DaysEachTerm.Value = input.IsSideChain || input.IsTermStayOne ? int.MaxValue : input.DaysEachTerm;
+
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+
+            return new Empty();
+        }
+
+        public override Empty FirstRound(Round input)
+        {
+            Assert(input.RoundNumber == 1, "Invalid round number.");
+
+            Assert(input.RealTimeMinersInformation.Any(), "No miner in input data.");
+
+            State.CurrentTermNumber.Value = 1;
+            State.CurrentRoundNumber.Value = 1;
+            State.FirstRoundNumberOfEachTerm[1] = 1L;
+            SetBlockchainStartTimestamp(input.GetStartTime().ToTimestamp());
+            State.MiningInterval.Value = input.GetMiningInterval();
+
+            State.ElectionContract.SetInitialMiners.Send(new PublicKeysList
+            {
+                Value =
+                {
+                    input.RealTimeMinersInformation.Keys.Select(k =>
+                        ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))
+                }
+            });
+
+            var miners = new Miners{TermNumber = 1};
+            miners.PublicKeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k =>
+                ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k))));
+            miners.TermNumber = 1;
+            SetMiners(miners);
+
+            Assert(TryToAddRoundInformation(input), "Failed to add round information.");
+
 
             return new Empty();
         }

@@ -25,6 +25,8 @@ namespace AElf.Contracts.Election
         
         public SingletonState<int> DaysEachTerm { get; set; }
 
+        public SingletonState<PublicKeysList> InitialMiners { get; set; }
+
 
         /// <summary>
         /// Vote Id -> Lock Time (days)
