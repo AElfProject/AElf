@@ -100,7 +100,7 @@ Now lets look at the test :
 public class HelloWorldContractTest : HelloWorldContractTestBase
 {
     [Fact]
-    public async Task Test()
+    public async Task HelloCall_ReturnsHelloWorldMessage()
     {
         var result = await HelloWorldContractStub.Hello.CallAsync(new Empty());
         result.Value.ShouldBe("Hello world!");
