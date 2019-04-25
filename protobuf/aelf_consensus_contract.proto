@@ -42,7 +42,9 @@ service AElfConsensusContract {
     rpc ValidateConsensusAfterExecution (AElfConsensusHeaderInformation) returns (ValidationResult) {
         option (aelf.is_view) = true;
     }
-    
+    rpc GetCurrentMiners (google.protobuf.Empty) returns (Miners) {
+        option (aelf.is_view) = true;
+    }
     rpc GetRoundInformation (SInt64Value) returns (Round) {
         option (aelf.is_view) = true;
     }

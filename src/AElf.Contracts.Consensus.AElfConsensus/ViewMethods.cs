@@ -266,6 +266,24 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             return TryToGetRoundInformation(input.Value, out var round) ? round : new Round();
         }
 
+        public override Miners GetCurrentMiners(Empty input)
+        {
+            if (TryToGetCurrentRoundInformation(out var round))
+            {
+                return new Miners
+                {
+                    TermNumber = State.CurrentTermNumber.Value,
+                    PublicKeys =
+                    {
+                        round.RealTimeMinersInformation.Keys.Select(k =>
+                            ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))
+                    }
+                };
+            }
+
+            return new Miners();
+        }
+
         private bool RoundIdMatched(Round round)
         {
             if (TryToGetCurrentRoundInformation(out var currentRound))

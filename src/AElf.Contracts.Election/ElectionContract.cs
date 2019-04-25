@@ -3,6 +3,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election
@@ -15,6 +16,7 @@ namespace AElf.Contracts.Election
             State.VoteContractSystemName.Value = input.VoteContractSystemName;
             State.ProfitContractSystemName.Value = input.ProfitContractSystemName;
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
+            State.AElfConsensusContractSystemName.Value = input.AelfConsensusContractSystemName;
             State.DaysEachTerm.Value = input.DaysEachTerm;
             State.Initialized.Value = true;
             return new Empty();
@@ -24,6 +26,8 @@ namespace AElf.Contracts.Election
         {
             Assert(State.InitialMiners.Value == null, "Initial miners already set.");
             State.InitialMiners.Value = new PublicKeysList {Value = {input.Value}};
+            State.AElfConsensusContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
             return new Empty();
         }
 
@@ -193,9 +197,21 @@ namespace AElf.Contracts.Election
                 EpochNumber = input.TermNumber,
                 Topic = ElectionContractConsts.Topic
             });
-            
+
             // Take snapshot.
-            
+            var snapshot = new TermSnapshot
+            {
+                TermNumber = input.TermNumber,
+                TotalBlocks = input.MinedBlocks,
+                EndRoundNumber = input.RoundNumber
+            };
+            foreach (var publicKey in State.Candidates.Value.Value)
+            {
+                snapshot.CandidatesVotes.Add(publicKey.ToHex(),
+                    State.Votes[publicKey.ToHex()].ValidObtainedVotesAmount);
+            }
+
+            State.Snapshots[input.TermNumber] = snapshot;
 
             return new Empty();
         }
@@ -208,6 +224,7 @@ namespace AElf.Contracts.Election
         public override Empty AnnounceElection(Empty input)
         {
             var publicKey = Context.RecoverPublicKey().ToHex();
+            var publicKeyByteString = ByteString.CopyFrom(Context.RecoverPublicKey());
 
             Assert(
                 State.Votes[publicKey] == null || State.Votes[publicKey].ActiveVotesIds == null ||
@@ -220,7 +237,8 @@ namespace AElf.Contracts.Election
             {
                 Assert(candidateHistory.State != CandidateState.IsEvilNode,
                     "This candidate already marked as evil node before.");
-                Assert(candidateHistory.State == CandidateState.NotAnnounced,
+                Assert(candidateHistory.State == CandidateState.NotAnnounced &&
+                       !State.Candidates.Value.Value.Contains(publicKeyByteString),
                     "This public key already announced election.");
                 candidateHistory.AnnouncementTransactionId = Context.TransactionId;
                 State.Histories[publicKey] = candidateHistory;
@@ -233,6 +251,8 @@ namespace AElf.Contracts.Election
                     State = CandidateState.IsCandidate
                 };
             }
+
+            State.Candidates.Value.Value.Add(publicKeyByteString);
 
             State.TokenContract.Lock.Send(new LockInput
             {
@@ -264,7 +284,14 @@ namespace AElf.Contracts.Election
         public override Empty QuitElection(Empty input)
         {
             var publicKey = Context.RecoverPublicKey().ToHex();
+            var publicKeyByteString = ByteString.CopyFrom(Context.RecoverPublicKey());
 
+            Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
+            Assert(
+                State.AElfConsensusContract.GetCurrentMiners.Call(new Empty()).PublicKeys.Contains(publicKeyByteString),
+                "Current miners cannot quit election.");
+
+            State.Candidates.Value.Value.Remove(publicKeyByteString);
             State.TokenContract.Unlock.Send(new UnlockInput
             {
                 From = Context.Sender,
@@ -300,6 +327,51 @@ namespace AElf.Contracts.Election
             var lockTime = input.LockTimeUnit == LockTimeUnit.Days ? input.LockTime : input.LockTime * 30;
             Assert(lockTime >= 90, "Should lock token for at least 90 days.");
             State.LockTimeMap[Context.TransactionId] = lockTime;
+
+            // Update Voter's Votes information.
+            var voterPublicKeyBytes = Context.RecoverPublicKey();
+            var voterPublicKey = voterPublicKeyBytes.ToHex();
+            var voterPublicKeyByteString = ByteString.CopyFrom(voterPublicKeyBytes);
+            var voterVotes = State.Votes[voterPublicKey];
+            if (voterVotes == null)
+            {
+                voterVotes = new Votes
+                {
+                    PublicKey = voterPublicKeyByteString,
+                    ActiveVotesIds = {Context.TransactionId},
+                    ValidVotedVotesAmount = input.Amount,
+                    AllVotedVotesAmount = input.Amount
+                };
+            }
+            else
+            {
+                voterVotes.ActiveVotesIds.Add(Context.TransactionId);
+                voterVotes.ValidVotedVotesAmount += input.Amount;
+                voterVotes.AllVotedVotesAmount += input.Amount;
+            }
+
+            State.Votes[voterPublicKey] = voterVotes;
+
+            // Update Candidate's Votes information.
+            var candidateVotes = State.Votes[input.CandidatePublicKey];
+            if (candidateVotes == null)
+            {
+                candidateVotes = new Votes
+                {
+                    PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.CandidatePublicKey)),
+                    ObtainedActiveVotesIds = {Context.TransactionId},
+                    ValidObtainedVotesAmount = input.Amount,
+                    AllObtainedVotesAmount = input.Amount
+                };
+            }
+            else
+            {
+                candidateVotes.ObtainedActiveVotesIds.Add(Context.TransactionId);
+                candidateVotes.ValidObtainedVotesAmount += input.Amount;
+                candidateVotes.AllObtainedVotesAmount += input.Amount;
+            }
+
+            State.Votes[input.CandidatePublicKey] = candidateVotes;
 
             State.TokenContract.Transfer.Send(new TransferInput
             {
@@ -349,6 +421,22 @@ namespace AElf.Contracts.Election
             Assert(actualLockedDays >= claimedLockDays,
                 $"Still need {claimedLockDays - actualLockedDays} days to unlock your token.");
 
+            var voteId = Context.TransactionId;
+            // Update Voter's Votes information.
+            var voterPublicKey = Context.RecoverPublicKey().ToHex();
+            var voterVotes = State.Votes[voterPublicKey];
+            voterVotes.ActiveVotesIds.Remove(voteId);
+            voterVotes.WithdrawnVotesIds.Add(voteId);
+            voterVotes.ValidVotedVotesAmount -= votingRecord.Amount;
+            State.Votes[voterPublicKey] = voterVotes;
+
+            // Update Candidate's Votes information.
+            var candidateVotes = State.Votes[votingRecord.Option];
+            candidateVotes.ObtainedActiveVotesIds.Remove(voteId);
+            candidateVotes.ObtainedWithdrawnVotesIds.Add(voteId);
+            candidateVotes.ValidObtainedVotesAmount -= votingRecord.Amount;
+            State.Votes[votingRecord.Option] = candidateVotes;
+
             State.TokenContract.Unlock.Send(new UnlockInput
             {
                 From = votingRecord.Voter,
@@ -363,7 +451,7 @@ namespace AElf.Contracts.Election
             {
                 VoteId = input
             });
-            
+
             State.ProfitContract.SubWeight.Send(new SubWeightInput
             {
                 ProfitId = State.WelfareHash.Value,
@@ -390,6 +478,16 @@ namespace AElf.Contracts.Election
             };
 
             return result;
+        }
+
+        public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
+        {
+            var history = State.Histories[input.PublicKey];
+            history.ProducedBlocks += input.RecentlyProducedBlocks;
+            history.MissedTimeSlots += input.RecentlyMissedTimeSlots;
+            history.IsEvilNode = input.IsEvilNode;
+            State.Histories[input.PublicKey] = history;
+            return new Empty();
         }
 
         private long GetVotesWeight(long votesAmount, long lockTime)

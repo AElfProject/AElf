@@ -42,6 +42,7 @@ message UpdateCandidateInformationInput {
 message ReleaseTreasuryProfitsInput {
     sint64 term_number = 1;
     sint64 mined_blocks = 2;
+    sint64 round_number = 3;
 }
 
 enum CandidateState {
@@ -85,6 +86,7 @@ message Votes {
     sint64 all_obtained_votes_amount = 7;
     sint64 all_voted_votes_amount = 8;
     repeated ElectionVotingRecord ElectionVotingRecords = 9;
+    bytes public_key = 10;
 }
 
 message CandidateHistory {
