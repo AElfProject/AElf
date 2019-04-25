@@ -9,6 +9,8 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.WebApp.Application.Chain.Dto;
+using Google.Protobuf;
+using Google.Protobuf.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
@@ -23,6 +25,10 @@ namespace AElf.WebApp.Application.Chain
         Task<string> Call(string rawTransaction);
 
         Task<byte[]> GetContractFileDescriptorSet(string address);
+
+        Task<CreateRawTransactionOutput> CreateRawTransaction(CreateRawTransactionInput input);
+        
+        Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input);
 
         Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction);
 
@@ -118,6 +124,61 @@ namespace AElf.WebApp.Application.Chain
             }
         }
         
+        public async Task<CreateRawTransactionOutput> CreateRawTransaction(CreateRawTransactionInput input)
+        {
+            var transaction = new Transaction
+            {
+                From = Address.Parse(input.From),
+                To = Address.Parse(input.To),
+                RefBlockNumber = input.RefBlockNumber,
+                RefBlockPrefix = ByteString.CopyFrom(Hash.LoadHex(input.RefBlockHash).Value.Take(4).ToArray()),
+                MethodName = input.MethodName
+            };
+            IEnumerable<FileDescriptor> fileDescriptors;
+            try
+            {
+                fileDescriptors = await GetFileDescriptorsAsync(Address.Parse(input.To));
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidContractAddress],Error.InvalidContractAddress.ToString());
+            }
+            
+            foreach (var fileDescriptor in fileDescriptors)
+            {
+                var method = fileDescriptor.Services.Select(s => s.FindMethodByName(input.MethodName)).FirstOrDefault();
+                if (method == null) continue;
+                try
+                {
+                    transaction.Params = method.InputType.Parser.ParseJson(input.Params).ToByteString();
+                }
+                catch
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidParams],Error.InvalidParams.ToString());
+                }
+                break;
+            }
+
+            if (transaction.Params.IsEmpty)
+            {
+                throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],Error.NoMatchMethodInContractAddress.ToString());
+            }
+            return new CreateRawTransactionOutput
+            {
+                RawTransaction = transaction.ToByteArray().ToHex()
+            };
+        }
+
+        public async Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input)
+        {
+            var transaction = Transaction.Parser.ParseFrom(ByteArrayHelpers.FromHexString(input.Transaction));
+            transaction.Sigs.Add(ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature)));
+            var txIds = await PublishTransactionsAsync(new[] {transaction.ToByteArray().ToHex()});
+            return new SendRawTransactionOutput
+            {
+                TransactionId = txIds[0]
+            };
+        }
 
         /// <summary>
         /// Broadcast a transaction
@@ -518,6 +579,18 @@ namespace AElf.WebApp.Application.Chain
             };
 
             return await _transactionReadOnlyExecutionService.GetFileDescriptorSetAsync(chainContext, address);
+        }
+        
+        private async Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(Address address)
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var chainContext = new ChainContext()
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+
+            return await _transactionReadOnlyExecutionService.GetFileDescriptorsAsync(chainContext, address);
         }
         
         private async Task<byte[]> CallReadOnly(Transaction tx)
