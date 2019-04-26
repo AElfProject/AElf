@@ -18,21 +18,12 @@ namespace AElf.Kernel
 
         private byte[] GetSignatureData()
         {
-            if (To == null || From == null || string.IsNullOrEmpty(MethodName) || RefBlockNumber < 0)
-            {
-                throw new InvalidOperationException($"Invalid trancation: {this}");
-            }
+            if (this.Signature == ByteString.Empty)
+                return this.ToByteArray();
 
-            var txData = new Transaction
-            {
-                From = From.Clone(),
-                To = To.Clone(),
-                MethodName = MethodName
-            };
-            txData.Params = Params;
-            txData.RefBlockNumber = RefBlockNumber;
-            txData.RefBlockPrefix = RefBlockPrefix;
-            return txData.ToByteArray();
+            var transaction = this.Clone();
+            transaction.Signature = ByteString.Empty;
+            return transaction.ToByteArray();
         }
     }
 }
