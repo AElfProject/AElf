@@ -8,12 +8,18 @@ namespace AElf.Contracts.Election
     {
         public override PublicKeysList GetVictories(Empty input)
         {
+            if (State.Candidates.Value == null || State.Candidates.Value.Value.Count <= State.MinersCount.Value)
+            {
+                return new PublicKeysList();
+            }
+
             return new PublicKeysList
             {
                 Value =
                 {
                     State.Candidates.Value.Value.Select(p => p.ToHex()).Select(k => State.Votes[k])
                         .OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
+                        .Take(State.MinersCount.Value)
                 }
             };
         }

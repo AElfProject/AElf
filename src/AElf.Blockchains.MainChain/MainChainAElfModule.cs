@@ -17,7 +17,6 @@ using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Modularity;

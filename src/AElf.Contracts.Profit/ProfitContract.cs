@@ -437,9 +437,11 @@ namespace AElf.Contracts.Profit
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
-            for (var i = 0; i < Math.Min(ProfitContractConsts.ProfitLimit, profitDetails.Details.Count); i++)
+            var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod != profitItem.CurrentPeriod).ToList();
+
+            for (var i = 0; i < Math.Min(ProfitContractConsts.ProfitLimit, availableDetails.Count); i++)
             {
-                var profitDetail = profitDetails.Details[i];
+                var profitDetail = availableDetails[i];
                 if (profitDetail.LastProfitPeriod == 0)
                 {
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
