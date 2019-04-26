@@ -252,7 +252,7 @@ namespace AElf.Contracts.Election
 
             Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
             Assert(
-                State.AElfConsensusContract.GetCurrentMiners.Call(new Empty()).PublicKeys.Contains(publicKeyByteString),
+                !State.AElfConsensusContract.GetCurrentMiners.Call(new Empty()).PublicKeys.Contains(publicKeyByteString),
                 "Current miners cannot quit election.");
 
             var history = State.Histories[publicKey];

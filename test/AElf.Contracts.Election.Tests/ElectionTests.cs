@@ -2,10 +2,8 @@ using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
-using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.Contracts.Election
@@ -107,25 +105,30 @@ namespace AElf.Contracts.Election
                 var user = SampleECKeyPairs.KeyPairs[i];
                 await UserAnnounceElection(user);
             }
-            
-            //query current miners
-            var currentMiners = await AElfConsensusContractStub.GetCurrentMiners.CallAsync(new Empty());
 
-            for (var i = 1; i < 5; i++)
+            var voteEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
             {
-                var user = SampleECKeyPairs.KeyPairs[i];
-                
-                if (currentMiners.PublicKeys.Contains(ByteString.CopyFrom(user.PublicKey))) continue;
-                
-                var beforeBalance = await GetUserBalance(user.PublicKey);
-                    
-                var transactionResult = await UserQuiteElection(user);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                    
-                var afterBalance = await GetUserBalance(user.PublicKey);
-                afterBalance.ShouldBe(beforeBalance + ElectionContractConsts.LockTokenForElection);
-                break;
-            }
+                Topic = ElectionContractConsts.Topic,
+                Sponsor = ElectionContractAddress
+            });
+            voteEvent.Options.Count.ShouldBe(4);
+
+            var userKeyPair = SampleECKeyPairs.KeyPairs[4];
+
+            var beforeBalance = await GetUserBalance(userKeyPair.PublicKey);
+
+            var transactionResult = await UserQuiteElection(userKeyPair);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var afterBalance = await GetUserBalance(userKeyPair.PublicKey);
+            afterBalance.ShouldBe(beforeBalance + ElectionContractConsts.LockTokenForElection);
+
+            voteEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+            {
+                Topic = ElectionContractConsts.Topic,
+                Sponsor = ElectionContractAddress
+            });
+            voteEvent.Options.Count.ShouldBe(3);
         }
 
         [Fact]
@@ -135,7 +138,7 @@ namespace AElf.Contracts.Election
 
             var transactionResult = await UserQuiteElection(userKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("").ShouldBeTrue();
+            transactionResult.Error.Contains("Sender is not a candidate").ShouldBeTrue();
         }
 
         [Fact]
@@ -202,6 +205,27 @@ namespace AElf.Contracts.Election
 
             var afterBalance = await GetUserBalance(voteUser.PublicKey);
             afterBalance.ShouldBe(beforeBalance - 1000);
+        }
+
+        [Fact]
+        public async Task Get_Candidates()
+        {
+            for (int i = 1; i < 5; i++)
+            {
+                var candidate = SampleECKeyPairs.KeyPairs[i];
+                await UserAnnounceElection(candidate);
+            }
+
+            var voteEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+            {
+                Topic = ElectionContractConsts.Topic,
+                Sponsor = ElectionContractAddress
+            });
+            voteEvent.Options.Count.ShouldBe(4);
+            voteEvent.Options.Contains(SampleECKeyPairs.KeyPairs[1].PublicKey.ToHex()).ShouldBeTrue();
+            voteEvent.Options.Contains(SampleECKeyPairs.KeyPairs[2].PublicKey.ToHex()).ShouldBeTrue();
+            voteEvent.Options.Contains(SampleECKeyPairs.KeyPairs[3].PublicKey.ToHex()).ShouldBeTrue();
+            voteEvent.Options.Contains(SampleECKeyPairs.KeyPairs[4].PublicKey.ToHex()).ShouldBeTrue();
         }
 
         #region Private methods

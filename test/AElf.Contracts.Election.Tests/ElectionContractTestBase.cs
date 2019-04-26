@@ -27,6 +27,8 @@ namespace AElf.Contracts.Election
     {
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
+        
+        protected ConsensusOptions ConsensusOption { get; set; }
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
@@ -243,17 +245,17 @@ namespace AElf.Contracts.Election
         private SystemTransactionMethodCallList GenerateConsensusInitializationCallList()
         {
             var consensusMethodList = new SystemTransactionMethodCallList();
-            var consensusOptions = GetDefaultConsensusOptions();
+            ConsensusOption = GetDefaultConsensusOptions();
             
             consensusMethodList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    DaysEachTerm = consensusOptions.DaysEachTerm
+                    DaysEachTerm = ConsensusOption.DaysEachTerm
                 });
             consensusMethodList.Add(nameof(AElfConsensusContract.FirstRound),
-                consensusOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
-                    consensusOptions.StartTimestamp.ToUniversalTime()));
+                ConsensusOption.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(ConsensusOption.MiningInterval,
+                    ConsensusOption.StartTimestamp.ToUniversalTime()));
             return consensusMethodList;
         }
         internal async Task<long> GetUserBalance(byte[] publicKey)
@@ -274,9 +276,9 @@ namespace AElf.Contracts.Election
                 MiningInterval = 4000,
                 InitialMiners = new List<string>()
                 {
-                    CryptoHelpers.GenerateKeyPair().PublicKey.ToHex(),
-                    CryptoHelpers.GenerateKeyPair().PublicKey.ToHex(),
-                    CryptoHelpers.GenerateKeyPair().PublicKey.ToHex(),
+                    SampleECKeyPairs.KeyPairs[0].PublicKey.ToHex(),
+                    SampleECKeyPairs.KeyPairs[1].PublicKey.ToHex(),
+                    SampleECKeyPairs.KeyPairs[2].PublicKey.ToHex(),
                 },
                 DaysEachTerm = 7,
                 StartTimestamp = DateTime.UtcNow
