@@ -13,7 +13,6 @@ message InitialElectionContractInput {
     Hash profit_contract_system_name = 2;
     Hash token_contract_system_name = 3;
     Hash aelf_consensus_contract_system_name = 4;
-    sint32 days_each_term = 5;
 }
 
 message RegisterElectionVotingEventInput {

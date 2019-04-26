@@ -151,7 +151,7 @@ namespace AElf.Contracts.Election
                 Period = input.TermNumber
             });
 
-            ReleaseTreasurySubProfitItems(input.TermNumber);
+            ReleaseTreasurySubProfitItems(input.TermNumber - 1);
 
             // Update epoch of voting record btw.
             State.VoteContract.UpdateEpochNumber.Send(new UpdateEpochNumberInput
@@ -571,7 +571,7 @@ namespace AElf.Contracts.Election
             var reElectionProfitAddWeights = new AddWeightsInput
             {
                 ProfitId = State.ReElectionRewardHash.Value,
-                EndPeriod = termNumber + 1,
+                EndPeriod = termNumber
             };
 
             var reElectionProfitSubWeights = new SubWeightsInput
@@ -582,7 +582,7 @@ namespace AElf.Contracts.Election
             var basicRewardProfitAddWeights = new AddWeightsInput
             {
                 ProfitId = State.BasicRewardHash.Value,
-                EndPeriod = termNumber + 1
+                EndPeriod = termNumber
             };
             
             var basicRewardProfitSubWeights = new SubWeightsInput
@@ -593,7 +593,7 @@ namespace AElf.Contracts.Election
             var votesWeightRewardProfitAddWeights = new AddWeightsInput
             {
                 ProfitId = State.VotesWeightRewardHash.Value,
-                EndPeriod = termNumber + 1
+                EndPeriod = termNumber
             };
             
             var votesWeightRewardProfitSubWeights = new SubWeightsInput

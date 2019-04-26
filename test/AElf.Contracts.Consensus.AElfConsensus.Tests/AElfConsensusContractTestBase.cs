@@ -127,6 +127,11 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         private SystemTransactionMethodCallList GenerateElectionInitializationCallList()
         {
             var electionMethodCallList = new SystemTransactionMethodCallList();
+            electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
+                new InitialElectionContractInput
+                {
+                    AelfConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
+                });
             return electionMethodCallList;
         }
 
@@ -137,7 +142,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    DaysEachTerm = DaysEachTerm
+                    DaysEachTerm = DaysEachTerm,
+                    IsTermStayOne = true
                 });
             aelfConsensusMethodCallList.Add(nameof(AElfConsensusContract.FirstRound),
                 new Miners

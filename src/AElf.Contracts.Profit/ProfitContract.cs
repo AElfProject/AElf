@@ -280,7 +280,7 @@ namespace AElf.Contracts.Profit
             // Update current_period.
             var releasingPeriod = profitItem.CurrentPeriod;
 
-            Assert(input.Period == releasingPeriod + 1, "Invalid period.");
+            Assert(input.Period == releasingPeriod, "Invalid period.");
 
             // No one registered.
             if (profitItem.TotalWeight <= 0)
@@ -373,7 +373,7 @@ namespace AElf.Contracts.Profit
                 });
             }
 
-            profitItem.CurrentPeriod = input.Period;
+            profitItem.CurrentPeriod = input.Period + 1;
             State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             return new Empty();

@@ -24,11 +24,16 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             State.ElectionContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(input.ElectionContractSystemName);
+
+            if (input.IsTermStayOne || input.IsSideChain)
+            {
+                return new Empty();
+            }
             
             State.ElectionContract.RegisterElectionVotingEvent.Send(new RegisterElectionVotingEventInput());
-            
+
             State.ElectionContract.CreateTreasury.Send(new CreateTreasuryInput());
-            
+
             State.ElectionContract.RegisterToTreasury.Send(new RegisterToTreasuryInput());
 
             return new Empty();
