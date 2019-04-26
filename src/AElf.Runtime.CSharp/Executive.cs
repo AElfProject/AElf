@@ -241,5 +241,7 @@ namespace AElf.Runtime.CSharp
             var descriptor = Descriptors.Last();
             return GetSelfAndDependency(descriptor.File);
         }
+
+        public Hash ContractHash { get; set; }
     }
 }

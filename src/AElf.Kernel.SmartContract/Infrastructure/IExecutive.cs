@@ -16,5 +16,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);
         byte[] GetFileDescriptorSet();
         IEnumerable<FileDescriptor> GetFileDescriptors();
+        
+        Hash ContractHash { get; }
     }
 }
