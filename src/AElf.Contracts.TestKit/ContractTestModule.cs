@@ -69,6 +69,7 @@ namespace AElf.Contracts.TestKit
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
+                options.ContextVariables[ContextVariableDictionary.DaysEachTermName] = "7";
             });
 
             #region Infra
@@ -80,7 +81,6 @@ namespace AElf.Contracts.TestKit
             services.AddSingleton<SmartContractRunnerContainer>();
 
             #endregion
-
 
             #region Logger
 

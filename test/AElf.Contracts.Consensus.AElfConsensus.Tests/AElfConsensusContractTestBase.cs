@@ -69,6 +69,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
         protected void InitializeContracts()
         {
+            ECKeyPairProvider.SetECKeyPair(BootMinerKeyPair);
+
             BasicContractZeroStub = GetContractZeroTester(BootMinerKeyPair);
 
             // Deploy Election Contract.
