@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.WebApp.Application.Net.Dto;
@@ -79,8 +80,26 @@ namespace AElf.WebApp.Application.Net.Tests
         [Fact]
         public async Task GetNetWorkInfoTest()
         {
-            var networkInfo = await GetResponseAsObjectAsync<GetNetworkInfoOutput>("/api/net/networkInfo");
+            var ipAddressOne = "192.168.1.1:1680";
+            var channelOne = new Channel(ipAddressOne, ChannelCredentials.Insecure);
+            var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne),
+                "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399",
+                ipAddressOne);
+            _peerPool.AddPeer(peerOne);
             
+            var ipAddressTwo = "192.168.1.2:1680";
+            var channelTwo = new Channel(ipAddressTwo, ChannelCredentials.Insecure);
+            var peerTwo = new GrpcPeer(channelTwo, new PeerService.PeerServiceClient(channelTwo),
+                "0624dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab390",
+                ipAddressTwo);
+            _peerPool.AddPeer(peerTwo);
+            
+            var peers = await GetResponseAsObjectAsync<List<string>>("api/net/peers");
+            
+            var networkInfo = await GetResponseAsObjectAsync<GetNetworkInfoOutput>("/api/net/networkInfo");
+            networkInfo.Version.ShouldBe(typeof(NetApplicationWebAppAElfModule).Assembly.GetName().Version.ToString());
+            networkInfo.ProtocolVersion.ShouldBe(KernelConstants.ProtocolVersion);
+            networkInfo.Connections.ShouldBe(peers.Count);
         }
     }
 }
