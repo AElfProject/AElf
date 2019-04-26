@@ -538,6 +538,15 @@ namespace AElf.Contracts.Election
                 To = votingRecord.Sponsor,
                 Usage = $"Withdraw votes for {ElectionContractConsts.Topic}"
             });
+            
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Sender,
+                Amount = votingRecord.Amount,
+                Symbol = ElectionContractConsts.VoteSymbol,
+                Memo = "Return VOTE tokens."
+            });
 
             State.VoteContract.Withdraw.Send(new WithdrawInput
             {
