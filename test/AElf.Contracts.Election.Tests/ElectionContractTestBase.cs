@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.Profit;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
@@ -21,6 +22,7 @@ namespace AElf.Contracts.Election
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
+        protected Address ProfitContractAddress { get; set; }
         protected Address ElectionContractAddress { get; set; }
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
@@ -28,6 +30,7 @@ namespace AElf.Contracts.Election
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
 
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
+        internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
 
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
 
@@ -46,6 +49,11 @@ namespace AElf.Contracts.Election
             return GetTester<VoteContractContainer.VoteContractStub>(VoteContractAddress, keyPair);
         }
 
+        internal ProfitContractContainer.ProfitContractStub GetProfitContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, keyPair);
+        }
+        
         internal ElectionContractContainer.ElectionContractStub GetElectionContractTester(ECKeyPair keyPair)
         {
             return GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, keyPair);
@@ -66,7 +74,18 @@ namespace AElf.Contracts.Election
                         TransactionMethodCallList = GenerateVoteInitializationCallList()
                     })).Output;
             VoteContractStub = GetVoteContractTester(DefaultSenderKeyPair);
-
+            
+            //Deploy Profit Contract
+            ProfitContractAddress = AsyncHelper.RunSync(() =>
+                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
+                    new SystemContractDeploymentInput
+                    {
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ProfitContract).Assembly.Location)),
+                        Name = ProfitSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = GenerateProfitInitializationCallList()
+                    })).Output;
+            
             // Deploy Election Contract
             ElectionContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
@@ -102,6 +121,18 @@ namespace AElf.Contracts.Election
                 });
 
             return voteMethodCallList;
+        }
+
+        private SystemTransactionMethodCallList GenerateProfitInitializationCallList()
+        {
+            var profitMethodCallList = new SystemTransactionMethodCallList();
+            profitMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),
+                new InitializeProfitContractInput
+                {
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+                });
+
+            return profitMethodCallList;
         }
 
         private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
@@ -154,7 +185,6 @@ namespace AElf.Contracts.Election
                         Memo = "set voters few amount for voting."
                     });
                 }
-
             }
 
             return tokenContractCallList;
@@ -167,7 +197,9 @@ namespace AElf.Contracts.Election
                 new InitialElectionContractInput
                 {
                     VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+                    ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    AelfConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
                 });
 
             return electionMethodCallList;
