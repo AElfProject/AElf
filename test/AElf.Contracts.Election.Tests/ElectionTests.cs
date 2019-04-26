@@ -14,9 +14,13 @@ namespace AElf.Contracts.Election
         public ElectionTests()
         {
             InitializeContracts();
+            
             AsyncHelper.RunSync(async () =>
-                await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(
-                    new RegisterElectionVotingEventInput()));
+                {
+                    await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new RegisterElectionVotingEventInput());
+                    await ElectionContractStub.CreateTreasury.SendAsync(new CreateTreasuryInput());
+                    await ElectionContractStub.RegisterToTreasury.SendAsync(new RegisterToTreasuryInput());
+                });
         }
 
         [Fact]
@@ -180,6 +184,8 @@ namespace AElf.Contracts.Election
             afterBalance.ShouldBe(beforeBalance - 1000);
         }
 
+        #region Private methods
+
         private async Task<TransactionResult> UserAnnounceElection(ECKeyPair userKeyPair)
         {
             var electionStub = GetElectionContractTester(userKeyPair);
@@ -214,5 +220,7 @@ namespace AElf.Contracts.Election
 
             return transactionResult;
         }
+
+        #endregion
     }
 }
