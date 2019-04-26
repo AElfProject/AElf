@@ -1,8 +1,12 @@
 using System.IO;
 using System.Linq;
+using AElf.Contracts.Dividend;
+using AElf.Contracts.MultiToken;
+using AElf.Sdk.CSharp;
 using Shouldly;
 using Xunit;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace AElf.Runtime.CSharp.Tests
 {
@@ -24,23 +28,11 @@ namespace AElf.Runtime.CSharp.Tests
             
             result.ShouldBeEmpty();
         }
-        
+
         private byte[] ReadCode(string path)
         {
             return File.Exists(path) ? File.ReadAllBytes(path) : null;
         }
     }
 
-    class DummyContract
-    {
-        double TestDouble()
-        {
-            return (double) 1.0;
-        }
-
-        float TestFloat()
-        {
-            return (float) 1.0;
-        }
-    }
 }
