@@ -1,14 +1,21 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using AElf.Consensus.AElfConsensus;
+using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.AElfConsensus;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.Vote;
+using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
@@ -24,15 +31,20 @@ namespace AElf.Contracts.Election
         protected Address VoteContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         protected Address ElectionContractAddress { get; set; }
+        
+        protected Address ConsensusContractAddress { get; set; }
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
 
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
 
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
+        
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
 
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
+        
+        internal AElfConsensusContractContainer.AElfConsensusContractStub AElfConsensusContractStub { get; set; }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
         {
@@ -57,6 +69,12 @@ namespace AElf.Contracts.Election
         internal ElectionContractContainer.ElectionContractStub GetElectionContractTester(ECKeyPair keyPair)
         {
             return GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, keyPair);
+        }
+
+        internal AElfConsensusContractContainer.AElfConsensusContractStub GetAElfConsensusContractStub(
+            ECKeyPair keyPair)
+        {
+            return GetTester<AElfConsensusContractContainer.AElfConsensusContractStub>(ConsensusContractAddress, keyPair);
         }
 
         protected void InitializeContracts()
@@ -109,6 +127,18 @@ namespace AElf.Contracts.Election
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
+            
+            //Deploy Consensus Contract
+            ConsensusContractAddress = AsyncHelper.RunSync(() =>
+                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
+                    new SystemContractDeploymentInput
+                    {
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AElfConsensusContract).Assembly.Location)),
+                        Name = ConsensusSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = GenerateConsensusInitializationCallList()
+                    })).Output;
+            AElfConsensusContractStub = GetAElfConsensusContractStub(DefaultSenderKeyPair);
         }
 
         private SystemTransactionMethodCallList GenerateVoteInitializationCallList()
@@ -140,7 +170,7 @@ namespace AElf.Contracts.Election
             var tokenContractCallList = new SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
-                Symbol = ElectionContractTestConsts.NativeTokenSymbol,
+                Symbol = "ELF",
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
@@ -149,17 +179,18 @@ namespace AElf.Contracts.Election
                 LockWhiteSystemContractNameList =
                 {
                     ElectionSmartContractAddressNameProvider.Name,
-                    VoteSmartContractAddressNameProvider.Name
+                    VoteSmartContractAddressNameProvider.Name,
+                    ProfitSmartContractAddressNameProvider.Name
                 }
             });
 
             //issue default user
-            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
             {
-                Symbol = ElectionContractTestConsts.NativeTokenSymbol,
-                Amount = ElectionContractTestConsts.NativeTokenTotalSupply - 3500_000L,
-                To = DefaultSender,
-                Memo = "Issue token to default user for vote.",
+                Symbol = "ELF",
+                Amount = ElectionContractTestConsts.NativeTokenTotalSupply / 5,
+                ToSystemContractName = ElectionSmartContractAddressNameProvider.Name,
+                Memo = "Set dividends.",
             });
 
             //issue some amount for bp announcement and user vote
@@ -186,7 +217,11 @@ namespace AElf.Contracts.Election
                     });
                 }
             }
-
+            
+            //set pool address to election contract address
+            tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
+                ElectionSmartContractAddressNameProvider.Name);
+            
             return tokenContractCallList;
         }
 
@@ -205,6 +240,22 @@ namespace AElf.Contracts.Election
             return electionMethodCallList;
         }
 
+        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList()
+        {
+            var consensusMethodList = new SystemTransactionMethodCallList();
+            var consensusOptions = GetDefaultConsensusOptions();
+            
+            consensusMethodList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract),
+                new InitialAElfConsensusContractInput
+                {
+                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
+                    DaysEachTerm = consensusOptions.DaysEachTerm
+                });
+            consensusMethodList.Add(nameof(AElfConsensusContract.FirstRound),
+                consensusOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
+                    consensusOptions.StartTimestamp.ToUniversalTime()));
+            return consensusMethodList;
+        }
         internal async Task<long> GetUserBalance(byte[] publicKey)
         {
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -214,6 +265,22 @@ namespace AElf.Contracts.Election
             })).Balance;
 
             return balance;
+        }
+
+        private ConsensusOptions GetDefaultConsensusOptions()
+        {
+            return new ConsensusOptions
+            {
+                MiningInterval = 4000,
+                InitialMiners = new List<string>()
+                {
+                    CryptoHelpers.GenerateKeyPair().PublicKey.ToHex(),
+                    CryptoHelpers.GenerateKeyPair().PublicKey.ToHex(),
+                    CryptoHelpers.GenerateKeyPair().PublicKey.ToHex(),
+                },
+                DaysEachTerm = 7,
+                StartTimestamp = DateTime.UtcNow
+            };
         }
     }
 }

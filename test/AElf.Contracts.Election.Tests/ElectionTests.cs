@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
@@ -14,13 +15,6 @@ namespace AElf.Contracts.Election
         public ElectionTests()
         {
             InitializeContracts();
-            
-            AsyncHelper.RunSync(async () =>
-                {
-                    await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new RegisterElectionVotingEventInput());
-                    await ElectionContractStub.CreateTreasury.SendAsync(new CreateTreasuryInput());
-                    await ElectionContractStub.RegisterToTreasury.SendAsync(new RegisterToTreasuryInput());
-                });
         }
 
         [Fact]
@@ -94,18 +88,44 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task QuitElection_WithCandidate()
+        public async Task QuitElection_WithCurrentMiner()
         {
             await AnnounceElection_Success();
 
             var userKeyPair = SampleECKeyPairs.KeyPairs[1];
-            var beforeBalance = await GetUserBalance(userKeyPair.PublicKey);
 
             var transactionResult = await UserQuiteElection(userKeyPair);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.Contains("Current miners cannot quit election").ShouldBeTrue();
+        }
 
-            var afterBalance = await GetUserBalance(userKeyPair.PublicKey);
-            afterBalance.ShouldBe(beforeBalance + ElectionContractConsts.LockTokenForElection);
+        [Fact]
+        public async Task QuiteElection_WithCandidate()
+        {
+            for (var i = 1; i < 5; i++)
+            {
+                var user = SampleECKeyPairs.KeyPairs[i];
+                await UserAnnounceElection(user);
+            }
+            
+            //query current miners
+            var currentMiners = await AElfConsensusContractStub.GetCurrentMiners.CallAsync(new Empty());
+
+            for (var i = 1; i < 5; i++)
+            {
+                var user = SampleECKeyPairs.KeyPairs[i];
+                
+                if (currentMiners.PublicKeys.Contains(ByteString.CopyFrom(user.PublicKey))) continue;
+                
+                var beforeBalance = await GetUserBalance(user.PublicKey);
+                    
+                var transactionResult = await UserQuiteElection(user);
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                    
+                var afterBalance = await GetUserBalance(user.PublicKey);
+                afterBalance.ShouldBe(beforeBalance + ElectionContractConsts.LockTokenForElection);
+                break;
+            }
         }
 
         [Fact]
