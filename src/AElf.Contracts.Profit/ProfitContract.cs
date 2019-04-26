@@ -46,6 +46,11 @@ namespace AElf.Contracts.Profit
             }
 
             var profitId = Context.TransactionId;
+            var createdProfitIds = State.CreatedProfitItemsMap[Context.Sender]?.ProfitIds;
+            if (createdProfitIds != null && createdProfitIds.Contains(profitId))
+            {
+                profitId = Hash.Xor(profitId, createdProfitIds.Last());
+            }
             State.ProfitItemsMap[profitId] = new ProfitItem
             {
                 VirtualAddress = Context.ConvertVirtualAddressToContractAddress(profitId),

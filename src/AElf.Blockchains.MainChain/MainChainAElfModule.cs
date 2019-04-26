@@ -158,7 +158,12 @@ namespace AElf.Blockchains.MainChain
                 TotalSupply = tokenInitialOptions.TotalSupply,
                 // Set the contract zero address as the issuer temporarily.
                 Issuer = issuer,
-                LockWhiteSystemContractNameList = {ElectionSmartContractAddressNameProvider.Name}
+                LockWhiteSystemContractNameList =
+                {
+                    ElectionSmartContractAddressNameProvider.Name,
+                    VoteSmartContractAddressNameProvider.Name,
+                    ProfitSmartContractAddressNameProvider.Name
+                }
             });
 
             tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
