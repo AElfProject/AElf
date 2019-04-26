@@ -21,6 +21,7 @@ enum TransactionStatus {
     TransactionExecuted = 2;
 }
 
+// TODO: remove??
 enum SignatureStatus {
     UnknownSignatureStatus = 0;
     SignatureValid = 1;
@@ -64,6 +65,7 @@ message StateChange {
     StateValue StateValue = 2;
 }
 
+// TODO: remove from BlockBody
 message TransactionList {
     repeated Transaction Transactions = 1;
 }
@@ -91,6 +93,7 @@ message TransactionResult {
     repeated Transaction DeferredTransactions = 10;
     Hash DeferredTxnId = 11;
     string Error = 12;
+    // TODO: remove???
     string ReadableReturnValue = 13;
 }
 
@@ -118,7 +121,9 @@ enum ExecutionStatus {
 message TransactionTrace {
     Hash TransactionId = 1;
     bytes ReturnValue = 2;
+    // TODO: remove ??
     string StdOut = 3;
+    // TODO: rename
     string StdErr = 4;
     repeated Transaction PreTransactions = 5;
     repeated TransactionTrace PreTraces = 6;
@@ -128,7 +133,9 @@ message TransactionTrace {
     int64 Elapsed = 10;
     ExecutionStatus ExecutionStatus = 11;
     TransactionExecutingStateSet StateSet = 12;
+    // TODO: remove
     bytes DeferredTransaction = 13;
+    // TODO: remove
     string ReadableReturnValue = 14;
 }
 
@@ -137,6 +144,7 @@ message ExecutionReturnSet {
     TransactionResultStatus Status = 2;
     map<string, bytes> StateChanges = 3;
     bytes Bloom = 4;
+    // TODO: remove
     repeated Transaction DeferredTransactions = 5;
     bytes ReturnValue = 6;
 }
@@ -148,6 +156,7 @@ message LogEvent {
     bytes NonIndexed = 4;
 }
 
+// TODO: remove
 message BlockHeaderList {
     repeated BlockHeader Headers = 1;
 }
@@ -174,6 +183,7 @@ message BlockHeader {
 message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
+    // TODO: remove
     repeated Transaction TransactionList = 3;
 }
 
@@ -188,6 +198,7 @@ message SmartContractRegistration {
     Hash CodeHash = 3;
 }
 
+// TODO: move to related project
 enum DataAccessMode {
     ReadOnlyAccountSharing = 0;
     ReadWriteAccountSharing = 1;
@@ -204,25 +215,30 @@ message MerklePath {
     repeated Hash Path = 1;
 }
 
+// TODO: check with yiqi
 message StringList {
     repeated string Values = 1;
     string Remark = 2;
 }
 
+// TODO: check with yiqi
 message HashList {
     repeated Hash Values = 1;
 }
 
+// TODO: check with yiqi
 message LongList {
     repeated int64 Values = 1;
     string Remark = 2;
 }
 
+// TODO: check with yiqi or remove
 message BlockAbstract {
     string MinerPublicKey = 1;
     google.protobuf.Timestamp Time = 2;
 }
 
+// TODO: remove
 enum BlockValidationResult {
     // The chosen one!
     Success = 0;
@@ -261,6 +277,7 @@ message BlockStateSet {
 }
 
 message TransactionExecutingStateSet {
+    // TODO: check
     int64 Version = 1;
     map<string, bytes> Writes = 2;
     map<string, bool> Reads = 3;
@@ -280,6 +297,7 @@ message ChainStateInfo {
     ChainStateMergingStatus Status = 5;
 }
 
+// TODO: check with yiqi
 message ActionResult {
     bool Success = 1;
     string ErrorMessage = 2;
@@ -331,11 +349,13 @@ message SystemTransactionMethodCallList {
     repeated SystemTransactionMethodCall Value = 1;
 }
 
+// TODO: move to acs*
 message ContractDeploymentInput {
     sint32 category = 1;
     bytes code = 2;
 }
 
+// TODO: move to acs*
 message SystemContractDeploymentInput {
     sint32 category = 1;
     bytes code = 2;
@@ -343,11 +363,13 @@ message SystemContractDeploymentInput {
     SystemTransactionMethodCallList transactionMethodCallList = 4;
 }
 
+// TODO: move to acs*
 message ContractUpdateInput {
     Address address = 1;
     bytes code = 2;
 }
 
+// TODO: move to acs*
 message ChangeContractOwnerInput {
     Address contractAddress = 1;
     Address newOwner = 2;

@@ -17,6 +17,7 @@ namespace AElf
         /// <returns></returns>
         public string ToDiagnosticString()
         {
+            // TODO: check format
             return $@"""{ToHex()}""";
         }
 
@@ -44,6 +45,7 @@ namespace AElf
             return new Hash(bytes.CalculateHash());
         }
 
+        // TODO: From / Calc / Compute / Load ??
         /// <summary>
         /// Gets the hash from a string encoded in UTF8.
         /// </summary>
@@ -73,6 +75,7 @@ namespace AElf
         /// <returns></returns>
         public static Hash FromTwoHashes(Hash hash1, Hash hash2)
         {
+            // TODO: XOR??
             var hashes = new List<Hash>
             {
                 hash1, hash2
@@ -91,6 +94,7 @@ namespace AElf
             }
         }
 
+        // TODO: remove
         public static Hash Generate()
         {
             return FromRawBytes(Guid.NewGuid().ToByteArray());
@@ -128,6 +132,7 @@ namespace AElf
 
         private static int CompareHash(Hash hash1, Hash hash2)
         {
+            // TODO: why not use Hash.Value??
             if (hash1 != null)
             {
                 return hash2 == null ? 1 : Compare(hash1, hash2);
@@ -168,6 +173,7 @@ namespace AElf
         /// <returns></returns>
         public static Hash Xor(Hash h1, Hash h2)
         {
+            // TODO: remove length check.
             // Fix: The chainId & general hash are not the same length.
             var newBytes = h1.Value.Length > h2.Value.Length ? h1.ToByteArray() : h2.ToByteArray();
             var minLength = Math.Min(h1.Value.Length, h2.Value.Length);
@@ -186,6 +192,7 @@ namespace AElf
 
         #region Load and dump
 
+        // TODO: Rename
         /// <summary>
         /// Dumps the content value to byte array.
         /// </summary>
@@ -235,6 +242,7 @@ namespace AElf
             return LoadByteArray(bytes);
         }
 
+        // TODO: check hash to base64
         public static Hash LoadBase64(string base64)
         {
             var bytes = Convert.FromBase64String(base64);

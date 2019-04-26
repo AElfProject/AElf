@@ -23,10 +23,5 @@ namespace AElf
 
             return null;
         }
-        
-        /*private static bool IsPageModel(Type type)
-        {
-            return typeof(PageModel).IsAssignableFrom(type) || type.IsDefined(typeof(PageModelAttribute), true);
-        }*/
     }
 }

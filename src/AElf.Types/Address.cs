@@ -32,6 +32,7 @@ namespace AElf
             Value = ByteString.CopyFrom(bytes);
         }
 
+        // TODO: define for pubkey/private key
         public static Address FromPublicKey(byte[] bytes)
         {
             var hash = bytes.CalculateHash().CalculateHash();
@@ -62,10 +63,13 @@ namespace AElf
 
         #region Predefined
 
+        // TODO: remove
         public static readonly Address AElf = FromString("AElf");
 
+        // TODO: remove
         public static readonly Address Zero = new Address(new byte[] { }.CalculateHash());
 
+        // TODO: remove
         public static readonly Address Genesis = FromString("Genesis");
 
         #endregion
@@ -211,6 +215,7 @@ namespace AElf
 
         private string _formatted;
 
+        // TODO: add property
         public string GetFormatted()
         {
             if (_formatted != null)

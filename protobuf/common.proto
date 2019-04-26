@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+// TODO: add protobuf package, file name, rename all protobuf
 option csharp_namespace = "AElf";
 
 message Address
@@ -12,6 +13,7 @@ message Hash
     bytes Value = 1;
 }
 
+// TODO: check other types
 message SInt32Value
 {
     sint32 Value = 1;

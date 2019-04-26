@@ -42,6 +42,8 @@ namespace AElf.Database
             _pooledRedisLite.Remove(key);
         }
 
+        // TODO: rename to SetAll
+        // TODO: async await ??
         public async Task PipelineSetAsync(Dictionary<string, byte[]> cache)
         {
             if (cache.Count == 0)

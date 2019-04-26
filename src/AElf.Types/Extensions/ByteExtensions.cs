@@ -43,6 +43,7 @@ namespace AElf
             return new string(c);
         }
 
+        // TODO: create new bytestring extensions
         public static string ToHex(this ByteString bytes, bool withPrefix = false)
         {
             int offset = withPrefix ? 2 : 0;

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 
+
+// TODO：Remove
 namespace AElf.Common.Application
 {
     public static class ApplicationHelper
