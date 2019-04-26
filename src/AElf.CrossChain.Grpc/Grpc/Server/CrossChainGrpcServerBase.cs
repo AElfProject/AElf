@@ -185,6 +185,7 @@ namespace AElf.CrossChain.Grpc
             if(needOtherExtraData)
             {
                 // only pack extra information after side chain creation
+                // but the problem of communication data size still exists 
                 responseParentChainBlockData.BlockData.ExtraData.Add(_crossChainExtraDataExtractor.ExtractCommonExtraDataForExchange(blockHeader));
             }
 

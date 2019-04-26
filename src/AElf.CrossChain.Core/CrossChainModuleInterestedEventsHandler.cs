@@ -16,7 +16,7 @@ namespace AElf.CrossChain
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            await _crossChainDataProvider.HandleNewIrreversibleBlockFoundEventAsync(eventData);
+            await _crossChainDataProvider.HandleNewLibAsync(eventData);
         }
     }
 }

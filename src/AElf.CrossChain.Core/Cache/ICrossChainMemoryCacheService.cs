@@ -7,7 +7,7 @@ namespace AElf.CrossChain.Cache
     {
         void TryRegisterNewChainCache(int remoteChainId, long chainHeight = KernelConstants.GenesisBlockHeight);
         int GetCachedChainCount();
-        long GetChainHeightNeeded(int chainId);
+        long GetNeededChainHeightForCache(int chainId);
         IEnumerable<int> GetCachedChainIds();
     }
 }

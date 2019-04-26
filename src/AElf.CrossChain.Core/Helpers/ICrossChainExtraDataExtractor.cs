@@ -16,6 +16,7 @@ namespace AElf.CrossChain
     public class CrossChainExtraDataExtractor : ICrossChainExtraDataExtractor, ITransientDependency
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
+        private static readonly List<string> _symbolsOfExchangedExtraData = new List<string>{"Consensus"};
 
         public CrossChainExtraDataExtractor(IBlockExtraDataService blockExtraDataService)
         {
@@ -36,7 +37,7 @@ namespace AElf.CrossChain
         public Dictionary<string, ByteString> ExtractCommonExtraDataForExchange(BlockHeader header)
         {
             var res = new Dictionary<string, ByteString>();
-            foreach (var symbol in CrossChainConsts.SymbolsOfExchangedExtraData)
+            foreach (var symbol in _symbolsOfExchangedExtraData)
             {
                 var extraData = _blockExtraDataService.GetExtraDataFromBlockHeader(symbol, header);
                 if(extraData != null)

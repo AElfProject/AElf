@@ -9,6 +9,5 @@ namespace AElf.CrossChain
         public const int MaximalCountForIndexingSideChainBlock = 256; // Maximal count for once indexing from side chain.
         public const int MinimalBlockInfoCacheThreshold = 4;
         public const string CrossChainIndexingMethodName = "RecordCrossChainData";
-        public static readonly List<string> SymbolsOfExchangedExtraData = new List<string>{"Consensus"};
     }
 }

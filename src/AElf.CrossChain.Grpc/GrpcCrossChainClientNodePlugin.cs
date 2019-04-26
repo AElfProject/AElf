@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Grpc
                 TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
                 LocalChainId = chainId,
                 LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort,
-                Timeout = _grpcCrossChainConfigOption.ConnectingTimeout
+                Timeout = _grpcCrossChainConfigOption.ConnectionTimeout
             });
         }
 
@@ -41,7 +41,7 @@ namespace AElf.CrossChain.Grpc
             GrpcCrossChainCommunicationContext grpcCrossChainCommunicationContext =
                 (GrpcCrossChainCommunicationContext) receivedEventData.CrossChainCommunicationContextDto;
             grpcCrossChainCommunicationContext.LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort;
-            grpcCrossChainCommunicationContext.Timeout = _grpcCrossChainConfigOption.ConnectingTimeout;
+            grpcCrossChainCommunicationContext.Timeout = _grpcCrossChainConfigOption.ConnectionTimeout;
             return _crossChainGrpcClientController.CreateClient(grpcCrossChainCommunicationContext);
         }
         public Task HandleEventAsync(BestChainFoundEventData eventData)
@@ -60,7 +60,7 @@ namespace AElf.CrossChain.Grpc
         public async Task<ChainInitializationContext> RequestChainInitializationContextAsync(int chainId)
         {
             string uri = string.Join(":", _grpcCrossChainConfigOption.RemoteParentChainNodeIp, _grpcCrossChainConfigOption.RemoteParentChainNodePort);
-            var chainInitializationContext = await _crossChainGrpcClientController.RequestChainInitializationContext(uri, chainId, _grpcCrossChainConfigOption.ConnectingTimeout);
+            var chainInitializationContext = await _crossChainGrpcClientController.RequestChainInitializationContext(uri, chainId, _grpcCrossChainConfigOption.ConnectionTimeout);
             return chainInitializationContext;
         }
     }

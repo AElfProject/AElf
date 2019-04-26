@@ -68,7 +68,7 @@ eAkW/Qv4MEnbgaq97yC2lPkyrd19N2fh5oBT
             services.AddTransient(o =>
             {
                 var mockService = new Mock<ICrossChainMemoryCacheService>();
-                mockService.Setup(m=>m.GetChainHeightNeeded(It.IsAny<int>()))
+                mockService.Setup(m=>m.GetNeededChainHeightForCache(It.IsAny<int>()))
                     .Returns(15);
                 
                 return mockService.Object;

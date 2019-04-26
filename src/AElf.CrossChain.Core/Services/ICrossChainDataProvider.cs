@@ -15,8 +15,6 @@ namespace AElf.CrossChain
 
         Task<bool> ValidateParentChainBlockDataAsync(List<ParentChainBlockData> parentChainBlockData,
             Hash currentBlockHash, long currentBlockHeight);
-
-        void RegisterNewChain(int chainId);
         
         Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
@@ -25,6 +23,6 @@ namespace AElf.CrossChain
         CrossChainBlockData GetUsedCrossChainBlockDataForLastMiningAsync(Hash blockHash, long previousBlockHeight);
 
         Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId);
-        Task HandleNewIrreversibleBlockFoundEventAsync(NewIrreversibleBlockFoundEvent eventData);
+        Task HandleNewLibAsync(NewIrreversibleBlockFoundEvent eventData);
     }
 }

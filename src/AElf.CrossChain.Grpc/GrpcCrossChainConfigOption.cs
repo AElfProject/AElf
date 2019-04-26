@@ -10,7 +10,7 @@ namespace AElf.CrossChain.Grpc
         #region Remote
         public string RemoteParentChainNodeIp { get; set; }
         public int RemoteParentChainNodePort { get; set; }
-        public int ConnectingTimeout { get; set; } = 3;
+        public int ConnectionTimeout { get; set; } = 3;
 
         #endregion
     }

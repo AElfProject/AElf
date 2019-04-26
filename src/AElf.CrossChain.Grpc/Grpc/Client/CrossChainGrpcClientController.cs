@@ -81,7 +81,7 @@ namespace AElf.CrossChain.Grpc
                 if(!_grpcCrossChainClients.TryGetValue(chainId, out var client))
                     continue;
                 Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
-                var targetHeight = _crossChainMemoryCacheService.GetChainHeightNeeded(chainId);
+                var targetHeight = _crossChainMemoryCacheService.GetNeededChainHeightForCache(chainId);
                 var task = TryRequest(client, c => c.StartIndexingRequest(chainId, targetHeight, _crossChainDataProducer));
             }
         }

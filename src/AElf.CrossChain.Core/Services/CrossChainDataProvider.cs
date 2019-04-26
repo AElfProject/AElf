@@ -34,12 +34,11 @@ namespace AElf.CrossChain
             var sideChainBlockData = new List<SideChainBlockData>(); 
             var dict = await _crossChainContractReader.GetSideChainIdAndHeightAsync(currentBlockHash,
                 currentBlockHeight);
-            const int length = CrossChainConsts.MaximalCountForIndexingSideChainBlock;
             foreach (var idHeight in dict)
             {
                 var i = 0;
                 var targetHeight = idHeight.Value + 1;
-                while (i < length)
+                while (i < CrossChainConsts.MaximalCountForIndexingSideChainBlock)
                 {
                     var blockInfo = _crossChainDataConsumer.TryTake<SideChainBlockData>(idHeight.Key, targetHeight, true);
                     if (blockInfo == null)
@@ -170,11 +169,6 @@ namespace AElf.CrossChain
             return res;
         }
 
-        public void RegisterNewChain(int chainId)
-        {
-            _crossChainMemoryCacheService.TryRegisterNewChainCache(chainId);
-        }
-
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
         {
             return await _crossChainContractReader.GetIndexedCrossChainBlockDataAsync(currentBlockHash, currentBlockHeight);
@@ -224,7 +218,7 @@ namespace AElf.CrossChain
             return null;
         }
 
-        public async Task HandleNewIrreversibleBlockFoundEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        public async Task HandleNewLibAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             // create cache for new chain
             var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(eventData.BlockHash, eventData.BlockHeight);
