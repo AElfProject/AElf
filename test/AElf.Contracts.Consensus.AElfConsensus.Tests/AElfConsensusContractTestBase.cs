@@ -33,8 +33,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         
         protected const int InitialMinersCount = 5;
 
-        protected const int DaysEachTerm = 7;
-
         protected const int MiningInterval = 4000;
 
         protected static readonly Timestamp StartTimestamp = DateTime.UtcNow.ToTimestamp();
@@ -142,7 +140,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    DaysEachTerm = DaysEachTerm,
                     IsTermStayOne = true
                 });
             aelfConsensusMethodCallList.Add(nameof(AElfConsensusContract.FirstRound),

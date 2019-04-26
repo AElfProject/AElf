@@ -251,7 +251,6 @@ namespace AElf.Contracts.Election
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    DaysEachTerm = ConsensusOption.DaysEachTerm
                 });
             consensusMethodList.Add(nameof(AElfConsensusContract.FirstRound),
                 ConsensusOption.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(ConsensusOption.MiningInterval,
