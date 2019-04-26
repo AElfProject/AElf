@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election
@@ -28,6 +29,11 @@ namespace AElf.Contracts.Election
         {
             Assert(State.InitialMiners.Value == null, "Initial miners already set.");
             State.InitialMiners.Value = new PublicKeysList {Value = {input.Value}};
+            foreach (var publicKey in input.Value)
+            {
+                State.Histories[publicKey.ToHex()] = new CandidateHistory();
+            }
+            State.MinersCount.Value = input.Value.Count;
             State.AElfConsensusContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
             return new Empty();
@@ -180,7 +186,8 @@ namespace AElf.Contracts.Election
 
         public override Empty ReleaseTreasuryProfits(ReleaseTreasuryProfitsInput input)
         {
-            Assert(Context.Sender == State.AElfConsensusContract.Value, "Only AElf Consensus Contract can release profits.");
+            Assert(Context.Sender == State.AElfConsensusContract.Value,
+                "Only AElf Consensus Contract can release profits.");
             
             var totalReleasedAmount = input.MinedBlocks.Mul(ElectionContractConsts.ElfTokenPerBlock);
             
@@ -254,8 +261,7 @@ namespace AElf.Contracts.Election
                 ProfitId = State.BasicRewardHash.Value
             };
 
-            var victories = snapshot.CandidatesVotes.OrderByDescending(v => v.Value).Select(p => p.Key)
-                .Take(State.MinersCount.Value).ToList();
+            var victories = GetVictories(new Empty()).Value;
             var currentMiners = State.AElfConsensusContract.GetCurrentMiners.Call(new Empty());
             var currentMinersAddress = new List<Address>();
             foreach (var publicKey in currentMiners.PublicKeys)
@@ -269,7 +275,7 @@ namespace AElf.Contracts.Election
                 var history = State.Histories[publicKey.ToHex()];
                 history.Terms.Add(input.TermNumber);
 
-                if (victories.Contains(publicKey.ToHex()))
+                if (victories.Contains(publicKey))
                 {
                     history.ContinualAppointmentCount += 1;
                     reElectionProfitAddWeights.Weights.Add(new WeightMap
@@ -284,11 +290,17 @@ namespace AElf.Contracts.Election
                 }
 
                 var votes = State.Votes[publicKey.ToHex()];
-                votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
+                if (votes != null)
                 {
-                    Receiver = address, Weight = votes.ValidObtainedVotesAmount
-                });
+                    votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
+                    {
+                        Receiver = address, Weight = votes.ValidObtainedVotesAmount
+                    });
+                }
+
+                State.Histories[publicKey.ToHex()] = history;
             }
+            
             reElectionProfitSubWeights.Receivers.AddRange(currentMinersAddress);
             State.ProfitContract.SubWeights.Send(reElectionProfitSubWeights);
             
@@ -298,11 +310,14 @@ namespace AElf.Contracts.Election
             State.ProfitContract.SubWeights.Send(basicRewardProfitSubWeights);
 
             State.ProfitContract.AddWeights.Send(basicRewardProfitAddWeights);
-            
-            State.ProfitContract.AddWeights.Send(votesWeightRewardProfitAddWeights);
 
-            votesWeightRewardProfitSubWeights.Receivers.AddRange(currentMinersAddress);
-            State.ProfitContract.SubWeights.Send(votesWeightRewardProfitSubWeights);
+            if (votesWeightRewardProfitAddWeights.Weights.Any())
+            {
+                State.ProfitContract.AddWeights.Send(votesWeightRewardProfitAddWeights);
+                
+                votesWeightRewardProfitSubWeights.Receivers.AddRange(currentMinersAddress);
+                State.ProfitContract.SubWeights.Send(votesWeightRewardProfitSubWeights);
+            }
 
             return new Empty();
         }

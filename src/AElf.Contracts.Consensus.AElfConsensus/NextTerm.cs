@@ -57,12 +57,16 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             // Update rounds information of next two rounds.
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 
+            Assert(TryToGetPreviousRoundInformation(out var previousRound),
+                "Failed to get previous round information.");
             State.ElectionContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.ElectionContractSystemName.Value);
+            
             State.ElectionContract.ReleaseTreasuryProfits.Send(new ReleaseTreasuryProfitsInput
             {
-                MinedBlocks = input.GetMinedBlocks(),
-                TermNumber = termNumber
+                MinedBlocks = previousRound.GetMinedBlocks(),
+                TermNumber = termNumber,
+                RoundNumber = previousRound.RoundNumber
             });
                 
             Context.LogDebug(() => $"Changing term number to {input.TermNumber}");

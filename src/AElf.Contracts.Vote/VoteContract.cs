@@ -97,7 +97,7 @@ namespace AElf.Contracts.Vote
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
 
             Assert(votingEvent.Options.Contains(input.Option), $"Option {input.Option} not found.");
-            Assert(votingEvent.CurrentEpoch <= votingEvent.TotalEpoch, "Current voting event already terminated.");
+            Assert(votingEvent.CurrentEpoch <= votingEvent.TotalEpoch, "Current voting event already ended.");
             if (votingEvent.Delegated)
             {
                 Assert(input.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
@@ -242,7 +242,7 @@ namespace AElf.Contracts.Vote
         {
             var votingEvent = AssertVotingEvent(input.Topic, Context.Sender);
             
-            Assert(votingEvent.CurrentEpoch <= votingEvent.TotalEpoch + 1, "Current voting event already terminated.");
+            Assert(votingEvent.CurrentEpoch - 1 <= votingEvent.TotalEpoch, "Current voting event already ended.");
 
             // Update previous voting going information.
             var previousVotingGoingHash = new VotingResult

@@ -8,9 +8,13 @@ namespace AElf.Contracts.Election
     {
         public override PublicKeysList GetVictories(Empty input)
         {
-            if (State.Candidates.Value == null || State.Candidates.Value.Value.Count <= State.MinersCount.Value)
+            var diff = State.MinersCount.Value - State.Candidates.Value.Value.Count;
+            if (diff > 0)
             {
-                return new PublicKeysList();
+                var currentMiners = State.AElfConsensusContract.GetCurrentMiners.Call(new Empty());
+                var victories = new PublicKeysList {Value = {State.Candidates.Value.Value}};
+                victories.Value.AddRange(currentMiners.PublicKeys.OrderBy(k => k.ToHex()).Take(diff));
+                return victories;
             }
 
             return new PublicKeysList
