@@ -52,7 +52,7 @@ namespace AElf.Blockchains.SideChain
             var chainInitializationContext = AsyncHelper.RunSync(async () =>
                 await chainInitializationPlugin.RequestChainInitializationContextAsync(dto.ChainId));
             
-            var dposOptions = context.ServiceProvider.GetService<IOptionsSnapshot<DPoSOptions>>().Value;
+            var dposOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ConsensusOptions>>().Value;
 
             dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>(
                 GenerateConsensusInitializationCallList(dposOptions, chainInitializationContext));
@@ -85,7 +85,7 @@ namespace AElf.Blockchains.SideChain
             return tokenContractCallList;
         }
         
-        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions, ChainInitializationContext chainInitializationContext)
+        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(ConsensusOptions dposOptions, ChainInitializationContext chainInitializationContext)
         {
             var consensusMethodCallList = new SystemTransactionMethodCallList();
             
@@ -98,9 +98,7 @@ namespace AElf.Blockchains.SideChain
             consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
                 new DPoSStrategyInput
                 {
-                    IsBlockchainAgeSettable = dposOptions.IsBlockchainAgeSettable,
                     IsTimeSlotSkippable = dposOptions.IsTimeSlotSkippable,
-                    IsVerbose = dposOptions.Verbose
                 });
             return consensusMethodCallList;
         }

@@ -53,6 +53,8 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
                     .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
+                options.ContextVariables[ContextVariableDictionary.DaysEachTermName] = context.Services
+                    .GetConfiguration().GetValue("ElectionInitial:Symbol", "7");
             });
         }
     }

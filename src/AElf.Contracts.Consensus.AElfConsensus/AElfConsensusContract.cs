@@ -16,9 +16,9 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
 
-            input.DaysEachTerm = input.DaysEachTerm == 0 ? int.MaxValue : input.DaysEachTerm;
-
-            State.DaysEachTerm.Value = input.IsSideChain || input.IsTermStayOne ? int.MaxValue : input.DaysEachTerm;
+            State.DaysEachTerm.Value = input.IsSideChain || input.IsTermStayOne
+                ? int.MaxValue
+                : int.Parse(Context.Variables.DaysEachTerm);
 
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
 

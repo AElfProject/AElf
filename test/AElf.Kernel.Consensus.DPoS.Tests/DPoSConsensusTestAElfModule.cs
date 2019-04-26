@@ -64,7 +64,7 @@ namespace AElf.Kernel.Consensus.DPoS
                 return consensusService.Object;
             });
             context.Services.AddTransient(o => Mock.Of<ConsensusControlInformation>());
-            Configure<DPoSOptions>(o =>
+            Configure<ConsensusOptions>(o =>
             {
                 o.InitialMiners = new List<string>()
                 {
@@ -72,7 +72,6 @@ namespace AElf.Kernel.Consensus.DPoS
                 };
                 o.InitialTermNumber = 1;
                 o.MiningInterval = 2000;
-                o.IsBootMiner = true;
             });
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddTransient(o =>

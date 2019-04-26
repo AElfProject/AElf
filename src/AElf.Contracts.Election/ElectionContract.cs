@@ -18,7 +18,7 @@ namespace AElf.Contracts.Election
             State.ProfitContractSystemName.Value = input.ProfitContractSystemName;
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.AElfConsensusContractSystemName.Value = input.AelfConsensusContractSystemName;
-            State.DaysEachTerm.Value = input.DaysEachTerm;
+            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -41,6 +41,8 @@ namespace AElf.Contracts.Election
                 State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             State.VoteContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.VoteContractSystemName.Value);
+            State.AElfConsensusContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
 
             State.TokenContract.Create.Send(new CreateInput
             {
@@ -127,7 +129,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.TreasuryHash.Value,
                 SubProfitId = State.WelfareHash.Value,
-                SubItemWeight = 20
+                SubItemWeight = ElectionContractConsts.CitizenWelfareWeight
             });
 
             // Register `BackupSubsidy` to `Treasury`
@@ -135,7 +137,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.TreasuryHash.Value,
                 SubProfitId = State.SubsidyHash.Value,
-                SubItemWeight = 20
+                SubItemWeight = ElectionContractConsts.BackupSubsidyWeight
             });
 
             // Register `MinerReward` to `Treasury`
@@ -143,7 +145,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.TreasuryHash.Value,
                 SubProfitId = State.RewardHash.Value,
-                SubItemWeight = 60
+                SubItemWeight = ElectionContractConsts.MinerRewardWeight
             });
 
             // Register `MinerBasicReward` to `MinerReward`
@@ -151,7 +153,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.RewardHash.Value,
                 SubProfitId = State.BasicRewardHash.Value,
-                SubItemWeight = 66
+                SubItemWeight = ElectionContractConsts.BasicMinerRewardWeight
             });
 
             // Register `MinerVotesWeightReward` to `MinerReward`
@@ -159,7 +161,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.RewardHash.Value,
                 SubProfitId = State.VotesWeightRewardHash.Value,
-                SubItemWeight = 17
+                SubItemWeight = ElectionContractConsts.VotesWeightRewardWeight
             });
 
             // Register `ReElectionMinerReward` to `MinerReward`
@@ -167,7 +169,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.RewardHash.Value,
                 SubProfitId = State.ReElectionRewardHash.Value,
-                SubItemWeight = 17
+                SubItemWeight = ElectionContractConsts.ReElectionRewardWeight
             });
 
             State.TreasuryRegistered.Value = true;
@@ -177,7 +179,10 @@ namespace AElf.Contracts.Election
 
         public override Empty ReleaseTreasuryProfits(ReleaseTreasuryProfitsInput input)
         {
+            Assert(Context.Sender == State.AElfConsensusContract.Value, "Only AElf Consensus Contract can release profits.");
+            
             var totalReleasedAmount = input.MinedBlocks.Mul(ElectionContractConsts.ElfTokenPerBlock);
+            
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.TreasuryHash.Value,
@@ -188,7 +193,7 @@ namespace AElf.Contracts.Election
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.RewardHash.Value,
-                Amount = totalReleasedAmount.Mul(60).Div(100),
+                Amount = totalReleasedAmount.Mul(ElectionContractConsts.MinerRewardWeight).Div(100),
                 Period = input.TermNumber
             });
 
@@ -585,7 +590,7 @@ namespace AElf.Contracts.Election
         private long GetEndPeriod(long lockTime)
         {
             var treasury = State.ProfitContract.GetProfitItem.Call(State.TreasuryHash.Value);
-            return lockTime.Div(State.DaysEachTerm.Value).Add(treasury.CurrentPeriod);
+            return lockTime.Div(int.Parse(Context.Variables.DaysEachTerm)).Add(treasury.CurrentPeriod);
         }
     }
 }

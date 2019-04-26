@@ -16,9 +16,10 @@ namespace AElf.Contracts.Profit
                 "Only zero contract can initialize this contract.");
 
             Assert(!State.Initialized.Value, "Already initialized.");
-            State.Initialized.Value = true;
 
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
+
+            State.Initialized.Value = true;
 
             return new Empty();
         }

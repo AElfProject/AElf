@@ -17,6 +17,10 @@ namespace AElf.Kernel.SmartContract.Sdk
         public string NativeSymbol => this[nameof(NativeSymbol)];
 
         public const string NativeSymbolName = nameof(NativeSymbol);
+        
+        public string DaysEachTerm => this[nameof(DaysEachTerm)];
+
+        public const string DaysEachTermName = nameof(DaysEachTerm);
     }
     
     //TODO: this assembly should not reference AElf.Kernel.Types,

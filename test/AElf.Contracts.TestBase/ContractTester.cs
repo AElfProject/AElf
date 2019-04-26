@@ -91,7 +91,7 @@ namespace AElf.Contracts.TestBase
                         options.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
                     }
 
-                    options.Services.Configure<DPoSOptions>(o => 
+                    options.Services.Configure<ConsensusOptions>(o => 
                     {
                         var miners = new List<string>();
 
@@ -102,7 +102,6 @@ namespace AElf.Contracts.TestBase
 
                         o.InitialMiners = miners;
                         o.MiningInterval = 4000;
-                        o.IsBootMiner = true;
                         o.StartTimestamp = DateTime.UtcNow;
                     });
                     
@@ -212,7 +211,7 @@ namespace AElf.Contracts.TestBase
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
             var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var dposOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<DPoSOptions>>().Value;
+            var dposOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ConsensusOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainOptions.ChainId,
@@ -258,7 +257,7 @@ namespace AElf.Contracts.TestBase
             return await osBlockchainNodeContextService.StartAsync(dto);
         }
 
-        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions)
+        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(ConsensusOptions dposOptions)
         {
             var consensusMethodCallList = new SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),

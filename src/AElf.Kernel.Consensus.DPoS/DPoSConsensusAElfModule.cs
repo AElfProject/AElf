@@ -42,7 +42,7 @@ namespace AElf.Kernel.Consensus.DPoS
 
             var configuration = context.Services.GetConfiguration();
 
-            Configure<DPoSOptions>(option =>
+            Configure<ConsensusOptions>(option =>
             {
                 configuration.GetSection("Consensus").Bind(option);
 
