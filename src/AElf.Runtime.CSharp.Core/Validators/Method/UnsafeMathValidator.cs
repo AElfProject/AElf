@@ -30,7 +30,7 @@ namespace AElf.Runtime.CSharp.Validators.Method
                 errors.Add(new UnsafeMathValidationResult(method.Name + " contains unsafe opcode " + instruction.OpCode));
             }
             
-            return null;
+            return errors;
         }
     }
     
