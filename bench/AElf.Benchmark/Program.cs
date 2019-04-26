@@ -14,12 +14,7 @@ namespace AElf.Benchmark
             }))
             {
                 application.Initialize();
-#if DEBUG
                 BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, new DebugInProcessConfig());          
-#else
-                BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
-
-#endif
             }
         }
     }
