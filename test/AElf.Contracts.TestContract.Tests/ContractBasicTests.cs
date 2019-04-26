@@ -35,7 +35,7 @@ namespace AElf.Contract.TestContract
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
 
-        [Fact(Skip = "Failed to find handler for UpdateStopBet.")]
+        [Fact]
         public async Task UpdateContract_WithOwner_Success()
         {
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
