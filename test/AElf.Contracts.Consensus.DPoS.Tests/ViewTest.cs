@@ -244,9 +244,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 nameof(ConsensusContract.GetCurrentMiners), new Empty());
             var minersInfo = MinerListWithRoundNumber.Parser.ParseFrom(bytes);
             minersInfo.MinerList.PublicKeys.Count.ShouldBe(3);
-            minersInfo.MinerList.Addresses.Count.ShouldBe(3);
             minersInfo.MinerList.PublicKeys.Contains(MinersKeyPairs[0].PublicKey.ToHex()).ShouldBeTrue();
-            minersInfo.MinerList.Addresses.Contains(Address.FromPublicKey(MinersKeyPairs[0].PublicKey)).ShouldBeTrue();
         }
 
         [Fact]

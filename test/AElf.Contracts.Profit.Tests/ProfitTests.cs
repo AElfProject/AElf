@@ -686,23 +686,6 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_SubWeight_ProfitDetailNotFound()
-        {
-            var creator = Creators[0];
-
-            var profitId = await CreateProfitItem();
-
-            var executionResult = await creator.SubWeight.SendAsync(new SubWeightInput
-            {
-                ProfitId = profitId,
-                Receiver = Address.Generate()
-            });
-            
-            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Profit detail not found.");
-        }
-
-        [Fact]
         public async Task ProfitContract_ReleaseProfits_WithoutEnoughBalance()
         {
             const long amount = 100;
