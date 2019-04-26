@@ -65,7 +65,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             State.ElectionContract.ReleaseTreasuryProfits.Send(new ReleaseTreasuryProfitsInput
             {
                 MinedBlocks = previousRound.GetMinedBlocks(),
-                TermNumber = termNumber,
+                TermNumber = termNumber + 1,
                 RoundNumber = previousRound.RoundNumber
             });
                 

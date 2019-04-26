@@ -255,7 +255,8 @@ namespace AElf.Contracts.Vote
             previousVotingResult.EndTimestamp = Context.CurrentBlockTime.ToTimestamp();
             State.VotingResults[previousVotingGoingHash] = previousVotingResult;
 
-            Assert(votingEvent.CurrentEpoch + 1 == input.EpochNumber, "Can only increase epoch number 1 each time.");
+            Assert(votingEvent.CurrentEpoch + 1 == input.EpochNumber,
+                $"Can only increase epoch number 1 each time: {votingEvent.CurrentEpoch} -> {input.EpochNumber}");
             votingEvent.CurrentEpoch = input.EpochNumber;
             State.VotingEvents[votingEvent.GetHash()] = votingEvent;
 
