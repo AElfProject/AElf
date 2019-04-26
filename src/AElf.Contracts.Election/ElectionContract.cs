@@ -19,6 +19,7 @@ namespace AElf.Contracts.Election
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.AElfConsensusContractSystemName.Value = input.AelfConsensusContractSystemName;
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
+            State.Candidates.Value = new PublicKeysList();
             State.Initialized.Value = true;
             return new Empty();
         }
