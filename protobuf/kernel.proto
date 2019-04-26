@@ -167,6 +167,7 @@ message BlockExtraData {
 }
 
 message BlockHeader {
+    // TODO: order
     int32 Version = 1;
     int32 ChainId = 2;
     Hash PreviousBlockHash = 3;
