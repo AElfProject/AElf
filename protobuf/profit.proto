@@ -13,6 +13,7 @@ message CreateProfitItemInput {
     sint64 total_weight = 1;
     string token_symbol = 2;
     sint64 expired_period_number = 3;
+    bool release_all_if_amount_is_zero = 4;
 }
 
 message ProfitItem {
@@ -24,6 +25,7 @@ message ProfitItem {
     repeated SubProfitItem sub_profit_items = 7;
     Address creator = 8;
     sint64 expired_period_number = 9;
+    bool release_all_if_amount_is_zero = 10;
 }
 
 message SubProfitItem {

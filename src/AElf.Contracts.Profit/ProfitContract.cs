@@ -57,7 +57,8 @@ namespace AElf.Contracts.Profit
                 Creator = Context.Sender,
                 TokenSymbol = input.TokenSymbol,
                 ExpiredPeriodNumber = input.ExpiredPeriodNumber,
-                CurrentPeriod = 1
+                CurrentPeriod = 1,
+                ReleaseAllIfAmountIsZero = input.ReleaseAllIfAmountIsZero
             };
 
             var createdProfitItems = State.CreatedProfitItemsMap[Context.Sender];
@@ -257,10 +258,9 @@ namespace AElf.Contracts.Profit
         }
 
         /// <summary>
-        /// There should be at least one pre-condition to release profits if this is a sub profit item:
         /// Higher level profit item has already released.
         /// Otherwise this profit item maybe has nothing to release.
-        /// This pre-condition should be met before calling this method.
+        /// This pre-condition must be met before calling this method.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -282,7 +282,11 @@ namespace AElf.Contracts.Profit
 
             Assert(input.Period == releasingPeriod + 1, "Invalid period.");
 
-            Assert(profitItem.TotalWeight > 0, "Invalid total weight.");
+            // No one registered.
+            if (profitItem.TotalWeight <= 0)
+            {
+                return new Empty();
+            }
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
@@ -293,6 +297,11 @@ namespace AElf.Contracts.Profit
             }).Balance;
 
             Assert(input.Amount <= balance, "Insufficient profits amount.");
+
+            if (profitItem.ReleaseAllIfAmountIsZero && input.Amount == 0)
+            {
+                input.Amount = balance;
+            }
 
             var profitsReceivingVirtualAddress =
                 GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, releasingPeriod);
@@ -352,6 +361,7 @@ namespace AElf.Contracts.Profit
                 State.ProfitDetailsMap[input.ProfitId][subItemVirtualAddress] = subItemDetail;
             }
 
+            // Transfer remain amount to individuals' receiving profits address.
             if (remainAmount != 0)
             {
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -397,14 +407,7 @@ namespace AElf.Contracts.Profit
             {
                 var releasedProfitsVirtualAddress =
                     GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
-                {
-                    From = Context.Sender,
-                    To = releasedProfitsVirtualAddress,
-                    Symbol = profitItem.TokenSymbol,
-                    Amount = input.Amount,
-                    Memo = $"Add dividends for {input.ProfitId} (period {input.Period})."
-                });
+
                 var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
                 if (releasedProfitsInformation == null)
                 {
@@ -415,8 +418,19 @@ namespace AElf.Contracts.Profit
                 }
                 else
                 {
+                    Assert(!releasedProfitsInformation.IsReleased,
+                        $"Profit item of period {input.Period} already released.");
                     releasedProfitsInformation.ProfitsAmount += input.Amount;
                 }
+
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = Context.Sender,
+                    To = releasedProfitsVirtualAddress,
+                    Symbol = profitItem.TokenSymbol,
+                    Amount = input.Amount,
+                    Memo = $"Add dividends for {input.ProfitId} (period {input.Period})."
+                });
 
                 State.ReleasedProfitsMap[releasedProfitsVirtualAddress] = releasedProfitsInformation;
             }
