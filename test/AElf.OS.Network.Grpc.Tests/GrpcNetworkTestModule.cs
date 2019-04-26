@@ -1,6 +1,9 @@
+using System;
+using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -25,7 +28,9 @@ namespace AElf.OS.Network
             
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
             var channel = new Channel(GrpcTestConstants.FakeListeningPort, ChannelCredentials.Insecure);
-            pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), GrpcTestConstants.FakePubKey, GrpcTestConstants.FakeListeningPort));
+            pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), GrpcTestConstants.FakePubKey,
+                GrpcTestConstants.FakeListeningPort, KernelConstants.ProtocolVersion,
+                DateTime.UtcNow.ToTimestamp().Seconds, 1));
         }
     }
 }

@@ -1,7 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.OS.Network.Grpc;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Shouldly;
 using Xunit;
@@ -26,7 +28,8 @@ namespace AElf.OS.Network
         [Fact]
         public void GetPeer_RemoteAddressOrPubKeyAlreadyPresent_ShouldReturnPeer()
         {
-            _pool.AddPeer(new GrpcPeer(null, null, _testPubKey, TestIp));
+            _pool.AddPeer(new GrpcPeer(null, null, _testPubKey, TestIp, KernelConstants.ProtocolVersion,
+                DateTime.UtcNow.ToTimestamp().Seconds, 1));
             
             Assert.NotNull(_pool.FindPeerByAddress(TestIp));
             Assert.NotNull(_pool.FindPeerByPublicKey(_testPubKey));
@@ -35,7 +38,9 @@ namespace AElf.OS.Network
         [Fact]
         public async Task AddPeerAsync_PeerAlreadyConnected_ShouldReturnFalse()
         {
-            _pool.AddPeer(new GrpcPeer(null, null, _testPubKey, TestIp));
+            _pool.AddPeer(
+                new GrpcPeer(null, null, _testPubKey, TestIp, KernelConstants.ProtocolVersion,
+                    DateTime.UtcNow.ToTimestamp().Seconds, 1));
 
             var added = await _pool.AddPeerAsync(TestIp);
             
@@ -71,7 +76,8 @@ namespace AElf.OS.Network
         {
             var channel = new Channel(TestIp, ChannelCredentials.Insecure);
             var client = new PeerService.PeerServiceClient(channel);
-            _pool.AddPeer(new GrpcPeer(channel, client, _testPubKey, TestIp));
+            _pool.AddPeer(new GrpcPeer(channel, client, _testPubKey, TestIp, KernelConstants.ProtocolVersion,
+                DateTime.UtcNow.ToTimestamp().Seconds, 1));
             _pool.FindPeerByAddress(TestIp).ShouldNotBeNull();
 
             await _pool.RemovePeerByAddressAsync(TestIp);

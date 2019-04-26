@@ -147,9 +147,10 @@ namespace AElf.OS.Network
                     return metadata;
                 }));
             else
-                client = new PeerService.PeerServiceClient(channel);                
-            
-            return new GrpcPeer(channel, client, publicKey, ipAddress);
+                client = new PeerService.PeerServiceClient(channel);
+
+            return new GrpcPeer(channel, client, publicKey, ipAddress, KernelConstants.ProtocolVersion,
+                DateTime.UtcNow.ToTimestamp().Seconds, 1);
         }
 
         private async Task RestartNetworkServer()

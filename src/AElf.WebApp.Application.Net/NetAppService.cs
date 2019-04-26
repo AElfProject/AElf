@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
@@ -13,7 +14,7 @@ namespace AElf.WebApp.Application.Net
 
         Task<bool> RemovePeer(string address);
 
-        Task<List<string>> GetPeers();
+        List<PeerDto> GetPeers();
 
         Task<GetNetworkInfoOutput> GetNetworkInfo();
     }
@@ -48,14 +49,27 @@ namespace AElf.WebApp.Application.Net
         }
         
         /// <summary>
-        /// Get ip addresses about the connected network nodes
+        /// Get peer info about the connected network nodes
         /// </summary>
         /// <returns></returns>
-        public Task<List<string>> GetPeers()
+        public List<PeerDto> GetPeers()
         {
-            return Task.FromResult(_networkService.GetPeerIpList());
+            var peerList = _networkService.GetPeerList();
+            var peerDtoList = peerList.Select(p => new PeerDto
+            {
+                IpAddress = p.PeerIpAddress,
+                ProtocolVersion = p.ProtocolVersion,
+                ConnectionTime = p.ConnectionTime,
+                Inbound = p.Inbound,
+                StartHeight = p.StartHeight
+            }).ToList();
+            return peerDtoList;
         }
 
+        /// <summary>
+        /// Get information about the node’s connection to the network. 
+        /// </summary>
+        /// <returns></returns>
         public Task<GetNetworkInfoOutput> GetNetworkInfo()
         {
             var output = new GetNetworkInfoOutput
