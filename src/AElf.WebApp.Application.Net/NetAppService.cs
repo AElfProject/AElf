@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.OS.Network.Application;
+using AElf.WebApp.Application.Net.Dto;
 using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Net
@@ -12,6 +15,8 @@ namespace AElf.WebApp.Application.Net
         Task<bool> RemovePeer(string address);
 
         Task<List<string>> GetPeers();
+
+        Task<GetNetworkInfoOutput> GetNetworkInfo();
     }
     
     public class NetAppService : INetAppService
@@ -50,6 +55,17 @@ namespace AElf.WebApp.Application.Net
         public Task<List<string>> GetPeers()
         {
             return Task.FromResult(_networkService.GetPeerIpList());
+        }
+
+        public Task<GetNetworkInfoOutput> GetNetworkInfo()
+        {
+            var output = new GetNetworkInfoOutput
+            {
+                ProtocolVersion = KernelConstants.ProtocolVersion,
+                Version = typeof(NetApplicationWebAppAElfModule).Assembly.GetName().Version.ToString(),
+                Connections = _networkService.GetPeerIpList().Count
+            };
+            return Task.FromResult(output);
         }
     }
 }

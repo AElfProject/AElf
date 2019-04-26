@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using AElf.WebApp.Application.Net.Dto;
 using Grpc.Core;
 using Shouldly;
 using Xunit;
@@ -73,6 +74,13 @@ namespace AElf.WebApp.Application.Net.Tests
             var peers = await GetResponseAsObjectAsync<List<string>>("/api/net/peers");
             peers.Count.ShouldBe(1);
             peers.ShouldContain((peer)=>peer.IsIn(ipAddressTwo));
+        }
+
+        [Fact]
+        public async Task GetNetWorkInfoTest()
+        {
+            var networkInfo = await GetResponseAsObjectAsync<GetNetworkInfoOutput>("/api/net/networkInfo");
+            
         }
     }
 }
