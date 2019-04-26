@@ -1,5 +1,6 @@
 ﻿namespace AElf.Kernel
 {
+    // TODO: rename class name
     public class ChainContext : IChainContext
     {
         public long BlockHeight { get; set; }

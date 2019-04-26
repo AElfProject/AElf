@@ -29,7 +29,7 @@ namespace AElf.Kernel
             var block = await _minerService.MineAsync(hash, height, DateTime.UtcNow, TimeSpan.FromMinutes(1));
             block.ShouldNotBeNull();
             block.Body.TransactionList.Count.ShouldBe(1);
-            block.Header.Sig.ShouldNotBeNull();
+            block.Header.Signature.ShouldNotBeNull();
         }
     }
 }

@@ -11,18 +11,15 @@ namespace AElf.Kernel
             return Hash.FromRawBytes(GetSignatureData());
         }
 
+        // TODO: remove
         public byte[] GetHashBytes()
         {
             return SHA256.Create().ComputeHash(GetSignatureData());
         }
 
+        // TODO: change to clone
         private byte[] GetSignatureData()
         {
-            if (To == null || From == null || string.IsNullOrEmpty(MethodName) || RefBlockNumber < 0)
-            {
-                throw new InvalidOperationException($"Invalid trancation: {this}");
-            }
-
             var txData = new Transaction
             {
                 From = From.Clone(),

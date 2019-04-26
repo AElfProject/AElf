@@ -82,6 +82,7 @@ namespace AElf.Cryptography.SecretSharing
             }
         }
 
+        // TODO: test and delete one of GetGreatestCommonDivisor/GetGreatestCommonDivisor2
         private static (BigInteger gcd, BigInteger invA, BigInteger invB) GetGreatestCommonDivisor2(BigInteger integer1, BigInteger integer2)
         {
             if (integer2 == 0)

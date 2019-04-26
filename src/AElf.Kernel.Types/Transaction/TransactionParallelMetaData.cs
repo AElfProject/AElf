@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace AElf.Kernel
 {
+    // TODO: move to acs
     public class TransactionParallelMetaData : ITransactionParallelMetaData
     {
         public bool IsParallel()

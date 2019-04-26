@@ -1,5 +1,6 @@
 namespace AElf.Kernel.KernelAccount
 {
+    // TODO: move to project
     public interface ISmartContractZero : ISmartContract
     {
         ContractInfo GetContractInfo(Address address);

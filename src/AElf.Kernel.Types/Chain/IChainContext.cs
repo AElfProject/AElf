@@ -1,5 +1,6 @@
 ﻿namespace AElf.Kernel
 {
+    // TODO: check, move to other project
     public interface IStateCache
     {
         bool TryGetValue(ScopedStatePath key, out byte[] value);

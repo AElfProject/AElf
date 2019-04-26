@@ -7,6 +7,7 @@ namespace AElf.Kernel
     {
         partial void OnConstruction()
         {
+            // TODO: improve perf, Bloom.Empty
             Bloom = ByteString.CopyFrom(new Bloom().Data);
         }
 
@@ -43,21 +44,9 @@ namespace AElf.Kernel
 
         private byte[] GetSignatureData()
         {
-            var rawBlock = new BlockHeader
-            {
-                ChainId = ChainId,
-                Height = Height,
-                PreviousBlockHash = PreviousBlockHash?.Clone(),
-                MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions?.Clone(),
-                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState?.Clone(),
-                Bloom = Bloom,
-                BlockExtraDatas = {BlockExtraDatas}
-            };
-            // TODO: Remove this judgement.
-            if (Height > KernelConstants.GenesisBlockHeight)
-                rawBlock.Time = Time?.Clone();
-
-            return rawBlock.ToByteArray();
+            var block = this.Clone();
+            block.Signature = ByteString.Empty;
+            return block.ToByteArray();
         }
     }
 }

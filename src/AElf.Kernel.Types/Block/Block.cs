@@ -13,6 +13,7 @@ namespace AElf.Kernel
             return $"{{ id: {GetHash()}, height: {Height} }}";
         }
 
+        // TODO: check for "new"
         /// <summary>
         /// Initializes a new instance of the <see cref="T:AElf.Kernel.Block"/> class.
         /// A previous block must be referred, except for the genesis block.
@@ -27,7 +28,6 @@ namespace AElf.Kernel
         public long Height
         {
             get => Header?.Height ?? 0;
-            set { }
         }
 
         public Hash GetHash()
@@ -35,16 +35,19 @@ namespace AElf.Kernel
             return Header.GetHash();
         }
 
+        // TODO: remove
         public Hash GetHashWithoutCache()
         {
             return Header.GetHashWithoutCache();
         }
 
+        // TODO: remove
         public byte[] GetHashBytes()
         {
             return Header.GetHashBytes();
         }
 
+        // TODO: remove
         public byte[] Serialize()
         {
             return this.ToByteArray();

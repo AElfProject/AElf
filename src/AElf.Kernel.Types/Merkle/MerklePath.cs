@@ -16,6 +16,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public Hash ComputeRootWith(Hash leaf)
         {
+            // TODO: remove clone
             Hash hash = leaf.Clone();
             foreach (var node in Path)
             {

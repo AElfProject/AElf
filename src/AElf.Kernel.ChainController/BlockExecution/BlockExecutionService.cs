@@ -59,7 +59,7 @@ namespace AElf.ChainController
 
             _logger?.Trace($"Executing block {block.GetHash()}");
 
-            var uncompressedPrivateKey = block.Header.P.ToByteArray();
+            var uncompressedPrivateKey = block.Header.SignerKey.ToByteArray();
             var recipientKeyPair = ECKeyPair.FromPublicKey(uncompressedPrivateKey);
             var blockProducerAddress = recipientKeyPair.GetAddress();
             _stateDictator.ChainId = block.Header.ChainId;

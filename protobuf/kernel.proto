@@ -10,9 +10,9 @@ message Transaction {
     Address To = 2;
     int64 RefBlockNumber = 3;
     bytes RefBlockPrefix = 4;
-    string MethodName = 6;
-    bytes Params = 7;
-    bytes Signature = 9;
+    string MethodName = 5;
+    bytes Params = 6;
+    bytes Signature = 10000;
 }
 
 enum TransactionStatus {
@@ -159,16 +159,16 @@ message BlockExtraData {
 
 message BlockHeader {
     int32 Version = 1;
-    Hash PreviousBlockHash = 2;
-    Hash MerkleTreeRootOfTransactions = 3;
-    Hash MerkleTreeRootOfWorldState = 4;
-    bytes Bloom = 5;
-    int64 Height = 6;
-    bytes Sig = 7;
-    bytes P = 8;
-    google.protobuf.Timestamp Time = 9;
-    int32 ChainId = 10; // Does the BlockHeader needs ChainId ???
-    repeated bytes BlockExtraDatas = 11;
+    int32 ChainId = 2;
+    Hash PreviousBlockHash = 3;
+    Hash MerkleTreeRootOfTransactions = 4;
+    Hash MerkleTreeRootOfWorldState = 5;
+    bytes Bloom = 6;
+    int64 Height = 7;
+    google.protobuf.Timestamp Time = 8;
+    repeated bytes BlockExtraDatas = 9;
+    bytes SignerKey = 999;
+    bytes Signature = 1000;
 }
 
 message BlockBody {

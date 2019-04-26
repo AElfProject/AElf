@@ -41,7 +41,7 @@ namespace AElf.Kernel
 
         public static bool VerifyFormat(this IBlock block)
         {
-            if (block.Header.Sig == null || block.Header.P == null)
+            if (block.Header.Signature == null || block.Header.SignerKey == null)
                 return false;
             if (block.Body.Transactions.Count == 0)
                 return false;
@@ -54,9 +54,9 @@ namespace AElf.Kernel
             if (!block.VerifyFormat())
                 return false;
 
-            var recoverResult = CryptoHelpers.RecoverPublicKey(block.Header.Sig.ToByteArray(), 
+            var recoverResult = CryptoHelpers.RecoverPublicKey(block.Header.Signature.ToByteArray(), 
                                         block.GetHash().DumpByteArray(), out var recoveredPublicKey);
-            return recoverResult && block.Header.P.ToByteArray().BytesEqual(recoveredPublicKey);
+            return recoverResult && block.Header.SignerKey.ToByteArray().BytesEqual(recoveredPublicKey);
         }
     }
 }

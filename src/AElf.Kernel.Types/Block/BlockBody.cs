@@ -7,8 +7,11 @@ namespace AElf.Kernel
     {
         public int TransactionsCount => Transactions.Count;
         private Hash _blockBodyHash;
+        // TODO: remove
         public BinaryMerkleTree BinaryMerkleTree { get; } = new BinaryMerkleTree();
 
+
+        // TODO: remove
         private Hash CalculateBodyHash()
         {
             _blockBodyHash = new List<Hash>()
@@ -19,12 +22,14 @@ namespace AElf.Kernel
             return _blockBodyHash;
         }
 
+        // TODO: check to remove
         /// <inheritdoc/>
         public Hash GetHash()
         {
             return _blockBodyHash ?? CalculateBodyHash();
         }
 
+        // TODO: check to remove
         public Hash GetHashWithoutCache()
         {
             _blockBodyHash = null;

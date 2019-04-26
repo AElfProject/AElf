@@ -4,7 +4,7 @@
     {
         BlockHeader Header { get; set; }
         BlockBody Body { get; set; }
-        long Height { get; set; }
+        long Height { get; }
         byte[] GetHashBytes();
         Block Clone();
     }

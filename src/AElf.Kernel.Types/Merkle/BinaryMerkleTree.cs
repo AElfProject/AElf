@@ -9,11 +9,6 @@ namespace AElf.Kernel
     public partial class BinaryMerkleTree
     {
         /// <summary>
-        /// Use a cache to speed up the calculation of hash value.
-        /// </summary>
-        private readonly Dictionary<string, Hash> _cache = new Dictionary<string, Hash>();
-
-        /// <summary>
         /// Add a leaf node and compute root hash.
         /// </summary>
         /// <param name="hash"></param>
@@ -24,6 +19,7 @@ namespace AElf.Kernel
             return Root == null;
         }
 
+        // TODO: refector
         public BinaryMerkleTree AddNodes(IEnumerable<Hash> hashes)
         {
             var enumerable = hashes as Hash[] ?? hashes.ToArray();
@@ -32,7 +28,7 @@ namespace AElf.Kernel
             // remove sort here
             //hashesList.Sort(CompareHash);
 
-            foreach (var hash in hashesList)
+            foreach (var hash in hashes)
             {
                 Nodes.Add(hash);
             }
@@ -112,6 +108,7 @@ namespace AElf.Kernel
         /// </example>
         public MerklePath GenerateMerklePath(int index)
         {
+            // TODO: throw exception
             if (Root == null || index >= LeafCount)
                 return null;
             List<Hash> path = new List<Hash>();
@@ -119,6 +116,7 @@ namespace AElf.Kernel
             int rowcount = LeafCount;
             while (index < Nodes.Count - 1)
             {
+                // TODO: remove clone
                 path.Add(index % 2 == 0 ? Nodes[index + 1].Clone() : Nodes[index - 1].Clone());
                 rowcount = rowcount % 2 == 0 ? rowcount : rowcount + 1;
                 int shift = (index - firstInRow) / 2;
@@ -132,6 +130,7 @@ namespace AElf.Kernel
             return res;
         }
 
+        // TODO: refector
         public static Hash CalculateRootFromMultiHash(IEnumerable<Hash> hashList)
         {
             var res = hashList.OrderBy(b => b).Select(h => h.DumpByteArray())

@@ -3,6 +3,7 @@ using AElf.Cryptography.ECDSA;
 
 namespace AElf.Cryptography
 {
+    // TODO: rename and move to OS account service
     public class OpenAccount
     {
         // Close account when time out 
