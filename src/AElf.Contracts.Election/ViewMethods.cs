@@ -15,32 +15,51 @@ namespace AElf.Contracts.Election
             return new PublicKeysList {Value = {GetVictories(currentMiners)}};
         }
 
-        private List<ByteString> GetVictories(ICollection<string> currentMiners)
+        private List<ByteString> GetVictories(List<string> currentMiners)
         {
             // Candidates not enough.
             var diff = State.MinersCount.Value - State.Candidates.Value.Value.Count;
             if (diff > 0)
             {
                 var victories = new List<ByteString>();
-                victories.AddRange(currentMiners.Where(k => !currentMiners.Contains(k)).OrderBy(k => k).Take(diff)
-                    .Select(k => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k))));
+                victories.AddRange(currentMiners.Select(mk => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(mk)))
+                    .Where(k => !State.Candidates.Value.Value.Contains(k)).OrderBy(p => p).Take(diff));
                 return victories;
             }
 
-            var votedCandidates = State.Candidates.Value.Value.Select(p => p.ToHex()).Select(k => State.Votes[k])
-                .Where(v => v != null).ToList();
+            var votedCandidatesVotes = State.Candidates.Value.Value.Select(p => p.ToHex()).Where(k => State.Votes[k] != null)
+                .Select(k => State.Votes[k]).ToList();
 
             // Voted candidates not enough, 
-            diff = State.MinersCount.Value - votedCandidates.Count;
+            diff = State.MinersCount.Value - votedCandidatesVotes.Count;
             if (diff > 0)
             {
                 var victories = new List<ByteString>();
-                victories.AddRange(State.Candidates.Value.Value.OrderBy(k => k.ToHex()).Take(diff));
+                victories.AddRange(State.Candidates.Value.Value.OrderBy(k => k).Take(diff));
                 return victories;
             }
 
-            return votedCandidates.OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
+            return votedCandidatesVotes.OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
                 .Take(State.MinersCount.Value).ToList();
+        }
+
+        public override ElectionResult GetElectionResult(GetElectionResultInput input)
+        {
+            var votingResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
+            {
+                Topic = ElectionContractConsts.Topic,
+                EpochNumber = input.TermNumber,
+                Sponsor = Context.Self
+            });
+
+            var result = new ElectionResult
+            {
+                TermNumber = input.TermNumber,
+                IsActive = input.TermNumber == State.CurrentTermNumber.Value,
+                Results = {votingResult.Results}
+            };
+
+            return result;
         }
 
         public override CandidateHistory GetCandidateHistory(StringInput input)

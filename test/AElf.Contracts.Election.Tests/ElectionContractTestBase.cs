@@ -257,11 +257,23 @@ namespace AElf.Contracts.Election
                     ConsensusOption.StartTimestamp.ToUniversalTime()));
             return consensusMethodList;
         }
-        internal async Task<long> GetUserBalance(byte[] publicKey)
+
+        internal async Task<long> GetNativeTokenBalance(byte[] publicKey)
         {
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Symbol = "ELF",
+                Symbol = ElectionContractTestConsts.NativeTokenSymbol,
+                Owner = Address.FromPublicKey(publicKey)
+            })).Balance;
+
+            return balance;
+        }
+        
+        internal async Task<long> GetVoteTokenBalance(byte[] publicKey)
+        {
+            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = ElectionContractTestConsts.VoteTokenSymbol,
                 Owner = Address.FromPublicKey(publicKey)
             })).Balance;
 
