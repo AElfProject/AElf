@@ -146,14 +146,15 @@ namespace AElf.Contracts.Election
             
             var totalReleasedAmount = input.MinedBlocks.Mul(ElectionContractConsts.ElfTokenPerBlock);
 
+            var releasingPeriodNumber = input.TermNumber - 1;
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.TreasuryHash.Value,
                 Amount = totalReleasedAmount,
-                Period = input.TermNumber
+                Period = releasingPeriodNumber
             });
 
-            ReleaseTreasurySubProfitItems(input.TermNumber - 1);
+            ReleaseTreasurySubProfitItems(releasingPeriodNumber);
 
             // Update epoch of voting record btw.
             State.VoteContract.UpdateEpochNumber.Send(new UpdateEpochNumberInput
