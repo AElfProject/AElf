@@ -619,7 +619,7 @@ namespace AElf.Contracts.Election
                 var history = State.Histories[publicKey];
                 history.Terms.Add(termNumber);
 
-                if (victories.Contains(publicKey))
+                if (victories.Contains(ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey))))
                 {
                     history.ContinualAppointmentCount += 1;
                     reElectionProfitAddWeights.Weights.Add(new WeightMap
