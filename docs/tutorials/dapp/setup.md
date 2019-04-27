@@ -40,7 +40,7 @@ If not already done open vscode and open the **aelf-boilerplate** folder.
 If asked to add some "required assets" say **yes**. There may also be some dependencies to restore: for all of them choose **Restore**.
 
 <p align="center">
-  <img src="dep-yes.png" width="300">
+  <img src="vscode-dep.png" width="200">
 </p>
 
 Open vscode's **Integrated Terminal** and build the project with the following command. Note: you can find out more about vscode's terminal [**here**](https://code.visualstudio.com/docs/editor/integrated-terminal).
