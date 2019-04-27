@@ -206,9 +206,10 @@ namespace AElf.Blockchains.MainChain
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
                 });
-            consensusMethodCallList.Add(nameof(AElfConsensusContract.FirstRound),
-                consensusOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
-                    consensusOptions.StartTimestamp.ToUniversalTime()));
+            var firstRound = consensusOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(
+                consensusOptions.MiningInterval,
+                consensusOptions.StartTimestamp.ToUniversalTime());
+            consensusMethodCallList.Add(nameof(AElfConsensusContract.FirstRound), firstRound);
             return consensusMethodCallList;
         }
 

@@ -51,9 +51,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             // Update term number lookup. (Using term number to get first round number of related term.)
             State.FirstRoundNumberOfEachTerm[input.TermNumber] = input.RoundNumber;
 
-            // Update blockchain age of new term.
-            //UpdateBlockchainAge(input.BlockchainAge);
-
             // Update rounds information of next two rounds.
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 

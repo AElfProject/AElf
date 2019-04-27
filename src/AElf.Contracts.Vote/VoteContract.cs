@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
@@ -42,7 +43,8 @@ namespace AElf.Contracts.Vote
 
             InitializeDependentContracts();
 
-            if (input.StartTimestamp == null || input.StartTimestamp.ToDateTime() < Context.CurrentBlockTime)
+            if (Context.CurrentHeight > 1 && (input.StartTimestamp == null ||
+                                              input.StartTimestamp.ToDateTime() < Context.CurrentBlockTime))
             {
                 input.StartTimestamp = Context.CurrentBlockTime.ToTimestamp();
             }
@@ -70,8 +72,11 @@ namespace AElf.Contracts.Vote
             votingEvent.Options.AddRange(input.Options);
             votingEvent.CurrentEpoch = 1;
             votingEvent.EpochStartTimestamp = input.StartTimestamp;
-            votingEvent.RegisterTimestamp = Context.CurrentBlockTime.ToTimestamp();
             votingEvent.StartTimestamp = input.StartTimestamp;
+            if (Context.CurrentHeight > 1)
+            {
+                votingEvent.RegisterTimestamp = Context.CurrentBlockTime.ToTimestamp();
+            }
 
             State.VotingEvents[votingEventHash] = votingEvent;
 

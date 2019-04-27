@@ -8,8 +8,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
     {
         public BoolState Initialized { get; set; }
 
-        public SingletonState<long> LockTokenForElection { get; set; }
-
         public SingletonState<int> DaysEachTerm { get; set; }
 
         public SingletonState<long> CurrentRoundNumber { get; set; }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
@@ -74,7 +75,8 @@ namespace AElf.Contracts.Election
                 Delegated = true,
                 AcceptedCurrency = Context.Variables.NativeSymbol,
                 ActiveDays = long.MaxValue,
-                TotalEpoch = long.MaxValue
+                TotalEpoch = long.MaxValue,
+                StartTimestamp = DateTime.MinValue.ToUniversalTime().ToTimestamp(),
             });
 
             State.VotingEventRegistered.Value = true;
