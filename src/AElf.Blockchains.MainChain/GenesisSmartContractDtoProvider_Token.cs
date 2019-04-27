@@ -15,38 +15,14 @@ using Vote;
 
 namespace AElf.Blockchains.MainChain
 {
-    public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
+    public partial class GenesisSmartContractDtoProvider
     {
-        private readonly DPoSOptions _dposOptions;
-        private readonly TokenInitialOptions _tokenInitialOptions;
-
-        public GenesisSmartContractDtoProvider(DPoSOptions dposOptions,
-            TokenInitialOptions tokenInitialOptions)
-        {
-            _dposOptions = dposOptions;
-            _tokenInitialOptions = tokenInitialOptions;
-        }
-
-        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
+        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForToken(Address zeroContractAddress)
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name,
                 GenerateTokenInitializationCallList(zeroContractAddress));
-
-            l.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
-
-            l.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
-
-            l.AddGenesisSmartContract<CrossChainContract>(CrossChainSmartContractAddressNameProvider.Name,
-                GenerateCrossChainInitializationCallList());
-
-            l.AddGenesisSmartContract<VoteContract>(
-                VoteSmartContractAddressNameProvider.Name, GenerateVoteInitializationCallList());
-
-//            l.AddGenesisSmartContract<ElectionContract>(
-//               ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
-
             return l;
         }
 
@@ -98,42 +74,5 @@ namespace AElf.Blockchains.MainChain
             return tokenContractCallList;
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateCrossChainInitializationCallList()
-        {
-            var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
-                new AElf.Contracts.CrossChain.InitializeInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
-                });
-            return crossChainMethodCallList;
-        }
-
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
-        {
-            var voteContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteContractMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
-                new InitialVoteContractInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
-                });
-            return voteContractMethodCallList;
-        }
-
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateElectionInitializationCallList()
-        {
-            var electionContractMethodCallList =
-                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            electionContractMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
-                new InitialElectionContractInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name
-                });
-            return electionContractMethodCallList;
-        }
     }
 }

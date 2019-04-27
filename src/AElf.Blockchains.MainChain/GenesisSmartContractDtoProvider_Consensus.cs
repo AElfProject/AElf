@@ -7,21 +7,11 @@ using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 
-namespace AElf.Blockchains.MainChain.ConsensusModule
+namespace AElf.Blockchains.MainChain
 {
-    public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
+    public partial class GenesisSmartContractDtoProvider
     {
-        private readonly DPoSOptions _dposOptions;
-        private readonly TokenInitialOptions _tokenInitialOptions;
-
-        public GenesisSmartContractDtoProvider(DPoSOptions dposOptions,
-            TokenInitialOptions tokenInitialOptions)
-        {
-            _dposOptions = dposOptions;
-            _tokenInitialOptions = tokenInitialOptions;
-        }
-
-        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
+        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForConsensus(Address zeroContractAddress)
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract<ConsensusContract>(ConsensusSmartContractAddressNameProvider.Name,

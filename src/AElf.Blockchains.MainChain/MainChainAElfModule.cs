@@ -7,10 +7,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Blockchains.MainChain
 {
     [DependsOn(
-        typeof(BasicBaseChainAElfModule),
-        typeof(ConsensusModule.ConsensusModule),
-        typeof(DividendModule.DividendModule),
-        typeof(MainChainStartModule)
+        typeof(BasicBaseChainAElfModule)
     )]
     public class MainChainAElfModule : AElfModule
     {
