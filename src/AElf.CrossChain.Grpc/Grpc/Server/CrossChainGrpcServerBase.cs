@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,15 +15,15 @@ namespace AElf.CrossChain.Grpc
         public ILogger<CrossChainGrpcServerBase> Logger { get; set; }
         public ILocalEventBus LocalEventBus { get; set; }
         private readonly ICrossChainExtraDataExtractor _crossChainExtraDataExtractor;
-        private readonly ILocalLibService _localLibService;
+        private readonly IBlockchainService _blockchainService;
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         
         public CrossChainGrpcServerBase(ICrossChainExtraDataExtractor crossChainExtraDataExtractor, 
-            ILocalLibService localLibService, ICrossChainDataProvider crossChainDataProvider)
+            ICrossChainDataProvider crossChainDataProvider, IBlockchainService blockchainService)
         {
             _crossChainExtraDataExtractor = crossChainExtraDataExtractor;
-            _localLibService = localLibService;
             _crossChainDataProvider = crossChainDataProvider;
+            _blockchainService = blockchainService;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -61,8 +62,7 @@ namespace AElf.CrossChain.Grpc
         {
             return new ChainInitializationResponse
             {
-                SideChainInitializationContext =
-                    await _crossChainDataProvider.GetChainInitializationContextAsync(request.ChainId)
+                SideChainInitializationContext = await GetChainInitializationContextAsync(request.ChainId)
             };
         }
 
@@ -152,8 +152,7 @@ namespace AElf.CrossChain.Grpc
             var requestedHeight = request.NextHeight;
             var remoteChainId = request.FromChainId;
             var parentChainHeightOfCreation = requestSideChain ? 0 :
-                (await _crossChainDataProvider.GetChainInitializationContextAsync(remoteChainId))
-                .ParentChainHeightOfCreation;
+                (await GetChainInitializationContextAsync(remoteChainId)).ParentChainHeightOfCreation;
             while (true)
             {
                 var block = await GetIrreversibleBlock(requestedHeight);
@@ -169,7 +168,14 @@ namespace AElf.CrossChain.Grpc
             
         private async Task<Block> GetIrreversibleBlock(long height)
         {
-            return await _localLibService.GetIrreversibleBlockByHeightAsync(height);
+            return await _blockchainService.GetIrreversibleBlockByHeightAsync(height);
+        }
+
+        private async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId)
+        {
+            var libDto = await _blockchainService.GetLibHashAndHeight();
+            return await _crossChainDataProvider.GetChainInitializationContextAsync(chainId, libDto.BlockHash,
+                libDto.BlockHeight);
         }
 
         private ResponseParentChainBlockData FillExtraDataInResponse(ResponseParentChainBlockData responseParentChainBlockData, 

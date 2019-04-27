@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Events;
 
 namespace AElf.CrossChain
 {
@@ -22,7 +21,7 @@ namespace AElf.CrossChain
 
         CrossChainBlockData GetUsedCrossChainBlockDataForLastMiningAsync(Hash blockHash, long previousBlockHeight);
 
-        Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId);
-        Task HandleNewLibAsync(NewIrreversibleBlockFoundEvent eventData);
+        Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight);
+        Task HandleNewLibAsync(LastIrreversibleBlockDto lastIrreversibleBlockDto);
     }
 }
