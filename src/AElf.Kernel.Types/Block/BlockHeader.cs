@@ -43,11 +43,20 @@ namespace AElf.Kernel
 
         private byte[] GetSignatureData()
         {
-            if (this.Signature.IsEmpty)
-                return this.ToByteArray();
-            var blockHeader = this.Clone();
-            blockHeader.Signature = ByteString.Empty;
-            return blockHeader.ToByteArray();
-         }
+            var rawBlock = new BlockHeader
+            {
+                ChainId = ChainId,
+                Height = Height,
+                PreviousBlockHash = PreviousBlockHash?.Clone(),
+                MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions?.Clone(),
+                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState?.Clone(),
+                Bloom = Bloom,
+                BlockExtraDatas = {BlockExtraDatas}
+            };
+            // TODO: Remove this judgement.
+            if (Height > KernelConstants.GenesisBlockHeight)
+                rawBlock.Time = Time?.Clone();
+	
+            return rawBlock.ToByteArray();         }
     }
 }

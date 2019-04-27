@@ -165,8 +165,8 @@ message BlockHeader {
     Hash MerkleTreeRootOfWorldState = 5;
     bytes Bloom = 6;
     int64 Height = 7;
-    google.protobuf.Timestamp Time = 8;
-    repeated bytes BlockExtraDatas = 9;
+    repeated bytes BlockExtraDatas = 8;
+    google.protobuf.Timestamp Time = 9;
     bytes SignerKey = 9999;
     bytes Signature = 10000;
 }
