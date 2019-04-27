@@ -10,42 +10,36 @@ namespace AElf.Contracts.Election
     {
         public override PublicKeysList GetVictories(Empty input)
         {
+            var currentMiners = State.AElfConsensusContract.GetPreviousRoundInformation.Call(new Empty())
+                .RealTimeMinersInformation.Keys.ToList();
+            return new PublicKeysList {Value = {GetVictories(currentMiners)}};
+        }
+
+        private List<ByteString> GetVictories(ICollection<string> currentMiners)
+        {
+            // Candidates not enough.
             var diff = State.MinersCount.Value - State.Candidates.Value.Value.Count;
             if (diff > 0)
             {
-                var currentMiners = State.AElfConsensusContract.GetPreviousRoundInformation.Call(new Empty())
-                    .RealTimeMinersInformation.Keys.ToList();
-                var victories = new PublicKeysList {Value = {State.Candidates.Value.Value}};
-                victories.Value.AddRange(currentMiners.Where(k => !currentMiners.Contains(k)).OrderBy(k => k).Take(diff)
+                var victories = new List<ByteString>();
+                victories.AddRange(currentMiners.Where(k => !currentMiners.Contains(k)).OrderBy(k => k).Take(diff)
                     .Select(k => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k))));
                 return victories;
             }
 
-            return new PublicKeysList
-            {
-                Value =
-                {
-                    State.Candidates.Value.Value.Select(p => p.ToHex()).Select(k => State.Votes[k])
-                        .Where(v => v != null)
-                        .OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
-                        .Take(State.MinersCount.Value)
-                }
-            };
-        }
+            var votedCandidates = State.Candidates.Value.Value.Select(p => p.ToHex()).Select(k => State.Votes[k])
+                .Where(v => v != null).ToList();
 
-        private List<string> GetVictories(List<string> currentMiners)
-        {
-            var diff = State.MinersCount.Value - State.Candidates.Value.Value.Count;
+            // Voted candidates not enough, 
+            diff = State.MinersCount.Value - votedCandidates.Count;
             if (diff > 0)
             {
-                var victories = new List<string>();
-                victories.AddRange(currentMiners.Where(k => !currentMiners.Contains(k)).OrderBy(k => k).Take(diff));
+                var victories = new List<ByteString>();
+                victories.AddRange(State.Candidates.Value.Value.OrderBy(k => k.ToHex()).Take(diff));
                 return victories;
             }
 
-            return State.Candidates.Value.Value.Select(p => p.ToHex()).Select(k => State.Votes[k])
-                .Where(v => v != null)
-                .OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey.ToHex())
+            return votedCandidates.OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
                 .Take(State.MinersCount.Value).ToList();
         }
 
