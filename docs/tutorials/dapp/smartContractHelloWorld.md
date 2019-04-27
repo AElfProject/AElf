@@ -12,7 +12,7 @@ To easily follow this tutorial you will need to open the the **AElf Boilerplate*
   <img src="aelf-root.png" width="100">
 </p>
 
-In the previous image you can see that the repository is composed of a **chain** and a **web** folder. The following content will help you understand the content of the **chain** folder.
+In the previous image you can see that the repository is composed of a **chain** and a **web** folder. The following content will help you understand the content of the **chain** folder. Every path in the following tutorial will be relative to this folder.
 
 ### Folder structure
 
@@ -31,11 +31,13 @@ This guide will focus on the **HelloWorldContract** and **HelloWorldContract.Tes
 
 ## Hello World contract
 
+The following content will walk you through the basics of writing a smart contract. These files are already **included** in the source folder so there's no need to create these, for every source file that's presented, the path is given so you can easily navigate to the file using vscode's file explorer panel.
+
 ### Definition and implementation
 
-**Definition**: in AElf contracts are defined as services and are implemented using protobuf. Let's take a look at the **hello_world.proto** file located in the **protobuf/** folder:
+**Definition**: in AElf, contracts are defined as services and are implemented using Protobuf. Let's take a look at the **hello_world.proto** file located in the **protobuf/** folder:
 
-```bash
+```protobuf
 syntax = "proto3";
 
 import "aelf_options.proto";
@@ -55,9 +57,11 @@ message HelloReturn {
 }
 ```
 
-It's a simple contract that defines one method **Hello** and one type **HelloReturn**. We won't go through every detail of the definition, for this you can check out the [Smart Contract section](../../Contract/main.md) of this Gitbook.
+It's a simple contract that defines one method **Hello** and one type **HelloReturn**. We won't go through every detail of the definition, for this you can check out the [Smart Contract section](../../Contract/main.md) of this GitBook.
 
-**Implementation**: the implementation is located in the **src/HelloWorldContract** folder, it contains two important files: the **state* and the **service implentation**.
+Note: the definition contains **no logic**, at build time when running the ```dotnet build``` command this file is used to generate the C# classes that will be used to implement the service.
+
+**Implementation**: the implementation of the contract is located in the **src/HelloWorldContract/** folder, it contains two important files: **HelloWorldContract.cs** and **HelloWorldContractState.cs** that implement respectively the contract's **implementation** and its **state**.
 
 ```csharp
 using Google.Protobuf.WellKnownTypes;
@@ -74,6 +78,8 @@ namespace HelloWorldContract
 }
 ```
 
+The above code, represents the implementation of the **Hello** method of the smart contract. It returns a **HelloReturn** object that holds an "Hello world!" string.
+
 ```csharp
 using AElf.Sdk.CSharp.State;
 namespace HelloWorldContract
@@ -84,15 +90,17 @@ namespace HelloWorldContract
 }
 ```
 
+This class represents the state of the contract. It is empty now, but you'll find out how to add some code in here in **Adding some methods** (below).
+
 ### Testing
 
 Now lets look at the test :
 
-```bash
+```csharp
 public class HelloWorldContractTest : HelloWorldContractTestBase
 {
     [Fact]
-    public async Task Test()
+    public async Task HelloCall_ReturnsHelloWorldMessage()
     {
         var result = await HelloWorldContractStub.Hello.CallAsync(new Empty());
         result.Value.ShouldBe("Hello world!");
@@ -100,22 +108,24 @@ public class HelloWorldContractTest : HelloWorldContractTestBase
 }
 ```
 
+This is a simple test that uses AElf's test framework to validate that the method does what it's supposed to - in this case return an "Hello world!" string.
+
 ## Adding some methods
 
 The following content will guide you through adding some methods and state to the Hello World contract.
 
 ### Modify the definition
 
-Add the following to the "hello_world.proto" right after the **Hello** rpc method:
+Add the following definitions to the **hello_world.proto** right after the **Hello** rpc method:
 
-```bash
+```protobuf
 rpc Visit (Visitor) returns (google.protobuf.Empty) { }
 rpc GetVisitors (google.protobuf.Empty) returns (VisitorList) { }
 ```
 
-and the following two messages, after the **HelloReturn** message:
+and the following two message types, after the **HelloReturn** message:
 
-```bash
+```protobuf
 message Visitor {
     string Name = 1;
 }
@@ -125,7 +135,9 @@ message VisitorList {
 }
 ```
 
-Note: assuming you're at the root of AElf Boilerplate's clone, execute the following command to generate the protobuf messages and service base on the definition we just extended:
+The next step is to build the project. This has the side effect of generating the updated C# code.
+
+Note: assuming you're at the root of AElf Boilerplate's clone, execute the following command to generate the protobuf messages and service based on the definitions we just added. If not already done open vscode's **Terminal**.
 
 ```bash
 cd chain/src/HelloWorldContract/
@@ -142,7 +154,7 @@ The first step is to add some state to our state definition. Open the **src/Hell
 public SingletonState<VisitorList> Visitors { get; set; }
 ```
 
-Override the service/contract methods previously define to **src/HelloWorldContract/HelloWorldContract**
+Override the service/contract methods previously added to the definition to **src/HelloWorldContract/HelloWorldContract.cs**:
 
 ```csharp
 public override Empty Visit(Visitor visitor)
@@ -162,15 +174,15 @@ public override VisitorList GetVisitors(Empty input)
 
 ```
 
-Build everything:
+The **Visit** logic will add the names of the visitors to the contracts state and the **GetVisitors** method will return the list of all visitors that have visited the contract. Build with the following command:
 
 ```bash
 dotnet build
 ```
 
-Should be success.
+### Test the new logic
 
-### Test
+Now we're going to add a test to verify the behavior of our new contract methods. With the test framework you can test your contract without running the node and test your scenarios programmatically.
 
 In the **Integrated Terminal** navigate to the test folder: 
 
@@ -178,7 +190,7 @@ In the **Integrated Terminal** navigate to the test folder:
 cd ../../test/HelloWorldContract.Test/
 ```
 
-Add the following test to **HelloWorldContractTest** located in the **test/HelloWorldContract.Test** folder:
+Add the following test to **HelloWorldContractTest.cs** located in the **test/HelloWorldContract.Test/** folder:
 
 ```csharp
 [Fact]
@@ -186,11 +198,12 @@ public async Task VisitCall_AddsVisitorToVisitorList()
 {
     await HelloWorldContractStub.Visit.SendAsync(new Visitor { Name = "Jon Snow"});
 
-
     var result = await HelloWorldContractStub.GetVisitors.CallAsync(new Empty());
     result.ShouldBe(new VisitorList { Names = { "Jon Snow" }});
 }
 ```
+
+This test will first use **SendAsync** to call the **Visit** method on the contract. Then we call the **GetVisitors** method to validate that the previous name has been recorded. Launch the test with the following method:
 
 ```bash
 dotnet test
@@ -203,21 +216,6 @@ Total tests: 2. Passed: 2. Failed: 0. Skipped: 0.
 Test Run Successful.
 ```
 
-<!-- ### MoreTesting
-
-This way you can test your contract without running the node and test your scenarios programmaticaly. This will you most of AElfs internals so it's a very complete test. 
-Here the logic is simple, but it gives you the idea. On your contract stub you can call any method on the contract.
-
-Define a module:
-
-```bash 
-public override void ConfigureServices(ServiceConfigurationContext context)
-{
-    base.ConfigureServices(context);
-                
-    Configure<RunnerOptions>(o => { o.SdkDir = Path.GetDirectoryName(typeof(HelloWorldContractTestModule).Assembly.Location); });
-    context.Services.AddSingleton<IRefBlockInfoProvider, RefBlockInfoProvider>();
-}
-``` -->
-
 That's more or less everything. We recommend you write the contract in a test driven way, when you are ready you can run the launcher project and you will be able to call the contract through the RPC to start integration testing with some external client (or the CLI if you don't plan on building some sort of dApp).
+
+The next section will show you how to interact with the smart contract through the Javascript SDK.
