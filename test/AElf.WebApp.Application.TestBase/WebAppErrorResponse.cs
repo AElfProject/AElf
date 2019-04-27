@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace AElf.WebApp.Application
 {
     public class WebAppErrorResponse
@@ -13,6 +15,13 @@ namespace AElf.WebApp.Application
             
         public string Details { get; set; }
             
-        public string ValidationErrors { get; set; }
+        public List<ValidationError> ValidationErrors { get; set; }
+    }
+    
+    public class ValidationError
+    {
+        public string Message { get; set; }
+            
+        public List<string> Members { get; set; }
     }
 }

@@ -15,6 +15,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         Task ApplyAsync(ITransactionContext transactionContext);
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);
         byte[] GetFileDescriptorSet();
+        IEnumerable<FileDescriptor> GetFileDescriptors();
         
         Hash ContractHash { get; }
     }

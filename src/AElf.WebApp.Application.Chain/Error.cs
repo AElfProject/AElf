@@ -13,6 +13,9 @@ namespace AElf.WebApp.Application.Chain
         public const int InvalidLimit = 20007;
         public const int InvalidTransaction = 20008;
         public const int CannotBroadcastTransaction = 20009;
+        public const int InvalidContractAddress = 20010;
+        public const int NoMatchMethodInContractAddress = 20011;
+        public const int InvalidParams = 20012;
 
         public static readonly Dictionary<int, string> Message = new Dictionary<int, string>
         {
@@ -24,7 +27,10 @@ namespace AElf.WebApp.Application.Chain
             {InvalidOffset, "Offset must greater than or equal to 0"},
             {InvalidLimit, "Limit must between 0 and 100"},
             {InvalidTransaction, "Invalid transaction information"},
-            {CannotBroadcastTransaction, "Sync still in progress, cannot broadcast transactions"}
+            {CannotBroadcastTransaction, "Sync still in progress, cannot broadcast transactions"},
+            {InvalidContractAddress, "Invalid contract address"},
+            {NoMatchMethodInContractAddress, "No match method in contract address"},
+            {InvalidParams, "Invalid params"}
         };
     }
 }

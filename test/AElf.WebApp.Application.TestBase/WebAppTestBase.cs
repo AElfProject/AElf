@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using MartinCostello.Logging.XUnit;
 using Microsoft.AspNetCore.Hosting;
@@ -64,9 +65,11 @@ namespace AElf.WebApp.Application
         }
 
         protected async Task<T> PostResponseAsObjectAsync<T>(string url, Dictionary<string, string> paramters,
-            string version = null, HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+            string version = null, bool useApplicationJson = false,
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
         {
-            var strResponse = await PostResponseAsStringAsync(url, paramters, version, expectedStatusCode);
+            var strResponse =
+                await PostResponseAsStringAsync(url, paramters, version, useApplicationJson, expectedStatusCode);
             return JsonConvert.DeserializeObject<T>(strResponse, new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
@@ -74,18 +77,31 @@ namespace AElf.WebApp.Application
         }
 
         protected async Task<string> PostResponseAsStringAsync(string url, Dictionary<string, string> paramters,
-            string version = null, HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
+            string version = null, bool useApplicationJson = false,
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
         {
-            var response = await PostResponseAsync(url, paramters, version, expectedStatusCode);
+            var response = await PostResponseAsync(url, paramters, version, useApplicationJson, expectedStatusCode);
             return await response.Content.ReadAsStringAsync();
         }
 
-        protected async Task<HttpResponseMessage> PostResponseAsync(string url, Dictionary<string,string> paramters,string version = null,
+        protected async Task<HttpResponseMessage> PostResponseAsync(string url, Dictionary<string, string> paramters,
+            string version = null, bool useApplicationJson = false,
             HttpStatusCode expectedStatusCode = HttpStatusCode.OK)
         {
             version = !string.IsNullOrWhiteSpace(version) ? $";v={version}" : string.Empty;
-            var content = new FormUrlEncodedContent(paramters);
-            content.Headers.ContentType = MediaTypeHeaderValue.Parse($"application/x-www-form-urlencoded{version}");
+            HttpContent content;
+            if (useApplicationJson)
+            {
+                Client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var paramsStr = JsonConvert.SerializeObject(paramters);
+                content = new StringContent(paramsStr,Encoding.UTF8, "application/json");
+                content.Headers.ContentType = MediaTypeHeaderValue.Parse($"application/json{version}");
+            }
+            else
+            {
+                content = new FormUrlEncodedContent(paramters);
+                content.Headers.ContentType = MediaTypeHeaderValue.Parse($"application/x-www-form-urlencoded{version}");
+            }
             
             var response = await Client.PostAsync(url, content);
             response.StatusCode.ShouldBe(expectedStatusCode);
