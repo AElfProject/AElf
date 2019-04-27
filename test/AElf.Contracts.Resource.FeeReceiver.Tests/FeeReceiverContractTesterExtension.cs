@@ -5,7 +5,9 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 
 namespace AElf.Contracts.Resource.FeeReceiver

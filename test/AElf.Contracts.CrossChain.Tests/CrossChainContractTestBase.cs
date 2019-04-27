@@ -12,6 +12,8 @@ using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Token;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

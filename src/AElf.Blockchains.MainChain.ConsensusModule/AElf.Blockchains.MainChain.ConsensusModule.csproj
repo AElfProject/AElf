@@ -7,7 +7,10 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.Core\AElf.Blockchains.Core.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+        <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
         <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
-        <ProjectReference Include="..\AElf.Specs\AElf.Specs.csproj" />
+        <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
 </Project>

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using AElf.Contracts.Dividend;
 using AElf.Kernel;
+using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using InitialDividendContractInput = AElf.Contracts.Dividend.InitialDividendContractInput;
 

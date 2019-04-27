@@ -16,9 +16,11 @@
       <ProjectReference Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
       <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
       <ProjectReference Include="..\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
+      <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+      <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
       <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
-      <ProjectReference Include="..\AElf.Specs\AElf.Specs.csproj" />
     </ItemGroup>
 
 </Project>

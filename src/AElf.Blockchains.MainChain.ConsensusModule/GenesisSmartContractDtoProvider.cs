@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel;
+using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.MainChain.ConsensusModule

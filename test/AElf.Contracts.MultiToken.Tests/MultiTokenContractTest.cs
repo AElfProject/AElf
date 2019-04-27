@@ -8,6 +8,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.Token;
 using Google.Protobuf;
 using Xunit;
 using Shouldly;

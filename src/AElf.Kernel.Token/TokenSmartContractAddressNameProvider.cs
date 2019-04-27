@@ -1,6 +1,6 @@
 using Volo.Abp.DependencyInjection;
 
-namespace AElf
+namespace AElf.Kernel.Token
 {
     public class TokenSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
