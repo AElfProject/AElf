@@ -273,7 +273,7 @@ namespace AElf.Contracts.Election
             return new ConsensusOptions
             {
                 MiningInterval = 4000,
-                InitialMiners = new List<string>()
+                InitialMiners = new List<string>
                 {
                     SampleECKeyPairs.KeyPairs[0].PublicKey.ToHex(),
                     SampleECKeyPairs.KeyPairs[1].PublicKey.ToHex(),
