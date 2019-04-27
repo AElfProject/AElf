@@ -53,4 +53,7 @@ service ProfitContract {
     rpc GetProfitDetails (GetProfitDetailsInput) returns (ProfitDetails) {
         option (aelf.is_view) = true;
     }
+    rpc GetProfitAmount (ProfitInput) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
 }

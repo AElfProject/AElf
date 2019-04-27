@@ -604,8 +604,9 @@ namespace AElf.Contracts.Election
                 ProfitId = State.BasicRewardHash.Value
             };
 
-            var victories = GetVictories(new Empty()).Value.Select(k => k.ToHex()).ToList();
-            var currentMiners = State.AElfConsensusContract.GetPreviousRoundInformation.Call(new Empty()).RealTimeMinersInformation.Keys;
+            var currentMiners = State.AElfConsensusContract.GetPreviousRoundInformation.Call(new Empty())
+                .RealTimeMinersInformation.Keys.ToList();
+            var victories = GetVictories(currentMiners);
             var currentMinersAddress = new List<Address>();
             foreach (var publicKey in currentMiners)
             {

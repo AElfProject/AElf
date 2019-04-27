@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel;
 using Google.Protobuf;
@@ -24,11 +25,28 @@ namespace AElf.Contracts.Election
             {
                 Value =
                 {
-                    State.Candidates.Value.Value.Select(p => p.ToHex()).Select(k => State.Votes[k]).Where(v => v != null)
+                    State.Candidates.Value.Value.Select(p => p.ToHex()).Select(k => State.Votes[k])
+                        .Where(v => v != null)
                         .OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
                         .Take(State.MinersCount.Value)
                 }
             };
+        }
+
+        private List<string> GetVictories(List<string> currentMiners)
+        {
+            var diff = State.MinersCount.Value - State.Candidates.Value.Value.Count;
+            if (diff > 0)
+            {
+                var victories = new List<string>();
+                victories.AddRange(currentMiners.Where(k => !currentMiners.Contains(k)).OrderBy(k => k).Take(diff));
+                return victories;
+            }
+
+            return State.Candidates.Value.Value.Select(p => p.ToHex()).Select(k => State.Votes[k])
+                .Where(v => v != null)
+                .OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey.ToHex())
+                .Take(State.MinersCount.Value).ToList();
         }
 
         public override CandidateHistory GetCandidateHistory(StringInput input)
@@ -50,7 +68,7 @@ namespace AElf.Contracts.Election
         {
             var votes = State.Votes[input.Value];
             if (votes == null) return new Votes();
-            
+
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.ActiveVotesIds}
@@ -61,7 +79,7 @@ namespace AElf.Contracts.Election
                 var voteId = votes.ActiveVotesIds[index++];
                 votes.ActiveVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
-            
+
             var obtainedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.ObtainedActiveVotesIds}
@@ -79,7 +97,7 @@ namespace AElf.Contracts.Election
         public override Votes GetVotesInformationWithAllRecords(StringInput input)
         {
             var votes = GetVotesInformationWithRecords(input);
-            
+
             var votedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.WithdrawnVotesIds}
@@ -90,7 +108,7 @@ namespace AElf.Contracts.Election
                 var voteId = votes.ActiveVotesIds[index++];
                 votes.WithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
-            
+
             var obtainedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.ObtainedWithdrawnVotesIds}
