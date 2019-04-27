@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -28,7 +30,8 @@ namespace AElf.OS.Consensus.DPos
             var peerList = new List<IPeer>();
             for (int i = 0; i < 3; i++)
             {
-                var peer = new GrpcPeer(null, null, $"bp{i + 1}-pubkey", $"127.0.0.1:68{i + 1}0");
+                var peer = new GrpcPeer(null, null, $"bp{i + 1}-pubkey", $"127.0.0.1:68{i + 1}0",
+                    KernelConstants.ProtocolVersion, DateTime.UtcNow.ToTimestamp().Seconds, 1);
                 peerList.Add(peer);
             }
             
