@@ -75,6 +75,8 @@ namespace AElf.Contracts.Profit
             }
 
             State.CreatedProfitItemsMap[Context.Sender] = createdProfitItems;
+            
+            Context.LogDebug(() => $"Created profit item {profitId}");
             return profitId;
         }
 
@@ -280,11 +282,14 @@ namespace AElf.Contracts.Profit
             // Update current_period.
             var releasingPeriod = profitItem.CurrentPeriod;
 
-            Assert(input.Period == releasingPeriod, "Invalid period.");
+            Assert(input.Period == releasingPeriod, $"Invalid period. When release profit item {input.ProfitId} of period {input.Period}");
 
             // No one registered.
             if (profitItem.TotalWeight <= 0)
             {
+                profitItem.CurrentPeriod = input.Period + 1;
+                State.ProfitItemsMap[input.ProfitId] = profitItem;
+
                 return new Empty();
             }
 
