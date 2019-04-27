@@ -19,12 +19,19 @@ using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 
 namespace AElf.Contracts.Election
 {
     public class ElectionContractTestBase : ContractTestBase<ElectionContractTestModule>
     {
+        protected IBlockTimeProvider BlockTimeProvider =>
+            Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
+
+        protected Timestamp StartTimestamp => DateTime.UtcNow.ToTimestamp();
+
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         
@@ -82,6 +89,8 @@ namespace AElf.Contracts.Election
         protected void InitializeContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
+
+            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime());
 
             // Deploy Vote Contract
             VoteContractAddress = AsyncHelper.RunSync(() =>
@@ -292,7 +301,7 @@ namespace AElf.Contracts.Election
                     SampleECKeyPairs.KeyPairs[2].PublicKey.ToHex(),
                 },
                 DaysEachTerm = 7,
-                StartTimestamp = DateTime.UtcNow
+                StartTimestamp = StartTimestamp.ToDateTime()
             };
         }
     }

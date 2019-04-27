@@ -1,7 +1,9 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -167,36 +169,60 @@ namespace AElf.Contracts.Election
                 var balance = await GetVoteTokenBalance(voterKeyPair.PublicKey);
                 balance.ShouldBe(amount);
             }
+            
+            // Check voter's Votes information.
+            {
+                var voterVotes = await ElectionContractStub.GetVotesInformation.CallAsync(new StringInput
+                {
+                    Value = voterKeyPair.PublicKey.ToHex()
+                });
+                voterVotes.PublicKey.ShouldBe(ByteString.CopyFrom(voterKeyPair.PublicKey));
+                voterVotes.ActiveVotesIds.Count.ShouldBe(1);
+                voterVotes.AllVotedVotesAmount.ShouldBe(amount);
+                voterVotes.ValidVotedVotesAmount.ShouldBe(amount);
+            }
+            
+            // Check candidate's Votes information.
+            {
+                var candidateVotes = await ElectionContractStub.GetVotesInformation.CallAsync(new StringInput
+                {
+                    Value = candidateKeyPair.PublicKey.ToHex()
+                });
+                candidateVotes.PublicKey.ShouldBe(ByteString.CopyFrom(candidateKeyPair.PublicKey));
+                candidateVotes.ObtainedActiveVotesIds.Count.ShouldBe(1);
+                candidateVotes.AllObtainedVotesAmount.ShouldBe(amount);
+                candidateVotes.ValidObtainedVotesAmount.ShouldBe(amount);
+            }
         }
 
         [Fact]
-        public async Task UserVote_Candidate_Failed()
+        public async Task ElectionContract_Vote_Failed()
         {
-            var commonUser = SampleECKeyPairs.KeyPairs[1];
-            var voteUser = SampleECKeyPairs.KeyPairs[11];
+            var candidateKeyPair = SampleECKeyPairs.KeyPairs[1];
+            var voterKeyPair = SampleECKeyPairs.KeyPairs[11];
 
-            //candidate is not in list
+            // candidateKeyPair not announced election yet.
             {
-                var transactionResult = await VoteToCandidate(voteUser, commonUser.PublicKey.ToHex(), 120, 100);
+                var transactionResult = await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120, 100);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("").ShouldBeTrue();
+                transactionResult.Error.Contains("Candidate state incorrect.").ShouldBeTrue();
             }
 
-            await AnnounceElection(commonUser);
+            await AnnounceElection(candidateKeyPair);
 
-            //user token is not enough
+            // Voter token not enough
             {
                 var transactionResult =
-                    await VoteToCandidate(voteUser, commonUser.PublicKey.ToHex(), 120, 100_000);
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120, 100_000);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Insufficient balance").ShouldBeTrue();
             }
 
-            //lock time is not over 90 days
+            // Lock time is less than 90 days
             {
-                var transactionResult = await VoteToCandidate(voteUser, commonUser.PublicKey.ToHex(), 80, 1000);
+                var transactionResult = await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 80, 1000);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Should lock token for at least 90 days").ShouldBeTrue();
@@ -214,8 +240,34 @@ namespace AElf.Contracts.Election
             var voterKeyPair = SampleECKeyPairs.KeyPairs[11];
             var beforeBalance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
 
-            var transactionResult = await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120, amount);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            // Vote
+            {
+                var transactionResult = await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120, amount);
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            
+            var voteId =
+                (await ElectionContractStub.GetVotesInformation.CallAsync(new StringInput
+                    {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotesIds.First();
+
+            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddDays(121));
+
+            // Withdraw
+            {
+                var transactionResult = await WithdrawVotes(voterKeyPair, voteId);
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+            
+            // Check ELF token balance
+            {
+                var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
+                balance.ShouldBe(beforeBalance);
+            }
+
+            {
+                var balance = await GetVoteTokenBalance(voterKeyPair.PublicKey);
+                balance.ShouldBe(0);
+            }
         }
 
         [Fact]
@@ -266,6 +318,12 @@ namespace AElf.Contracts.Election
             })).TransactionResult;
 
             return transactionResult;
+        }
+        
+        private async Task<TransactionResult> WithdrawVotes(ECKeyPair userKeyPair, Hash voteId)
+        {
+            var electionStub = GetElectionContractTester(userKeyPair);
+            return (await electionStub.Withdraw.SendAsync(voteId)).TransactionResult;
         }
 
         #endregion
