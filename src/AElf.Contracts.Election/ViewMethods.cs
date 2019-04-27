@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.Kernel;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election
@@ -11,9 +12,11 @@ namespace AElf.Contracts.Election
             var diff = State.MinersCount.Value - State.Candidates.Value.Value.Count;
             if (diff > 0)
             {
-                var currentMiners = State.AElfConsensusContract.GetCurrentMiners.Call(new Empty());
+                var currentMiners = State.AElfConsensusContract.GetPreviousRoundInformation.Call(new Empty())
+                    .RealTimeMinersInformation.Keys.ToList();
                 var victories = new PublicKeysList {Value = {State.Candidates.Value.Value}};
-                victories.Value.AddRange(currentMiners.PublicKeys.OrderBy(k => k.ToHex()).Take(diff));
+                victories.Value.AddRange(currentMiners.Where(k => !currentMiners.Contains(k)).OrderBy(k => k).Take(diff)
+                    .Select(k => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k))));
                 return victories;
             }
 
@@ -36,23 +39,6 @@ namespace AElf.Contracts.Election
         public override TermSnapshot GetTermSnapshot(GetTermSnapshotInput input)
         {
             return State.Snapshots[input.TermNumber];
-        }
-
-        public override Votes GetTicketsInformation(StringInput input)
-        {
-            var votingRecords = State.VoteContract.GetVotingHistory.Call(new GetVotingHistoryInput
-            {
-                Topic = ElectionContractConsts.Topic,
-                Sponsor = Context.Self,
-                Voter = Address.FromPublicKey(ByteArrayHelpers.FromHexString(input.Value))
-            });
-
-            var electionTickets = new Votes
-            {
-
-            };
-
-            return electionTickets;
         }
     }
 }

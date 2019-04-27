@@ -54,6 +54,9 @@ service AElfConsensusContract {
     rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round) {
         option (aelf.is_view) = true;
     }
+    rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {
+        option (aelf.is_view) = true;
+    }
 }
 
 // Events

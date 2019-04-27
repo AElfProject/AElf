@@ -284,6 +284,11 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             return new Miners();
         }
 
+        public override Round GetPreviousRoundInformation(Empty input)
+        {
+            return TryToGetPreviousRoundInformation(out var previousRound) ? previousRound : new Round();
+        }
+
         private bool RoundIdMatched(Round round)
         {
             if (TryToGetCurrentRoundInformation(out var currentRound))

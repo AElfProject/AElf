@@ -604,18 +604,18 @@ namespace AElf.Contracts.Election
                 ProfitId = State.BasicRewardHash.Value
             };
 
-            var victories = GetVictories(new Empty()).Value;
-            var currentMiners = State.AElfConsensusContract.GetCurrentMiners.Call(new Empty());
+            var victories = GetVictories(new Empty()).Value.Select(k => k.ToHex()).ToList();
+            var currentMiners = State.AElfConsensusContract.GetPreviousRoundInformation.Call(new Empty()).RealTimeMinersInformation.Keys;
             var currentMinersAddress = new List<Address>();
-            foreach (var publicKey in currentMiners.PublicKeys)
+            foreach (var publicKey in currentMiners)
             {
-                var address = Address.FromPublicKey(publicKey.ToByteArray());
+                var address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey));
                 
                 currentMinersAddress.Add(address);
                 
                 basicRewardProfitAddWeights.Weights.Add(new WeightMap {Receiver = address, Weight = 1});
 
-                var history = State.Histories[publicKey.ToHex()];
+                var history = State.Histories[publicKey];
                 history.Terms.Add(termNumber);
 
                 if (victories.Contains(publicKey))
@@ -632,7 +632,7 @@ namespace AElf.Contracts.Election
                     history.ContinualAppointmentCount = 0;
                 }
 
-                var votes = State.Votes[publicKey.ToHex()];
+                var votes = State.Votes[publicKey];
                 if (votes != null)
                 {
                     votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
@@ -641,7 +641,7 @@ namespace AElf.Contracts.Election
                     });
                 }
 
-                State.Histories[publicKey.ToHex()] = history;
+                State.Histories[publicKey] = history;
             }
             
             // Manage weights of `MinerBasicReward`

@@ -84,7 +84,7 @@ message Votes {
     sint64 valid_voted_votes_amount = 6;
     sint64 all_obtained_votes_amount = 7;
     sint64 all_voted_votes_amount = 8;
-    repeated ElectionVotingRecord ElectionVotingRecords = 9;
+    repeated ElectionVotingRecord election_voting_records = 9;
     bytes public_key = 10;
 }
 
