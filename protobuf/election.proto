@@ -84,8 +84,11 @@ message Votes {
     sint64 valid_voted_votes_amount = 6;
     sint64 all_obtained_votes_amount = 7;
     sint64 all_voted_votes_amount = 8;
-    repeated ElectionVotingRecord election_voting_records = 9;
-    bytes public_key = 10;
+    bytes public_key = 9;
+    repeated ElectionVotingRecord active_votes_records = 10;
+    repeated ElectionVotingRecord withdrawn_votes_records = 11;
+    repeated ElectionVotingRecord obtained_active_votes_records = 12;
+    repeated ElectionVotingRecord obtained_withdrawn_votes_records = 13;
 }
 
 message CandidateHistory {
@@ -109,7 +112,7 @@ enum LockTimeUnit {
 }
 
 message ElectionVotingRecord {
-    string voter = 1;
+    Address voter = 1;
     string candidate = 2;
     sint64 amount = 3;
     sint64 term_number = 4;

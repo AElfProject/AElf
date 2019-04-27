@@ -113,3 +113,11 @@ message GetVotingEventInput {
     Hash topic = 1;
     Address sponsor = 2;
 }
+
+message GetVotingRecordsInput {
+    repeated Hash ids = 1;
+}
+
+message GetVotingRecordsOutput {
+    repeated VotingRecord records = 1;
+}
