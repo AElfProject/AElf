@@ -248,7 +248,7 @@ namespace AElf.Contracts.CrossChain
                 Assert(parentChainId == blockInfo.Root.ParentChainId, "Wrong parent chain id.");
                 long parentChainHeight = blockInfo.Root.ParentChainHeight;
                 var currentHeight = State.CurrentParentChainHeight.Value;
-                var target = currentHeight != 0 ? currentHeight + 1 : KernelConstants.GenesisBlockHeight;
+                var target = currentHeight != 0 ? currentHeight + 1 : Constants.GenesisBlockHeight;
                 Assert(target == parentChainHeight,
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
                 Assert(blockInfo.Root.TransactionStatusMerkleRoot != null,
@@ -295,7 +295,7 @@ namespace AElf.Contracts.CrossChain
                 
                 var target = currentSideChainHeight != 0
                     ? currentSideChainHeight + 1
-                    : KernelConstants.GenesisBlockHeight;
+                    : Constants.GenesisBlockHeight;
                 long sideChainHeight = blockInfo.SideChainHeight;
                 if (target != sideChainHeight)
                     continue;

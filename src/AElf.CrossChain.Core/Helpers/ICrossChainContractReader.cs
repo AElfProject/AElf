@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
@@ -9,7 +10,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    public interface ICrossChainContractReader
+    internal interface ICrossChainContractReader
     {
         Task<MerklePath> GetTxRootMerklePathInParentChainAsync(long blockHeight);
         Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(long height);
@@ -25,12 +26,13 @@ namespace AElf.CrossChain
 
         Task<Dictionary<int, long>> GetAllChainsIdAndHeightAsync(Hash blockHash, long blockHeight);
 
-        Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight);
+        // TODO: Temporarily use IMessage, need refactoring
+        Task<IMessage> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight);
         
-        Task<ChainInitializationContext> GetChainInitializationContextAsync(Hash blockHash, long blockHeight, int chainId);
+        Task<IMessage> GetChainInitializationContextAsync(Hash blockHash, long blockHeight, int chainId);
     }
 
-    public class CrossChainContractReader : ICrossChainContractReader, ITransientDependency
+    internal class CrossChainContractReader : ICrossChainContractReader, ITransientDependency
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
@@ -104,7 +106,7 @@ namespace AElf.CrossChain
             return dict == null ? null : new Dictionary<int, long>(dict.IdHeightDict);
         }
 
-        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
+        public async Task<IMessage> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
         {
             var readOnlyTransaction =
                 GenerateReadOnlyTransaction(
@@ -113,7 +115,7 @@ namespace AElf.CrossChain
             return await ReadByTransactionAsync<CrossChainBlockData>(readOnlyTransaction, blockHash, blockHeight);
         }
 
-        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(Hash blockHash, long blockHeight, int chainId)
+        public async Task<IMessage> GetChainInitializationContextAsync(Hash blockHash, long blockHeight, int chainId)
         {
             var readOnlyTransaction =
                 GenerateReadOnlyTransaction(nameof(CrossChainContractMethodNames.GetChainInitializationContext),

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using Google.Protobuf;
 
@@ -21,7 +22,7 @@ namespace AElf.CrossChain
             _parentChainIdHeight.Add(parentChainId, height);
         }
 
-        public void AddFakeIndexedCrossChainBlockData(long height, CrossChainBlockData crossChainBlockData)
+        internal void AddFakeIndexedCrossChainBlockData(long height, CrossChainBlockData crossChainBlockData)
         {
             _indexedCrossChainBlockData.Add(height, crossChainBlockData);
         }

@@ -31,7 +31,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         public ByteString GetExtraDataFromBlockHeader(string blockExtraDataProviderSymbol, BlockHeader blockHeader)
         {
-            if (blockHeader.Height == KernelConstants.GenesisBlockHeight)
+            if (blockHeader.Height == Constants.GenesisBlockHeight)
                 return null;
             for (var i = 0; i < _blockExtraDataProviders.Count; i++)
             {
@@ -48,7 +48,7 @@ namespace AElf.Kernel.Blockchain.Application
             IEnumerable<(Hash, TransactionResultStatus)> blockExecutionReturnSet)
         {
             var extraDataCount = blockHeader.BlockExtraDatas.Count;
-            if( blockHeader.Height != KernelConstants.GenesisBlockHeight 
+            if( blockHeader.Height != Constants.GenesisBlockHeight 
                 && extraDataCount != _blockExtraDataProviders.Count 
                 && extraDataCount != _blockExtraDataProviders.Count + 1)
                 throw new Exception("Incorrect filled extra data");
@@ -59,7 +59,7 @@ namespace AElf.Kernel.Blockchain.Application
                 nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
             }
             var rootByteString = new BinaryMerkleTree().AddNodes(nodes).ComputeRootHash().ToByteString();
-            if (blockHeader.Height == KernelConstants.GenesisBlockHeight || extraDataCount == _blockExtraDataProviders.Count)
+            if (blockHeader.Height == Constants.GenesisBlockHeight || extraDataCount == _blockExtraDataProviders.Count)
                 blockHeader.BlockExtraDatas.Add(rootByteString); // not filled.
             else
                 blockHeader.BlockExtraDatas[_blockExtraDataProviders.Count] = rootByteString; //reset it since already filled
@@ -73,7 +73,7 @@ namespace AElf.Kernel.Blockchain.Application
         /// <exception cref="IndexOutOfRangeException">The size of header extra data is incorrect.</exception>
         public ByteString GetMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader)
         {
-            var index = blockHeader.Height == KernelConstants.GenesisBlockHeight ? 0 : _blockExtraDataProviders.Count;
+            var index = blockHeader.Height == Constants.GenesisBlockHeight ? 0 : _blockExtraDataProviders.Count;
             return blockHeader.BlockExtraDatas[index];
         }
 

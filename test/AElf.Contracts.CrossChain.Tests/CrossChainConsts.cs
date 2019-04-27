@@ -1,6 +1,6 @@
-namespace AElf.CrossChain
+namespace AElf.Contract.CrossChain.Tests
 {
-    public class CrossChainConsts
+    internal class CrossChainConsts
     {
         public const int WaitingIntervalInMillisecond = 10;
         public const int MaximalCountForIndexingParentChainBlock = 256; // Index maximal 256 blocks from parent chain.

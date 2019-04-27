@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainIndexingTransactionGenerator : ISystemTransactionGenerator
+    internal class CrossChainIndexingTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
 

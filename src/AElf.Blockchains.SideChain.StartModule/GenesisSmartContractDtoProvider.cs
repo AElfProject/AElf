@@ -6,6 +6,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.OS.Node.Application;
+using Google.Protobuf;
 using Volo.Abp.Threading;
 
 namespace AElf.Blockchains.SideChain
@@ -61,9 +62,9 @@ namespace AElf.Blockchains.SideChain
             GenerateConsensusInitializationCallList()
         {
             var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            var chainInitializationContext = AsyncHelper.RunSync(async () =>
-                await _chainInitializationPlugin.RequestChainInitializationContextAsync(_chainOptions.ChainId));
-
+            var chainInitializationContextByteString = AsyncHelper.RunSync(async () =>
+                await _chainInitializationPlugin.RequestChainInitializationContextAsync(_chainOptions.ChainId)).ToByteString();
+            var chainInitializationContext = ChainInitializationContext.Parser.ParseFrom(chainInitializationContextByteString);
             var miners = chainInitializationContext == null
                 ? _dposOptions.InitialMiners.ToMiners()
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;

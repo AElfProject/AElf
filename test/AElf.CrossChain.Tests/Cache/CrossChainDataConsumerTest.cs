@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.Contracts.CrossChain;
 using Xunit;
 
 namespace AElf.CrossChain.Cache

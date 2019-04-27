@@ -1,3 +1,5 @@
+using AElf.Contracts.CrossChain;
+
 namespace AElf.CrossChain
 {
     public interface IResponseIndexingMessage

@@ -32,17 +32,11 @@
       <None Include="..\..\protobuf\cross_chain_contract.proto">
           <Link>Protobuf/Proto/cross_chain_contract.proto</Link>
       </None>
-        <None Include="..\..\protobuf\resource.proto">
-            <Link>Protobuf/Proto/resource.proto</Link>
-        </None>
-      <None Include="..\..\protobuf\crosschain.proto">
-          <Link>Protobuf/Proto/crosschain.proto</Link>
-      </None>
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_base.sh acs1.proto acs2.proto token_contract.proto; ../../scripts/generate_contract_reference.sh basic_contract_zero.proto resource.proto crosschain.proto cross_chain_contract.proto; ../../scripts/generate_contract_code.sh token_contract_impl.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_base.bat acs1.proto acs2.proto token_contract.proto &amp; ..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto resource.proto crosschain.proto cross_chain_contract.proto &amp; ..\..\scripts\generate_contract_code.bat token_contract_impl.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_base.sh acs1.proto acs2.proto token_contract.proto; ../../scripts/generate_contract_reference.sh basic_contract_zero.proto cross_chain_contract.proto; ../../scripts/generate_contract_code.sh token_contract_impl.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_base.bat acs1.proto acs2.proto token_contract.proto &amp; ..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto cross_chain_contract.proto &amp; ..\..\scripts\generate_contract_code.bat token_contract_impl.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

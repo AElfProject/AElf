@@ -54,7 +54,7 @@ namespace AElf.Kernel
                 BlockExtraDatas = {BlockExtraDatas}
             };
             // TODO: Remove this judgement.
-            if (Height > KernelConstants.GenesisBlockHeight)
+            if (Height > Constants.GenesisBlockHeight)
                 rawBlock.Time = Time?.Clone();
 
             return rawBlock.ToByteArray();

@@ -1,3 +1,4 @@
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
@@ -5,14 +6,14 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    public interface IBlockExtraDataExtractor
+    internal interface IBlockExtraDataExtractor
     {
         CrossChainExtraData ExtractCrossChainExtraData(BlockHeader header);
         Hash ExtractTransactionStatusMerkleTreeRoot(BlockHeader header);
         ByteString ExtractOtherExtraData(string symbol, BlockHeader header);
     }
 
-    public class BlockExtraDataExtractor : IBlockExtraDataExtractor, ITransientDependency
+    internal class BlockExtraDataExtractor : IBlockExtraDataExtractor, ITransientDependency
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
 

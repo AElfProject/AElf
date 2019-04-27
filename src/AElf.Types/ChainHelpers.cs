@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AElf.Kernel
+namespace AElf
 {
     public static class ChainHelpers
     {

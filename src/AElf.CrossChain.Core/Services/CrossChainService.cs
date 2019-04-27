@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel.Blockchain.Domain;
+using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainService : ITransientDependency
+    internal class CrossChainService : ITransientDependency
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IChainManager _chainManager;
@@ -59,13 +61,15 @@ namespace AElf.CrossChain
 
         public async Task<CrossChainBlockData> GetCrossChainBlockDataIndexedInStateAsync(Hash previousBlockHash, long previousBlockHeight)
         {
-            return await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(previousBlockHash,
+            var message = await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(previousBlockHash,
                 previousBlockHeight);
+            return CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
         }
 
         public async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId)
         {
-            return await _crossChainDataProvider.GetChainInitializationContextAsync(chainId);
+            var message = await _crossChainDataProvider.GetChainInitializationContextAsync(chainId);
+            return ChainInitializationContext.Parser.ParseFrom(message.ToByteString());
         }
     }
 }

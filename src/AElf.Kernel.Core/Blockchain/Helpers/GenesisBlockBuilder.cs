@@ -13,7 +13,7 @@ namespace AElf.Kernel.Blockchain.Helpers
             {
                 Header = new BlockHeader
                 {
-                    Height = KernelConstants.GenesisBlockHeight,
+                    Height = Constants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
                     ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),

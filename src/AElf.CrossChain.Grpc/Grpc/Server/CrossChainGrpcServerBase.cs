@@ -1,6 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
+using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,12 +20,14 @@ namespace AElf.CrossChain.Grpc
         private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
         private readonly ILocalLibService _localLibService;
         private readonly CrossChainConfigOption _crossChainConfigOption;
-        private readonly ICrossChainDataProvider _crossChainDataProvider;
+        private readonly IBasicCrossChainDataProvider _crossChainDataProvider;
         
         public CrossChainGrpcServerBase(IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption,
-            IBlockExtraDataExtractor blockExtraDataExtractor, ILocalLibService localLibService, ICrossChainDataProvider crossChainDataProvider)
+            IBlockExtraDataService blockExtraDataService, ILocalLibService localLibService,
+            IBasicCrossChainDataProvider crossChainDataProvider)
         {
-            _blockExtraDataExtractor = blockExtraDataExtractor;
+            // TODO: Cleanup BlockExtraDataExtractor
+            _blockExtraDataExtractor = new BlockExtraDataExtractor(blockExtraDataService);
             _localLibService = localLibService;
             _crossChainDataProvider = crossChainDataProvider;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -62,19 +68,21 @@ namespace AElf.CrossChain.Grpc
 
         public override async Task<ChainInitializationResponse> RequestChainInitializationContextFromParentChain(ChainInitializationRequest request, ServerCallContext context)
         {
+            var message = await _crossChainDataProvider.GetChainInitializationContextAsync(request.ChainId);
             return new ChainInitializationResponse
             {
-                SideChainInitializationContext =
-                    await _crossChainDataProvider.GetChainInitializationContextAsync(request.ChainId)
+                SideChainInitializationContext = ChainInitializationContext.Parser.ParseFrom(message.ToByteString())
             };
         }
 
         private async Task<IList<SideChainBlockData>> GetIndexedSideChainBlockInfoResult(Block block)
         {
-            var crossChainBlockData =
+            var message =
                 await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
             //Logger.LogTrace($"Indexed side chain block size {crossChainBlockData.SideChainBlockData.Count}");
-            return crossChainBlockData.SideChainBlockData;
+            var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
+            return crossChainBlockData.SideChainBlockData
+                .Select(m => SideChainBlockData.Parser.ParseFrom(m.ToByteString())).ToList();
         }
 
         private IEnumerable<(long, MerklePath)> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 

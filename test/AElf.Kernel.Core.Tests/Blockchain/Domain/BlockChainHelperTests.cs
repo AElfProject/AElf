@@ -12,7 +12,7 @@ namespace AElf.Kernel.Blockchain.Domain
             var builder = new GenesisBlockBuilder();
             builder = builder.Build(0);
             
-            builder.Block.Header.Height.ShouldBe(KernelConstants.GenesisBlockHeight);
+            builder.Block.Header.Height.ShouldBe(Constants.GenesisBlockHeight);
             builder.Block.Header.PreviousBlockHash.ShouldBe(Hash.Empty);
             builder.Block.Header.ChainId.ShouldBe(0);
             

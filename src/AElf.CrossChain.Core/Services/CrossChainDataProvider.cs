@@ -2,17 +2,19 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainDataProvider : ICrossChainDataProvider, ISingletonDependency, ILocalEventHandler<NewIrreversibleBlockFoundEvent>
+    internal class CrossChainDataProvider : ICrossChainDataProvider, ISingletonDependency, ILocalEventHandler<NewIrreversibleBlockFoundEvent>
     {
         private readonly ICrossChainContractReader _crossChainContractReader;
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
@@ -156,9 +158,13 @@ namespace AElf.CrossChain
             _crossChainDataConsumer.TryRegisterNewChainCache(chainId);
         }
 
-        public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
+        public async Task<IMessage> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
         {
-            return await _crossChainContractReader.GetIndexedCrossChainBlockDataAsync(currentBlockHash, currentBlockHeight);
+            var message =
+                await _crossChainContractReader.GetIndexedCrossChainBlockDataAsync(currentBlockHash,
+                    currentBlockHeight);
+            if (message == null) return null;
+            return CrossChainBlockData.Parser.ParseFrom(message.ToByteString()) ;
         }
         
         /// <summary>
@@ -197,12 +203,12 @@ namespace AElf.CrossChain
                 : null;
         }
 
-        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId)
+        public async Task<IMessage> GetChainInitializationContextAsync(int chainId)
         {
-            if (_libHeightToHash.Value != null)
-                return await _crossChainContractReader.GetChainInitializationContextAsync(_libHeightToHash.Value,
-                    _libHeightToHash.Key, chainId);
-            return null;
+            if (_libHeightToHash.Value == null) return null;
+            return await _crossChainContractReader.GetChainInitializationContextAsync(_libHeightToHash.Value,
+                _libHeightToHash.Key, chainId);
+
         }
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)

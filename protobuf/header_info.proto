@@ -3,7 +3,8 @@ syntax = "proto3";
 option csharp_namespace = "AElf.CrossChain";
 
 import "common.proto";
-import "crosschain.proto";
+import "core.proto";
+import "google/protobuf/timestamp.proto";
 
 message RequestCrossChainBlockData {
     int32 FromChainId = 1; // own chain id
@@ -42,4 +43,45 @@ service CrossChainRpc {
     rpc RequestIndexingFromParentChain (RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
     rpc CrossChainIndexingShake (IndexingHandShake) returns (IndexingHandShakeReply) {} // only side chain shake with parent chain.
     rpc RequestChainInitializationContextFromParentChain (ChainInitializationRequest) returns (ChainInitializationResponse) {}
+}
+
+// from crosschain.proto
+message SideChainBlockData {
+    int64 SideChainHeight = 1;
+    Hash BlockHeaderHash = 2;
+    Hash TransactionMerkleTreeRoot = 3;
+    int32 SideChainId = 4;
+}
+
+message ParentChainBlockData {
+    ParentChainBlockRootInfo Root = 1;
+
+    // Indexed block height from side chain and merkle path for this side chain block
+    map<int64, MerklePath> IndexedMerklePath = 2;
+    map<string, bytes> ExtraData = 3;
+}
+
+message ParentChainBlockRootInfo
+{
+    int64 ParentChainHeight = 1;
+    CrossChainExtraData CrossChainExtraData = 2;
+    int32 ParentChainId = 3;
+    Hash TransactionStatusMerkleRoot = 4;
+}
+
+message CrossChainExtraData{
+    // Merkle tree root of side chain block headers
+    Hash SideChainBlockHeadersRoot = 2;
+
+    // Merkle tree root of side chain block transaction roots
+    Hash SideChainTransactionsRoot = 3;
+
+    // more
+}
+
+message ChainInitializationContext{
+    int32 chainId =1;
+    Address Creator = 2;
+    google.protobuf.Timestamp CreatedTime = 3;
+    repeated bytes ExtraInformation = 4;
 }

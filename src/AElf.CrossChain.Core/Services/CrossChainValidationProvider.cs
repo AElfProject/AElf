@@ -1,19 +1,21 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using Google.Protobuf;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainValidationProvider : IBlockValidationProvider
+    internal class CrossChainValidationProvider : IBlockValidationProvider
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
-        private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
+        private readonly IBlockExtraDataService _blockExtraDataService;
 
-        public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataExtractor blockExtraDataExtractor)
+        public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataService blockExtraDataService)
         {
             _crossChainDataProvider = crossChainDataProvider;
-            _blockExtraDataExtractor = blockExtraDataExtractor;
+            _blockExtraDataService = blockExtraDataService;
         }
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -29,12 +31,13 @@ namespace AElf.CrossChain
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            if (block.Height == KernelConstants.GenesisBlockHeight)
+            if (block.Height == Constants.GenesisBlockHeight)
                 return true;
             
-            var indexedCrossChainBlockData =
+            var message =
                 await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Height);
-            var extraData = _blockExtraDataExtractor.ExtractCrossChainExtraData(block.Header);
+            var indexedCrossChainBlockData = CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
+            var extraData = ExtractCrossChainExtraData(block.Header);
             if (indexedCrossChainBlockData == null)
             {
                 return extraData == null;
@@ -64,5 +67,12 @@ namespace AElf.CrossChain
                        crossChainBlockData.ParentChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Height - 1);
             return res;
         }
+
+        private CrossChainExtraData ExtractCrossChainExtraData(BlockHeader header)
+        {
+            var bytes = _blockExtraDataService.GetExtraDataFromBlockHeader("CrossChain", header);
+            return bytes == ByteString.Empty || bytes == null ? null : CrossChainExtraData.Parser.ParseFrom(bytes);
+        }
+
     }
 }

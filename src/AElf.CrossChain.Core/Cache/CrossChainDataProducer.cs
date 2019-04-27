@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache.Exception;
 using AElf.Kernel;
 using Microsoft.Extensions.Logging;

@@ -68,7 +68,7 @@ namespace AElf.Kernel.SmartContract.Application
                 var reg = await GetSmartContractRegistrationAsync(chainContext, address);
                 executive = await GetExecutiveAsync(address, reg);
 
-                if (chainContext.BlockHeight > KernelConstants.GenesisBlockHeight && //already register zero to zero
+                if (chainContext.BlockHeight > Constants.GenesisBlockHeight && //already register zero to zero
                     address == _defaultContractZeroCodeProvider.ContractZeroAddress &&
                     !_addressSmartContractRegistrationMappingCache.ContainsKey(address)
                 )

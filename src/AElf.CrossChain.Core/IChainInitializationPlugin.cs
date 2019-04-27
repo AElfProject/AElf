@@ -1,10 +1,12 @@
 using System.Threading.Tasks;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel.Node.Infrastructure;
+using Google.Protobuf;
 
 namespace AElf.CrossChain
 {
     public interface IChainInitializationPlugin : INodePlugin
     {
-        Task<ChainInitializationContext> RequestChainInitializationContextAsync(int chainId);
+        Task<IMessage> RequestChainInitializationContextAsync(int chainId);
     }
 }

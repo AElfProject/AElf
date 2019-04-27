@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel.Blockchain.Events;
+using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus;
 
@@ -57,7 +58,7 @@ namespace AElf.CrossChain.Grpc
             return Task.CompletedTask;
         }
 
-        public async Task<ChainInitializationContext> RequestChainInitializationContextAsync(int chainId)
+        public async Task<IMessage> RequestChainInitializationContextAsync(int chainId)
         {
             string uri = string.Join(":", _grpcCrossChainConfigOption.RemoteParentChainNodeIp, _grpcCrossChainConfigOption.RemoteParentChainNodePort);
             var chainInitializationContext = await _crossChainGrpcClientController.RequestChainInitializationContext(uri, chainId);

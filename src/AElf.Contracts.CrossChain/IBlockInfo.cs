@@ -1,4 +1,4 @@
-namespace AElf.CrossChain
+namespace AElf.Contracts.CrossChain
 {
     public interface IBlockInfo
     {

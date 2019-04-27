@@ -98,13 +98,13 @@ namespace AElf.Kernel.Blockchain.Application
             if (_blockchainServce.GetChainId() != block.Header.ChainId)
                 return false;
 
-            if (block.Height != KernelConstants.GenesisBlockHeight && !block.VerifySignature())
+            if (block.Height != Constants.GenesisBlockHeight && !block.VerifySignature())
                 return false;
 
             if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
                 return false;
 
-            if (block.Height != KernelConstants.GenesisBlockHeight &&
+            if (block.Height != Constants.GenesisBlockHeight &&
                 block.Header.Time.ToDateTime() - DateTime.UtcNow > KernelConsts.AllowedFutureBlockTimeSpan)
                 return false;
 

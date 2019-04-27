@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
 using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
