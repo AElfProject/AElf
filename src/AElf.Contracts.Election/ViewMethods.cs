@@ -21,7 +21,7 @@ namespace AElf.Contracts.Election
             {
                 Value =
                 {
-                    State.Candidates.Value.Value.Select(p => p.ToHex()).Select(k => State.Votes[k])
+                    State.Candidates.Value.Value.Select(p => p.ToHex()).Select(k => State.Votes[k]).Where(v => v != null)
                         .OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
                         .Take(State.MinersCount.Value)
                 }
