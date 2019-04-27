@@ -101,6 +101,12 @@ namespace AElf.Kernel.Blockchain.Application
             if (block.Height != KernelConstants.GenesisBlockHeight && !block.VerifySignature())
                 return false;
 
+            foreach (var transaction in block.Body.TransactionList)
+            {
+                if (!transaction.VerifySignature())
+                    return false;
+            }
+
             if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
                 return false;
 

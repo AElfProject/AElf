@@ -83,14 +83,14 @@ namespace AElf.Kernel.Services
             long previousBlockHeight)
         {
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
-            var generatedTxns = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
+            var systemTransactions = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
                                     previousBlockHeight, previousBlockHash);
-            foreach (var txn in generatedTxns)
+            foreach (var transaction in systemTransactions)
             {
-                await SignAsync(txn);
+                await SignAsync(transaction);
             }
 
-            return generatedTxns;
+            return systemTransactions;
         }
 
         private async Task SignAsync(Transaction notSignerTransaction)

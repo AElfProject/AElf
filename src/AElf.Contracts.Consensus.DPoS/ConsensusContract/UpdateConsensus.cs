@@ -255,7 +255,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         Transactions =
                         {
                             GenerateTransaction(nameof(UpdateValue),
-                                round.ExtractInformationToUpdateConsensus(publicKey.ToHex()))
+                                round.ExtractInformationToUpdateConsensus(publicKey.ToHex()), input.PublicKey)
                         }
                     };
                 case DPoSBehaviour.NextRound:
@@ -263,7 +263,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(NextRound), round)
+                            GenerateTransaction(nameof(NextRound), round, input.PublicKey)
                         }
                     };
                 case DPoSBehaviour.NextTerm:
@@ -271,7 +271,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(NextTerm), round)
+                            GenerateTransaction(nameof(NextTerm), round, input.PublicKey)
                         }
                     };
                 default:

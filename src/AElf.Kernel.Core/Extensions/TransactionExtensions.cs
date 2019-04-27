@@ -1,4 +1,3 @@
-using System.Linq;
 using AElf.Cryptography;
 
 namespace AElf.Kernel
@@ -33,9 +32,13 @@ namespace AElf.Kernel
             if (!transaction.VerifyFormat())
                 return false;
 
-            var canBeRecovered = CryptoHelpers.RecoverPublicKey(transaction.Signature.ToByteArray(),
+            var recovered = CryptoHelpers.RecoverPublicKey(transaction.Signature.ToByteArray(), 
                 transaction.GetHash().DumpByteArray(), out var pubKey);
-            return canBeRecovered && Address.FromPublicKey(pubKey).Equals(transaction.From);
+
+            if (!recovered)
+                return false;
+
+            return Address.FromPublicKey(pubKey).Equals(transaction.From);
         }
     }
 }
