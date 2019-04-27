@@ -20,7 +20,6 @@ namespace AElf.CrossChain
 
         private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData =
             new Dictionary<Hash, CrossChainBlockData>();
-        private KeyValuePair<long, Hash> _libHeightToHash;
         public CrossChainDataProvider(ICrossChainContractReader crossChainContractReader,
             ICrossChainDataConsumer crossChainDataConsumer, ICrossChainMemoryCacheService crossChainMemoryCacheService)
         {
@@ -210,31 +209,26 @@ namespace AElf.CrossChain
                 : null;
         }
 
-        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId)
+        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight)
         {
-            if (_libHeightToHash.Value != null)
-                return await _crossChainContractReader.GetChainInitializationContextAsync(_libHeightToHash.Value,
-                    _libHeightToHash.Key, chainId);
-            return null;
+            return await _crossChainContractReader.GetChainInitializationContextAsync(blockHash, blockHeight, chainId);
         }
 
-        public async Task HandleNewLibAsync(NewIrreversibleBlockFoundEvent eventData)
+        public async Task HandleNewLibAsync(LastIrreversibleBlockDto lastIrreversibleBlockDto)
         {
             // create cache for new chain
-            var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(eventData.BlockHash, eventData.BlockHeight);
+            var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(lastIrreversibleBlockDto.BlockHash, lastIrreversibleBlockDto.BlockHeight);
             foreach (var chainIdHeight in dict)
             {
                 _crossChainMemoryCacheService.TryRegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value + 1);
             }
             // clear useless cache
-            var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight + 1 < eventData.BlockHeight)
+            var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight + 1 < lastIrreversibleBlockDto.BlockHeight)
                 .Select(kv => kv.Key).ToList();
             foreach (var hash in toRemoveList)
             {
                 _indexedCrossChainBlockData.Remove(hash);
             }
-
-            _libHeightToHash = new KeyValuePair<long, Hash>(eventData.BlockHeight, eventData.BlockHash);
         }
     }
 }
