@@ -9,6 +9,7 @@ namespace AElf.Kernel
         {
             return transaction.RefBlockNumber + KernelConstants.ReferenceBlockValidPeriod;
         }
+
         public static int Size(this Transaction transaction)
         {
             return transaction.CalculateSize();
