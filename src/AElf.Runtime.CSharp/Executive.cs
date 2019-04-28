@@ -236,6 +236,12 @@ namespace AElf.Runtime.CSharp
             return output.ToByteArray();
         }
 
+        public IEnumerable<FileDescriptor> GetFileDescriptors()
+        {
+            var descriptor = Descriptors.Last();
+            return GetSelfAndDependency(descriptor.File);
+        }
+
         public Hash ContractHash { get; set; }
     }
 }

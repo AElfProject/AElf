@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;
+using Google.Protobuf.Reflection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -13,6 +15,8 @@ namespace AElf.Kernel.SmartContract.Application
             DateTime currentBlockTime);
 
         Task<byte[]> GetFileDescriptorSetAsync(IChainContext chainContext, Address address);
+
+        Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(IChainContext chainContext, Address address);
 
         Task<string> GetTransactionParametersAsync(IChainContext chainContext, Transaction transaction);
     }
@@ -135,6 +139,28 @@ namespace AElf.Kernel.SmartContract.Application
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(
                     chainContext, address);
                 output = executive.GetFileDescriptorSet();
+            }
+            finally
+            {
+                if (executive != null)
+                {
+                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
+                }
+            }
+
+            return output;
+        }
+
+        public async Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(IChainContext chainContext, Address address)
+        {
+            IExecutive executive = null;
+
+            IEnumerable<FileDescriptor> output;
+            try
+            {
+                executive = await _smartContractExecutiveService.GetExecutiveAsync(
+                    chainContext, address);
+                output = executive.GetFileDescriptors();
             }
             finally
             {
