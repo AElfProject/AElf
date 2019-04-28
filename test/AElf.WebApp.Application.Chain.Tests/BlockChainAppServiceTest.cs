@@ -696,8 +696,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 "{ \"to\": \""+Address.FromPublicKey(newUserKeyPair.PublicKey).GetFormatted()+"\", \"symbol\": \"ELF\", \"amount\": \"100\", \"memo\": \"test\" }");
             sendTransactionResponse.Transaction.RefBlockNumber.ShouldBe(chain.BestChainHeight);
             sendTransactionResponse.Transaction.RefBlockPrefix.ShouldBe(ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()).ToBase64());
-            sendTransactionResponse.Transaction.Sigs[0].ShouldBe(ByteString.CopyFrom(signature).ToBase64());
-            
+            sendTransactionResponse.Transaction.Signature.ShouldBe(ByteString.CopyFrom(signature).ToBase64());
+
             existTransaction = await _txHub.GetExecutableTransactionSetAsync();
             existTransaction.Transactions[0].GetHash().ToHex().ShouldBe(sendTransactionResponse.TransactionId);
         }

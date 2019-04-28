@@ -169,7 +169,7 @@ namespace AElf.WebApp.Application.Chain
         public async Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input)
         {
             var transaction = Transaction.Parser.ParseFrom(ByteArrayHelpers.FromHexString(input.Transaction));
-            transaction.Sigs.Add(ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature)));
+            transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
             var txIds = await PublishTransactionsAsync(new[] {transaction.ToByteArray().ToHex()});
 
             var output = new SendRawTransactionOutput
