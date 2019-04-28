@@ -24,29 +24,43 @@ namespace AElf.Runtime.CSharp.Policies
             typeof(IMethod).Assembly,             // AElf.CSharp.Core
         };
         
-        public static Whitelist Whitelist = new Whitelist()
-            // Allowed namespaces
-            .Namespace("AElf.Sdk", Permission.Allow)
-            .Namespace("AElf.CSharp.Core", Permission.Allow)
-            .Namespace("AElf.Kernel", Permission.Allow)
-            .Namespace("Google.Protobuf", Permission.Allow)
-            
-            // Selectively allowed types and members
-            .Namespace("System", Permission.Deny, type => type
-                .Type(nameof(DateTime), Permission.Allow, member => member
-                    .Member(nameof(DateTime.Now), Permission.Deny)
-                    .Member(nameof(DateTime.UtcNow), Permission.Deny)
-                    .Member(nameof(DateTime.Today), Permission.Deny)))
-            .Namespace("System.Reflection", Permission.Deny, type => type
-                .Type(nameof(AssemblyCompanyAttribute), Permission.Allow)
-                .Type(nameof(AssemblyConfigurationAttribute), Permission.Allow)
-                .Type(nameof(AssemblyFileVersionAttribute), Permission.Allow)
-                .Type(nameof(AssemblyInformationalVersionAttribute), Permission.Allow)
-                .Type(nameof(AssemblyProductAttribute), Permission.Allow)
-                .Type(nameof(AssemblyTitleAttribute), Permission.Allow));
-        
         public DefaultPolicy()
         {
+            Whitelist = new Whitelist()
+                // Allowed namespaces
+                .Namespace("AElf.Sdk", Permission.Allowed)
+                .Namespace("AElf.CSharp.Core", Permission.Allowed)
+                .Namespace("AElf.Kernel", Permission.Allowed)
+                .Namespace("Google.Protobuf", Permission.Allowed)
+                .Namespace("System.Collections.Generic", Permission.Allowed)
+            
+                // Selectively allowed types and members
+                .Namespace("System", Permission.Denied, type => type
+                    .Type(nameof(DateTime), Permission.Allowed, member => member
+                        .Member(nameof(DateTime.Now), Permission.Denied)
+                        .Member(nameof(DateTime.UtcNow), Permission.Denied)
+                        .Member(nameof(DateTime.Today), Permission.Denied))
+                    .Type(typeof(void).Name, Permission.Allowed)
+                    .Type(typeof(object).Name, Permission.Allowed)
+                    // Primitive types
+                    .Type(typeof(bool).Name, Permission.Allowed)
+                    .Type(typeof(byte).Name, Permission.Allowed)
+                    .Type(typeof(sbyte).Name, Permission.Allowed)
+                    .Type(typeof(char).Name, Permission.Allowed)
+                    .Type(typeof(int).Name, Permission.Allowed)
+                    .Type(typeof(uint).Name, Permission.Allowed)
+                    .Type(typeof(long).Name, Permission.Allowed)
+                    .Type(typeof(ulong).Name, Permission.Allowed)
+                    .Type(typeof(string).Name, Permission.Allowed)
+                    .Type(typeof(Byte[]).Name, Permission.Allowed))
+                .Namespace("System.Reflection", Permission.Denied, type => type
+                    .Type(nameof(AssemblyCompanyAttribute), Permission.Allowed)
+                    .Type(nameof(AssemblyConfigurationAttribute), Permission.Allowed)
+                    .Type(nameof(AssemblyFileVersionAttribute), Permission.Allowed)
+                    .Type(nameof(AssemblyInformationalVersionAttribute), Permission.Allowed)
+                    .Type(nameof(AssemblyProductAttribute), Permission.Allowed)
+                    .Type(nameof(AssemblyTitleAttribute), Permission.Allowed));
+            
             ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
             {
                 new AssemblyRefValidator(AllowedAssemblies), 

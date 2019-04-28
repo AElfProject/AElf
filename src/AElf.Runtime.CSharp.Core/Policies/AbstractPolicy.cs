@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using AElf.Runtime.CSharp.Validators;
+using AElf.Runtime.CSharp.Validators.Whitelist;
 using Mono.Cecil;
 
 namespace AElf.Runtime.CSharp.Policies
 {
     public abstract class AbstractPolicy
     {
+        public Whitelist Whitelist;
         public readonly List<IValidator<MethodDefinition>> MethodValidators;
         public readonly List<IValidator<ModuleDefinition>> ModuleValidators;
         public readonly List<IValidator<TypeDefinition>> TypeValidators;

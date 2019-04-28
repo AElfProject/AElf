@@ -16,8 +16,13 @@ namespace AElf.Runtime.CSharp
             var errors = new List<ValidationResult>();
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
             
+            // Check against whitelist
+            errors.AddRange(policy.Whitelist.Validate(modDef));
+            
+            // Run module validators
             errors.AddRange(policy.ModuleValidators.SelectMany(v => v.Validate(modDef)));
             
+            // Run method validators
             foreach (var typ in modDef.Types)
             {
                 foreach (var method in typ.Methods)
