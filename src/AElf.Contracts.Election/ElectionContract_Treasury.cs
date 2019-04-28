@@ -255,7 +255,7 @@ namespace AElf.Contracts.Election
                 basicRewardProfitAddWeights.Weights.Add(new WeightMap {Receiver = address, Weight = 1});
 
                 var history = State.Histories[publicKey];
-                history.Terms.Add(termNumber);
+                history.Terms.Add(termNumber - 1);
 
                 if (victories.Contains(ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey))))
                 {
