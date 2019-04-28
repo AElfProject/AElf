@@ -37,7 +37,7 @@ namespace AElf.CrossChain.Cache
         public void RegisterNewChain_NotNull()
         {
             int chainId = 123;
-            _crossChainMemoryCacheService.TryRegisterNewChainCache(chainId, 1);
+            _crossChainMemoryCacheService.RegisterNewChainCache(chainId, 1);
             var count = _crossChainMemoryCacheService.GetCachedChainCount();
             Assert.True(1 == count);
         }

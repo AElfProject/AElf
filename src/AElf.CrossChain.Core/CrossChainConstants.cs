@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainConsts
+    public class CrossChainConstants
     {
         public const int WaitingIntervalInMillisecond = 10;
         public const int MaximalCountForIndexingParentChainBlock = 256; // Maximal count for once indexing from parent chain.

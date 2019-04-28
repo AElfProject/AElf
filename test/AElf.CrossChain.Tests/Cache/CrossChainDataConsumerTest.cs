@@ -59,7 +59,7 @@ namespace AElf.CrossChain.Cache
         public void TryTake_After_RegisterNewChain()
         {
             int chainId = 123;
-            _crossChainMemoryCacheService.TryRegisterNewChainCache(chainId, 1);
+            _crossChainMemoryCacheService.RegisterNewChainCache(chainId, 1);
             var blockInfoCache = MultiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = new SideChainBlockData
@@ -76,7 +76,7 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WrongIndex_After_RegisterNewChain()
         {
             int chainId = 123;
-            _crossChainMemoryCacheService.TryRegisterNewChainCache(chainId, 1);
+            _crossChainMemoryCacheService.RegisterNewChainCache(chainId, 1);
             var blockInfoCache = MultiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = new SideChainBlockData

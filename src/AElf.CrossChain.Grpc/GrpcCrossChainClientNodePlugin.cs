@@ -7,7 +7,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Grpc
 {
-    public class GrpcCrossChainClientNodePlugin : IChainInitializationPlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>, ILocalEventHandler<CrossChainCacheUpdatingEvent>
+    public class GrpcCrossChainClientNodePlugin : IChainInitializationPlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>, ILocalEventHandler<CrossChainDataValidatedEvent>
     {
         private readonly CrossChainGrpcClientController _crossChainGrpcClientController;
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
@@ -59,7 +59,7 @@ namespace AElf.CrossChain.Grpc
             grpcCrossChainCommunicationContext.Timeout = _grpcCrossChainConfigOption.ConnectionTimeout;
             return _crossChainGrpcClientController.CreateClient(grpcCrossChainCommunicationContext);
         }
-        public Task HandleEventAsync(CrossChainCacheUpdatingEvent eventData)
+        public Task HandleEventAsync(CrossChainDataValidatedEvent eventData)
         {
             _crossChainGrpcClientController.RequestCrossChainIndexing();
             return Task.CompletedTask;

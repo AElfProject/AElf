@@ -1,6 +1,6 @@
 namespace AElf.CrossChain
 {
-    public class CrossChainCacheUpdatingEvent
+    public class CrossChainDataValidatedEvent
     {
         
     }

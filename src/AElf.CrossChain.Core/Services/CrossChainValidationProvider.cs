@@ -51,7 +51,7 @@ namespace AElf.CrossChain
             }
             finally
             {
-                await LocalEventBus.PublishAsync(new CrossChainCacheUpdatingEvent());
+                await LocalEventBus.PublishAsync(new CrossChainDataValidatedEvent());
             }
         }
 

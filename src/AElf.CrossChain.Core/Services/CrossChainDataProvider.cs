@@ -37,7 +37,7 @@ namespace AElf.CrossChain
             {
                 var i = 0;
                 var targetHeight = idHeight.Value + 1;
-                while (i < CrossChainConsts.MaximalCountForIndexingSideChainBlock)
+                while (i < CrossChainConstants.MaximalCountForIndexingSideChainBlock)
                 {
                     var blockInfo = _crossChainDataConsumer.TryTake<SideChainBlockData>(idHeight.Key, targetHeight, true);
                     if (blockInfo == null)
@@ -60,7 +60,7 @@ namespace AElf.CrossChain
             Hash currentBlockHash, long currentBlockHeight)
         {
             bool isExceedSizeLimit = sideChainBlockData.GroupBy(b => b.ChainId).Select(g => g.Count())
-                .Any(count => count > CrossChainConsts.MaximalCountForIndexingSideChainBlock);
+                .Any(count => count > CrossChainConstants.MaximalCountForIndexingSideChainBlock);
 
             if (isExceedSizeLimit)
                 return false;
@@ -103,7 +103,7 @@ namespace AElf.CrossChain
                 return parentChainBlockData;
             }
                 
-            const int length = CrossChainConsts.MaximalCountForIndexingParentChainBlock;
+            const int length = CrossChainConstants.MaximalCountForIndexingParentChainBlock;
             var heightInState =
                 await _crossChainContractReader.GetParentChainCurrentHeightAsync(currentBlockHash, currentBlockHeight);
             
@@ -142,7 +142,7 @@ namespace AElf.CrossChain
 
             var length = parentChainBlockData.Count;
 
-            if (length > CrossChainConsts.MaximalCountForIndexingParentChainBlock)
+            if (length > CrossChainConstants.MaximalCountForIndexingParentChainBlock)
                 return false;
 
             var i = 0;
@@ -219,7 +219,7 @@ namespace AElf.CrossChain
             var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(blockHash, blockHeight);
             foreach (var chainIdHeight in dict)
             {
-                _crossChainMemoryCacheService.TryRegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value + 1);
+                _crossChainMemoryCacheService.RegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value + 1);
             }
         }
         

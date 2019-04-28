@@ -32,7 +32,7 @@ namespace AElf.CrossChain
         {
             foreach (var (crossChainId, blockInfos) in fakeCache)
             {
-                CrossChainMemoryCacheService.TryRegisterNewChainCache(crossChainId, blockInfos.First().Height);
+                CrossChainMemoryCacheService.RegisterNewChainCache(crossChainId, blockInfos.First().Height);
                 foreach (var blockInfo in blockInfos)
                 {
                     CrossChainDataProducer.AddNewBlockInfo(blockInfo);
@@ -56,7 +56,7 @@ namespace AElf.CrossChain
         {
             foreach (var (crossChainId, blockInfos) in fakeCache)
             {
-                _crossChainMemoryCacheService.TryRegisterNewChainCache(crossChainId, blockInfos.First().Height);
+                _crossChainMemoryCacheService.RegisterNewChainCache(crossChainId, blockInfos.First().Height);
                 foreach (var blockInfo in blockInfos)
                 {
                     _crossChainDataProducer.AddNewBlockInfo(blockInfo);
