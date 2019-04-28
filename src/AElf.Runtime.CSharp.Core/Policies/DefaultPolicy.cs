@@ -1,3 +1,4 @@
+using System;
 using AElf.Sdk.CSharp;
 using System.Collections.Generic;
 using System.Reflection;
@@ -7,6 +8,7 @@ using Mono.Cecil;
 
 using AElf.Runtime.CSharp.Validators.Method;
 using AElf.Runtime.CSharp.Validators.Module;
+using AElf.Runtime.CSharp.Validators.Whitelist;
 
 
 namespace AElf.Runtime.CSharp.Policies
@@ -18,35 +20,36 @@ namespace AElf.Runtime.CSharp.Policies
             Assembly.Load("Google.Protobuf"),
             
             // AElf dependencies
-            typeof(CSharpSmartContract).Assembly,
-            typeof(IMethod).Assembly,
+            typeof(CSharpSmartContract).Assembly, // AElf.Sdk.CSharp
+            typeof(IMethod).Assembly,             // AElf.CSharp.Core
         };
         
-        private static readonly HashSet<AccessRule> TypeRefRules = new HashSet<AccessRule>
-        {
-            // Whitelisted type references
-            new AccessRule("AElf.Sdk").Allow(),
-            new AccessRule("AElf.CSharp.Core").Allow(),
-            new AccessRule("AElf.Kernel").Allow(), // TODO: Remove when dependency cleaning is done
-            new AccessRule("Google.Protobuf").Allow(),
-            new AccessRule("System.Datetime").Allow(), // TODO: Disallow UtcNow, Now in method body check
+        public static Whitelist Whitelist = new Whitelist()
+            // Allowed namespaces
+            .Namespace("AElf.Sdk", Permission.Allow)
+            .Namespace("AElf.CSharp.Core", Permission.Allow)
+            .Namespace("AElf.Kernel", Permission.Allow)
+            .Namespace("Google.Protobuf", Permission.Allow)
             
-            // Blacklisted type references with exceptions
-            new AccessRule("System.Reflection").Disallow()
-                                .Except("System.Reflection.AssemblyCompanyAttribute")
-                                .Except("System.Reflection.AssemblyConfigurationAttribute")
-                                .Except("System.Reflection.AssemblyFileVersionAttribute")
-                                .Except("System.Reflection.AssemblyInformationalVersionAttribute")
-                                .Except("System.Reflection.AssemblyProductAttribute")
-                                .Except("System.Reflection.AssemblyTitleAttribute"),
-        };
+            // Selectively allowed types and members
+            .Namespace("System", Permission.Deny, type => type
+                .Type(nameof(DateTime), Permission.Allow, member => member
+                    .Member(nameof(DateTime.Now), Permission.Deny)
+                    .Member(nameof(DateTime.UtcNow), Permission.Deny)
+                    .Member(nameof(DateTime.Today), Permission.Deny)))
+            .Namespace("System.Reflection", Permission.Deny, type => type
+                .Type(nameof(AssemblyCompanyAttribute), Permission.Allow)
+                .Type(nameof(AssemblyConfigurationAttribute), Permission.Allow)
+                .Type(nameof(AssemblyFileVersionAttribute), Permission.Allow)
+                .Type(nameof(AssemblyInformationalVersionAttribute), Permission.Allow)
+                .Type(nameof(AssemblyProductAttribute), Permission.Allow)
+                .Type(nameof(AssemblyTitleAttribute), Permission.Allow));
         
         public DefaultPolicy()
         {
             ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
             {
                 new AssemblyRefValidator(AllowedAssemblies), 
-                new TypeRefValidator(TypeRefRules), 
             });
             
             MethodValidators.AddRange(new IValidator<MethodDefinition>[]{
