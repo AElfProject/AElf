@@ -34,7 +34,7 @@ namespace AElf.Contracts.Election
 
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        
+
         protected ConsensusOptions ConsensusOption { get; set; }
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }

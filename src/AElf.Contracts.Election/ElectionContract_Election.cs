@@ -100,14 +100,26 @@ namespace AElf.Contracts.Election
             // Add this alias to history information of this candidate.
             var candidateHistory = State.Histories[publicKey];
 
-            Assert(candidateHistory.State != CandidateState.IsEvilNode,
-                "This candidate already marked as evil node before.");
-            Assert(candidateHistory.State == CandidateState.NotAnnounced &&
-                   !State.Candidates.Value.Value.Contains(publicKeyByteString),
-                "This public key already announced election.");
-            candidateHistory.AnnouncementTransactionId = Context.TransactionId;
-            candidateHistory.State = CandidateState.IsCandidate;
-            State.Histories[publicKey] = candidateHistory;
+            if (candidateHistory != null)
+            {
+                Assert(candidateHistory.State != CandidateState.IsEvilNode,
+                    "This candidate already marked as evil node before.");
+                Assert(candidateHistory.State == CandidateState.NotAnnounced &&
+                       !State.Candidates.Value.Value.Contains(publicKeyByteString),
+                    "This public key already announced election.");
+                candidateHistory.AnnouncementTransactionId = Context.TransactionId;
+                candidateHistory.State = CandidateState.IsCandidate;
+                State.Histories[publicKey] = candidateHistory;
+            }
+            else
+            {
+                State.Histories[publicKey] = new CandidateHistory
+                {
+                    AnnouncementTransactionId = Context.TransactionId,
+                    State = CandidateState.IsCandidate
+                };
+            }
+
 
             State.Candidates.Value.Value.Add(publicKeyByteString);
 

@@ -257,7 +257,7 @@ namespace AElf.Contracts.Election
                 var transactionResult = await WithdrawVotes(voterKeyPair, voteId);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
-            
+
             // Check ELF token balance
             {
                 var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
