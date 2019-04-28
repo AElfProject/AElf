@@ -8,6 +8,11 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContract
     {
+        public override PublicKeysList GetCandidates(Empty input)
+        {
+            return State.Candidates.Value;
+        }
+
         public override PublicKeysList GetVictories(Empty input)
         {
             var currentMiners = State.AElfConsensusContract.GetPreviousRoundInformation.Call(new Empty())
@@ -32,14 +37,14 @@ namespace AElf.Contracts.Election
                         ByteString.CopyFrom(ByteArrayHelpers.FromHexString(vc))));
                 victories.AddRange(currentMiners.Where(k => !validCandidates.Contains(k)).OrderBy(p => p).Take(diff)
                     .Select(p => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p))));
-                Context.LogDebug(() => string.Join(";", victories.Select(v => v.ToHex()).ToList()));
+                Context.LogDebug(() => string.Join("\n", victories.Select(v => v.ToHex().Substring(0, 10)).ToList()));
                 return victories;
             }
 
             victories = validCandidates.Select(k => State.Votes[k])
                 .OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
                 .Take(State.MinersCount.Value).ToList();
-            Context.LogDebug(() => string.Join(";", victories.Select(v => v.ToHex()).ToList()));
+            Context.LogDebug(() => string.Join("\n", victories.Select(v => v.ToHex().Substring(0, 10)).ToList()));
             return victories;
         }
 

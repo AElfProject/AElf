@@ -37,6 +37,9 @@ service ElectionContract {
     }
 
     // View
+    rpc GetCandidates (google.protobuf.Empty) returns (PublicKeysList) {
+        option (aelf.is_view) = true;
+    }
     rpc GetCandidateHistory (StringInput) returns (CandidateHistory) {
         option (aelf.is_view) = true;
     }
