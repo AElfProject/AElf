@@ -9,7 +9,7 @@ namespace AElf.CrossChain.Grpc
         public bool RemoteIsSideChain { get; set; }
         
         public int LocalListeningPort { get; set; }
-        public int Timeout { get; set; }
+        public int ConnectionTimeout { get; set; }
 
         public string ToUriStr()
         {

@@ -23,14 +23,7 @@ namespace AElf.CrossChain.Grpc
                 NextHeight = targetHeight
             };
 
-            var serverStream = RequestIndexing(requestData);
-            await ReadResponse(serverStream, crossChainDataProducer);
-            return true;
-        }
-
-        private Task ReadResponse(AsyncServerStreamingCall<TResponse> serverStream, ICrossChainDataProducer crossChainDataProducer)
-        {
-            var responseReaderTask = Task.Run(async () =>
+            using (var serverStream = RequestIndexing(requestData))
             {
                 while (await serverStream.ResponseStream.MoveNext())
                 {
@@ -39,16 +32,15 @@ namespace AElf.CrossChain.Grpc
                     // requestCrossChain failed or useless response
                     if (!response.Success || !crossChainDataProducer.AddNewBlockInfo(response.BlockInfoResult))
                     {
-                        serverStream.ResponseStream.Dispose();
                         break;
                     }
 
                     crossChainDataProducer.Logger.LogTrace(
                         $"Received response from chain {ChainHelpers.ConvertChainIdToBase58(response.BlockInfoResult.ChainId)} at height {response.Height}");
                 }
-            });
-    
-            return responseReaderTask;
+            }
+
+            return true;
         }
 
         public Task<IndexingHandShakeReply> TryHandShakeAsync(int chainId, int localListeningPort)

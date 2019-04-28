@@ -59,8 +59,8 @@ namespace AElf.CrossChain.Grpc
             string uri = grpcClientBase.ToUriStr();
 
             if (!grpcClientBase.RemoteIsSideChain)
-                return new GrpcClientForParentChain(uri, grpcClientBase.LocalChainId, grpcClientBase.Timeout);
-            var clientToSideChain = new GrpcClientForSideChain(uri, grpcClientBase.Timeout);
+                return new GrpcClientForParentChain(uri, grpcClientBase.LocalChainId, grpcClientBase.ConnectionTimeout);
+            var clientToSideChain = new GrpcClientForSideChain(uri, grpcClientBase.ConnectionTimeout);
             return clientToSideChain;
         }
 
