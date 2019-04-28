@@ -481,6 +481,18 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
+        public async Task ElectionContract_ReleaseTreasury_CandidatesNotEnough()
+        {
+            await ElectionContract_GetVictories_CandidatesNotEnough();
+
+            await NextTerm(BootMinerKeyPair);
+
+            var round = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+
+            round.RealTimeMinersInformation.Keys.ShouldContain(InitialMinersKeyPairs[0].PublicKey.ToHex());
+        }
+
+        [Fact]
         public async Task ElectionContract_CheckReleasedProfits()
         {
             await ElectionContract_GetVictories_ValidCandidatesEnough();
@@ -499,13 +511,36 @@ namespace AElf.Contracts.Election
 
             profitItems.Values.ShouldAllBe(i => i.CurrentPeriod == 2);
 
-            var minersRewardAmountInTheory =
+            var releasedAmount =
                 ElectionContractConsts.VotesTotalSupply - profitItems[ProfitType.Treasury].TotalAmount;
             var actualMinersRewardAmount = profitItems[ProfitType.BasicMinerReward].TotalAmount +
                                      profitItems[ProfitType.VotesWeightReward].TotalAmount +
                                      profitItems[ProfitType.ReElectionReward].TotalAmount;
-            actualMinersRewardAmount.ShouldBe(minersRewardAmountInTheory);
-
+            actualMinersRewardAmount.ShouldBe(releasedAmount * 6 / 10);
+            
+            // Check released information of CitizenWelfare of period 1.
+            {
+                var releasedProfitInformation = await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(
+                    new GetReleasedProfitsInformationInput
+                    {
+                        ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                        Period = 1
+                    });
+                releasedProfitInformation.ProfitsAmount.ShouldBe(200);
+                releasedProfitInformation.IsReleased.ShouldBe(true);
+            }
+            
+            // Check released information of CitizenWelfare of period 2.
+            {
+                var releasedProfitInformation = await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(
+                    new GetReleasedProfitsInformationInput
+                    {
+                        ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                        Period = 2
+                    });
+                releasedProfitInformation.ProfitsAmount.ShouldBe(0);
+                releasedProfitInformation.IsReleased.ShouldBe(false);
+            }
         }
 
         #region Private methods

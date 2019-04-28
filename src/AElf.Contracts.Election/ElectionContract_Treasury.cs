@@ -98,8 +98,14 @@ namespace AElf.Contracts.Election
             };
             foreach (var publicKey in State.Candidates.Value.Value)
             {
-                snapshot.CandidatesVotes.Add(publicKey.ToHex(),
-                    State.Votes[publicKey.ToHex()].ValidObtainedVotesAmount);
+                var votes = State.Votes[publicKey.ToHex()];
+                var validObtainedVotesAmount = 0L;
+                if (votes != null)
+                {
+                    validObtainedVotesAmount = votes.ValidObtainedVotesAmount;
+                }
+
+                snapshot.CandidatesVotes.Add(publicKey.ToHex(), validObtainedVotesAmount);
             }
 
             State.Snapshots[input.TermNumber - 1] = snapshot;

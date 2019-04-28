@@ -22,6 +22,7 @@ using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
+using Shouldly;
 using Volo.Abp.Threading;
 using Miners = AElf.Consensus.AElfConsensus.Miners;
 using ToUpdate = AElf.Consensus.AElfConsensus.ToUpdate;
@@ -332,7 +333,8 @@ namespace AElf.Contracts.Election
             };
             var firstRoundOfNextTerm =
                 miners.GenerateFirstRoundOfNewTerm(MiningInterval, BlockTimeProvider.GetBlockTime(), round.RoundNumber, round.TermNumber);
-            await miner.NextTerm.SendAsync(firstRoundOfNextTerm);
+            var executionResult = (await miner.NextTerm.SendAsync(firstRoundOfNextTerm)).TransactionResult;
+            executionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         internal async Task NextRound(ECKeyPair keyPair)
