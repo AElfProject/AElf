@@ -334,6 +334,16 @@ namespace AElf.Contracts.Election
             await miner.NextTerm.SendAsync(firstRoundOfNextTerm);
         }
 
+        internal async Task NextRound(ECKeyPair keyPair)
+        {
+            var miner = GetAElfConsensusContractStub(keyPair);
+            var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
+            round.GenerateNextRoundInformation(
+                StartTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds()), StartTimestamp,
+                out var nextRound);
+            await miner.NextRound.SendAsync(nextRound);
+        }
+
         internal async Task<long> GetNativeTokenBalance(byte[] publicKey)
         {
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput

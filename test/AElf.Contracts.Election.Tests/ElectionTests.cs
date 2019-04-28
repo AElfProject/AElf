@@ -344,6 +344,87 @@ namespace AElf.Contracts.Election
             round.TermNumber.ShouldBe(2);
         }
 
+        [Fact]
+        public async Task ElectionContract_GetVictories_NoCandidate()
+        {
+            // To get previous round information.
+            await NextRound(BootMinerKeyPair);
+
+            var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
+                .Select(p => p.ToHex()).ToList();
+
+            // Same as initial miners.
+            victories.Count.ShouldBe(InitialMinersCount);
+            foreach (var initialMiner in InitialMinersKeyPairs.Select(kp => kp.PublicKey.ToHex()))
+            {
+                victories.ShouldContain(initialMiner);
+            }
+        }
+
+        [Fact]
+        public async Task ElectionContract_GetVictories_NoValidCandidate()
+        {
+            await NextRound(BootMinerKeyPair);
+
+            FullNodesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            
+            var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
+                .Select(p => p.ToHex()).ToList();
+            
+            // Same as initial miners.
+            victories.Count.ShouldBe(InitialMinersCount);
+            foreach (var initialMiner in InitialMinersKeyPairs.Select(kp => kp.PublicKey.ToHex()))
+            {
+                victories.ShouldContain(initialMiner);
+            }
+        }
+
+        [Fact]
+        public async Task ElectionContract_GetVictories_ValidCandidatesNotEnough()
+        {
+            await NextRound(BootMinerKeyPair);
+
+            FullNodesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+
+            var validCandidates = FullNodesKeyPairs.Take(InitialMinersCount - 1).ToList();
+            validCandidates.ForEach(async kp =>
+                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100, 100));
+            
+            var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
+                .Select(p => p.ToHex()).ToList();
+
+            victories.Count.ShouldBe(InitialMinersCount);
+            foreach (var validCandidate in validCandidates)
+            {
+                victories.ShouldContain(validCandidate.PublicKey.ToHex());
+            }
+        }
+        
+        [Fact]
+        public async Task ElectionContract_GetVictories_ValidCandidatesEnough()
+        {
+            await NextRound(BootMinerKeyPair);
+
+            FullNodesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+
+            var moreVotesCandidates = FullNodesKeyPairs.Take(InitialMinersCount).ToList();
+            moreVotesCandidates.ForEach(async kp =>
+                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100, 100));
+            
+            var lessVotesCandidates = FullNodesKeyPairs.Skip(InitialMinersCount).Take(InitialMinersCount).ToList();
+            lessVotesCandidates.ForEach(async kp =>
+                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100, 99));
+            
+            var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
+                .Select(p => p.ToHex()).ToList();
+
+            victories.Count.ShouldBe(InitialMinersCount);
+            foreach (var validCandidate in moreVotesCandidates)
+            {
+                victories.ShouldContain(validCandidate.PublicKey.ToHex());
+            }
+        }
+        
         #region Private methods
 
         private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair)
@@ -374,8 +455,7 @@ namespace AElf.Contracts.Election
         private async Task<TransactionResult> WithdrawVotes(ECKeyPair userKeyPair, Hash voteId)
         {
             var electionStub = GetElectionContractTester(userKeyPair);
-            await electionStub.Withdraw.SendAsync(voteId);
-            return null;
+            return (await electionStub.Withdraw.SendAsync(voteId)).TransactionResult;
         }
 
         #endregion

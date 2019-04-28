@@ -19,8 +19,8 @@ namespace AElf.Contracts.Election
         {
             var validCandidates = GetValidCandidates();
 
-            // Valid candidates not enough.
             var diff = State.MinersCount.Value - validCandidates.Count;
+            // Valid candidates not enough.
             if (diff > 0)
             {
                 var victories =
