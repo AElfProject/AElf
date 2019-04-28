@@ -274,6 +274,7 @@ namespace AElf.Contracts.Election
                 balance.ShouldBe(beforeBalance);
             }
 
+            // Check VOTE token balance.
             {
                 var balance = await GetVoteTokenBalance(voterKeyPair.PublicKey);
                 balance.ShouldBe(0);
