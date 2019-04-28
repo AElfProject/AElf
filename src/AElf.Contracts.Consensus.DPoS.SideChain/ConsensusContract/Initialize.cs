@@ -1,5 +1,4 @@
 using System.Linq;
-using AElf.Consensus.DPoS;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS.SideChain

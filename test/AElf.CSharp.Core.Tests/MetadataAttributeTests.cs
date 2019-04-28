@@ -1,3 +1,4 @@
+/* TODO: https://github.com/AElfProject/AElf/issues/1603
 using System;
 using System.Linq;
 using System.Reflection;
@@ -47,3 +48,4 @@ namespace AElf.CSharp.Core
         }
     }
 }
+*/

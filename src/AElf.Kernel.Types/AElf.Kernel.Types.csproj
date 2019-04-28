@@ -12,24 +12,18 @@
         <Compile Remove="IResourcePath.cs" />
     </ItemGroup>
     <ItemGroup>
-        <None Include="..\..\protobuf\consensus.proto">
-            <Link>Protobuf/Proto/consensus.proto</Link>
-        </None>
         <None Include="..\..\protobuf\kernel.proto">
             <Link>Protobuf/Proto/kernel.proto</Link>
         </None>
         <None Include="..\..\protobuf\metadata.proto">
             <Link>Protobuf/Proto/metadata.proto</Link>
         </None>
-        <None Include="..\..\protobuf\resource.proto">
-            <Link>Protobuf/Proto/resource.proto</Link>
-        </None>
         <None Include="..\..\protobuf\smart_contract.proto">
             <Link>Protobuf/Proto/smart_contract.proto</Link>
         </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Command="protoc --proto_path=../../protobuf --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs kernel.proto resource.proto smart_contract.proto metadata.proto consensus.proto vote.proto election.proto profit.proto" />
+        <Exec Command="protoc --proto_path=../../protobuf --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs kernel.proto smart_contract.proto metadata.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

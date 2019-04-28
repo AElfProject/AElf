@@ -1,7 +1,6 @@
-using AElf.Kernel.SmartContract;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel
+namespace AElf
 {
     public class ProfitSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {

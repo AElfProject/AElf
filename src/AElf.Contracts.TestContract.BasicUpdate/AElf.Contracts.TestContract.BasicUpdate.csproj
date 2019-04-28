@@ -17,8 +17,8 @@
       <Content Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
       </Content>
-      <Content Include="..\..\protobuf\kernel.proto">
-        <Link>Protobuf/Proto/kernel.proto</Link>
+      <Content Include="..\..\protobuf\core.proto">
+        <Link>Protobuf/Proto/core.proto</Link>
       </Content>
         <Content Include="..\..\protobuf\test_basic.proto">
             <Link>Protobuf/Proto/test_basic.proto</Link>

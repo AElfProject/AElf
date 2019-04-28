@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.ParliamentAuth;
 using AElf.CrossChain;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

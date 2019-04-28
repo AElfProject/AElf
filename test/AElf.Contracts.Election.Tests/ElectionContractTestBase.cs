@@ -10,6 +10,7 @@ using AElf.Kernel;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Volo.Abp.Threading;
+using Vote;
 
 namespace AElf.Contracts.Election
 {
@@ -95,9 +96,9 @@ namespace AElf.Contracts.Election
             ElectionContractStub = GetElectionContractTester(DefaultSenderKeyPair);
         }
 
-        private SystemTransactionMethodCallList GenerateVoteInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
-            var voteMethodCallList = new SystemTransactionMethodCallList();
+            var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
                 new InitialVoteContractInput
                 {
@@ -107,11 +108,11 @@ namespace AElf.Contracts.Election
             return voteMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = symbol,
@@ -164,9 +165,9 @@ namespace AElf.Contracts.Election
             return tokenContractCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateElectionInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateElectionInitializationCallList()
         {
-            var electionMethodCallList = new SystemTransactionMethodCallList();
+            var electionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {
