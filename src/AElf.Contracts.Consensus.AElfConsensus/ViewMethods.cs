@@ -459,7 +459,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         private bool GenerateNextRoundInformation(Round currentRound, DateTime blockTime, out Round nextRound)
         {
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
-            if (TryToGetPreviousRoundInformation(out var previousRound))
+            if (TryToGetPreviousRoundInformation(out var previousRound) &&
+                previousRound.TermNumber + 1 != currentRound.TermNumber)
             {
                 var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);
                 var evilMinersCount = evilMinersPublicKey.Count;
