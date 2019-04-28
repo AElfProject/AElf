@@ -201,6 +201,13 @@ namespace AElf.Contracts.Election
                         Value = voterKeyPair.PublicKey.ToHex()
                     });
                 voterVotesWithRecords.ActiveVotesRecords.Count.ShouldBe(1);
+                
+                var voterVotesWithAllRecords = await ElectionContractStub.GetVotesInformationWithAllRecords.CallAsync(
+                    new StringInput
+                    {
+                        Value = voterKeyPair.PublicKey.ToHex()
+                    });
+                voterVotesWithAllRecords.ActiveVotesRecords.Count.ShouldBe(1);
             }
             
             // Check candidate's Votes information.
@@ -213,16 +220,31 @@ namespace AElf.Contracts.Election
                 candidateVotes.ObtainedActiveVotesIds.Count.ShouldBe(1);
                 candidateVotes.AllObtainedVotesAmount.ShouldBe(amount);
                 candidateVotes.ValidObtainedVotesAmount.ShouldBe(amount);
+                
+                var candidateVotesWithRecords = await ElectionContractStub.GetVotesInformationWithRecords.CallAsync(
+                    new StringInput
+                    {
+                        Value = candidateKeyPair.PublicKey.ToHex()
+                    });
+                candidateVotesWithRecords.ObtainedActiveVotesRecords.Count.ShouldBe(1);
+                
+                var voterVotesWithAllRecords = await ElectionContractStub.GetVotesInformationWithAllRecords.CallAsync(
+                    new StringInput
+                    {
+                        Value = candidateKeyPair.PublicKey.ToHex()
+                    });
+                voterVotesWithAllRecords.ObtainedActiveVotesRecords.Count.ShouldBe(1);
             }
             
             // Check voter's profit detail.
             {
+                var welfareHash = ProfitItemsIds[ProfitType.CitizenWelfare];
                 var details = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    ProfitId = ProfitItemsIds[ProfitType.VotesWeightReward],
+                    ProfitId = welfareHash,
                     Receiver = Address.FromPublicKey(voterKeyPair.PublicKey)
                 });
-                //details.Details.Count.ShouldBe(1);
+                details.Details.Count.ShouldBe(1);
             }
         }
 

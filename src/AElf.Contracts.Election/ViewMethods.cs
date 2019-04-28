@@ -105,7 +105,7 @@ namespace AElf.Contracts.Election
             index = 0;
             foreach (var record in obtainedRecords)
             {
-                var voteId = votes.ActiveVotesIds[index++];
+                var voteId = votes.ObtainedActiveVotesIds[index++];
                 votes.ObtainedActiveVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
 
@@ -123,7 +123,7 @@ namespace AElf.Contracts.Election
             var index = 0;
             foreach (var record in votedWithdrawnRecords)
             {
-                var voteId = votes.ActiveVotesIds[index++];
+                var voteId = votes.WithdrawnVotesIds[index++];
                 votes.WithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
 
@@ -134,7 +134,7 @@ namespace AElf.Contracts.Election
             index = 0;
             foreach (var record in obtainedWithdrawnRecords)
             {
-                var voteId = votes.ActiveVotesIds[index++];
+                var voteId = votes.ObtainedWithdrawnVotesIds[index++];
                 votes.ObtainedWithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
 

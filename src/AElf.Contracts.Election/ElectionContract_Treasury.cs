@@ -44,9 +44,9 @@ namespace AElf.Contracts.Election
             Assert(createdProfitIds.Count == 7, "Incorrect profit items count.");
 
             State.TreasuryHash.Value = createdProfitIds[0];
-            State.WelfareHash.Value = createdProfitIds[1];
+            State.RewardHash.Value = createdProfitIds[1];
             State.SubsidyHash.Value = createdProfitIds[2];
-            State.RewardHash.Value = createdProfitIds[3];
+            State.WelfareHash.Value = createdProfitIds[3];
             State.BasicRewardHash.Value = createdProfitIds[4];
             State.VotesWeightRewardHash.Value = createdProfitIds[5];
             State.ReElectionRewardHash.Value = createdProfitIds[6];
