@@ -22,7 +22,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var initialMiner = starter.CreateNewContractTester(initialMiners[0]);
             await initialMiner.ExecuteConsensusContractMethodWithMiningAsync(
                 nameof(ConsensusContract.SetBlockchainAge),
-                new SInt64Value(){Value = age});
+                new SInt64Value {Value = age});
 
             // Starter can set blockchain age.
             {

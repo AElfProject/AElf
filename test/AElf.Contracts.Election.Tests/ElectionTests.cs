@@ -148,10 +148,10 @@ namespace AElf.Contracts.Election
         {
             const int amount = 500;
 
-            var candidateKeyPair = SampleECKeyPairs.KeyPairs[1];
+            var candidateKeyPair = FullNodesKeyPairs[0];
             await AnnounceElection(candidateKeyPair);
 
-            var voterKeyPair = SampleECKeyPairs.KeyPairs[11];
+            var voterKeyPair = VotersKeyPairs[0];
             var beforeBalance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
             beforeBalance.ShouldBeGreaterThan(0);
 
@@ -180,6 +180,13 @@ namespace AElf.Contracts.Election
                 voterVotes.ActiveVotesIds.Count.ShouldBe(1);
                 voterVotes.AllVotedVotesAmount.ShouldBe(amount);
                 voterVotes.ValidVotedVotesAmount.ShouldBe(amount);
+
+                var voterVotesWithRecords = await ElectionContractStub.GetVotesInformationWithRecords.CallAsync(
+                    new StringInput
+                    {
+                        Value = voterKeyPair.PublicKey.ToHex()
+                    });
+                voterVotesWithRecords.ActiveVotesRecords.Count.ShouldBe(1);
             }
             
             // Check candidate's Votes information.
@@ -234,10 +241,10 @@ namespace AElf.Contracts.Election
         {
             const int amount = 1000;
 
-            var candidateKeyPair = SampleECKeyPairs.KeyPairs[1];
+            var candidateKeyPair = SampleECKeyPairs.KeyPairs[11];
             await AnnounceElection(candidateKeyPair);
 
-            var voterKeyPair = SampleECKeyPairs.KeyPairs[11];
+            var voterKeyPair = SampleECKeyPairs.KeyPairs[12];
             var beforeBalance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
 
             // Vote
@@ -249,6 +256,13 @@ namespace AElf.Contracts.Election
             var voteId =
                 (await ElectionContractStub.GetVotesInformation.CallAsync(new StringInput
                     {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotesIds.First();
+
+            await ElectionContractStub.ReleaseTreasuryProfits.CallAsync(new ReleaseTreasuryProfitsInput
+            {
+                MinedBlocks = 1,
+                RoundNumber = 10,
+                TermNumber = 1
+            });
 
             BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddDays(121));
 

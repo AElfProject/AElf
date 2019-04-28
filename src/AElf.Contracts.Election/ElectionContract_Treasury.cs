@@ -92,7 +92,7 @@ namespace AElf.Contracts.Election
             // Take snapshot.
             var snapshot = new TermSnapshot
             {
-                TermNumber = input.TermNumber,
+                TermNumber = input.TermNumber - 1,
                 TotalBlocks = input.MinedBlocks,
                 EndRoundNumber = input.RoundNumber
             };
@@ -102,7 +102,7 @@ namespace AElf.Contracts.Election
                     State.Votes[publicKey.ToHex()].ValidObtainedVotesAmount);
             }
 
-            State.Snapshots[input.TermNumber] = snapshot;
+            State.Snapshots[input.TermNumber - 1] = snapshot;
 
             UpdateTreasurySubItemsWeights(input.TermNumber);
 

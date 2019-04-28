@@ -326,7 +326,7 @@ namespace AElf.Contracts.Election
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
-                To = Context.Sender,
+                To = Context.Self,
                 Amount = votingRecord.Amount,
                 Symbol = ElectionContractConsts.VoteSymbol,
                 Memo = "Return VOTE tokens."
