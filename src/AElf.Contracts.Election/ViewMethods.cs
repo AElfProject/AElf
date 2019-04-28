@@ -18,21 +18,28 @@ namespace AElf.Contracts.Election
         private List<ByteString> GetVictories(List<string> currentMiners)
         {
             var validCandidates = GetValidCandidates();
+            
+            List<ByteString> victories;
 
             var diff = State.MinersCount.Value - validCandidates.Count;
             // Valid candidates not enough.
             if (diff > 0)
             {
-                var victories =
+                Context.LogDebug(() => $"Valid candidates not enough: {validCandidates.Count} / {State.MinersCount.Value}");
+                victories =
                     new List<ByteString>(validCandidates.Select(vc =>
                         ByteString.CopyFrom(ByteArrayHelpers.FromHexString(vc))));
                 victories.AddRange(currentMiners.Where(k => !validCandidates.Contains(k)).OrderBy(p => p).Take(diff)
                     .Select(p => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p))));
+                Context.LogDebug(() => string.Join(";", victories.Select(v => v.ToHex()).ToList()));
                 return victories;
             }
 
-            return validCandidates.Select(k => State.Votes[k]).OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
+            victories = validCandidates.Select(k => State.Votes[k])
+                .OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
                 .Take(State.MinersCount.Value).ToList();
+            Context.LogDebug(() => string.Join(";", victories.Select(v => v.ToHex()).ToList()));
+            return victories;
         }
 
         private List<string> GetValidCandidates()
