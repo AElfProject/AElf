@@ -17,30 +17,35 @@ namespace AElf.Contracts.Election
 
         private List<ByteString> GetVictories(List<string> currentMiners)
         {
-            // Candidates not enough.
-            var diff = State.MinersCount.Value - State.Candidates.Value.Value.Count;
+            var validCandidates = GetValidCandidates();
+
+            // Valid candidates not enough.
+            var diff = State.MinersCount.Value - validCandidates.Count;
             if (diff > 0)
             {
-                var victories = new List<ByteString>();
-                victories.AddRange(currentMiners.Select(mk => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(mk)))
-                    .Where(k => !State.Candidates.Value.Value.Contains(k)).OrderBy(p => p.ToHex()).Take(diff));
+                var victories =
+                    new List<ByteString>(validCandidates.Select(vc =>
+                        ByteString.CopyFrom(ByteArrayHelpers.FromHexString(vc))));
+                victories.AddRange(currentMiners.Where(k => !validCandidates.Contains(k)).OrderBy(p => p).Take(diff)
+                    .Select(p => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p))));
                 return victories;
             }
 
-            var votedCandidatesVotes = State.Candidates.Value.Value.Select(p => p.ToHex()).Where(k => State.Votes[k] != null)
-                .Select(k => State.Votes[k]).ToList();
-
-            // Voted candidates not enough, 
-            diff = State.MinersCount.Value - votedCandidatesVotes.Count;
-            if (diff > 0)
-            {
-                var victories = new List<ByteString>();
-                victories.AddRange(State.Candidates.Value.Value.OrderBy(k => k.ToHex()).Take(diff));
-                return victories;
-            }
-
-            return votedCandidatesVotes.OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
+            return validCandidates.Select(k => State.Votes[k]).OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
                 .Take(State.MinersCount.Value).ToList();
+        }
+
+        private List<string> GetValidCandidates()
+        {
+            return State.Candidates.Value.Value
+                .Where(c => State.Votes[c.ToHex()] != null && State.Votes[c.ToHex()].ValidObtainedVotesAmount > 0)
+                .Select(p => p.ToHex())
+                .ToList();
+        }
+
+        public override SInt32Value GetMinersCount(Empty input)
+        {
+            return new SInt32Value {Value = State.MinersCount.Value};
         }
 
         public override ElectionResult GetElectionResult(GetElectionResultInput input)

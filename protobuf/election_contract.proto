@@ -46,6 +46,9 @@ service ElectionContract {
     rpc GetTermSnapshot (GetTermSnapshotInput) returns (TermSnapshot) {
         option (aelf.is_view) = true;
     }
+    rpc GetMinersCount (google.protobuf.Empty) returns (SInt32Value) {
+        option (aelf.is_view) = true;
+    }
     rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
         option (aelf.is_view) = true;
     }
