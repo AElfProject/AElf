@@ -49,7 +49,7 @@ namespace AElf.Contracts.Profit
             var createdProfitIds = State.CreatedProfitItemsMap[Context.Sender]?.ProfitIds;
             if (createdProfitIds != null && createdProfitIds.Contains(profitId))
             {
-                profitId = Hash.Xor(profitId, createdProfitIds.Last());
+                profitId = Hash.FromTwoHashes(profitId, createdProfitIds.Last());
             }
             State.ProfitItemsMap[profitId] = new ProfitItem
             {
@@ -179,7 +179,7 @@ namespace AElf.Contracts.Profit
             {
                 currentProfitDetails.Details.Remove(detail);
             }
-
+            
             State.ProfitDetailsMap[profitId][input.Receiver] = currentProfitDetails;
 
             return new Empty();

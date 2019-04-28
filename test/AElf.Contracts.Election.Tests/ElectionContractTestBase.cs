@@ -42,6 +42,7 @@ namespace AElf.Contracts.Election
         
         internal List<ECKeyPair> VotersKeyPairs => SampleECKeyPairs.KeyPairs.Skip(InitialMinersCount + FullNodesCount).Take(VotersCount).ToList();
 
+        internal Dictionary<ProfitType, Hash> ProfitItemsIds { get; set; }
         protected ConsensusOptions ConsensusOption { get; set; }
 
         internal const int MiningInterval = 4000;
@@ -160,6 +161,34 @@ namespace AElf.Contracts.Election
                         TransactionMethodCallList = GenerateConsensusInitializationCallList()
                     })).Output;
             AElfConsensusContractStub = GetAElfConsensusContractStub(BootMinerKeyPair);
+
+            var profitIds = AsyncHelper.RunSync(() =>
+                ProfitContractStub.GetCreatedProfitItems.CallAsync(
+                    new GetCreatedProfitItemsInput
+                    {
+                        Creator = ElectionContractAddress
+                    })).ProfitIds;
+            ProfitItemsIds = new Dictionary<ProfitType, Hash>
+            {
+                {ProfitType.Treasury, profitIds[0]},
+                {ProfitType.MinerReward, profitIds[1]},
+                {ProfitType.BackSubsidy, profitIds[2]},
+                {ProfitType.CitizenWelfare, profitIds[3]},
+                {ProfitType.BasicMinerReward, profitIds[4]},
+                {ProfitType.VotesWeightReward, profitIds[5]},
+                {ProfitType.ReElectionReward, profitIds[6]},
+            };
+        }
+
+        internal enum ProfitType
+        {
+            Treasury,
+            MinerReward,
+            BackSubsidy,
+            CitizenWelfare,
+            BasicMinerReward,
+            VotesWeightReward,
+            ReElectionReward
         }
 
         private SystemTransactionMethodCallList GenerateVoteInitializationCallList()

@@ -52,6 +52,26 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
+        public async Task ElectionContract_AnnounceElection_CheckCandidates()
+        {
+            const int announceCount = 7;
+
+            var candidatesKeyPairs = FullNodesKeyPairs.Take(announceCount).ToList();
+            candidatesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+
+            var voteEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+            {
+                Topic = ElectionContractConsts.Topic,
+                Sponsor = ElectionContractAddress
+            });
+            voteEvent.Options.Count.ShouldBe(announceCount);
+            foreach (var candidateKeyPair in candidatesKeyPairs)
+            {
+                voteEvent.Options.ShouldContain(candidateKeyPair.PublicKey.ToHex());
+            }
+        }
+
+        [Fact]
         public async Task ElectionContract_AnnounceElection_TokenNotEnough()
         {
             var candidateKeyPair = VotersKeyPairs[0];
@@ -194,6 +214,16 @@ namespace AElf.Contracts.Election
                 candidateVotes.AllObtainedVotesAmount.ShouldBe(amount);
                 candidateVotes.ValidObtainedVotesAmount.ShouldBe(amount);
             }
+            
+            // Check voter's profit detail.
+            {
+                var details = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                {
+                    ProfitId = ProfitItemsIds[ProfitType.VotesWeightReward],
+                    Receiver = Address.FromPublicKey(voterKeyPair.PublicKey)
+                });
+                //details.Details.Count.ShouldBe(1);
+            }
         }
 
         [Fact]
@@ -264,9 +294,12 @@ namespace AElf.Contracts.Election
 
             // Withdraw
             {
-                var transactionResult = await WithdrawVotes(voterKeyPair, voteId);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                await WithdrawVotes(voterKeyPair, voteId);
             }
+            
+            // Profit
+            var voter = GetProfitContractTester(voterKeyPair);
+            await voter.Profit.SendAsync(new ProfitInput {ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare]});
 
             // Check ELF token balance
             {
@@ -282,31 +315,10 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task Get_Candidates()
-        {
-            const int announceCount = 7;
-
-            var candidatesKeyPairs = FullNodesKeyPairs.Take(announceCount).ToList();
-            candidatesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
-
-            var voteEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
-            {
-                Topic = ElectionContractConsts.Topic,
-                Sponsor = ElectionContractAddress
-            });
-            voteEvent.Options.Count.ShouldBe(announceCount);
-            foreach (var candidateKeyPair in candidatesKeyPairs)
-            {
-                voteEvent.Options.ShouldContain(candidateKeyPair.PublicKey.ToHex());
-            }
-        }
-
-        [Fact]
         public async Task ElectionContract_NextTerm()
         {
             await NextTerm(InitialMinersKeyPairs[0]);
             var round = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
-
             round.TermNumber.ShouldBe(2);
         }
 
@@ -328,21 +340,20 @@ namespace AElf.Contracts.Election
             int days, long amount)
         {
             var electionStub = GetElectionContractTester(userKeyPair);
-            var transactionResult = (await electionStub.Vote.SendAsync(new VoteMinerInput
+            return (await electionStub.Vote.SendAsync(new VoteMinerInput
             {
                 CandidatePublicKey = candidatePublicKey,
                 Amount = amount,
                 LockTimeUnit = LockTimeUnit.Days,
                 LockTime = days
             })).TransactionResult;
-
-            return transactionResult;
         }
-        
+
         private async Task<TransactionResult> WithdrawVotes(ECKeyPair userKeyPair, Hash voteId)
         {
             var electionStub = GetElectionContractTester(userKeyPair);
-            return (await electionStub.Withdraw.SendAsync(voteId)).TransactionResult;
+            await electionStub.Withdraw.SendAsync(voteId);
+            return null;
         }
 
         #endregion
