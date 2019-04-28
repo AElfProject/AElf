@@ -331,7 +331,7 @@ namespace AElf.Contracts.Election
                 }
             };
             var firstRoundOfNextTerm =
-                miners.GenerateFirstRoundOfNewTerm(MiningInterval, BlockTimeProvider.GetBlockTime(), 1, 1);
+                miners.GenerateFirstRoundOfNewTerm(MiningInterval, BlockTimeProvider.GetBlockTime(), round.RoundNumber, round.TermNumber);
             await miner.NextTerm.SendAsync(firstRoundOfNextTerm);
         }
 

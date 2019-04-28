@@ -379,6 +379,7 @@ namespace AElf.Contracts.Profit
             }
 
             profitItem.CurrentPeriod = input.Period + 1;
+            profitItem.TotalAmount -= input.Amount;
             State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             return new Empty();
