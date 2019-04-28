@@ -194,10 +194,14 @@ namespace AElf.Kernel
                 {
                     bloom.Combine(new[] {new Bloom(transactionResult.Bloom.ToByteArray())});    
                 }
+            }
 
+            newBlock.Header.Bloom = ByteString.CopyFrom(bloom.Data);
+
+            foreach (var transactionResult in transactionResults)
+            {
                 await _transactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
             }
-            newBlock.Header.Bloom = ByteString.CopyFrom(bloom.Data);
 
             await _blockchainService.AddBlockAsync(newBlock);
             var chain = await _blockchainService.GetChainAsync();

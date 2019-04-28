@@ -3,6 +3,5 @@
     public interface IHashProvider
     {
         Hash GetHash();
-        Hash GetHashWithoutCache();
     }
 }

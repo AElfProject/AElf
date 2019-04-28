@@ -33,12 +33,12 @@ namespace AElf.Kernel
                 return false;
 
             var recovered = CryptoHelpers.RecoverPublicKey(transaction.Signature.ToByteArray(), 
-                transaction.GetHash().DumpByteArray(), out var pubKey);
+                transaction.GetHash().DumpByteArray(), out var publicKey);
 
             if (!recovered)
                 return false;
 
-            return Address.FromPublicKey(pubKey).Equals(transaction.From);
+            return Address.FromPublicKey(publicKey).Equals(transaction.From);
         }
     }
 }

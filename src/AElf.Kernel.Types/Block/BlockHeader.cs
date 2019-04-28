@@ -1,6 +1,5 @@
 ﻿using Google.Protobuf;
 
-// ReSharper disable once CheckNamespace
 namespace AElf.Kernel
 {
     public partial class BlockHeader : IBlockHeader
@@ -10,8 +9,6 @@ namespace AElf.Kernel
             Bloom = ByteString.CopyFrom(new Bloom().Data);
         }
 
-        private Hash _blockHash;
-
         public BlockHeader(Hash preBlockHash)
         {
             PreviousBlockHash = preBlockHash;
@@ -19,44 +16,22 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            if (_blockHash == null)
-            {
-                _blockHash = Hash.FromRawBytes(GetSignatureData());
-            }
-
-            return _blockHash;
-        }
-
-        public Hash GetHashWithoutCache()
-        {
-            _blockHash = null;
-            return GetHash();
+            return Hash.FromRawBytes(GetSignatureData());
         }
 
         public byte[] GetHashBytes()
         {
-            if (_blockHash == null)
-                _blockHash = Hash.FromRawBytes(GetSignatureData());
-
-            return _blockHash.DumpByteArray();
+            return GetHash().DumpByteArray();
         }
 
         private byte[] GetSignatureData()
         {
-            var rawBlock = new BlockHeader
-            {
-                ChainId = ChainId,
-                Height = Height,
-                PreviousBlockHash = PreviousBlockHash?.Clone(),
-                MerkleTreeRootOfTransactions = MerkleTreeRootOfTransactions?.Clone(),
-                MerkleTreeRootOfWorldState = MerkleTreeRootOfWorldState?.Clone(),
-                Bloom = Bloom,
-                BlockExtraDatas = {BlockExtraDatas}
-            };
-            // TODO: Remove this judgement.
-            if (Height > KernelConstants.GenesisBlockHeight)
-                rawBlock.Time = Time?.Clone();
-	
-            return rawBlock.ToByteArray();         }
+            if (Signature.IsEmpty)
+                return this.ToByteArray();
+
+            var blockHeader = Clone();
+            blockHeader.Signature = ByteString.Empty;
+            return blockHeader.ToByteArray();
+        }
     }
 }
