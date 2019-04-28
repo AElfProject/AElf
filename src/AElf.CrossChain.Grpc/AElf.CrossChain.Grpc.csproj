@@ -10,7 +10,6 @@
         <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
         <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
         <ProjectReference Include="..\AElf.CrossChain.Types\AElf.CrossChain.Types.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
     </ItemGroup>
 
     <ItemGroup>
