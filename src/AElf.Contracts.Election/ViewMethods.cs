@@ -21,11 +21,12 @@ namespace AElf.Contracts.Election
             
             List<ByteString> victories;
 
+            Context.LogDebug(() => $"Valid candidates: {validCandidates.Count} / {State.MinersCount.Value}");
+
             var diff = State.MinersCount.Value - validCandidates.Count;
             // Valid candidates not enough.
             if (diff > 0)
             {
-                Context.LogDebug(() => $"Valid candidates not enough: {validCandidates.Count} / {State.MinersCount.Value}");
                 victories =
                     new List<ByteString>(validCandidates.Select(vc =>
                         ByteString.CopyFrom(ByteArrayHelpers.FromHexString(vc))));

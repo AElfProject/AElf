@@ -39,7 +39,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_InitializeMultiTimes()
+        public async Task ElectionContract_InitializeTwice()
         {
             var transactionResult = (await ElectionContractStub.InitialElectionContract.SendAsync(
                 new InitialElectionContractInput
@@ -489,7 +489,10 @@ namespace AElf.Contracts.Election
 
             var round = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            round.RealTimeMinersInformation.Keys.ShouldContain(InitialMinersKeyPairs[0].PublicKey.ToHex());
+            foreach (var initialMinersKeyPair in InitialMinersKeyPairs)
+            {
+                round.RealTimeMinersInformation.Keys.ShouldContain(initialMinersKeyPair.PublicKey.ToHex());
+            }
         }
 
         [Fact]

@@ -328,6 +328,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 TryToGetRoundNumber(out var roundNumber) &&
                 TryToGetVictories(out var victories))
             {
+                Context.LogDebug(() => "Got victories successfully.");
                 round = victories.GenerateFirstRoundOfNewTerm(miningInterval, Context.CurrentBlockTime, roundNumber,
                     termNumber);
             }
@@ -369,8 +370,13 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         private bool TryToGetVictories(out Miners victories)
         {
             var victoriesPublicKeys = State.ElectionContract.GetVictories.Call(new Empty());
+            Context.LogDebug(() =>
+                $"Got victories from Election Contract:\n{string.Join("\n", victoriesPublicKeys.Value.Select(s => s.ToHex().Substring(0, 10)))}");
             victories = new Miners
-                {PublicKeys = {victoriesPublicKeys.Value}, TermNumber = State.CurrentTermNumber.Value};
+            {
+                PublicKeys = {victoriesPublicKeys.Value},
+                TermNumber = State.CurrentTermNumber.Value
+            };
             return victories.PublicKeys.Any();
         }
 
