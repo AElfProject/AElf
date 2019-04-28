@@ -8,6 +8,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
 namespace AElf.Blockchains.SideChain
@@ -20,12 +21,13 @@ namespace AElf.Blockchains.SideChain
         private readonly CrossChainConfigOption _crossChainConfigOptions;
         private readonly IChainInitializationPlugin _chainInitializationPlugin;
 
-        public GenesisSmartContractDtoProvider(ChainOptions chainOptions, DPoSOptions dposOptions,
-            CrossChainConfigOption crossChainConfigOptions, IChainInitializationPlugin chainInitializationPlugin)
+        public GenesisSmartContractDtoProvider(IOptionsSnapshot<ChainOptions> chainOptions,
+            IOptionsSnapshot<DPoSOptions> dposOptions, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOptions,
+            IChainInitializationPlugin chainInitializationPlugin)
         {
-            _chainOptions = chainOptions;
-            _dposOptions = dposOptions;
-            _crossChainConfigOptions = crossChainConfigOptions;
+            _chainOptions = chainOptions.Value;
+            _dposOptions = dposOptions.Value;
+            _crossChainConfigOptions = crossChainConfigOptions.Value;
             _chainInitializationPlugin = chainInitializationPlugin;
         }
 
