@@ -348,6 +348,10 @@ namespace AElf.Contracts.Election
 
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {
+            if (input.IsEvilNode)
+            {
+                Context.LogDebug(() => $"Marked {input.PublicKey.Substring(0, 10)} as evil node.");
+            }
             var history = State.Histories[input.PublicKey];
             history.ProducedBlocks += input.RecentlyProducedBlocks;
             history.MissedTimeSlots += input.RecentlyMissedTimeSlots;

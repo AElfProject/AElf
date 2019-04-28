@@ -465,6 +465,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 var evilMinersCount = evilMinersPublicKey.Count;
                 if (evilMinersCount != 0)
                 {
+                    Context.LogDebug(() => $"Evil nodes found: \n{string.Join("\n", evilMinersPublicKey)}");
                     foreach (var publicKeyToRemove in evilMinersPublicKey)
                     {
                         var theOneFeelingLucky = GetNextAvailableMinerPublicKey(currentRound);
