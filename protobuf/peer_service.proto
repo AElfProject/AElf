@@ -5,6 +5,7 @@ option csharp_namespace = "AElf.OS.Network.Grpc";
 import "kernel.proto";
 import "network_types.proto";
 import "common.proto";
+import "core.proto";
 
 service PeerService {
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}

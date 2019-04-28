@@ -2,13 +2,12 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {
-    public interface IStateProvider
+    public interface ICachedStateProvider : IStateProvider
     {
         IStateCache Cache { get; set; }
-        Task<byte[]> GetAsync(StatePath path);
     }
 
-    public interface IScopedStateProvider : IStateProvider
+    public interface IScopedStateProvider : ICachedStateProvider
     {
         Address ContractAddress { get; }
     }

@@ -2,7 +2,6 @@
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution;
-using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
 using Volo.Abp.BackgroundJobs;
@@ -17,8 +16,7 @@ namespace AElf.Kernel
         typeof(SmartContractAElfModule),
         typeof(NodeAElfModule),
         typeof(SmartContractExecutionAElfModule),
-        typeof(TransactionPoolAElfModule),
-        typeof(TokenKernelAElfModule)
+        typeof(TransactionPoolAElfModule)
     )]
     public class KernelAElfModule : AElfModule<KernelAElfModule>
     {

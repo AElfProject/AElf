@@ -1,9 +1,8 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Kernel";
+package vote;
 
 import "common.proto";
-import "kernel.proto";
 import "google/protobuf/timestamp.proto";
 
 message InitialVoteContractInput {

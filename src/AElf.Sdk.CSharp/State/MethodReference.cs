@@ -20,7 +20,7 @@ namespace AElf.Sdk.CSharp.State
 
         public TOutput Call(TInput input)
         {
-            return _parent.Context.Call<TOutput>(_parent.Provider.Cache, _parent.Value, _name, input);
+            return _parent.Context.Call<TOutput>(_parent.Value, _name, input);
         }
     }
 }
