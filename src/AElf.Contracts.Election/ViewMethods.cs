@@ -23,7 +23,7 @@ namespace AElf.Contracts.Election
             {
                 var victories = new List<ByteString>();
                 victories.AddRange(currentMiners.Select(mk => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(mk)))
-                    .Where(k => !State.Candidates.Value.Value.Contains(k)).OrderBy(p => p).Take(diff));
+                    .Where(k => !State.Candidates.Value.Value.Contains(k)).OrderBy(p => p.ToHex()).Take(diff));
                 return victories;
             }
 
@@ -35,7 +35,7 @@ namespace AElf.Contracts.Election
             if (diff > 0)
             {
                 var victories = new List<ByteString>();
-                victories.AddRange(State.Candidates.Value.Value.OrderBy(k => k).Take(diff));
+                victories.AddRange(State.Candidates.Value.Value.OrderBy(k => k.ToHex()).Take(diff));
                 return victories;
             }
 

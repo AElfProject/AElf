@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
@@ -51,86 +52,79 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task AnnounceElection_Without_EnoughToken()
+        public async Task ElectionContract_AnnounceElection_TokenNotEnough()
         {
-            var userKeyPair = SampleECKeyPairs.KeyPairs[11];
-
-            var transactionResult = await AnnounceElection(userKeyPair);
-
+            var candidateKeyPair = VotersKeyPairs[0];
+            var transactionResult = await AnnounceElectionAsync(candidateKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Insufficient balance").ShouldBeTrue();
         }
 
         [Fact]
-        public async Task AnnounceElection_Success()
+        public async Task<ECKeyPair> ElectionContract_AnnounceElection_Success()
         {
-            var userKeyPair = SampleECKeyPairs.KeyPairs[1];
-            var beforeBalance = await GetNativeTokenBalance(userKeyPair.PublicKey);
-
-            var transactionResult = await AnnounceElection(userKeyPair);
+            var candidateKeyPair = FullNodesKeyPairs[0];
+            var balanceBeforeAnnouncement = await GetNativeTokenBalance(candidateKeyPair.PublicKey);
+            var transactionResult = await AnnounceElectionAsync(candidateKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var afterBalance = await GetNativeTokenBalance(userKeyPair.PublicKey);
-
-            beforeBalance.ShouldBe(afterBalance + ElectionContractConsts.LockTokenForElection);
+            var afterBalance = await GetNativeTokenBalance(candidateKeyPair.PublicKey);
+            balanceBeforeAnnouncement.ShouldBe(afterBalance + ElectionContractConsts.LockTokenForElection);
+            return candidateKeyPair;
         }
 
         [Fact]
-        public async Task AnnounceElection_Twice()
+        public async Task ElectionContract_AnnounceElection_Twice()
         {
-            await AnnounceElection_Success();
-
-            var userKeyPair = SampleECKeyPairs.KeyPairs[1];
-            var transactionResult = await AnnounceElection(userKeyPair);
-
+            var candidateKeyPair = await ElectionContract_AnnounceElection_Success();
+            var transactionResult = await AnnounceElectionAsync(candidateKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("This public key already announced election.");
         }
 
         [Fact]
-        public async Task QuitElection_WithCurrentMiner()
+        public async Task ElectionContract_QuiteElection()
         {
-            await AnnounceElection_Success();
+            const int announceCount = 7;
+            const int quitCount = 2;
+            FullNodesKeyPairs.Take(announceCount).ToList().ForEach(async kp => await AnnounceElectionAsync(kp));
 
-            var userKeyPair = SampleECKeyPairs.KeyPairs[1];
-
-            var transactionResult = await QuiteElection(userKeyPair);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Current miners cannot quit election").ShouldBeTrue();
-        }
-
-        [Fact]
-        public async Task QuiteElection_WithCandidate()
-        {
-            for (var i = 1; i < 5; i++)
+            // Check VotingEvent before quiting election.
             {
-                var user = SampleECKeyPairs.KeyPairs[i];
-                await AnnounceElection(user);
+                var votingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+                {
+                    Topic = ElectionContractConsts.Topic,
+                    Sponsor = ElectionContractAddress
+                });
+                votingEvent.Options.Count.ShouldBe(announceCount);
             }
 
-            var voteEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+            var quitCandidates = FullNodesKeyPairs.Take(quitCount).ToList();
+
+            var balancesBeforeQuiting = new Dictionary<ECKeyPair, long>();
+            // Record balances before quiting election.
+            foreach (var quitCandidate in quitCandidates)
             {
-                Topic = ElectionContractConsts.Topic,
-                Sponsor = ElectionContractAddress
-            });
-            voteEvent.Options.Count.ShouldBe(4);
+                balancesBeforeQuiting.Add(quitCandidate, await GetNativeTokenBalance(quitCandidate.PublicKey));
+            }
 
-            var userKeyPair = SampleECKeyPairs.KeyPairs[4];
+            quitCandidates.ForEach(async kp => await QuitElectionAsync(kp));
 
-            var beforeBalance = await GetNativeTokenBalance(userKeyPair.PublicKey);
-
-            var transactionResult = await QuiteElection(userKeyPair);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var afterBalance = await GetNativeTokenBalance(userKeyPair.PublicKey);
-            afterBalance.ShouldBe(beforeBalance + ElectionContractConsts.LockTokenForElection);
-
-            voteEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+            // Check balances after quiting election.
+            foreach (var quitCandidate in quitCandidates)
             {
-                Topic = ElectionContractConsts.Topic,
-                Sponsor = ElectionContractAddress
-            });
-            voteEvent.Options.Count.ShouldBe(3);
+                var balance = await GetNativeTokenBalance(quitCandidate.PublicKey);
+                balance.ShouldBe(balancesBeforeQuiting[quitCandidate] + ElectionContractConsts.LockTokenForElection);
+            }
+
+            // Check VotingEvent after quiting election.
+            {
+                var votingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+                {
+                    Topic = ElectionContractConsts.Topic,
+                    Sponsor = ElectionContractAddress
+                });
+                votingEvent.Options.Count.ShouldBe(announceCount - quitCount);
+            }
         }
 
         [Fact]
@@ -138,7 +132,7 @@ namespace AElf.Contracts.Election
         {
             var userKeyPair = SampleECKeyPairs.KeyPairs[2];
 
-            var transactionResult = await QuiteElection(userKeyPair);
+            var transactionResult = await QuitElectionAsync(userKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Sender is not a candidate").ShouldBeTrue();
         }
@@ -149,7 +143,7 @@ namespace AElf.Contracts.Election
             const int amount = 500;
 
             var candidateKeyPair = FullNodesKeyPairs[0];
-            await AnnounceElection(candidateKeyPair);
+            await AnnounceElectionAsync(candidateKeyPair);
 
             var voterKeyPair = VotersKeyPairs[0];
             var beforeBalance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
@@ -205,18 +199,18 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_Vote_Failed()
         {
-            var candidateKeyPair = SampleECKeyPairs.KeyPairs[1];
-            var voterKeyPair = SampleECKeyPairs.KeyPairs[11];
+            var candidateKeyPair = FullNodesKeyPairs[0];
+            var voterKeyPair = VotersKeyPairs[0];
 
             // candidateKeyPair not announced election yet.
             {
                 var transactionResult = await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120, 100);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Candidate state incorrect.").ShouldBeTrue();
+                transactionResult.Error.ShouldContain("Candidate not found");
             }
 
-            await AnnounceElection(candidateKeyPair);
+            await AnnounceElectionAsync(candidateKeyPair);
 
             // Voter token not enough
             {
@@ -224,7 +218,7 @@ namespace AElf.Contracts.Election
                     await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120, 100_000);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Insufficient balance").ShouldBeTrue();
+                transactionResult.Error.ShouldContain("Insufficient balance");
             }
 
             // Lock time is less than 90 days
@@ -232,7 +226,7 @@ namespace AElf.Contracts.Election
                 var transactionResult = await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 80, 1000);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Should lock token for at least 90 days").ShouldBeTrue();
+                transactionResult.Error.ShouldContain("Should lock token for at least 90 days");
             }
         }
 
@@ -241,10 +235,10 @@ namespace AElf.Contracts.Election
         {
             const int amount = 1000;
 
-            var candidateKeyPair = SampleECKeyPairs.KeyPairs[11];
-            await AnnounceElection(candidateKeyPair);
+            var candidateKeyPair = FullNodesKeyPairs[0];
+            await AnnounceElectionAsync(candidateKeyPair);
 
-            var voterKeyPair = SampleECKeyPairs.KeyPairs[12];
+            var voterKeyPair = VotersKeyPairs[0];
             var beforeBalance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
 
             // Vote
@@ -263,6 +257,8 @@ namespace AElf.Contracts.Election
                 RoundNumber = 10,
                 TermNumber = 1
             });
+
+            await NextTerm(InitialMinersKeyPairs[0]);
 
             BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddDays(121));
 
@@ -287,33 +283,41 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task Get_Candidates()
         {
-            for (int i = 1; i < 5; i++)
-            {
-                var candidate = SampleECKeyPairs.KeyPairs[i];
-                await AnnounceElection(candidate);
-            }
+            const int announceCount = 7;
+
+            var candidatesKeyPairs = FullNodesKeyPairs.Take(announceCount).ToList();
+            candidatesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 
             var voteEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
             {
                 Topic = ElectionContractConsts.Topic,
                 Sponsor = ElectionContractAddress
             });
-            voteEvent.Options.Count.ShouldBe(4);
-            voteEvent.Options.Contains(SampleECKeyPairs.KeyPairs[1].PublicKey.ToHex()).ShouldBeTrue();
-            voteEvent.Options.Contains(SampleECKeyPairs.KeyPairs[2].PublicKey.ToHex()).ShouldBeTrue();
-            voteEvent.Options.Contains(SampleECKeyPairs.KeyPairs[3].PublicKey.ToHex()).ShouldBeTrue();
-            voteEvent.Options.Contains(SampleECKeyPairs.KeyPairs[4].PublicKey.ToHex()).ShouldBeTrue();
+            voteEvent.Options.Count.ShouldBe(announceCount);
+            foreach (var candidateKeyPair in candidatesKeyPairs)
+            {
+                voteEvent.Options.ShouldContain(candidateKeyPair.PublicKey.ToHex());
+            }
+        }
+
+        [Fact]
+        public async Task ElectionContract_NextTerm()
+        {
+            await NextTerm(InitialMinersKeyPairs[0]);
+            var round = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+
+            round.TermNumber.ShouldBe(2);
         }
 
         #region Private methods
 
-        private async Task<TransactionResult> AnnounceElection(ECKeyPair keyPair)
+        private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair)
         {
             var electionStub = GetElectionContractTester(keyPair);
             return (await electionStub.AnnounceElection.SendAsync(new Empty())).TransactionResult;
         }
 
-        private async Task<TransactionResult> QuiteElection(ECKeyPair keyPair)
+        private async Task<TransactionResult> QuitElectionAsync(ECKeyPair keyPair)
         {
             var electionStub = GetElectionContractTester(keyPair);
             return (await electionStub.QuitElection.SendAsync(new Empty())).TransactionResult;

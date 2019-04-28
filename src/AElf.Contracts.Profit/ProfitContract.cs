@@ -201,16 +201,16 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
-            var expiredDetails = currentDetail.Details
+            var expiryDetails = currentDetail.Details
                 .Where(d => d.EndPeriod < profitItem.CurrentPeriod && d.LastProfitPeriod == d.EndPeriod).ToList();
 
-            if (!expiredDetails.Any())
+            if (!expiryDetails.Any())
             {
                 return new Empty();
             }
 
-            var weights = expiredDetails.Sum(d => d.Weight);
-            foreach (var profitDetail in expiredDetails)
+            var weights = expiryDetails.Sum(d => d.Weight);
+            foreach (var profitDetail in expiryDetails)
             {
                 currentDetail.Details.Remove(profitDetail);
             }

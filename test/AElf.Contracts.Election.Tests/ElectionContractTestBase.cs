@@ -23,6 +23,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
+using Miners = AElf.Consensus.AElfConsensus.Miners;
 
 namespace AElf.Contracts.Election
 {
@@ -35,13 +36,19 @@ namespace AElf.Contracts.Election
 
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs[0];
 
-        internal List<ECKeyPair> InitialMinersKeyPairs => SampleECKeyPairs.KeyPairs.Take(5).ToList();
+        internal List<ECKeyPair> InitialMinersKeyPairs => SampleECKeyPairs.KeyPairs.Take(InitialMinersCount).ToList();
         
-        internal List<ECKeyPair> FullNodesKeyPairs => SampleECKeyPairs.KeyPairs.Skip(5).Take(10).ToList();
+        internal List<ECKeyPair> FullNodesKeyPairs => SampleECKeyPairs.KeyPairs.Skip(InitialMinersCount).Take(FullNodesCount).ToList();
         
-        internal List<ECKeyPair> VotersKeyPairs => SampleECKeyPairs.KeyPairs.Skip(15).Take(10).ToList();
+        internal List<ECKeyPair> VotersKeyPairs => SampleECKeyPairs.KeyPairs.Skip(InitialMinersCount + FullNodesCount).Take(VotersCount).ToList();
 
         protected ConsensusOptions ConsensusOption { get; set; }
+
+        internal const int MiningInterval = 4000;
+        
+        internal const int InitialMinersCount = 5;
+        internal const int FullNodesCount = 10;
+        internal const int VotersCount = 10;
 
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
@@ -208,28 +215,39 @@ namespace AElf.Contracts.Election
             });
 
             //issue some amount for bp announcement and user vote
-            for (int i = 1; i <= 50; i++)
+            for (var i = 0; i < InitialMinersCount + FullNodesCount + VotersCount; i++)
             {
-                if (i <= 10)
+                if (i < InitialMinersCount)
                 {
                     tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                     {
                         Symbol = ElectionContractTestConsts.NativeTokenSymbol,
-                        Amount = 10_000_000L,
+                        Amount = ElectionContractConsts.LockTokenForElection * 10,
                         To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
-                        Memo = "set voters few amount for voting."
+                        Memo = "Initial balance for initial miners."
                     });
+                    continue;
                 }
-                else
+                
+                if (i < InitialMinersCount + FullNodesCount)
                 {
                     tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                     {
                         Symbol = ElectionContractTestConsts.NativeTokenSymbol,
-                        Amount = 5_000_000L,
+                        Amount = ElectionContractConsts.LockTokenForElection * 10,
                         To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
-                        Memo = "set voters few amount for voting."
+                        Memo = "Initial balance for initial full nodes."
                     });
+                    continue;
                 }
+                
+                tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                {
+                    Symbol = ElectionContractTestConsts.NativeTokenSymbol,
+                    Amount = ElectionContractConsts.LockTokenForElection / 2,
+                    To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
+                    Memo = "Initial balance for voters."
+                });
             }
             
             //set pool address to election contract address
@@ -274,6 +292,17 @@ namespace AElf.Contracts.Election
         {
             var miner = GetAElfConsensusContractStub(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
+            var miners = new Miners
+            {
+                PublicKeys =
+                {
+                    round.RealTimeMinersInformation.Keys.Select(k =>
+                        ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))
+                }
+            };
+            var firstRoundOfNextTerm =
+                miners.GenerateFirstRoundOfNewTerm(MiningInterval, BlockTimeProvider.GetBlockTime(), 1, 1);
+            await miner.NextTerm.SendAsync(firstRoundOfNextTerm);
         }
 
         internal async Task<long> GetNativeTokenBalance(byte[] publicKey)
@@ -303,13 +332,7 @@ namespace AElf.Contracts.Election
             return new ConsensusOptions
             {
                 MiningInterval = 4000,
-                InitialMiners = new List<string>
-                {
-                    SampleECKeyPairs.KeyPairs[0].PublicKey.ToHex(),
-                    SampleECKeyPairs.KeyPairs[1].PublicKey.ToHex(),
-                    SampleECKeyPairs.KeyPairs[2].PublicKey.ToHex(),
-                },
-                DaysEachTerm = 7,
+                InitialMiners = InitialMinersKeyPairs.Select(k => k.PublicKey.ToHex()).ToList(),
                 StartTimestamp = StartTimestamp.ToDateTime()
             };
         }
