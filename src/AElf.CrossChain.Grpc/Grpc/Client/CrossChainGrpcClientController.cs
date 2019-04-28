@@ -14,9 +14,6 @@ namespace AElf.CrossChain.Grpc
     {
         private readonly ICrossChainDataProducer _crossChainDataProducer;
         public ILogger<CrossChainGrpcClientController> Logger { get; set; }
-
-//        private ILocalEventBus LocalEventBus { get; }
-
         private readonly Dictionary<int, IGrpcCrossChainClient> _grpcCrossChainClients = new Dictionary<int, IGrpcCrossChainClient>();
         private readonly ICrossChainMemoryCacheService _crossChainMemoryCacheService;
         public CrossChainGrpcClientController(ICrossChainDataProducer crossChainDataProducer, 
@@ -24,7 +21,6 @@ namespace AElf.CrossChain.Grpc
         {
             _crossChainDataProducer = crossChainDataProducer;
             _crossChainMemoryCacheService = crossChainMemoryCacheService;
-//            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         #region Create client

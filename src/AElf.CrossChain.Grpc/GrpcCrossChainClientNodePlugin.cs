@@ -1,4 +1,6 @@
 using System.Threading.Tasks;
+using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus;
@@ -10,21 +12,34 @@ namespace AElf.CrossChain.Grpc
         private readonly CrossChainGrpcClientController _crossChainGrpcClientController;
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
         private readonly CrossChainConfigOption _crossChainConfigOption;
+        private readonly ICrossChainDataProvider _crossChainDataProvider;
+        private readonly IBlockchainService _blockchainService;
         public GrpcCrossChainClientNodePlugin(CrossChainGrpcClientController crossChainGrpcClientController, 
             IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
-            IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption)
+            IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption, 
+            ICrossChainDataProvider crossChainDataProvider, IBlockchainService blockchainService)
         {
             _crossChainGrpcClientController = crossChainGrpcClientController;
+            _crossChainDataProvider = crossChainDataProvider;
+            _blockchainService = blockchainService;
             _grpcCrossChainConfigOption = grpcCrossChainConfigOption.Value;
             _crossChainConfigOption = crossChainConfigOption.Value;
         }
 
-        public Task StartAsync(int chainId)
+        public async Task StartAsync(int chainId)
         {
             if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.RemoteParentChainNodeIp) 
                 || _grpcCrossChainConfigOption.LocalServerPort == 0) 
-                return Task.CompletedTask;
-            return _crossChainGrpcClientController.CreateClient(new GrpcCrossChainCommunicationContext
+                return;
+            var libIdHeight = await _blockchainService.GetLibHashAndHeight();
+            
+            if (libIdHeight.BlockHeight > KernelConstants.GenesisBlockHeight)
+            {
+                // start cache if the lib is higher than genesis 
+                await _crossChainDataProvider.RegisterNewChainsAsync(libIdHeight.BlockHash, libIdHeight.BlockHeight);
+            }
+            
+            var task = _crossChainGrpcClientController.CreateClient(new GrpcCrossChainCommunicationContext
             {
                 RemoteChainId = _crossChainConfigOption.ParentChainId,
                 RemoteIsSideChain = false,

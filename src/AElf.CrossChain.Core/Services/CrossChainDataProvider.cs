@@ -214,14 +214,19 @@ namespace AElf.CrossChain
             return await _crossChainContractReader.GetChainInitializationContextAsync(blockHash, blockHeight, chainId);
         }
 
-        public async Task HandleNewLibAsync(LastIrreversibleBlockDto lastIrreversibleBlockDto)
+        public async Task RegisterNewChainsAsync(Hash blockHash, long blockHeight)
         {
-            // create cache for new chain
-            var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(lastIrreversibleBlockDto.BlockHash, lastIrreversibleBlockDto.BlockHeight);
+            var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(blockHash, blockHeight);
             foreach (var chainIdHeight in dict)
             {
                 _crossChainMemoryCacheService.TryRegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value + 1);
             }
+        }
+        
+        public async Task HandleNewLibAsync(LastIrreversibleBlockDto lastIrreversibleBlockDto)
+        {
+            // create cache for new chain
+            await RegisterNewChainsAsync(lastIrreversibleBlockDto.BlockHash, lastIrreversibleBlockDto.BlockHeight);
             // clear useless cache
             var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight + 1 < lastIrreversibleBlockDto.BlockHeight)
                 .Select(kv => kv.Key).ToList();
