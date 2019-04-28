@@ -97,6 +97,9 @@ namespace AElf.Contracts.Election
                 State.Votes[publicKey] == null || State.Votes[publicKey].ActiveVotesIds == null ||
                 State.Votes[publicKey].ActiveVotesIds.Count == 0, "Voter can't announce election.");
 
+            Assert(!State.InitialMiners.Value.Value.Contains(publicKeyByteString),
+                "Initial miner cannot announce election.");
+
             // Add this alias to history information of this candidate.
             var candidateHistory = State.Histories[publicKey];
 
@@ -119,7 +122,6 @@ namespace AElf.Contracts.Election
                     State = CandidateState.IsCandidate
                 };
             }
-
 
             State.Candidates.Value.Value.Add(publicKeyByteString);
 
