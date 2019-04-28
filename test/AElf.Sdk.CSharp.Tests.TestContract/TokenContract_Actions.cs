@@ -3,7 +3,7 @@ using AElf.Kernel.Types.SmartContract;
 
 namespace AElf.Sdk.CSharp.Tests.TestContract
 {
-    public partial class TokenContract : CSharpSmartContract<TokenContractState>, IFeeChargedContract
+    public partial class TokenContract : CSharpSmartContract<TokenContractState>
     {
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {

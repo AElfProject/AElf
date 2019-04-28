@@ -79,9 +79,9 @@ namespace AElf.Contract.TestContract
             TestBasicSecurityContractStub = GetTestBasicSecurityContractStub(DefaultSenderKeyPair);
         }
 
-        private SystemTransactionMethodCallList GenerateTestBasicFunctionInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTestBasicFunctionInitializationCallList()
         {
-            var basic1CallList = new SystemTransactionMethodCallList();
+            var basic1CallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             basic1CallList.Add(nameof(BasicFunctionContract.InitialBasicFunctionContract),
                 new InitialBasicContractInput
                 {
@@ -95,9 +95,9 @@ namespace AElf.Contract.TestContract
             return basic1CallList;
         }
         
-        private SystemTransactionMethodCallList GenerateTestBasicSecurityInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTestBasicSecurityInitializationCallList()
         {
-            var basic2CallList = new SystemTransactionMethodCallList();
+            var basic2CallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             basic2CallList.Add(nameof(BasicSecurityContract.InitialBasicSecurityContract),
                 BasicFunctionContractAddress);
 

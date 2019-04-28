@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.ParliamentAuth;
 using AElf.CrossChain;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -39,7 +37,7 @@ namespace AElf.Contracts.CrossChain
         public override RequestChainCreationOutput RequestChainCreation(SideChainCreationRequest input)
         {
             // no need to check authority since invoked in transaction from normal address
-            Assert(input.LockedTokenAmount > 0 && input.LockedTokenAmount > input.IndexingPrice,
+            Assert(input.LockedTokenAmount > 0 && input.LockedTokenAmount > input.IndexingPrice && !input.ContractCode.IsEmpty,
                 "Invalid chain creation request.");
 
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
@@ -163,9 +161,8 @@ namespace AElf.Contracts.CrossChain
             // no need to check authority since invoked in transaction from normal address
             var request = State.SideChainInfos[input.Value];
             Assert(
-                request != null &&
-                request.SideChainStatus == SideChainStatus.Active, "Side chain not found");
-
+                request != null && (request.SideChainStatus == SideChainStatus.Active || request.SideChainStatus == SideChainStatus.InsufficientBalance),"Side chain not found");
+            
             Assert(Context.Sender.Equals(request.Proposer), "Not authorized to dispose.");
 
             // side chain disposal
@@ -188,7 +185,7 @@ namespace AElf.Contracts.CrossChain
             //CheckAuthority(Context.Genesis);
             var info = State.SideChainInfos[chainId];
             Assert(info != null, "Not existed side chain.");
-            Assert(info.SideChainStatus == SideChainStatus.Active, "Unable to dispose this side chain.");
+            Assert(info.SideChainStatus == SideChainStatus.Active || info.SideChainStatus == SideChainStatus.InsufficientBalance, "Unable to dispose this side chain.");
 
             UnlockTokenAndResource(info);
             info.SideChainStatus = SideChainStatus.Terminated;
