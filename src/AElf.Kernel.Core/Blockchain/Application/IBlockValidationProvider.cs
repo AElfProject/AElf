@@ -116,16 +116,6 @@ namespace AElf.Kernel.Blockchain.Application
                 return false;
             }
 
-            foreach (var transaction in block.Body.TransactionList)
-            {
-                if (!transaction.VerifySignature())
-                {
-                    Logger.LogWarning($"Block transaction verify signature failed. " +
-                                      $"block {block} transaction: {transaction}");
-                    return false;
-                }
-            }
-
             if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
             {
                 Logger.LogWarning($"Block merkle tree root mismatch {block}");

@@ -20,7 +20,7 @@ namespace AElf.Kernel
 
         public static bool VerifyFormat(this IBlock block)
         {
-            if (block.Header.Signature.IsEmpty || block.Header.SignerKey.IsEmpty)
+            if (block.Header.Signature.IsEmpty || block.Header.SignerPubkey.IsEmpty)
                 return false;
             if (block.Body.Transactions.Count == 0)
                 return false;
@@ -38,7 +38,7 @@ namespace AElf.Kernel
             if (!recovered)
                 return false;
 
-            return block.Header.SignerKey.ToByteArray().BytesEqual(publicKey);
+            return block.Header.SignerPubkey.ToByteArray().BytesEqual(publicKey);
         }
     }
 }

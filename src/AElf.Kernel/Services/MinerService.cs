@@ -116,7 +116,7 @@ namespace AElf.Kernel.Services
 
         private async Task SignBlockAsync(Block block)
         {
-            block.Header.SignerKey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
+            block.Header.SignerPubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
             var signature = await _accountService.SignAsync(block.GetHash().DumpByteArray());
             block.Header.Signature = ByteString.CopyFrom(signature);
         }
