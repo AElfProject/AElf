@@ -4,7 +4,6 @@ package vote;
 
 import "common.proto";
 import "vote.proto";
-import "kernel.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
 

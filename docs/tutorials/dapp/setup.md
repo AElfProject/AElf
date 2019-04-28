@@ -100,7 +100,7 @@ Next you will see how AElf's js sdk is used to interact with the contract.
 
 ## Run the JS SDK Demo
 
-To run this demo you'll need to install [Nodejs](https://nodejs.org/) first.
+To run this demo you'll need to install [Nodejs](https://nodejs.org/) first. ([Nodjs image in China](http://nodejs.cn/download/))
 
 The following commands will navigate to the SDK's folder and demonstrate the capabilities of the js sdk, execute them in order:
 
@@ -111,6 +111,18 @@ npm start
 ```
 
 You should see the results in the terminal or in the browser dev tool.
+
+### In the terminal
+
+<p align="center">
+  <img src="assets/jssdk_terminal.jpg" width="400">
+</p>
+
+### In the browser dev tool
+
+<p align="center">
+  <img src="assets/jssdk_browser.jpg" width="400">
+</p>
 
 ## Run the browser extension Demo
 
@@ -133,3 +145,7 @@ npm start
 To see the plugin in action you can navigate to the following address in your browser: [http://localhost:3000](http://localhost:3000)
 
 Please open dev tool to see the results.
+
+<p align="center">
+  <img src="assets/extension.jpg" width="400">
+</p>

@@ -21,6 +21,7 @@
     <ProjectReference Include="..\..\src\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
     <ProjectReference Include="..\..\src\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
     <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+    <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
     <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
     <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
