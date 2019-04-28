@@ -24,6 +24,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 using Miners = AElf.Consensus.AElfConsensus.Miners;
+using ToUpdate = AElf.Consensus.AElfConsensus.ToUpdate;
 
 namespace AElf.Contracts.Election
 {
@@ -342,6 +343,24 @@ namespace AElf.Contracts.Election
                 StartTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds()), StartTimestamp,
                 out var nextRound);
             await miner.NextRound.SendAsync(nextRound);
+        }
+
+        internal async Task NormalBlock(ECKeyPair keyPair)
+        {
+            var miner = GetAElfConsensusContractStub(keyPair);
+            var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
+            var minerInRound = round.RealTimeMinersInformation[keyPair.PublicKey.ToHex()];
+            await miner.UpdateValue.SendAsync(new ToUpdate
+            {
+                OutValue = Hash.Generate(),
+                Signature = Hash.Generate(),
+                PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
+                RoundId = round.RoundId,
+                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
+                ProducedBlocks = minerInRound.ProducedBlocks + 1,
+                ActualMiningTime = minerInRound.ExpectedMiningTime,
+                SupposedOrderOfNextRound = 1
+            });
         }
 
         internal async Task<long> GetNativeTokenBalance(byte[] publicKey)

@@ -345,6 +345,15 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
+        public async Task ElectionContract_NormalBlock()
+        {
+            await NormalBlock(InitialMinersKeyPairs[0]);
+            var round = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            round.GetMinedBlocks().ShouldBe(1);
+            round.GetMinedMiners().Count.ShouldBe(1);
+        }
+
+        [Fact]
         public async Task ElectionContract_GetVictories_NoCandidate()
         {
             // To get previous round information.
