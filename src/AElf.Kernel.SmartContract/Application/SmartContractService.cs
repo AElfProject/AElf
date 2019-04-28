@@ -13,16 +13,19 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IFunctionMetadataService _functionMetadataService;
         private readonly IBlockchainService _chainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
 
         public SmartContractService(
             ISmartContractRunnerContainer smartContractRunnerContainer,
             IFunctionMetadataService functionMetadataService, IBlockchainService chainService,
-            ISmartContractAddressService smartContractAddressService)
+            ISmartContractAddressService smartContractAddressService,
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _functionMetadataService = functionMetadataService;
             _chainService = chainService;
             _smartContractAddressService = smartContractAddressService;
+            _smartContractExecutiveService = smartContractExecutiveService;
         }
 
         /// <inheritdoc/>
@@ -48,6 +51,8 @@ namespace AElf.Kernel.SmartContract.Application
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(newRegistration.Category);
             await Task.Run(() => runner.CodeCheck(newRegistration.Code.ToByteArray(), isPrivileged));
+
+            _smartContractExecutiveService.ClearExecutivePool(contractAddress);
 
             //Todo New version metadata handle it
 //            var oldRegistration = await GetContractByAddressAsync(contractAddress);

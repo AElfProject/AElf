@@ -136,6 +136,8 @@ namespace AElf.Contracts.Profit
             {
                 return new Empty();
             }
+            
+            Assert(input.EndPeriod >= profitItem.CurrentPeriod, "Invalid end period.");
 
             profitItem.TotalWeight += input.Weight;
 
@@ -163,7 +165,7 @@ namespace AElf.Contracts.Profit
 
             // Remove details too old.
             foreach (var detail in currentProfitDetails.Details.Where(
-                d => d.EndPeriod != long.MaxValue &&
+                d => d.EndPeriod != long.MaxValue && d.LastProfitPeriod >= d.EndPeriod &&
                      d.EndPeriod.Add(profitItem.ExpiredPeriodNumber) < profitItem.CurrentPeriod))
             {
                 currentProfitDetails.Details.Remove(detail);
@@ -206,14 +208,16 @@ namespace AElf.Contracts.Profit
                 currentDetail.Details.Remove(profitDetail);
             }
 
-            if (currentDetail.Details.Count != 0)
-            {
-                State.ProfitDetailsMap[input.ProfitId][input.Receiver] = currentDetail;
-            }
-            else
-            {
-                //State.ProfitDetailsMap[input.ProfitId][input.Receiver] = null;
-            }
+            State.ProfitDetailsMap[input.ProfitId][input.Receiver] = currentDetail;
+
+//            if (currentDetail.Details.Count != 0)
+//            {
+//                State.ProfitDetailsMap[input.ProfitId][input.Receiver] = currentDetail;
+//            }
+//            else
+//            {
+//                State.ProfitDetailsMap[input.ProfitId][input.Receiver] = null;
+//            }
 
             profitItem.TotalWeight -= weights;
             State.ProfitItemsMap[input.ProfitId] = profitItem;
@@ -246,9 +250,6 @@ namespace AElf.Contracts.Profit
             var releasingPeriod = profitItem.CurrentPeriod;
 
             Assert(input.Period == releasingPeriod, "Invalid period.");
-
-            profitItem.CurrentPeriod += 1;
-            State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             Assert(profitItem.TotalWeight > 0, "Invalid total weight.");
 
@@ -284,18 +285,33 @@ namespace AElf.Contracts.Profit
 
             State.ReleasedProfitsMap[profitsReceivingVirtualAddress] = releasedProfitInformation;
 
+            // Start releasing.
+            
+            var remainAmount = input.Amount;
+
             foreach (var subProfitItem in profitItem.SubProfitItems)
             {
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItem.ProfitId);
 
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                var amount = subProfitItem.Weight.Mul(input.Amount).Div(profitItem.TotalWeight);
+                if (amount != 0)
                 {
-                    From = profitsReceivingVirtualAddress,
-                    To = subItemVirtualAddress,
-                    Amount = subProfitItem.Weight.Mul(input.Amount).Div(profitItem.TotalWeight),
-                    Symbol = profitItem.TokenSymbol
-                });
+                    State.TokenContract.TransferFrom.Send(new TransferFromInput
+                    {
+                        From = profitVirtualAddress,
+                        To = subItemVirtualAddress,
+                        Amount = amount,
+                        Symbol = profitItem.TokenSymbol
+                    });
+                }
 
+                remainAmount -= amount;
+
+                var subItem = State.ProfitItemsMap[subProfitItem.ProfitId];
+                subItem.TotalAmount += amount;
+                State.ProfitItemsMap[subProfitItem.ProfitId] = subItem;
+
+                // Update current_period of detail of sub profit item.
                 var subItemDetail = State.ProfitDetailsMap[input.ProfitId][subItemVirtualAddress];
                 foreach (var detail in subItemDetail.Details)
                 {
@@ -304,6 +320,20 @@ namespace AElf.Contracts.Profit
 
                 State.ProfitDetailsMap[input.ProfitId][subItemVirtualAddress] = subItemDetail;
             }
+
+            if (remainAmount != 0)
+            {
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = profitVirtualAddress,
+                    To = profitsReceivingVirtualAddress,
+                    Amount = remainAmount,
+                    Symbol = profitItem.TokenSymbol
+                });
+            }
+
+            profitItem.CurrentPeriod += 1;
+            State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             return new Empty();
         }
@@ -387,8 +417,11 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
+                var lastProfitPeriod = profitDetail.LastProfitPeriod;
                 for (var period = profitDetail.LastProfitPeriod;
-                    period < Math.Min(profitItem.CurrentPeriod, profitDetail.EndPeriod + 1);
+                    period <= (profitDetail.EndPeriod == long.MaxValue
+                        ? profitItem.CurrentPeriod - 1
+                        : Math.Min(profitItem.CurrentPeriod - 1, profitDetail.EndPeriod));
                     period++)
                 {
                     var releasedProfitsVirtualAddress =
@@ -405,8 +438,14 @@ namespace AElf.Contracts.Profit
                                 .Div(releasedProfitsInformation.TotalWeight)
                         });
                     }
+
+                    lastProfitPeriod = period;
                 }
+
+                profitDetail.LastProfitPeriod = lastProfitPeriod;
             }
+
+            State.ProfitDetailsMap[input.ProfitId][Context.Sender] = profitDetails;
 
             return new Empty();
         }

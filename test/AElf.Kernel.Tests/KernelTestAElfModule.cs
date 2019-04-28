@@ -19,7 +19,6 @@ namespace AElf.Kernel
 {
     [DependsOn(
          typeof(KernelAElfModule),
-         typeof(ConsensusAElfModule),
          typeof(KernelCoreTestAElfModule),
          typeof(SmartContractTestAElfModule),
          typeof(SmartContractExecutionTestAElfModule),
@@ -89,9 +88,9 @@ namespace AElf.Kernel
                 return mockService.Object;
             });
             
-            services.AddTransient<IConsensusService, ConsensusService>();
-            
-            services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
+//            services.AddTransient<IConsensusService, ConsensusService>();
+//            
+//            services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
         }
     }
 }

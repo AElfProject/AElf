@@ -1,8 +1,8 @@
 using System.IO;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract;
-using AElf.Contracts.TestContract.Basic1;
-using AElf.Contracts.TestContract.Basic11;
+using AElf.Contracts.TestContract.BasicFunction;
+using AElf.Contracts.TestContract.BasicUpdate;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using Google.Protobuf;
@@ -22,7 +22,7 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Initialize_MultiTimesContract()
         {
-            var transactionResult = (await TestBasic1ContractStub.InitialBasic1Contract.SendAsync(
+            var transactionResult = (await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendAsync(
                 new InitialBasicContractInput
                 {
                     ContractName = "Test initialize again",
@@ -35,20 +35,20 @@ namespace AElf.Contract.TestContract
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
 
-        [Fact(Skip = "Failed to find handler for UpdateStopBet.")]
+        [Fact]
         public async Task UpdateContract_WithOwner_Success()
         {
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
                 new ContractUpdateInput
                 {
-                    Address = Basic1ContractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(Basic11Contract).Assembly.Location)) 
+                    Address = BasicFunctionContractAddress,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicUpdateContract).Assembly.Location)) 
                 }
             )).TransactionResult;
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var basic11ContractStub = GetTestBasic11ContractStub(DefaultSenderKeyPair);
+            var basic11ContractStub = GetTestBasicUpdateContractStub(DefaultSenderKeyPair);
             //execute new action method
             var transactionResult1 = (await basic11ContractStub.UpdateStopBet.SendAsync(
                 new Empty())).TransactionResult;
@@ -66,8 +66,8 @@ namespace AElf.Contract.TestContract
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
                 new ContractUpdateInput
                 {
-                    Address = Basic1ContractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(Basic1Contract).Assembly.Location)) 
+                    Address = BasicFunctionContractAddress,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicFunctionContract).Assembly.Location)) 
                 }
             )).TransactionResult;
             
@@ -81,15 +81,15 @@ namespace AElf.Contract.TestContract
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
                 new ContractUpdateInput
                 {
-                    Address = Basic1ContractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(Basic11Contract).Assembly.Location)) 
+                    Address = BasicFunctionContractAddress,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicUpdateContract).Assembly.Location)) 
                 }
             )).TransactionResult;
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //execute new action method
-            transactionResult = (await TestBasic1ContractStub.UserPlayBet.SendAsync(
+            transactionResult = (await TestBasicFunctionContractStub.UserPlayBet.SendAsync(
                 new BetInput
                 {
                     Int64Value = 100
@@ -97,14 +97,14 @@ namespace AElf.Contract.TestContract
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             //check result
-            var winData = (await TestBasic1ContractStub.QueryUserWinMoney.CallAsync(
+            var winData = (await TestBasicFunctionContractStub.QueryUserWinMoney.CallAsync(
                 DefaultSender)).Int64Value;
             if (winData > 0)
             {
                 winData.ShouldBeGreaterThanOrEqualTo(100);
                 return;
             }
-            var loseData = (await TestBasic1ContractStub.QueryUserLoseMoney.CallAsync(
+            var loseData = (await TestBasicFunctionContractStub.QueryUserLoseMoney.CallAsync(
                 DefaultSender)).Int64Value;
             (winData + loseData).ShouldBe(100);
         }
@@ -117,8 +117,8 @@ namespace AElf.Contract.TestContract
             var transactionResult = (await otherZeroStub.UpdateSmartContract.SendAsync(
                 new ContractUpdateInput
                 {
-                    Address = Basic1ContractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(Basic11Contract).Assembly.Location)) 
+                    Address = BasicFunctionContractAddress,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicUpdateContract).Assembly.Location)) 
                 }
             )).TransactionResult;
             
@@ -134,7 +134,7 @@ namespace AElf.Contract.TestContract
             var transactionResult = (await otherZeroStub.ChangeContractOwner.SendAsync(
                 new ChangeContractOwnerInput
                 {
-                    ContractAddress = Basic1ContractAddress,
+                    ContractAddress = BasicFunctionContractAddress,
                     NewOwner = Address.Generate()
                 }
             )).TransactionResult;
@@ -150,14 +150,14 @@ namespace AElf.Contract.TestContract
             var transactionResult = (await BasicContractZeroStub.ChangeContractOwner.SendAsync(
                 new ChangeContractOwnerInput
                 {
-                    ContractAddress = Basic1ContractAddress,
+                    ContractAddress = BasicFunctionContractAddress,
                     NewOwner = otherUser
                 }
             )).TransactionResult;
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var ownerAddress = (await BasicContractZeroStub.GetContractOwner.CallAsync(Basic1ContractAddress)).GetFormatted();
+            var ownerAddress = (await BasicContractZeroStub.GetContractOwner.CallAsync(BasicFunctionContractAddress)).GetFormatted();
             ownerAddress.ShouldBe(otherUser.GetFormatted());
         }
     }

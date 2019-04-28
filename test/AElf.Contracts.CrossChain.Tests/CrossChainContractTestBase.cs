@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs3;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -11,10 +12,13 @@ using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
+using ApproveInput = AElf.Contracts.MultiToken.Messages.ApproveInput;
 using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
 
 namespace AElf.Contract.CrossChain.Tests
@@ -79,7 +83,7 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContract(parentChainId);
 
             await ApproveBalance(lockedTokenAmount);
-            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.Empty);
+            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
             var requestTxResult =await ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.RequestChainCreation),
                 sideChainCreationRequest);
@@ -151,6 +155,27 @@ namespace AElf.Contract.CrossChain.Tests
                     ProposalId = proposalId
                 });
             await Tester.MineAsync(new List<Transaction> {approveTransaction1, approveTransaction2});
+        }
+
+        protected async Task<Hash> CreateProposal(int chainId, string methodName)
+        {
+            var createProposalInput = new SInt32Value
+            {
+                Value = chainId
+            };
+            var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentAuthContract.GetDefaultOrganizationAddress), new Empty())).ReturnValue);
+            var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentAuthContract.CreateProposal), new CreateProposalInput
+                {
+                    ContractMethodName = methodName,
+                    ExpiredTime = DateTime.UtcNow.AddDays(1).ToTimestamp(),
+                    Params = createProposalInput.ToByteString(),
+                    ToAddress = CrossChainContractAddress,
+                    OrganizationAddress = organizationAddress
+                });
+            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+            return proposalId;
         }
     }
 }

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestBase;
@@ -13,7 +12,7 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
-using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
+//using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS
 {

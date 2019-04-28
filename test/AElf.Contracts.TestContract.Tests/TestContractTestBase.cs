@@ -1,9 +1,9 @@
 using System.IO;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestContract;
-using AElf.Contracts.TestContract.Basic1;
-using AElf.Contracts.TestContract.Basic11;
-using AElf.Contracts.TestContract.Basic2;
+using AElf.Contracts.TestContract.BasicFunction;
+using AElf.Contracts.TestContract.BasicUpdate;
+using AElf.Contracts.TestContract.BasicSecurity;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -15,39 +15,39 @@ namespace AElf.Contract.TestContract
 {
     public class TestContractTestBase : ContractTestBase<TestContractAElfModule>
     {
-        protected readonly Hash TestBasic1ContractSystemName = Hash.FromString("AElf.ContractNames.TestContract.Basic1");
-        protected readonly Hash TestBasic2ContractSystemName = Hash.FromString("AElf.ContractNames.TestContract.Basic2");
+        protected readonly Hash TestBasicFunctionContractSystemName = Hash.FromString("AElf.ContractNames.TestContract.BasicFunction");
+        protected readonly Hash TestBasicSecurityContractSystemName = Hash.FromString("AElf.ContractNames.TestContract.BasicSecurity");
         
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
-        protected Address Basic1ContractAddress { get; set; }
-        protected Address Basic2ContractAddress { get; set; }
+        protected Address BasicFunctionContractAddress { get; set; }
+        protected Address BasicSecurityContractAddress { get; set; }
         
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
         
-        internal Basic1ContractContainer.Basic1ContractStub TestBasic1ContractStub { get; set; }
+        internal BasicFunctionContractContainer.BasicFunctionContractStub TestBasicFunctionContractStub { get; set; }
         
-        internal Basic2ContractContainer.Basic2ContractStub TestBasic2ContractStub { get; set; }
+        internal BasicSecurityContractContainer.BasicSecurityContractStub TestBasicSecurityContractStub { get; set; }
         
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
         {
             return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
         }
 
-        internal Basic1ContractContainer.Basic1ContractStub GetTestBasic1ContractStub(ECKeyPair keyPair)
+        internal BasicFunctionContractContainer.BasicFunctionContractStub GetTestBasicFunctionContractStub(ECKeyPair keyPair)
         {
-            return GetTester<Basic1ContractContainer.Basic1ContractStub>(Basic1ContractAddress, keyPair);
+            return GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(BasicFunctionContractAddress, keyPair);
         }
         
-        internal Basic11ContractContainer.Basic11ContractStub GetTestBasic11ContractStub(ECKeyPair keyPair)
+        internal BasicUpdateContractContainer.BasicUpdateContractStub GetTestBasicUpdateContractStub(ECKeyPair keyPair)
         {
-            return GetTester<Basic11ContractContainer.Basic11ContractStub>(Basic1ContractAddress, keyPair);
+            return GetTester<BasicUpdateContractContainer.BasicUpdateContractStub>(BasicFunctionContractAddress, keyPair);
         }
         
-        internal Basic2ContractContainer.Basic2ContractStub GetTestBasic2ContractStub(ECKeyPair keyPair)
+        internal BasicSecurityContractContainer.BasicSecurityContractStub GetTestBasicSecurityContractStub(ECKeyPair keyPair)
         {
-            return GetTester<Basic2ContractContainer.Basic2ContractStub>(Basic2ContractAddress, keyPair);
+            return GetTester<BasicSecurityContractContainer.BasicSecurityContractStub>(BasicSecurityContractAddress, keyPair);
         }
 
         protected void InitializeTestContracts()
@@ -55,34 +55,34 @@ namespace AElf.Contract.TestContract
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
             
             //deploy test contract1
-            Basic1ContractAddress = AsyncHelper.RunSync(()=>
+            BasicFunctionContractAddress = AsyncHelper.RunSync(()=>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(Basic1Contract).Assembly.Location)),
-                        Name = TestBasic1ContractSystemName,
-                        TransactionMethodCallList = GenerateTestBasic1InitializationCallList()
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicFunctionContract).Assembly.Location)),
+                        Name = TestBasicFunctionContractSystemName,
+                        TransactionMethodCallList = GenerateTestBasicFunctionInitializationCallList()
                     })).Output;
-            TestBasic1ContractStub = GetTestBasic1ContractStub(DefaultSenderKeyPair);
+            TestBasicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
             
             //deploy test contract2
-            Basic2ContractAddress = AsyncHelper.RunSync(()=>
+            BasicSecurityContractAddress = AsyncHelper.RunSync(()=>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(Basic2Contract).Assembly.Location)),
-                        Name = TestBasic2ContractSystemName,
-                        TransactionMethodCallList = GenerateTestBasic2InitializationCallList()
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicSecurityContract).Assembly.Location)),
+                        Name = TestBasicSecurityContractSystemName,
+                        TransactionMethodCallList = GenerateTestBasicSecurityInitializationCallList()
                     })).Output;
-            TestBasic2ContractStub = GetTestBasic2ContractStub(DefaultSenderKeyPair);
+            TestBasicSecurityContractStub = GetTestBasicSecurityContractStub(DefaultSenderKeyPair);
         }
 
-        private SystemTransactionMethodCallList GenerateTestBasic1InitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTestBasicFunctionInitializationCallList()
         {
-            var basic1CallList = new SystemTransactionMethodCallList();
-            basic1CallList.Add(nameof(Basic1Contract.InitialBasic1Contract),
+            var basic1CallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            basic1CallList.Add(nameof(BasicFunctionContract.InitialBasicFunctionContract),
                 new InitialBasicContractInput
                 {
                     ContractName = "Test Contract1",
@@ -95,11 +95,11 @@ namespace AElf.Contract.TestContract
             return basic1CallList;
         }
         
-        private SystemTransactionMethodCallList GenerateTestBasic2InitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTestBasicSecurityInitializationCallList()
         {
-            var basic2CallList = new SystemTransactionMethodCallList();
-            basic2CallList.Add(nameof(Basic2Contract.InitialBasic2Contract),
-                Basic1ContractAddress);
+            var basic2CallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            basic2CallList.Add(nameof(BasicSecurityContract.InitialBasicSecurityContract),
+                BasicFunctionContractAddress);
 
             return basic2CallList;
         }
