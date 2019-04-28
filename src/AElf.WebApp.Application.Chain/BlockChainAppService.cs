@@ -9,6 +9,8 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.WebApp.Application.Chain.Dto;
+using Google.Protobuf;
+using Google.Protobuf.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
@@ -23,6 +25,10 @@ namespace AElf.WebApp.Application.Chain
         Task<string> Call(string rawTransaction);
 
         Task<byte[]> GetContractFileDescriptorSet(string address);
+
+        Task<CreateRawTransactionOutput> CreateRawTransaction(CreateRawTransactionInput input);
+        
+        Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input);
 
         Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction);
 
@@ -122,6 +128,76 @@ namespace AElf.WebApp.Application.Chain
             }
         }
         
+        /// <summary>
+        /// Creates an unsigned serialized transaction 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public async Task<CreateRawTransactionOutput> CreateRawTransaction(CreateRawTransactionInput input)
+        {
+            var transaction = new Transaction
+            {
+                From = Address.Parse(input.From),
+                To = Address.Parse(input.To),
+                RefBlockNumber = input.RefBlockNumber,
+                RefBlockPrefix = ByteString.CopyFrom(Hash.LoadHex(input.RefBlockHash).Value.Take(4).ToArray()),
+                MethodName = input.MethodName
+            };
+            var methodDescriptor = await GetContractMethodDescriptorAsync(Address.Parse(input.To), input.MethodName);
+            if (methodDescriptor == null)
+                throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
+                    Error.NoMatchMethodInContractAddress.ToString());
+            try
+            {
+                transaction.Params = methodDescriptor.InputType.Parser.ParseJson(input.Params).ToByteString();
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],Error.InvalidParams.ToString());
+            }
+            return new CreateRawTransactionOutput
+            {
+                RawTransaction = transaction.ToByteArray().ToHex()
+            };
+        }
+
+        /// <summary>
+        /// send a transaction
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public async Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input)
+        {
+            var transaction = Transaction.Parser.ParseFrom(ByteArrayHelpers.FromHexString(input.Transaction));
+            transaction.Sigs.Add(ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature)));
+            var txIds = await PublishTransactionsAsync(new[] {transaction.ToByteArray().ToHex()});
+
+            var output = new SendRawTransactionOutput
+            {
+                TransactionId = txIds[0]
+            };
+
+            if (!input.ReturnTransaction) return output;
+            
+            var transactionDto = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            var contractMethodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+            if (contractMethodDescriptor == null)
+                throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
+                    Error.NoMatchMethodInContractAddress.ToString());
+            try
+            {
+                transactionDto.Params =
+                    JsonFormatter.ToDiagnosticString(
+                        contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams],Error.InvalidParams.ToString());
+            }
+            output.Transaction = transactionDto;
+
+            return output;
+        }
 
         /// <summary>
         /// Broadcast a transaction
@@ -187,6 +263,11 @@ namespace AElf.WebApp.Application.Chain
             }
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+            
+            var methodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+            output.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+            
             return output;
         }
 
@@ -243,6 +324,10 @@ namespace AElf.WebApp.Application.Chain
 
                     transactionResultDto.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
 
+                    var methodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+                    transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                        methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+                        
                     transactionResultDto.Status = transactionResult.Status.ToString();
                     output.Add(transactionResultDto);
                 }
@@ -524,6 +609,18 @@ namespace AElf.WebApp.Application.Chain
             return await _transactionReadOnlyExecutionService.GetFileDescriptorSetAsync(chainContext, address);
         }
         
+        private async Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(Address address)
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var chainContext = new ChainContext()
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+
+            return await _transactionReadOnlyExecutionService.GetFileDescriptorsAsync(chainContext, address);
+        }
+        
         private async Task<byte[]> CallReadOnly(Transaction tx)
         {
             var chainContext = await GetChainContextAsync();
@@ -545,6 +642,28 @@ namespace AElf.WebApp.Application.Chain
                 BlockHeight = chain.BestChainHeight
             };
             return chainContext;
+        }
+        
+        private async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress, string methodName)
+        {
+            IEnumerable<FileDescriptor> fileDescriptors;
+            try
+            {
+                fileDescriptors = await GetFileDescriptorsAsync(contractAddress);
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidContractAddress],Error.InvalidContractAddress.ToString());
+            }
+            
+            foreach (var fileDescriptor in fileDescriptors)
+            {
+                var method = fileDescriptor.Services.Select(s => s.FindMethodByName(methodName)).FirstOrDefault();
+                if (method == null) continue;
+                return method;
+            }
+
+            return null;
         }
     }
 }
