@@ -34,10 +34,11 @@ namespace AElf.CrossChain.Grpc
             await Assert.ThrowsAsync<RpcException>(()=>parentClient.StartIndexingRequest(0, 1, _crossChainDataProducer));  
         }
         
-        [Fact]
+        [Fact(Skip = "Not meaningful at all.")]
         public async Task SideChainClient_StartIndexingRequest_WithException()
         {
-            await Assert.ThrowsAsync<RpcException>(()=>sideClient.StartIndexingRequest(0, 1, _crossChainDataProducer));
+            // is this meaningful? 
+            await Assert.ThrowsAsync<RpcException>(()=>sideClient.StartIndexingRequest(0, 2, _crossChainDataProducer));
         }
 
         [Fact]

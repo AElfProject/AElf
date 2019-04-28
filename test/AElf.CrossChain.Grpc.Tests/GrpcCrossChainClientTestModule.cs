@@ -1,11 +1,14 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NSubstitute;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain.Grpc
@@ -86,24 +89,17 @@ eAkW/Qv4MEnbgaq97yC2lPkyrd19N2fh5oBT
                 mockService.Setup(m=>m.GetChainAsync())
                     .Returns(Task.FromResult(new Chain
                     {
-                        LastIrreversibleBlockHeight = 10
+                        LastIrreversibleBlockHeight = 1
                     }));
-                mockService.Setup(m=>m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
-                    .Returns(Task.FromResult(Hash.Generate()));
-                mockService.Setup(m=>m.GetBlockByHashAsync(It.IsAny<Hash>()))
-                    .Returns(Task.FromResult(new Block
-                    {
-                        Height = 10,
-                        Header = new BlockHeader
-                        {
-                            ChainId = 0,
-                            BlockExtraDatas = { 
-                                ByteString.CopyFrom(Hash.Generate().ToByteArray()), 
-                                ByteString.CopyFrom(Hash.Generate().ToByteArray())
-                            }
-                        }
-                    }));
-                
+                return mockService.Object;
+            });
+
+            services.AddTransient(o =>
+            {
+                var mockService = new Mock<ICrossChainContractReader>();
+                mockService.Setup(m => m.GetAllChainsIdAndHeightAsync(It.IsAny<Hash>(), It.IsAny<long>())).Returns(
+                    Task.FromResult(new Dictionary<int, long>()) // add data if needed
+                    );
                 return mockService.Object;
             });
         }

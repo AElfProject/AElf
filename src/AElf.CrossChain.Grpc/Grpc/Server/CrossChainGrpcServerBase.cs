@@ -31,14 +31,14 @@ namespace AElf.CrossChain.Grpc
             IServerStreamWriter<ResponseParentChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Parent Chain Server received IndexedInfo message.");
-            await WriteResponseStream(request, responseStream, false);
+            await WriteResponseStream(request, responseStream, true);
         }
         
         public override async Task RequestIndexingFromSideChain(RequestCrossChainBlockData request, 
             IServerStreamWriter<ResponseSideChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Side Chain Server received IndexedInfo message.");
-            await WriteResponseStream(request, responseStream, true);
+            await WriteResponseStream(request, responseStream, false);
         }
 
         public override Task<IndexingHandShakeReply> CrossChainIndexingShake(IndexingHandShake request, ServerCallContext context)
@@ -100,7 +100,7 @@ namespace AElf.CrossChain.Grpc
             return merklepathList;
         }
         
-        private async Task<IResponseIndexingMessage> CreateParentChainResponse(Block block, int remoteSideChainId,
+        private async Task<IResponseIndexingMessage> CreateResponseForSideChain(Block block, int remoteSideChainId,
             long parentChainHeightOfCreation)
         {
             var responseParentChainBlockData = new ResponseParentChainBlockData
@@ -147,20 +147,21 @@ namespace AElf.CrossChain.Grpc
         }
 
         private async Task WriteResponseStream<T>(RequestCrossChainBlockData request, 
-            IServerStreamWriter<T> responseStream, bool requestSideChain) where T : IResponseIndexingMessage
+            IServerStreamWriter<T> responseStream, bool isSideChainRequest) where T : IResponseIndexingMessage
         {
             var requestedHeight = request.NextHeight;
             var remoteChainId = request.FromChainId;
-            var parentChainHeightOfCreation = requestSideChain ? 0 :
-                (await GetChainInitializationContextAsync(remoteChainId)).ParentChainHeightOfCreation;
+            var parentChainHeightOfCreation = isSideChainRequest ?
+                (await GetChainInitializationContextAsync(remoteChainId)).ParentChainHeightOfCreation : 0;
             while (true)
             {
                 var block = await GetIrreversibleBlock(requestedHeight);
                 if (block == null)
                     return;
-                var res = requestSideChain
-                    ? CreateSideChainResponse(block)
-                    : await CreateParentChainResponse(block, remoteChainId, parentChainHeightOfCreation);
+                var res = isSideChainRequest
+                    ? await CreateResponseForSideChain(block, remoteChainId, parentChainHeightOfCreation)
+                    : CreateSideChainResponse(block);
+                    
                 await responseStream.WriteAsync((T) res);
                 requestedHeight++;
             }
