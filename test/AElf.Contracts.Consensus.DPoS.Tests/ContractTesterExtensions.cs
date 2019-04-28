@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -12,13 +11,14 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using VoteInput = AElf.Consensus.DPoS.VoteInput;
-using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
+//using VoteInput = AElf.Consensus.DPoS.VoteInput;
+//using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -26,7 +26,7 @@ namespace AElf.Contracts.Consensus.DPoS
     /// <summary>
     /// Extensions for consensus testing.
     /// </summary>
-    public static class ContractTesterExtensions
+    internal static class ContractTesterExtensions
     {
         #region IConsensusSmartContract
 
@@ -152,7 +152,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> starter, List<ECKeyPair> minersKeyPairs = null,
             int miningInterval = 4000, Timestamp blockchainStartTimestamp = null)
         {
-            var dividendMethodCallList = new SystemTransactionMethodCallList();
+            var dividendMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeDividendContract),
                 new InitialDividendContractInput
                 {
@@ -160,7 +160,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
 
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",

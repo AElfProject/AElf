@@ -9,7 +9,6 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
       <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
@@ -12,6 +11,7 @@ using Google.Protobuf;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
+using AElf.Contracts.Consensus.DPoS;
 
 namespace AElf.Kernel.Consensus.DPoS
 {
@@ -36,10 +36,11 @@ namespace AElf.Kernel.Consensus.DPoS
         [Fact]
         public void GetTriggerInformation_ConsensusCommand_IsNull()
         {
-            var dPoSTriggerInformation =
-                (CommandInput) _consensusInformationGenerationService.GetTriggerInformation(
-                    TriggerType.ConsensusCommand);
-            
+            var dPoSTriggerInformation = CommandInput.Parser.ParseFrom(
+                _consensusInformationGenerationService.GetTriggerInformation(
+                    TriggerType.ConsensusCommand).ToByteString()
+            );
+
             dPoSTriggerInformation.ShouldNotBeNull();
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(_accountService.GetPublicKeyAsync().Result.ToHex());
         }
@@ -50,9 +51,9 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.UpdateValue);
 
-            var dPoSTriggerInformation =
-                (DPoSTriggerInformation)consensusInformationGenerationService.GetTriggerInformation(TriggerType
-                    .BlockHeaderExtraData);
+            var dPoSTriggerInformation = DPoSTriggerInformation.Parser.ParseFrom(
+                consensusInformationGenerationService.GetTriggerInformation(TriggerType.BlockHeaderExtraData)
+                    .ToByteString());
             dPoSTriggerInformation.RandomHash.ShouldNotBeNull();
         }
 
@@ -62,10 +63,10 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextRound);
 
-            var dPoSTriggerInformation =
-                (DPoSTriggerInformation)consensusInformationGenerationService.GetTriggerInformation(TriggerType
-                    .BlockHeaderExtraData);
-            
+            var dPoSTriggerInformation = DPoSTriggerInformation.Parser.ParseFrom(
+                consensusInformationGenerationService.GetTriggerInformation(TriggerType.BlockHeaderExtraData)
+                    .ToByteString());
+
             var publicKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }
@@ -76,9 +77,9 @@ namespace AElf.Kernel.Consensus.DPoS
             var consensusInformationGenerationService =
                 GetConsensusInformationGenerationService(DPoSBehaviour.NextTerm);
 
-            var dPoSTriggerInformation =
-                (DPoSTriggerInformation) consensusInformationGenerationService.GetTriggerInformation(TriggerType
-                    .BlockHeaderExtraData);
+            var dPoSTriggerInformation = DPoSTriggerInformation.Parser.ParseFrom(
+                consensusInformationGenerationService.GetTriggerInformation(TriggerType.BlockHeaderExtraData)
+                    .ToByteString());
             var publicKey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync());
             dPoSTriggerInformation.PublicKey.ToHex().ShouldBe(publicKey.ToHex());
         }
@@ -93,7 +94,7 @@ namespace AElf.Kernel.Consensus.DPoS
                 consensusInformationGenerationService.GetTriggerInformation(TriggerType
                     .BlockHeaderExtraData).ToByteArray();
             var dPoSTriggerInformation = DPoSTriggerInformation.Parser.ParseFrom(bytes);
-            
+
             dPoSTriggerInformation.ShouldNotBeNull();
             dPoSTriggerInformation.RandomHash.ShouldNotBeNull();
         }
@@ -110,7 +111,7 @@ namespace AElf.Kernel.Consensus.DPoS
             };
             var bytes = await consensusInformationGenerationService.GetInformationToUpdateConsensusAsync(chainContext,
                 DateTime.Now.Add(TimeSpan.FromSeconds(4)));
-            
+
             var dposInformation = DPoSTriggerInformation.Parser.ParseFrom(bytes);
             dposInformation.Behaviour.ShouldBe(DPoSBehaviour.UpdateValue);
             dposInformation.PublicKey.ShouldBe(ByteString.CopyFromUtf8("test"));
