@@ -52,12 +52,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             var blockState = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
             if (blockState != null)
-            {
                 return true;
-            }
 
-            var result = await _blockExecutingService.ExecuteBlockAsync(block.Header, block.Body.TransactionList);
-            return result.GetHash().Equals(block.GetHash());
+            var blockHash = block.GetHash();
+            var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, block.Body.TransactionList);
+
+            return executedBlock.GetHash().Equals(blockHash);
         }
 
         public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain, BlockAttachOperationStatus status)

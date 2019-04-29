@@ -1,4 +1,3 @@
-using System.Linq;
 using AElf.Cryptography;
 
 namespace AElf.Kernel
@@ -9,25 +8,37 @@ namespace AElf.Kernel
         {
             return transaction.RefBlockNumber + KernelConstants.ReferenceBlockValidPeriod;
         }
+
         public static int Size(this Transaction transaction)
         {
             return transaction.CalculateSize();
         }
 
-        //TODO: VerifySignature method need update, remove sig count check logic.
-        public static bool VerifySignature(this Transaction tx)
+        public static bool VerifyFormat(this Transaction transaction)
         {
-            if (tx.Sigs == null || tx.Sigs.Count == 0)
-            {
+            if (transaction.To == null || transaction.From == null)
                 return false;
-            }
-            if (tx.Sigs.Count == 1)
-            {
-                var canBeRecovered = CryptoHelpers.RecoverPublicKey(tx.Sigs.First().ToByteArray(),
-                    tx.GetHash().DumpByteArray(), out var pubKey);
-                return canBeRecovered && Address.FromPublicKey(pubKey).Equals(tx.From);
-            }
+            if (transaction.To == transaction.From)
+                return false;
+            if (transaction.RefBlockNumber < 0)
+                return false;
+            if (string.IsNullOrEmpty(transaction.MethodName))
+                return false;
             return true;
+        }
+
+        public static bool VerifySignature(this Transaction transaction)
+        {
+            if (!transaction.VerifyFormat())
+                return false;
+
+            var recovered = CryptoHelpers.RecoverPublicKey(transaction.Signature.ToByteArray(), 
+                transaction.GetHash().DumpByteArray(), out var publicKey);
+
+            if (!recovered)
+                return false;
+
+            return Address.FromPublicKey(publicKey).Equals(transaction.From);
         }
     }
 }

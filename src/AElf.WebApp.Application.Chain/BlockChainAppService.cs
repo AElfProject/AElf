@@ -96,6 +96,10 @@ namespace AElf.WebApp.Application.Chain
             {
                 var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
+                if (!transaction.VerifySignature())
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
+                }
                 var response = await CallReadOnly(transaction);
                 return response?.ToHex();
             }
@@ -165,7 +169,7 @@ namespace AElf.WebApp.Application.Chain
         public async Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input)
         {
             var transaction = Transaction.Parser.ParseFrom(ByteArrayHelpers.FromHexString(input.Transaction));
-            transaction.Sigs.Add(ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature)));
+            transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
             var txIds = await PublishTransactionsAsync(new[] {transaction.ToByteArray().ToHex()});
 
             var output = new SendRawTransactionOutput

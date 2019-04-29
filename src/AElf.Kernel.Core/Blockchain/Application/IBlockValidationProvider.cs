@@ -2,6 +2,7 @@ using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Blockchain.Application
 {
@@ -82,6 +83,8 @@ namespace AElf.Kernel.Blockchain.Application
     public class BlockValidationProvider : IBlockValidationProvider
     {
         private IBlockchainService _blockchainServce;
+        public ILogger<BlockValidationProvider> Logger { get; set; }
+
         public BlockValidationProvider(IBlockchainService blockchainService)
         {
             _blockchainServce = blockchainService;
@@ -90,23 +93,41 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
             if (block?.Header == null || block.Body == null)
+            {
+                Logger.LogWarning($"Block header or body is null {block}");
                 return false;
+            }
 
             if (block.Body.TransactionsCount == 0)
+            {
+                Logger.LogWarning($"Block transactions is empty");
                 return false;
+            }
 
             if (_blockchainServce.GetChainId() != block.Header.ChainId)
+            {
+                Logger.LogWarning($"Block chain id mismatch {block.Header.ChainId}");
                 return false;
+            }
 
             if (block.Height != KernelConstants.GenesisBlockHeight && !block.VerifySignature())
+            {
+                Logger.LogWarning($"Block verify signature failed. {block}");
                 return false;
+            }
 
             if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
+            {
+                Logger.LogWarning($"Block merkle tree root mismatch {block}");
                 return false;
+            }
 
             if (block.Height != KernelConstants.GenesisBlockHeight &&
                 block.Header.Time.ToDateTime() - DateTime.UtcNow > KernelConsts.AllowedFutureBlockTimeSpan)
+            {
+                Logger.LogWarning($"Future block received {block}, {block.Header.Time.ToDateTime()}");
                 return false;
+            }
 
             return true;
         }

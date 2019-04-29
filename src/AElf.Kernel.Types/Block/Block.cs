@@ -36,11 +36,6 @@ namespace AElf.Kernel
             return Header.GetHash();
         }
 
-        public Hash GetHashWithoutCache()
-        {
-            return Header.GetHashWithoutCache();
-        }
-
         public byte[] GetHashBytes()
         {
             return Header.GetHashBytes();
