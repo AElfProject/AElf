@@ -33,7 +33,7 @@ namespace AElf.Contracts.Election
             State.InitialMiners.Value = new PublicKeysList {Value = {input.Value}};
             foreach (var publicKey in input.Value)
             {
-                State.Histories[publicKey.ToHex()] = new CandidateHistory();
+                State.Histories[publicKey.ToHex()] = new CandidateHistory {PublicKey = publicKey.ToHex()};
             }
 
             State.MinersCount.Value = input.Value.Count;
@@ -127,6 +127,7 @@ namespace AElf.Contracts.Election
             {
                 State.Histories[publicKey] = new CandidateHistory
                 {
+                    PublicKey = publicKey,
                     AnnouncementTransactionId = Context.TransactionId,
                     State = CandidateState.IsCandidate
                 };
@@ -210,6 +211,11 @@ namespace AElf.Contracts.Election
             Assert(State.Histories[input.CandidatePublicKey] != null, "Candidate not found.");
             Assert(State.Histories[input.CandidatePublicKey].State == CandidateState.IsCandidate,
                 "Candidate state incorrect.");
+
+            if (input.LockTimeUnit == TimeUnit.Minutes)
+            {
+                Assert((TimeUnit) State.BaseTimeUnit.Value == TimeUnit.Minutes, "Invalid time unit.");
+            }
 
             var lockTime = 0;
             if ((TimeUnit) State.BaseTimeUnit.Value == TimeUnit.Days)

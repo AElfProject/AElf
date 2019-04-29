@@ -12,7 +12,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         {
             // Count missed time slot of current round.
             CountMissedTimeSlots();
-
+            
             Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
 
             // Update current term number and current round number.
@@ -31,7 +31,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             // Update produced block number of this node.
             if (input.RealTimeMinersInformation.ContainsKey(senderPublicKey))
             {
-                input.RealTimeMinersInformation[senderPublicKey].ProducedBlocks += 1;
+                input.RealTimeMinersInformation[senderPublicKey].ProducedBlocks =
+                    input.RealTimeMinersInformation[senderPublicKey].ProducedBlocks + 1;
             }
             else
             {
@@ -56,7 +57,17 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             Assert(TryToGetPreviousRoundInformation(out var previousRound),
                 "Failed to get previous round information.");
-            
+
+            foreach (var minerInfo in previousRound.RealTimeMinersInformation)
+            {
+                State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
+                {
+                    PublicKey = minerInfo.Key,
+                    RecentlyProducedBlocks = minerInfo.Value.ProducedBlocks,
+                    RecentlyMissedTimeSlots = minerInfo.Value.MissedTimeSlots
+                });
+            }
+
             State.ElectionContract.ReleaseTreasuryProfits.Send(new ReleaseTreasuryProfitsInput
             {
                 MinedBlocks = previousRound.GetMinedBlocks(),

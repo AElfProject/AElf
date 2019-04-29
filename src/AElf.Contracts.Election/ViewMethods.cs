@@ -83,7 +83,7 @@ namespace AElf.Contracts.Election
 
         public override CandidateHistory GetCandidateHistory(StringInput input)
         {
-            return State.Histories[input.Value] ?? new CandidateHistory();
+            return State.Histories[input.Value] ?? new CandidateHistory {PublicKey = input.Value};
         }
 
         public override TermSnapshot GetTermSnapshot(GetTermSnapshotInput input)

@@ -277,7 +277,8 @@ namespace AElf.Contracts.Election
                 {
                     votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
                     {
-                        Receiver = address, Weight = votes.ValidObtainedVotesAmount
+                        Receiver = address,
+                        Weight = votes.ValidObtainedVotesAmount
                     });
                 }
 

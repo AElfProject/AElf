@@ -485,7 +485,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_GetVictories_ValidCandidatesEnough()
+        public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesEnough()
         {
             await NextRound(BootMinerKeyPair);
 
@@ -507,6 +507,8 @@ namespace AElf.Contracts.Election
             {
                 victories.ShouldContain(validCandidate.PublicKey.ToHex());
             }
+
+            return victories;
         }
 
         [Fact]
@@ -620,6 +622,43 @@ namespace AElf.Contracts.Election
                 releasedProfitInformation.ProfitsAmount.ShouldBe(0);
                 releasedProfitInformation.IsReleased.ShouldBe(false);
             }
+        }
+
+        [Fact]
+        public async Task ElectionContract_GetCandidateHistory()
+        {
+            const int blocks = 5;
+
+            var minerKeyPair = FullNodesKeyPairs[0];
+
+            await ElectionContract_GetVictories_ValidCandidatesEnough();
+
+            {
+                var roundNumber = await AElfConsensusContractStub.GetCurrentRoundNumber.CallAsync(new Empty());
+                roundNumber.Value.ShouldBe(2);
+            }
+            
+            await NextTerm(BootMinerKeyPair);
+
+            {
+                var roundNumber = await AElfConsensusContractStub.GetCurrentRoundNumber.CallAsync(new Empty());
+                roundNumber.Value.ShouldBe(3);
+            }
+
+            await ProduceBlocks(minerKeyPair, blocks, true);
+
+            {
+                var roundNumber = await AElfConsensusContractStub.GetCurrentRoundNumber.CallAsync(new Empty());
+                roundNumber.Value.ShouldBe(3 + blocks);
+            }
+
+            var history = await ElectionContractStub.GetCandidateHistory.CallAsync(new StringInput
+            {
+                Value = minerKeyPair.PublicKey.ToHex()
+            });
+
+            history.PublicKey.ShouldBe(minerKeyPair.PublicKey.ToHex());
+            history.ProducedBlocks.ShouldBe(blocks);
         }
 
         #region Private methods
