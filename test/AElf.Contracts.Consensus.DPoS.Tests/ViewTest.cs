@@ -2,21 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.CSharp.Core;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
-using PageInfo = AElf.Consensus.DPoS.PageInfo;
-using TermSnapshot = AElf.Consensus.DPoS.TermSnapshot;
-using VoteInput = AElf.Consensus.DPoS.VoteInput;
-using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
+//using PageInfo = AElf.Consensus.DPoS.PageInfo;
+//using VoteInput = AElf.Consensus.DPoS.VoteInput;
+//using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -143,6 +140,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 var candidates = await candidate.GetCandidatesAsync();
                 candidates.PublicKeys.Count.ShouldBe(1);
                 candidates.Addresses.Count.ShouldBe(1);
+                candidates.IsInitialMiners.ShouldBeFalse();
             }
         }
 
@@ -244,7 +242,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 nameof(ConsensusContract.GetCurrentMiners), new Empty());
             var minersInfo = MinerListWithRoundNumber.Parser.ParseFrom(bytes);
             minersInfo.MinerList.PublicKeys.Count.ShouldBe(3);
+            minersInfo.MinerList.Addresses.Count.ShouldBe(3);
             minersInfo.MinerList.PublicKeys.Contains(MinersKeyPairs[0].PublicKey.ToHex()).ShouldBeTrue();
+            minersInfo.MinerList.Addresses.Contains(Address.FromPublicKey(MinersKeyPairs[0].PublicKey)).ShouldBeTrue();
         }
 
         [Fact]

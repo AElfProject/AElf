@@ -4,11 +4,8 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
-using AElf.Kernel.Consensus.Scheduler.FluentScheduler;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,9 +15,9 @@ using BestChainFoundEventHandler = AElf.Kernel.Consensus.Application.BestChainFo
 
 namespace AElf.Kernel.Consensus.DPoS
 {
+    // TODO: Why does this appear here?
     [DependsOn(
-        typeof(RxNetSchedulerAElfModule),
-        typeof(ConsensusAElfModule)
+        typeof(RxNetSchedulerAElfModule)
     )]
     // ReSharper disable once InconsistentNaming
     public class DPoSConsensusAElfModule : AElfModule
@@ -29,6 +26,8 @@ namespace AElf.Kernel.Consensus.DPoS
         {
 
             context.Services.AddAssemblyOf<DPoSConsensusAElfModule>();
+            context.Services.AddSingleton<IConsensusService, ConsensusService>();
+            context.Services.AddSingleton<ConsensusControlInformation>();
 
             context.Services.AddScoped<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();
             context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();

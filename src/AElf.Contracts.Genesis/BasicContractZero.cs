@@ -132,7 +132,7 @@ namespace AElf.Contracts.Genesis
             {
                 Category = input.Category,
                 Code = input.Code,
-                TransactionMethodCallList = new SystemTransactionMethodCallList()
+                TransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
             });
         }
 

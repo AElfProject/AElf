@@ -1,4 +1,5 @@
-﻿using Google.Protobuf;
+﻿using System.Collections.Generic;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -49,5 +50,7 @@ namespace AElf.Kernel
         {
             return this.ToByteArray();
         }
+
+        public IEnumerable<Transaction> TransactionList => Body.TransactionList;
     }
 }

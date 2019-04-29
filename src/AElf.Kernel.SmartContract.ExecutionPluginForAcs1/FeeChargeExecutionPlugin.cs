@@ -5,8 +5,8 @@ using Acs1;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
-using AElf.Kernel.Token;
 using AElf.CSharp.Core;
+using AElf.Kernel.Token;
 using Google.Protobuf.Reflection;
 using Volo.Abp.DependencyInjection;
 

@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Sdk;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using VoteInput = AElf.Consensus.DPoS.VoteInput;
-using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
+//using VoteInput = AElf.Consensus.DPoS.VoteInput;
+//using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -242,7 +241,7 @@ namespace AElf.Contracts.Consensus.DPoS
             State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;
 
             // Tell Dividends Contract to add weights for this voting record.
-            State.DividendContract.AddWeights.Send(new WeightsInfo()
+            State.DividendContract.AddWeights.Send(new Dividend.WeightsInfo()
                 {TermNumber = currentTermNumber + 1, Weights = votingRecord.Weight});
 
             Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
@@ -263,7 +262,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
                     "No permission to receive."));
 
-            State.DividendContract.TransferDividends.Send(votingRecord);
+            State.DividendContract.TransferDividends.Send(
+                Dividend.VotingRecord.Parser.ParseFrom(votingRecord.ToByteString()));
 
             return new ActionResult {Success = true};
         }
@@ -284,7 +284,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 var votingRecord = State.VotingRecordsMap[transactionId];
                 Assert(votingRecord != null,
                     ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
-                State.DividendContract.TransferDividends.Send(votingRecord);
+                State.DividendContract.TransferDividends.Send(
+                    Dividend.VotingRecord.Parser.ParseFrom(votingRecord.ToByteString()));
             }
 
             return new ActionResult {Success = true};
@@ -341,7 +342,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Sub weight.
             State.DividendContract.SubWeights.Send(
-                new WeightsInfo()
+                new Dividend.WeightsInfo()
                 {
                     TermNumber = State.CurrentTermNumberField.Value,
                     Weights = votingRecord.Weight
@@ -415,7 +416,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 });
 
                 State.DividendContract.SubWeights.Send(
-                    new WeightsInfo()
+                    new Dividend.WeightsInfo()
                     {
                         TermNumber = State.CurrentTermNumberField.Value,
                         Weights = votingRecord.Weight
