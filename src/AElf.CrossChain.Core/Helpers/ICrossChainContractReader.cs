@@ -10,10 +10,10 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    internal interface ICrossChainContractReader
+    public interface ICrossChainContractReader
     {
         Task<MerklePath> GetTxRootMerklePathInParentChainAsync(long blockHeight);
-        Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(long height);
+//        Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(long height);
         Task<long> GetBoundParentChainHeightAsync(long localChainHeight);
 
         Task<long> GetParentChainCurrentHeightAsync(Hash blockHash, long blockHeight);
@@ -32,7 +32,7 @@ namespace AElf.CrossChain
         Task<IMessage> GetChainInitializationContextAsync(Hash blockHash, long blockHeight, int chainId);
     }
 
-    internal class CrossChainContractReader : ICrossChainContractReader, ITransientDependency
+    public class CrossChainContractReader : ICrossChainContractReader, ITransientDependency
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
@@ -49,10 +49,10 @@ namespace AElf.CrossChain
             throw new System.NotImplementedException();
         }
 
-        public Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(long height)
-        {
-            throw new System.NotImplementedException();
-        }
+//        public Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(long height)
+//        {
+//            throw new System.NotImplementedException();
+//        }
 
         public Task<long> GetBoundParentChainHeightAsync(long localChainHeight)
         {

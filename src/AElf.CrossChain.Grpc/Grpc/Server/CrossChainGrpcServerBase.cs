@@ -17,17 +17,17 @@ namespace AElf.CrossChain.Grpc
     {
         public ILogger<CrossChainGrpcServerBase> Logger { get; set; }
         public ILocalEventBus LocalEventBus { get; set; }
-        private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
         private readonly IBlockchainService _blockchainService;
         private readonly CrossChainConfigOption _crossChainConfigOption;
         private readonly IBasicCrossChainDataProvider _crossChainDataProvider;
+        private readonly ICrossChainExtraDataExtractor _crossChainExtraDataExtractor;
         
         public CrossChainGrpcServerBase(IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption,
             IBlockExtraDataService blockExtraDataService,
             IBasicCrossChainDataProvider crossChainDataProvider, IBlockchainService blockchainService)
         {
             // TODO: Cleanup BlockExtraDataExtractor
-            _blockExtraDataExtractor = new BlockExtraDataExtractor(blockExtraDataService);
+            _crossChainExtraDataExtractor = new CrossChainExtraDataExtractor(blockExtraDataService);
             _crossChainDataProvider = crossChainDataProvider;
             _blockchainService = blockchainService;
             LocalEventBus = NullLocalEventBus.Instance;

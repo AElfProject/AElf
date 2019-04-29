@@ -14,7 +14,7 @@ namespace AElf.CrossChain.Grpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             base.ConfigureServices(context);
-            Configure<CrossChainConfigOption>(option=>
+            Configure<CrossChainConfigOption>(option =>
             {
                 option.ParentChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
             });
@@ -23,34 +23,36 @@ namespace AElf.CrossChain.Grpc
             services.AddTransient(o =>
             {
                 var mockService = new Mock<IBlockchainService>();
-                mockService.Setup(m=>m.GetChainAsync())
+                mockService.Setup(m => m.GetChainAsync())
                     .Returns(Task.FromResult(new Chain
                     {
                         LastIrreversibleBlockHeight = 10
                     }));
-                mockService.Setup(m=>m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
+                mockService.Setup(m =>
+                        m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
                     .Returns(Task.FromResult(Hash.Generate()));
-                mockService.Setup(m=>m.GetBlockByHashAsync(It.IsAny<Hash>()))
+                mockService.Setup(m => m.GetBlockByHashAsync(It.IsAny<Hash>()))
                     .Returns(Task.FromResult(new Block
                     {
                         Height = 10,
                         Header = new BlockHeader
                         {
                             ChainId = 0,
-                            BlockExtraDatas = { 
-                                ByteString.CopyFrom(Hash.Generate().ToByteArray()), 
+                            BlockExtraDatas =
+                            {
+                                ByteString.CopyFrom(Hash.Generate().ToByteArray()),
                                 ByteString.CopyFrom(Hash.Generate().ToByteArray())
                             }
                         }
                     }));
-                
+
                 return mockService.Object;
             });
 
             services.AddTransient(o =>
             {
                 var mockService = new Mock<ICrossChainExtraDataExtractor>();
-                mockService.Setup(m=>m.ExtractTransactionStatusMerkleTreeRoot(It.IsAny<BlockHeader>()))
+                mockService.Setup(m => m.ExtractTransactionStatusMerkleTreeRoot(It.IsAny<BlockHeader>()))
                     .Returns(Hash.Generate);
                 return mockService.Object;
             });
@@ -59,13 +61,14 @@ namespace AElf.CrossChain.Grpc
             {
                 var mockCrossChainDataProvider = new Mock<ICrossChainDataProvider>();
                 mockCrossChainDataProvider
-                    .Setup(c => c.GetChainInitializationContextAsync(It.IsAny<int>(), It.IsAny<Hash>(), It.IsAny<long>())).Returns(Task.FromResult(new ChainInitializationContext
+                    .Setup(c => c.GetChainInitializationContextAsync(It.IsAny<int>(), It.IsAny<Hash>(),
+                        It.IsAny<long>())).Returns(async () => await Task.FromResult(new ChainInitializationContext
                     {
                         ParentChainHeightOfCreation = 1,
                     }));
                 return mockCrossChainDataProvider.Object;
             });
-            
+
             services.AddSingleton<CrossChainRpc.CrossChainRpcBase, CrossChainGrpcServerBase>();
         }
     }

@@ -31,8 +31,6 @@ namespace AElf.CrossChain
         Task<bool> ValidateParentChainBlockDataAsync(List<ParentChainBlockData> parentChainBlockData,
             Hash currentBlockHash, long currentBlockHeight);
 
-        Task<IMessage> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
-
         Task<CrossChainBlockData> GetCrossChainBlockDataForNextMiningAsync(Hash currentBlockHash,
             long currentBlockHeight);
 
