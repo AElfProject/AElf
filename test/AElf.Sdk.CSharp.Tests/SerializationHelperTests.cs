@@ -97,7 +97,10 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 From = Address.Generate(),
                 To = Address.Generate(),
-                Params = ByteString.CopyFromUtf8("test")
+                Params = ByteString.CopyFromUtf8("test"),
+                MethodName = "TestMethod",
+                RefBlockNumber = 1,
+                RefBlockPrefix = ByteString.Empty
             };
             var transactionArray = SerializationHelper.Serialize(transaction);
             var transaction1 = SerializationHelper.Deserialize<Transaction>(transactionArray);

@@ -1,5 +1,4 @@
 using System;
-using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 

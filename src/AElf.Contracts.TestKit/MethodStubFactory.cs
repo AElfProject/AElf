@@ -49,7 +49,7 @@ namespace AElf.Contracts.TestKit
                 };
                 var signature = CryptoHelpers.SignWithPrivateKey(
                     KeyPair.PrivateKey, transaction.GetHash().Value.ToByteArray());
-                transaction.Sigs.Add(ByteString.CopyFrom(signature));
+                transaction.Signature = ByteString.CopyFrom(signature);
                 await _transactionExecutor.ExecuteAsync(transaction);
                 var transactionResult =
                     await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
