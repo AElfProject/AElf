@@ -11,7 +11,7 @@ namespace AElf.OS.Network.Application
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
         List<string> GetPeerIpList();
-        List<IPeer> GetPeerList();
+        List<IPeer> GetPeers();
         Task<Block> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfFail = false);
         Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader);
         Task<int> BroadcastTransactionAsync(Transaction tx);

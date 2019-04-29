@@ -23,6 +23,8 @@ namespace AElf.WebApp.Application.Net
     {
         private readonly INetworkService _networkService;
 
+        private static readonly string Version = typeof(NetApplicationWebAppAElfModule).Assembly.GetName().Version.ToString();
+
         public NetAppService(INetworkService networkService)
         {
             _networkService = networkService;
@@ -54,7 +56,7 @@ namespace AElf.WebApp.Application.Net
         /// <returns></returns>
         public List<PeerDto> GetPeers()
         {
-            var peerList = _networkService.GetPeerList();
+            var peerList = _networkService.GetPeers();
             var peerDtoList = peerList.Select(p => new PeerDto
             {
                 IpAddress = p.PeerIpAddress,
@@ -75,7 +77,7 @@ namespace AElf.WebApp.Application.Net
             var output = new GetNetworkInfoOutput
             {
                 ProtocolVersion = KernelConstants.ProtocolVersion,
-                Version = typeof(NetApplicationWebAppAElfModule).Assembly.GetName().Version.ToString(),
+                Version = Version,
                 Connections = _networkService.GetPeerIpList().Count
             };
             return Task.FromResult(output);
