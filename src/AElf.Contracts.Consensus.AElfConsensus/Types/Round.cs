@@ -341,7 +341,7 @@ namespace AElf.Consensus.AElfConsensus
             var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null)
                 .Select(m => m.ActualMiningTime)
                 .Count(actual =>
-                    IsTimeToChangeTerm(blockchainStartTime, actual.ToDateTime(), termNumber, timeEachTerm));
+                    IsTimeToChangeTerm(blockchainStartTime, actual.ToDateTime(), termNumber, timeEachTerm, timeUnit));
             return approvalsCount >= minimumCount;
         }
 

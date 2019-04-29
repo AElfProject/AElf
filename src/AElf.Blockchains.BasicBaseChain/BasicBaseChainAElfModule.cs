@@ -81,14 +81,14 @@ namespace AElf.Blockchains.BasicBaseChain
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
                     .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
                 options.ContextVariables[ContextVariableDictionary.TimeEachTermName] = context.Services
-                    .GetConfiguration().GetValue("ElectionInitial:TimeEachTerm", "7");
+                    .GetConfiguration().GetValue("ElectionInitial:TimeEachTerm", "2");
                 options.ContextVariables[ContextVariableDictionary.MinimumLockTimeName] = context.Services
                     .GetConfiguration().GetValue("ElectionInitial:MinimumLockTime", "90");
                 options.ContextVariables[ContextVariableDictionary.MaximumLockTimeName] = context.Services
                     .GetConfiguration().GetValue("ElectionInitial:MaximumLockTime", "1080");
             });
 
-            Configure<DPoSOptions>(option =>
+            Configure<ConsensusOptions>(option =>
             {
                 configuration.GetSection("Consensus").Bind(option);
 

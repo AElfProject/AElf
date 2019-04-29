@@ -36,7 +36,7 @@ namespace AElf.Contracts.Election
 
         public SingletonState<int> MinersCount { get; set; }
 
-        public SingletonState<TimeUnit> BaseTimeUnit { get; set; }
+        public SingletonState<int> BaseTimeUnit { get; set; }
 
         public SingletonState<int> MinimumLockTime { get; set; }
 

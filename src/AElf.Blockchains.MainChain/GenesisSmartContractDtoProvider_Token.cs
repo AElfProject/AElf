@@ -34,33 +34,38 @@ namespace AElf.Blockchains.MainChain
                 TotalSupply = _tokenInitialOptions.TotalSupply,
                 // Set the contract zero address as the issuer temporarily.
                 Issuer = issuer,
-                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
+                LockWhiteSystemContractNameList =
+                {
+                    ElectionSmartContractAddressNameProvider.Name,
+                    VoteSmartContractAddressNameProvider.Name,
+                    ProfitSmartContractAddressNameProvider.Name
+                }
             });
 
             tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
             {
                 Symbol = _tokenInitialOptions.Symbol,
                 Amount = (long) (_tokenInitialOptions.TotalSupply * _tokenInitialOptions.DividendPoolRatio),
-                ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
+                ToSystemContractName = ElectionSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
 
             //TODO: Maybe should be removed after testing.
-            foreach (var tokenReceiver in _dposOptions.InitialMiners)
+            foreach (var tokenReceiver in _consensusOptions.InitialMiners)
             {
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {
                     Symbol = _tokenInitialOptions.Symbol,
                     Amount = (long) (_tokenInitialOptions.TotalSupply * (1 - _tokenInitialOptions.DividendPoolRatio)) /
-                             _dposOptions.InitialMiners.Count,
+                             _consensusOptions.InitialMiners.Count,
                     To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(tokenReceiver)),
-                    Memo = "Set initial miner's balance.",
+                    Memo = "Set initial miner's balance."
                 });
             }
 
-            // Set fee pool address to dividend contract address.
+            // Set fee pool address to election contract address.
             tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
-                DividendSmartContractAddressNameProvider.Name);
+                ElectionSmartContractAddressNameProvider.Name);
 
             tokenContractCallList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
             {

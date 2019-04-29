@@ -25,6 +25,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
         public MappedState<long, Miners> MinersMap { get; set; }
         
-        public SingletonState<TimeUnit> BaseTimeUnit { get; set; }
+        public SingletonState<int> BaseTimeUnit { get; set; }
     }
 }

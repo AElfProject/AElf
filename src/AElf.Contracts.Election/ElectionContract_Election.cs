@@ -4,6 +4,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Org.BouncyCastle.Asn1.Cms;
 using Vote;
 
 namespace AElf.Contracts.Election
@@ -53,6 +54,9 @@ namespace AElf.Contracts.Election
                 State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
 
             State.BaseTimeUnit.Value = input.LockTimeUnit;
+
+            Context.LogDebug(() =>
+                $"Will change term every {Context.Variables.TimeEachTerm} {(TimeUnit) State.BaseTimeUnit.Value}");
 
             State.TokenContract.Create.Send(new CreateInput
             {
@@ -207,13 +211,13 @@ namespace AElf.Contracts.Election
                 "Candidate state incorrect.");
 
             var lockTime = 0;
-            if (State.BaseTimeUnit.Value == TimeUnit.Days)
+            if ((TimeUnit) State.BaseTimeUnit.Value == TimeUnit.Days)
             {
                 // Only support Days & Months in this situation. Other option will be regarded as Months.
                 lockTime = input.LockTimeUnit == TimeUnit.Days ? input.LockTime : input.LockTime * 30;
             }
 
-            if (State.BaseTimeUnit.Value == TimeUnit.Minutes)
+            if ((TimeUnit) State.BaseTimeUnit.Value == TimeUnit.Minutes)
             {
                 // For testing.
                 lockTime = input.LockTime;
@@ -392,7 +396,7 @@ namespace AElf.Contracts.Election
 
         private long GetTimeSpan(DateTime endTime, DateTime startTime)
         {
-            if (State.BaseTimeUnit.Value == TimeUnit.Minutes)
+            if ((TimeUnit) State.BaseTimeUnit.Value == TimeUnit.Minutes)
             {
                 return (long) (endTime - startTime).TotalMinutes;
             }

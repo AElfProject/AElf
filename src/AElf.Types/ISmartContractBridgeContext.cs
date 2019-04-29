@@ -23,11 +23,11 @@ namespace AElf
 
         public string MinimumLockTime => this[nameof(MinimumLockTime)];
     
-        public const string MinimumLockTimeName = nameof(TimeEachTerm);
+        public const string MinimumLockTimeName = nameof(MinimumLockTime);
 
         public string MaximumLockTime => this[nameof(MinimumLockTime)];
     
-        public const string MaximumLockTimeName = nameof(TimeEachTerm);
+        public const string MaximumLockTimeName = nameof(MaximumLockTime);
     }
 
     public interface ISmartContractBridgeContext

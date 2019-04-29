@@ -27,8 +27,13 @@ namespace AElf.Blockchains.MainChain
             electionContractMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {
+                    // Create Treasury profit item and register sub items.
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name
+                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
+                    ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
+                    
+                    // Get current miners.
+                    AelfConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
                 });
             return electionContractMethodCallList;
         }

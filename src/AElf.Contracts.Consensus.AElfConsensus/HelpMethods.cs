@@ -79,7 +79,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             // Calculate the approvals and make the judgement of changing term.
             var changeTerm =
                 currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber,
-                    State.TimeEachTerm.Value, State.BaseTimeUnit.Value);
+                    State.TimeEachTerm.Value, (TimeUnit) State.BaseTimeUnit.Value);
             return changeTerm
                 ? AElfConsensusBehaviour.NextTerm
                 : AElfConsensusBehaviour.NextRound;

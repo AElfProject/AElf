@@ -17,12 +17,12 @@ namespace AElf.Blockchains.SideChain
     public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly ChainOptions _chainOptions;
-        private readonly DPoSOptions _dposOptions;
+        private readonly ConsensusOptions _dposOptions;
         private readonly CrossChainConfigOption _crossChainConfigOptions;
         private readonly IChainInitializationPlugin _chainInitializationPlugin;
 
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ChainOptions> chainOptions,
-            IOptionsSnapshot<DPoSOptions> dposOptions, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOptions,
+            IOptionsSnapshot<ConsensusOptions> dposOptions, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOptions,
             IChainInitializationPlugin chainInitializationPlugin)
         {
             _chainOptions = chainOptions.Value;
@@ -77,9 +77,7 @@ namespace AElf.Blockchains.SideChain
             consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
                 new DPoSStrategyInput
                 {
-                    IsBlockchainAgeSettable = _dposOptions.IsBlockchainAgeSettable,
                     IsTimeSlotSkippable = _dposOptions.IsTimeSlotSkippable,
-                    IsVerbose = _dposOptions.Verbose
                 });
             return consensusMethodCallList;
         }

@@ -310,7 +310,7 @@ namespace AElf.Contracts.Election
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    BaseTimeUnit = TimeUnit.Days
+                    BaseTimeUnit = (int) TimeUnit.Days
                 });
             var miners = new Miners
             {

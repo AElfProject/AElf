@@ -9,7 +9,7 @@ message InitialAElfConsensusContractInput {
     Hash election_contract_system_name = 1;
     bool is_term_stay_one = 2;
     bool is_side_chain = 3;
-    TimeUnit base_time_unit = 4;
+    sint32 base_time_unit = 4;
 }
 
 // Just used as parameter of consensus contract method.

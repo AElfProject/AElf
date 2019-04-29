@@ -25,10 +25,10 @@ namespace AElf.Blockchains.MainChain
             voteContractMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
                 new InitialVoteContractInput
                 {
+                    // To Lock and Unlock tokens of voters.
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
             return voteContractMethodCallList;
         }
-
     }
 }

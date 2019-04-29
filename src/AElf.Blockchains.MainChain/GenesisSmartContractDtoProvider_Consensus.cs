@@ -27,13 +27,18 @@ namespace AElf.Blockchains.MainChain
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    IsTermStayOne = true
+                    BaseTimeUnit = (int) TimeUnit.Minutes
                 });
             aelfConsensusMethodCallList.Add(nameof(AElfConsensusContract.FirstRound),
                 new Miners
                 {
-                    PublicKeys = {_dposOptions.InitialMiners.Select(p => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p)))}
-                }.GenerateFirstRoundOfNewTerm(_dposOptions.MiningInterval, _dposOptions.StartTimestamp.ToUniversalTime()));
+                    PublicKeys =
+                    {
+                        _consensusOptions.InitialMiners.Select(p =>
+                            ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p)))
+                    }
+                }.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval,
+                    _consensusOptions.StartTimestamp.ToUniversalTime()));
             return aelfConsensusMethodCallList;
         }
     }

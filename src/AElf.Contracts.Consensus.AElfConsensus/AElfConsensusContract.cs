@@ -25,6 +25,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 return new Empty();
             }
 
+            State.BaseTimeUnit.Value = input.BaseTimeUnit;
+
             State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
             
             State.ElectionContract.Value =
