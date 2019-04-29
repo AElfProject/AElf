@@ -595,7 +595,7 @@ namespace AElf.Contracts.Election
             var actualMinersRewardAmount = profitItems[ProfitType.BasicMinerReward].TotalAmount +
                                            profitItems[ProfitType.VotesWeightReward].TotalAmount +
                                            profitItems[ProfitType.ReElectionReward].TotalAmount;
-            actualMinersRewardAmount.ShouldBeInRange(releasedAmount * 6 / 10 - 1, releasedAmount * 6 / 10 + 1);
+            actualMinersRewardAmount.ShouldBe(releasedAmount * 6 / 10);
 
             // Check released information of CitizenWelfare of period 1.
             {

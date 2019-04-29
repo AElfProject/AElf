@@ -57,6 +57,8 @@ namespace AElf.Contracts.Election
 
             Context.LogDebug(() =>
                 $"Will change term every {Context.Variables.TimeEachTerm} {(TimeUnit) State.BaseTimeUnit.Value}");
+            Context.LogDebug(() => $"Minimum lock time: {Context.Variables.MinimumLockTime} {(TimeUnit) State.BaseTimeUnit.Value}");
+            Context.LogDebug(() => $"Maximum lock time: {Context.Variables.MaximumLockTime} {(TimeUnit) State.BaseTimeUnit.Value}");
 
             State.TokenContract.Create.Send(new CreateInput
             {

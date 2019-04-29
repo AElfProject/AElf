@@ -25,7 +25,7 @@ namespace AElf
     
         public const string MinimumLockTimeName = nameof(MinimumLockTime);
 
-        public string MaximumLockTime => this[nameof(MinimumLockTime)];
+        public string MaximumLockTime => this[nameof(MaximumLockTime)];
     
         public const string MaximumLockTimeName = nameof(MaximumLockTime);
     }
