@@ -224,7 +224,10 @@ namespace AElf.Contracts.Election
                 lockTime = input.LockTime;
             }
 
-            Assert(lockTime >= 90, "Invalid lock time.");
+            Assert(lockTime >= State.MinimumLockTime.Value,
+                $"Invalid lock time. At least {State.MinimumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
+            Assert(lockTime <= State.MaximumLockTime.Value,
+                $"Invalid lock time. At most {State.MaximumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
             State.LockTimeMap[Context.TransactionId] = lockTime;
 
             // Update Voter's Votes information.
