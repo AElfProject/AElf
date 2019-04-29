@@ -323,12 +323,12 @@ namespace AElf.Contracts.Election
         {
             var miner = GetAElfConsensusContractStub(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
+            var victories = await ElectionContractStub.GetVictories.CallAsync(new Empty());
             var miners = new Miners
             {
                 PublicKeys =
                 {
-                    round.RealTimeMinersInformation.Keys.Select(k =>
-                        ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))
+                    victories.Value
                 }
             };
             var firstRoundOfNextTerm =
