@@ -1,7 +1,7 @@
 ﻿using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf.WellKnownTypes;
+using Vote;
 
 namespace AElf.Contracts.Election
 {

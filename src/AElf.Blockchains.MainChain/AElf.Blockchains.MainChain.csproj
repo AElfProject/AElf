@@ -6,8 +6,15 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
-        <ProjectReference Include="..\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
 </Project>

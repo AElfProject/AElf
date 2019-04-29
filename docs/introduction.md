@@ -1,44 +1,42 @@
-Welcome to AElf's official documentation. This Gitbook is where we centralize our guides, documents and api references. Wether you're a dApp developer looking to build some awesome apps on top of AElf or simply just interested in seeing what a running node looks like, this place is for you!
+# AElf - A Decentralized Cloud Computing Blockchain Network
 
-As of today the documentation is correct but still a work in progress so we invite you to frequently visit and discover any new content.
+[![](https://travis-ci.org/AElfProject/AElf.svg?branch=master)](https://travis-ci.org/AElfProject/AElf)
 
-#### A bit more about AElf
+[![Waffle.io - Columns and their card count](https://badge.waffle.io/AElfProject/AElf.svg?columns=Next,In%20Progress,Done)](https://waffle.io/AElfProject/AElf)
 
-AElf's main objective is to permit scalability and extensibility through a multi-layer branching structure formed by a main chain and multiple levels of side-chains (a tree like structure). Each side-chain will be designed for one business use case. 
+Welcome to AElfs’ official GitHub repository. The code is still in its early stages and is under constant change to improve its quality and functionality.
+
+You can find out more about AElf by reading the [White Paper](https://grid.hoopox.com/aelf_whitepaper_EN.pdf?v=1).
+
+Official website: [aelf.io](https://aelf.io)
+
+## Overview
+
+AElfs main objective is to permit scalability and extensibility through a multi-layer branching structure formed by a main chain and multiple levels of side-chains \(a tree like structure\). Each side-chain will be designed for one business use case. We also plan to include communication with external blockchains like Bitcoin or Ethereum.
 
 AElf also aims to make it as easy as possible to extend/customize the system by providing easy to use tools and frameworks in order to customize the chains and write smart contracts. AElf will support various languages that will let developers choose the one they are the most comfortable with.
 
 AElf will improve overall blockchain performance by executing transactions in parallel and isolating smart contracts in their own side-chains in order to segregate the systems resources.
 
-## This Gitbook
+## Development
 
-This Gitbook contains various different types of documentation and depending on what you will use AElf for, you should navigate to different sections. Here are a few links you can follow to get you started:
-- [**how to start a node**](Introduction/quickstart.md)
-- [**how to develop dApp**](tutorials/dapp/main.md)
+In these early stages, we want to concentrate on developing the kernel of the system. This corresponds to the most basic building block of the system. Notably, structures like chain and storage will be implemented in it. The next step will be to develop the networking and consensus layer used to create the network. The final step will be to work on AElfs gouvernance system.
 
-#### Guides and tutorials
+If you want to run the code you can clone the repository and open the project with any IDE that support C\# and the .NET core runtime \(we would recommend either [Visual Studio](https://www.visualstudio.com/) on Windows or [Rider](https://www.jetbrains.com/rider/) if you’re on a Mac\). You will also need to have the [.NET Core SDK](https://www.microsoft.com/net/learn/get-started/macos) installed.
 
-- [**tutorials**](tutorials/main.md) - groups end-to-end guides and tutorials about various topics.
-- [**getting started**](Introduction/main.md) - if you've never run an AElf node, we recommend you start with this section contains.
+For now the solution includes the unit tests, you can run them and study them to get an idea as to how different parts of the current system work and how they’re used.
 
-#### AElf concepts
+You will find some more in-depth technical documentation [here](docs/).
 
-- [**protocol**](Protocol/main.md) - some articles about blockchain related concepts and how they are used and implemented in AElf.
-- [**smart contract**](Contract/main.md) - a more advanced section with more in-depth explanations of AElf smart contracts.
-- [**cross chain**](crosschain/main.md) - information about how AElf implements side chains.
-- [**public chain ecosystem**](publicchain/main.md) - information related to AElf's public blockchain and ecosystem.
-- [**architecture**](Architecture/main.md) - this section is for **advanced** users, it explains the architectural concepts behind the nodes design.
+## How to Contribute
 
-#### References
+If you have a reasonable understanding of blockchain technology and at least some notions of C\# you can of course contribute by using GitHub issues and Pull Requests. We also appreciate other types of contributions such as documentation improvements or even correcting typos in the code if you spot any.
 
-- [**command line**](cli/methods.md) - a reference for the available commands on AElf's CLI.
-- [**web api**](Web/main.md) - a reference for the available methods on AElf's web api.
-- [**js sdk**](SDK/javascript/js-sdk.md) - a reference for the available APIs in the js SDK.
+The standard procedure is well documented on GitHub, for detailed explanation, especially if it’s the first time you’re doing this, you can follow the procedure on the following links: [Working with forks](https://help.github.com/articles/working-with-forks/) and [Pull Requests](https://help.github.com/articles/proposing-changes-to-your-work-with-pull-requests/). Basically, you fork the AElf repository, create a branch that clearly indicates the problem you’re solving. Later, when you are happy with your work, you create a Pull Request so we can review and discuss your implementation.
 
-Finally we have a more complete API references for the Command Line Interface, the js-sdk and the nodes RPC interface.
+If the problem needs debating or you have questions on how to implement a feature, we would prefer you open a GitHub [issue](https://github.com/AElfProject/AElf/issues). If you spotted a typo or a code formatting issue, just directly opening a Pull Request is fine.
 
-## Some resources
+## Supported Platforms
 
-You can find the original whitepaper [here](https://aelf.io/gridcn/aelf_whitepaper_EN.pdf?v=1.6). It will give you a more thorough explanation on the concepts that drive AElf and its development.
+Any platform that supports .NET Core is compatible.
 
-Of course, there's the official GitHub [here](https://github.com/AElfProject/AElf) and the js-sdk repo [here](https://github.com/AElfProject/aelf-sdk.js).

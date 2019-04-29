@@ -1,6 +1,4 @@
 using System.Linq;
-using AElf.Common.Application;
-using AElf.Cryptography.Certificate;
 using AElf.Kernel.Node.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,8 +27,6 @@ namespace AElf.CrossChain.Grpc
             services.AddSingleton<IChainInitializationPlugin, GrpcCrossChainClientNodePlugin>();
             services.AddSingleton<ICrossChainServer, CrossChainGrpcServer>();
             services.AddSingleton<GrpcCrossChainClientNodePlugin>();
-            var keyStore = new CertificateStore(ApplicationHelper.AppDataPath);
-            context.Services.AddSingleton<ICertificateStore>(keyStore);
         }
     }
 }

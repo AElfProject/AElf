@@ -1,3 +1,0 @@
-## crosschain multitoken
-
-Coming soon !

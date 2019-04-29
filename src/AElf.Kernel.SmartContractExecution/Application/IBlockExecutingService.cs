@@ -113,7 +113,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             catch (ValidateNextTimeBlockValidationException ex)
             {
-                Logger.LogWarning($"Block validate fails after execution. block hash : {ex.BlockHash.ToHex()}");
+                Logger.LogWarning($"Block validate fails after execution. Exception message {ex.Message}");
             }
 
             if (successLinks.Count > 0)

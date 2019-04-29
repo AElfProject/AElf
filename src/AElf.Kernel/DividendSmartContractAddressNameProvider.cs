@@ -1,6 +1,6 @@
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf
 {
     public class DividendSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {

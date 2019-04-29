@@ -85,9 +85,7 @@ namespace AElf.OS.Consensus.DPos
 
             var chain = await _blockchainService.GetChainAsync();
             var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
-            var currentMiners = await _dpoSInformationProvider.GetCurrentMiners(chainContext);
-
-            var pubkeyList = currentMiners.PublicKeys;
+            var pubkeyList = (await _dpoSInformationProvider.GetCurrentMiners(chainContext)).ToList();
 
             var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.PubKey)).ToList();
 
