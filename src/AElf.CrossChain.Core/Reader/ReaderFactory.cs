@@ -7,6 +7,7 @@ namespace AElf.CrossChain
     internal interface IReaderFactory
     {
         CrossChainContractContainer.CrossChainContractStub Create(IChainContext chainContext);
+        CrossChainContractContainer.CrossChainContractStub Create(Hash blockHash, long blockHeight);
     }
 
     internal class ReaderFactory : IReaderFactory
@@ -28,6 +29,15 @@ namespace AElf.CrossChain
                 __factory = new MethodStubFactory(_transactionReadOnlyExecutionService, _smartContractAddressService,
                     chainContext)
             };
+        }
+
+        public CrossChainContractContainer.CrossChainContractStub Create(Hash blockHash, long blockHeight)
+        {
+            return Create(new ChainContext()
+            {
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
+            });
         }
     }
 }
