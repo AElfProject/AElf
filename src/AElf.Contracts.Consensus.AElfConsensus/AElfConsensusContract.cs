@@ -14,7 +14,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         {
             Assert(!State.Initialized.Value, "Already initialized.");
 
-
             State.TimeEachTerm.Value = input.IsSideChain || input.IsTermStayOne
                 ? int.MaxValue
                 : int.Parse(Context.Variables.TimeEachTerm);

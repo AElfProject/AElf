@@ -290,6 +290,7 @@ namespace AElf.Contracts.Election
         public async Task ElectionContract_Withdraw()
         {
             const int amount = 1000;
+            const int lockTime = 120;
 
             var candidateKeyPair = FullNodesKeyPairs[0];
             await AnnounceElectionAsync(candidateKeyPair);
@@ -300,7 +301,7 @@ namespace AElf.Contracts.Election
             // Vote
             {
                 var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120, amount);
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), lockTime, amount);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
@@ -317,11 +318,12 @@ namespace AElf.Contracts.Election
 
             await NextTerm(InitialMinersKeyPairs[0]);
 
-            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddDays(121));
+            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddDays(lockTime));
 
             // Withdraw
             {
-                await WithdrawVotes(voterKeyPair, voteId);
+                var executionResult = await WithdrawVotes(voterKeyPair, voteId);
+                executionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
             // Profit
@@ -593,7 +595,7 @@ namespace AElf.Contracts.Election
             var actualMinersRewardAmount = profitItems[ProfitType.BasicMinerReward].TotalAmount +
                                            profitItems[ProfitType.VotesWeightReward].TotalAmount +
                                            profitItems[ProfitType.ReElectionReward].TotalAmount;
-            actualMinersRewardAmount.ShouldBe(releasedAmount * 6 / 10);
+            actualMinersRewardAmount.ShouldBeInRange(releasedAmount * 6 / 10 - 1, releasedAmount * 6 / 10 + 1);
 
             // Check released information of CitizenWelfare of period 1.
             {

@@ -21,8 +21,16 @@ namespace AElf.Kernel.SmartContract.Sdk
         public string TimeEachTerm => this[nameof(TimeEachTerm)];
 
         public const string TimeEachTermName = nameof(TimeEachTerm);
+
+        public string MinimumLockTime => this[nameof(MinimumLockTime)];
+        
+        public const string MinimumLockTimeName = nameof(TimeEachTerm);
+
+        public string MaximumLockTime => this[nameof(MinimumLockTime)];
+        
+        public const string MaximumLockTimeName = nameof(TimeEachTerm);
     }
-    
+
     //TODO: this assembly should not reference AElf.Kernel.Types,
     //BODY: because it may be changed very often, and may introduce new Type, if some DAPP user use it,
     //it will be very hard to remove the type in the assembly.

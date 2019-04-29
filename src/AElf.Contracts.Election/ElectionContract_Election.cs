@@ -20,6 +20,8 @@ namespace AElf.Contracts.Election
             State.AElfConsensusContractSystemName.Value = input.AelfConsensusContractSystemName;
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Candidates.Value = new PublicKeysList();
+            State.MinimumLockTime.Value = int.Parse(Context.Variables.MinimumLockTime);
+            State.MaximumLockTime.Value = int.Parse(Context.Variables.MaximumLockTime);
             State.Initialized.Value = true;
             return new Empty();
         }

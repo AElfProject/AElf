@@ -55,6 +55,10 @@ namespace AElf.Blockchains.BasicBaseChain
                     .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
                 options.ContextVariables[ContextVariableDictionary.TimeEachTermName] = context.Services
                     .GetConfiguration().GetValue("ElectionInitial:TimeEachTerm", "7");
+                options.ContextVariables[ContextVariableDictionary.TimeEachTermName] = context.Services
+                    .GetConfiguration().GetValue("ElectionInitial:MinimumLockTime", "90");
+                options.ContextVariables[ContextVariableDictionary.TimeEachTermName] = context.Services
+                    .GetConfiguration().GetValue("ElectionInitial:MaximumLockTime", "1080");
             });
         }
     }
