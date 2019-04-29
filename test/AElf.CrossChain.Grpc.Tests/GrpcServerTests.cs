@@ -37,7 +37,7 @@ namespace AElf.CrossChain.Grpc
             await CrossChainGrpcServer.RequestIndexingFromParentChain(requestData, responseStream, context);
         }
         
-        [Fact]
+        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1643")]
         public async Task RequestIndexingParentChain_WithExtraData()
         {
             var requestData = new RequestCrossChainBlockData
