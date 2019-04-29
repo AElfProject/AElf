@@ -175,12 +175,21 @@ message BlockHeader {
 message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
-    repeated Transaction TransactionList = 3;
+}
+
+message BlockBodyWithTransaction {
+    Hash BlockHeader = 1;
+    repeated Transaction Transactions = 2;
 }
 
 message Block {
     BlockHeader Header = 1;
     BlockBody Body = 2;
+}
+
+message BlockWithTransaction {
+    BlockHeader Header = 1;
+    BlockBodyWithTransaction Body = 2;
 }
 
 //message SmartContractRegistration {
