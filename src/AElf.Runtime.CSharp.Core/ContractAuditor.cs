@@ -11,7 +11,7 @@ namespace AElf.Runtime.CSharp
     {
         AbstractPolicy policy = new DefaultPolicy();
 
-        public IEnumerable<ValidationResult> Audit(byte[] code, bool priority)
+        public void Audit(byte[] code, bool priority)
         {
             var errors = new List<ValidationResult>();
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
@@ -30,8 +30,13 @@ namespace AElf.Runtime.CSharp
                     errors.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));    
                 }
             }
-            
-            return errors;
+
+            if (errors.Count > 0)
+            {
+                throw new InvalidCodeException("Audit failed for contract: " 
+                                                       + modDef.Assembly.MainModule.Name + "\r\n"
+                                                       + string.Concat("\r\n", errors.Select(e => e.ToString()).Distinct().ToArray()));
+            }
         }
     }
 }
