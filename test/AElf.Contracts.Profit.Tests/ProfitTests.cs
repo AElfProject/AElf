@@ -1128,7 +1128,7 @@ namespace AElf.Contracts.Profit
 
             var profitId = await CreateProfitItem();
 
-            await TransferToProfitItemVirtualAddress(profitId, amount * periodCount);
+            await TransferToProfitItemVirtualAddress(profitId, amount * periodCount + amount);
 
             await creator.AddWeight.SendAsync(new AddWeightInput
             {
@@ -1149,19 +1149,46 @@ namespace AElf.Contracts.Profit
 
             await receiver.Profit.SendAsync(new ProfitInput {ProfitId = profitId});
 
-            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = receiverAddress,
-                Symbol = ProfitContractTestConsts.NativeTokenSymbol
-            })).Balance;
-            balance.ShouldBe(amount * periodCount);
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = receiverAddress,
+                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                })).Balance;
+                balance.ShouldBe(amount * periodCount);
 
-            var details = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                var details = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                {
+                    ProfitId = profitId,
+                    Receiver = receiverAddress
+                });
+                details.Details[0].LastProfitPeriod.ShouldBe(periodCount + 1);
+            }
+
+            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
             {
-                ProfitId = profitId,
-                Receiver = receiverAddress
+                Period = periodCount + 1,
+                Amount = amount,
+                ProfitId = profitId
             });
-            details.Details[0].LastProfitPeriod.ShouldBe(periodCount);
+
+            await receiver.Profit.SendAsync(new ProfitInput {ProfitId = profitId});
+
+            {
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = receiverAddress,
+                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                })).Balance;
+                balance.ShouldBe(amount * periodCount + amount);
+
+                var details = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
+                {
+                    ProfitId = profitId,
+                    Receiver = receiverAddress
+                });
+                details.Details[0].LastProfitPeriod.ShouldBe(periodCount + 2);
+            }          
         }
 
         private async Task<Hash> CreateProfitItem(int returnIndex = 0,

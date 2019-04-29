@@ -492,7 +492,7 @@ namespace AElf.Contracts.Profit
                         });
                     }
 
-                    lastProfitPeriod = period;
+                    lastProfitPeriod = period + 1;
                 }
 
                 profitDetail.LastProfitPeriod = lastProfitPeriod;
