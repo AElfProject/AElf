@@ -1,10 +1,9 @@
 syntax = "proto3";
 
 import "common.proto";
-import "kernel.proto";
-import "consensus.proto";
 import "aelf_consensus.proto";
 import "aelf_options.proto";
+import "core.proto";
 import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.AElfConsensus";

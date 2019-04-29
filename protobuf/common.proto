@@ -21,3 +21,10 @@ message SInt64Value
 {
     sint64 Value = 1;
 }
+
+enum TimeUnit {
+    Days = 0;
+    Months = 1;
+    Minutes = 2;
+    Hours = 3;
+}

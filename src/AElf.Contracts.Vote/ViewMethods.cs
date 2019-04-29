@@ -1,4 +1,5 @@
 using AElf.Kernel;
+using Vote;
 
 namespace AElf.Contracts.Vote
 {
