@@ -125,9 +125,10 @@ message SideChainCreationRequest {
 
 message SideChainInfo {
     SideChainCreationRequest sideChainCreationRequest = 1;
-    Address Proposer = 5;
-    SideChainStatus SideChainStatus = 6;
-    int32 SideChainId = 7;
-    Hash ProposalHash = 8;
-    google.protobuf.Timestamp CreatedTime = 9;
+    Address Proposer = 2;
+    SideChainStatus SideChainStatus = 3;
+    int32 SideChainId = 4;
+    Hash ProposalHash = 5;
+    google.protobuf.Timestamp CreatedTime = 6;
+    int64 ParentChainHeightOfCreation = 7;
 }

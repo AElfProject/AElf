@@ -49,7 +49,7 @@ namespace AElf.CrossChain
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId1, 0);
             var fakeParentChainBlockDataList = new List<IBlockInfo>();
 
-            for (int i = 0; i < CrossChainConsts.MinimalBlockInfoCacheThreshold + 1; i++)
+            for (int i = 0; i < CrossChainConstants.MinimalBlockInfoCacheThreshold + 1; i++)
             {
                 fakeParentChainBlockDataList.Add(new ParentChainBlockData
                 {
@@ -116,7 +116,7 @@ namespace AElf.CrossChain
             list2.Add(fakeSideChainBlockDataList[1]);          
             list3.Add(fakeSideChainBlockDataList[2]);
 
-            for (int i = 2; i < CrossChainConsts.MinimalBlockInfoCacheThreshold + 2; i++)
+            for (int i = 2; i < CrossChainConstants.MinimalBlockInfoCacheThreshold + 2; i++)
             {
                 list1.Add(new SideChainBlockData
                 {
