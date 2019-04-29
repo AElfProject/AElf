@@ -235,5 +235,13 @@ namespace AElf.Runtime.CSharp
             output.File.AddRange(GetSelfAndDependency(descriptor.File).Select(x => x.SerializedData));
             return output.ToByteArray();
         }
+
+        public IEnumerable<FileDescriptor> GetFileDescriptors()
+        {
+            var descriptor = Descriptors.Last();
+            return GetSelfAndDependency(descriptor.File);
+        }
+
+        public Hash ContractHash { get; set; }
     }
 }

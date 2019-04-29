@@ -16,6 +16,8 @@ namespace AElf.Kernel.SmartContract.Application
         Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
+
+        void ClearExecutivePool(Address address);
     }
 
     public class SmartContractExecutiveService : ISmartContractExecutiveService, ISingletonDependency
@@ -90,8 +92,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             // run smartcontract executive info and return executive
             var executive = await runner.RunAsync(reg);
-            //executive.ContractHash = reg.CodeHash;
-            //executive.ContractAddress = address;
+
             var context =
                 _hostSmartContractBridgeContextService.Create();
             executive.SetHostSmartContractBridgeContext(context);
@@ -101,8 +102,24 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
-            GetPool(address).Add(executive);
+            if (_executivePools.TryGetValue(address, out var pool))
+            {
+                if (_addressSmartContractRegistrationMappingCache.TryGetValue(address, out var reg))
+                {
+                    if (reg.CodeHash == executive.ContractHash)
+                    {
+                        pool.Add(executive);
+                    }
+                }
+            }
+
             await Task.CompletedTask;
+        }
+
+        public void ClearExecutivePool(Address address)
+        {
+            _addressSmartContractRegistrationMappingCache.TryRemove(address, out _);
+            _executivePools.TryRemove(address, out _);
         }
 
 

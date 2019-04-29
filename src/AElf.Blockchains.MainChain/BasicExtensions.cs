@@ -4,7 +4,7 @@ using System.Linq;
 using AElf.Contracts.Consensus.DPoS;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Blockchains.MainChain.ConsensusModule
+namespace AElf.Blockchains.MainChain
 {
     internal static class BasicExtensions
     {

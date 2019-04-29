@@ -36,7 +36,8 @@ namespace AElf.CrossChain
             
             var message =
                 await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Height);
-            var indexedCrossChainBlockData = CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
+            var indexedCrossChainBlockData =
+                message == null ? null : CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
             var extraData = ExtractCrossChainExtraData(block.Header);
             if (indexedCrossChainBlockData == null)
             {

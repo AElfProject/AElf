@@ -12,6 +12,7 @@ using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract;
 using AElf.CSharp.Core;
+using AElf.Kernel.Token;
 using Google.Protobuf.WellKnownTypes;
 using Google.Protobuf;
 using Newtonsoft.Json;

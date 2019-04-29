@@ -1,6 +1,6 @@
 using Volo.Abp.DependencyInjection;
 
-namespace AElf
+namespace AElf.Kernel.Consensus.DPoS
 {
     public class ConsensusSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {

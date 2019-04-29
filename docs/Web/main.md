@@ -9,11 +9,87 @@ Click to get the [swagger.json](#swagger-json)
 *Version* : 1.0
 
 
+
+
 <a name="paths"></a>
 ## Paths
 
+<a name="getblock"></a>
+### Get information about a given block by block hash. Otionally with the list of its transactions.
+```
+GET /api/blockChain/block
+```
+
+
+#### Parameters
+
+|Type|Name|Description|Schema|Default|
+|---|---|---|---|---|
+|**Query**|**blockHash**  <br>*optional*|block hash|string||
+|**Query**|**includeTransactions**  <br>*optional*|include transactions or not|boolean|`"false"`|
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[BlockDto](#blockdto)|
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* BlockChain
+
+
+<a name="getblockbyheight"></a>
+### Get information about a given block by block height. Otionally with the list of its transactions.
+```
+GET /api/blockChain/blockByHeight
+```
+
+
+#### Parameters
+
+|Type|Name|Description|Schema|Default|
+|---|---|---|---|---|
+|**Query**|**blockHeight**  <br>*optional*|block height|integer (int64)||
+|**Query**|**includeTransactions**  <br>*optional*|include transactions or not|boolean|`"false"`|
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[BlockDto](#blockdto)|
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* BlockChain
+
+
 <a name="getblockheight"></a>
-### GET /api/chain/blockHeight
+### Get the height of the current chain.
+```
+GET /api/blockChain/blockHeight
+```
+
 
 #### Responses
 
@@ -32,79 +108,21 @@ Click to get the [swagger.json](#swagger-json)
 
 #### Tags
 
-* Chain
-
-
-<a name="getblockinfobyhash"></a>
-### GET /api/chain/blockInfoByHash
-
-#### Parameters
-
-|Type|Name|Schema|Default|
-|---|---|---|---|
-|**Query**|**blockHash**  <br>*optional*|string||
-|**Query**|**includeTransactions**  <br>*optional*|boolean|`"false"`|
-
-
-#### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BlockDto](#blockdto)|
-
-
-#### Produces
-
-* `text/plain; v=1.0`
-* `application/json; v=1.0`
-* `text/json; v=1.0`
-* `application/x-protobuf; v=1.0`
-
-
-#### Tags
-
-* Chain
-
-
-<a name="getblockinfobyheight"></a>
-### GET /api/chain/blockInfoByHeight
-
-#### Parameters
-
-|Type|Name|Schema|Default|
-|---|---|---|---|
-|**Query**|**blockHeight**  <br>*optional*|integer (int64)||
-|**Query**|**includeTransactions**  <br>*optional*|boolean|`"false"`|
-
-
-#### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BlockDto](#blockdto)|
-
-
-#### Produces
-
-* `text/plain; v=1.0`
-* `application/json; v=1.0`
-* `text/json; v=1.0`
-* `application/x-protobuf; v=1.0`
-
-
-#### Tags
-
-* Chain
+* BlockChain
 
 
 <a name="getblockstate"></a>
-### GET /api/chain/blockState
+### Get the current state about a given block
+```
+GET /api/blockChain/blockState
+```
+
 
 #### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Query**|**blockHash**  <br>*optional*|string|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**blockHash**  <br>*optional*|block hash|string|
 
 
 #### Responses
@@ -124,17 +142,21 @@ Click to get the [swagger.json](#swagger-json)
 
 #### Tags
 
-* Chain
+* BlockChain
 
 
 <a name="broadcasttransaction"></a>
-### POST /api/chain/broadcastTransaction
+### Broadcast a transaction
+```
+POST /api/blockChain/broadcastTransaction
+```
+
 
 #### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Query**|**rawTransaction**  <br>*optional*|string|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**rawTransaction**  <br>*optional*|raw transaction|string|
 
 
 #### Responses
@@ -154,17 +176,21 @@ Click to get the [swagger.json](#swagger-json)
 
 #### Tags
 
-* Chain
+* BlockChain
 
 
 <a name="broadcasttransactions"></a>
-### POST /api/chain/broadcastTransactions
+### Broadcast multiple transactions
+```
+POST /api/blockChain/broadcastTransactions
+```
+
 
 #### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Query**|**rawTransactions**  <br>*optional*|string|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**rawTransactions**  <br>*optional*|raw transactions|string|
 
 
 #### Responses
@@ -184,17 +210,21 @@ Click to get the [swagger.json](#swagger-json)
 
 #### Tags
 
-* Chain
+* BlockChain
 
 
 <a name="call"></a>
-### POST /api/chain/call
+### Call a read-only method on a contract.
+```
+POST /api/blockChain/call
+```
+
 
 #### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Query**|**rawTransaction**  <br>*optional*|string|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**rawTransaction**  <br>*optional*|raw transaction|string|
 
 
 #### Responses
@@ -214,34 +244,15 @@ Click to get the [swagger.json](#swagger-json)
 
 #### Tags
 
-* Chain
-
-
-<a name="getchaininformation"></a>
-### GET /api/chain/chainInformation
-
-#### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[GetChainInformationOutput](#getchaininformationoutput)|
-
-
-#### Produces
-
-* `text/plain; v=1.0`
-* `application/json; v=1.0`
-* `text/json; v=1.0`
-* `application/x-protobuf; v=1.0`
-
-
-#### Tags
-
-* Chain
+* BlockChain
 
 
 <a name="getchainstatus"></a>
-### GET /api/chain/chainStatus
+### Get the current status of the block chain.
+```
+GET /api/blockChain/chainStatus
+```
+
 
 #### Responses
 
@@ -260,17 +271,21 @@ Click to get the [swagger.json](#swagger-json)
 
 #### Tags
 
-* Chain
+* BlockChain
 
 
-<a name="getfiledescriptorset"></a>
-### GET /api/chain/fileDescriptorSet
+<a name="getcontractfiledescriptorset"></a>
+### Get the protobuf definitions related to a contract
+```
+GET /api/blockChain/contractFileDescriptorSet
+```
+
 
 #### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Query**|**address**  <br>*optional*|string|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**address**  <br>*optional*|contract address|string|
 
 
 #### Responses
@@ -290,11 +305,15 @@ Click to get the [swagger.json](#swagger-json)
 
 #### Tags
 
-* Chain
+* BlockChain
 
 
 <a name="gettransactionpoolstatus"></a>
-### GET /api/chain/transactionPoolStatus
+### Get the transaction pool status.
+```
+GET /api/blockChain/transactionPoolStatus
+```
+
 
 #### Responses
 
@@ -313,17 +332,21 @@ Click to get the [swagger.json](#swagger-json)
 
 #### Tags
 
-* Chain
+* BlockChain
 
 
 <a name="gettransactionresult"></a>
-### GET /api/chain/transactionResult
+### Get the current status of a transaction
+```
+GET /api/blockChain/transactionResult
+```
+
 
 #### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Query**|**transactionId**  <br>*optional*|string|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**transactionId**  <br>*optional*|transaction id|string|
 
 
 #### Responses
@@ -343,19 +366,23 @@ Click to get the [swagger.json](#swagger-json)
 
 #### Tags
 
-* Chain
+* BlockChain
 
 
-<a name="gettransactionsresult"></a>
-### GET /api/chain/transactionsResult
+<a name="gettransactionresults"></a>
+### Get multiple transaction results.
+```
+GET /api/blockChain/transactionResults
+```
+
 
 #### Parameters
 
-|Type|Name|Schema|Default|
-|---|---|---|---|
-|**Query**|**blockHash**  <br>*optional*|string||
-|**Query**|**limit**  <br>*optional*|integer (int32)|`10`|
-|**Query**|**offset**  <br>*optional*|integer (int32)|`0`|
+|Type|Name|Description|Schema|Default|
+|---|---|---|---|---|
+|**Query**|**blockHash**  <br>*optional*|block hash|string||
+|**Query**|**limit**  <br>*optional*|limit|integer (int32)|`10`|
+|**Query**|**offset**  <br>*optional*|offset|integer (int32)|`0`|
 
 
 #### Responses
@@ -375,17 +402,21 @@ Click to get the [swagger.json](#swagger-json)
 
 #### Tags
 
-* Chain
+* BlockChain
 
 
 <a name="addpeer"></a>
-### POST /api/net/peer
+### Attempts to add a node to the connected network nodes
+```
+POST /api/net/peer
+```
+
 
 #### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Query**|**address**  <br>*optional*|string|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**address**  <br>*optional*|ip address|string|
 
 
 #### Responses
@@ -409,13 +440,17 @@ Click to get the [swagger.json](#swagger-json)
 
 
 <a name="removepeer"></a>
-### DELETE /api/net/peer
+### Attempts to remove a node from the connected network nodes
+```
+DELETE /api/net/peer
+```
+
 
 #### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Query**|**address**  <br>*optional*|string|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Query**|**address**  <br>*optional*|ip address|string|
 
 
 #### Responses
@@ -439,7 +474,11 @@ Click to get the [swagger.json](#swagger-json)
 
 
 <a name="getpeers"></a>
-### GET /api/net/peers
+### Get ip addresses about the connected network nodes
+```
+GET /api/net/peers
+```
+
 
 #### Responses
 
@@ -459,89 +498,6 @@ Click to get the [swagger.json](#swagger-json)
 #### Tags
 
 * Net
-
-
-<a name="posttest"></a>
-### POST /api/versionTest/test
-
-#### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Query**|**test**  <br>*optional*|string|
-
-
-#### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|string|
-
-
-#### Produces
-
-* `text/plain; v=1.0`
-* `application/json; v=1.0`
-* `text/json; v=1.0`
-* `application/x-protobuf; v=1.0`
-
-
-#### Tags
-
-* VersionTest
-
-
-<a name="gettest"></a>
-### GET /api/versionTest/test
-
-#### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|string|
-
-
-#### Produces
-
-* `text/plain; v=1.0`
-* `application/json; v=1.0`
-* `text/json; v=1.0`
-* `application/x-protobuf; v=1.0`
-
-
-#### Tags
-
-* VersionTest
-
-
-<a name="deletetest"></a>
-### DELETE /api/versionTest/test
-
-#### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Query**|**test**  <br>*optional*|string|
-
-
-#### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|string|
-
-
-#### Produces
-
-* `text/plain; v=1.0`
-* `application/json; v=1.0`
-* `text/json; v=1.0`
-* `application/x-protobuf; v=1.0`
-
-
-#### Tags
-
-* VersionTest
 
 
 
@@ -610,21 +566,14 @@ Click to get the [swagger.json](#swagger-json)
 |**BestChainHash**  <br>*optional*|string|
 |**BestChainHeight**  <br>*optional*|integer (int64)|
 |**Branches**  <br>*optional*|< string, integer (int64) > map|
+|**ChainId**  <br>*optional*|string|
 |**GenesisBlockHash**  <br>*optional*|string|
+|**GenesisContractAddress**  <br>*optional*|string|
 |**LastIrreversibleBlockHash**  <br>*optional*|string|
 |**LastIrreversibleBlockHeight**  <br>*optional*|integer (int64)|
 |**LongestChainHash**  <br>*optional*|string|
 |**LongestChainHeight**  <br>*optional*|integer (int64)|
 |**NotLinkedBlocks**  <br>*optional*|< [NotLinkedBlockDto](#notlinkedblockdto) > array|
-
-
-<a name="getchaininformationoutput"></a>
-### GetChainInformationOutput
-
-|Name|Schema|
-|---|---|
-|**ChainId**  <br>*optional*|string|
-|**GenesisContractAddress**  <br>*optional*|string|
 
 
 <a name="gettransactionpoolstatusoutput"></a>
@@ -685,11 +634,10 @@ Click to get the [swagger.json](#swagger-json)
 |**Transaction**  <br>*optional*|[TransactionDto](#transactiondto)|
 |**TransactionId**  <br>*optional*|string|
 
-
 ## Swagger.json
 
 You can input it into online Swagger Editor: http://editor.swagger.io/
 
 ```json
-{"swagger":"2.0","info":{"version":"1.0","title":"AELF API 1.0"},"paths":{"/api/chain/chainInformation":{"get":{"tags":["Chain"],"operationId":"GetChainInformation","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/GetChainInformationOutput"}}}}},"/api/chain/call":{"post":{"tags":["Chain"],"operationId":"Call","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"rawTransaction","in":"query","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"type":"string"}}}}},"/api/chain/fileDescriptorSet":{"get":{"tags":["Chain"],"operationId":"GetFileDescriptorSet","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"address","in":"query","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"format":"byte","type":"string"}}}}},"/api/chain/broadcastTransaction":{"post":{"tags":["Chain"],"operationId":"BroadcastTransaction","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"rawTransaction","in":"query","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/BroadcastTransactionOutput"}}}}},"/api/chain/broadcastTransactions":{"post":{"tags":["Chain"],"operationId":"BroadcastTransactions","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"rawTransactions","in":"query","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"uniqueItems":false,"type":"array","items":{"type":"string"}}}}}},"/api/chain/transactionResult":{"get":{"tags":["Chain"],"operationId":"GetTransactionResult","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"transactionId","in":"query","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/TransactionResultDto"}}}}},"/api/chain/transactionsResult":{"get":{"tags":["Chain"],"operationId":"GetTransactionsResult","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"blockHash","in":"query","required":false,"type":"string"},{"name":"offset","in":"query","required":false,"type":"integer","format":"int32","default":0},{"name":"limit","in":"query","required":false,"type":"integer","format":"int32","default":10}],"responses":{"200":{"description":"Success","schema":{"uniqueItems":false,"type":"array","items":{"$ref":"#/definitions/TransactionResultDto"}}}}}},"/api/chain/blockHeight":{"get":{"tags":["Chain"],"operationId":"GetBlockHeight","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[],"responses":{"200":{"description":"Success","schema":{"format":"int64","type":"integer"}}}}},"/api/chain/blockInfo":{"get":{"tags":["Chain"],"operationId":"GetBlockInfo","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"blockHashOrHeight","in":"query","required":false,"type":"string"},{"name":"includeTransactions","in":"query","required":false,"type":"boolean","default":false}],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/BlockDto"}}}}},"/api/chain/transactionPoolStatus":{"get":{"tags":["Chain"],"operationId":"GetTransactionPoolStatus","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/GetTransactionPoolStatusOutput"}}}}},"/api/chain/chainStatus":{"get":{"tags":["Chain"],"operationId":"GetChainStatus","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/ChainStatusDto"}}}}},"/api/chain/blockState":{"get":{"tags":["Chain"],"operationId":"GetBlockState","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"blockHash","in":"query","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/BlockStateDto"}}}}},"/api/net/peer":{"post":{"tags":["Net"],"operationId":"AddPeer","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"address","in":"query","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"type":"boolean"}}}},"delete":{"tags":["Net"],"operationId":"RemovePeer","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"address","in":"query","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"type":"boolean"}}}}},"/api/net/peers":{"get":{"tags":["Net"],"operationId":"GetPeers","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[],"responses":{"200":{"description":"Success","schema":{"uniqueItems":false,"type":"array","items":{"type":"string"}}}}}},"/api/versionTest/test":{"get":{"tags":["VersionTest"],"operationId":"GetTest","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[],"responses":{"200":{"description":"Success","schema":{"type":"string"}}}},"post":{"tags":["VersionTest"],"operationId":"PostTest","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"test","in":"query","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"type":"string"}}}},"delete":{"tags":["VersionTest"],"operationId":"DeleteTest","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"test","in":"query","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"type":"string"}}}}}},"definitions":{"GetChainInformationOutput":{"type":"object","properties":{"GenesisContractAddress":{"type":"string"},"ChainId":{"type":"string"}}},"BroadcastTransactionOutput":{"type":"object","properties":{"TransactionId":{"type":"string"}}},"TransactionResultDto":{"type":"object","properties":{"TransactionId":{"type":"string"},"Status":{"type":"string"},"Logs":{"uniqueItems":false,"type":"array","items":{"$ref":"#/definitions/LogEventDto"}},"Bloom":{"type":"string"},"BlockNumber":{"format":"int64","type":"integer"},"BlockHash":{"type":"string"},"Transaction":{"$ref":"#/definitions/TransactionDto"},"ReadableReturnValue":{"type":"string"},"Error":{"type":"string"}}},"LogEventDto":{"type":"object","properties":{"Address":{"type":"string"},"Name":{"type":"string"},"Indexed":{"uniqueItems":false,"type":"array","items":{"type":"string"}},"NonIndexed":{"type":"string"}}},"TransactionDto":{"type":"object","properties":{"From":{"type":"string"},"To":{"type":"string"},"RefBlockNumber":{"format":"int64","type":"integer"},"RefBlockPrefix":{"type":"string"},"MethodName":{"type":"string"},"Params":{"type":"string"},"Sigs":{"uniqueItems":false,"type":"array","items":{"type":"string"}}}},"BlockDto":{"type":"object","properties":{"BlockHash":{"type":"string"},"Header":{"$ref":"#/definitions/BlockHeaderDto"},"Body":{"$ref":"#/definitions/BlockBodyDto"}}},"BlockHeaderDto":{"type":"object","properties":{"PreviousBlockHash":{"type":"string"},"MerkleTreeRootOfTransactions":{"type":"string"},"MerkleTreeRootOfWorldState":{"type":"string"},"Extra":{"type":"string"},"Height":{"format":"int64","type":"integer"},"Time":{"format":"date-time","type":"string"},"ChainId":{"type":"string"},"Bloom":{"type":"string"}}},"BlockBodyDto":{"type":"object","properties":{"TransactionsCount":{"format":"int32","type":"integer"},"Transactions":{"uniqueItems":false,"type":"array","items":{"type":"string"}}}},"GetTransactionPoolStatusOutput":{"type":"object","properties":{"Queued":{"format":"int32","type":"integer"}}},"ChainStatusDto":{"type":"object","properties":{"Branches":{"type":"object","additionalProperties":{"format":"int64","type":"integer"}},"NotLinkedBlocks":{"uniqueItems":false,"type":"array","items":{"$ref":"#/definitions/NotLinkedBlockDto"}},"LongestChainHeight":{"format":"int64","type":"integer"},"LongestChainHash":{"type":"string"},"GenesisBlockHash":{"type":"string"},"LastIrreversibleBlockHash":{"type":"string"},"LastIrreversibleBlockHeight":{"format":"int64","type":"integer"},"BestChainHash":{"type":"string"},"BestChainHeight":{"format":"int64","type":"integer"}}},"NotLinkedBlockDto":{"type":"object","properties":{"BlockHash":{"type":"string"},"Height":{"format":"int64","type":"integer"},"PreviousBlockHash":{"type":"string"}}},"BlockStateDto":{"type":"object","properties":{"BlockHash":{"type":"string"},"PreviousHash":{"type":"string"},"BlockHeight":{"format":"int64","type":"integer"},"Changes":{"type":"object","additionalProperties":{"type":"string"}}}}}}
+{"swagger":"2.0","info":{"version":"1.0","title":"AELF API 1.0"},"paths":{"/api/blockChain/call":{"post":{"tags":["BlockChain"],"summary":"Call a read-only method on a contract.","operationId":"Call","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"rawTransaction","in":"query","description":"raw transaction","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"type":"string"}}}}},"/api/blockChain/contractFileDescriptorSet":{"get":{"tags":["BlockChain"],"summary":"Get the protobuf definitions related to a contract","operationId":"GetContractFileDescriptorSet","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"address","in":"query","description":"contract address","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"format":"byte","type":"string"}}}}},"/api/blockChain/broadcastTransaction":{"post":{"tags":["BlockChain"],"summary":"Broadcast a transaction","operationId":"BroadcastTransaction","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"rawTransaction","in":"query","description":"raw transaction","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/BroadcastTransactionOutput"}}}}},"/api/blockChain/broadcastTransactions":{"post":{"tags":["BlockChain"],"summary":"Broadcast multiple transactions","operationId":"BroadcastTransactions","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"rawTransactions","in":"query","description":"raw transactions","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"uniqueItems":false,"type":"array","items":{"type":"string"}}}}}},"/api/blockChain/transactionResult":{"get":{"tags":["BlockChain"],"summary":"Get the current status of a transaction","operationId":"GetTransactionResult","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"transactionId","in":"query","description":"transaction id","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/TransactionResultDto"}}}}},"/api/blockChain/transactionResults":{"get":{"tags":["BlockChain"],"summary":"Get multiple transaction results.","operationId":"GetTransactionResults","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"blockHash","in":"query","description":"block hash","required":false,"type":"string"},{"name":"offset","in":"query","description":"offset","required":false,"type":"integer","format":"int32","default":0},{"name":"limit","in":"query","description":"limit","required":false,"type":"integer","format":"int32","default":10}],"responses":{"200":{"description":"Success","schema":{"uniqueItems":false,"type":"array","items":{"$ref":"#/definitions/TransactionResultDto"}}}}}},"/api/blockChain/blockHeight":{"get":{"tags":["BlockChain"],"summary":"Get the height of the current chain.","operationId":"GetBlockHeight","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[],"responses":{"200":{"description":"Success","schema":{"format":"int64","type":"integer"}}}}},"/api/blockChain/block":{"get":{"tags":["BlockChain"],"summary":"Get information about a given block by block hash. Otionally with the list of its transactions.","operationId":"GetBlock","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"blockHash","in":"query","description":"block hash","required":false,"type":"string"},{"name":"includeTransactions","in":"query","description":"include transactions or not","required":false,"type":"boolean","default":false}],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/BlockDto"}}}}},"/api/blockChain/blockByHeight":{"get":{"tags":["BlockChain"],"summary":"Get information about a given block by block height. Otionally with the list of its transactions.","operationId":"GetBlockByHeight","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"blockHeight","in":"query","description":"block height","required":false,"type":"integer","format":"int64"},{"name":"includeTransactions","in":"query","description":"include transactions or not","required":false,"type":"boolean","default":false}],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/BlockDto"}}}}},"/api/blockChain/transactionPoolStatus":{"get":{"tags":["BlockChain"],"summary":"Get the transaction pool status.","operationId":"GetTransactionPoolStatus","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/GetTransactionPoolStatusOutput"}}}}},"/api/blockChain/chainStatus":{"get":{"tags":["BlockChain"],"summary":"Get the current status of the block chain.","operationId":"GetChainStatus","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/ChainStatusDto"}}}}},"/api/blockChain/blockState":{"get":{"tags":["BlockChain"],"summary":"Get the current state about a given block","operationId":"GetBlockState","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"blockHash","in":"query","description":"block hash","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"$ref":"#/definitions/BlockStateDto"}}}}},"/api/net/peer":{"post":{"tags":["Net"],"summary":"Attempts to add a node to the connected network nodes","operationId":"AddPeer","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"address","in":"query","description":"ip address","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"type":"boolean"}}}},"delete":{"tags":["Net"],"summary":"Attempts to remove a node from the connected network nodes","operationId":"RemovePeer","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[{"name":"address","in":"query","description":"ip address","required":false,"type":"string"}],"responses":{"200":{"description":"Success","schema":{"type":"boolean"}}}}},"/api/net/peers":{"get":{"tags":["Net"],"summary":"Get ip addresses about the connected network nodes","operationId":"GetPeers","consumes":[],"produces":["text/plain; v=1.0","application/json; v=1.0","text/json; v=1.0","application/x-protobuf; v=1.0"],"parameters":[],"responses":{"200":{"description":"Success","schema":{"uniqueItems":false,"type":"array","items":{"type":"string"}}}}}}},"definitions":{"BroadcastTransactionOutput":{"type":"object","properties":{"TransactionId":{"type":"string"}}},"TransactionResultDto":{"type":"object","properties":{"TransactionId":{"type":"string"},"Status":{"type":"string"},"Logs":{"uniqueItems":false,"type":"array","items":{"$ref":"#/definitions/LogEventDto"}},"Bloom":{"type":"string"},"BlockNumber":{"format":"int64","type":"integer"},"BlockHash":{"type":"string"},"Transaction":{"$ref":"#/definitions/TransactionDto"},"ReadableReturnValue":{"type":"string"},"Error":{"type":"string"}}},"LogEventDto":{"type":"object","properties":{"Address":{"type":"string"},"Name":{"type":"string"},"Indexed":{"uniqueItems":false,"type":"array","items":{"type":"string"}},"NonIndexed":{"type":"string"}}},"TransactionDto":{"type":"object","properties":{"From":{"type":"string"},"To":{"type":"string"},"RefBlockNumber":{"format":"int64","type":"integer"},"RefBlockPrefix":{"type":"string"},"MethodName":{"type":"string"},"Params":{"type":"string"},"Sigs":{"uniqueItems":false,"type":"array","items":{"type":"string"}}}},"BlockDto":{"type":"object","properties":{"BlockHash":{"type":"string"},"Header":{"$ref":"#/definitions/BlockHeaderDto"},"Body":{"$ref":"#/definitions/BlockBodyDto"}}},"BlockHeaderDto":{"type":"object","properties":{"PreviousBlockHash":{"type":"string"},"MerkleTreeRootOfTransactions":{"type":"string"},"MerkleTreeRootOfWorldState":{"type":"string"},"Extra":{"type":"string"},"Height":{"format":"int64","type":"integer"},"Time":{"format":"date-time","type":"string"},"ChainId":{"type":"string"},"Bloom":{"type":"string"}}},"BlockBodyDto":{"type":"object","properties":{"TransactionsCount":{"format":"int32","type":"integer"},"Transactions":{"uniqueItems":false,"type":"array","items":{"type":"string"}}}},"GetTransactionPoolStatusOutput":{"type":"object","properties":{"Queued":{"format":"int32","type":"integer"}}},"ChainStatusDto":{"type":"object","properties":{"ChainId":{"type":"string"},"Branches":{"type":"object","additionalProperties":{"format":"int64","type":"integer"}},"NotLinkedBlocks":{"uniqueItems":false,"type":"array","items":{"$ref":"#/definitions/NotLinkedBlockDto"}},"LongestChainHeight":{"format":"int64","type":"integer"},"LongestChainHash":{"type":"string"},"GenesisBlockHash":{"type":"string"},"GenesisContractAddress":{"type":"string"},"LastIrreversibleBlockHash":{"type":"string"},"LastIrreversibleBlockHeight":{"format":"int64","type":"integer"},"BestChainHash":{"type":"string"},"BestChainHeight":{"format":"int64","type":"integer"}}},"NotLinkedBlockDto":{"type":"object","properties":{"BlockHash":{"type":"string"},"Height":{"format":"int64","type":"integer"},"PreviousBlockHash":{"type":"string"}}},"BlockStateDto":{"type":"object","properties":{"BlockHash":{"type":"string"},"PreviousHash":{"type":"string"},"BlockHeight":{"format":"int64","type":"integer"},"Changes":{"type":"object","additionalProperties":{"type":"string"}}}}}}
 ```

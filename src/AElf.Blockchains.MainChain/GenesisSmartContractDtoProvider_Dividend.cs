@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using AElf.Contracts.Dividend;
 using AElf.Kernel;
+using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
-using InitialDividendContractInput = AElf.Contracts.Dividend.InitialDividendContractInput;
 
-namespace AElf.Blockchains.MainChain.DividendModule
+namespace AElf.Blockchains.MainChain
 {
-    public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
+    public partial class GenesisSmartContractDtoProvider
     {
-        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
+        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForDividend(Address zeroContractAddress)
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract<DividendContract>(

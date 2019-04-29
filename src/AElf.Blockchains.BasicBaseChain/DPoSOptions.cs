@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace AElf.Blockchains.MainChain.ConsensusModule
+namespace AElf.Blockchains
 {
     // ReSharper disable once InconsistentNaming
     public class DPoSOptions
