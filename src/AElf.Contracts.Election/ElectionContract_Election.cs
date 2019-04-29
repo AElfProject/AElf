@@ -22,6 +22,7 @@ namespace AElf.Contracts.Election
             State.Candidates.Value = new PublicKeysList();
             State.MinimumLockTime.Value = int.Parse(Context.Variables.MinimumLockTime);
             State.MaximumLockTime.Value = int.Parse(Context.Variables.MaximumLockTime);
+            State.BaseTimeUnit.Value = int.Parse(Context.Variables.BaseTimeUnit);
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -52,8 +53,6 @@ namespace AElf.Contracts.Election
                 State.BasicContractZero.GetContractAddressByName.Call(State.VoteContractSystemName.Value);
             State.AElfConsensusContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
-
-            State.BaseTimeUnit.Value = input.LockTimeUnit;
 
             Context.LogDebug(() =>
                 $"Will change term every {Context.Variables.TimeEachTerm} {(TimeUnit) State.BaseTimeUnit.Value}");

@@ -86,6 +86,8 @@ namespace AElf.Blockchains.BasicBaseChain
                     .GetConfiguration().GetValue("ElectionInitial:MinimumLockTime", "90");
                 options.ContextVariables[ContextVariableDictionary.MaximumLockTimeName] = context.Services
                     .GetConfiguration().GetValue("ElectionInitial:MaximumLockTime", "1080");
+                options.ContextVariables[ContextVariableDictionary.BaseTimeUnitName] = context.Services
+                    .GetConfiguration().GetValue("ElectionInitial:BaseTimeUnit", "2");
             });
 
             Configure<ConsensusOptions>(option =>

@@ -26,8 +26,7 @@ namespace AElf.Blockchains.MainChain
             aelfConsensusMethodCallList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    BaseTimeUnit = (int) TimeUnit.Minutes
+                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name
                 });
             aelfConsensusMethodCallList.Add(nameof(AElfConsensusContract.FirstRound),
                 new Miners

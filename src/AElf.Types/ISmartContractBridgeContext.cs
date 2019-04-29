@@ -28,6 +28,10 @@ namespace AElf
         public string MaximumLockTime => this[nameof(MaximumLockTime)];
     
         public const string MaximumLockTimeName = nameof(MaximumLockTime);
+
+        public string BaseTimeUnit => this[nameof(BaseTimeUnit)];
+
+        public const string BaseTimeUnitName = nameof(BaseTimeUnit);
     }
 
     public interface ISmartContractBridgeContext

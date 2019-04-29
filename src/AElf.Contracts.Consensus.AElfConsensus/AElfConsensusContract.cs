@@ -25,15 +25,14 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 return new Empty();
             }
 
-            State.BaseTimeUnit.Value = input.BaseTimeUnit;
+            State.BaseTimeUnit.Value = int.Parse(Context.Variables.BaseTimeUnit);
 
             State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
             
             State.ElectionContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(input.ElectionContractSystemName);
 
-            State.ElectionContract.RegisterElectionVotingEvent.Send(new RegisterElectionVotingEventInput
-                {LockTimeUnit = input.BaseTimeUnit});
+            State.ElectionContract.RegisterElectionVotingEvent.Send(new RegisterElectionVotingEventInput());
 
             State.ElectionContract.CreateTreasury.Send(new CreateTreasuryInput());
 

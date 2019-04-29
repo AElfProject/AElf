@@ -17,7 +17,7 @@ message InitialElectionContractInput {
 }
 
 message RegisterElectionVotingEventInput {
-    sint32 lock_time_unit = 1;
+
 }
 
 message CreateTreasuryInput {
