@@ -11,11 +11,9 @@ import "core.proto";
 //    Address To = 2;
 //    int64 RefBlockNumber = 3;
 //    bytes RefBlockPrefix = 4;
-//    uint64 IncrementId = 5;
-//    string MethodName = 6;
-//    bytes Params = 7;
-//    uint64 Fee = 8;
-//    repeated bytes Sigs = 9;
+//    string MethodName = 5;
+//    bytes Params = 6;
+//    bytes Signature = 10000;
 //}
 
 enum TransactionStatus {
@@ -155,23 +153,18 @@ message BlockHeaderList {
     repeated BlockHeader Headers = 1;
 }
 
-message BlockExtraData {
-    Hash SideChainTransactionsRoot = 1;
-    bytes ConsensusInformation = 2;
-}
-
 message BlockHeader {
     int32 Version = 1;
-    Hash PreviousBlockHash = 2;
-    Hash MerkleTreeRootOfTransactions = 3;
-    Hash MerkleTreeRootOfWorldState = 4;
-    bytes Bloom = 5;
-    int64 Height = 6;
-    bytes Sig = 7;
-    bytes P = 8;
+    int32 ChainId = 2;
+    Hash PreviousBlockHash = 3;
+    Hash MerkleTreeRootOfTransactions = 4;
+    Hash MerkleTreeRootOfWorldState = 5;
+    bytes Bloom = 6;
+    int64 Height = 7;
+    repeated bytes BlockExtraDatas = 8;
     google.protobuf.Timestamp Time = 9;
-    int32 ChainId = 10; // Does the BlockHeader needs ChainId ???
-    repeated bytes BlockExtraDatas = 11;
+    bytes SignerPubkey = 9999;
+    bytes Signature = 10000;
 }
 
 message BlockBody {

@@ -47,7 +47,7 @@ namespace AElf.CrossChain
             // filledCrossChainBlockData == null means no cross chain data filled in this block.
             if (filledCrossChainBlockData != null)
             {
-                generatedTransactions.Add(GenerateNotSignedTransaction(from, CrossChainConsts.CrossChainIndexingMethodName, refBlockNumber,
+                generatedTransactions.Add(GenerateNotSignedTransaction(from, CrossChainConstants.CrossChainIndexingMethodName, refBlockNumber,
                     previousBlockPrefix, filledCrossChainBlockData));
             }
             

@@ -11,11 +11,9 @@ message Transaction {
     Address To = 2;
     int64 RefBlockNumber = 3;
     bytes RefBlockPrefix = 4;
-    uint64 IncrementId = 5;
-    string MethodName = 6;
-    bytes Params = 7;
-    uint64 Fee = 8;
-    repeated bytes Sigs = 9;
+    string MethodName = 5;
+    bytes Params = 6;
+    bytes Signature = 10000;
 }
 ```
 

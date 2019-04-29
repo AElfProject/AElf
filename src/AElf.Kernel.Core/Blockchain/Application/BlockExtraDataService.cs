@@ -31,6 +31,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         public ByteString GetExtraDataFromBlockHeader(string blockExtraDataProviderSymbol, BlockHeader blockHeader)
         {
+            // It would cause chaos if new provider injected later, which should be improved.
             if (blockHeader.Height == KernelConstants.GenesisBlockHeight)
                 return null;
             for (var i = 0; i < _blockExtraDataProviders.Count; i++)

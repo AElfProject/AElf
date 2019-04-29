@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Numerics;
@@ -17,6 +18,7 @@ namespace AElf
     {
         private const int CheckSumSize = 4;
         private const string Digits = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+        private static HashSet<char> DigitsHash = new HashSet<char>(Digits.ToCharArray());
 
         /// <summary>
         /// Encodes data with a 4-byte checksum
@@ -135,6 +137,21 @@ namespace AElf
             var result = leadingZeros.Concat(bytesWithoutLeadingZeros).ToArray();
 
             return result;
+        }
+
+        public static bool Verify(string data)
+        {
+            for (var i = 0; i < data.Length; i++)
+            {
+                if (!DigitsHash.Contains(data[i]))
+                    return false;
+            }
+
+            var dataWithCheckSum = DecodePlain(data);
+            var dataWithoutCheckSum = _VerifyAndRemoveCheckSum(dataWithCheckSum);
+            if (dataWithoutCheckSum == null)
+                return false;
+            return true;
         }
 
         private static byte[] _AddCheckSum(byte[] data)

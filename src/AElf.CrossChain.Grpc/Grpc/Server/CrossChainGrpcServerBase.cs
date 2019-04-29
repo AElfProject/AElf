@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,33 +14,31 @@ namespace AElf.CrossChain.Grpc
     {
         public ILogger<CrossChainGrpcServerBase> Logger { get; set; }
         public ILocalEventBus LocalEventBus { get; set; }
-        private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
-        private readonly ILocalLibService _localLibService;
-        private readonly CrossChainConfigOption _crossChainConfigOption;
+        private readonly ICrossChainExtraDataExtractor _crossChainExtraDataExtractor;
+        private readonly IBlockchainService _blockchainService;
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         
-        public CrossChainGrpcServerBase(IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption,
-            IBlockExtraDataExtractor blockExtraDataExtractor, ILocalLibService localLibService, ICrossChainDataProvider crossChainDataProvider)
+        public CrossChainGrpcServerBase(ICrossChainExtraDataExtractor crossChainExtraDataExtractor, 
+            ICrossChainDataProvider crossChainDataProvider, IBlockchainService blockchainService)
         {
-            _blockExtraDataExtractor = blockExtraDataExtractor;
-            _localLibService = localLibService;
+            _crossChainExtraDataExtractor = crossChainExtraDataExtractor;
             _crossChainDataProvider = crossChainDataProvider;
+            _blockchainService = blockchainService;
             LocalEventBus = NullLocalEventBus.Instance;
-            _crossChainConfigOption = crossChainConfigOption.Value;
         }
 
         public override async Task RequestIndexingFromParentChain(RequestCrossChainBlockData request, 
             IServerStreamWriter<ResponseParentChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Parent Chain Server received IndexedInfo message.");
-            await WriteResponseStream(request, responseStream, false);
+            await WriteResponseStream(request, responseStream, true);
         }
         
         public override async Task RequestIndexingFromSideChain(RequestCrossChainBlockData request, 
             IServerStreamWriter<ResponseSideChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Side Chain Server received IndexedInfo message.");
-            await WriteResponseStream(request, responseStream, true);
+            await WriteResponseStream(request, responseStream, false);
         }
 
         public override Task<IndexingHandShakeReply> CrossChainIndexingShake(IndexingHandShake request, ServerCallContext context)
@@ -53,7 +52,6 @@ namespace AElf.CrossChain.Grpc
                     TargetPort = request.ListeningPort,
                     RemoteChainId = request.ChainId,
                     RemoteIsSideChain = true,
-                    CertificateFileName = ChainHelpers.ConvertChainIdToBase58(request.ChainId)
                 }
             });
             //Logger.LogWarning($"Hand shake from chain {request.ChainId}, ip {splitRes[1]}, port {request.ListeningPort}");
@@ -64,8 +62,7 @@ namespace AElf.CrossChain.Grpc
         {
             return new ChainInitializationResponse
             {
-                SideChainInitializationContext =
-                    await _crossChainDataProvider.GetChainInitializationContextAsync(request.ChainId)
+                SideChainInitializationContext = await GetChainInitializationContextAsync(request.ChainId)
             };
         }
 
@@ -103,7 +100,8 @@ namespace AElf.CrossChain.Grpc
             return merklepathList;
         }
         
-        private async Task<IResponseIndexingMessage> CreateParentChainResponse(Block block, int remoteSideChainId)
+        private async Task<IResponseIndexingMessage> CreateResponseForSideChain(Block block, int remoteSideChainId,
+            long parentChainHeightOfCreation)
         {
             var responseParentChainBlockData = new ResponseParentChainBlockData
             {
@@ -117,22 +115,12 @@ namespace AElf.CrossChain.Grpc
                     }
                 }
             };
-            foreach (var symbol in _crossChainConfigOption.ExtraDataSymbols)
-            {
-                var extraData = _blockExtraDataExtractor.ExtractOtherExtraData(symbol, block.Header);
-                if(extraData != null)
-                    responseParentChainBlockData.BlockData.ExtraData.Add(symbol, extraData);
-            }
-            
-            var transactionStatusMerkleRoot =
-                _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header);
-            responseParentChainBlockData.BlockData.Root.TransactionStatusMerkleRoot = transactionStatusMerkleRoot;
-            
-            var crossChainExtra = _blockExtraDataExtractor.ExtractCrossChainExtraData(block.Header);
-            if (crossChainExtra == null) 
+            responseParentChainBlockData = FillExtraDataInResponse(responseParentChainBlockData, block.Header,
+                block.Height >= parentChainHeightOfCreation);
+
+            if (responseParentChainBlockData.BlockData.Root.CrossChainExtraData == null) 
                 return responseParentChainBlockData;
             
-            responseParentChainBlockData.BlockData.Root.CrossChainExtraData = crossChainExtra;
             var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockInfoResult(block);
             var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, remoteSideChainId);
             foreach (var (sideChainHeight, merklePath) in enumerableMerklePath)
@@ -142,9 +130,9 @@ namespace AElf.CrossChain.Grpc
             return responseParentChainBlockData;
         }
 
-        private IResponseIndexingMessage CreateSideChainBlockData(Block block)
+        private IResponseIndexingMessage CreateSideChainResponse(Block block)
         {
-            var transactionStatusMerkleRoot = _blockExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header); 
+            var transactionStatusMerkleRoot = _crossChainExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(block.Header); 
             return new ResponseSideChainBlockData
             {
                 Success = block.Header != null,
@@ -159,18 +147,21 @@ namespace AElf.CrossChain.Grpc
         }
 
         private async Task WriteResponseStream<T>(RequestCrossChainBlockData request, 
-            IServerStreamWriter<T> responseStream, bool requestSideChain) where T : IResponseIndexingMessage
+            IServerStreamWriter<T> responseStream, bool isSideChainRequest) where T : IResponseIndexingMessage
         {
             var requestedHeight = request.NextHeight;
             var remoteChainId = request.FromChainId;
+            var parentChainHeightOfCreation = isSideChainRequest ?
+                (await GetChainInitializationContextAsync(remoteChainId)).ParentChainHeightOfCreation : 0;
             while (true)
             {
                 var block = await GetIrreversibleBlock(requestedHeight);
                 if (block == null)
                     return;
-                var res = requestSideChain
-                    ? CreateSideChainBlockData(block)
-                    : await CreateParentChainResponse(block, remoteChainId);
+                var res = isSideChainRequest
+                    ? await CreateResponseForSideChain(block, remoteChainId, parentChainHeightOfCreation)
+                    : CreateSideChainResponse(block);
+                    
                 await responseStream.WriteAsync((T) res);
                 requestedHeight++;
             }
@@ -178,7 +169,34 @@ namespace AElf.CrossChain.Grpc
             
         private async Task<Block> GetIrreversibleBlock(long height)
         {
-            return await _localLibService.GetIrreversibleBlockByHeightAsync(height);
+            return await _blockchainService.GetIrreversibleBlockByHeightAsync(height);
+        }
+
+        private async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId)
+        {
+            var libDto = await _blockchainService.GetLibHashAndHeight();
+            return await _crossChainDataProvider.GetChainInitializationContextAsync(chainId, libDto.BlockHash,
+                libDto.BlockHeight);
+        }
+
+        private ResponseParentChainBlockData FillExtraDataInResponse(ResponseParentChainBlockData responseParentChainBlockData, 
+            BlockHeader blockHeader, bool needOtherExtraData)
+        {
+            var transactionStatusMerkleRoot =
+                _crossChainExtraDataExtractor.ExtractTransactionStatusMerkleTreeRoot(blockHeader);
+            responseParentChainBlockData.BlockData.Root.TransactionStatusMerkleRoot = transactionStatusMerkleRoot;
+            
+            var crossChainExtra = _crossChainExtraDataExtractor.ExtractCrossChainData(blockHeader);
+            responseParentChainBlockData.BlockData.Root.CrossChainExtraData = crossChainExtra;
+            
+            if(needOtherExtraData)
+            {
+                // only pack extra information after side chain creation
+                // but the problem of communication data size still exists 
+                responseParentChainBlockData.BlockData.ExtraData.Add(_crossChainExtraDataExtractor.ExtractCommonExtraDataForExchange(blockHeader));
+            }
+
+            return responseParentChainBlockData;
         }
     }
 }

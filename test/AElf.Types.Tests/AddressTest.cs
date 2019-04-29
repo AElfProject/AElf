@@ -84,6 +84,24 @@ namespace AElf.Types.Tests
 
             var strError = chainAddress1.ToString();
             Should.Throw<ArgumentException>(() => { chainAddress2 = ChainAddress.Parse(strError); });
-        }        
+        }
+
+        [Fact]
+        public void Verify_Address()
+        {
+            var address = Address.Generate();
+            var formattedAddress = address.GetFormatted();
+            AddressHelpers.VerifyFormattedAddress(formattedAddress).ShouldBeTrue();
+
+            AddressHelpers.VerifyFormattedAddress(formattedAddress + "ER").ShouldBeFalse();
+            AddressHelpers.VerifyFormattedAddress("AE" + formattedAddress).ShouldBeFalse();
+
+            var formattedAddressCharArray = formattedAddress.ToCharArray();
+            formattedAddressCharArray[4] = 'F';
+            AddressHelpers.VerifyFormattedAddress(new string(formattedAddressCharArray)).ShouldBeFalse();
+
+            AddressHelpers.VerifyFormattedAddress("").ShouldBeFalse();
+            AddressHelpers.VerifyFormattedAddress("I0I0").ShouldBeFalse();
+        }
     }
 }
