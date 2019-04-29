@@ -11,6 +11,7 @@
         <ProjectReference Include="..\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />

@@ -1,9 +1,8 @@
-using AElf.Kernel;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache
 {
-    public class CrossChainDataConsumer : ICrossChainDataConsumer, ISingletonDependency
+    public class CrossChainDataConsumer : ICrossChainDataConsumer, ITransientDependency
     {
         private readonly IMultiChainBlockInfoCacheProvider _multiChainBlockInfoCacheProvider;
 
@@ -23,22 +22,6 @@ namespace AElf.CrossChain.Cache
             }
 
             return default(T);
-        }
-
-        public int GetCachedChainCount()
-        {
-            return _multiChainBlockInfoCacheProvider.Size;
-        }
-
-        public void TryRegisterNewChainCache(int remoteChainId, long chainHeight = KernelConstants.GenesisBlockHeight)
-        {
-            if(!_multiChainBlockInfoCacheProvider.ContainsChain(remoteChainId))
-                _multiChainBlockInfoCacheProvider.AddBlockInfoCache(remoteChainId, new BlockInfoCache(chainHeight));
-        }
-
-        public bool CheckAlreadyCachedChain(int remoteChainId)
-        {
-            return _multiChainBlockInfoCacheProvider.ContainsChain(remoteChainId);
         }
     }
 }

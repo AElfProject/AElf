@@ -222,11 +222,11 @@ namespace AElf.Contracts.Consensus.DPoS
             return false;
         }
 
-        private Transaction GenerateTransaction(string methodName, IMessage parameter)
+        private Transaction GenerateTransaction(string methodName, IMessage parameter, ByteString publicKey)
         {
             var tx = new Transaction
             {
-                From = Context.Sender,
+                From = Address.FromPublicKey(publicKey.ToByteArray()),
                 To = Context.Self,
                 MethodName = methodName,
                 Params = parameter.ToByteString()

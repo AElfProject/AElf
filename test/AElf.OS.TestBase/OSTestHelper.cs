@@ -147,7 +147,7 @@ namespace AElf.OS
                 new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
-            transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            transaction.Signature = ByteString.CopyFrom(signature);
 
             return transaction;
         }
@@ -242,7 +242,7 @@ namespace AElf.OS
                 });
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
-            transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            transaction.Signature = ByteString.CopyFrom(signature);
 
             await BroadcastTransactions(new List<Transaction> {transaction});
             await MinedOneBlock();

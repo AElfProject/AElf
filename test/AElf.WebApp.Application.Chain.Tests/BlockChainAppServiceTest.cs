@@ -139,8 +139,8 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             // Generate unsigned transaction
             var transaction = await _osTestHelper.GenerateTransferTransaction();
-            transaction.Sigs.Clear();
-            
+            transaction.Signature = ByteString.CopyFrom(new byte[0]);
+
             var parameters = new Dictionary<string,string>
             {
                 {"rawTransaction",transaction.ToByteArray().ToHex()}
@@ -634,7 +634,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var response =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>(
                     "/api/blockChain/rawTransaction", parameters, useApplicationJson: true);
-            response.RawTransaction.ShouldBe("0a220a20616c59d43bab19018baeb0f422f65358011156ef76994d13ac8f77217c2e618312220a20aaa58b6cf58d4ef337f6dc55b701fd57d622015a3548a91a4e40892aa355d70e18e4152204190db8ba32085472616e736665723a320a220a20858490f959fcdde05798e021819eae4cd462ea45bda2028d44eea3ea81b43d451203454c4618c801220474657374");
+            response.RawTransaction.ShouldBe("0a220a20616c59d43bab19018baeb0f422f65358011156ef76994d13ac8f77217c2e618312220a20aaa58b6cf58d4ef337f6dc55b701fd57d622015a3548a91a4e40892aa355d70e18e4152204190db8ba2a085472616e7366657232320a220a20858490f959fcdde05798e021819eae4cd462ea45bda2028d44eea3ea81b43d451203454c4618c801220474657374");
         }
         
         [Fact]
@@ -696,8 +696,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 "{ \"to\": \""+Address.FromPublicKey(newUserKeyPair.PublicKey).GetFormatted()+"\", \"symbol\": \"ELF\", \"amount\": \"100\", \"memo\": \"test\" }");
             sendTransactionResponse.Transaction.RefBlockNumber.ShouldBe(chain.BestChainHeight);
             sendTransactionResponse.Transaction.RefBlockPrefix.ShouldBe(ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()).ToBase64());
-            sendTransactionResponse.Transaction.Sigs[0].ShouldBe(ByteString.CopyFrom(signature).ToBase64());
-            
+            sendTransactionResponse.Transaction.Signature.ShouldBe(ByteString.CopyFrom(signature).ToBase64());
+
             existTransaction = await _txHub.GetExecutableTransactionSetAsync();
             existTransaction.Transactions[0].GetHash().ToHex().ShouldBe(sendTransactionResponse.TransactionId);
         }
@@ -723,7 +723,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
                 var signature =
                     CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
-                transaction.Sigs.Add(ByteString.CopyFrom(signature));
+                transaction.Signature = ByteString.CopyFrom(signature);
 
                 transactionList.Add(transaction); 
             }
@@ -739,9 +739,9 @@ namespace AElf.WebApp.Application.Chain.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                 method, input);
             
-            var signature =
-                CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
-            transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            var signature = CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, 
+                    transaction.GetHash().DumpByteArray());
+            transaction.Signature = ByteString.CopyFrom(signature);
 
             return Task.FromResult(transaction);
         }
