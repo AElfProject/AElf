@@ -21,6 +21,7 @@ namespace AElf.Runtime.CSharp.Policies
             
             // AElf dependencies
             typeof(CSharpSmartContract).Assembly, // AElf.Sdk.CSharp
+            typeof(Address).Assembly,             // AElf.Types
             typeof(IMethod).Assembly,             // AElf.CSharp.Core
         };
         
@@ -28,20 +29,31 @@ namespace AElf.Runtime.CSharp.Policies
         {
             Whitelist = new Whitelist()
                 // Allowed namespaces
-                .Namespace("AElf.Sdk", Permission.Allowed)
+                .Namespace("Aelf", Permission.Allowed) // For protobuf generated code
+                .Namespace("AElf", Permission.Allowed)
+                .Namespace("AElf.CrossChain.*", Permission.Allowed)
+                .Namespace("AElf.Sdk.*", Permission.Allowed)
                 .Namespace("AElf.CSharp.Core", Permission.Allowed)
-                .Namespace("AElf.Kernel", Permission.Allowed)
-                .Namespace("Google.Protobuf", Permission.Allowed)
+                .Namespace("AElf.Kernel", Permission.Allowed)        // Remove later
+                .Namespace("AElf.Kernel.Types", Permission.Allowed)  // Remove later
+                .Namespace("Google.Protobuf.*", Permission.Allowed)
                 .Namespace("System.Collections.Generic", Permission.Allowed)
             
                 // Selectively allowed types and members
                 .Namespace("System", Permission.Denied, type => type
+                    .Type("Func`1", Permission.Allowed) // Required for protobuf generated code
+                    .Type("Func`2", Permission.Allowed) // Required for protobuf generated code
+                    .Type("Func`3", Permission.Allowed) // Required for protobuf generated code
                     .Type(nameof(DateTime), Permission.Allowed, member => member
                         .Member(nameof(DateTime.Now), Permission.Denied)
                         .Member(nameof(DateTime.UtcNow), Permission.Denied)
                         .Member(nameof(DateTime.Today), Permission.Denied))
                     .Type(typeof(void).Name, Permission.Allowed)
                     .Type(typeof(object).Name, Permission.Allowed)
+                    .Type(typeof(Type).Name, Permission.Allowed)
+                    .Type(typeof(IDisposable).Name, Permission.Allowed)
+                    .Type(typeof(Convert).Name, Permission.Allowed)
+                    .Type(typeof(Math).Name, Permission.Allowed)
                     // Primitive types
                     .Type(typeof(bool).Name, Permission.Allowed)
                     .Type(typeof(byte).Name, Permission.Allowed)
@@ -53,6 +65,8 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(typeof(ulong).Name, Permission.Allowed)
                     .Type(typeof(string).Name, Permission.Allowed)
                     .Type(typeof(Byte[]).Name, Permission.Allowed))
+                .Namespace("System.Linq", Permission.Allowed)
+                .Namespace("System.Collections", Permission.Allowed)
                 .Namespace("System.Reflection", Permission.Denied, type => type
                     .Type(nameof(AssemblyCompanyAttribute), Permission.Allowed)
                     .Type(nameof(AssemblyConfigurationAttribute), Permission.Allowed)

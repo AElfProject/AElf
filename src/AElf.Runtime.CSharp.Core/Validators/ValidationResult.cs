@@ -20,7 +20,7 @@ namespace AElf.Runtime.CSharp.Validators
 
         public override string ToString()
         {
-            return Message;
+            return $"[{GetType().Name}] {Message}";
         }
     }
 }
