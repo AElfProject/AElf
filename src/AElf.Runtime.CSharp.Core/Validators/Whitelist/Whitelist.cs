@@ -115,6 +115,7 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
             if (type.IsArray)
             {
                 results.AddRange(ValidateReference(method, type.GetElementType()));
+                return results;
             }
             
             // Reached the most base type, now we can validate against the whitelist
@@ -134,7 +135,7 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
             // Filter in the whitelist whether there is any rule
             var result = Search(type, member);
 
-            // Return a validation result if search result is negative
+            // Return a validation result if search result is negative (any of the denied results)
             switch (result)
             {
                 case WhitelistSearchResult.DeniedNamespace:
@@ -146,7 +147,6 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
                     yield return new WhitelistValidationResult($"{type.Name} in {type.Namespace} is not allowed.");
                     break;
                 
-                
                 case WhitelistSearchResult.DeniedMember:
                     yield return new WhitelistValidationResult($"{member} in {type.FullName} is not allowed.");
                     break;
@@ -156,18 +156,24 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
         private WhitelistSearchResult Search(TypeReference type, string member = null)
         {
             var error = Enumerable.Empty<WhitelistValidationResult>();
+
+            var typeNs = GetNameSpace(type);
             
             // Fail if there is no rule for the namespace
-            if (!_namespaces.TryGetValue(type.Namespace, out var namespaceRule))
+            if (!_namespaces.TryGetValue(typeNs, out var namespaceRule))
             {
-                if (_namespaces.Where(ns => ns.Value.Permission == Permission.Allowed && !ns.Value.Types.Any())
-                                .Any(ns => type.Namespace.StartsWith(ns.Key)))
+                // If no exact match for namespace, check for wildcard matching
+                if (_namespaces.Where(ns => ns.Value.Permission == Permission.Allowed 
+                                            && !ns.Value.Types.Any()
+                                            && ns.Key.EndsWith("*"))
+                                .Any(ns => typeNs.StartsWith(ns.Key.Replace(".*", "")
+                                                                   .Replace("*", ""))))
                     return WhitelistSearchResult.Allowed;
                 
                 return WhitelistSearchResult.DeniedNamespace;
             }
             
-            // Fail if the type is not defined in the namespace 
+            // Fail if the type is not allowed in the namespace 
             if (!namespaceRule.Types.TryGetValue(type.Name, out var typeRule) || 
                 (typeRule.Permission == Permission.Denied && !typeRule.Members.Any()))
             {
@@ -193,8 +199,14 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
                 ? WhitelistSearchResult.Allowed
                 : WhitelistSearchResult.DeniedMember;
         }
+
+        private string GetNameSpace(TypeReference type)
+        {
+            // Below is needed for nested types that are declared in other types, otherwise namespace is null
+            return string.IsNullOrEmpty(type.Namespace) && type.DeclaringType != null ? GetNameSpace(type.DeclaringType) : type.Namespace;
+        }
     }
-    
+
     internal enum WhitelistSearchResult
     {
         Allowed,
