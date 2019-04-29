@@ -23,7 +23,7 @@ namespace AElf.Contracts.Election
         private List<ByteString> GetVictories(List<string> currentMiners)
         {
             var validCandidates = GetValidCandidates();
-            
+
             List<ByteString> victories;
 
             Context.LogDebug(() => $"Valid candidates: {validCandidates.Count} / {State.MinersCount.Value}");

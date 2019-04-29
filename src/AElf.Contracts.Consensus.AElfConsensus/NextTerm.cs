@@ -56,8 +56,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             Assert(TryToGetPreviousRoundInformation(out var previousRound),
                 "Failed to get previous round information.");
-            State.ElectionContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.ElectionContractSystemName.Value);
             
             State.ElectionContract.ReleaseTreasuryProfits.Send(new ReleaseTreasuryProfitsInput
             {

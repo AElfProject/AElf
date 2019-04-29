@@ -282,7 +282,7 @@ namespace AElf.Contracts.Election
                     await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 80, 1000);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.ShouldContain("Should lock token for at least 90 days");
+                transactionResult.Error.ShouldContain("lock time");
             }
         }
 
@@ -642,7 +642,7 @@ namespace AElf.Contracts.Election
             {
                 CandidatePublicKey = candidatePublicKey,
                 Amount = amount,
-                LockTimeUnit = LockTimeUnit.Days,
+                LockTimeUnit = TimeUnit.Days,
                 LockTime = days
             })).TransactionResult;
         }

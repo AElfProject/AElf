@@ -59,7 +59,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             // and the terminate time will based on the order of this node (to avoid conflicts).
             
             // Side chain will go next round directly.
-            if (State.DaysEachTerm.Value == int.MaxValue)
+            if (State.TimeEachTerm.Value == int.MaxValue)
             {
                 return AElfConsensusBehaviour.NextRound;
             }
@@ -79,7 +79,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             // Calculate the approvals and make the judgement of changing term.
             var changeTerm =
                 currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber,
-                    State.DaysEachTerm.Value);
+                    State.TimeEachTerm.Value, State.BaseTimeUnit.Value);
             return changeTerm
                 ? AElfConsensusBehaviour.NextTerm
                 : AElfConsensusBehaviour.NextRound;

@@ -297,6 +297,7 @@ namespace AElf.Contracts.Election
                 reElectionProfitAddWeights.Weights.Add(new WeightMap
                     {Receiver = Context.ConvertVirtualAddressToContractAddress(State.TreasuryHash.Value), Weight = 1});
             }
+
             State.ProfitContract.AddWeights.Send(reElectionProfitAddWeights);
 
             // Manage weights of `MinerVotesWeightReward`
@@ -308,6 +309,7 @@ namespace AElf.Contracts.Election
                 votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
                     {Receiver = Context.ConvertVirtualAddressToContractAddress(State.TreasuryHash.Value), Weight = 1});
             }
+
             State.ProfitContract.AddWeights.Send(votesWeightRewardProfitAddWeights);
         }
 

@@ -69,7 +69,7 @@ namespace AElf.Contracts.TestKit
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
-                options.ContextVariables[ContextVariableDictionary.DaysEachTermName] = "7";
+                options.ContextVariables[ContextVariableDictionary.TimeEachTermName] = "7";
             });
 
             #region Infra

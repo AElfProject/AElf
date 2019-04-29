@@ -11,7 +11,6 @@ namespace AElf.Kernel.Consensus.DPoS
         public int MiningInterval { get; set; }
         public DateTime StartTimestamp { get; set; } = DateTime.MinValue;
         public long InitialTermNumber { get; set; }
-        public bool IsTimeSlotSkippable { get; set; }
         public int DaysEachTerm { get; set; }
     }
 }

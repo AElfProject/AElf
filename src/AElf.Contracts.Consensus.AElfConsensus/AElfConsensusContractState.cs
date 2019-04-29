@@ -1,4 +1,5 @@
 using AElf.Consensus.AElfConsensus;
+using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf.WellKnownTypes;
 
@@ -8,7 +9,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
     {
         public BoolState Initialized { get; set; }
 
-        public SingletonState<int> DaysEachTerm { get; set; }
+        public SingletonState<int> TimeEachTerm { get; set; }
 
         public SingletonState<long> CurrentRoundNumber { get; set; }
 
@@ -23,5 +24,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         public MappedState<long, long> FirstRoundNumberOfEachTerm { get; set; }
 
         public MappedState<long, Miners> MinersMap { get; set; }
+        
+        public SingletonState<TimeUnit> BaseTimeUnit { get; set; }
     }
 }

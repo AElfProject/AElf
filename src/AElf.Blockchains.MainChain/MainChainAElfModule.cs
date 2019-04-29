@@ -205,6 +205,7 @@ namespace AElf.Blockchains.MainChain
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
+                    BaseTimeUnit = TimeUnit.Minutes
                 });
             var firstRound = consensusOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(
                 consensusOptions.MiningInterval,

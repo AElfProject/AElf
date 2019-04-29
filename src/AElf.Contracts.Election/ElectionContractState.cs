@@ -22,7 +22,7 @@ namespace AElf.Contracts.Election
         public MappedState<string, CandidateHistory> Histories { get; set; }
 
         public SingletonState<int> CurrentTermNumber { get; set; }
-        
+
         public SingletonState<PublicKeysList> Candidates { get; set; }
 
         public SingletonState<PublicKeysList> InitialMiners { get; set; }
@@ -35,5 +35,12 @@ namespace AElf.Contracts.Election
         public MappedState<long, TermSnapshot> Snapshots { get; set; }
 
         public SingletonState<int> MinersCount { get; set; }
+
+        public SingletonState<TimeUnit> BaseTimeUnit { get; set; }
+
+        public SingletonState<int> MinimumLockTime { get; set; }
+
+        public SingletonState<int> MaximumLockTime { get; set; }
+
     }
 }

@@ -361,14 +361,13 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 .TotalHours;
         }
 
-        private bool TryToGetCandidateHistory(string publicKey, out CandidateHistory history)
-        {
-            history = State.ElectionContract.GetCandidateHistory.Call(new StringInput {Value = publicKey});
-            return history.PublicKey == publicKey;
-        }
-
         private bool TryToGetVictories(out Miners victories)
         {
+            if (State.ElectionContractSystemName.Value == null)
+            {
+                victories = null;
+                return false;
+            }
             var victoriesPublicKeys = State.ElectionContract.GetVictories.Call(new Empty());
             Context.LogDebug(() =>
                 $"Got victories from Election Contract:\n{string.Join("\n", victoriesPublicKeys.Value.Select(s => s.ToHex().Substring(0, 10)))}");
@@ -500,6 +499,10 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         private void UpdateCandidateInformation(string candidatePublicKey, long recentlyProducedBlocks,
             long recentlyMissedTimeSlots, bool isEvilNode = false)
         {
+            if (State.ElectionContractSystemName.Value == null)
+            {
+                return;
+            }
             State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
             {
                 PublicKey = candidatePublicKey,
@@ -522,6 +525,11 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
         {
+            if (State.ElectionContractSystemName.Value == null)
+            {
+                snapshot = null;
+                return false;
+            }
             snapshot = State.ElectionContract.GetTermSnapshot.Call(new GetTermSnapshotInput
             {
                 TermNumber = termNumber

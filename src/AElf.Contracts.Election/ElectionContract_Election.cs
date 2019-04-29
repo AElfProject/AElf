@@ -32,6 +32,7 @@ namespace AElf.Contracts.Election
             {
                 State.Histories[publicKey.ToHex()] = new CandidateHistory();
             }
+
             State.MinersCount.Value = input.Value.Count;
             State.AElfConsensusContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
@@ -49,6 +50,8 @@ namespace AElf.Contracts.Election
                 State.BasicContractZero.GetContractAddressByName.Call(State.VoteContractSystemName.Value);
             State.AElfConsensusContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
+
+            State.BaseTimeUnit.Value = input.LockTimeUnit;
 
             State.TokenContract.Create.Send(new CreateInput
             {
@@ -159,7 +162,8 @@ namespace AElf.Contracts.Election
 
             Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
             Assert(
-                !State.AElfConsensusContract.GetCurrentMiners.Call(new Empty()).PublicKeys.Contains(publicKeyByteString),
+                !State.AElfConsensusContract.GetCurrentMiners.Call(new Empty()).PublicKeys
+                    .Contains(publicKeyByteString),
                 "Current miners cannot quit election.");
 
             var history = State.Histories[publicKey];
@@ -198,10 +202,23 @@ namespace AElf.Contracts.Election
         public override Empty Vote(VoteMinerInput input)
         {
             Assert(State.Histories[input.CandidatePublicKey] != null, "Candidate not found.");
-            Assert(State.Histories[input.CandidatePublicKey].State == CandidateState.IsCandidate, "Candidate state incorrect.");
+            Assert(State.Histories[input.CandidatePublicKey].State == CandidateState.IsCandidate,
+                "Candidate state incorrect.");
 
-            var lockTime = input.LockTimeUnit == LockTimeUnit.Days ? input.LockTime : input.LockTime * 30;
-            Assert(lockTime >= 90, "Should lock token for at least 90 days.");
+            var lockTime = 0;
+            if (State.BaseTimeUnit.Value == TimeUnit.Days)
+            {
+                // Only support Days & Months in this situation. Other option will be regarded as Months.
+                lockTime = input.LockTimeUnit == TimeUnit.Days ? input.LockTime : input.LockTime * 30;
+            }
+
+            if (State.BaseTimeUnit.Value == TimeUnit.Minutes)
+            {
+                // For testing.
+                lockTime = input.LockTime;
+            }
+
+            Assert(lockTime >= 90, "Invalid lock time.");
             State.LockTimeMap[Context.TransactionId] = lockTime;
 
             // Update Voter's Votes information.
@@ -292,10 +309,10 @@ namespace AElf.Contracts.Election
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input);
 
-            var actualLockedDays = (Context.CurrentBlockTime - votingRecord.VoteTimestamp.ToDateTime()).TotalDays;
+            var actualLockedTime = GetTimeSpan(Context.CurrentBlockTime, votingRecord.VoteTimestamp.ToDateTime());
             var claimedLockDays = State.LockTimeMap[input];
-            Assert(actualLockedDays >= claimedLockDays,
-                $"Still need {claimedLockDays - actualLockedDays} days to unlock your token.");
+            Assert(actualLockedTime >= claimedLockDays,
+                $"Still need {claimedLockDays - actualLockedTime} days to unlock your token.");
 
             var voteId = Context.TransactionId;
             // Update Voter's Votes information.
@@ -322,7 +339,7 @@ namespace AElf.Contracts.Election
                 To = votingRecord.Sponsor,
                 Usage = $"Withdraw votes for {ElectionContractConsts.Topic}"
             });
-            
+
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
@@ -352,6 +369,7 @@ namespace AElf.Contracts.Election
             {
                 Context.LogDebug(() => $"Marked {input.PublicKey.Substring(0, 10)} as evil node.");
             }
+
             var history = State.Histories[input.PublicKey];
             history.ProducedBlocks += input.RecentlyProducedBlocks;
             history.MissedTimeSlots += input.RecentlyMissedTimeSlots;
@@ -368,7 +386,17 @@ namespace AElf.Contracts.Election
         private long GetEndPeriod(long lockTime)
         {
             var treasury = State.ProfitContract.GetProfitItem.Call(State.TreasuryHash.Value);
-            return lockTime.Div(int.Parse(Context.Variables.DaysEachTerm)).Add(treasury.CurrentPeriod);
+            return lockTime.Div(int.Parse(Context.Variables.TimeEachTerm)).Add(treasury.CurrentPeriod);
+        }
+
+        private long GetTimeSpan(DateTime endTime, DateTime startTime)
+        {
+            if (State.BaseTimeUnit.Value == TimeUnit.Minutes)
+            {
+                return (long) (endTime - startTime).TotalMinutes;
+            }
+
+            return (long) (endTime - startTime).TotalDays;
         }
     }
 }

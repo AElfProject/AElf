@@ -14,23 +14,25 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         {
             Assert(!State.Initialized.Value, "Already initialized.");
 
-            State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
 
-            State.DaysEachTerm.Value = input.IsSideChain || input.IsTermStayOne
+            State.TimeEachTerm.Value = input.IsSideChain || input.IsTermStayOne
                 ? int.MaxValue
-                : int.Parse(Context.Variables.DaysEachTerm);
+                : int.Parse(Context.Variables.TimeEachTerm);
 
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-
-            State.ElectionContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(input.ElectionContractSystemName);
 
             if (input.IsTermStayOne || input.IsSideChain)
             {
                 return new Empty();
             }
+
+            State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
             
-            State.ElectionContract.RegisterElectionVotingEvent.Send(new RegisterElectionVotingEventInput());
+            State.ElectionContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(input.ElectionContractSystemName);
+
+            State.ElectionContract.RegisterElectionVotingEvent.Send(new RegisterElectionVotingEventInput
+                {LockTimeUnit = input.BaseTimeUnit});
 
             State.ElectionContract.CreateTreasury.Send(new CreateTreasuryInput());
 
@@ -51,16 +53,19 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             SetBlockchainStartTimestamp(input.GetStartTime().ToTimestamp());
             State.MiningInterval.Value = input.GetMiningInterval();
 
-            State.ElectionContract.SetInitialMiners.Send(new PublicKeysList
+            if (State.ElectionContract.Value != null)
             {
-                Value =
+                State.ElectionContract.SetInitialMiners.Send(new PublicKeysList
                 {
-                    input.RealTimeMinersInformation.Keys.Select(k =>
-                        ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))
-                }
-            });
+                    Value =
+                    {
+                        input.RealTimeMinersInformation.Keys.Select(k =>
+                            ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))
+                    }
+                });
+            }
 
-            var miners = new Miners{TermNumber = 1};
+            var miners = new Miners {TermNumber = 1};
             miners.PublicKeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k =>
                 ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k))));
             miners.TermNumber = 1;
@@ -144,8 +149,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             if (currentRoundNumber == 1)
             {
                 SetBlockchainStartTimestamp(input.GetStartTime().ToTimestamp());
-                State.ElectionContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.ElectionContractSystemName.Value);
             }
 
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
@@ -262,7 +265,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         }
 
         #endregion
-
 
         private bool TryToAddRoundInformation(Round round)
         {
