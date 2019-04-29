@@ -1,9 +1,11 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain
 {
@@ -11,11 +13,13 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IBlockExtraDataService _blockExtraDataService;
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataService blockExtraDataService)
         {
             _crossChainDataProvider = crossChainDataProvider;
             _blockExtraDataService = blockExtraDataService;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -39,15 +43,21 @@ namespace AElf.CrossChain
             var indexedCrossChainBlockData =
                 message == null ? null : CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
             var extraData = ExtractCrossChainExtraData(block.Header);
-            if (indexedCrossChainBlockData == null)
+
+            try
             {
-                return extraData == null;
+                if (indexedCrossChainBlockData == null)
+                {
+                    return extraData == null;
+                }
+
+                var res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block);
+                return res;
             }
-            
-            bool res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block);
-            if(!res)
-                throw new ValidateNextTimeBlockValidationException("Cross chain validation failed after execution.");
-            return true;
+            finally
+            {
+                await LocalEventBus.PublishAsync(new CrossChainDataValidatedEvent());
+            }
         }
 
         private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, 

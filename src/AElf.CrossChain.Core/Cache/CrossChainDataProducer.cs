@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using AElf.Contracts.CrossChain;
-using AElf.CrossChain.Cache.Exception;
-using AElf.Kernel;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
@@ -27,19 +24,6 @@ namespace AElf.CrossChain.Cache
                 return false;
             var res = blockInfoCache.TryAdd(blockInfo);
             return res;
-        }
-
-        public long GetChainHeightNeeded(int chainId)
-        {
-            var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
-            if (blockInfoCache == null)
-                throw new ChainCacheNotFoundException($"Chain {ChainHelpers.ConvertChainIdToBase58(chainId)} cache not found.");
-            return blockInfoCache.TargetChainHeight();
-        }
-
-        public IEnumerable<int> GetCachedChainIds()
-        {
-            return _multiChainBlockInfoCacheProvider.CachedChainIds;
         }
     }
 }

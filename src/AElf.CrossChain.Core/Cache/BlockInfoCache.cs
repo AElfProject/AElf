@@ -14,9 +14,9 @@ namespace AElf.CrossChain.Cache
         private Queue<IBlockInfo> CachedIndexedBlockInfoQueue { get; } = new Queue<IBlockInfo>();
 
         private readonly int _cachedBoundedCapacity =
-            Math.Max(CrossChainConsts.MaximalCountForIndexingSideChainBlock,
-                CrossChainConsts.MaximalCountForIndexingParentChainBlock) *
-            CrossChainConsts.MinimalBlockInfoCacheThreshold;
+            Math.Max(CrossChainConstants.MaximalCountForIndexingSideChainBlock,
+                CrossChainConstants.MaximalCountForIndexingParentChainBlock) *
+            CrossChainConstants.MinimalBlockInfoCacheThreshold;
         private readonly long _initTargetHeight;
         
         public BlockInfoCache(long chainHeight)
@@ -37,7 +37,8 @@ namespace AElf.CrossChain.Cache
         
         public bool TryAdd(IBlockInfo blockInfo)
         {
-            // TODO: Add cache size limit checking in case of continuous expanding.
+            if (ToBeIndexedBlockInfoQueue.Count() >= _cachedBoundedCapacity)
+                return false;
             // thread unsafe in some extreme cases, but it can be covered with caching mechanism.
             if (blockInfo.Height != TargetChainHeight())
                 return false;
@@ -58,10 +59,10 @@ namespace AElf.CrossChain.Cache
             var cachedInQueue = CacheBlockInfoBeforeHeight(height);
             // isCacheSizeLimited means minimal caching size limit, so that most nodes have this block.
             var lastQueuedHeight = ToBeIndexedBlockInfoQueue.LastOrDefault()?.Height ?? 0;
-            if (cachedInQueue && !(isCacheSizeLimited && lastQueuedHeight < height + CrossChainConsts.MinimalBlockInfoCacheThreshold))
+            if (cachedInQueue && !(isCacheSizeLimited && lastQueuedHeight < height + CrossChainConstants.MinimalBlockInfoCacheThreshold))
             {
                 var res = ToBeIndexedBlockInfoQueue.TryTake(out blockInfo, 
-                    CrossChainConsts.WaitingIntervalInMillisecond);
+                    CrossChainConstants.WaitingIntervalInMillisecond);
                 if(res)
                     CacheBlockInfo(blockInfo);
                 return res;
@@ -71,7 +72,7 @@ namespace AElf.CrossChain.Cache
             if (blockInfo != null)
                 return !isCacheSizeLimited ||
                        ToBeIndexedBlockInfoQueue.Count + CachedIndexedBlockInfoQueue.Count(ci => ci.Height >= height) 
-                       >= CrossChainConsts.MinimalBlockInfoCacheThreshold;
+                       >= CrossChainConstants.MinimalBlockInfoCacheThreshold;
             
             return false;
         }
@@ -98,7 +99,7 @@ namespace AElf.CrossChain.Cache
                     return false;
                 if (blockInfo.Height == height)
                     return true;
-                var res = ToBeIndexedBlockInfoQueue.TryTake(out blockInfo, CrossChainConsts.WaitingIntervalInMillisecond);
+                var res = ToBeIndexedBlockInfoQueue.TryTake(out blockInfo, CrossChainConstants.WaitingIntervalInMillisecond);
                 if (res)
                     CacheBlockInfo(blockInfo);
             }

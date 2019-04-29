@@ -11,7 +11,12 @@ namespace AElf.CrossChain
         Task<IMessage> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
         // TODO: Temporarily changed to IMessage
-        Task<IMessage> GetChainInitializationContextAsync(int chainId);
+        Task<IMessage> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight);
+    }
+
+    public interface INewChainRegistrationService
+    {
+        Task RegisterNewChainsAsync(Hash blockHash, long blockHeight);
     }
 
     internal interface ICrossChainDataProvider : IBasicCrossChainDataProvider
@@ -26,7 +31,7 @@ namespace AElf.CrossChain
         Task<bool> ValidateParentChainBlockDataAsync(List<ParentChainBlockData> parentChainBlockData,
             Hash currentBlockHash, long currentBlockHeight);
 
-        void RegisterNewChain(int chainId);
+        Task<IMessage> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
         Task<CrossChainBlockData> GetCrossChainBlockDataForNextMiningAsync(Hash currentBlockHash,
             long currentBlockHeight);

@@ -42,12 +42,12 @@ namespace AElf.CrossChain
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, previousBlockHeight);
             
             var blockInfoCache = new List<IBlockInfo>();
-            var cachingCount = CrossChainConsts.MaximalCountForIndexingParentChainBlock;
-            for (var i = previousBlockHeight; i <= cachingCount; i++)
+            var cachingCount = CrossChainConstants.MaximalCountForIndexingSideChainBlock;
+            for (var i = 1; i <= cachingCount; i++)
             {
                 blockInfoCache.Add(new SideChainBlockData
                 {
-                    SideChainHeight = i + 1,
+                    SideChainHeight = previousBlockHeight + i,
                     SideChainId = chainId
                 });
             }
@@ -69,12 +69,14 @@ namespace AElf.CrossChain
             transactions[0].To.ShouldBe(smartContractAddress);
             transactions[0].RefBlockNumber.ShouldBe(previousBlockHeight);
             transactions[0].RefBlockPrefix.ShouldBe(ByteString.CopyFrom(previousBlockHash.Value.Take(4).ToArray()));
-            transactions[0].MethodName.ShouldBe(CrossChainConsts.CrossChainIndexingMethodName);
+            transactions[0].MethodName.ShouldBe(CrossChainConstants.CrossChainIndexingMethodName);
             
             var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(transactions[0].Params);
             crossChainBlockData.PreviousBlockHeight.ShouldBe(previousBlockHeight);
             crossChainBlockData.ParentChainBlockData.Count.ShouldBe(0);
-            crossChainBlockData.SideChainBlockData.Count.ShouldBe(1);
+            crossChainBlockData.SideChainBlockData.Count.ShouldBe(
+                CrossChainConstants.MaximalCountForIndexingSideChainBlock -
+                CrossChainConstants.MinimalBlockInfoCacheThreshold);
             crossChainBlockData.SideChainBlockData[0].SideChainId.ShouldBe(chainId);
             crossChainBlockData.SideChainBlockData[0].SideChainHeight.ShouldBe(previousBlockHeight + 1);
         }

@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain
- {
+{
      [DependsOn(typeof(SmartContractAElfModule))]
      public class CrossChainAElfModule : AElfModule
      {
@@ -30,7 +30,6 @@ namespace AElf.CrossChain
              Configure<CrossChainConfigOption>(option =>
              {
                  option.ParentChainId = ChainHelpers.ConvertBase58ToChainId(crossChainConfiguration["ParentChainId"]);
-                 option.ExtraDataSymbols = crossChainConfiguration.GetSection("ExtraDataSymbols").Get<List<string>>();
              });
          }
      }
