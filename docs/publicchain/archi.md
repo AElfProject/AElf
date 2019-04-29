@@ -1,3 +1,0 @@
-## ecosystem architecture
-
-Coming soon !

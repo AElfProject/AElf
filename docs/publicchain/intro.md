@@ -1,3 +1,0 @@
-## ecosystem intro
-
-Coming soon !

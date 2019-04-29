@@ -1,3 +1,0 @@
-## performance
-
-Coming soon !
