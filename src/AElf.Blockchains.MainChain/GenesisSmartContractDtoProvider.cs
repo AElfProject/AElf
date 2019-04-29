@@ -24,12 +24,11 @@ namespace AElf.Blockchains.MainChain
             return new[]
             {
                 GetGenesisSmartContractDtosForConsensus(zeroContractAddress),
-                GetGenesisSmartContractDtosForDividend(zeroContractAddress),
                 GetGenesisSmartContractDtosForToken(zeroContractAddress),
                 GetGenesisSmartContractDtosForResource(zeroContractAddress),
                 GetGenesisSmartContractDtosForCrossChain(zeroContractAddress),
                 GetGenesisSmartContractDtosForVote(zeroContractAddress),
-//                GetGenesisSmartContractDtosForElection(zeroContractAddress),
+                GetGenesisSmartContractDtosForElection(zeroContractAddress),
             }.SelectMany(x => x);
         }
     }

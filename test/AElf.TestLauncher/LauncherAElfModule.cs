@@ -5,9 +5,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.SmartContract;
+using AElf.Kernel.Consensus.AElfConsensus;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS;
@@ -33,7 +31,7 @@ namespace AElf.TestLauncher
         typeof(AbpAutofacModule),
         //typeof(AbpAspNetCoreMvcModule),
         //typeof(RuntimeSetupAElfModule),
-        typeof(DPoSConsensusAElfModule),
+        typeof(AElfConsensusAElfModule),
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),

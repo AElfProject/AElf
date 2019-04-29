@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Consensus.AElfConsensus;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.Consensus.AElfConsensus;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -12,11 +11,9 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.Vote;
-using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AElfConsensus;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
@@ -24,6 +21,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
+using Vote;
 using Miners = AElf.Consensus.AElfConsensus.Miners;
 using ToUpdate = AElf.Consensus.AElfConsensus.ToUpdate;
 
@@ -193,9 +191,9 @@ namespace AElf.Contracts.Election
             ReElectionReward
         }
 
-        private SystemTransactionMethodCallList GenerateVoteInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
-            var voteMethodCallList = new SystemTransactionMethodCallList();
+            var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
                 new InitialVoteContractInput
                 {
@@ -205,9 +203,9 @@ namespace AElf.Contracts.Election
             return voteMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateProfitInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
-            var profitMethodCallList = new SystemTransactionMethodCallList();
+            var profitMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             profitMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),
                 new InitializeProfitContractInput
                 {
@@ -217,9 +215,9 @@ namespace AElf.Contracts.Election
             return profitMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",
@@ -288,9 +286,9 @@ namespace AElf.Contracts.Election
             return tokenContractCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateElectionInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateElectionInitializationCallList()
         {
-            var electionMethodCallList = new SystemTransactionMethodCallList();
+            var electionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {
@@ -303,9 +301,9 @@ namespace AElf.Contracts.Election
             return electionMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList()
         {
-            var consensusMethodList = new SystemTransactionMethodCallList();
+            var consensusMethodList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             ConsensusOption = GetDefaultConsensusOptions();
             
             consensusMethodList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract),
@@ -314,8 +312,13 @@ namespace AElf.Contracts.Election
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
                     BaseTimeUnit = TimeUnit.Days
                 });
+            var miners = new Miners
+            {
+                PublicKeys =
+                    {ConsensusOption.InitialMiners.Select(p => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p)))}
+            };
             consensusMethodList.Add(nameof(AElfConsensusContract.FirstRound),
-                ConsensusOption.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(ConsensusOption.MiningInterval,
+                miners.GenerateFirstRoundOfNewTerm(ConsensusOption.MiningInterval,
                     ConsensusOption.StartTimestamp.ToUniversalTime()));
             return consensusMethodList;
         }

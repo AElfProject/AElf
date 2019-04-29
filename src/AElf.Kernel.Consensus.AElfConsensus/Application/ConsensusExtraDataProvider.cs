@@ -4,7 +4,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf;
 
-namespace AElf.Kernel.Consensus.DPoS.Application
+namespace AElf.Kernel.Consensus.AElfConsensus.Application
 {
     // ReSharper disable once InconsistentNaming
     public class ConsensusExtraDataProvider : IBlockExtraDataProvider

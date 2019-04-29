@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 
-namespace AElf.Kernel.Consensus.DPoS.Application
+namespace AElf.Kernel.Consensus.AElfConsensus.Application
 {
     public class ConsensusValidationProvider : IBlockValidationProvider
     {

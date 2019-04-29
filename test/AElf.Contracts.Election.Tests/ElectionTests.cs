@@ -6,8 +6,8 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Utilities;
 using Shouldly;
+using Vote;
 using Xunit;
 
 namespace AElf.Contracts.Election

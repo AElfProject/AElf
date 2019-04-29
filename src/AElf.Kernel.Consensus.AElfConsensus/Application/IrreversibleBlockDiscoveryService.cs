@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Consensus.AElfConsensus;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.Consensus.DPoS.Application
+namespace AElf.Kernel.Consensus.AElfConsensus.Application
 {
     public interface IIrreversibleBlockDiscoveryService
     {

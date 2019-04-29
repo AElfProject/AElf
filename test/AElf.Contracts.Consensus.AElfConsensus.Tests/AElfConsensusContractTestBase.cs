@@ -4,16 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Consensus.AElfConsensus;
-using AElf.Contracts.Consensus.AElfConsensus;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Token;
+using AElf.Kernel.Consensus.AElfConsensus;
 using AElf.OS.Node.Application;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -122,9 +118,9 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             await BootMiner.NextRound.SendAsync(nextRound);
         }
 
-        private SystemTransactionMethodCallList GenerateElectionInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateElectionInitializationCallList()
         {
-            var electionMethodCallList = new SystemTransactionMethodCallList();
+            var electionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {
@@ -133,9 +129,9 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             return electionMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateAElfConsensusInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateAElfConsensusInitializationCallList()
         {
-            var aelfConsensusMethodCallList = new SystemTransactionMethodCallList();
+            var aelfConsensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             aelfConsensusMethodCallList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {

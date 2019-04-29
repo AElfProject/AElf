@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
@@ -16,13 +16,13 @@ using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Kernel.Consensus.AElfConsensus.Application;
 
-namespace AElf.Kernel.Consensus.DPoS
+namespace AElf.Kernel.Consensus.AElfConsensus
 {
     [DependsOn(
         typeof(KernelCoreTestAElfModule),
-        typeof(DPoSConsensusAElfModule),
+        typeof(AElfConsensusAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule)
     )]
@@ -99,14 +99,14 @@ namespace AElf.Kernel.Consensus.DPoS
 
                 return mockService.Object;
             });
-            context.Services.AddTransient<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
+            context.Services.AddTransient<IConsensusInformationGenerationService, AElfConsensusInformationGenerationService>();
         }
     }
     
     [DependsOn(
         typeof(KernelTestAElfModule),
         typeof(KernelCoreWithChainTestAElfModule),
-        typeof(DPoSConsensusAElfModule))]
+        typeof(AElfConsensusAElfModule))]
     public class LibTestModule : AElfModule
     {
     }

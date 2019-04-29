@@ -1,5 +1,5 @@
 ﻿using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AElfConsensus;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Grpc;
@@ -18,7 +18,7 @@ namespace AElf.Tester
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreMvcModule),
         typeof(RuntimeSetupAElfModule),
-        typeof(DPoSConsensusAElfModule),
+        typeof(AElfConsensusAElfModule),
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AElfConsensus.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
@@ -39,7 +39,7 @@ namespace AElf.OS.Consensus.DPos
 
             services.AddTransient(o =>
             {
-                var mockService = new Mock<IDPoSInformationProvider>();
+                var mockService = new Mock<IAElfConsensusInformationProvider>();
                 mockService.Setup(m=>m.GetCurrentMiners(It.IsAny<ChainContext>()))
                     .Returns(async ()=>
                         await Task.FromResult(new []{

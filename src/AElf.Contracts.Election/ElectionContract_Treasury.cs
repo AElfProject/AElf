@@ -4,6 +4,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Vote;
 
 namespace AElf.Contracts.Election
 {

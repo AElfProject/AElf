@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Consensus.AElfConsensus;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
@@ -10,10 +10,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.Threading;
 
-namespace AElf.Kernel.Consensus.DPoS.Application
+namespace AElf.Kernel.Consensus.AElfConsensus.Application
 {
     // ReSharper disable once InconsistentNaming
-    public class DPoSInformationGenerationService : IConsensusInformationGenerationService
+    public class AElfConsensusInformationGenerationService : IConsensusInformationGenerationService
     {
         private readonly IAccountService _accountService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -21,7 +21,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         private ByteString PublicKey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
 
-        private DPoSHint Hint => DPoSHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
+        private AElfConsensusHint Hint => AElfConsensusHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
 
         private readonly ConsensusControlInformation _controlInformation;
 
@@ -40,9 +40,9 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         private Hash _latestRandomHash = Hash.Empty;
 
-        public ILogger<DPoSInformationGenerationService> Logger { get; set; }
+        public ILogger<AElfConsensusInformationGenerationService> Logger { get; set; }
 
-        public DPoSInformationGenerationService(IAccountService accountService,
+        public AElfConsensusInformationGenerationService(IAccountService accountService,
             ConsensusControlInformation controlInformation, ISmartContractAddressService smartContractAddressService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
@@ -51,7 +51,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
             _smartContractAddressService = smartContractAddressService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
 
-            Logger = NullLogger<DPoSInformationGenerationService>.Instance;
+            Logger = NullLogger<AElfConsensusInformationGenerationService>.Instance;
         }
 
         public IMessage GetTriggerInformation(TriggerType triggerType)
@@ -68,17 +68,17 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
             if (_controlInformation.ConsensusCommand == null)
             {
-                return new DPoSTriggerInformation
+                return new AElfConsensusTriggerInformation
                 {
                     PublicKey = PublicKey,
-                    Behaviour = DPoSBehaviour.UpdateValue
+                    Behaviour = AElfConsensusBehaviour.UpdateValue
                 };
             }
 
-            if (Hint.Behaviour == DPoSBehaviour.UpdateValue ||
-                Hint.Behaviour == DPoSBehaviour.UpdateValueWithoutPreviousInValue)
+            if (Hint.Behaviour == AElfConsensusBehaviour.UpdateValue ||
+                Hint.Behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
             {
-                var trigger = new DPoSTriggerInformation
+                var trigger = new AElfConsensusTriggerInformation
                 {
                     PublicKey = PublicKey,
                     RandomHash = RandomHash,
@@ -94,7 +94,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 return trigger;
             }
 
-            return new DPoSTriggerInformation
+            return new AElfConsensusTriggerInformation
             {
                 PublicKey = PublicKey,
                 Behaviour = Hint.Behaviour
@@ -103,7 +103,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public IMessage ParseConsensusTriggerInformation(byte[] consensusTriggerInformation)
         {
-            return DPoSTriggerInformation.Parser.ParseFrom(consensusTriggerInformation);
+            return AElfConsensusTriggerInformation.Parser.ParseFrom(consensusTriggerInformation);
         }
 
         public async Task<T> ExecuteContractAsync<T>(IChainContext chainContext, string consensusMethodName,
@@ -124,7 +124,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
         public async Task<byte[]> GetInformationToUpdateConsensusAsync(ChainContext chainContext,
             DateTime nextMiningTime)
         {
-            return (await ExecuteContractAsync<DPoSHeaderInformation>(chainContext,
+            return (await ExecuteContractAsync<AElfConsensusHeaderInformation>(chainContext,
                 ConsensusConsts.GetInformationToUpdateConsensus,
                 GetTriggerInformation(TriggerType.BlockHeaderExtraData), nextMiningTime)).ToByteArray();
         }

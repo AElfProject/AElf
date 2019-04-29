@@ -9,7 +9,7 @@ using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 
-namespace AElf.Kernel.Consensus.DPoS.Application
+namespace AElf.Kernel.Consensus.AElfConsensus.Application
 {
     // ReSharper disable InconsistentNaming
     public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency

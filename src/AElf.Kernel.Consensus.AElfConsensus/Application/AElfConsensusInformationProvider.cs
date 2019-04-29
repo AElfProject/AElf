@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.DPoS;
-using AElf.Kernel.Consensus.Application;
+using AElf.Consensus.AElfConsensus;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.Consensus.DPoS
+namespace AElf.Kernel.Consensus.AElfConsensus.Application
 {
-    public class DPoSInformationProvider : IDPoSInformationProvider
+    public class AElfConsensusInformationProvider : IAElfConsensusInformationProvider
     {
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
 
-        public DPoSInformationProvider(IConsensusInformationGenerationService consensusInformationGenerationService)
+        public AElfConsensusInformationProvider(IConsensusInformationGenerationService consensusInformationGenerationService)
         {
             _consensusInformationGenerationService = consensusInformationGenerationService;
         }
@@ -20,7 +20,7 @@ namespace AElf.Kernel.Consensus.DPoS
         {
             var minersWithRoundNumber = await _consensusInformationGenerationService.ExecuteContractAsync<MinerListWithRoundNumber>(chainContext,
                 "GetCurrentMiners", new Empty(), DateTime.UtcNow);
-            return minersWithRoundNumber.MinerList.PublicKeys;
+            return minersWithRoundNumber.MinerList.PublicKeys.Select(k => k.ToHex());
         }
     }
 }

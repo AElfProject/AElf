@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Google.Protobuf;
 
-namespace AElf.Kernel.Consensus.Application
+namespace AElf.Kernel.Consensus.AElfConsensus.Application
 {
     public interface IConsensusInformationGenerationService
     {

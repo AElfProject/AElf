@@ -20,7 +20,7 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AElfConsensus\AElf.Contracts.Consensus.AElfConsensus.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Consensus.AElfConsensus.Types\AElf.Consensus.AElfConsensus.Types.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AElfConsensus\AElf.Kernel.Consensus.AElfConsensus.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="..\..\protobuf\common.proto">

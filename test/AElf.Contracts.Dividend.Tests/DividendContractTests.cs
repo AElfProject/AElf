@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AElfConsensus;
 using AElf.Kernel.Token;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
