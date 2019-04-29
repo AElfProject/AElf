@@ -35,7 +35,8 @@ namespace AElf.Runtime.CSharp
             {
                 throw new InvalidCodeException("Audit failed for contract: " 
                                                        + modDef.Assembly.MainModule.Name + "\r\n"
-                                                       + string.Concat("\r\n", errors.Select(e => e.ToString()).Distinct().ToArray()));
+                                                       // List down validation results
+                                                       + string.Join("\r\n", errors.Select(e => e.ToString()).Distinct().ToArray()));
             }
         }
     }
