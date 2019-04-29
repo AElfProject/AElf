@@ -25,4 +25,3 @@ install:
 
 build_script:
   - ps: .\build.ps1
-  - ps: .\build.ps1 -Target build1
