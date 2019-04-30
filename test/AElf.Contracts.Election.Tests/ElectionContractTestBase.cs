@@ -36,11 +36,14 @@ namespace AElf.Contracts.Election
 
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs[0];
 
-        internal List<ECKeyPair> InitialMinersKeyPairs => SampleECKeyPairs.KeyPairs.Take(InitialMinersCount).ToList();
-        
-        internal List<ECKeyPair> FullNodesKeyPairs => SampleECKeyPairs.KeyPairs.Skip(InitialMinersCount).Take(FullNodesCount).ToList();
-        
-        internal List<ECKeyPair> VotersKeyPairs => SampleECKeyPairs.KeyPairs.Skip(InitialMinersCount + FullNodesCount).Take(VotersCount).ToList();
+        internal static List<ECKeyPair> InitialMinersKeyPairs =>
+            SampleECKeyPairs.KeyPairs.Take(InitialMinersCount).ToList();
+
+        internal static List<ECKeyPair> FullNodesKeyPairs =>
+            SampleECKeyPairs.KeyPairs.Skip(InitialMinersCount).Take(FullNodesCount).ToList();
+
+        internal static List<ECKeyPair> VotersKeyPairs => SampleECKeyPairs.KeyPairs
+            .Skip(InitialMinersCount + FullNodesCount).Take(VotersCount).ToList();
 
         internal Dictionary<ProfitType, Hash> ProfitItemsIds { get; set; }
         protected ConsensusOptions ConsensusOption { get; set; }
@@ -150,7 +153,7 @@ namespace AElf.Contracts.Election
                     })).Output;
             TokenContractStub = GetTokenContractTester(BootMinerKeyPair);
             
-            // Deploy Consensus Contract
+            // Deploy AElf Consensus Contract
             ConsensusContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput

@@ -200,7 +200,7 @@ namespace AElf.Contracts.Election
                 ProfitId = State.ReElectionRewardHash.Value,
                 Period = termNumber
             });
-            
+
             // Citizen Welfare release should delay one term.
             // Voter voted during term x, can profit after term (x + 1).
             if (termNumber != 1)

@@ -12,7 +12,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         {
             // Count missed time slot of current round.
             CountMissedTimeSlots();
-            
+
             Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
 
             // Update current term number and current round number.
@@ -74,7 +74,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 TermNumber = termNumber + 1,
                 RoundNumber = previousRound.RoundNumber
             });
-                
+
             Context.LogDebug(() => $"Changing term number to {input.TermNumber}");
             TryToFindLIB();
             return new Empty();
@@ -92,7 +92,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             return false;
         }
-        
+
         /// <summary>
         /// Normally this process contained in NextRound method.
         /// </summary>
@@ -111,7 +111,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 TryToUpdateRoundInformation(currentRound);
             }
         }
-        
+
         private bool TryToUpdateTermNumber(long termNumber)
         {
             var oldTermNumber = State.CurrentTermNumber.Value;

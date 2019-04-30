@@ -57,7 +57,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             // If this node missed his time slot, a command of terminating current round will be fired,
             // and the terminate time will based on the order of this node (to avoid conflicts).
-            
+
             // Side chain will go next round directly.
             if (State.TimeEachTerm.Value == int.MaxValue)
             {
@@ -84,7 +84,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 ? AElfConsensusBehaviour.NextTerm
                 : AElfConsensusBehaviour.NextRound;
         }
-        
+
         /// <summary>
         /// DPoS Behaviour is changeable in this method.
         /// It's the situation this miner should skip his time slot, more precisely.
@@ -208,13 +208,13 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 Hint = hint
             };
         }
-        
+
         private bool TryToGetBlockchainStartTimestamp(out Timestamp timestamp)
         {
             timestamp = State.BlockchainStartTimestamp.Value;
             return timestamp != null;
         }
-        
+
         private bool IsJustChangedTerm(out long termNumber)
         {
             termNumber = 0;
@@ -222,19 +222,19 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                    TryToGetTermNumber(out termNumber) &&
                    previousRound.TermNumber != termNumber;
         }
-        
+
         private bool TryToGetTermNumber(out long termNumber)
         {
             termNumber = State.CurrentTermNumber.Value;
             return termNumber != 0;
         }
-        
+
         private bool TryToGetRoundNumber(out long roundNumber)
         {
             roundNumber = State.CurrentRoundNumber.Value;
             return roundNumber != 0;
         }
-        
+
         private bool TryToGetCurrentRoundInformation(out Round roundInformation)
         {
             roundInformation = null;
@@ -272,7 +272,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             roundInformation = State.Rounds[roundNumber];
             return roundInformation != null;
         }
-        
+
         private Transaction GenerateTransaction(string methodName, IMessage parameter)
         {
             var tx = new Transaction
