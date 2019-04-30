@@ -12,7 +12,7 @@ namespace AElf.Runtime.CSharp.Validators.Method
             if (!method.HasBody)
                 return Enumerable.Empty<ValidationResult>();
             
-            var errors = new List<FloatValidationResult>();
+            var errors = new List<ValidationResult>();
             
             foreach (var instruction in method.Body.Instructions)
             {
@@ -22,11 +22,7 @@ namespace AElf.Runtime.CSharp.Validators.Method
 
                     if (methodRef.DeclaringType.IsArray && ((ArrayType) methodRef.DeclaringType).Dimensions.Count > 1)
                     {
-                        return new List<ValidationResult>
-                        {
-                            new MultiDimArrayValidationResult(
-                                method.Name + " contains multi dimension array declaration.")
-                        };
+                        errors.Add(new MultiDimArrayValidationResult(method.Name + " contains multi dimension array declaration."));
                     }
                 }
             }
