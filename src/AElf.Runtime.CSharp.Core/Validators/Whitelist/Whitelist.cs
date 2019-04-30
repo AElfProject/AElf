@@ -110,7 +110,7 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
                 return results;
             
             // If referred type is from a fully trusted assembly, stop going deeper
-            if (_assemblies.Any(asm => asm.Key == type.Resolve().Module.Assembly.FullName && 
+            if (_assemblies.Any(asm => asm.Key == type.Resolve()?.Module.Assembly.FullName && 
                                        asm.Value == Trust.Full))
                 return results;
 
