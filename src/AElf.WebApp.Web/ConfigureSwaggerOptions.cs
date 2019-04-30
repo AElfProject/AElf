@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using AElf.WebApp.Application.Chain;
@@ -39,10 +40,8 @@ namespace AElf.WebApp.Web
             }
             options.IncludeXmlComments(() =>
             {
-                var xmlFile = $"{typeof(ChainApplicationWebAppAElfModule).Assembly.GetName().Name}.xml";
-                var webApiDocument = XDocument.Load(Path.Combine(AppContext.BaseDirectory, xmlFile));
-                xmlFile = $"{typeof(NetApplicationWebAppAElfModule).Assembly.GetName().Name}.xml";
-                webApiDocument.Root?.Add(XDocument.Load(Path.Combine(AppContext.BaseDirectory, xmlFile)).Root?.Elements());
+                var webApiDocument = XDocument.Load(Path.Combine(typeof(ChainApplicationWebAppAElfModule).Assembly.Location.Replace(".dll", ".xml")));
+                webApiDocument.Root?.Add(XDocument.Load(Path.Combine(typeof(NetApplicationWebAppAElfModule).Assembly.Location.Replace(".dll", ".xml"))).Root?.Elements());
                 return new XPathDocument(webApiDocument.CreateReader());
             });
         }
