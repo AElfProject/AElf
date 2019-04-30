@@ -627,30 +627,15 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_GetCandidateHistory()
         {
-            const int blocks = 5;
+            const int roundCount = 5;
 
             var minerKeyPair = FullNodesKeyPairs[0];
 
             await ElectionContract_GetVictories_ValidCandidatesEnough();
 
-            {
-                var roundNumber = await AElfConsensusContractStub.GetCurrentRoundNumber.CallAsync(new Empty());
-                roundNumber.Value.ShouldBe(2);
-            }
-            
             await NextTerm(BootMinerKeyPair);
 
-            {
-                var roundNumber = await AElfConsensusContractStub.GetCurrentRoundNumber.CallAsync(new Empty());
-                roundNumber.Value.ShouldBe(3);
-            }
-
-            await ProduceBlocks(minerKeyPair, blocks, true);
-
-            {
-                var roundNumber = await AElfConsensusContractStub.GetCurrentRoundNumber.CallAsync(new Empty());
-                roundNumber.Value.ShouldBe(3 + blocks);
-            }
+            await ProduceBlocks(minerKeyPair, roundCount, true);
 
             var history = await ElectionContractStub.GetCandidateHistory.CallAsync(new StringInput
             {
@@ -658,7 +643,6 @@ namespace AElf.Contracts.Election
             });
 
             history.PublicKey.ShouldBe(minerKeyPair.PublicKey.ToHex());
-            history.ProducedBlocks.ShouldBe(blocks);
         }
 
         #region Private methods

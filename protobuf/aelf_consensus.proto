@@ -65,7 +65,6 @@ message MinerInRound {
     int64 MissedTimeSlots = 8;
     string PublicKey = 9;
     int32 PromisedTinyBlocks = 10;
-    string Alias = 11;
     Hash PreviousInValue = 12;
     int32 SupposedOrderOfNextRound = 13;
     int32 FinalOrderOfNextRound = 14;

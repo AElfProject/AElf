@@ -111,6 +111,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 var filledValue = round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue;
                 if (filledValue != null && filledValue != previousInValue.Value)
                 {
+                    // TODO: Mark this node as evil node directly.
                     Context.LogDebug(() => $"Something wrong happened to previous in value of {previousInValue.Key}.");
                 }
 

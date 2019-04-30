@@ -28,6 +28,8 @@ namespace AElf.Contracts.Vote
 
         public override Empty Register(VotingRegisterInput input)
         {
+            // TODO: Set limit of input.Options
+
             if (input.TotalEpoch == 0)
             {
                 input.TotalEpoch = 1;
@@ -44,12 +46,14 @@ namespace AElf.Contracts.Vote
 
             InitializeDependentContracts();
 
+            // TODO: Remove after change active_days to end_timestamp
             if (Context.CurrentHeight > 1 && (input.StartTimestamp == null ||
                                               input.StartTimestamp.ToDateTime() < Context.CurrentBlockTime))
             {
                 input.StartTimestamp = Context.CurrentBlockTime.ToTimestamp();
             }
 
+            // TODO: Rename voting event.
             var votingEvent = new VotingEvent
             {
                 Sponsor = Context.Sender,
@@ -112,7 +116,7 @@ namespace AElf.Contracts.Vote
             }
             else
             {
-                input.Voter = Context.Sender;
+                input.Voter = Context.Sender;// TODO: Use input.Voter as votingRecord.Voter
                 input.VoteId = Context.TransactionId;
             }
 
@@ -220,7 +224,7 @@ namespace AElf.Contracts.Vote
             var votingHistories = UpdateHistoryAfterWithdrawing(votingRecord.Voter, votingEventHash, input.VoteId);
 
             var votingResult = State.VotingResults[votingGoingHash];
-           votingResult.Results[votingRecord.Option] -= votingRecord.Amount;
+            votingResult.Results[votingRecord.Option] -= votingRecord.Amount;
             if (!votingHistories.Votes[votingEventHash.ToHex()].ActiveVotes.Any())
             {
                 votingResult.VotersCount -= 1;
@@ -244,6 +248,7 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
+        // TODO: Rename to TakeSnapshot sth.
         public override Empty UpdateEpochNumber(UpdateEpochNumberInput input)
         {
             var votingEvent = AssertVotingEvent(input.Topic, Context.Sender);

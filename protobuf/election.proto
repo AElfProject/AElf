@@ -48,11 +48,11 @@ message ReleaseTreasuryProfitsInput {
 enum CandidateState {
     NotAnnounced = 0;
     IsCandidate = 1;
-    IsEvilNode = 2;
+    IsEvilNode = 2;// Make blacklist
 }
 
 message AnnounceElectionInput {
-    string alias = 1;
+
 }
 
 message VoteMinerInput {
@@ -98,12 +98,7 @@ message CandidateHistory {
     sint64 produced_blocks = 3;
     sint64 missed_time_slots = 4;
     sint64 continual_appointment_count = 5;
-    sint64 reappointment_count = 6;
-    repeated string aliases = 7;
-    string current_alias = 8;
-    sint64 current_votes_number = 9;
     Hash announcement_transaction_id = 12;
-    bool is_evil_node = 13;
     CandidateState state = 14;
 }
 

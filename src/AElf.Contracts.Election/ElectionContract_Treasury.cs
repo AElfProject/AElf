@@ -185,12 +185,6 @@ namespace AElf.Contracts.Election
 
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
-                ProfitId = State.WelfareHash.Value,
-                Period = termNumber
-            });
-
-            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
-            {
                 ProfitId = State.BasicRewardHash.Value,
                 Period = termNumber
             });
@@ -206,6 +200,17 @@ namespace AElf.Contracts.Election
                 ProfitId = State.ReElectionRewardHash.Value,
                 Period = termNumber
             });
+            
+            // Citizen Welfare release should delay one term.
+            // Voter voted during term x, can profit after term (x + 1).
+            if (termNumber != 1)
+            {
+                State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
+                {
+                    ProfitId = State.WelfareHash.Value,
+                    Period = termNumber - 1
+                });
+            }
         }
 
         private void UpdateTreasurySubItemsWeights(long termNumber)

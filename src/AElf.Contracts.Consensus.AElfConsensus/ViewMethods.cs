@@ -14,6 +14,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
     {
         public override ConsensusCommand GetConsensusCommand(CommandInput input)
         {
+            // Query state to determine whether produce tiny block.
+
             Assert(input.PublicKey.Any(), "Invalid public key.");
 
             var behaviour = GetBehaviour(input.PublicKey.ToHex(), Context.CurrentBlockTime, out var currentRound);
@@ -433,6 +435,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     continue;
                 }
 
+                // TODO: Know this before.
                 Context.LogDebug(() => "Now it's enough to recover previous in values.");
 
                 // Try to recover others' previous in value.

@@ -10,11 +10,11 @@ message InitialVoteContractInput {
 }
 
 message VotingRegisterInput {
-    Hash topic = 1;
+    Hash topic = 1;// Remove
     google.protobuf.Timestamp start_timestamp = 2;
     string accepted_currency = 3;
-    sint64 active_days = 4;
-    bool delegated = 5;
+    sint64 active_days = 4;// -> end_timestamp
+    bool delegated = 5;// -> is_lock_token
     sint64 total_epoch = 6;
     repeated string options = 7;
 }
@@ -23,8 +23,8 @@ message VotingEvent {
     Hash topic = 1;
     Address sponsor = 2;
     string accepted_currency = 3;
-    sint64 active_days = 4;
-    bool delegated = 5;
+    sint64 active_days = 4;// -> end_timestamp
+    bool delegated = 5;// -> is_lock_token
     sint64 current_epoch = 6;
     sint64 total_epoch = 7;
     repeated string options = 8;
@@ -56,7 +56,7 @@ message VotingResult {
     Hash topic = 1;
     Address sponsor = 2;
     sint64 epoch_number = 3;
-    map<string, sint64> results = 4;
+    map<string, sint64> results = 4;// option -> amount
     sint64 voters_count = 5;
     google.protobuf.Timestamp start_timestamp = 6;
     google.protobuf.Timestamp end_timestamp = 7;

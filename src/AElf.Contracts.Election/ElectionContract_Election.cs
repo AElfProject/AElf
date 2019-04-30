@@ -20,6 +20,7 @@ namespace AElf.Contracts.Election
             State.AElfConsensusContractSystemName.Value = input.AelfConsensusContractSystemName;
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Candidates.Value = new PublicKeysList();
+            // TODO: Context.Vars -> input.
             State.MinimumLockTime.Value = int.Parse(Context.Variables.MinimumLockTime);
             State.MaximumLockTime.Value = int.Parse(Context.Variables.MaximumLockTime);
             State.BaseTimeUnit.Value = int.Parse(Context.Variables.BaseTimeUnit);
@@ -29,6 +30,9 @@ namespace AElf.Contracts.Election
 
         public override Empty SetInitialMiners(PublicKeysList input)
         {
+            State.AElfConsensusContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
+            Assert(State.AElfConsensusContract.Value == Context.Sender, "Only Consensus Contract can call this method.");
             Assert(State.InitialMiners.Value == null, "Initial miners already set.");
             State.InitialMiners.Value = new PublicKeysList {Value = {input.Value}};
             foreach (var publicKey in input.Value)
@@ -37,8 +41,6 @@ namespace AElf.Contracts.Election
             }
 
             State.MinersCount.Value = input.Value.Count;
-            State.AElfConsensusContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
             return new Empty();
         }
 
@@ -92,6 +94,7 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        // TODO: Consider a limit amount of candidates.
         /// <summary>
         /// Actually this method is for adding an option of voting.
         /// </summary>
@@ -111,7 +114,7 @@ namespace AElf.Contracts.Election
 
             // Add this alias to history information of this candidate.
             var candidateHistory = State.Histories[publicKey];
-
+            
             if (candidateHistory != null)
             {
                 Assert(candidateHistory.State != CandidateState.IsEvilNode,
@@ -125,6 +128,7 @@ namespace AElf.Contracts.Election
             }
             else
             {
+                // TODO: Add blacklist check here.
                 State.Histories[publicKey] = new CandidateHistory
                 {
                     PublicKey = publicKey,
@@ -152,6 +156,7 @@ namespace AElf.Contracts.Election
                 Option = publicKey
             });
 
+            // TODO: SubWeight when marked as evil node.
             State.ProfitContract.AddWeight.Send(new AddWeightInput
             {
                 ProfitId = State.SubsidyHash.Value,
@@ -206,12 +211,14 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        // TODO: SafeMath
         public override Empty Vote(VoteMinerInput input)
         {
             Assert(State.Histories[input.CandidatePublicKey] != null, "Candidate not found.");
             Assert(State.Histories[input.CandidatePublicKey].State == CandidateState.IsCandidate,
                 "Candidate state incorrect.");
 
+            // TODO: Use timestamp.
             if (input.LockTimeUnit == TimeUnit.Minutes)
             {
                 Assert((TimeUnit) State.BaseTimeUnit.Value == TimeUnit.Minutes, "Invalid time unit.");
@@ -234,6 +241,7 @@ namespace AElf.Contracts.Election
                 $"Invalid lock time. At least {State.MinimumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
             Assert(lockTime <= State.MaximumLockTime.Value,
                 $"Invalid lock time. At most {State.MaximumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
+            // TODO: Reconsider this map.
             State.LockTimeMap[Context.TransactionId] = lockTime;
 
             // Update Voter's Votes information.
@@ -382,13 +390,13 @@ namespace AElf.Contracts.Election
         {
             if (input.IsEvilNode)
             {
+                // TODO: Add to blacklist.
                 Context.LogDebug(() => $"Marked {input.PublicKey.Substring(0, 10)} as evil node.");
             }
 
             var history = State.Histories[input.PublicKey];
             history.ProducedBlocks += input.RecentlyProducedBlocks;
             history.MissedTimeSlots += input.RecentlyMissedTimeSlots;
-            history.IsEvilNode = input.IsEvilNode;
             State.Histories[input.PublicKey] = history;
             return new Empty();
         }

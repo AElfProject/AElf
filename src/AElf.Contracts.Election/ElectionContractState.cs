@@ -9,16 +9,22 @@ namespace AElf.Contracts.Election
         public BoolState TreasuryCreated { get; set; }
         public BoolState TreasuryRegistered { get; set; }
         public BoolState VotingEventRegistered { get; set; }
+        
+        // TODO: We can merge some Ids.
         public SingletonState<Hash> TreasuryHash { get; set; }
+        
         public SingletonState<Hash> WelfareHash { get; set; }
         public SingletonState<Hash> SubsidyHash { get; set; }
         public SingletonState<Hash> RewardHash { get; set; }
+        
         public SingletonState<Hash> BasicRewardHash { get; set; }
         public SingletonState<Hash> VotesWeightRewardHash { get; set; }
         public SingletonState<Hash> ReElectionRewardHash { get; set; }
 
+        // TODO: Divide and rename.
         public MappedState<string, Votes> Votes { get; set; }
 
+        // TODO: Rename to Candidate(Information)
         public MappedState<string, CandidateHistory> Histories { get; set; }
 
         public SingletonState<int> CurrentTermNumber { get; set; }
