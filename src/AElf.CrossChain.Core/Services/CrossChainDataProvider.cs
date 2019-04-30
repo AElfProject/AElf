@@ -8,6 +8,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
@@ -16,27 +17,27 @@ namespace AElf.CrossChain
 {
     internal class CrossChainDataProvider : ICrossChainDataProvider, INewChainRegistrationService, ILocalEventHandler<NewIrreversibleBlockFoundEvent>, ISingletonDependency
     {
-        private readonly ICrossChainContractReader _crossChainContractReader;
+        private readonly IReaderFactory _readerFactory;
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
         private readonly ICrossChainMemoryCacheService _crossChainMemoryCacheService;
         public ILogger<CrossChainDataProvider> Logger { get; set; }
 
         private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData =
             new Dictionary<Hash, CrossChainBlockData>();
-        public CrossChainDataProvider(ICrossChainContractReader crossChainContractReader,
-            ICrossChainDataConsumer crossChainDataConsumer, ICrossChainMemoryCacheService crossChainMemoryCacheService)
+
+        public CrossChainDataProvider(IReaderFactory readerFactory, ICrossChainDataConsumer crossChainDataConsumer,
+            ICrossChainMemoryCacheService crossChainMemoryCacheService)
         {
-            _crossChainContractReader = crossChainContractReader;
+            _readerFactory = readerFactory;
             _crossChainDataConsumer = crossChainDataConsumer;
             _crossChainMemoryCacheService = crossChainMemoryCacheService;
         }
 
         public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
         {
-            var sideChainBlockData = new List<SideChainBlockData>(); 
-            var dict = await _crossChainContractReader.GetSideChainIdAndHeightAsync(currentBlockHash,
-                currentBlockHeight);
-            foreach (var idHeight in dict)
+            var sideChainBlockData = new List<SideChainBlockData>();
+            var dict = await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetSideChainIdAndHeight.CallAsync(new Empty());
+            foreach (var idHeight in dict.IdHeightDict)
             {
                 var i = 0;
                 var targetHeight = idHeight.Value + 1;
@@ -73,9 +74,13 @@ namespace AElf.CrossChain
             {
                 if (!sideChainValidatedHeightDict.TryGetValue(blockInfo.ChainId, out var validatedHeight))
                 {
-                    validatedHeight =
-                        await _crossChainContractReader.GetSideChainCurrentHeightAsync(blockInfo.ChainId,
-                            currentBlockHash, currentBlockHeight);
+                    var height = await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetSideChainHeight
+                        .CallAsync(
+                            new SInt32Value()
+                            {
+                                Value = blockInfo.ChainId
+                            });
+                    validatedHeight = height?.Value ?? 0;
                 }
 
                 long targetHeight = validatedHeight + 1; 
@@ -98,7 +103,9 @@ namespace AElf.CrossChain
         public async Task<List<ParentChainBlockData>> GetParentChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
         {
             var parentChainBlockData = new List<ParentChainBlockData>();
-            var parentChainId = await _crossChainContractReader.GetParentChainIdAsync(currentBlockHash, currentBlockHeight);
+            var returnValue = await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetParentChainId
+                .CallAsync(new Empty());
+            var parentChainId = returnValue?.Value ?? 0;
             if (parentChainId == 0)
             {
                 //Logger.LogTrace("No configured parent chain");
@@ -107,8 +114,8 @@ namespace AElf.CrossChain
             }
                 
             const int length = CrossChainConstants.MaximalCountForIndexingParentChainBlock;
-            var heightInState =
-                await _crossChainContractReader.GetParentChainCurrentHeightAsync(currentBlockHash, currentBlockHeight);
+            var heightInState = (await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetParentChainHeight
+                .CallAsync(new Empty())).Value;
             
             var targetHeight = heightInState + 1;
             Logger.LogTrace($"Target height {targetHeight}");
@@ -138,7 +145,8 @@ namespace AElf.CrossChain
         {
             if (parentChainBlockData.Count == 0)
                 return true;
-            var parentChainId = await _crossChainContractReader.GetParentChainIdAsync(currentBlockHash, currentBlockHeight);
+            var parentChainId = (await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetParentChainId
+                .CallAsync(new Empty())).Value;
             if (parentChainId == 0)
                 // no configured parent chain
                 return false;
@@ -150,8 +158,8 @@ namespace AElf.CrossChain
 
             var i = 0;
 
-            var targetHeight =
-                await _crossChainContractReader.GetParentChainCurrentHeightAsync(currentBlockHash, currentBlockHeight) + 1;
+            var targetHeight =(await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetParentChainHeight
+                    .CallAsync(new Empty())).Value;
             var res = true;
             while (i < length)
             {
@@ -173,9 +181,9 @@ namespace AElf.CrossChain
 
         public async Task<IMessage> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
         {
-            var message =
-                await _crossChainContractReader.GetIndexedCrossChainBlockDataAsync(currentBlockHash,
-                    currentBlockHeight);
+            var message = await _readerFactory.Create(currentBlockHash,
+                    currentBlockHeight).GetIndexedCrossChainBlockDataByHeight
+                .CallAsync(new SInt64Value() {Value = currentBlockHeight});
             if (message == null) return null;
             return CrossChainBlockData.Parser.ParseFrom(message.ToByteString()) ;
         }
@@ -218,13 +226,17 @@ namespace AElf.CrossChain
 
         public async Task<IMessage> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight)
         {
-            return await _crossChainContractReader.GetChainInitializationContextAsync(blockHash, blockHeight, chainId);
+            return await _readerFactory.Create(blockHash, blockHeight).GetChainInitializationContext.CallAsync(new SInt32Value()
+            {
+                Value = chainId
+            });
         }
 
         public async Task RegisterNewChainsAsync(Hash blockHash, long blockHeight)
         {
-            var dict = await _crossChainContractReader.GetAllChainsIdAndHeightAsync(blockHash, blockHeight);
-            foreach (var chainIdHeight in dict)
+            var dict = await _readerFactory.Create(blockHash, blockHeight).GetAllChainsIdAndHeight.CallAsync(new Empty());
+
+            foreach (var chainIdHeight in dict.IdHeightDict)
             {
                 _crossChainMemoryCacheService.RegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value + 1);
             }
