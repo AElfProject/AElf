@@ -24,10 +24,6 @@ namespace AElf.Kernel.Types.Tests
 
             var hashByte = blockHeader.GetHashBytes();
             hashByte.ShouldNotBe(null);
-
-            var hash1 = blockHeader.GetHashWithoutCache();
-            hash1.ShouldNotBeNull();
-            hash1.ShouldBe(hash);
         }
 
         [Fact]
@@ -88,9 +84,6 @@ namespace AElf.Kernel.Types.Tests
 
             var hash = block.GetHash();
             hash.ShouldNotBe(null);
-
-            var hash1 = block.GetHashWithoutCache();
-            hash.ShouldBe(hash1);
 
             var hashBytes = block.GetHashBytes();
             hashBytes.ShouldNotBe(null);

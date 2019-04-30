@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Consensus.DPoS;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
-using AddDividendsInput = AElf.Consensus.DPoS.AddDividendsInput;
+//using AddDividendsInput = AElf.Consensus.DPoS.AddDividendsInput;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -244,7 +243,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Set dividends of related term to Dividends Contract.
             var minedBlocks = roundInformation.GetMinedBlocks();
             State.DividendContract.AddDividends.Send(
-                new AddDividendsInput
+                new Dividend.AddDividendsInput
                 {
                     TermNumber = dividendsTermNumber,
                     DividendsAmount = GetDividendsForVoters(minedBlocks)
@@ -278,7 +277,7 @@ namespace AElf.Contracts.Consensus.DPoS
                                    totalReappointment);
 
                 State.DividendContract.SendDividends.Send(
-                    new SendDividendsInput
+                    new Dividend.SendDividendsInput
                     {
                         To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(minerInRound.Key)),
                         Amount = amount
@@ -292,7 +291,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     var backupCount = (long) backups.Count;
                     var amount = backupCount == 0 ? 0 : GetDividendsForBackupNodes(minedBlocks) / backupCount;
                     State.DividendContract.SendDividends.Send(
-                        new SendDividendsInput
+                        new Dividend.SendDividendsInput
                         {
                             To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(backup)),
                             Amount = amount

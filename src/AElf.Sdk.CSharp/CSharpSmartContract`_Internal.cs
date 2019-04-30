@@ -1,6 +1,5 @@
 using System;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Sdk;
 
 namespace AElf.Sdk.CSharp
 {

@@ -26,6 +26,7 @@ namespace AElf.OS.Network
         private IPeer _grpcPeer;
         private IAccountService _acc;
         private ILocalEventBus _eventBus;
+        private OSTestHelper _osTestHelper;
 
         public GrpcPeerTests()
         {
@@ -34,6 +35,7 @@ namespace AElf.OS.Network
             _pool = GetRequiredService<IPeerPool>();
             _acc = GetRequiredService<IAccountService>();
             _eventBus = GetRequiredService<ILocalEventBus>();
+            _osTestHelper = GetRequiredService<OSTestHelper>();
             
             _grpcPeer = CreateNewPeer();
             _pool.AddPeer(_grpcPeer);
@@ -110,18 +112,12 @@ namespace AElf.OS.Network
                 received = t;
                 return Task.CompletedTask;
             });
-            
-            var transaction = new Transaction
-            {
-                From = Address.Generate(),
-                To = Address.Generate()
-            };
+            var transactions = await _osTestHelper.GenerateTransferTransactions(1);
+            await _grpcPeer.SendTransactionAsync(transactions.First());
 
-            await _grpcPeer.SendTransactionAsync(transaction);
-            
             received.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);
-            received.Transactions.First().From.ShouldBe(transaction.From);
+            received.Transactions.First().From.ShouldBe(transactions.First().From);
         }
         
         [Fact]

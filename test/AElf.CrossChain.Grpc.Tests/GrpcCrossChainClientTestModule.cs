@@ -1,7 +1,14 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
 using AElf.Cryptography.Certificate;
+using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
+using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NSubstitute;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain.Grpc
@@ -12,12 +19,6 @@ namespace AElf.CrossChain.Grpc
         {
             base.ConfigureServices(context);
             
-            Configure<GrpcCrossChainConfigOption>(option =>
-            {
-                option.LocalClient = true;
-                option.LocalServer = true;
-            });
-
             var services = context.Services;
             services.AddSingleton(provider =>
             {
@@ -73,14 +74,34 @@ eAkW/Qv4MEnbgaq97yC2lPkyrd19N2fh5oBT
 
             services.AddTransient(o =>
             {
-                var mockService = new Mock<ICrossChainDataProducer>();
-                mockService.Setup(m=>m.GetChainHeightNeeded(It.IsAny<int>()))
+                var mockService = new Mock<ICrossChainMemoryCacheService>();
+                mockService.Setup(m=>m.GetNeededChainHeightForCache(It.IsAny<int>()))
                     .Returns(15);
                 
                 return mockService.Object;
             });
 
             services.AddSingleton<ICrossChainServer, CrossChainGrpcServer>();
+            
+            services.AddTransient(o =>
+            {
+                var mockService = new Mock<IBlockchainService>();
+                mockService.Setup(m=>m.GetChainAsync())
+                    .Returns(Task.FromResult(new Chain
+                    {
+                        LastIrreversibleBlockHeight = 1
+                    }));
+                return mockService.Object;
+            });
+
+            services.AddTransient(o =>
+            {
+                var mockService = new Mock<ICrossChainContractReader>();
+                mockService.Setup(m => m.GetAllChainsIdAndHeightAsync(It.IsAny<Hash>(), It.IsAny<long>())).Returns(
+                    Task.FromResult(new Dictionary<int, long>()) // add data if needed
+                    );
+                return mockService.Object;
+            });
         }
     }
 }

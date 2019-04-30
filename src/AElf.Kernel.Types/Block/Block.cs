@@ -1,4 +1,5 @@
-﻿using Google.Protobuf;
+﻿using System.Collections.Generic;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -35,11 +36,6 @@ namespace AElf.Kernel
             return Header.GetHash();
         }
 
-        public Hash GetHashWithoutCache()
-        {
-            return Header.GetHashWithoutCache();
-        }
-
         public byte[] GetHashBytes()
         {
             return Header.GetHashBytes();
@@ -49,5 +45,7 @@ namespace AElf.Kernel
         {
             return this.ToByteArray();
         }
+
+        public IEnumerable<Transaction> TransactionList => Body.TransactionList;
     }
 }

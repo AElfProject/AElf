@@ -14,6 +14,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
@@ -147,7 +148,7 @@ namespace AElf.OS
                 new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
-            transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            transaction.Signature = ByteString.CopyFrom(signature);
 
             return transaction;
         }
@@ -242,7 +243,7 @@ namespace AElf.OS
                 });
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
-            transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            transaction.Signature = ByteString.CopyFrom(signature);
 
             await BroadcastTransactions(new List<Transaction> {transaction});
             await MinedOneBlock();
@@ -263,10 +264,11 @@ namespace AElf.OS
                 ChainId = _chainOptions.ChainId
             };
 
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name);
 
             var ownAddress = await _accountService.GetAccountAsync();
-            var callList = new SystemTransactionMethodCallList();
+            var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             callList.Add(nameof(TokenContract.CreateNativeToken), new CreateInput
             {
                 Symbol = "ELF",

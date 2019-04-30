@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AElf.Consensus.DPoS;
 using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
 using Google.Protobuf;
@@ -255,7 +254,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         Transactions =
                         {
                             GenerateTransaction(nameof(UpdateValue),
-                                round.ExtractInformationToUpdateConsensus(publicKey.ToHex()))
+                                round.ExtractInformationToUpdateConsensus(publicKey.ToHex()), input.PublicKey)
                         }
                     };
                 case DPoSBehaviour.NextRound:
@@ -263,7 +262,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(NextRound), round)
+                            GenerateTransaction(nameof(NextRound), round, input.PublicKey)
                         }
                     };
                 case DPoSBehaviour.NextTerm:
@@ -271,7 +270,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(NextTerm), round)
+                            GenerateTransaction(nameof(NextTerm), round, input.PublicKey)
                         }
                     };
                 default:

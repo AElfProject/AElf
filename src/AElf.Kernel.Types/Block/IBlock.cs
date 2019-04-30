@@ -1,6 +1,6 @@
 ﻿namespace AElf.Kernel
 {
-    public interface IBlock : IHashProvider
+    public interface IBlock : IBlockBase
     {
         BlockHeader Header { get; set; }
         BlockBody Body { get; set; }

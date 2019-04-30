@@ -113,7 +113,6 @@ namespace AElf.Kernel.SmartContract
             _bridgeContext.TransactionContext.PreviousBlockHash = newBlock.GetHash();
 
             var previousBlock = _bridgeContext.GetPreviousBlock();
-            previousBlock.Height.ShouldBe(newBlock.Height);
             previousBlock.GetHash().ShouldBe(newBlock.GetHash());
         }
 
@@ -132,10 +131,13 @@ namespace AElf.Kernel.SmartContract
             {
                 From = Address.FromPublicKey(_keyPair.PublicKey),
                 To = Address.FromString("To"),
-                MethodName = "TestMethod"
+                MethodName = "TestMethod",
+                Params = ByteString.CopyFrom(new byte[10]),
+                RefBlockNumber = 1,
+                RefBlockPrefix = ByteString.CopyFrom(new byte[4])
             };
             var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature));
+            tx.Signature = ByteString.CopyFrom(signature);
 
             var verifyResult = _bridgeContext.VerifySignature(tx);
             verifyResult.ShouldBe(true);
@@ -147,26 +149,10 @@ namespace AElf.Kernel.SmartContract
             var tx = GetNewTransaction();
 
             var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature));
+            tx.Signature = ByteString.CopyFrom(signature);
 
             var verifyResult = _bridgeContext.VerifySignature(tx);
             verifyResult.ShouldBe(false);
-        }
-
-        [Fact]
-        public void Verify_Signature_MultiSignature_ReturnTrue()
-        {
-            var tx = GetNewTransaction();
-
-            var signature1 =
-                CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, Hash.FromString("Signature1").DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature1));
-            var signature2 =
-                CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, Hash.FromString("Signature2").DumpByteArray());
-            tx.Sigs.Add(ByteString.CopyFrom(signature2));
-
-            var verifyResult = _bridgeContext.VerifySignature(tx);
-            verifyResult.ShouldBe(true);
         }
 
         [Fact]
@@ -259,7 +245,11 @@ namespace AElf.Kernel.SmartContract
                 Transaction = new Transaction()
                 {
                     From = Address.FromPublicKey(_keyPair.PublicKey),
-                    To = Address.Genesis
+                    To = Address.Genesis,
+                    MethodName = "Test",
+                    Params = ByteString.CopyFrom(new byte[10]),
+                    RefBlockNumber = 1,
+                    RefBlockPrefix = ByteString.CopyFrom(new byte[4])
                 },
                 BlockHeight = 3,
                 CurrentBlockTime = DateTime.Now,
@@ -269,7 +259,7 @@ namespace AElf.Kernel.SmartContract
             };
             var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, transactionContext.Transaction
                 .GetHash().DumpByteArray());
-            transactionContext.Transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            transactionContext.Transaction.Signature = ByteString.CopyFrom(signature);
             _bridgeContext.TransactionContext = transactionContext;
 
             return _bridgeContext;
@@ -281,7 +271,10 @@ namespace AElf.Kernel.SmartContract
             {
                 From = Address.FromString("From"),
                 To = Address.FromString("To"),
-                MethodName = Guid.NewGuid().ToString()
+                MethodName = Guid.NewGuid().ToString(),
+                Params = ByteString.CopyFrom(new byte[10]),
+                RefBlockNumber = 1,
+                RefBlockPrefix = ByteString.CopyFrom(new byte[4])
             };
             return tx;
         }

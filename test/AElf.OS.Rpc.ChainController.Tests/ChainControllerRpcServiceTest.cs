@@ -150,7 +150,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             // Generate unsigned transaction
             var transaction = await _osTestHelper.GenerateTransferTransaction();
-            transaction.Sigs.Clear();
+            transaction.Signature = ByteString.CopyFrom(new byte[0]);
 
             var response = await JsonCallAsJObject("/chain", "BroadcastTransaction",
                 new {rawTransaction = transaction.ToByteArray().ToHex()});
@@ -614,7 +614,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
 
                 var signature =
                     CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
-                transaction.Sigs.Add(ByteString.CopyFrom(signature));
+                transaction.Signature = ByteString.CopyFrom(signature);
 
                 transactionList.Add(transaction); 
             }

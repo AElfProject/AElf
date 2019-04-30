@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs3;
-using AElf.Consensus.DPoS;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
@@ -29,7 +29,7 @@ namespace AElf.Contracts.CrossChain
         {
             var txResultStatusRawBytes =
                 EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
-            return new MerklePath(path).ComputeRootWith(
+            return new MerklePath().AddRange(path).ComputeRootWith(
                 Hash.FromRawBytes(txId.DumpByteArray().Concat(txResultStatusRawBytes).ToArray()));
         }
 
