@@ -1,75 +1,10 @@
 using System;
 using System.Runtime.Serialization;
-using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {
-    //TODO: this assembly should not reference AElf.Kernel.Types,
-    //BODY: because it may be changed very often, and may introduce new Type, if some DAPP user use it,
-    //it will be very hard to remove the type in the assembly.
-    //we should define a new assembly, it only contains types for smart contract.
-    public interface ISmartContractBridgeContext
-    {
-        int ChainId { get; }
-
-        void LogDebug(Func<string> func);
-
-        void FireLogEvent(LogEvent logEvent);
-
-        Hash TransactionId { get; }
-
-        Address Sender { get; }
-
-        Address Self { get; }
-
-        // TODO: Remove genesis
-        Address Genesis { get; }
-        long CurrentHeight { get; }
-
-        DateTime CurrentBlockTime { get; }
-        Hash PreviousBlockHash { get; }
-
-        // TODO: Remove RecoverPublicKey(byte[] signature, byte[] hash)
-        byte[] RecoverPublicKey(byte[] signature, byte[] hash);
-
-        byte[] RecoverPublicKey();
-
-        // TODO: Remove GetBlockByHeight
-        Block GetPreviousBlock();
-
-        bool VerifySignature(Transaction tx);
-
-        /// <summary>
-        /// Generate txn not executed before next block. 
-        /// </summary>
-        /// <param name="deferredTxn"></param>
-        void SendDeferredTransaction(Transaction deferredTxn);
-
-        void DeployContract(Address address, SmartContractRegistration registration, Hash name);
-
-        void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
-
-        T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args)
-            where T : IMessage<T>, new();
-        
-        void SendInline(Address toAddress, string methodName, ByteString args);
-
-        void SendVirtualInline(Hash fromVirtualAddress, Address toAddress, string methodName, ByteString args);
-
-        Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
-
-        Address GetZeroSmartContractAddress();
-
-        IStateProvider StateProvider { get; }
-
-        byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage);
-
-        byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage);
-    }
-
     public interface ILimitedSmartContractContext
     {
-        
     }
 
     [Serializable]

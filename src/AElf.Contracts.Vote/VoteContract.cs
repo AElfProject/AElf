@@ -3,6 +3,7 @@ using System.Net.Mime;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using Vote;
 
 namespace AElf.Contracts.Vote
 {
@@ -13,6 +14,9 @@ namespace AElf.Contracts.Vote
     {
         public override Empty InitialVoteContract(InitialVoteContractInput input)
         {
+            Assert(Context.Sender == Context.GetZeroSmartContractAddress(),
+                "Only zero contract can initialize this contract.");
+
             Assert(!State.Initialized.Value, "Already initialized.");
 
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
@@ -24,6 +28,8 @@ namespace AElf.Contracts.Vote
 
         public override Empty Register(VotingRegisterInput input)
         {
+            input.Topic = input.Topic.Trim();
+
             if (input.TotalEpoch == 0)
             {
                 input.TotalEpoch = 1;
@@ -54,10 +60,12 @@ namespace AElf.Contracts.Vote
             var votingEventHash = votingEvent.GetHash();
 
             Assert(State.VotingEvents[votingEventHash] == null, "Voting event already exists.");
-            Assert(State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
-                Symbol = input.AcceptedCurrency
-            }).LockWhiteList.Contains(Context.Self), "Claimed accepted token is not available for voting.");
+                Symbol = input.AcceptedCurrency,
+                Address = Context.Self
+            }).Value;
+            Assert(isInWhiteList, "Claimed accepted token is not available for voting.");
 
             // Initialize voting event.
             votingEvent.AcceptedCurrency = input.AcceptedCurrency;
@@ -92,16 +100,20 @@ namespace AElf.Contracts.Vote
         //TODO: User cannot vote when Event CurrentEpoch >= EpochNumber + 1
         public override Empty Vote(VoteInput input)
         {
+            input.Topic = input.Topic.Trim();
+            
             var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
 
             Assert(votingEvent.Options.Contains(input.Option), $"Option {input.Option} not found.");
             if (votingEvent.Delegated)
             {
                 Assert(input.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
-                Assert(input.VoteId != null, "Vote Id cannot be null if this voting event is delegated.");
+                Assert(input.Voter != null, "Voter cannot be null if voting event is delegated.");
+                Assert(input.VoteId != null, "Vote Id cannot be null if voting event is delegated.");
             }
             else
             {
+                input.Voter = Context.Sender;
                 input.VoteId = Context.TransactionId;
             }
 
@@ -114,7 +126,7 @@ namespace AElf.Contracts.Vote
                 Option = input.Option,
                 IsWithdrawn = false,
                 VoteTimestamp = Context.CurrentBlockTime.ToTimestamp(),
-                Voter = votingEvent.Delegated ? input.Voter : Context.Sender,
+                Voter = input.Voter,
                 Currency = votingEvent.AcceptedCurrency
             };
 
@@ -233,6 +245,8 @@ namespace AElf.Contracts.Vote
         //TODO: EpochNumber cannot update when CurrentEpoch >= EpochNumber + 1 
         public override Empty UpdateEpochNumber(UpdateEpochNumberInput input)
         {
+            input.Topic = input.Topic.Trim();
+            
             var votingEvent = AssertVotingEvent(input.Topic, Context.Sender);
 
             // Update previous voting going information.
@@ -296,6 +310,25 @@ namespace AElf.Contracts.Vote
         public override VotingHistories GetVotingHistories(Address input)
         {
             return State.VotingHistoriesMap[input];
+        }
+
+        public override VotingRecord GetVotingRecord(Hash input)
+        {
+            var votingRecord = State.VotingRecords[input];
+            Assert(votingRecord != null, "Voting record not found.");
+            return votingRecord;
+        }
+
+        public override VotingEvent GetVotingEvent(GetVotingEventInput input)
+        {
+            var votingEventHash = new VotingEvent
+            {
+                Topic = input.Topic,
+                Sponsor = input.Sponsor
+            }.GetHash();
+            var votingEvent = State.VotingEvents[votingEventHash];
+            Assert(votingEvent != null, "Voting Event not found.");
+            return votingEvent;
         }
 
         public override VotingHistory GetVotingHistory(GetVotingHistoryInput input)

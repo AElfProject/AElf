@@ -10,16 +10,16 @@ message Block {
 
 message BlockHeader {
     int32 Version = 1;
-    Hash PreviousBlockHash = 2;
-    Hash MerkleTreeRootOfTransactions = 3;
-    Hash MerkleTreeRootOfWorldState = 4;
-    bytes Bloom = 5;
-    int64 Height = 6;
-    bytes Sig = 7;
-    bytes P = 8;
+    int32 ChainId = 2;
+    Hash PreviousBlockHash = 3;
+    Hash MerkleTreeRootOfTransactions = 4;
+    Hash MerkleTreeRootOfWorldState = 5;
+    bytes Bloom = 6;
+    int64 Height = 7;
+    repeated bytes BlockExtraDatas = 8;
     google.protobuf.Timestamp Time = 9;
-    int32 ChainId = 10;
-    repeated bytes BlockExtraDatas = 11;
+    bytes SignerPubkey = 9999;
+    bytes Signature = 10000;
 }
 
 message BlockBody {

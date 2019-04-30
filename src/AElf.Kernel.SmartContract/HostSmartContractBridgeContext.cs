@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,26 +8,37 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract
 {
+    public class HostSmartContractBridgeContextOptions
+    {
+        public Dictionary<string, string> ContextVariables { get; set; } = new Dictionary<string, string>();
+    }
+
     public class HostSmartContractBridgeContext : IHostSmartContractBridgeContext, ITransientDependency
     {
         private readonly ISmartContractBridgeService _smartContractBridgeService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IAccountService _accountService;
 
+
         public HostSmartContractBridgeContext(ISmartContractBridgeService smartContractBridgeService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService)
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, IAccountService accountService,
+            IOptionsSnapshot<HostSmartContractBridgeContextOptions> options)
         {
             _smartContractBridgeService = smartContractBridgeService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _accountService = accountService;
+
+            Variables = new ContextVariableDictionary(options.Value.ContextVariables);
+
             var self = this;
             Address GetAddress() => self.Transaction.To;
-            _lazyStateProvider = new Lazy<IStateProvider>(
+            _lazyStateProvider = new Lazy<ICachedStateProvider>(
                 () => new CachedStateProvider(
                     new ScopedStateProvider()
                     {
@@ -44,13 +56,15 @@ namespace AElf.Kernel.SmartContract
             set
             {
                 _transactionContext = value;
-                StateProvider.Cache = _transactionContext?.StateCache ?? new NullStateCache();
+                CachedStateProvider.Cache = _transactionContext?.StateCache ?? new NullStateCache();
             }
         }
 
-        private readonly Lazy<IStateProvider> _lazyStateProvider;
+        private readonly Lazy<ICachedStateProvider> _lazyStateProvider;
+        private ICachedStateProvider CachedStateProvider => _lazyStateProvider.Value;
 
         public IStateProvider StateProvider => _lazyStateProvider.Value;
+
         public Address GetContractAddressByName(Hash hash)
         {
             return _smartContractBridgeService.GetAddressByContractName(hash);
@@ -68,6 +82,7 @@ namespace AElf.Kernel.SmartContract
         }
 
         public int ChainId => _smartContractBridgeService.GetChainId();
+        public ContextVariableDictionary Variables { get; }
 
         public void LogDebug(Func<string> func)
         {
@@ -78,7 +93,7 @@ namespace AElf.Kernel.SmartContract
         }
 
         public void FireLogEvent(LogEvent logEvent)
-        {    
+        {
             TransactionContext.Trace.Logs.Add(logEvent);
         }
 
@@ -113,12 +128,11 @@ namespace AElf.Kernel.SmartContract
         /// <returns>Public key byte array</returns>
         public byte[] RecoverPublicKey()
         {
-            return RecoverPublicKey(TransactionContext.Transaction.Sigs.First().ToByteArray(),
+            return RecoverPublicKey(TransactionContext.Transaction.Signature.ToByteArray(),
                 TransactionContext.Transaction.GetHash().DumpByteArray());
         }
 
-        public T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args)
-            where T : IMessage<T>, new()
+        public T Call<T>(Address address, string methodName, ByteString args) where T : IMessage<T>, new()
         {
             TransactionTrace trace = AsyncHelper.RunSync(async () =>
             {
@@ -126,7 +140,7 @@ namespace AElf.Kernel.SmartContract
                 {
                     BlockHash = this.TransactionContext.PreviousBlockHash,
                     BlockHeight = this.TransactionContext.BlockHeight - 1,
-                    StateCache = stateCache
+                    StateCache = CachedStateProvider.Cache
                 };
 
                 var tx = new Transaction()
@@ -185,7 +199,7 @@ namespace AElf.Kernel.SmartContract
         }
 
 
-        public Block GetPreviousBlock()
+        public IBlockBase GetPreviousBlock()
         {
             return AsyncHelper.RunSync(() => _smartContractBridgeService.GetBlockByHashAsync(
                 TransactionContext.PreviousBlockHash));

@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package profit;
+
+import "common.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+import "profit.proto";
+
+option csharp_namespace = "AElf.Contracts.Profit";
+
+service ProfitContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Profit.ProfitContractState";
+
+    // Actions
+    rpc InitializeProfitContract (InitializeProfitContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc CreateProfitItem (CreateProfitItemInput) returns (Hash) {
+    }
+    rpc AddWeight (AddWeightInput) returns (google.protobuf.Empty) {
+    }
+    rpc SubWeight (SubWeightInput) returns (google.protobuf.Empty) {
+    }
+    rpc AddProfits (AddProfitsInput) returns (google.protobuf.Empty) {
+    }
+    rpc Profit (ProfitInput) returns (google.protobuf.Empty) {
+    }
+    rpc ReleaseProfit (ReleaseProfitInput) returns (google.protobuf.Empty) {
+    }
+    rpc RegisterSubProfitItem (RegisterSubProfitItemInput) returns (google.protobuf.Empty) {
+    }
+    rpc CancelSubProfitItem (CancelSubProfitItemInput) returns (google.protobuf.Empty) {
+    }
+    
+    // Views
+    rpc GetCreatedProfitItems (GetCreatedProfitItemsInput) returns (CreatedProfitItems) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetProfitItem (Hash) returns (ProfitItem) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetProfitItemVirtualAddress (GetProfitItemVirtualAddressInput) returns (Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetReleasedProfitsInformation (GetReleasedProfitsInformationInput) returns (ReleasedProfitsInformation) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetProfitDetails (GetProfitDetailsInput) returns (ProfitDetails) {
+        option (aelf.is_view) = true;
+    }
+}

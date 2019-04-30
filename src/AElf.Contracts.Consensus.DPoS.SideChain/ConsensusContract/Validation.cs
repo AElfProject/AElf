@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using AElf.Consensus.DPoS;
 using AElf.Kernel;
 
 namespace AElf.Contracts.Consensus.DPoS.SideChain

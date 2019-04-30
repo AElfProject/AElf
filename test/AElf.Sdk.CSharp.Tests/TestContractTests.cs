@@ -29,8 +29,7 @@ namespace AElf.Sdk.CSharp.Tests
                 {
                     From = AddressList[1],
                     To = AddressList[0]
-                },
-                StateCache = StateProvider.Cache
+                }
             };
 
             BridgeContext.TransactionContext = transactionContext;

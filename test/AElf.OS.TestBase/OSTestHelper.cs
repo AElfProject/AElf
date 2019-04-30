@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
@@ -13,6 +14,8 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
@@ -39,6 +42,7 @@ namespace AElf.OS
         private readonly ITxHub _txHub;
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
         private readonly IBlockAttachService _blockAttachService;
+        private readonly ITransactionResultService _transactionResultService;
         
         private OsBlockchainNodeContext _blockchainNodeCtxt;
         
@@ -65,6 +69,7 @@ namespace AElf.OS
             ISmartContractAddressService smartContractAddressService,
             IBlockAttachService blockAttachService,
             IStaticChainInformationProvider staticChainInformationProvider,
+            ITransactionResultService transactionResultService,
             IOptionsSnapshot<ChainOptions> chainOptions)
         {
             _chainOptions = chainOptions.Value;
@@ -77,6 +82,7 @@ namespace AElf.OS
             _blockAttachService = blockAttachService;
             _txHub = txHub;
             _staticChainInformationProvider = staticChainInformationProvider;
+            _transactionResultService = transactionResultService;
 
             BestBranchBlockList = new List<Block>();
             ForkBranchBlockList = new List<Block>();
@@ -119,7 +125,7 @@ namespace AElf.OS
                     BestBranchBlockList[4].GetHash());
             }
 
-            _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
             {
                  BlockHash = chain.BestChainHash,
                  BlockHeight = chain.BestChainHeight
@@ -142,7 +148,7 @@ namespace AElf.OS
                 new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
-            transaction.Sigs.Add(ByteString.CopyFrom(signature));
+            transaction.Signature = ByteString.CopyFrom(signature);
 
             return transaction;
         }
@@ -225,6 +231,28 @@ namespace AElf.OS
             return block;
         }
 
+        public async Task<Address> DeployContract<T>()
+        {
+            var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
+
+            var transaction = GenerateTransaction(Address.Generate(), basicContractZero,
+                nameof(ISmartContractZero.DeploySmartContract), new ContractDeploymentInput()
+                {
+                    Category = 0,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(T).Assembly.Location))
+                });
+
+            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            transaction.Signature = ByteString.CopyFrom(signature);
+
+            await BroadcastTransactions(new List<Transaction> {transaction});
+            await MinedOneBlock();
+
+            var txResult = await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
+
+            return Address.Parser.ParseFrom(txResult.ReturnValue);
+        }
+
 
         #region private methods
 
@@ -236,10 +264,11 @@ namespace AElf.OS
                 ChainId = _chainOptions.ChainId
             };
 
-            dto.InitializationSmartContracts.AddConsensusSmartContract<ConsensusContract>();
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+                ConsensusSmartContractAddressNameProvider.Name);
 
             var ownAddress = await _accountService.GetAccountAsync();
-            var callList = new SystemTransactionMethodCallList();
+            var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             callList.Add(nameof(TokenContract.CreateNativeToken), new CreateInput
             {
                 Symbol = "ELF",
@@ -258,7 +287,7 @@ namespace AElf.OS
             });
             
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name, callList);
 

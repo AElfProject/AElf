@@ -66,8 +66,8 @@ namespace AElf.CrossChain
                 SideChainId = chainId
             };
             CreateFakeCacheAndStateData(chainId, fakeSideChainBlockData, block.Height);
-            await Assert.ThrowsAsync<ValidateNextTimeBlockValidationException>(() =>
-                _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block));
+            var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
+            Assert.False(res);
         }
 
         [Fact]
@@ -108,8 +108,8 @@ namespace AElf.CrossChain
             var fakeTxnMerkleTreeRoot = Hash.FromString("fakeMerkleTreeRoot2");
 
             var block = CreateFilledBlock(fakeTxnMerkleTreeRoot);
-            await Assert.ThrowsAsync<ValidateNextTimeBlockValidationException>(() =>
-                _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block));
+            var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
+            Assert.False(res);
         }
         
         [Fact]
@@ -135,8 +135,8 @@ namespace AElf.CrossChain
             CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData2, 2);
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new []{fakeSideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
-            await Assert.ThrowsAsync<ValidateNextTimeBlockValidationException>(() =>
-                _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block));
+            var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
+            Assert.False(res);
         }
         
         [Fact]

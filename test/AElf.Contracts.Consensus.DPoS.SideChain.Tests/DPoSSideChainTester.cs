@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -7,6 +6,7 @@ using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 
 namespace AElf.Contracts.DPoS.SideChain
 {

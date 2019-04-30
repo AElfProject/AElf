@@ -81,7 +81,6 @@ namespace AElf.Contracts.Genesis
             if (name != null)
                 Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
 
-
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment
             State.ContractSerialNumber.Value = serialNumber + 1;
@@ -133,7 +132,7 @@ namespace AElf.Contracts.Genesis
             {
                 Category = input.Category,
                 Code = input.Code,
-                TransactionMethodCallList = new SystemTransactionMethodCallList()
+                TransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
             });
         }
 
@@ -208,7 +207,7 @@ namespace AElf.Contracts.Genesis
         public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
         {
             var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
-            return Address.FromBytes(Address.TakeByAddressLength(hash.DumpByteArray()));
+            return Address.FromBytes(hash.DumpByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, ulong serialNumber)

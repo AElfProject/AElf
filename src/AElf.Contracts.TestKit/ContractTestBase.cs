@@ -54,7 +54,7 @@ namespace AElf.Contracts.TestKit
                 Category = category,
                 Code = ByteString.CopyFrom(code),
                 Name = name,
-                TransactionMethodCallList = new SystemTransactionMethodCallList()
+                TransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
             });
             return res.Output;
         }

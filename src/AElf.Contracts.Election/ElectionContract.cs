@@ -1,10 +1,11 @@
 ﻿using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using Vote;
 
 namespace AElf.Contracts.Election
 {
-    public class ElectionContract : ElectionContractContainer.ElectionContractBase
+    public partial class ElectionContract : ElectionContractContainer.ElectionContractBase
     {
         public override Empty InitialElectionContract(InitialElectionContractInput input)
         {
@@ -16,7 +17,7 @@ namespace AElf.Contracts.Election
             State.TokenContract.Create.Send(new CreateInput
             {
                 Symbol = ElectionContractConsts.VoteSymbol,
-                TokenName = "Elf Vote token",
+                TokenName = "Vote token",
                 Issuer = Context.Self,
                 Decimals = 2,
                 IsBurnable = true,
@@ -26,7 +27,7 @@ namespace AElf.Contracts.Election
 
             State.TokenContract.Issue.Send(new IssueInput
             {
-                Symbol = ElectionContractConsts.Symbol,
+                Symbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConsts.VotesTotalSupply,
                 To = Context.Self,
                 Memo = "Power!"
@@ -36,7 +37,7 @@ namespace AElf.Contracts.Election
             {
                 Topic = ElectionContractConsts.Topic,
                 Delegated = true,
-                AcceptedCurrency = ElectionContractConsts.Symbol,
+                AcceptedCurrency = Context.Variables.NativeSymbol,
                 ActiveDays = int.MaxValue,
                 TotalEpoch = int.MaxValue
             });
@@ -77,7 +78,7 @@ namespace AElf.Contracts.Election
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = ElectionContractConsts.Symbol,
+                Symbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConsts.LockTokenForElection,
                 LockId = Context.TransactionId,
                 Usage = "Lock for announcing election."
@@ -103,7 +104,7 @@ namespace AElf.Contracts.Election
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = ElectionContractConsts.Symbol,
+                Symbol = Context.Variables.NativeSymbol,
                 LockId = State.Histories[publicKey].AnnouncementTransactionId,
                 Amount = ElectionContractConsts.LockTokenForElection,
                 Usage = "Quit election."
@@ -121,6 +122,10 @@ namespace AElf.Contracts.Election
 
         public override Empty Vote(VoteMinerInput input)
         {
+            var lockTime = input.LockTimeUnit == LockTimeUnit.Days ? input.LockTime : input.LockTime * 30;
+            Assert(lockTime >= 90, "Should lock token for at least 90 days.");
+            State.LockTimeMap[Context.TransactionId] = lockTime;
+
             State.TokenContract.Transfer.Send(new TransferInput
             {
                 Symbol = ElectionContractConsts.VoteSymbol,
@@ -132,7 +137,7 @@ namespace AElf.Contracts.Election
             State.TokenContract.Lock.Send(new LockInput
             {
                 From = Context.Sender,
-                Symbol = ElectionContractConsts.Symbol,
+                Symbol = Context.Variables.NativeSymbol,
                 LockId = Context.TransactionId,
                 Amount = input.Amount,
                 To = Context.Self,
@@ -155,6 +160,11 @@ namespace AElf.Contracts.Election
         public override Empty Withdraw(Hash input)
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input);
+
+            var actualLockedDays = (Context.CurrentBlockTime - votingRecord.VoteTimestamp.ToDateTime()).TotalDays;
+            var claimedLockDays = State.LockTimeMap[input];
+            Assert(actualLockedDays >= claimedLockDays,
+                $"Still need {claimedLockDays - actualLockedDays} days to unlock your token.");
             
             State.TokenContract.Unlock.Send(new UnlockInput
             {

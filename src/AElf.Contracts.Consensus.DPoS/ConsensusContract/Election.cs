@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using VoteInput = AElf.Consensus.DPoS.VoteInput;
-using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
+//using VoteInput = AElf.Consensus.DPoS.VoteInput;
+//using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
@@ -104,8 +104,8 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = "ELF",
-                Amount = DPoSContractConsts.LockTokenForElection,
+                Symbol = Context.Variables.NativeSymbol,
+                Amount = State.LockTokenForElection.Value,
                 LockId = Context.TransactionId,
                 Usage = "Lock for announcing election."
             });
@@ -135,9 +135,9 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = "ELF",
+                Symbol = Context.Variables.NativeSymbol,
                 LockId = State.HistoryMap[publicKey.ToStringValue()].AnnouncementTransactionId,
-                Amount = DPoSContractConsts.LockTokenForElection,
+                Amount = State.LockTokenForElection.Value,
                 Usage = "Unlock and quit election."
             });
 
@@ -169,7 +169,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = "ELF",
+                Symbol = Context.Variables.NativeSymbol,
                 Amount = amount,
                 LockId = Context.TransactionId,
                 Usage = "Lock for getting tickets."
@@ -241,7 +241,7 @@ namespace AElf.Contracts.Consensus.DPoS
             State.VotingRecordsMap[votingRecord.TransactionId] = votingRecord;
 
             // Tell Dividends Contract to add weights for this voting record.
-            State.DividendContract.AddWeights.Send(new WeightsInfo()
+            State.DividendContract.AddWeights.Send(new Dividend.WeightsInfo()
                 {TermNumber = currentTermNumber + 1, Weights = votingRecord.Weight});
 
             Context.LogDebug(() => $"Weights of vote {votingRecord.TransactionId.ToHex()}: {votingRecord.Weight}");
@@ -262,7 +262,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 ContractErrorCode.GetErrorMessage(ContractErrorCode.NoPermission,
                     "No permission to receive."));
 
-            State.DividendContract.TransferDividends.Send(votingRecord);
+            State.DividendContract.TransferDividends.Send(
+                Dividend.VotingRecord.Parser.ParseFrom(votingRecord.ToByteString()));
 
             return new ActionResult {Success = true};
         }
@@ -283,7 +284,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 var votingRecord = State.VotingRecordsMap[transactionId];
                 Assert(votingRecord != null,
                     ContractErrorCode.GetErrorMessage(ContractErrorCode.NotFound, "Voting record not found."));
-                State.DividendContract.TransferDividends.Send(votingRecord);
+                State.DividendContract.TransferDividends.Send(
+                    Dividend.VotingRecord.Parser.ParseFrom(votingRecord.ToByteString()));
             }
 
             return new ActionResult {Success = true};
@@ -340,7 +342,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Sub weight.
             State.DividendContract.SubWeights.Send(
-                new WeightsInfo()
+                new Dividend.WeightsInfo()
                 {
                     TermNumber = State.CurrentTermNumberField.Value,
                     Weights = votingRecord.Weight
@@ -350,7 +352,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 From = Context.Sender,
                 To = Context.Self,
-                Symbol = "ELF",
+                Symbol = Context.Variables.NativeSymbol,
                 Amount = votingRecord.Count,
                 LockId = votingRecord.TransactionId,
                 Usage = $"Withdraw locked token of transaction {txId.ToHex()}: {votingRecord}"
@@ -407,14 +409,14 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     From = Context.Sender,
                     To = Context.Self,
-                    Symbol = "ELF",
+                    Symbol = Context.Variables.NativeSymbol,
                     Amount = votingRecord.Count,
                     LockId = votingRecord.TransactionId,
                     Usage = $"Withdraw locked token of transaction {transactionId}: {votingRecord}"
                 });
 
                 State.DividendContract.SubWeights.Send(
-                    new WeightsInfo()
+                    new Dividend.WeightsInfo()
                     {
                         TermNumber = State.CurrentTermNumberField.Value,
                         Weights = votingRecord.Weight

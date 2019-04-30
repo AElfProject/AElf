@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Consensus.DPoS;
+using Acs3;
+using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
@@ -28,7 +29,7 @@ namespace AElf.Contracts.CrossChain
         {
             var txResultStatusRawBytes =
                 EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
-            return new MerklePath(path).ComputeRootWith(
+            return new MerklePath().AddRange(path).ComputeRootWith(
                 Hash.FromRawBytes(txId.DumpByteArray().Concat(txResultStatusRawBytes).ToArray()));
         }
 
@@ -60,7 +61,7 @@ namespace AElf.Contracts.CrossChain
             var balance = GetBalance(new GetBalanceInput
             {
                 Owner = Context.Sender,
-                Symbol = "ELF"
+                Symbol = Context.Variables.NativeSymbol
             });
 
             Assert(balance > 0);
@@ -70,7 +71,7 @@ namespace AElf.Contracts.CrossChain
                 From = Context.Sender,
                 To = Context.Self,
                 Amount = sideChainInfo.LockedTokenAmount,
-                Symbol = "ELF"
+                Symbol = Context.Variables.NativeSymbol
             });
             State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
             // Todo: enable resource
@@ -92,7 +93,7 @@ namespace AElf.Contracts.CrossChain
                 {
                     To = sideChainInfo.Proposer,
                     Amount = balance,
-                    Symbol = "ELF"
+                    Symbol = Context.Variables.NativeSymbol
                 });
             State.IndexingBalance[chainId] = 0;
 
@@ -171,6 +172,39 @@ namespace AElf.Contracts.CrossChain
             return chainId != State.ParentChainId.Value
                 ? GetCousinChainMerkleTreeRoot(parentChainHeight)
                 : GetParentChainMerkleTreeRoot(parentChainHeight);
+        }
+
+        private Address GetOwnerAddress()
+        {
+            if (State.Owner.Value != null) 
+                return State.Owner.Value;
+            ValidateContractState(State.ParliamentAuthContract, State.ParliamentAuthContractSystemName.Value);
+            Address organizationAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
+            State.Owner.Value = organizationAddress;
+
+            return State.Owner.Value;
+        }
+        
+        private void CheckOwnerAuthority()
+        {
+            var owner = GetOwnerAddress();
+            Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
+        }
+        
+        private Hash Propose(int waitingPeriod, Address targetAddress, string invokingMethod, IMessage input)
+        {
+            var expiredTime = Context.CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime();
+            var proposal = new CreateProposalInput
+            {
+                ContractMethodName = invokingMethod,
+                OrganizationAddress = GetOwnerAddress(),
+                ExpiredTime = Timestamp.FromDateTime(expiredTime),
+                Params = input.ToByteString(),
+                ToAddress = targetAddress
+            };
+            ValidateContractState(State.ParliamentAuthContract, State.ParliamentAuthContractSystemName.Value);
+            State.ParliamentAuthContract.CreateProposal.Send(proposal);
+            return Hash.FromMessage(proposal);
         }
     }
 }

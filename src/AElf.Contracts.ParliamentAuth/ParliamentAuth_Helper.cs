@@ -1,62 +1,54 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.ParliamentAuth
 {
     public partial class ParliamentAuthContract
     {
-        private int SystemThreshold(int reviewerCount)
-        {
-            return reviewerCount * 2 / 3;
-        }
-
-        private IEnumerable<Representative> GetRepresentatives()
+        private List<Address> GetRepresentatives()
         {
             ValidateConsensusContract();
             var miner = State.ConsensusContract.GetCurrentMiners.Call(new Empty());
-            var representatives = miner.MinerList.PublicKeys.Select(publicKey => new Representative
-            {
-                PubKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey)),
-                Weight = 1 // weight is for farther improvement
-            });
+            var representatives = miner.MinerList.PublicKeys.Select(publicKey =>
+                Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey))).ToList();
             return representatives;
         }
-        
-        private bool CheckApprovals(Hash proposalId, int releaseThreshold)
+
+        private void CheckProposerAuthority(Address organizationAddress)
         {
-            ValidateProposalContract();
-            var approved = State.ProposalContract.GetApprovedResult.Call(proposalId);
-
-            var representatives = GetRepresentatives();
-
-            // processing approvals 
-            var validApprovalWeights = approved.Approvals.Aggregate(0, (weights, approval) =>
-            {
-                var reviewer = representatives.FirstOrDefault(r => r.PubKey.Equals(approval.PublicKey));
-                if (reviewer == null)
-                    return weights;
-                return weights + reviewer.Weight;
-            });
-
-            return validApprovalWeights >= releaseThreshold;
+            // add some checks if needed. Any one can propose if no checking here.
+            // TODO: proposer authority to be checked
         }
         
-        private void ValidateProposalContract()
+        private bool IsReadyToRelease(ProposalInfo proposal, Organization organization,
+            IEnumerable<Address> representatives)
         {
-            if (State.ProposalContract.Value != null)
-                return;
-            State.ProposalContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.ProposalContractSystemName.Value);
+            var validApprovalWeights = proposal.ApprovedRepresentatives.Aggregate(0,
+                (weights, address) =>
+                    weights + (representatives.FirstOrDefault(r => r.Equals(address)) == null ? 0 : 1));
+            return validApprovalWeights * 10000 >= organization.ReleaseThreshold * representatives.Count();
         }
         
         private void ValidateConsensusContract()
         {
             if (State.ConsensusContract.Value != null)
                 return;
-            State.ProposalContract.Value =
+            State.ConsensusContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
         }
+
+        private bool IsValidRepresentative(IEnumerable<Address> representatives)
+        {
+            return representatives.Any(r => r.Equals(Context.Sender));
+        }
+
+        private Hash GenerateOrganizationVirtualHash(CreateOrganizationInput input)
+        {
+            return Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
+        }
+
+        private int _defaultOrganizationReleaseThreshold = 6666; // 2/3 for default parliament organization
     }
 }

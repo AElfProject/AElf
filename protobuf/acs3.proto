@@ -14,16 +14,14 @@ service AuthorizationContract {
     }
     rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) {
     }
-    rpc Release (Hash) returns (google.protobuf.Empty) {
-    }
     rpc GetProposal(Hash) returns (ProposalOutput) {
         option (aelf.is_view) = true;
     }
 }
 
 message ApproveInput {
-    Hash proposalHash = 1;
-    bytes inputData= 2;
+    Hash proposalId = 1;
+    sint64 quantity= 2;
 }
 
 message CreateProposalInput{
@@ -35,12 +33,11 @@ message CreateProposalInput{
 }
 
 message ProposalOutput{
-    Hash proposalHash = 1;
+    Hash proposalId = 1;
     string contractMethodName = 2;
     Address toAddress = 3;
     bytes params = 4;
     google.protobuf.Timestamp expiredTime = 5;
     Address organizationAddress = 6;
     Address proposer = 7;
-    bool canBeReleased = 8;
 }

@@ -1,14 +1,12 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Kernel";
+package vote;
 
 import "common.proto";
-import "kernel.proto";
 import "google/protobuf/timestamp.proto";
 
 message InitialVoteContractInput {
     Hash token_contract_system_name = 1;
-    Hash consensus_contract_system_name = 2;
 }
 
 message VotingRegisterInput {
@@ -108,4 +106,9 @@ message GetVotingHistoryInput {
     Address voter = 1;
     string topic = 2;
     Address sponsor = 3;
+}
+
+message GetVotingEventInput {
+    string topic = 1;
+    Address sponsor = 2;
 }

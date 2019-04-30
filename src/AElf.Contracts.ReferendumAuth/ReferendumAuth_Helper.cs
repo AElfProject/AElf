@@ -1,29 +1,33 @@
-using System;
-using Acs3;
 using AElf.Contracts.MultiToken.Messages;
 
 namespace AElf.Contracts.ReferendumAuth
 {
     public partial class ReferendumAuthContract
     {
-        private bool IsReadyToRelease(Hash proposalId, Address organizationAddress)
+        private bool IsReadyToRelease(Hash proposalId, Organization organization)
         {
-            var approvedVoteAmount = State.ApprovedVoteAmount[proposalId];
-            return approvedVoteAmount.Value >= ReleaseThreshold(organizationAddress);
+            var approvedVoteAmount = State.ApprovedTokenAmount[proposalId];
+            return approvedVoteAmount >= organization.ReleaseThreshold;
+        }
+
+        private void ValidateTokenContract()
+        {
+            if (State.TokenContract.Value != null)
+                return;
+            State.TokenContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
         }
         
-        private long ReleaseThreshold(Address organizationAddress)
+        private void LockToken(LockInput lockInput)
         {
-            var organization = GetOrganization(organizationAddress);
-            return organization.ReleaseThreshold;
+            ValidateTokenContract();
+            State.TokenContract.Lock.Send(lockInput);
         }
-       
-        private void ValidateProposalContract()
+        
+        private void UnlockToken(UnlockInput unlockInput)
         {
-            if (State.ProposalContract.Value != null)
-                return;
-            State.ProposalContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.ProposalContractSystemName.Value);
+            ValidateTokenContract();
+            State.TokenContract.Unlock.Send(unlockInput);
         }
     }
 }

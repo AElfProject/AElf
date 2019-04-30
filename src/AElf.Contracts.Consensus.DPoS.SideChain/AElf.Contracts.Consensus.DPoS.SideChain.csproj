@@ -5,27 +5,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Consensus.DPoS.Types\AElf.Consensus.DPoS.Types.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
       <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\protobuf\aelf_options.proto">
+      <None Include="..\..\protobuf\aelf_options.proto">
         <Link>Protobuf/Proto/aelf_options.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\consensus.proto">
-        <Link>Protobuf/Proto/consensus.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\consensus_dpos.proto">
-        <Link>Protobuf/Proto/consensus_dpos.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\kernel.proto">
-        <Link>Protobuf/Proto/kernel.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\dpos_sidechain_contract.proto">
+      </None>
+      <None Include="..\..\protobuf\core.proto">
+        <Link>Protobuf/Proto/core.proto</Link>
+      </None>
+      <None Include="..\..\protobuf\dpos_sidechain_contract.proto">
         <Link>Protobuf/Proto/dpos_sidechain_contract.proto</Link>
-      </Content>
+      </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh dpos_sidechain_contract.proto" />

@@ -1,6 +1,5 @@
 using System;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Sdk;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp
@@ -44,6 +43,8 @@ namespace AElf.Sdk.CSharp
 
         public Hash PreviousBlockHash => _smartContractBridgeContextImplementation.PreviousBlockHash;
 
+        public ContextVariableDictionary Variables => _smartContractBridgeContextImplementation.Variables;
+        
         public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
             return _smartContractBridgeContextImplementation.RecoverPublicKey(signature, hash);
@@ -54,7 +55,7 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.RecoverPublicKey();
         }
 
-        public Block GetPreviousBlock()
+        public IBlockBase GetPreviousBlock()
         {
             return _smartContractBridgeContextImplementation.GetPreviousBlock();
         }
@@ -79,10 +80,10 @@ namespace AElf.Sdk.CSharp
             _smartContractBridgeContextImplementation.UpdateContract(address, registration, name);
         }
 
-        public T Call<T>(IStateCache stateCache, Address address, string methodName, ByteString args)
+        public T Call<T>(Address address, string methodName, ByteString args)
             where T : IMessage<T>, new()
         {
-            return _smartContractBridgeContextImplementation.Call<T>(stateCache, address, methodName, args);
+            return _smartContractBridgeContextImplementation.Call<T>(address, methodName, args);
         }
 
         public void SendInline(Address toAddress, string methodName, ByteString args)

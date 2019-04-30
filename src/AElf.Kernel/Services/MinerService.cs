@@ -63,9 +63,7 @@ namespace AElf.Kernel.Services
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IAccountService _accountService;
-
         private readonly IBlockExecutingService _blockExecutingService;
-
         public ILocalEventBus EventBus { get; set; }
 
         public MiningService(IAccountService accountService,
@@ -78,35 +76,27 @@ namespace AElf.Kernel.Services
             _systemTransactionGenerationService = systemTransactionGenerationService;
             _blockExecutingService = blockExecutingService;
             _accountService = accountService;
-
             EventBus = NullLocalEventBus.Instance;
         }
 
         private async Task<List<Transaction>> GenerateSystemTransactions(Hash previousBlockHash,
             long previousBlockHeight)
         {
-            //var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
-
-            var generatedTxns =
-                _systemTransactionGenerationService.GenerateSystemTransactions(address, previousBlockHeight,
-                    previousBlockHash);
-
-            foreach (var txn in generatedTxns)
+            var systemTransactions = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
+                                    previousBlockHeight, previousBlockHash);
+            foreach (var transaction in systemTransactions)
             {
-                await SignAsync(txn);
+                await SignAsync(transaction);
             }
 
-            return generatedTxns;
+            return systemTransactions;
         }
 
         private async Task SignAsync(Transaction notSignerTransaction)
         {
-            if (notSignerTransaction.Sigs.Count > 0)
-                return;
-            // sign tx
             var signature = await _accountService.SignAsync(notSignerTransaction.GetHash().DumpByteArray());
-            notSignerTransaction.Sigs.Add(ByteString.CopyFrom(signature));
+            notSignerTransaction.Signature = ByteString.CopyFrom(signature);
         }
 
         /// <summary>
@@ -126,8 +116,9 @@ namespace AElf.Kernel.Services
 
         private async Task SignBlockAsync(Block block)
         {
-            var publicKey = await _accountService.GetPublicKeyAsync();
-            block.Sign(publicKey, data => _accountService.SignAsync(data));
+            block.Header.SignerPubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
+            var signature = await _accountService.SignAsync(block.GetHash().DumpByteArray());
+            block.Header.Signature = ByteString.CopyFrom(signature);
         }
 
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight,
@@ -145,13 +136,13 @@ namespace AElf.Kernel.Services
                     systemTransactions, pending, cts.Token);
             }
 
-            Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
-                                  $"previous: {block.Header.PreviousBlockHash}, " +
-                                  $"transactions: {block.Body.TransactionsCount}");
-
             await SignBlockAsync(block);
             // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
             //await _txHub.OnNewBlock(block);
+
+            Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
+                                  $"previous: {block.Header.PreviousBlockHash}, " +
+                                  $"transactions: {block.Body.TransactionsCount}");
 
             return block;
         }

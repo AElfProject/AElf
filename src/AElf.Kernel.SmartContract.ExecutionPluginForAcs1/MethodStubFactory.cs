@@ -26,7 +26,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 
             async Task<TOutput> CallAsync(TInput input)
             {
-                return _context.Call<TOutput>(context.StateProvider.Cache, context.Self, method.Name,
+                return _context.Call<TOutput>(context.Self, method.Name,
                     input.ToByteString());
             }
 

@@ -3,9 +3,9 @@ syntax = "proto3";
 package token;
 
 import "common.proto";
-import "kernel.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 // TODO: Simplify or remove this namespace
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
@@ -56,6 +56,9 @@ service TokenContract {
     rpc GetAllowance (GetAllowanceInput) returns (GetAllowanceOutput) {
         option (aelf.is_view) = true;
     }
+    rpc IsInWhiteList (IsInWhiteListInput) returns (google.protobuf.BoolValue) {
+    option (aelf.is_view) = true;
+}
 }
 
 message TokenInfo {
@@ -66,7 +69,6 @@ message TokenInfo {
     sint32 decimals = 5;
     Address issuer = 6;
     bool isBurnable = 7;
-    repeated Address lockWhiteList = 8;
 }
 
 message CreateInput {
@@ -242,4 +244,9 @@ message Burned
     Address burner = 1 [(aelf.is_indexed) = true];
     string symbol = 2 [(aelf.is_indexed) = true];
     sint64 amount = 3;
+}
+
+message IsInWhiteListInput {
+    string symbol = 1;
+    Address address = 2;
 }

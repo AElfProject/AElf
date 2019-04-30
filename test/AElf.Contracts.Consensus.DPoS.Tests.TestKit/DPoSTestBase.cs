@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -11,9 +10,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.SmartContract;
-using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
@@ -30,17 +27,12 @@ namespace AElf.Contracts.Consensus.DPoS
         protected const int VotersCount = 10;
         protected const int MiningInterval = 4000;
 
-        protected ISmartContractAddressService ContractAddressService =>
-            Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
-
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
         
         protected IECKeyPairProvider ECKeyPairProvider =>
             Application.ServiceProvider.GetRequiredService<IECKeyPairProvider>();
         
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
-
         protected Address ConsensusContractAddress { get; set; }
         
         protected Address DividendContractAddress { get; set; }
@@ -62,7 +54,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         protected DateTime BlockchainStartTime => DateTime.Parse("2019-01-01 00:00:00.000").ToUniversalTime();
 
-        protected void InitializeContracts(DPoSStrategyInput input = null)
+        protected void InitializeContracts()
         {
             ECKeyPairProvider.SetECKeyPair(BootMinerKeyPair);
             // Deploy useful contracts.
@@ -72,7 +64,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ConsensusContract).Assembly.Location)),
                     Name = ConsensusSmartContractAddressNameProvider.Name,
-                    TransactionMethodCallList = GenerateConsensusInitializationCallList(input)
+                    TransactionMethodCallList = GenerateConsensusInitializationCallList()
                 })).Output;
 
             DividendContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)
@@ -81,7 +73,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(DividendContract).Assembly.Location)),
-                        Name = DividendsSmartContractAddressNameProvider.Name,
+                        Name = DividendSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateDividendInitializationCallList()
                     })).Output;
             
@@ -158,14 +150,15 @@ namespace AElf.Contracts.Consensus.DPoS
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
-        private SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSStrategyInput input = null)
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSStrategyInput input = null)
         {
-            var consensusMethodCallList = new SystemTransactionMethodCallList();
+            var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
                 new InitialDPoSContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendsSmartContractAddressNameProvider.Name
+                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
+                    LockTokenForElection = 100_000
                 });
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(
@@ -180,9 +173,9 @@ namespace AElf.Contracts.Consensus.DPoS
             return consensusMethodCallList;
         }
 
-        private SystemTransactionMethodCallList GenerateDividendInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateDividendInitializationCallList()
         {
-            var dividendMethodCallList = new SystemTransactionMethodCallList();
+            var dividendMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             dividendMethodCallList.Add(nameof(DividendContract.InitializeDividendContract),
                 new InitialDividendContractInput
                 {
@@ -192,12 +185,12 @@ namespace AElf.Contracts.Consensus.DPoS
             return dividendMethodCallList;
         }
         
-        private SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
             const string symbol = "ELF";
             const long totalSupply = 10_0000_0000;
             var issuer = Address.FromPublicKey(BootMinerKeyPair.PublicKey);
-            var tokenContractCallList = new SystemTransactionMethodCallList();
+            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = symbol,
@@ -214,7 +207,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 Symbol = symbol,
                 Amount = (long)(totalSupply * 0.2),
-                ToSystemContractName = DividendsSmartContractAddressNameProvider.Name,
+                ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
 
@@ -231,7 +224,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
             // Set fee pool address to dividend contract address.
             tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
-                DividendsSmartContractAddressNameProvider.Name);
+                DividendSmartContractAddressNameProvider.Name);
 
             return tokenContractCallList;
         }

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Volo.Abp.DependencyInjection;
@@ -16,7 +17,7 @@ namespace AElf.CrossChain.Cache
     
     public class MultiChainBlockInfoCacheProvider : IMultiChainBlockInfoCacheProvider, ISingletonDependency
     {
-        private readonly Dictionary<int, BlockInfoCache> _blockInfoCaches = new Dictionary<int, BlockInfoCache>();
+        private readonly ConcurrentDictionary<int, BlockInfoCache> _blockInfoCaches = new ConcurrentDictionary<int, BlockInfoCache>();
         public bool ContainsChain(int remoteChainId)
         {
             return _blockInfoCaches.ContainsKey(remoteChainId);
@@ -29,9 +30,7 @@ namespace AElf.CrossChain.Cache
         {
             if (blockInfoCache == null)
                 return;
-            if(!_blockInfoCaches.TryGetValue(remoteChainId, out _))
-                _blockInfoCaches.Add(remoteChainId, blockInfoCache);
-            _blockInfoCaches[remoteChainId] = blockInfoCache;
+            _blockInfoCaches.TryAdd(remoteChainId, blockInfoCache);
         }
 
         public BlockInfoCache GetBlockInfoCache(int remoteChainId)
