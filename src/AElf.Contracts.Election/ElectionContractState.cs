@@ -21,11 +21,11 @@ namespace AElf.Contracts.Election
         public SingletonState<Hash> VotesWeightRewardHash { get; set; }
         public SingletonState<Hash> ReElectionRewardHash { get; set; }
 
-        // TODO: Divide and rename.
-        public MappedState<string, Votes> Votes { get; set; }
+        public MappedState<string, ElectorVote> ElectorVotes { get; set; }
 
-        // TODO: Rename to Candidate(Information)
-        public MappedState<string, CandidateHistory> Histories { get; set; }
+        public MappedState<string, CandidateVote> CandidateVotes { get; set; }
+
+        public MappedState<string, CandidateInformation> CandidateInformationMap { get; set; }
 
         public SingletonState<int> CurrentTermNumber { get; set; }
 
@@ -33,10 +33,9 @@ namespace AElf.Contracts.Election
 
         public SingletonState<PublicKeysList> InitialMiners { get; set; }
 
-        /// <summary>
-        /// Vote Id -> Lock Time (days)
-        /// </summary>
-        public MappedState<Hash, int> LockTimeMap { get; set; }
+        public SingletonState<PublicKeysList> BlackList { get; set; }
+        
+        public MappedState<Hash, long> LockTimeMap { get; set; }
 
         public MappedState<long, TermSnapshot> Snapshots { get; set; }
 
@@ -47,6 +46,8 @@ namespace AElf.Contracts.Election
         public SingletonState<int> MinimumLockTime { get; set; }
 
         public SingletonState<int> MaximumLockTime { get; set; }
+
+        public SingletonState<Hash> MinerElectionVotingItemId { get; set; }
 
     }
 }

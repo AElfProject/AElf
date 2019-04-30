@@ -10,36 +10,34 @@ message InitialVoteContractInput {
 }
 
 message VotingRegisterInput {
-    Hash topic = 1;// Remove
-    google.protobuf.Timestamp start_timestamp = 2;
+    google.protobuf.Timestamp start_timestamp = 1;
+    google.protobuf.Timestamp end_timestamp = 2;
     string accepted_currency = 3;
-    sint64 active_days = 4;// -> end_timestamp
-    bool delegated = 5;// -> is_lock_token
-    sint64 total_epoch = 6;
-    repeated string options = 7;
+    bool is_lock_token = 4;
+    sint64 total_snapshot_number = 5;
+    repeated string options = 6;
 }
 
-message VotingEvent {
-    Hash topic = 1;
-    Address sponsor = 2;
-    string accepted_currency = 3;
-    sint64 active_days = 4;// -> end_timestamp
-    bool delegated = 5;// -> is_lock_token
-    sint64 current_epoch = 6;
-    sint64 total_epoch = 7;
-    repeated string options = 8;
-    google.protobuf.Timestamp register_timestamp = 9;
-    google.protobuf.Timestamp start_timestamp = 10;
-    google.protobuf.Timestamp epoch_start_timestamp = 11;
+message VotingItem {
+    Hash voting_item_id = 1;
+    string accepted_currency = 2;
+    bool is_lock_token = 3;
+    sint64 current_snapshot_number = 4;
+    sint64 total_snapshot_number = 5;
+    repeated string options = 6;
+    google.protobuf.Timestamp register_timestamp = 7;
+    google.protobuf.Timestamp start_timestamp = 8;
+    google.protobuf.Timestamp end_timestamp = 9;
+    google.protobuf.Timestamp current_snapshot_start_timestamp = 10;
+    Address sponsor = 11;
 }
 
 message VoteInput {
-    Hash topic = 1;
-    Address sponsor = 2;
+    Hash voting_item_id = 1;
+    Address voter = 2;
     sint64 amount = 3;
     string option = 4;
     Hash vote_id = 5;
-    Address voter = 6;
 }
 
 message WithdrawInput {
@@ -47,76 +45,67 @@ message WithdrawInput {
 }
 
 message GetVotingResultInput {
-    Hash topic = 1;
-    Address sponsor = 2;
-    sint64 epoch_number = 3;
+    Hash voting_item_id = 1;
+    sint64 snapshot_number = 2;
 }
 
 message VotingResult {
-    Hash topic = 1;
-    Address sponsor = 2;
-    sint64 epoch_number = 3;
-    map<string, sint64> results = 4;// option -> amount
-    sint64 voters_count = 5;
-    google.protobuf.Timestamp start_timestamp = 6;
-    google.protobuf.Timestamp end_timestamp = 7;
+    Hash voting_item_id = 1;
+    map<string, sint64> results = 2;// option -> amount
+    sint64 snapshot_number = 3;
+    sint64 voters_count = 4;
+    google.protobuf.Timestamp snapshot_start_timestamp = 5;
+    google.protobuf.Timestamp snapshot_end_timestamp = 6;
 }
 
-message UpdateEpochNumberInput {
-    Hash topic = 1;
-    sint64 epoch_number = 3;
+message TakeSnapshotInput {
+    Hash voting_item_id = 1;
+    sint64 snapshot_number = 2;
 }
 
 message VotingRecord {
-    Hash topic = 1;
-    Address sponsor = 2;
-    sint64 epoch_number = 3;
-    Address voter = 4;
-    sint64 amount = 5;
-    google.protobuf.Timestamp withdraw_timestamp = 6;
-    google.protobuf.Timestamp vote_timestamp = 7;
-    bool is_withdrawn = 8;
-    string option = 9;
-    string currency = 10;
+    Hash voting_item_id = 1;
+    Address voter = 2;
+    sint64 snapshot_number = 3;
+    sint64 amount = 4;
+    google.protobuf.Timestamp withdraw_timestamp = 5;
+    google.protobuf.Timestamp vote_timestamp = 6;
+    bool is_withdrawn = 7;
+    string option = 8;
 }
 
 message AddOptionInput {
-    Hash topic = 1;
-    Address sponsor = 2;
-    string option = 3;
+    Hash voting_item_id = 1;
+    string option = 2;
 }
 
 message RemoveOptionInput {
-    Hash topic = 1;
-    Address sponsor = 2;
-    string option = 3;
+    Hash voting_item_id = 1;
+    string option = 2;
 }
 
-message VotingHistories {
-    Address voter = 1;
-    map<string, VotingHistory> votes = 2;
+message VotedItems {
+    map<string, VotedIds> voted_item_vote_ids = 1;
 }
 
-message VotingHistory {
+message VotedIds {
     repeated Hash active_votes = 1;
     repeated Hash withdrawn_votes = 2;
 }
 
-message GetVotingHistoryInput {
+message GetVotingIdsInput {
     Address voter = 1;
-    Hash topic = 2;
-    Address sponsor = 3;
+    Hash voting_item_id = 2;
 }
 
-message GetVotingEventInput {
-    Hash topic = 1;
-    Address sponsor = 2;
+message GetVotingItemInput {
+    Hash voting_item_id = 1;
 }
 
 message GetVotingRecordsInput {
     repeated Hash ids = 1;
 }
 
-message GetVotingRecordsOutput {
+message VotingRecords {
     repeated VotingRecord records = 1;
 }

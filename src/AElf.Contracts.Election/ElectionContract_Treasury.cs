@@ -10,7 +10,7 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContract
     {
-        public override Empty CreateTreasury(CreateTreasuryInput input)
+        public override Empty CreateTreasury(Empty input)
         {
             Assert(!State.TreasuryCreated.Value, "Already created.");
 
@@ -33,9 +33,9 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        public override Empty RegisterToTreasury(RegisterToTreasuryInput input)
+        public override Empty RegisterToTreasury(Empty input)
         {
-            Assert(!State.TreasuryRegistered.Value, "Already created.");
+            Assert(!State.TreasuryRegistered.Value, "Already registered.");
 
             var createdProfitIds = State.ProfitContract.GetCreatedProfitItems.Call(new GetCreatedProfitItemsInput
             {
@@ -52,11 +52,11 @@ namespace AElf.Contracts.Election
             State.VotesWeightRewardHash.Value = createdProfitIds[5];
             State.ReElectionRewardHash.Value = createdProfitIds[6];
 
-            // Add profits to `Treasury`
+            // Fill `Treasury`
             State.ProfitContract.AddProfits.Send(new AddProfitsInput
             {
                 ProfitId = State.TreasuryHash.Value,
-                Amount = ElectionContractConsts.VotesTotalSupply
+                Amount = ElectionContractConstants.VotesTotalSupply
             });
 
             BuildTreasury();
@@ -71,7 +71,7 @@ namespace AElf.Contracts.Election
             Assert(Context.Sender == State.AElfConsensusContract.Value,
                 "Only AElf Consensus Contract can release profits from Treasury.");
 
-            var totalReleasedAmount = input.MinedBlocks.Mul(ElectionContractConsts.ElfTokenPerBlock);
+            var totalReleasedAmount = input.MinedBlocks.Mul(ElectionContractConstants.ElfTokenPerBlock);
 
             var releasingPeriodNumber = input.TermNumber - 1;
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
@@ -84,29 +84,28 @@ namespace AElf.Contracts.Election
             ReleaseTreasurySubProfitItems(releasingPeriodNumber);
 
             // Update epoch of voting record btw.
-            State.VoteContract.UpdateEpochNumber.Send(new UpdateEpochNumberInput
+            State.VoteContract.TakeSnapshot.Send(new TakeSnapshotInput
             {
-                EpochNumber = input.TermNumber,
-                Topic = ElectionContractConsts.Topic
+                SnapshotNumber = input.TermNumber,
+                VotingItemId = State.MinerElectionVotingItemId.Value
             });
 
             // Take snapshot.
             var snapshot = new TermSnapshot
             {
-                TermNumber = input.TermNumber - 1,
-                TotalBlocks = input.MinedBlocks,
+                MinedBlocks = input.MinedBlocks,
                 EndRoundNumber = input.RoundNumber
             };
             foreach (var publicKey in State.Candidates.Value.Value)
             {
-                var votes = State.Votes[publicKey.ToHex()];
+                var votes = State.CandidateVotes[publicKey.ToHex()];
                 var validObtainedVotesAmount = 0L;
                 if (votes != null)
                 {
-                    validObtainedVotesAmount = votes.ValidObtainedVotesAmount;
+                    validObtainedVotesAmount = votes.ObtainedActiveVotedVotesAmount;
                 }
 
-                snapshot.CandidatesVotes.Add(publicKey.ToHex(), validObtainedVotesAmount);
+                snapshot.ElectionResult.Add(publicKey.ToHex(), validObtainedVotesAmount);
             }
 
             State.Snapshots[input.TermNumber - 1] = snapshot;
@@ -125,7 +124,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.TreasuryHash.Value,
                 SubProfitId = State.WelfareHash.Value,
-                SubItemWeight = ElectionContractConsts.CitizenWelfareWeight
+                SubItemWeight = ElectionContractConstants.CitizenWelfareWeight
             });
 
             // Register `BackupSubsidy` to `Treasury`
@@ -133,7 +132,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.TreasuryHash.Value,
                 SubProfitId = State.SubsidyHash.Value,
-                SubItemWeight = ElectionContractConsts.BackupSubsidyWeight
+                SubItemWeight = ElectionContractConstants.BackupSubsidyWeight
             });
 
             // Register `MinerReward` to `Treasury`
@@ -141,7 +140,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.TreasuryHash.Value,
                 SubProfitId = State.RewardHash.Value,
-                SubItemWeight = ElectionContractConsts.MinerRewardWeight
+                SubItemWeight = ElectionContractConstants.MinerRewardWeight
             });
 
             // Register `MinerBasicReward` to `MinerReward`
@@ -149,7 +148,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.RewardHash.Value,
                 SubProfitId = State.BasicRewardHash.Value,
-                SubItemWeight = ElectionContractConsts.BasicMinerRewardWeight
+                SubItemWeight = ElectionContractConstants.BasicMinerRewardWeight
             });
 
             // Register `MinerVotesWeightReward` to `MinerReward`
@@ -157,7 +156,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.RewardHash.Value,
                 SubProfitId = State.VotesWeightRewardHash.Value,
-                SubItemWeight = ElectionContractConsts.VotesWeightRewardWeight
+                SubItemWeight = ElectionContractConstants.VotesWeightRewardWeight
             });
 
             // Register `ReElectionMinerReward` to `MinerReward`
@@ -165,7 +164,7 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.RewardHash.Value,
                 SubProfitId = State.ReElectionRewardHash.Value,
-                SubItemWeight = ElectionContractConsts.ReElectionRewardWeight
+                SubItemWeight = ElectionContractConstants.ReElectionRewardWeight
             });
         }
 
@@ -260,7 +259,7 @@ namespace AElf.Contracts.Election
 
                 basicRewardProfitAddWeights.Weights.Add(new WeightMap {Receiver = address, Weight = 1});
 
-                var history = State.Histories[publicKey];
+                var history = State.CandidateInformationMap[publicKey];
                 history.Terms.Add(termNumber - 1);
 
                 if (victories.Contains(ByteString.CopyFrom(ByteArrayHelpers.FromHexString(publicKey))))
@@ -277,17 +276,17 @@ namespace AElf.Contracts.Election
                     history.ContinualAppointmentCount = 0;
                 }
 
-                var votes = State.Votes[publicKey];
+                var votes = State.CandidateVotes[publicKey];
                 if (votes != null)
                 {
                     votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
                     {
                         Receiver = address,
-                        Weight = votes.ValidObtainedVotesAmount
+                        Weight = votes.ObtainedActiveVotedVotesAmount
                     });
                 }
 
-                State.Histories[publicKey] = history;
+                State.CandidateInformationMap[publicKey] = history;
             }
 
             // Manage weights of `MinerBasicReward`

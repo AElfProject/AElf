@@ -17,11 +17,11 @@ service ElectionContract {
     }
     rpc SetInitialMiners (PublicKeysList) returns (google.protobuf.Empty) {
     }
-    rpc RegisterElectionVotingEvent (RegisterElectionVotingEventInput) returns (google.protobuf.Empty) {
+    rpc RegisterElectionVotingEvent (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc CreateTreasury (CreateTreasuryInput) returns (google.protobuf.Empty) {
+    rpc CreateTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc RegisterToTreasury (RegisterToTreasuryInput) returns (google.protobuf.Empty) {
+    rpc RegisterToTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc ReleaseTreasuryProfits (ReleaseTreasuryProfitsInput) returns (google.protobuf.Empty) {
     }
@@ -40,7 +40,7 @@ service ElectionContract {
     rpc GetCandidates (google.protobuf.Empty) returns (PublicKeysList) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidateHistory (StringInput) returns (CandidateHistory) {
+    rpc GetCandidateInformation (StringInput) returns (CandidateInformation) {
         option (aelf.is_view) = true;
     }
     rpc GetVictories (google.protobuf.Empty) returns (PublicKeysList) {
@@ -55,34 +55,25 @@ service ElectionContract {
     rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotesInformation (StringInput) returns (Votes) {
+    rpc GetElectorVote (StringInput) returns (ElectorVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotesInformationWithRecords (StringInput) returns (Votes) {
+    rpc GetElectorVoteWithRecords (StringInput) returns (ElectorVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotesInformationWithAllRecords (StringInput) returns (Votes) {
+    rpc GetElectorVoteWithAllRecords (StringInput) returns (ElectorVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetPageableNotWithdrawnTicketsInfo (PageableElectionTicketsInfoInput) returns (Votes) {
+    rpc GetCandidateVote (StringInput) returns (CandidateVote) {
         option (aelf.is_view) = true;
     }
-    rpc QueryAlias (StringInput) returns (StringOutput) {
+    rpc GetCandidateVoteWithRecords (StringInput) returns (CandidateVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetTicketsCount (google.protobuf.Empty) returns (SInt64Value) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetPageableCandidatesHistoryInfo (PageInfo) returns (CandidateHistoryDictionary) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetPageableTicketsHistories (PageableElectionTicketsInfoInput) returns (ElectionTicketsHistories) {
+    rpc GetCandidateVoteWithAllRecords (StringInput) returns (CandidateVote) {
         option (aelf.is_view) = true;
     }
     rpc GetVotesCount (google.protobuf.Empty) returns (SInt64Value) {
-        option (aelf.is_view) = true;
-    }
-    rpc QueryCurrentDividendsForVoters (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
 }

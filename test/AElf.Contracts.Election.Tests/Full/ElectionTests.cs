@@ -31,8 +31,6 @@ namespace AElf.Contracts.Election
             transactionResult.Error.Contains("Insufficient balance").ShouldBeTrue();
         }
 
-
-
         [Fact]
         public async Task ElectionContract_AnnounceElection_Twice()
         {

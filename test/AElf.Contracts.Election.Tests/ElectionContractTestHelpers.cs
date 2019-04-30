@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -38,17 +39,35 @@ namespace AElf.Contracts.Election
             return (await electionStub.QuitElection.SendAsync(new Empty())).TransactionResult;
         }
 
-        private async Task<TransactionResult> VoteToCandidate(ECKeyPair userKeyPair, string candidatePublicKey,
-            int days, long amount)
+        private async Task<TransactionResult> VoteToCandidate(ECKeyPair voterKeyPair, string candidatePublicKey,
+            int lockTime, long amount)
         {
-            var electionStub = GetElectionContractTester(userKeyPair);
+            var electionStub = GetElectionContractTester(voterKeyPair);
             return (await electionStub.Vote.SendAsync(new VoteMinerInput
             {
                 CandidatePublicKey = candidatePublicKey,
                 Amount = amount,
                 LockTimeUnit = TimeUnit.Days,
-                LockTime = days
+                LockTime = lockTime
             })).TransactionResult;
+        }
+        
+        private async Task VoteToCandidate(List<ECKeyPair> votersKeyPairs, string candidatePublicKey,
+            int lockTime, long amount)
+        {
+            foreach (var voterKeyPair in votersKeyPairs)
+            {
+                await VoteToCandidate(voterKeyPair, candidatePublicKey, lockTime, amount);
+            }
+        }
+        
+        private async Task VoteToCandidates(List<ECKeyPair> votersKeyPairs, List<string> candidatesPublicKeys,
+            int lockTime, long amount)
+        {
+            foreach (var candidatePublicKey in candidatesPublicKeys)
+            {
+                await VoteToCandidate(votersKeyPairs, candidatePublicKey, lockTime, amount);
+            }
         }
 
         private async Task<TransactionResult> WithdrawVotes(ECKeyPair userKeyPair, Hash voteId)

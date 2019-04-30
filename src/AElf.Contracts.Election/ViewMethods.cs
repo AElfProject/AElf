@@ -42,8 +42,8 @@ namespace AElf.Contracts.Election
                 return victories;
             }
 
-            victories = validCandidates.Select(k => State.Votes[k])
-                .OrderByDescending(v => v.ValidObtainedVotesAmount).Select(v => v.PublicKey)
+            victories = validCandidates.Select(k => State.CandidateVotes[k])
+                .OrderByDescending(v => v.ObtainedActiveVotedVotesAmount).Select(v => v.PublicKey)
                 .Take(State.MinersCount.Value).ToList();
             Context.LogDebug(() => string.Join("\n", victories.Select(v => v.ToHex().Substring(0, 10)).ToList()));
             return victories;
@@ -52,7 +52,8 @@ namespace AElf.Contracts.Election
         private List<string> GetValidCandidates()
         {
             return State.Candidates.Value.Value
-                .Where(c => State.Votes[c.ToHex()] != null && State.Votes[c.ToHex()].ValidObtainedVotesAmount > 0)
+                .Where(c => State.CandidateVotes[c.ToHex()] != null &&
+                            State.CandidateVotes[c.ToHex()].ObtainedActiveVotedVotesAmount > 0)
                 .Select(p => p.ToHex())
                 .ToList();
         }
@@ -66,9 +67,8 @@ namespace AElf.Contracts.Election
         {
             var votingResult = State.VoteContract.GetVotingResult.Call(new GetVotingResultInput
             {
-                Topic = ElectionContractConsts.Topic,
-                EpochNumber = input.TermNumber,
-                Sponsor = Context.Self
+                VotingItemId = State.MinerElectionVotingItemId.Value,
+                SnapshotNumber = input.TermNumber,
             });
 
             var result = new ElectionResult
@@ -81,9 +81,9 @@ namespace AElf.Contracts.Election
             return result;
         }
 
-        public override CandidateHistory GetCandidateHistory(StringInput input)
+        public override CandidateInformation GetCandidateInformation(StringInput input)
         {
-            return State.Histories[input.Value] ?? new CandidateHistory {PublicKey = input.Value};
+            return State.CandidateInformationMap[input.Value] ?? new CandidateInformation {PublicKey = input.Value};
         }
 
         public override TermSnapshot GetTermSnapshot(GetTermSnapshotInput input)
@@ -91,65 +91,66 @@ namespace AElf.Contracts.Election
             return State.Snapshots[input.TermNumber] ?? new TermSnapshot();
         }
 
-        public override Votes GetVotesInformation(StringInput input)
+        public override ElectorVote GetElectorVote(StringInput input)
         {
-            return State.Votes[input.Value] ?? new Votes();
+            return State.ElectorVotes[input.Value] ?? new ElectorVote();
+
         }
 
-        public override Votes GetVotesInformationWithRecords(StringInput input)
+        public override ElectorVote GetElectorVoteWithRecords(StringInput input)
         {
-            var votes = State.Votes[input.Value];
-            if (votes == null) return new Votes();
+            var votes = State.ElectorVotes[input.Value];
+            if (votes == null) return new ElectorVote();
 
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
-                Ids = {votes.ActiveVotesIds}
+                Ids = {votes.ActiveVotingRecordIds}
             }).Records;
             var index = 0;
             foreach (var record in votedRecords)
             {
-                var voteId = votes.ActiveVotesIds[index++];
-                votes.ActiveVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
+                var voteId = votes.ActiveVotingRecordIds[index++];
+                votes.ActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
 
             var obtainedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
-                Ids = {votes.ObtainedActiveVotesIds}
+                Ids = {votes.ActiveVotingRecordIds}
             }).Records;
             index = 0;
             foreach (var record in obtainedRecords)
             {
-                var voteId = votes.ObtainedActiveVotesIds[index++];
-                votes.ObtainedActiveVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
+                var voteId = votes.ActiveVotingRecordIds[index++];
+                votes.ActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
 
             return votes;
         }
 
-        public override Votes GetVotesInformationWithAllRecords(StringInput input)
+        public override ElectorVote GetElectorVoteWithAllRecords(StringInput input)
         {
-            var votes = GetVotesInformationWithRecords(input);
+            var votes = GetElectorVoteWithRecords(input);
 
             var votedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
-                Ids = {votes.WithdrawnVotesIds}
+                Ids = {votes.WithdrawnVotingRecordIds}
             }).Records;
             var index = 0;
             foreach (var record in votedWithdrawnRecords)
             {
-                var voteId = votes.WithdrawnVotesIds[index++];
+                var voteId = votes.WithdrawnVotingRecordIds[index++];
                 votes.WithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
 
             var obtainedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
-                Ids = {votes.ObtainedWithdrawnVotesIds}
+                Ids = {votes.WithdrawnVotingRecordIds}
             }).Records;
             index = 0;
             foreach (var record in obtainedWithdrawnRecords)
             {
-                var voteId = votes.ObtainedWithdrawnVotesIds[index++];
-                votes.ObtainedWithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
+                var voteId = votes.WithdrawnVotingRecordIds[index++];
+                votes.WithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
 
             return votes;
@@ -163,9 +164,9 @@ namespace AElf.Contracts.Election
                 Voter = votingRecord.Voter,
                 Candidate = votingRecord.Option,
                 Amount = votingRecord.Amount,
-                TermNumber = votingRecord.EpochNumber,
+                TermNumber = votingRecord.SnapshotNumber,
                 VoteId = voteId,
-                LockTime = lockDays,
+                LockTime = (int) lockDays,
                 VoteTimestamp = votingRecord.VoteTimestamp,
                 WithdrawTimestamp = votingRecord.WithdrawTimestamp,
                 UnlockTimestamp = votingRecord.VoteTimestamp.ToDateTime().AddDays(lockDays).ToTimestamp(),

@@ -538,7 +538,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 TermNumber = termNumber
             });
 
-            return snapshot.TermNumber == termNumber;
+            return snapshot.ElectionResult.Any();
         }
 
         private string GetNextAvailableMinerPublicKey(Round round)
@@ -550,7 +550,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             if (TryToGetTermNumber(out var termNumber) && termNumber > 1 &&
                 TryToGetElectionSnapshot(termNumber - 1, out var snapshot))
             {
-                nextCandidate = snapshot.CandidatesVotes
+                nextCandidate = snapshot.ElectionResult
                     // Except initial miners.
                     .Where(cs => !firstRound.RealTimeMinersInformation.ContainsKey(cs.Key))
                     // Except current miners.

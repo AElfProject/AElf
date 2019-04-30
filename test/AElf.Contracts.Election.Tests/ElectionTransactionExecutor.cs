@@ -13,11 +13,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.Consensus.DPoS
 {
-    public class AElfConsensusTransactionExecutor : ITransactionExecutor
+    public class ElectionTransactionExecutor : ITransactionExecutor
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public AElfConsensusTransactionExecutor(IServiceProvider serviceProvider)
+        public ElectionTransactionExecutor(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }

@@ -21,7 +21,7 @@ service VoteContract {
     }
     rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {
     }
-    rpc UpdateEpochNumber (UpdateEpochNumberInput) returns (google.protobuf.Empty) {
+    rpc TakeSnapshot (TakeSnapshotInput) returns (google.protobuf.Empty) {
     }
     rpc AddOption (AddOptionInput) returns (google.protobuf.Empty) {
     }
@@ -29,7 +29,7 @@ service VoteContract {
     }
     
     // View
-    rpc GetVotingEvent (GetVotingEventInput) returns (VotingEvent) {
+    rpc GetVotingItem (GetVotingItemInput) returns (VotingItem) {
         option (aelf.is_view) = true;
     }
     rpc GetVotingResult (GetVotingResultInput) returns (VotingResult) {
@@ -38,13 +38,13 @@ service VoteContract {
     rpc GetVotingRecord (Hash) returns (VotingRecord) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotingRecords (GetVotingRecordsInput) returns (GetVotingRecordsOutput) {
+    rpc GetVotingRecords (GetVotingRecordsInput) returns (VotingRecords) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotingHistories (Address) returns (VotingHistories) {
+    rpc GetVotedItems (Address) returns (VotedItems) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotingHistory (GetVotingHistoryInput) returns (VotingHistory) {
+    rpc GetVotingIds (GetVotingIdsInput) returns (VotedIds) {
         option (aelf.is_view) = true;
     }
 }

@@ -32,11 +32,11 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             State.ElectionContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(input.ElectionContractSystemName);
 
-            State.ElectionContract.RegisterElectionVotingEvent.Send(new RegisterElectionVotingEventInput());
+            State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
 
-            State.ElectionContract.CreateTreasury.Send(new CreateTreasuryInput());
+            State.ElectionContract.CreateTreasury.Send(new Empty());
 
-            State.ElectionContract.RegisterToTreasury.Send(new RegisterToTreasuryInput());
+            State.ElectionContract.RegisterToTreasury.Send(new Empty());
 
             return new Empty();
         }

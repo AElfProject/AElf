@@ -11,7 +11,8 @@ namespace AElf.Contracts.Election
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<ITransactionExecutor, AElfConsensusTransactionExecutor>();
+            // Justification: Some test cases need to mock current block time.
+            context.Services.AddSingleton<ITransactionExecutor, ElectionTransactionExecutor>();
             context.Services.AddSingleton<IBlockValidationService, MockBlockValidationService>();
         }
     }

@@ -227,7 +227,7 @@ namespace AElf.Contracts.Election
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
-                TotalSupply = ElectionContractTestConsts.NativeTokenTotalSupply,
+                TotalSupply = ElectionContractTestConstants.NativeTokenTotalSupply,
                 Issuer = ContractZeroAddress,
                 LockWhiteSystemContractNameList =
                 {
@@ -241,7 +241,7 @@ namespace AElf.Contracts.Election
             tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
             {
                 Symbol = "ELF",
-                Amount = ElectionContractTestConsts.NativeTokenTotalSupply / 5,
+                Amount = ElectionContractTestConstants.NativeTokenTotalSupply / 5,
                 ToSystemContractName = ElectionSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
@@ -253,8 +253,8 @@ namespace AElf.Contracts.Election
                 {
                     tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                     {
-                        Symbol = ElectionContractTestConsts.NativeTokenSymbol,
-                        Amount = ElectionContractConsts.LockTokenForElection * 10,
+                        Symbol = ElectionContractTestConstants.NativeTokenSymbol,
+                        Amount = ElectionContractConstants.LockTokenForElection * 10,
                         To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                         Memo = "Initial balance for initial miners."
                     });
@@ -265,8 +265,8 @@ namespace AElf.Contracts.Election
                 {
                     tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                     {
-                        Symbol = ElectionContractTestConsts.NativeTokenSymbol,
-                        Amount = ElectionContractConsts.LockTokenForElection * 10,
+                        Symbol = ElectionContractTestConstants.NativeTokenSymbol,
+                        Amount = ElectionContractConstants.LockTokenForElection * 10,
                         To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                         Memo = "Initial balance for initial full nodes."
                     });
@@ -275,8 +275,8 @@ namespace AElf.Contracts.Election
                 
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {
-                    Symbol = ElectionContractTestConsts.NativeTokenSymbol,
-                    Amount = ElectionContractConsts.LockTokenForElection / 2,
+                    Symbol = ElectionContractTestConstants.NativeTokenSymbol,
+                    Amount = ElectionContractConstants.LockTokenForElection / 2,
                     To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                     Memo = "Initial balance for voters."
                 });
@@ -375,7 +375,7 @@ namespace AElf.Contracts.Election
         {
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Symbol = ElectionContractTestConsts.NativeTokenSymbol,
+                Symbol = ElectionContractTestConstants.NativeTokenSymbol,
                 Owner = Address.FromPublicKey(publicKey)
             })).Balance;
 
@@ -386,7 +386,7 @@ namespace AElf.Contracts.Election
         {
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Symbol = ElectionContractTestConsts.VoteTokenSymbol,
+                Symbol = ElectionContractConstants.VoteSymbol,
                 Owner = Address.FromPublicKey(publicKey)
             })).Balance;
 
