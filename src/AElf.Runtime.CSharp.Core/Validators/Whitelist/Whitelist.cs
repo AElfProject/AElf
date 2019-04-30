@@ -140,15 +140,15 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
             {
                 case WhitelistSearchResult.DeniedNamespace:
                     var ns = string.IsNullOrWhiteSpace(type.Namespace) ? @"""" : type.Namespace;
-                    yield return new WhitelistValidationResult($"{ns} is not allowed.");
+                    yield return new WhitelistValidationResult($"{ns} is not allowed. (Ref Source: {method.FullName})");
                     break;
                     
                 case WhitelistSearchResult.DeniedType:
-                    yield return new WhitelistValidationResult($"{type.Name} in {type.Namespace} is not allowed.");
+                    yield return new WhitelistValidationResult($"{type.Name} in {type.Namespace} is not allowed. (Ref Source: {method.FullName})");
                     break;
                 
                 case WhitelistSearchResult.DeniedMember:
-                    yield return new WhitelistValidationResult($"{member} in {type.FullName} is not allowed.");
+                    yield return new WhitelistValidationResult($"{member} in {type.FullName} is not allowed. (Ref Source: {method.FullName})");
                     break;
             }
         }
