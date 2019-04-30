@@ -60,6 +60,8 @@ namespace AElf.Contracts.Election
         protected Address ElectionContractAddress { get; set; }
         protected Address ConsensusContractAddress { get; set; }
 
+        protected Hash MinerElectionVotingItemId { get; set; }
+
         // Will use BootMinerKeyPair.
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
@@ -181,6 +183,9 @@ namespace AElf.Contracts.Election
                 {ProfitType.VotesWeightReward, profitIds[5]},
                 {ProfitType.ReElectionReward, profitIds[6]},
             };
+
+            MinerElectionVotingItemId = AsyncHelper.RunSync(() =>
+                ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty()));
         }
 
         internal enum ProfitType

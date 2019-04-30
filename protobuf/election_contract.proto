@@ -76,4 +76,7 @@ service ElectionContract {
     rpc GetVotesCount (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
+    rpc GetMinerElectionVotingItemId (google.protobuf.Empty) returns (Hash) {
+        option (aelf.is_view) = true;
+    }
 }

@@ -39,7 +39,7 @@ namespace AElf.Contracts.Vote
             {
                 var input = new VotingRegisterInput
                 {
-                    TotalEpoch = 1
+                    TotalSnapshotNumber = 1
                 };
                 
                 var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
@@ -52,9 +52,8 @@ namespace AElf.Contracts.Vote
             {
                 var input = new VotingRegisterInput
                 {
-                    Topic = Hash.FromString("bp election topic"),
-                    TotalEpoch = 1,
-                    ActiveDays = int.MaxValue,
+                    TotalSnapshotNumber = 1,
+                    EndTimestamp = DateTime.UtcNow.ToUniversalTime().ToTimestamp(),
                     Options =
                     {
                         Address.Generate().GetFormatted()
@@ -71,9 +70,8 @@ namespace AElf.Contracts.Vote
             {
                 var input = new VotingRegisterInput
                 {
-                    Topic = Hash.FromString("bp election topic"),
-                    TotalEpoch = 1,
-                    ActiveDays = 100,
+                    TotalSnapshotNumber = 1,
+                    EndTimestamp = DateTime.UtcNow.ToUniversalTime().ToTimestamp(),
                     StartTimestamp = DateTime.UtcNow.ToTimestamp(),
                     AcceptedCurrency = "UTC",
                     Options =
@@ -88,6 +86,7 @@ namespace AElf.Contracts.Vote
                 transactionResult.Error.Contains("Claimed accepted token is not available for voting").ShouldBeTrue(); 
             }
         }
+/*
 
         [Fact]
         public async Task VoteContract_RegisterSuccess()
@@ -95,9 +94,8 @@ namespace AElf.Contracts.Vote
             _options = GenerateOptions(3);
             var input = new VotingRegisterInput
             {
-                Topic = Hash.FromString("Topic1"),
-                TotalEpoch = 1,
-                ActiveDays = 100,
+                TotalSnapshotNumber = 1,
+                EndTimestamp = DateTime.UtcNow.ToUniversalTime().ToTimestamp(),
                 StartTimestamp = DateTime.UtcNow.ToTimestamp(),
                 Options =
                 {
@@ -116,7 +114,6 @@ namespace AElf.Contracts.Vote
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Voting event already exists").ShouldBeTrue();
         }
-
         [Fact]
         public async Task VoteContract_VoteFailed()
         {
@@ -124,8 +121,7 @@ namespace AElf.Contracts.Vote
             {
                 var input = new VoteInput
                 {
-                    Topic = Hash.FromString("Not existed vote"),
-                    Sponsor = Address.Generate(),
+                    VotingItemId = Hash.Generate()
                 };
 
                 var transactionResult = (await VoteContractStub.Vote.SendAsync(input)).TransactionResult;
@@ -140,8 +136,6 @@ namespace AElf.Contracts.Vote
                 
                 var input = new VoteInput
                 {
-                    Topic = Hash.FromString("topic0"),
-                    Sponsor = DefaultSender,
                     Option = "Somebody"
                 };
                 var otherKeyPair = SampleECKeyPairs.KeyPairs[1];
@@ -159,8 +153,7 @@ namespace AElf.Contracts.Vote
                 
                 var input = new VoteInput
                 {
-                    Topic = Hash.FromString("topic1"),
-                    Sponsor = DefaultSender,
+                    VotingItemId = 
                     Option = _options[1],
                     Amount = 2000_000L
                 };
@@ -682,8 +675,7 @@ namespace AElf.Contracts.Vote
             _options = GenerateOptions(optionCount);
             var input = new VotingRegisterInput
             {
-                Topic = topic,
-                TotalEpoch = totalEpoch,
+                TotalSnapshotNumber = totalEpoch,
                 ActiveDays = activeDays,
                 StartTimestamp = DateTime.UtcNow.ToTimestamp(),
                 Options =
@@ -736,5 +728,6 @@ namespace AElf.Contracts.Vote
 
             return balance;
         }
+        */
     }
 }

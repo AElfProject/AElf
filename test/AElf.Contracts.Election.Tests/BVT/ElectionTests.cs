@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Vote;
 using Xunit;
@@ -23,20 +25,19 @@ namespace AElf.Contracts.Election
             // `RegisterElectionVotingEvent` will be called during AElf Consensus Contract initialization,
             // so we can check corresponding voting item directly.
 
-            var electionVotingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+            var electionVotingItem = await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
             {
-                Sponsor = ElectionContractAddress,
-                Topic = ElectionContractConstants.Topic
+                VotingItemId = MinerElectionVotingItemId
             });
 
-            electionVotingEvent.Topic.ShouldBe(ElectionContractConstants.Topic);
-            electionVotingEvent.Options.Count.ShouldBe(0);
-            electionVotingEvent.Sponsor.ShouldBe(ElectionContractAddress);
-            electionVotingEvent.TotalEpoch.ShouldBe(long.MaxValue);
-            electionVotingEvent.CurrentEpoch.ShouldBe(1);
-            electionVotingEvent.Delegated.ShouldBe(true);
-            electionVotingEvent.ActiveDays.ShouldBe(long.MaxValue);
-            electionVotingEvent.AcceptedCurrency.ShouldBe(ElectionContractTestConstants.NativeTokenSymbol);
+            electionVotingItem.VotingItemId.ShouldBe(MinerElectionVotingItemId);
+            electionVotingItem.Options.Count.ShouldBe(0);
+            electionVotingItem.Sponsor.ShouldBe(ElectionContractAddress);
+            electionVotingItem.TotalSnapshotNumber.ShouldBe(long.MaxValue);
+            electionVotingItem.CurrentSnapshotNumber.ShouldBe(1);
+            electionVotingItem.IsLockToken.ShouldBe(true);
+            electionVotingItem.EndTimestamp.ShouldBe(DateTime.MaxValue.ToUniversalTime().ToTimestamp());
+            electionVotingItem.AcceptedCurrency.ShouldBe(ElectionContractTestConstants.NativeTokenSymbol);
         }
 
         /// <summary>
@@ -60,15 +61,14 @@ namespace AElf.Contracts.Election
             balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
 
             // Check changes introduced to Main Chain Miner Election voting item.
-            var votingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+            var votingItem = await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
             {
-                Topic = ElectionContractConstants.Topic,
-                Sponsor = ElectionContractAddress
+                VotingItemId = MinerElectionVotingItemId
             });
-            votingEvent.Options.Count.ShouldBe(candidatesCount);
+            votingItem.Options.Count.ShouldBe(candidatesCount);
             foreach (var candidateKeyPair in candidatesKeyPairs)
             {
-                votingEvent.Options.ShouldContain(candidateKeyPair.PublicKey.ToHex());
+                votingItem.Options.ShouldContain(candidateKeyPair.PublicKey.ToHex());
             }
 
             return candidatesKeyPairs;
@@ -83,12 +83,11 @@ namespace AElf.Contracts.Election
 
             // Check VotingEvent before quiting election.
             {
-                var votingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+                var votingItem = await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
                 {
-                    Topic = ElectionContractConstants.Topic,
-                    Sponsor = ElectionContractAddress
+                    VotingItemId = MinerElectionVotingItemId
                 });
-                votingEvent.Options.Count.ShouldBe(candidates.Count);
+                votingItem.Options.Count.ShouldBe(candidates.Count);
             }
 
             var quitCandidates = FullNodesKeyPairs.Take(quitCount).ToList();
@@ -111,12 +110,11 @@ namespace AElf.Contracts.Election
 
             // Check VotingEvent after quiting election.
             {
-                var votingEvent = await VoteContractStub.GetVotingEvent.CallAsync(new GetVotingEventInput
+                var votingItem = await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
                 {
-                    Topic = ElectionContractConstants.Topic,
-                    Sponsor = ElectionContractAddress
+                    VotingItemId = MinerElectionVotingItemId
                 });
-                votingEvent.Options.Count.ShouldBe(candidates.Count - quitCount);
+                votingItem.Options.Count.ShouldBe(candidates.Count - quitCount);
             }
         }
 
@@ -163,54 +161,54 @@ namespace AElf.Contracts.Election
 
             // Check voter's Votes information.
             {
-                var voterVotes = await ElectionContractStub.GetVotesInformation.CallAsync(new StringInput
+                var voterVotes = await ElectionContractStub.GetElectorVote.CallAsync(new StringInput
                 {
                     Value = voterKeyPair.PublicKey.ToHex()
                 });
                 voterVotes.PublicKey.ShouldBe(ByteString.CopyFrom(voterKeyPair.PublicKey));
-                voterVotes.ActiveVotesIds.Count.ShouldBe(candidatesKeyPairs.Count);
+                voterVotes.ActiveVotingRecords.Count.ShouldBe(candidatesKeyPairs.Count);
                 voterVotes.AllVotedVotesAmount.ShouldBe(actualVotedAmount);
-                voterVotes.ValidVotedVotesAmount.ShouldBe(actualVotedAmount);
+                voterVotes.ActiveVotedVotesAmount.ShouldBe(actualVotedAmount);
 
-                var voterVotesWithRecords = await ElectionContractStub.GetVotesInformationWithRecords.CallAsync(
+                var voterVotesWithRecords = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(
                     new StringInput
                     {
                         Value = voterKeyPair.PublicKey.ToHex()
                     });
-                voterVotesWithRecords.ActiveVotesRecords.Count.ShouldBe(candidatesKeyPairs.Count);
+                voterVotesWithRecords.ActiveVotingRecords.Count.ShouldBe(candidatesKeyPairs.Count);
 
-                var voterVotesWithAllRecords = await ElectionContractStub.GetVotesInformationWithAllRecords.CallAsync(
+                var voterVotesWithAllRecords = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(
                     new StringInput
                     {
                         Value = voterKeyPair.PublicKey.ToHex()
                     });
-                voterVotesWithAllRecords.ActiveVotesRecords.Count.ShouldBe(candidatesKeyPairs.Count);
+                voterVotesWithAllRecords.ActiveVotingRecords.Count.ShouldBe(candidatesKeyPairs.Count);
             }
 
             // Check candidate's Votes information.
             {
-                var candidateVotes = await ElectionContractStub.GetVotesInformation.CallAsync(new StringInput
+                var candidateVotes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringInput
                 {
                     Value = candidateKeyPair.PublicKey.ToHex()
                 });
                 candidateVotes.PublicKey.ShouldBe(ByteString.CopyFrom(candidateKeyPair.PublicKey));
-                candidateVotes.ObtainedActiveVotesIds.Count.ShouldBe(votersCount);
-                candidateVotes.AllObtainedVotesAmount.ShouldBe(amount * 2);
-                candidateVotes.ValidObtainedVotesAmount.ShouldBe(amount * 2);
+                candidateVotes.ObtainedWithdrawnVotesRecords.Count.ShouldBe(votersCount);
+                candidateVotes.AllObtainedVotedVotesAmount.ShouldBe(amount * 2);
+                candidateVotes.ObtainedActiveVotedVotesAmount.ShouldBe(amount * 2);
 
-                var candidateVotesWithRecords = await ElectionContractStub.GetVotesInformationWithRecords.CallAsync(
+                var candidateVotesWithRecords = await ElectionContractStub.GetCandidateVoteWithRecords.CallAsync(
                     new StringInput
                     {
                         Value = candidateKeyPair.PublicKey.ToHex()
                     });
-                candidateVotesWithRecords.ObtainedActiveVotesRecords.Count.ShouldBe(votersCount);
+                candidateVotesWithRecords.ObtainedActiveVotingRecords.Count.ShouldBe(votersCount);
 
-                var voterVotesWithAllRecords = await ElectionContractStub.GetVotesInformationWithAllRecords.CallAsync(
+                var voterVotesWithAllRecords = await ElectionContractStub.GetCandidateVoteWithAllRecords.CallAsync(
                     new StringInput
                     {
                         Value = candidateKeyPair.PublicKey.ToHex()
                     });
-                voterVotesWithAllRecords.ObtainedActiveVotesRecords.Count.ShouldBe(votersCount);
+                voterVotesWithAllRecords.ObtainedActiveVotingRecords.Count.ShouldBe(votersCount);
             }
 
             // Check voter's profit detail.
@@ -245,8 +243,8 @@ namespace AElf.Contracts.Election
             }
 
             var voteId =
-                (await ElectionContractStub.GetVotesInformation.CallAsync(new StringInput
-                    {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotesIds.First();
+                (await ElectionContractStub.GetElectorVote.CallAsync(new StringInput
+                    {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotingRecordIds.First();
 
             await ElectionContractStub.ReleaseTreasuryProfits.CallAsync(new ReleaseTreasuryProfitsInput
             {

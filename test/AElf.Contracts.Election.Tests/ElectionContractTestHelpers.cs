@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
@@ -47,8 +48,7 @@ namespace AElf.Contracts.Election
             {
                 CandidatePublicKey = candidatePublicKey,
                 Amount = amount,
-                LockTimeUnit = TimeUnit.Days,
-                LockTime = lockTime
+                EndTimestamp = DateTime.UtcNow.ToUniversalTime().AddDays(lockTime).ToTimestamp()
             })).TransactionResult;
         }
         

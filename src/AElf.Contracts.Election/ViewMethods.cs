@@ -9,6 +9,11 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContract
     {
+        public override Hash GetMinerElectionVotingItemId(Empty input)
+        {
+            return State.MinerElectionVotingItemId.Value;
+        }
+
         public override PublicKeysList GetCandidates(Empty input)
         {
             return State.Candidates.Value;
