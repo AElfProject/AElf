@@ -182,7 +182,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             foreach (var transaction in eventData.Transactions)
             {
-                //TODO: Transaction received from network need signature and other data format verification.
+                if (!transaction.VerifySignature())
+                    continue;
+
                 var receipt = new TransactionReceipt(transaction);
                 if (_allTransactions.ContainsKey(receipt.TransactionId))
                 {

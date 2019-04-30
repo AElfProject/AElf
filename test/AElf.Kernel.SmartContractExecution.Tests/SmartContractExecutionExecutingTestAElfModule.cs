@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
@@ -56,6 +57,23 @@ namespace AElf.Kernel.SmartContractExecution
                         return Task.FromResult(returnSets);
                     });
 
+                return mockService.Object;
+            });
+
+            services.AddTransient<IBlockExecutingService>(p =>
+            {
+                var mockService = new Mock<IBlockExecutingService>();
+                mockService.Setup(m => m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
+                    .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
+                    {
+                        var block = new Block
+                        {
+                            Header = blockHeader,
+                            Body = new BlockBody()
+                        };
+                        block.Body.AddTransactions(transactions.Select(x => x.GetHash()));
+                        return Task.FromResult(block);
+                    });
                 return mockService.Object;
             });
         }

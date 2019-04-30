@@ -1,5 +1,4 @@
 using System;
-using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -133,14 +132,12 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             var tradeMessage = State.Complex4Info[input.From][input.PairA][input.To][input.PairB];
             if (tradeMessage == null)
             {
-                input.TradeDetails.Timestamp = DateTime.UtcNow.ToTimestamp();
                 State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = input.TradeDetails;
             }
             else
             {
                 tradeMessage.FromAmount += input.TradeDetails.FromAmount;
                 tradeMessage.ToAmount += input.TradeDetails.ToAmount;
-                tradeMessage.Timestamp = DateTime.UtcNow.ToTimestamp();
 
                 State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = tradeMessage;
             }

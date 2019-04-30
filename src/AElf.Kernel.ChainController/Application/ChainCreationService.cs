@@ -46,7 +46,7 @@ namespace AElf.Kernel.ChainController.Application
                 {
                     Height = Constants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow),
+                    Time = Timestamp.FromDateTime(DateTime.MinValue.ToUniversalTime()),
                     ChainId = _blockchainService.GetChainId()
                 };
 

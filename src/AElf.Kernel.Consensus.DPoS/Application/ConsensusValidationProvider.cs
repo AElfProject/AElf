@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Consensus.DPoS.Application
 {
@@ -8,6 +9,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
     {
         private readonly IConsensusService _consensusService;
         private readonly IBlockExtraDataService _blockExtraDataService;
+        public ILogger<ConsensusValidationProvider> Logger { get; set; }
 
         public ConsensusValidationProvider(IConsensusService consensusService, IBlockExtraDataService blockExtraDataService)
         {
@@ -21,11 +23,17 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                 return true;
 
             if (block.Header.BlockExtraDatas.Count == 0)
+            {
+                Logger.LogWarning($"Block header extra data is empty {block}");
                 return false;
+            }
 
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
+            {
+                Logger.LogWarning($"Consensus extra data is empty {block}");
                 return false;
+            }
 
             return true;
         }
@@ -37,7 +45,10 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
+            {
+                Logger.LogWarning($"Consensus extra data is empty {block}");
                 return false;
+            }
 
             var isValid = await _consensusService.ValidateConsensusBeforeExecutionAsync(new ChainContext
             {
