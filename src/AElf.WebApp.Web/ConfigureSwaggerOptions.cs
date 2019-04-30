@@ -1,6 +1,4 @@
-using System;
 using System.IO;
-using System.Reflection;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using AElf.WebApp.Application.Chain;
