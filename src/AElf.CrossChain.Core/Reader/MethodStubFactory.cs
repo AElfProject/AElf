@@ -59,6 +59,10 @@ namespace AElf.CrossChain
                 }
 
                 trace.SurfaceUpError();
+                if (string.IsNullOrEmpty(trace.StdErr))
+                {
+                    return default(TOutput);
+                }
                 throw new Exception(trace.StdErr);
             }
 
