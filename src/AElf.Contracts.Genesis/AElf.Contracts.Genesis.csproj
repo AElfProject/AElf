@@ -26,6 +26,10 @@
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh basic_contract_zero.proto" />
         <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_code.bat basic_contract_zero.proto" />
     </Target>
+    <Target Name="CopyContractDll" AfterTargets="AfterBuild">
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll $(SolutionDir)/contracts"/>
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll $(SolutionDir)\contracts"/>
+    </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
             <Compile Include="./Protobuf/Generated/*.cs" />

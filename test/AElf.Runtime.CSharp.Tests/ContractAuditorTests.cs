@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,15 +9,19 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using Shouldly;
 using Xunit;
+using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace AElf.Runtime.CSharp.Tests
 {
     public class ContractAuditorTests : CSharpRuntimeTestBase
     {
+        private readonly ITestOutputHelper _testOutputHelper;
         private ContractAuditor _auditor;
 
-        public ContractAuditorTests()
+        public ContractAuditorTests(ITestOutputHelper testOutputHelper)
         {
+            _testOutputHelper = testOutputHelper;
             _auditor = new ContractAuditor();
         }
         
@@ -33,18 +38,14 @@ namespace AElf.Runtime.CSharp.Tests
         {
             var contracts = new[]
             {
-                typeof(BasicContractZero),
-                typeof(AssociationAuthContract),
-                // typeof(ConsensusContract),
-                // typeof(Contracts.Consensus.DPoS.SideChain.ConsensusContract),
-                // typeof(CrossChainContract),
+                typeof(BasicContractZero).Module.ToString(),
             };
 
             foreach (var contract in contracts)
             {
-                var code = ReadCode(contract.Assembly.Location);
+                var contractDllPath = "../../../../../contracts/" + contract;
     
-                Should.NotThrow(()=>_auditor.Audit(code, false));
+                Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), false));
             }
         }
 
