@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf";
+
+message Address
+{
+    bytes Value = 1;
+}
+
+message Hash
+{
+    bytes Value = 1;
+}
+
+message SInt32Value
+{
+    sint32 Value = 1;
+}
+
+message SInt64Value
+{
+    sint64 Value = 1;
+}

@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Kernel</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Volo.Abp.BackgroundJobs" Version="0.15.0" />
+      <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.15.0" />
+    </ItemGroup>
+
+</Project>

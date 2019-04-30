@@ -1,6 +1,0 @@
-﻿{
-  "ConsensusType" : 1,
-  "DPoSMiningInterval" : 4000,
-  "ExpectedTransactionCount" : 8000,
-  "SingleNodeTestMiningInterval" : 4000
-}

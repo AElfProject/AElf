@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+import "common.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.Resource.FeeReceiver";
+
+service FeeReceiverContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Resource.FeeReceiver.FeeReceiverContractState";
+    // Actions
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc Withdraw (SInt64Value) returns (google.protobuf.Empty) {
+    }
+    rpc WithdrawAll (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc Burn (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetElfTokenAddress (google.protobuf.Empty) returns (Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetFoundationAddress (google.protobuf.Empty) returns (Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetOwedToFoundation (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitializeInput {
+    Address elfTokenAddress = 1;
+    Address foundationAddress = 2;
+}

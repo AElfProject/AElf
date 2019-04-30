@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package acs2;
+
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+
+option (aelf.identity) = "acs2";
+
+service MetadataProvidingContract {
+    // Actions
+    rpc SetMetadata (SetMetadataInput) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetMetadata (GetMetadataInput) returns (GetMetadataOutput) {
+        option (aelf.is_view) = true;
+    }
+
+}
+
+message GetMetadataInput {
+    string method = 1;
+}
+
+message GetMetadataOutput {
+    string method = 1;
+    string metadata = 2;
+}
+
+message SetMetadataInput {
+    string method = 1;
+    string metadata = 2;
+}
+
+// Events
+message MetadataSet {
+    option (aelf.is_event) = true;
+    string method = 1;
+    string oldMetadata = 2;
+    string newMetadata = 3;
+}

@@ -1,21 +1,56 @@
 language: csharp
 sudo: required
 mono: none
-dotnet: 2.1.400
-dist: trusty
+dotnet: 2.2.105
+dist: xenial
+os:
+  - linux
+  - osx
+osx_image: xcode9.4
+cache:
+  yarn: true 
+  directories:
+    - $HOME/.nuget/packages
+    - $HOME/.chakracore
+env:
+  global:
+    - REAL_BRANCH=$(git ls-remote origin | sed -n "\|$TRAVIS_COMMIT\s\+refs/heads/|{s///p}")
 before_install:
-  - chmod a+x ./install_protobuf.sh
-  - ./install_protobuf.sh
+  - bash scripts/install_protobuf.sh
+  - nvm install node
+  - npm install -g yarn
 install:
   - export DOTNET_CLI_TELEMETRY_OPTOUT=1
 before_script:
-  - chmod a+x ./build.sh
-  - chmod a+x ./deploy.sh
+  - export LD_LIBRARY_PATH=$HOME/.chakracore/1_11_1/:$LD_LIBRARY_PATH
+  - bash scripts/install_chakracore.sh 1_11_1
 script:
-  - ./build.sh
+  - bash scripts/build.sh
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then bash scripts/test.sh          ; fi
+after_script:
+  - curl -s https://codecov.io/bash > codecov
+  - chmod +x codecov
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./codecov -f "./test/results/coverage.opencover.xml" -t $CODECOV_TOKEN          ; fi 
 deploy:
   - provider: script
-    script: ./deploy.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD
-    skip_cleanup: true
+    script:
+      bash scripts/deploy_myget.sh $TRAVIS_TAG $MYGET_API_KEY
     on:
       tags: true
+      all_branches: true
+      condition: "$REAL_BRANCH = dev && $TRAVIS_OS_NAME = linux"
+  - provider: script
+    script:
+      bash scripts/deploy_docker.sh $TRAVIS_TAG $DOCKER_USERNAME $DOCKER_PASSWORD;
+      bash scripts/deploy_nuget.sh $TRAVIS_TAG $NUGET_API_KEY
+    on:
+      tags: true
+      all_branches: true
+      condition: "$REAL_BRANCH =~ ^dev|^master|release-.*$ && $TRAVIS_OS_NAME = linux"
+  - provider: script
+    script:
+      bash scripts/deploy_myget_daily.sh $DAILY_BUILD_VERSION_PREFIX $MYGET_API_KEY
+    on:
+      tags: false
+      all_branches: true
+      condition: "$REAL_BRANCH = dev && $TRAVIS_OS_NAME = linux && $TRAVIS_EVENT_TYPE = cron"

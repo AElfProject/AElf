@@ -1,0 +1,145 @@
+syntax = "proto3";
+
+import "aelf_options.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Runtime.CSharp.Tests.TestContract";
+
+service TestContract {
+    option (aelf.csharp_state) = "AElf.Runtime.CSharp.Tests.TestContract.TestContractState";
+    //Actions
+    rpc TestBoolState(BoolInput) returns (BoolOutput) {
+    }
+    rpc TestInt32State(Int32Input) returns (Int32Output) {
+    }
+    rpc TestUInt32State(UInt32Input) returns (UInt32Output) {
+    }
+    rpc TestInt64State(Int64Input) returns (Int64Output) {
+    }
+    rpc TestUInt64State(UInt64Input) returns (UInt64Output) {
+    }
+    rpc TestStringState(StringInput) returns (StringOutput) {
+    }
+    rpc TestBytesState(BytesInput) returns (BytesOutput) {
+    }
+    rpc TestProtobufState(ProtobufInput) returns (ProtobufOutput) {
+    }
+    rpc TestComplex1State(Complex1Input) returns (Complex1Output) {
+    }
+    rpc TestComplex2State(Complex2Input) returns (Complex2Output) {
+    }
+    rpc TestMappedState(ProtobufInput) returns (ProtobufListOutput) {
+    }
+    rpc TestMapped1State(Complex3Input) returns (TradeMessage) {
+    }
+}
+
+//Input
+message BoolInput {
+    bool BoolValue = 1;
+}
+
+message Int32Input {
+    int32 Int32Value = 1;
+}
+
+message UInt32Input {
+    uint32 UInt32Value = 1;
+}
+
+message Int64Input {
+    int64 Int64Value = 1;
+}
+
+message UInt64Input {
+    uint64 UInt64Value = 1;
+}
+
+message StringInput {
+    string StringValue = 1;
+}
+
+message BytesInput {
+    bytes BytesValue = 1;
+}
+
+message ProtobufInput {
+    ProtobufMessage ProtobufValue = 1;
+}
+
+message Complex1Input {
+    bool BoolValue = 1;
+    int32 Int32Value = 2;
+}
+
+message Complex2Input {
+    BoolInput BoolData = 1;
+    Int32Input Int32Data = 2;
+}
+
+message Complex3Input {
+    string from = 1;
+    string pairA = 2;
+    string to = 3;
+    string pairB = 4;
+    TradeMessage TradeDetails = 5;
+}
+
+message TradeMessage {
+    int64 fromAmount = 1;
+    int64 toAmount = 2;
+    google.protobuf.Timestamp Timestamp = 3;
+}
+
+message ProtobufMessage {
+    string StringValue = 1;
+    bool BoolValue = 2;
+    int64 Int64Value = 3;
+}
+
+//Output
+message BoolOutput {
+    bool BoolValue = 1;
+}
+
+message Int32Output {
+    int32 Int32Value = 1;
+}
+
+message UInt32Output {
+    uint32 UInt32Value = 1;
+}
+
+message UInt64Output {
+    uint64 UInt64Value = 1;
+}
+
+message Int64Output {
+    int64 Int64Value = 1;
+}
+
+message StringOutput {
+    string StringValue = 1;
+}
+
+message BytesOutput {
+    bytes BytesValue = 1;
+}
+
+message ProtobufOutput {
+    ProtobufMessage ProtobufValue = 1;
+}
+
+message ProtobufListOutput {
+    repeated ProtobufMessage Collection = 1;
+}
+
+message Complex1Output {
+    bool BoolValue = 1;
+    int32 Int32Value = 2;
+}
+
+message Complex2Output {
+    BoolOutput BoolData = 1;
+    Int32Output Int32Data = 2;
+}

@@ -1,0 +1,160 @@
+syntax = "proto3";
+
+import "common.proto";
+import "kernel.proto";
+
+option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
+
+message TokenInfo {
+    string symbol = 1;
+    string token_name = 2;
+    sint64 supply = 3;
+    sint64 total_supply = 4;
+    sint32 decimals = 5;
+    Address issuer = 6;
+    bool is_burnable = 7;
+}
+
+message Nothing {
+}
+
+message CreateInput {
+    string symbol = 1;
+    string token_name = 2;
+    sint64 total_supply = 3;
+    sint32 decimals = 4;
+    Address issuer = 5;
+    bool is_burnable = 6;
+    repeated Address lock_white_list = 7;
+}
+
+message CreateNativeTokenInput {
+    string symbol = 1;
+    string token_name = 2;
+    sint64 total_supply = 3;
+    sint32 decimals = 4;
+    Address issuer = 5;
+    bool is_burnable = 6;
+    repeated Hash lock_white_system_contract_name_list = 7;
+}
+
+message IssueInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+    Address to = 4;
+}
+
+message IssueNativeTokenInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+    Hash to_system_contract_name = 4;
+}
+
+message LockInput {
+    Address from = 1; // The one want to lock his token.
+    Address to = 2; // The address in white list.
+    Hash lock_id = 3;
+    string symbol = 4;
+    string usage = 5;
+    int64 amount = 6;
+}
+
+message UnlockInput {
+    Address from = 1; // The one want to lock his token.
+    Address to = 2; // The address in white list.
+    Hash lock_id = 3;
+    string symbol = 4;
+    string usage = 5;
+    int64 amount = 6;
+}
+
+message WhiteListInput {
+    string symbol = 1;
+    Address white = 2;
+}
+
+message TransferInput {
+    Address to = 1;
+    string symbol = 2;
+    sint64 amount = 3;
+    string memo = 4;
+}
+
+message TransferFromInput {
+    Address from = 1;
+    Address to = 2;
+    string symbol = 3;
+    sint64 amount = 4;
+    string memo = 5;
+}
+
+message ApproveInput {
+    Address spender = 1;
+    string symbol = 2;
+    sint64 amount = 3;
+}
+
+message UnApproveInput {
+    Address spender = 1;
+    string symbol = 2;
+    sint64 amount = 3;
+}
+
+message BurnInput {
+    string symbol = 1;
+    sint64 amount = 2;
+}
+
+message ChargeTransactionFeesInput {
+    string symbol = 1;
+    sint64 amount = 2;
+}
+
+message ClaimTransactionFeesInput {
+    string symbol = 1;
+    sint64 height = 2;
+}
+
+message GetMethodFeeInput {
+    string method = 1;
+}
+
+message GetMethodFeeOutput {
+    string method = 1;
+    sint64 fee = 2;
+}
+
+message SetMethodFeeInput {
+    string method = 1;
+    sint64 fee = 2;
+}
+
+message GetTokenInfoInput {
+    string symbol = 1;
+}
+
+message GetBalanceInput {
+    string symbol = 1;
+    Address owner = 2;
+}
+
+message GetBalanceOutput {
+    string symbol = 1;
+    Address owner = 2;
+    sint64 balance = 3;
+}
+
+message GetAllowanceInput {
+    string symbol = 1;
+    Address owner = 2;
+    Address spender = 3;
+}
+
+message GetAllowanceOutput {
+    string symbol = 1;
+    Address owner = 2;
+    Address spender = 3;
+    sint64 allowance = 4;
+}

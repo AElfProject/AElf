@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.CrossChain.Grpc</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+        <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
+        <ProjectReference Include="..\AElf.CrossChain.Types\AElf.CrossChain.Types.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\..\protobuf\header_info.proto">
+            <Link>./Grpc/Protobuf/header_info.proto</Link>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Grpc" Version="1.19.0" />
+        <PackageReference Include="Grpc.Tools" Version="1.19.0" />
+    </ItemGroup>
+    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Protobuf ProtoRoot="../../protobuf" Include="header_info.proto" OutputDir="./Grpc/Protobuf/Generated" />
+        </ItemGroup>
+    </Target>
+</Project>

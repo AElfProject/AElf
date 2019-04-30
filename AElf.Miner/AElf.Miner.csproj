@@ -1,9 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AElf.Execution\AElf.Execution.csproj" />
-    <ProjectReference Include="..\AElf.Miner.Rpc\AElf.Miner.Rpc.csproj" />
-  </ItemGroup>
-</Project>

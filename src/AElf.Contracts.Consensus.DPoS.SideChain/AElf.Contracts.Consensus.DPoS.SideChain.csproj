@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\..\protobuf\aelf_options.proto">
+        <Link>Protobuf/Proto/aelf_options.proto</Link>
+      </None>
+      <None Include="..\..\protobuf\core.proto">
+        <Link>Protobuf/Proto/core.proto</Link>
+      </None>
+      <None Include="..\..\protobuf\dpos_sidechain_contract.proto">
+        <Link>Protobuf/Proto/dpos_sidechain_contract.proto</Link>
+      </None>
+    </ItemGroup>
+    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh dpos_sidechain_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_code.bat dpos_sidechain_contract.proto" />
+    </Target>
+    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Compile Include="./Protobuf/Generated/*.cs" />
+        </ItemGroup>
+    </Target>
+
+</Project>

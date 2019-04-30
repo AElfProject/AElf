@@ -1,0 +1,19 @@
+{
+    "profiles": {
+        "bp1": {
+            "commandName": "Project",
+            "commandLineArgs": "",
+            "workingDirectory": "/path/to/appsSettings.json/for/bp1"
+        },
+        "bp2": {
+            "commandName": "Project",
+            "commandLineArgs": "",
+            "workingDirectory": "/path/to/appsSettings.json/for/bp2"
+        },
+        "bp3": {
+            "commandName": "Project",
+            "commandLineArgs": "",
+            "workingDirectory": "/path/to/appsSettings.json/for/bp3"
+        }
+    }
+}

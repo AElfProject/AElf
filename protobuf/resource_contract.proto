@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+import "common.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.Resource";
+
+service ResourceContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Resource.ResourceContractState";
+    // Actions
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc IssueResource (ResourceAmount) returns (google.protobuf.Empty) {
+    }
+    rpc BuyResource (ResourceAmount) returns (google.protobuf.Empty) {
+    }
+    rpc SellResource (ResourceAmount) returns (google.protobuf.Empty) {
+    }
+    rpc LockResource (ResourceAmount) returns (google.protobuf.Empty) {
+    }
+    rpc UnlockResource (UserResourceAmount) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetElfTokenAddress (google.protobuf.Empty) returns (Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetFeeAddress (google.protobuf.Empty) returns (Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetResourceControllerAddress (google.protobuf.Empty) returns (Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetConverter (ResourceId) returns (Converter) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetUserBalance (UserResourceId) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetUserLockedBalance (UserResourceId) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetExchangeBalance (ResourceId) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetElfBalance (ResourceId) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+}
+
+enum ResourceType {
+    UndefinedResourceType = 0;
+    Ram = 1;
+    Cpu = 2;
+    Net = 3;
+    Sto = 4;
+}
+
+message Converter {
+    sint64 resBalance = 1;
+    sint64 elfBalance = 2;
+    sint64 resWeight = 3; // Weight based on MAX of 1,000,000
+    sint64 elfWeight = 4; // Weight based on MAX of 1,000,000
+    ResourceType type = 5;
+}
+
+message UserResourceKey {
+    Address address = 1;
+    ResourceType type = 2;
+}
+
+message ResourceId {
+    ResourceType type = 1;
+}
+
+message UserResourceId {
+    Address address = 1;
+    ResourceType type = 2;
+}
+
+message InitializeInput {
+    Address elfTokenAddress = 1;
+    Address feeAddress = 2;
+    Address resourceControllerAddress = 3;
+}
+
+message ResourceAmount {
+    ResourceType type = 1;
+    sint64 amount = 2;
+}
+
+message UserResourceAmount {
+    Address user = 1;
+    ResourceType type = 2;
+    sint64 amount = 3;
+}

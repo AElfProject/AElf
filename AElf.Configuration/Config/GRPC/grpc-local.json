@@ -1,8 +1,0 @@
-{
-  "LocalServerIP" : "127.0.0.1",
-  "LocalServerPort" : "50052",
-  "ClientToParentChain" : false,
-  "ClientToSideChain" : false,
-  "WaitingIntervalInMillisecond" : 10,
-  "Server" : false
-}

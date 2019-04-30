@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>AElf.Kernel.SmartContract</PackageId>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Sandwych.QuickGraph.Core" Version="1.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj" />
+  </ItemGroup>
+</Project>

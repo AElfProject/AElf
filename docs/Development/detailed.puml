@@ -1,0 +1,98 @@
+@startuml
+skinparam monochrome true
+top to bottom direction
+package Application {
+    interface INode
+    note top of INode
+        Cross layer event message subscriptions may be put here.
+    end note
+    package RPCServices <<Rectangle>> {
+        class SendTransactionHandler
+    }
+    package P2PServices <<Rectangle>> {
+        class TransactionRequestHandler
+        class BlockHeaderRequestHandler
+        class BlockRequestHandler
+    }
+}
+
+package Domain {
+    package Entities <<Rectangle>> {
+        interface IBlockChain
+        interface ILightChain
+        ILightChain <|- IBlockChain
+    }
+    note top of Entities
+        In DDD, entities should have assigned ID. In blockchain
+        domain, the so-called ID's for transactions/blocks are
+        not assigned but derived from values (so they should be
+        ValueObjects instead of entities). The chain's ID may be
+        the only entity as the chain ID is configured externally.
+    end note
+    package ValueObjects <<Rectangle>>{
+        interface IAddress
+        interface IHash
+        interface IHashable {
+            GetHash()
+        }
+        interface IBlockHeader
+        interface IBlock
+        interface ITransaction
+        IHashable <|- IBlockHeader
+        IBlockHeader <|- IBlock
+        IHashable <|- ITransaction
+    }
+    note top of ValueObjects
+        ValueObjects are implemented with protobuf messages,
+        which doesn't support inheritance, so interface is 
+        used here
+    end note
+    package DomainEvents <<Rectangle>> {
+        class AcceptedBlock
+    }
+    package DomainServices <<Rectangle>> {
+        interface BlockHeaderBuilder {
+            AddPreviousBlockHash
+            AddTransactionTreeRoot
+            AddStateTreeRoot
+            AddSideChainRoot
+        }
+        note top of BlockHeaderBuilder
+            Or BlockBuilder.
+        end note
+    }
+    note top of DomainServices
+        Domain services are named by the action it performs
+        (i.e. it shows the purpose). It's very granular whereas
+        application services are a facade purposed with providing
+        an API.
+    end note
+}
+
+package Infrastructure {
+    package Network <<Rectangle>> {
+        package NetworkEvents <<Rectangle>> {
+            class ReceivedTransactionNotification
+            class ReceivedBlockNotification
+        }
+        interface IPeerManager
+    }
+    package Database <<Rectangle>> {
+    }
+    package Execution <<Rectangle>> {
+        interface ExecutionService {
+            Execute(transactions)
+        }
+    }
+    note top of Execution
+        Execution infrastructure e.g. akka. It handles the routing
+        and logistics for the execution. Actual execution logics may
+        be injected (e.g. by strategy).
+    end note
+    package SideChainNetwork <<Rectangle>> {
+    }
+}
+Application -[hidden]- Domain
+Domain -[hidden]- Infrastructure
+Application -[hidden]- Infrastructure
+@enduml

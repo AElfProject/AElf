@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package election;
+
+import "aelf_options.proto";
+import "common.proto";
+import "vote.proto";
+import "election.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.Election";
+
+service ElectionContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
+
+    // Action
+    rpc InitialElectionContract (InitialElectionContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc Vote (VoteMinerInput) returns (google.protobuf.Empty) {
+    }
+    rpc Withdraw (Hash) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateTermNumber (UpdateTermNumberInput) returns (google.protobuf.Empty) {
+    }
+
+    // View
+    rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTicketsInformation (StringInput) returns (ElectionTickets) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableNotWithdrawnTicketsInfo (PageableElectionTicketsInfoInput) returns (ElectionTickets) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryAlias (StringInput) returns (StringOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTicketsCount (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableCandidatesHistoryInfo (PageInfo) returns (CandidateHistoryDictionary) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableTicketsHistories (PageableElectionTicketsInfoInput) returns (ElectionTicketsHistories) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotesCount (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc QueryCurrentDividendsForVoters (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+}

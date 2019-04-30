@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <RootNamespace>AElf.Runtime.CSharp.Core</RootNamespace>
+        <PackageId>AElf.Runtime.CSharp.Core</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Mono.Cecil" Version="0.10.3" />
+      <PackageReference Include="Hyperion" Version="0.9.8" />
+
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+    </ItemGroup>
+
+</Project>

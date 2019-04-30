@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+import "common.proto";
+import "aelf_options.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.TokenConverter";
+
+service TokenConverterContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TokenConverter.TokenConverterContractState";
+    // Actions
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetConnector (Connector) returns (google.protobuf.Empty) {
+    }
+    rpc Buy (BuyInput) returns (google.protobuf.Empty) {
+    }
+    rpc Sell (SellInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetFeeRate (google.protobuf.StringValue) returns (google.protobuf.Empty) {
+    }
+    rpc SetFeeReceiverAddress (Address) returns (google.protobuf.Empty) {
+    }
+    rpc SetManagerAddress (Address) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetTokenContractAddress (google.protobuf.Empty) returns (Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetManagerAddress (google.protobuf.Empty) returns (Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetConnector (TokenSymbol) returns (Connector) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetFeeRate (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetBaseTokenSymbol (google.protobuf.Empty) returns (TokenSymbol) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message Connector {
+    string symbol = 1;
+    sint64 virtual_balance = 2;
+    string weight = 3;
+    bool is_virtual_balance_enabled = 4; // true if virtual balance is enabled, false if not
+    bool is_purchase_enabled = 5;
+}
+
+message TokenSymbol {
+    string symbol = 1;
+}
+
+message InitializeInput {
+    string base_token_symbol = 1;
+    string fee_rate = 2;
+    repeated Connector connectors = 3;
+    Address token_contract_address = 4;
+    Address fee_receiver_address = 5;
+    Address manager_address = 6;
+}
+
+message BuyInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    sint64 pay_limit = 3; // No buy if paying more than this, 0 if no limit
+}
+
+message SellInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    sint64 receive_limit = 3; // No sell if receiving less than this, 0 if no limit
+}
+
+// Events
+message TokenBought {
+    option (aelf.is_event) = true;
+    string symbol = 1 [(aelf.is_indexed) = true];
+    sint64 bought_amount = 2;
+    sint64 base_amount = 3;
+    sint64 fee_amount =4;
+}
+
+message TokenSold {
+    option (aelf.is_event) = true;
+    string symbol = 1 [(aelf.is_indexed) = true];
+    sint64 sold_amount = 2;
+    sint64 base_amount = 3;
+    sint64 fee_amount =4;    
+}

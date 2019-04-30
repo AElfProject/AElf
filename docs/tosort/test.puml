@@ -1,0 +1,52 @@
+@startuml
+digraph G {
+    "AElf.Kernel.Core" -> {"AElf.Core";"AElf.Database";"AElf.Types";"AElf.Common"};
+    
+    "AElf.OS" -> "AElf.Kernel.Core";
+    "AElf.Execution" -> "AElf.Kernel.Core";
+    "AElf.Execution"[label="AElf.Kernel.Execution" , fontcolor = red];
+    "AElf.Execution.Akka" -> {"AElf.Execution", "Akka"};
+    
+    "AElf.SmartContract" -> "AElf.Kernel.Core";
+    "AElf.SmartContract"[label="AElf.Kernel.SmartContract\n executing smart contract " , fontcolor = red];
+    
+    "AElf.ChainController" -> {"AElf.SmartContract","AElf.Kernel.Consensus"}
+    "AElf.ChainController"[fontcolor=darkgreen]
+    
+    "AElf.Kernel.Consensus" -> "AElf.Kernel.Core";
+    
+    "AElf.MiniSystem" -> {"AElf.Kernel.Core";"AElf.SmartContract";"AElf.Execution","AElf.ChainController"}[color=blue];
+    
+    
+    "AElf.ChainController"[label="AElf.Kernel.ChainController\nContext, Events, FSM "]
+    
+    "AElf.MiniSystem"[color=blue];
+    
+    
+    "AElf.Network"[label="AElf.OS.Network"]
+    "AElf.Network" -> "AElf.OS";
+    
+    
+    "AElf.FullNode" -> {"AElf.MiniSystem"; "AElf.OS";"AElf.Network";"Autofac"} [color=red]; 
+    "AElf.FullNode" [color=red] ;
+    "AElf.Launcher" -> {"AElf.FullNode","ThirdParty.MongodbDatabse"};
+    "AElf.Rpc";
+    "AElf.Rpc.Kernel" -> {"AElf.Rpc","AElf.Kernel.Core"};
+    "AElf.Rpc.Network" -> {"AElf.Rpc","AElf.Network"};
+    "AElf.RpcServer" -> {"AElf.Rpc.Kernel","AElf.Rpc.Network","AElf.FullNode"}
+    "AElf.Kernel.Tests" -> "AElf.Kernel.Core";
+    "AElf.Execution.Tests" -> {"AElf.Execution","AElf.TestBase"};
+    "AElf.TestBase" -> {"Autofac", "XUnit"}
+    "AElf.Execution.Akka.Tests" -> {"AElf.Execution.Akka","AElf.TestBase","Akka.TestBase"};
+    "Akka.TestBase" -> "Akka";
+
+  }
+@enduml
+//AElf.Kernel不应改引用AElf.Kernel.Types，而应该引用AElf.Types
+
+//正确的用法应该是 AElf.MiniSystem 引用 AElf.Kernel 以及 AElf.Kernel.Consensus， 
+//然后 MyDPosChain 引用 AElf.MiniSystem + AElf.Kernel.Consensus.DPos
+
+//项目的划分问题，AElf.Kernel、AElf.SmartContract、AElf.ChainController、AElf.Execution 之间的关系梳理
+
+//项目只调用引用项目提供的方法，而不越级调用，如果越级调用需要在项目依赖图上展示

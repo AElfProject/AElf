@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Blockchains.MainChain\AElf.Blockchains.MainChain.csproj" />
+        <ProjectReference Include="..\AElf.OS\AElf.OS.csproj" />
+        <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
+
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.2.0" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
+    </ItemGroup>
+
+</Project>

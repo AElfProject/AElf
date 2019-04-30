@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Runtime.CSharp";
+
+message FileDescriptorSet {
+    repeated bytes file = 1;
+}

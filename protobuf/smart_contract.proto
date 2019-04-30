@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel.SmartContract";
+
+import "kernel.proto";
+
+message Resource {
+    string Name = 1;
+    DataAccessMode DataAccessMode  = 2;
+}
+
+// The function meta data describes the data members of contract object.
+message FunctionMetadata {
+    // AElf allows one contracts to invoke others. This field record
+    // which contracts are invoked by the current contract.
+    repeated string SerializeCallingSet = 1;
+
+    // All data members except other contracts are recorded by this field.
+    repeated Resource SerializeFullResourceSet = 2;
+}
+
+message SerializedCallGraph {
+    repeated GraphEdge Edges = 1;
+    repeated string Vertices = 2;
+}
+
+message GraphEdge {
+    string Source = 1;
+    string Target = 2;
+}

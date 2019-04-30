@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>AElf.WebApp.Application</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
+        <PackageReference Include="Volo.Abp.AspNetCore.TestBase" Version="0.15.0" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
+        <PackageReference Include="Volo.Abp.Core" Version="0.15.0" />
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
+      <ProjectReference Include="..\..\src\AElf.WebApp.Application.Chain\AElf.WebApp.Application.Chain.csproj" />
+      <ProjectReference Include="..\..\src\AElf.WebApp.Web\AElf.WebApp.Web.csproj" />
+    </ItemGroup>
+
+</Project>

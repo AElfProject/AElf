@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Kernel.Consensus.Scheduler.FluentScheduler</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler\AElf.Kernel.Consensus.Scheduler.csproj" />
+      <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentScheduler" Version="5.3.0" />
+    </ItemGroup>
+
+</Project>

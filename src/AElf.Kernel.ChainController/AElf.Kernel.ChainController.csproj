@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>AElf.Kernel.ChainController</PackageId>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="BlockExecution\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="BlockExecution\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="BlockExecution\**" />
+  </ItemGroup>
+</Project>

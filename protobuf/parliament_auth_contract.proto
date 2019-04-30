@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+import "common.proto";
+import "aelf_options.proto";
+import "acs3.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Contracts.ParliamentAuth";
+
+service ParliamentAuthContract {
+    option (aelf.csharp_state) = "AElf.Contracts.ParliamentAuth.ParliamentAuthState";
+    option (aelf.base) = "acs3.proto";
+    // Actions
+    rpc Initialize(ParliamentAuthInitializationInput) returns (google.protobuf.Empty){
+    }
+    rpc CreateOrganization (CreateOrganizationInput) returns (Address) {
+    }
+    rpc GetOrganization (Address) returns (Organization) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetDefaultOrganizationAddress (google.protobuf.Empty) returns (Address){
+        option (aelf.is_view) = true;
+    }
+}
+
+message ParliamentAuthInitializationInput{
+    Hash consensusContractSystemName = 1;
+}
+
+message CreateOrganizationInput{
+    sint32 releaseThreshold = 1;
+}
+
+message Organization{
+    sint32 releaseThreshold = 1;
+    Address organizationAddress = 2;
+    Hash organizationHash = 3;
+}
+
+message ProposalInfo {
+    Hash proposalId = 1;
+    string contractMethodName = 2;
+    Address toAddress = 3;
+    bytes params = 4;
+    google.protobuf.Timestamp expiredTime = 5;
+    Address proposer = 6;
+    Address organizationAddress =7;
+    repeated Address approvedRepresentatives = 8;
+}

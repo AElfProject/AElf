@@ -266,11 +266,25 @@ __pycache__/
 
 .vs/
 slnx.sqlite
-/AElf.Kernel/MerkleTree.cs
-/AElf.Kernel/MerkleNode.cs
 
 # Generated Protobuf classes
 *.g.cs
-*plugin
+*.c.cs
+grpc_csharp_plugin
 *Grpc.cs
-ChainInfo.json
+**/Generated/*.cs
+
+launchSettings.json
+
+yarn.lock
+
+results/coverage.json
+results/coverage.opencover.xml
+
+aelf.js
+
+scripts/contract_csharp_plugin
+scripts/contract_csharp_plugin.exe
+
+**/BenchmarkDotNet.Artifacts/*
+

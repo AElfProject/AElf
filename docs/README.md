@@ -1,5 +1,3 @@
-# All technical, design and general documentation for the Ælf project #
+# AElf documentation
 
-[Work in progress]
-
-[Technical documentation](Technical/main-page.md)
+You will find here the markdown for AElf's documentation.

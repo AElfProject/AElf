@@ -1,8 +1,0 @@
-{
-    "profiles": {
-        "AElf.Launcher": {
-            "commandName": "Project",
-            "commandLineArgs": "--chain.new true --mine.enable true --dpos.generator true --node.port 6800 --node.account 0x04e4bb019b3d8eb89c12a32ede9f82c77c24 --db.type InMemory --db.host 127.0.0.1 --db.port 6379 --rpc.port 1234"
-        }
-    }
-}

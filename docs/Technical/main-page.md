@@ -4,9 +4,31 @@ As the whitepaper already states the AElf kernel will be built in a similar way 
 
 ## Table of Contents
 
+* [Basic Codes](#basic-codes)
 * [Data Structures](#1data-structures)
 * [Components](#2components)
 * [AElf Topology](#3aelf-topology)
+
+## Basic Codes
+
+**Types**: define basic types, such as block, transaction, etc.
+
+**Managers**: logic for process single type or aggressive of types. It should be stateless and transient.
+
+**Contexts**: can contain managers, are stateful. singleton or scoped.
+
+**Services**: logic for process a work. Managers are for types, but Services are for a request. when you received a request, you need to do it in a way with some contexts and managers. and also a service can publish some events.
+
+**Events**: events are defined in the project of service interfaces. and we should describe how a event will be triggered in the comment of a method in the interface.
+
+**EventHandlers**: to subscribe a event and process it.they can use services and context. transient and stateless.
+
+| Component | stateless | lifetime  | creation  |
+| --------- | --------- | --------- | --------- |
+| Types     |           | transient | container |
+| Managers  | B2        | transient | container |
+| Contexts  | B3        | scoped    | new       |
+
 
 ## Data Structures
 
@@ -21,7 +43,8 @@ Composed of a Header and a Body. This structure is used as a container for trans
 ### **Transaction**
 
 Represents a transaction in the AElf system. It is used to:
-* Transfer tokens 
+
+* Transfer tokens
 * Call a smart contract method
 * Deploy a smart contract
 
@@ -42,7 +65,7 @@ To learn more about how we organize serialization please check out [this page](s
 
 This section describes the components implemented in the kernel. It clarifies the roles that they have in the system.
 
-## **Smart Contracts**
+### **Smart Contracts**
 
   A `Smart Contract` can be seen as a protocol. It’s implemented as a service (micro-service). 
   For example, this means that since the **Consensus Protocol** is defined as a `Smart Contract`, it is in fact a service. 
@@ -72,6 +95,7 @@ This section describes the components implemented in the kernel. It clarifies th
 - `SmartContractService` provides functionality for obtaining `SmartContract`
 
 ### **Manager**
+
 - `BlockManager` provides entries(get/set) for `BlockStore`
 - `ChainManager` provides functionality of appending the given Block to specified Chain and entries for `ChainBlockRelationStrore`
 - `ChainManager` provides entries(get/set）for `ChainStore`
@@ -81,14 +105,15 @@ This section describes the components implemented in the kernel. It clarifies th
 - `WorldStateManager` provides entry for `WoldStateStore` and functionality to obtain `AccountDataProvider` objects associated with given `Account`
 
 ### **Storage**
-| Storage | Description |
-| --- | --- |
-| `BlockStore` | Insert and get `BLock` |
-| `ChainStore` | Insert, update and get `Chain` |
-| `ChangesStore` | Insert and get a change of `path-pointer` |
-| `PointerStore` | Insert and get `pointer` (by path) |
-| `TransactionStore` | Insert and get `Transaction` |
-| `WorldStateStore` | Insert and get `World State` of each `Block` |
+
+| Storage                   | Description                                      |
+| ------------------------- | ------------------------------------------------ |
+| `BlockStore`              | Insert and get `BLock`                           |
+| `ChainStore`              | Insert, update and get `Chain`                   |
+| `ChangesStore`            | Insert and get a change of `path-pointer`        |
+| `PointerStore`            | Insert and get `pointer` (by path)               |
+| `TransactionStore`        | Insert and get `Transaction`                     |
+| `WorldStateStore`         | Insert and get `World State` of each `Block`     |
 | `ChainBlockRelationStore` | Insert and get `chain-block` relations by `Hash` |
 
  

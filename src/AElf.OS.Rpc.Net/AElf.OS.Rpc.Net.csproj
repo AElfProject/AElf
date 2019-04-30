@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>AElf.OS.Rpc.Net</PackageId>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+    <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+    <ProjectReference Include="..\AElf.OS.Rpc.Core\AElf.OS.Rpc.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Anemonis.AspNetCore.JsonRpc" Version="1.14.1" />
+    <PackageReference Include="Anemonis.JsonRpc.ServiceClient" Version="1.11.0" />
+  </ItemGroup>
+</Project>
