@@ -102,6 +102,11 @@ eAkW/Qv4MEnbgaq97yC2lPkyrd19N2fh5oBT
                     );
                 return mockService.Object;
             });
+            services.AddTransient(o =>
+            {
+                var mockService = new Mock<INewChainRegistrationService>();
+                return mockService.Object;
+            });
         }
     }
 }
