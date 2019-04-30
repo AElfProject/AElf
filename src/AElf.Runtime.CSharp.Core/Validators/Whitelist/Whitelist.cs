@@ -45,10 +45,7 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
             }
             
             // Validate types in the module
-            foreach (var typeDef in module.Types)
-            {
-                results.AddRange(Validate(typeDef));
-            }
+            results.AddRange(module.Types.SelectMany(Validate));
 
             return results;
         }
