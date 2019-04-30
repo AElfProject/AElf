@@ -1,42 +1,37 @@
 using System;
 using AElf.Sdk.CSharp;
-using System.Collections.Generic;
 using System.Reflection;
 using AElf.CSharp.Core;
 using AElf.Runtime.CSharp.Validators;
 using Mono.Cecil;
 
 using AElf.Runtime.CSharp.Validators.Method;
-using AElf.Runtime.CSharp.Validators.Module;
 using AElf.Runtime.CSharp.Validators.Whitelist;
 
 
 namespace AElf.Runtime.CSharp.Policies
 {
     public class DefaultPolicy : AbstractPolicy
-    {
-        private static readonly HashSet<Assembly> AllowedAssemblies = new HashSet<Assembly> {
-            Assembly.Load("netstandard"),
-            Assembly.Load("Google.Protobuf"),
-            
-            // AElf dependencies
-            typeof(CSharpSmartContract).Assembly, // AElf.Sdk.CSharp
-            typeof(Address).Assembly,             // AElf.Types
-            typeof(IMethod).Assembly,             // AElf.CSharp.Core
-        };
-        
+    {        
         public DefaultPolicy()
         {
             Whitelist = new Whitelist()
+                // Allowed assemblies
+                .Assembly(Assembly.Load("netstandard"), Trust.Partial)
+                .Assembly(Assembly.Load("Google.Protobuf"), Trust.Full)
+                .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
+                .Assembly(typeof(Address).Assembly, Trust.Full)             // AElf.Types
+                .Assembly(typeof(IMethod).Assembly, Trust.Full)             // AElf.CSharp.Core
+                    
                 // Allowed namespaces
-                .Namespace("Aelf", Permission.Allowed) // For protobuf generated code
-                .Namespace("AElf", Permission.Allowed)
-                .Namespace("AElf.CrossChain.*", Permission.Allowed)
-                .Namespace("AElf.Sdk.*", Permission.Allowed)
-                .Namespace("AElf.CSharp.Core", Permission.Allowed)
-                .Namespace("AElf.Kernel", Permission.Allowed)        // Remove later
-                .Namespace("AElf.Kernel.Types", Permission.Allowed)  // Remove later
-                .Namespace("Google.Protobuf.*", Permission.Allowed)
+                //.Namespace("Aelf", Permission.Allowed) // For protobuf generated code
+                //.Namespace("AElf", Permission.Allowed)
+                //.Namespace("AElf.CrossChain.*", Permission.Allowed)
+                //.Namespace("AElf.Sdk.*", Permission.Allowed)
+                //.Namespace("AElf.CSharp.Core", Permission.Allowed)
+                //.Namespace("AElf.Kernel", Permission.Allowed)        // Remove later
+                //.Namespace("AElf.Kernel.Types", Permission.Allowed)  // Remove later
+                //.Namespace("Google.Protobuf.*", Permission.Allowed)
                 .Namespace("System.Collections.Generic", Permission.Allowed)
             
                 // Selectively allowed types and members
@@ -74,11 +69,6 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(nameof(AssemblyInformationalVersionAttribute), Permission.Allowed)
                     .Type(nameof(AssemblyProductAttribute), Permission.Allowed)
                     .Type(nameof(AssemblyTitleAttribute), Permission.Allowed));
-            
-            ModuleValidators.AddRange(new IValidator<ModuleDefinition>[]
-            {
-                new AssemblyRefValidator(AllowedAssemblies), 
-            });
             
             MethodValidators.AddRange(new IValidator<MethodDefinition>[]{
                 new FloatValidator(),

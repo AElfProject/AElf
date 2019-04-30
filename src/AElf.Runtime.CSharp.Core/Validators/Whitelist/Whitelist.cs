@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -8,10 +9,18 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
 {
     public class Whitelist
     {
+        private readonly IDictionary<string, Trust> _assemblies = new Dictionary<string, Trust>();
         private readonly IDictionary<string, NamespaceRule> _namespaces = new Dictionary<string, NamespaceRule>();
 
         public IReadOnlyDictionary<string, NamespaceRule> NameSpaces =>
             (IReadOnlyDictionary<string, NamespaceRule>) _namespaces;
+
+        public Whitelist Assembly(Assembly assembly, Trust trustLevel)
+        {
+            _assemblies.Add(assembly.FullName, trustLevel);
+
+            return this;
+        }
 
         public Whitelist Namespace(string name, Permission permission,
             Action<NamespaceRule> namespaceRules = null)
@@ -28,7 +37,14 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
         public IEnumerable<ValidationResult> Validate(ModuleDefinition module)
         {
             var results = new List<ValidationResult>();
-
+            // Validate assembly references
+            foreach (var asmRef in module.AssemblyReferences)
+            {
+                if (!_assemblies.Keys.Contains(asmRef.FullName))
+                    results.Add(new WhitelistValidationResult("Assembly " + asmRef.FullName + " is not allowed."));
+            }
+            
+            // Validate types in the module
             foreach (var typeDef in module.Types)
             {
                 results.AddRange(Validate(typeDef));
@@ -89,7 +105,13 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
         {
             var results = new List<ValidationResult>();
 
+            // If the type is a generic parameter, stop going deeper
             if (type.IsGenericParameter)
+                return results;
+            
+            // If referred type is from a fully trusted assembly, stop going deeper
+            if (_assemblies.Any(asm => asm.Key == type.Resolve().Module.Assembly.FullName && 
+                                       asm.Value == Trust.Full))
                 return results;
 
             // Dig deeper by calling ValidateReference until reaching base type
