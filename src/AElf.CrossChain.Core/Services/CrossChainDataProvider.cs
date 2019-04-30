@@ -159,7 +159,7 @@ namespace AElf.CrossChain
             var i = 0;
 
             var targetHeight =(await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetParentChainHeight
-                    .CallAsync(new Empty())).Value;
+                    .CallAsync(new Empty())).Value + 1;
             var res = true;
             while (i < length)
             {
