@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Google.Protobuf;
@@ -88,16 +89,16 @@ namespace AElf.Contracts.Election
 
             foreach (var votedFullNodeKeyPair in FullNodesKeyPairs.Take(InitialMinersCount - 1))
             {
-                var votes = await ElectionContractStub.GetVotesInformation.CallAsync(new StringInput
+                var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringInput
                     {Value = votedFullNodeKeyPair.PublicKey.ToHex()});
-                votes.ValidObtainedVotesAmount.ShouldBe(amount);
+                votes.ObtainedActiveVotedVotesAmount.ShouldBe(amount);
             }
 
             foreach (var votedFullNodeKeyPair in FullNodesKeyPairs.Skip(InitialMinersCount - 1))
             {
-                var votes = await ElectionContractStub.GetVotesInformation.CallAsync(new StringInput
+                var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringInput
                     {Value = votedFullNodeKeyPair.PublicKey.ToHex()});
-                votes.ValidObtainedVotesAmount.ShouldBe(0);
+                votes.ObtainedActiveVotedVotesAmount.ShouldBe(0);
             }
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
@@ -143,13 +144,16 @@ namespace AElf.Contracts.Election
 
             FullNodesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 
+            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {Owner = ElectionContractAddress, Symbol = "VOTE"});
+
             var moreVotesCandidates = FullNodesKeyPairs.Take(InitialMinersCount).ToList();
             moreVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100, 100));
+                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100, 2));
 
             var lessVotesCandidates = FullNodesKeyPairs.Skip(InitialMinersCount).Take(InitialMinersCount).ToList();
             lessVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100, 99));
+                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100, 1));
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
                 .Select(p => p.ToHex()).ToList();

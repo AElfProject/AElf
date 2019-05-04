@@ -2,6 +2,7 @@
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Vote;
 
@@ -43,9 +44,9 @@ namespace AElf.Contracts.Vote
 
             InitializeDependentContracts();
 
-            var votingItemHash = input.GetHash(Context.Sender);
+            var votingItemId = input.GetHash(Context.Sender);
 
-            Assert(State.VotingItems[votingItemHash] == null, "Voting event already exists.");
+            Assert(State.VotingItems[votingItemId] == null, "Voting item already exists.");
             var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
                 Symbol = input.AcceptedCurrency,
@@ -57,13 +58,15 @@ namespace AElf.Contracts.Vote
             var votingItem = new VotingItem
             {
                 Sponsor = Context.Sender,
-                VotingItemId = votingItemHash,
+                VotingItemId = votingItemId,
                 AcceptedCurrency = input.AcceptedCurrency,
                 IsLockToken = input.IsLockToken,
                 TotalSnapshotNumber = input.TotalSnapshotNumber,
                 CurrentSnapshotNumber = 1,
-                CurrentSnapshotStartTimestamp = Context.CurrentBlockTime.ToTimestamp(),
+                CurrentSnapshotStartTimestamp = input.StartTimestamp,
                 StartTimestamp = input.StartTimestamp,
+                EndTimestamp = input.EndTimestamp,
+                RegisterTimestamp = Context.CurrentBlockTime.ToTimestamp()
             };
             votingItem.Options.AddRange(input.Options);
             if (Context.CurrentHeight > 1)
@@ -71,17 +74,13 @@ namespace AElf.Contracts.Vote
                 votingItem.RegisterTimestamp = Context.CurrentBlockTime.ToTimestamp();
             }
 
-            State.VotingItems[votingItemHash] = votingItem;
+            State.VotingItems[votingItemId] = votingItem;
 
             // Initialize first voting going information of registered voting event.
-            var votingResultHash = Hash.FromMessage(new GetVotingResultInput
-            {
-                VotingItemId = votingItemHash,
-                SnapshotNumber = 1
-            });
+            var votingResultHash = GetVotingResultHash(votingItemId, 1);
             State.VotingResults[votingResultHash] = new VotingResult
             {
-                VotingItemId = votingItemHash,
+                VotingItemId = votingItemId,
                 SnapshotNumber = 1,
                 SnapshotStartTimestamp = input.StartTimestamp
             };
@@ -100,7 +99,7 @@ namespace AElf.Contracts.Vote
             }
             Assert(votingItem.Options.Contains(input.Option), $"Option {input.Option} not found.");
             Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber, "Current voting item already ended.");
-            if (votingItem.IsLockToken)
+            if (!votingItem.IsLockToken)
             {
                 Assert(votingItem.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
                 Assert(input.Voter != null, "Voter cannot be null if voting event is delegated.");
@@ -108,6 +107,7 @@ namespace AElf.Contracts.Vote
             }
             else
             {
+                input.Voter = Context.Sender;
                 input.VoteId = Context.TransactionId;
             }
 
@@ -123,22 +123,30 @@ namespace AElf.Contracts.Vote
             };
 
             // Update VotingResult based on this voting behaviour.
-            var votingResultHash = Hash.FromMessage(new GetVotingResultInput
-            {
-                VotingItemId = input.VotingItemId,
-                SnapshotNumber = votingItem.CurrentSnapshotNumber
-            });
+            var votingResultHash = GetVotingResultHash(input.VotingItemId, votingItem.CurrentSnapshotNumber);
             var votingResult = State.VotingResults[votingResultHash];
             if (!votingResult.Results.ContainsKey(input.Option))
             {
                 votingResult.Results.Add(input.Option, 0);
             }
             var currentVotes = votingResult.Results[input.Option];
-            votingResult.Results[input.Option] = currentVotes + input.Amount;
+            votingResult.Results[input.Option] = currentVotes.Add(input.Amount);
+            votingResult.VotersCount = votingResult.VotersCount.Add(1);
 
-            // Update voting history
+            // Update voted items information.
             var votedItems = State.VotedItemsMap[votingRecord.Voter] ?? new VotedItems();
-            votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].ActiveVotes.Add(input.VoteId);
+            if (votedItems.VotedItemVoteIds.ContainsKey(votingItem.VotingItemId.ToHex()))
+            {
+                votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].ActiveVotes.Add(input.VoteId);
+            }
+            else
+            {
+                votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()] =
+                    new VotedIds
+                    {
+                        ActiveVotes = {input.VoteId}
+                    };
+            }
 
             State.VotingRecords[input.VoteId] = votingRecord;
 
@@ -146,7 +154,7 @@ namespace AElf.Contracts.Vote
 
             State.VotedItemsMap[votingRecord.Voter] = votedItems;
 
-            if (!votingItem.IsLockToken)
+            if (votingItem.IsLockToken)
             {
                 // Lock voted token.
                 State.TokenContract.Lock.Send(new LockInput
@@ -182,11 +190,7 @@ namespace AElf.Contracts.Vote
             votingRecord.WithdrawTimestamp = Context.CurrentBlockTime.ToTimestamp();
             State.VotingRecords[input.VoteId] = votingRecord;
 
-            var votingResultHash = new VotingResult
-            {
-                VotingItemId = votingRecord.VotingItemId,
-                SnapshotNumber = votingRecord.SnapshotNumber
-            }.GetHash();
+            var votingResultHash = GetVotingResultHash(votingRecord.VotingItemId, votingRecord.SnapshotNumber);
             
             var votedItems = State.VotedItemsMap[votingRecord.Voter];
             votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].ActiveVotes.Remove(input.VoteId);
@@ -230,11 +234,7 @@ namespace AElf.Contracts.Vote
                 "Current voting item already ended.");
 
             // Update previous voting going information.
-            var previousVotingResultHash = new VotingResult
-            {
-                VotingItemId = input.VotingItemId,
-                SnapshotNumber = votingItem.CurrentSnapshotNumber
-            }.GetHash();
+            var previousVotingResultHash = GetVotingResultHash(input.VotingItemId, votingItem.CurrentSnapshotNumber);
             var previousVotingResult = State.VotingResults[previousVotingResultHash];
             previousVotingResult.SnapshotEndTimestamp = Context.CurrentBlockTime.ToTimestamp();
             State.VotingResults[previousVotingResultHash] = previousVotingResult;
@@ -245,11 +245,7 @@ namespace AElf.Contracts.Vote
             State.VotingItems[votingItem.VotingItemId] = votingItem;
 
             // Initial next voting going information.
-            var currentVotingGoingHash = new VotingResult
-            {
-                VotingItemId = input.VotingItemId,
-                SnapshotNumber = input.SnapshotNumber
-            }.GetHash();
+            var currentVotingGoingHash = GetVotingResultHash(input.VotingItemId, input.SnapshotNumber);
             State.VotingResults[currentVotingGoingHash] = new VotingResult
             {
                 VotingItemId = input.VotingItemId,
@@ -324,6 +320,15 @@ namespace AElf.Contracts.Vote
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }
+        }
+
+        private Hash GetVotingResultHash(Hash votingItemId, long snapshotNumber)
+        {
+            return new VotingResult
+            {
+                VotingItemId = votingItemId,
+                SnapshotNumber = snapshotNumber
+            }.GetHash();
         }
     }
 }

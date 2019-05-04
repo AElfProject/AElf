@@ -281,7 +281,7 @@ namespace AElf.Contracts.Election
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {
                     Symbol = ElectionContractTestConstants.NativeTokenSymbol,
-                    Amount = ElectionContractConstants.LockTokenForElection / 2,
+                    Amount = ElectionContractConstants.LockTokenForElection - 1,
                     To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                     Memo = "Initial balance for voters."
                 });
@@ -303,7 +303,9 @@ namespace AElf.Contracts.Election
                     VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
                     ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    AelfConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
+                    AelfConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                    MaximumLockTime = 1080,
+                    MinimumLockTime = 90
                 });
 
             return electionMethodCallList;

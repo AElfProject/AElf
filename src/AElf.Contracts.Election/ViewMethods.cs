@@ -98,14 +98,19 @@ namespace AElf.Contracts.Election
 
         public override ElectorVote GetElectorVote(StringInput input)
         {
-            return State.ElectorVotes[input.Value] ?? new ElectorVote();
-
+            return State.ElectorVotes[input.Value] ?? new ElectorVote
+            {
+                PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Value))
+            };
         }
 
         public override ElectorVote GetElectorVoteWithRecords(StringInput input)
         {
             var votes = State.ElectorVotes[input.Value];
-            if (votes == null) return new ElectorVote();
+            if (votes == null) return new ElectorVote
+            {
+                PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Value))
+            };
 
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
@@ -118,23 +123,17 @@ namespace AElf.Contracts.Election
                 votes.ActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
 
-            var obtainedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
-            {
-                Ids = {votes.ActiveVotingRecordIds}
-            }).Records;
-            index = 0;
-            foreach (var record in obtainedRecords)
-            {
-                var voteId = votes.ActiveVotingRecordIds[index++];
-                votes.ActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
-            }
-
             return votes;
         }
 
         public override ElectorVote GetElectorVoteWithAllRecords(StringInput input)
         {
             var votes = GetElectorVoteWithRecords(input);
+
+            if (!votes.WithdrawnVotesRecords.Any())
+            {
+                return votes;
+            }
 
             var votedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
@@ -147,15 +146,58 @@ namespace AElf.Contracts.Election
                 votes.WithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
 
+            return votes;
+        }
+        
+        public override CandidateVote GetCandidateVote(StringInput input)
+        {
+            return State.CandidateVotes[input.Value] ?? new CandidateVote
+            {
+                PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Value))
+            };
+        }
+
+        public override CandidateVote GetCandidateVoteWithRecords(StringInput input)
+        {
+            var votes = State.CandidateVotes[input.Value];
+            if (votes == null)
+                return new CandidateVote
+                {
+                    PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Value))
+                };
+
+            var obtainedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
+            {
+                Ids = {votes.ObtainedActiveVotingRecordIds}
+            }).Records;
+            var index = 0;
+            foreach (var record in obtainedRecords)
+            {
+                var voteId = votes.ObtainedActiveVotingRecordIds[index++];
+                votes.ObtainedWithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
+            }
+
+            return votes;
+        }
+
+        public override CandidateVote GetCandidateVoteWithAllRecords(StringInput input)
+        {
+            var votes = GetCandidateVoteWithRecords(input);
+
+            if (!votes.ObtainedWithdrawnVotesRecords.Any())
+            {
+                return votes;
+            }
+
             var obtainedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
-                Ids = {votes.WithdrawnVotingRecordIds}
+                Ids = {votes.ObtainedWithdrawnVotingRecordIds}
             }).Records;
-            index = 0;
+            var index = 0;
             foreach (var record in obtainedWithdrawnRecords)
             {
-                var voteId = votes.WithdrawnVotingRecordIds[index++];
-                votes.WithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
+                var voteId = votes.ObtainedWithdrawnVotingRecordIds[index++];
+                votes.ObtainedWithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
 
             return votes;

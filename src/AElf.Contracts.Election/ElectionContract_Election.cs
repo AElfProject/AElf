@@ -22,6 +22,7 @@ namespace AElf.Contracts.Election
             State.MinimumLockTime.Value = input.MinimumLockTime;
             State.MaximumLockTime.Value = input.MaximumLockTime;
             State.Initialized.Value = true;
+            State.BlackList.Value = new PublicKeysList();
             return new Empty();
         }
 
@@ -79,7 +80,7 @@ namespace AElf.Contracts.Election
 
             var votingRegisterInput = new VotingRegisterInput
             {
-                IsLockToken = true,
+                IsLockToken = false,
                 AcceptedCurrency = Context.Variables.NativeSymbol,
                 TotalSnapshotNumber = long.MaxValue,
                 StartTimestamp = DateTime.MinValue.ToUniversalTime().ToTimestamp(),

@@ -7,7 +7,9 @@ namespace AElf.Contracts.Vote
     {
         public static Hash GetHash(this VotingRegisterInput votingItemInput, Address sponsorAddress)
         {
-            return Hash.FromTwoHashes(Hash.FromMessage(votingItemInput), Hash.FromMessage(sponsorAddress));
+            var input = votingItemInput.Clone();
+            input.Options.Clear();
+            return Hash.FromTwoHashes(Hash.FromMessage(input), Hash.FromMessage(sponsorAddress));
         }
 
         public static Hash GetHash(this VotingResult votingResult)

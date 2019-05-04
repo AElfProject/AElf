@@ -8,7 +8,7 @@ namespace AElf.Contracts.Election
     public partial class ElectionContractTests : ElectionContractTestBase
     {
         [Fact]
-        public async Task ElectionContract_GetCandidateHistory()
+        public async Task ElectionContract_GetCandidateInformation()
         {
             const int roundCount = 5;
 
@@ -20,12 +20,12 @@ namespace AElf.Contracts.Election
 
             await ProduceBlocks(minerKeyPair, roundCount, true);
 
-            var history = await ElectionContractStub.GetCandidateHistory.CallAsync(new StringInput
+            var information = await ElectionContractStub.GetCandidateInformation.CallAsync(new StringInput
             {
                 Value = minerKeyPair.PublicKey.ToHex()
             });
 
-            history.PublicKey.ShouldBe(minerKeyPair.PublicKey.ToHex());
+            information.PublicKey.ShouldBe(minerKeyPair.PublicKey.ToHex());
         }
     }
 }
