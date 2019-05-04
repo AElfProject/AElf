@@ -257,7 +257,11 @@ namespace AElf.Contracts.Vote
 
         public override VotingResult GetVotingResult(GetVotingResultInput input)
         {
-            var votingResultHash = Hash.FromMessage(input);
+            var votingResultHash = new VotingResult
+            {
+                VotingItemId = input.VotingItemId,
+                SnapshotNumber = input.SnapshotNumber
+            }.GetHash();
             return State.VotingResults[votingResultHash];
         }
 

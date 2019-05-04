@@ -117,7 +117,7 @@ namespace AElf.Contracts.Vote
         public async Task VoteContract_GetVotingResult()
         {
             var voteUser = SampleECKeyPairs.KeyPairs[2];
-            var votingItemId = await RegisterVotingItem(10, 3, false, DefaultSender, 2);
+            var votingItemId = await RegisterVotingItem(10, 3, true, DefaultSender, 2);
             await UserVote(voteUser, votingItemId, _options[1], 1000L);
 
             var votingResult = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput

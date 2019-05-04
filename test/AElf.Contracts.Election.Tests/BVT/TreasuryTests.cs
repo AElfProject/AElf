@@ -64,10 +64,10 @@ namespace AElf.Contracts.Election
 
             // Check Treasury situation.
             var profitItems = new Dictionary<ProfitType, ProfitItem>();
-            foreach (var profitId in ProfitItemsIds)
+            foreach (var (profitType, profitId) in ProfitItemsIds)
             {
-                var profitItem = await ProfitContractStub.GetProfitItem.CallAsync(profitId.Value);
-                profitItems.Add(profitId.Key, profitItem);
+                var profitItem = await ProfitContractStub.GetProfitItem.CallAsync(profitId);
+                profitItems.Add(profitType, profitItem);
             }
 
             profitItems.Values.ShouldAllBe(i => i.CurrentPeriod == 2);

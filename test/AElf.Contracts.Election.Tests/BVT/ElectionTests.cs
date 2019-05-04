@@ -35,7 +35,7 @@ namespace AElf.Contracts.Election
             electionVotingItem.Sponsor.ShouldBe(ElectionContractAddress);
             electionVotingItem.TotalSnapshotNumber.ShouldBe(long.MaxValue);
             electionVotingItem.CurrentSnapshotNumber.ShouldBe(1);
-            electionVotingItem.IsLockToken.ShouldBe(true);
+            electionVotingItem.IsLockToken.ShouldBe(false);
             electionVotingItem.EndTimestamp.ShouldBe(DateTime.MaxValue.ToUniversalTime().ToTimestamp());
             electionVotingItem.AcceptedCurrency.ShouldBe(ElectionContractTestConstants.NativeTokenSymbol);
         }
@@ -166,9 +166,9 @@ namespace AElf.Contracts.Election
                     Value = voterKeyPair.PublicKey.ToHex()
                 });
                 voterVotes.PublicKey.ShouldBe(ByteString.CopyFrom(voterKeyPair.PublicKey));
-                voterVotes.ActiveVotingRecords.Count.ShouldBe(candidatesKeyPairs.Count);
                 voterVotes.AllVotedVotesAmount.ShouldBe(actualVotedAmount);
                 voterVotes.ActiveVotedVotesAmount.ShouldBe(actualVotedAmount);
+                voterVotes.ActiveVotingRecords.Count.ShouldBe(0);// Not filled.
 
                 var voterVotesWithRecords = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(
                     new StringInput
@@ -182,7 +182,8 @@ namespace AElf.Contracts.Election
                     {
                         Value = voterKeyPair.PublicKey.ToHex()
                     });
-                voterVotesWithAllRecords.ActiveVotingRecords.Count.ShouldBe(candidatesKeyPairs.Count);
+                // TODO: Withdraw votes and test this.
+                voterVotesWithAllRecords.WithdrawnVotesRecords.Count.ShouldBe(0);
             }
 
             // Check candidate's Votes information.
@@ -192,9 +193,9 @@ namespace AElf.Contracts.Election
                     Value = candidateKeyPair.PublicKey.ToHex()
                 });
                 candidateVotes.PublicKey.ShouldBe(ByteString.CopyFrom(candidateKeyPair.PublicKey));
-                candidateVotes.ObtainedWithdrawnVotesRecords.Count.ShouldBe(votersCount);
                 candidateVotes.AllObtainedVotedVotesAmount.ShouldBe(amount * 2);
                 candidateVotes.ObtainedActiveVotedVotesAmount.ShouldBe(amount * 2);
+                candidateVotes.ObtainedWithdrawnVotesRecords.Count.ShouldBe(0);// Not filled.
 
                 var candidateVotesWithRecords = await ElectionContractStub.GetCandidateVoteWithRecords.CallAsync(
                     new StringInput
@@ -208,7 +209,7 @@ namespace AElf.Contracts.Election
                     {
                         Value = candidateKeyPair.PublicKey.ToHex()
                     });
-                voterVotesWithAllRecords.ObtainedActiveVotingRecords.Count.ShouldBe(votersCount);
+                voterVotesWithAllRecords.ObtainedWithdrawnVotesRecords.Count.ShouldBe(0);
             }
 
             // Check voter's profit detail.

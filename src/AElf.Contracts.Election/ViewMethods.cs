@@ -174,7 +174,7 @@ namespace AElf.Contracts.Election
             foreach (var record in obtainedRecords)
             {
                 var voteId = votes.ObtainedActiveVotingRecordIds[index++];
-                votes.ObtainedWithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
+                votes.ObtainedActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
 
             return votes;
