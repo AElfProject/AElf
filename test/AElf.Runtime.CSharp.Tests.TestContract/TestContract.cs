@@ -135,7 +135,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
             var tradeMessage = State.Complex4Info[input.From][input.PairA][input.To][input.PairB];
             if (tradeMessage == null)
             {
-                input.TradeDetails.Timestamp = Context.CurrentBlockTime.ToTimestamp();
+                input.TradeDetails.Timestamp = TimeZoneInfo.ConvertTimeToUtc(Context.CurrentBlockTime).ToTimestamp();
                 State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = input.TradeDetails;
 
                 return input.TradeDetails;
@@ -144,7 +144,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
             {
                 tradeMessage.FromAmount += input.TradeDetails.FromAmount;
                 tradeMessage.ToAmount += input.TradeDetails.ToAmount;
-                tradeMessage.Timestamp = Context.CurrentBlockTime.ToTimestamp();
+                tradeMessage.Timestamp = TimeZoneInfo.ConvertTimeToUtc(Context.CurrentBlockTime).ToTimestamp();
 
                 State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = tradeMessage;
 
