@@ -85,5 +85,7 @@ namespace AElf.Contracts.Election
                 transactionResult.Error.ShouldContain("lock time");
             }
         }
+        
+        
     }
 }

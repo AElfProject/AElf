@@ -1,6 +1,6 @@
-namespace AElf.Contracts.Vote.Full
+namespace AElf.Contracts.Vote
 {
-    public class VoteForBestLanguageTests
+    public partial class VoteTests : VoteContractTestBase
     {
         
     }

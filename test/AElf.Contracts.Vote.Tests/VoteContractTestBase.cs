@@ -28,6 +28,8 @@ namespace AElf.Contracts.Vote
 
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
 
+        protected const string TestTokenSymbol = "TELF";
+
         protected void InitializeContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
@@ -86,15 +88,15 @@ namespace AElf.Contracts.Vote
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
-            const string symbol = "ELF";
-            const long totalSupply = 100_000_000;
+            const long totalSupply = 1_000_000_000;
+            
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
-                Symbol = symbol,
+                Symbol = TestTokenSymbol,
                 Decimals = 2,
                 IsBurnable = true,
-                TokenName = "elf token",
+                TokenName = "elf token for testing",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
                 LockWhiteSystemContractNameList =
@@ -106,7 +108,7 @@ namespace AElf.Contracts.Vote
             //issue default user
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
-                Symbol = symbol,
+                Symbol = TestTokenSymbol,
                 Amount = totalSupply - 20 * 100_000L,
                 To = DefaultSender,
                 Memo = "Issue token to default user for vote.",
@@ -117,7 +119,7 @@ namespace AElf.Contracts.Vote
             {
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {
-                    Symbol = symbol,
+                    Symbol = TestTokenSymbol,
                     Amount = 100_000L,
                     To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                     Memo = "set voters few amount for voting."

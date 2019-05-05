@@ -14,11 +14,6 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContractTests : ElectionContractTestBase
     {
-        public ElectionContractTests()
-        {
-            InitializeContracts();
-        }
-
         [Fact]
         public async Task ElectionContract_RegisterElectionVotingEvent()
         {
@@ -256,7 +251,7 @@ namespace AElf.Contracts.Election
 
             await NextTerm(InitialMinersKeyPairs[0]);
 
-            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddDays(lockTime));
+            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddDays(lockTime + 1));
 
             // Withdraw
             {
@@ -279,6 +274,27 @@ namespace AElf.Contracts.Election
                 var balance = await GetVoteTokenBalance(voterKeyPair.PublicKey);
                 balance.ShouldBe(0);
             }
+        }
+        
+        [Fact]
+        public async Task ElectionContract_GetCandidateInformation()
+        {
+            const int roundCount = 5;
+
+            var minerKeyPair = FullNodesKeyPairs[0];
+
+            await ElectionContract_GetVictories_ValidCandidatesEnough();
+
+            await NextTerm(BootMinerKeyPair);
+
+            await ProduceBlocks(minerKeyPair, roundCount, true);
+
+            var information = await ElectionContractStub.GetCandidateInformation.CallAsync(new StringInput
+            {
+                Value = minerKeyPair.PublicKey.ToHex()
+            });
+
+            information.PublicKey.ShouldBe(minerKeyPair.PublicKey.ToHex());
         }
     }
 }

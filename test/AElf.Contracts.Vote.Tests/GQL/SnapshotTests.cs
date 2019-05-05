@@ -1,6 +1,6 @@
-namespace AElf.Contracts.Vote.GQL
+namespace AElf.Contracts.Vote
 {
-    public class SnapshotTests
+    public partial class VoteTests : VoteContractTestBase
     {
         
     }

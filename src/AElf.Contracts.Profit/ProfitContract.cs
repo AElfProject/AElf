@@ -202,7 +202,7 @@ namespace AElf.Contracts.Profit
             }
 
             var expiryDetails = currentDetail.Details
-                .Where(d => d.EndPeriod < profitItem.CurrentPeriod && d.LastProfitPeriod == d.EndPeriod).ToList();
+                .Where(d => d.EndPeriod < profitItem.CurrentPeriod && d.LastProfitPeriod > d.EndPeriod).ToList();
 
             if (!expiryDetails.Any())
             {

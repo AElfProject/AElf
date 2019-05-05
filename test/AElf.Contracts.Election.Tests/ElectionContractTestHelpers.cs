@@ -11,6 +11,11 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContractTests : ElectionContractTestBase
     {
+        public ElectionContractTests()
+        {
+            InitializeContracts();
+        }
+
         [Fact]
         public async Task ElectionContract_NextTerm()
         {
@@ -70,9 +75,9 @@ namespace AElf.Contracts.Election
             }
         }
 
-        private async Task<TransactionResult> WithdrawVotes(ECKeyPair userKeyPair, Hash voteId)
+        private async Task<TransactionResult> WithdrawVotes(ECKeyPair keyPair, Hash voteId)
         {
-            var electionStub = GetElectionContractTester(userKeyPair);
+            var electionStub = GetElectionContractTester(keyPair);
             return (await electionStub.Withdraw.SendAsync(voteId)).TransactionResult;
         }
 

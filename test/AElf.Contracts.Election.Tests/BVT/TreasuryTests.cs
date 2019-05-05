@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using Shouldly;
 using Xunit;
 
@@ -62,7 +63,6 @@ namespace AElf.Contracts.Election
 
             await ProduceBlocks(BootMinerKeyPair, 10, true);
 
-            // Check Treasury situation.
             var profitItems = new Dictionary<ProfitType, ProfitItem>();
             foreach (var (profitType, profitId) in ProfitItemsIds)
             {
@@ -70,33 +70,34 @@ namespace AElf.Contracts.Election
                 profitItems.Add(profitType, profitItem);
             }
 
-            profitItems.Values.ShouldAllBe(i => i.CurrentPeriod == 2);
+            profitItems.Values.Where(i => i.VirtualAddress != profitItems[ProfitType.CitizenWelfare].VirtualAddress)
+                .ShouldAllBe(i => i.CurrentPeriod == 2);
 
             var releasedAmount =
                 ElectionContractConstants.VotesTotalSupply - profitItems[ProfitType.Treasury].TotalAmount;
             var actualMinersRewardAmount = profitItems[ProfitType.BasicMinerReward].TotalAmount +
                                            profitItems[ProfitType.VotesWeightReward].TotalAmount +
                                            profitItems[ProfitType.ReElectionReward].TotalAmount;
-            actualMinersRewardAmount.ShouldBe(releasedAmount * 6 / 10);
+            actualMinersRewardAmount.ShouldBe(releasedAmount.Mul(6).Div(10));
 
-            // Check released information of CitizenWelfare of period 1.
+            // Check released information of BackSubsidy of period 1.
             {
                 var releasedProfitInformation = await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(
                     new GetReleasedProfitsInformationInput
                     {
-                        ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                        ProfitId = ProfitItemsIds[ProfitType.BackSubsidy],
                         Period = 1
                     });
                 releasedProfitInformation.ProfitsAmount.ShouldBe(200);
                 releasedProfitInformation.IsReleased.ShouldBe(true);
             }
 
-            // Check released information of CitizenWelfare of period 2.
+            // Check released information of BackSubsidy of period 2.
             {
                 var releasedProfitInformation = await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(
                     new GetReleasedProfitsInformationInput
                     {
-                        ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                        ProfitId = ProfitItemsIds[ProfitType.BackSubsidy],
                         Period = 2
                     });
                 releasedProfitInformation.ProfitsAmount.ShouldBe(0);

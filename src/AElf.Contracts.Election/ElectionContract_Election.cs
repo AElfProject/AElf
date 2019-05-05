@@ -328,19 +328,14 @@ namespace AElf.Contracts.Election
             candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = candidateVotes;
 
-            var votingItem = State.VoteContract.GetVotingItem.Call(new GetVotingItemInput
-            {
-                VotingItemId = State.MinerElectionVotingItemId.Value
-            });
-
             State.TokenContract.Unlock.Send(new UnlockInput
             {
-                From = votingRecord.Voter,
-                Symbol = votingItem.AcceptedCurrency,
+                From = Context.Sender,
+                Symbol = Context.Variables.NativeSymbol,
                 Amount = votingRecord.Amount,
                 LockId = input,
-                To = votingItem.Sponsor,
-                Usage = $"Withdraw votes for {ElectionContractConstants.Topic}"
+                To = Context.Self,
+                Usage = "Withdraw votes for Main Chain Miner Election."
             });
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput
