@@ -30,12 +30,17 @@ namespace AElf.OS.Network.Grpc
         public long CurrentBlockHeight { get; private set; }
         public string PeerIpAddress { get; }
         public string PubKey { get; }
+        public int ProtocolVersion { get; set; }
+        public long ConnectionTime { get; set; }
+        public bool Inbound { get; set; }
+        public long StartHeight { get; set; }
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
 
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string pubKey, string peerIpAddress)
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string pubKey, string peerIpAddress,
+            int protocolVersion, long connectionTime, long startHeight, bool inbound = true)
         {
             _channel = channel;
             _client = client;
@@ -43,6 +48,14 @@ namespace AElf.OS.Network.Grpc
             PeerIpAddress = peerIpAddress;
 
             PubKey = pubKey;
+
+            ProtocolVersion = protocolVersion;
+
+            ConnectionTime = connectionTime;
+
+            Inbound = inbound;
+
+            StartHeight = startHeight;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
