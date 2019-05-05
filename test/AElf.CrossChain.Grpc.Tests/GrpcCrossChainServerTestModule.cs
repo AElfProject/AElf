@@ -14,15 +14,9 @@ namespace AElf.CrossChain.Grpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             base.ConfigureServices(context);
-            Configure<GrpcCrossChainConfigOption>(option =>
-            {
-                option.LocalClient = false;
-                option.LocalServer = true;
-            });
             Configure<CrossChainConfigOption>(option=>
             {
                 option.ParentChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
-                option.ExtraDataSymbols = new List<string>();
             });
 
             var services = context.Services;
@@ -55,10 +49,21 @@ namespace AElf.CrossChain.Grpc
 
             services.AddTransient(o =>
             {
-                var mockService = new Mock<IBlockExtraDataExtractor>();
+                var mockService = new Mock<ICrossChainExtraDataExtractor>();
                 mockService.Setup(m=>m.ExtractTransactionStatusMerkleTreeRoot(It.IsAny<BlockHeader>()))
                     .Returns(Hash.Generate);
                 return mockService.Object;
+            });
+
+            services.AddTransient(o =>
+            {
+                var mockCrossChainDataProvider = new Mock<ICrossChainDataProvider>();
+                mockCrossChainDataProvider
+                    .Setup(c => c.GetChainInitializationContextAsync(It.IsAny<int>(), It.IsAny<Hash>(), It.IsAny<long>())).Returns(Task.FromResult(new ChainInitializationContext
+                    {
+                        ParentChainHeightOfCreation = 1,
+                    }));
+                return mockCrossChainDataProvider.Object;
             });
             
             services.AddSingleton<CrossChainRpc.CrossChainRpcBase, CrossChainGrpcServerBase>();

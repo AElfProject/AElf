@@ -73,7 +73,7 @@ namespace AElf.CrossChain.Cache
             _multiChainBlockInfoCacheProvider.AddBlockInfoCache(chainId, blockInfoCache2);
             Assert.True(_multiChainBlockInfoCacheProvider.Size == 1);
             var actualBlockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
-            Assert.Equal(blockInfoCache2, actualBlockInfoCache);
+            Assert.Equal(blockInfoCache1, actualBlockInfoCache);
         }
     }
 }
