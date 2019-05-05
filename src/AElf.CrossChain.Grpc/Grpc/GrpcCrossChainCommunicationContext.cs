@@ -9,8 +9,8 @@ namespace AElf.CrossChain.Grpc
         public bool RemoteIsSideChain { get; set; }
         
         public int LocalListeningPort { get; set; }
-        public string CertificateFileName { get; set; }
-        
+        public int ConnectionTimeout { get; set; }
+
         public string ToUriStr()
         {
             return string.Join(":",TargetIp, TargetPort);

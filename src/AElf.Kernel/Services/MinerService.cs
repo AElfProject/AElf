@@ -83,14 +83,14 @@ namespace AElf.Kernel.Services
             long previousBlockHeight)
         {
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
-            var generatedTxns = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
+            var systemTransactions = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
                                     previousBlockHeight, previousBlockHash);
-            foreach (var txn in generatedTxns)
+            foreach (var transaction in systemTransactions)
             {
-                await SignAsync(txn);
+                await SignAsync(transaction);
             }
 
-            return generatedTxns;
+            return systemTransactions;
         }
 
         private async Task SignAsync(Transaction notSignerTransaction)
@@ -116,9 +116,9 @@ namespace AElf.Kernel.Services
 
         private async Task SignBlockAsync(Block block)
         {
+            block.Header.SignerPubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
             var signature = await _accountService.SignAsync(block.GetHash().DumpByteArray());
             block.Header.Signature = ByteString.CopyFrom(signature);
-            block.Header.SignerKey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
         }
 
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight,
@@ -136,13 +136,13 @@ namespace AElf.Kernel.Services
                     systemTransactions, pending, cts.Token);
             }
 
-            Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
-                                  $"previous: {block.Header.PreviousBlockHash}, " +
-                                  $"transactions: {block.Body.TransactionsCount}");
-
             await SignBlockAsync(block);
             // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
             //await _txHub.OnNewBlock(block);
+
+            Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
+                                  $"previous: {block.Header.PreviousBlockHash}, " +
+                                  $"transactions: {block.Body.TransactionsCount}");
 
             return block;
         }

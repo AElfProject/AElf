@@ -4,16 +4,17 @@ option csharp_namespace = "AElf.Kernel";
 
 import "google/protobuf/timestamp.proto";
 import "common.proto";
+import "core.proto";
 
-message Transaction {
-    Address From = 1;
-    Address To = 2;
-    int64 RefBlockNumber = 3;
-    bytes RefBlockPrefix = 4;
-    string MethodName = 5;
-    bytes Params = 6;
-    bytes Signature = 10000;
-}
+//message Transaction {
+//    Address From = 1;
+//    Address To = 2;
+//    int64 RefBlockNumber = 3;
+//    bytes RefBlockPrefix = 4;
+//    string MethodName = 5;
+//    bytes Params = 6;
+//    bytes Signature = 10000;
+//}
 
 enum TransactionStatus {
     UnknownTransactionStatus = 0;
@@ -46,14 +47,14 @@ message TransactionReceipt {
     int64 ExecutedBlockNumber = 7;
 }
 
-message StatePath {
-    repeated string parts = 1;
-}
+//message StatePath {
+//    repeated string parts = 1;
+//}
 
-message ScopedStatePath {
-    Address address = 1;
-    StatePath path = 2;
-}
+//message ScopedStatePath {
+//    Address address = 1;
+//    StatePath path = 2;
+//}
 
 message StateValue {
     bytes CurrentValue = 1;
@@ -65,37 +66,35 @@ message StateChange {
     StateValue StateValue = 2;
 }
 
-// TODO: remove from BlockBody
-message TransactionList {
-    repeated Transaction Transactions = 1;
-}
+//message TransactionList {
+//    repeated Transaction Transactions = 1;
+//}
 
-enum TransactionResultStatus {
-    NotExisted = 0;
-    Pending = 1;
-    Failed = 2;
-    Mined = 3;
-    Unexecutable = 4;
-}
-
-message TransactionResult {
-    Hash TransactionId = 1;
-    TransactionResultStatus Status = 2;
-    repeated LogEvent Logs = 3;
-    bytes Bloom = 4;
-    bytes ReturnValue = 5;
-    int64 BlockNumber = 6;
-    Hash BlockHash = 7;
-    int32 Index = 8;
-    Hash StateHash = 9;
-    // Merkle proof path for this transaction
-    // TODO: Remove DeferredTxnId
-    repeated Transaction DeferredTransactions = 10;
-    Hash DeferredTxnId = 11;
-    string Error = 12;
-    // TODO: remove???
-    string ReadableReturnValue = 13;
-}
+//enum TransactionResultStatus {
+//    NotExisted = 0;
+//    Pending = 1;
+//    Failed = 2;
+//    Mined = 3;
+//    Unexecutable = 4;
+//}
+//
+//message TransactionResult {
+//    Hash TransactionId = 1;
+//    TransactionResultStatus Status = 2;
+//    repeated LogEvent Logs = 3;
+//    bytes Bloom = 4;
+//    bytes ReturnValue = 5;
+//    int64 BlockNumber = 6;
+//    Hash BlockHash = 7;
+//    int32 Index = 8;
+//    Hash StateHash = 9;
+//    // Merkle proof path for this transaction
+//    // TODO: Remove DeferredTxnId
+//    repeated Transaction DeferredTransactions = 10;
+//    Hash DeferredTxnId = 11;
+//    string Error = 12;
+//    string ReadableReturnValue = 13;
+//}
 
 // For failed transactions, its status follows the Min of
 // its own status and its inline transactions'
@@ -149,25 +148,18 @@ message ExecutionReturnSet {
     bytes ReturnValue = 6;
 }
 
-message LogEvent {
-    Address Address = 1;
-    string Name = 2;
-    repeated bytes Indexed = 3;
-    bytes NonIndexed = 4;
-}
+//message LogEvent {
+//    Address Address = 1;
+//    string Name = 2;
+//    repeated bytes Indexed = 3;
+//    bytes NonIndexed = 4;
+//}
 
-// TODO: remove
 message BlockHeaderList {
     repeated BlockHeader Headers = 1;
 }
 
-message BlockExtraData {
-    Hash SideChainTransactionsRoot = 1;
-    bytes ConsensusInformation = 2;
-}
-
 message BlockHeader {
-    // TODO: order
     int32 Version = 1;
     int32 ChainId = 2;
     Hash PreviousBlockHash = 3;
@@ -175,10 +167,10 @@ message BlockHeader {
     Hash MerkleTreeRootOfWorldState = 5;
     bytes Bloom = 6;
     int64 Height = 7;
-    google.protobuf.Timestamp Time = 8;
-    repeated bytes BlockExtraDatas = 9;
-    bytes SignerKey = 999;
-    bytes Signature = 1000;
+    repeated bytes BlockExtraDatas = 8;
+    google.protobuf.Timestamp Time = 9;
+    bytes SignerPubkey = 9999;
+    bytes Signature = 10000;
 }
 
 message BlockBody {
@@ -193,11 +185,11 @@ message Block {
     BlockBody Body = 2;
 }
 
-message SmartContractRegistration {
-    int32 Category = 1;
-    bytes Code = 2;
-    Hash CodeHash = 3;
-}
+//message SmartContractRegistration {
+//    int32 Category = 1;
+//    bytes Code = 2;
+//    Hash CodeHash = 3;
+//}
 
 // TODO: move to related project
 enum DataAccessMode {
@@ -212,26 +204,26 @@ message BinaryMerkleTree {
     int32 LeafCount = 3;
 }
 
-message MerklePath {
-    repeated Hash Path = 1;
-}
+//message MerklePath {
+//    repeated Hash Path = 1;
+//}
+//
+// TODO: check with yiqi
+//message StringList {
+//    repeated string Values = 1;
+//    string Remark = 2;
+//}
 
 // TODO: check with yiqi
-message StringList {
-    repeated string Values = 1;
-    string Remark = 2;
-}
+//message HashList {
+//    repeated Hash Values = 1;
+//}
 
 // TODO: check with yiqi
-message HashList {
-    repeated Hash Values = 1;
-}
-
-// TODO: check with yiqi
-message LongList {
-    repeated int64 Values = 1;
-    string Remark = 2;
-}
+//message LongList {
+//    repeated int64 Values = 1;
+//    string Remark = 2;
+//}
 
 // TODO: check with yiqi or remove
 message BlockAbstract {
@@ -277,12 +269,12 @@ message BlockStateSet {
     map<string, bytes> Changes = 4;
 }
 
-message TransactionExecutingStateSet {
-    // TODO: check
-    int64 Version = 1;
-    map<string, bytes> Writes = 2;
-    map<string, bool> Reads = 3;
-}
+//message TransactionExecutingStateSet {
+    // TODO: check version field used or not
+//    int64 Version = 1;
+//    map<string, bytes> Writes = 2;
+//    map<string, bool> Reads = 3;
+//}
 
 enum ChainStateMergingStatus {
     Common = 0;
@@ -299,10 +291,10 @@ message ChainStateInfo {
 }
 
 // TODO: check with yiqi
-message ActionResult {
-    bool Success = 1;
-    string ErrorMessage = 2;
-}
+//message ActionResult {
+//    bool Success = 1;
+//    string ErrorMessage = 2;
+//}
 
 enum ChainBlockLinkExecutionStatus {
     ExecutionNone = 0;
@@ -339,47 +331,4 @@ message ChainBlockIndex {
 
 message TransactionBlockIndex {
     Hash BlockHash = 1;
-}
-
-message SystemTransactionMethodCall {
-    string MethodName = 1;
-    bytes Params = 2;
-}
-
-message SystemTransactionMethodCallList {
-    repeated SystemTransactionMethodCall Value = 1;
-}
-
-// TODO: move to acs*
-message ContractDeploymentInput {
-    sint32 category = 1;
-    bytes code = 2;
-}
-
-// TODO: move to acs*
-message SystemContractDeploymentInput {
-    sint32 category = 1;
-    bytes code = 2;
-    Hash name = 3;
-    SystemTransactionMethodCallList transactionMethodCallList = 4;
-}
-
-// TODO: move to acs*
-message ContractUpdateInput {
-    Address address = 1;
-    bytes code = 2;
-}
-
-// TODO: move to acs*
-message ChangeContractOwnerInput {
-    Address contractAddress = 1;
-    Address newOwner = 2;
-}
-
-message ContractInfo
-{
-    uint64 SerialNumber=1;
-    Address Owner = 2;
-    int32 Category = 3;
-    Hash CodeHash = 4;
 }

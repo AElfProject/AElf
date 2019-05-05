@@ -40,7 +40,7 @@ If not already done open vscode and open the **aelf-boilerplate** folder.
 If asked to add some "required assets" say **yes**. There may also be some dependencies to restore: for all of them choose **Restore**.
 
 <p align="center">
-  <img src="dep-yes.png" width="300">
+  <img src="vscode-dep.png" width="200">
 </p>
 
 Open vscode's **Integrated Terminal** and build the project with the following command. Note: you can find out more about vscode's terminal [**here**](https://code.visualstudio.com/docs/editor/integrated-terminal).
@@ -100,7 +100,7 @@ Next you will see how AElf's js sdk is used to interact with the contract.
 
 ## Run the JS SDK Demo
 
-To run this demo you'll need to install [Nodejs](https://nodejs.org/) first.
+To run this demo you'll need to install [Nodejs](https://nodejs.org/) first. ([Nodjs image in China](http://nodejs.cn/download/))
 
 The following commands will navigate to the SDK's folder and demonstrate the capabilities of the js sdk, execute them in order:
 
@@ -112,6 +112,18 @@ npm start
 
 You should see the results in the terminal or in the browser dev tool.
 
+### In the terminal
+
+<p align="center">
+  <img src="assets/jssdk_terminal.jpg" width="400">
+</p>
+
+### In the browser dev tool
+
+<p align="center">
+  <img src="assets/jssdk_browser.jpg" width="400">
+</p>
+
 ## Run the browser extension Demo
 
 To use the browser extension you must follow the following instructions:
@@ -122,7 +134,12 @@ click to install [dev version](https://chrome.google.com/webstore/detail/aelf-ex
 
 [extension repo](https://github.com/hzz780/aelf-web-extension)
 
-2.Next go into the extensions folder and run the app with the following commands:
+If you meet some problem when use the extension, please click the [extension repo](https://github.com/hzz780/aelf-web-extension/blob/master/aelf-web-extension-0.7.0.crx) and download the 0.7.0 version extension from the github.
+And add the extension manually.
+
+2.Open the extension, create your wallet, create your keypair.
+
+3.Next go into the extensions folder and run the app with the following commands:
 
 ```bash
 cd ../browserExtension/
@@ -133,3 +150,7 @@ npm start
 To see the plugin in action you can navigate to the following address in your browser: [http://localhost:3000](http://localhost:3000)
 
 Please open dev tool to see the results.
+
+<p align="center">
+  <img src="assets/extension.jpg" width="400">
+</p>

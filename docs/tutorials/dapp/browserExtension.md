@@ -67,12 +67,21 @@ nightElfCheck.check.then(message => {
 ```js
 const aelf = new window.NightElf.AElf({
     // Enter your test address in this location
-    httpProvider: 'http://127.0.0.1:1235/chain',
+    httpProvider: [
+        'http://127.0.0.1:1235/chain',
+        null,
+        null,
+        null,
+        [{
+            name: 'Accept',
+            value: 'text/plain;v=1.0'
+        }]
+    ],
     appName: 'appName'
 });
 
-aelf.chain.getChainInformation((error, result) => {
-    console.log('>>>>>>>>>>>>> getChainInformation >>>>>>>>>>>>>');
+aelf.chain.getChainStatus((error, result) => {
+    console.log('>>>>>>>>>>>>> getChainStatus >>>>>>>>>>>>>');
     console.log(error, result);
 });
 ```

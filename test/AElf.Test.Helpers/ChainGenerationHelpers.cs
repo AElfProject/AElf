@@ -79,7 +79,7 @@ namespace AElf.Synchronization.Tests
                     ChainId = ChainHelpers.GetChainId(123),
                     PreviousBlockHash = previous.GetHash(),
                     MerkleTreeRootOfWorldState = Hash.Generate(),
-                    SignerKey = producer == null ? ByteString.Empty : ByteString.CopyFromUtf8(producer)
+                    Signature = producer == null ? ByteString.Empty : ByteString.CopyFromUtf8(producer)
                 }
             };
         }

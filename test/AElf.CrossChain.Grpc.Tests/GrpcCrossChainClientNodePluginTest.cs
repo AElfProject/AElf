@@ -57,13 +57,6 @@ namespace AElf.CrossChain.Grpc
         }
 
         [Fact]
-        public async Task BestChainFoundEventTest()
-        {
-            var bestChainFoundEventData = new BestChainFoundEventData();
-            await _grpcCrossChainClientNodePlugin.HandleEventAsync(bestChainFoundEventData);
-        }
-
-        [Fact]
         public async Task Client_Shutdown_Test()
         {
             //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]

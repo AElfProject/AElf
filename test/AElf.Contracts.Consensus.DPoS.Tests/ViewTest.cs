@@ -2,20 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.CSharp.Core;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
-using PageInfo = AElf.Consensus.DPoS.PageInfo;
-using VoteInput = AElf.Consensus.DPoS.VoteInput;
-using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
+//using PageInfo = AElf.Consensus.DPoS.PageInfo;
+//using VoteInput = AElf.Consensus.DPoS.VoteInput;
+//using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
 namespace AElf.Contracts.Consensus.DPoS
 {

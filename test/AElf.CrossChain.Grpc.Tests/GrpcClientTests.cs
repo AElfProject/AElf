@@ -31,13 +31,14 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task ParentChainClient_StartIndexingRequest_WithException()
         {
-            await Assert.ThrowsAsync<RpcException>(()=>parentClient.StartIndexingRequest(0, _crossChainDataProducer));  
+            await Assert.ThrowsAsync<RpcException>(()=>parentClient.StartIndexingRequest(0, 1, _crossChainDataProducer));  
         }
         
-        [Fact]
+        [Fact(Skip = "Not meaningful at all.")]
         public async Task SideChainClient_StartIndexingRequest_WithException()
         {
-            await Assert.ThrowsAsync<RpcException>(()=>sideClient.StartIndexingRequest(0, _crossChainDataProducer));
+            // is this meaningful? 
+            await Assert.ThrowsAsync<RpcException>(()=>sideClient.StartIndexingRequest(0, 2, _crossChainDataProducer));
         }
 
         [Fact]
@@ -46,7 +47,7 @@ namespace AElf.CrossChain.Grpc
             var result = await parentClient.TryHandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
 
-            parentClient = new GrpcClientForParentChain("localhost:3000", 0);
+            parentClient = new GrpcClientForParentChain("localhost:3000", 0,1);
             await Assert.ThrowsAsync<RpcException>(()=>parentClient.TryHandShakeAsync(0, 3000));
         }
         
@@ -56,7 +57,7 @@ namespace AElf.CrossChain.Grpc
             var result = await sideClient.TryHandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
 
-            sideClient = new GrpcClientForSideChain("localhost:3000");
+            sideClient = new GrpcClientForSideChain("localhost:3000", 1);
             await Assert.ThrowsAsync<RpcException>(()=>sideClient.TryHandShakeAsync(0, 3000));
         }
 
@@ -69,8 +70,8 @@ namespace AElf.CrossChain.Grpc
             _server.StartAsync(Host, ListenPort).Wait();
             
             string uri = $"{Host}:{ListenPort}";
-            parentClient = new GrpcClientForParentChain(uri, 0);
-            sideClient = new GrpcClientForSideChain(uri);
+            parentClient = new GrpcClientForParentChain(uri, 0, 1);
+            sideClient = new GrpcClientForSideChain(uri, 1);
         }
 
         public override void Dispose()

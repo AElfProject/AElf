@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
 using AElf.Kernel;
+using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
@@ -13,17 +14,14 @@ namespace AElf.CrossChain.Grpc
     {
         private readonly ICrossChainDataProducer _crossChainDataProducer;
         public ILogger<CrossChainGrpcClientController> Logger { get; set; }
-
-//        private ILocalEventBus LocalEventBus { get; }
-
         private readonly Dictionary<int, IGrpcCrossChainClient> _grpcCrossChainClients = new Dictionary<int, IGrpcCrossChainClient>();
-        
-        public CrossChainGrpcClientController(ICrossChainDataProducer crossChainDataProducer)
+        private readonly ICrossChainMemoryCacheService _crossChainMemoryCacheService;
+        public CrossChainGrpcClientController(ICrossChainDataProducer crossChainDataProducer, 
+            ICrossChainMemoryCacheService crossChainMemoryCacheService)
         {
             _crossChainDataProducer = crossChainDataProducer;
-//            LocalEventBus = NullLocalEventBus.Instance;
+            _crossChainMemoryCacheService = crossChainMemoryCacheService;
         }
-
 
         #region Create client
 
@@ -32,9 +30,11 @@ namespace AElf.CrossChain.Grpc
             if(_grpcCrossChainClients.ContainsKey(crossChainCommunicationContext.RemoteChainId))
                 return;
             if (crossChainCommunicationContext.RemoteIsSideChain && 
-                !_crossChainDataProducer.GetCachedChainIds().Contains(crossChainCommunicationContext.RemoteChainId)) 
+                !_crossChainMemoryCacheService.GetCachedChainIds().Contains(crossChainCommunicationContext.RemoteChainId)) 
                 return; // dont create client for not cached remote side chain
             var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext);
+            Logger.LogTrace(
+                $"Try shake with chain {ChainHelpers.ConvertChainIdToBase58(crossChainCommunicationContext.RemoteChainId)}");
             var reply = await TryRequest(client, c => c.TryHandShakeAsync(crossChainCommunicationContext.LocalChainId,
                 ((GrpcCrossChainCommunicationContext) crossChainCommunicationContext).LocalListeningPort));
             if (reply == null || !reply.Result)
@@ -42,9 +42,9 @@ namespace AElf.CrossChain.Grpc
             _grpcCrossChainClients[crossChainCommunicationContext.RemoteChainId] = client;
         }
 
-        public async Task<ChainInitializationContext> RequestChainInitializationContext(string uri, int chainId)
+        public async Task<ChainInitializationContext> RequestChainInitializationContext(string uri, int chainId, int timeout)
         {
-            var clientForParentChain = new GrpcClientForParentChain(uri, chainId);
+            var clientForParentChain = new GrpcClientForParentChain(uri, chainId, timeout);
             var response = await TryRequest(clientForParentChain, c => c.RequestChainInitializationContext(chainId));
             return response?.SideChainInitializationContext;
         }
@@ -59,8 +59,8 @@ namespace AElf.CrossChain.Grpc
             string uri = grpcClientBase.ToUriStr();
 
             if (!grpcClientBase.RemoteIsSideChain)
-                return new GrpcClientForParentChain(uri, grpcClientBase.LocalChainId);
-            var clientToSideChain = new GrpcClientForSideChain(uri);
+                return new GrpcClientForParentChain(uri, grpcClientBase.LocalChainId, grpcClientBase.ConnectionTimeout);
+            var clientToSideChain = new GrpcClientForSideChain(uri, grpcClientBase.ConnectionTimeout);
             return clientToSideChain;
         }
 
@@ -71,13 +71,14 @@ namespace AElf.CrossChain.Grpc
         public void RequestCrossChainIndexing()
         {
             //Logger.LogTrace("Request cross chain indexing ..");
-            var chainIds = _crossChainDataProducer.GetCachedChainIds();
+            var chainIds = _crossChainMemoryCacheService.GetCachedChainIds();
             foreach (var chainId in chainIds)
             {
-                Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
                 if(!_grpcCrossChainClients.TryGetValue(chainId, out var client))
                     continue;
-                var task = TryRequest(client, c => c.StartIndexingRequest(chainId, _crossChainDataProducer));
+                Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
+                var targetHeight = _crossChainMemoryCacheService.GetNeededChainHeightForCache(chainId);
+                var task = TryRequest(client, c => c.StartIndexingRequest(chainId, targetHeight, _crossChainDataProducer));
             }
         }
 
@@ -87,7 +88,7 @@ namespace AElf.CrossChain.Grpc
             {
                 return await requestFunc(client);
             }
-            catch (Exception e) //when (e is ChainCacheNotFoundException || e is RpcException)
+            catch (RpcException e)
             {
                 Logger.LogWarning(e.Message);
                 return default(T);

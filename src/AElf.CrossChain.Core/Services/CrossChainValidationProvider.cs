@@ -1,19 +1,23 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain
 {
     public class CrossChainValidationProvider : IBlockValidationProvider
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
-        private readonly IBlockExtraDataExtractor _blockExtraDataExtractor;
+        private readonly ICrossChainExtraDataExtractor _crossChainExtraDataExtractor;
+        public ILocalEventBus LocalEventBus { get; set; }
 
-        public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataExtractor blockExtraDataExtractor)
+        public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, ICrossChainExtraDataExtractor crossChainExtraDataExtractor)
         {
             _crossChainDataProvider = crossChainDataProvider;
-            _blockExtraDataExtractor = blockExtraDataExtractor;
+            _crossChainExtraDataExtractor = crossChainExtraDataExtractor;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -34,16 +38,21 @@ namespace AElf.CrossChain
             
             var indexedCrossChainBlockData =
                 await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Height);
-            var extraData = _blockExtraDataExtractor.ExtractCrossChainExtraData(block.Header);
-            if (indexedCrossChainBlockData == null)
+            var extraData = _crossChainExtraDataExtractor.ExtractCrossChainData(block.Header);
+            try
             {
-                return extraData == null;
+                if (indexedCrossChainBlockData == null)
+                {
+                    return extraData == null;
+                }
+
+                var res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block);
+                return res;
             }
-            
-            bool res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block);
-            if(!res)
-                throw new ValidateNextTimeBlockValidationException("Cross chain validation failed after execution.");
-            return true;
+            finally
+            {
+                await LocalEventBus.PublishAsync(new CrossChainDataValidatedEvent());
+            }
         }
 
         private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, 
