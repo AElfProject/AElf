@@ -10,6 +10,10 @@ namespace AElf.OS.Network.Infrastructure
         string PubKey { get; }
         Hash CurrentBlockHash { get; }
         long CurrentBlockHeight { get; }
+        int ProtocolVersion { get; set; }
+        long ConnectionTime { get; set; }
+        bool Inbound { get; set; }
+        long StartHeight { get; set; }
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
         void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement);
