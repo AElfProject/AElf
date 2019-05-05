@@ -55,9 +55,9 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     return AElfConsensusBehaviour.UpdateValue;
                 }
             }
-            else if (minerInRound.ProducedTinyBlocks <= AElfConsensusContractConstants.TinyBlocksNumber)
+            else if (minerInRound.ProducedTinyBlocks < AElfConsensusContractConstants.TinyBlocksNumber)
             {
-                return AElfConsensusBehaviour.UpdateValue;
+                return AElfConsensusBehaviour.UpdateValueOfTinyBlock;
             }
 
             // If this node missed his time slot, a command of terminating current round will be fired,
@@ -101,7 +101,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         /// <param name="isTimeSlotSkippable"></param>
         /// <returns></returns>
         private ConsensusCommand GetConsensusCommand(AElfConsensusBehaviour behaviour, Round round, string publicKey,
-            DateTime dateTime, bool isTimeSlotSkippable = false)
+            DateTime dateTime)
         {
             var minerInRound = round.RealTimeMinersInformation[publicKey];
             var miningInterval = round.GetMiningInterval();
@@ -111,75 +111,21 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             int nextBlockMiningLeftMilliseconds;
             var hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString();
 
-            var previousMinerMissedHisTimeSlot = myOrder != 1 &&
-                                                 round.RealTimeMinersInformation.Values
-                                                     .First(m => m.Order == myOrder - 1).OutValue == null;
-            var previousTwoMinersMissedTheirTimeSlot = myOrder > 2 &&
-                                                       round.RealTimeMinersInformation.Values
-                                                           .First(m => m.Order == myOrder - 1).OutValue == null &&
-                                                       round.RealTimeMinersInformation.Values
-                                                           .First(m => m.Order == myOrder - 2).OutValue == null;
-            var skipTimeSlot = previousMinerMissedHisTimeSlot && !previousTwoMinersMissedTheirTimeSlot &&
-                               isTimeSlotSkippable;
-
-            var firstMinerOfCurrentRound =
-                round.RealTimeMinersInformation.Values.FirstOrDefault(m => m.OutValue != null);
-
             var producedTinyBlocks = minerInRound.ProducedTinyBlocks;
 
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
-                    // Two reasons of `UpdateValueWithoutPreviousInValue` behaviour:
-                    // 1. 1st round of 1st term.
-                    // 2. Term changed in current round.
-                    if (skipTimeSlot)
-                    {
-                        if (firstMinerOfCurrentRound != null)
-                        {
-                            var roundStartTimeInTheory = firstMinerOfCurrentRound.ActualMiningTime.ToDateTime()
-                                .AddMilliseconds(-firstMinerOfCurrentRound.Order * miningInterval);
-                            var minersCount = round.RealTimeMinersInformation.Count;
-                            var extraBlockMiningTimeInTheory =
-                                roundStartTimeInTheory.AddMilliseconds(minersCount * miningInterval);
-                            nextBlockMiningLeftMilliseconds =
-                                (int) (round.ArrangeAbnormalMiningTime(publicKey, extraBlockMiningTimeInTheory,
-                                           miningInterval).ToDateTime() - dateTime).TotalMilliseconds;
-                            // If someone produced block in current round before.
-
-                            hint = new AElfConsensusHint
-                            {
-                                Behaviour = AElfConsensusBehaviour.NextRound
-                            }.ToByteString();
-                            break;
-                        }
-
-                        nextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval * 2 + miningInterval;
-                        hint = new AElfConsensusHint
-                        {
-                            Behaviour = AElfConsensusBehaviour.NextRound
-                        }.ToByteString();
-                        break;
-                    }
 
                     nextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval;
                     break;
 
                 case AElfConsensusBehaviour.UpdateValue:
-                    // If miner of previous order didn't produce block, skip this time slot.
-                    if (skipTimeSlot)
-                    {
-                        nextBlockMiningLeftMilliseconds = (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey,
-                                                                     round.GetExtraBlockMiningTime(),
-                                                                     round.GetMiningInterval()).ToDateTime() - dateTime)
-                            .TotalMilliseconds;
-                        hint = new AElfConsensusHint
-                        {
-                            Behaviour = AElfConsensusBehaviour.NextRound
-                        }.ToByteString();
-                        break;
-                    }
-
+                    expectedMiningTime = expectedMiningTime.ToDateTime().ToTimestamp();
+                    nextBlockMiningLeftMilliseconds =
+                        (int) (expectedMiningTime.ToDateTime() - dateTime).TotalMilliseconds;
+                    break;
+                case AElfConsensusBehaviour.UpdateValueOfTinyBlock:
                     expectedMiningTime = expectedMiningTime.ToDateTime().AddMilliseconds(producedTinyBlocks
                         .Mul(miningInterval).Div(AElfConsensusContractConstants.TinyBlocksNumber)).ToTimestamp();
                     nextBlockMiningLeftMilliseconds =

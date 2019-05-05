@@ -90,6 +90,7 @@ enum AElfConsensusBehaviour {
     NextTerm = 2;
     UpdateValueWithoutPreviousInValue = 3;
     Nothing = 4;
+    UpdateValueOfTinyBlock = 5;
 }
 
 message AElfConsensusTriggerInformation {

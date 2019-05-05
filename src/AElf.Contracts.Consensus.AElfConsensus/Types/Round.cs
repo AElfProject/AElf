@@ -291,6 +291,18 @@ namespace AElf.Consensus.AElfConsensus
                 return null;
             }
 
+            var minerInRound = RealTimeMinersInformation[publicKey];
+
+            if (RealTimeMinersInformation[publicKey].ProducedTinyBlocks > 1)
+            {
+                return new ToUpdate
+                {
+                    RoundId = RoundId,
+                    ActualMiningTime = minerInRound.ActualMiningTime,
+                    ProducedBlocks = minerInRound.ProducedBlocks
+                };
+            }
+
             var tuneOrderInformation = RealTimeMinersInformation.Values
                 .Where(m => m.FinalOrderOfNextRound != m.SupposedOrderOfNextRound)
                 .ToDictionary(m => m.PublicKey, m => m.FinalOrderOfNextRound);
@@ -303,7 +315,6 @@ namespace AElf.Consensus.AElfConsensus
                 RealTimeMinersInformation.Values.Where(info => info.PreviousInValue != null).ToDictionary(info => info.PublicKey,
                     info => info.PreviousInValue);
 
-            var minerInRound = RealTimeMinersInformation[publicKey];
             return new ToUpdate
             {
                 OutValue = minerInRound.OutValue,
@@ -415,7 +426,7 @@ namespace AElf.Consensus.AElfConsensus
                 minerInformation.AppendLine($"Sig:\t {minerInRound.Signature?.ToHex()}");
                 minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
                 minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
-                minerInformation.AppendLine($"Proms:\t {minerInRound.PromisedTinyBlocks}");
+                minerInformation.AppendLine($"Tiny:\t {minerInRound.ProducedTinyBlocks}");
                 minerInformation.AppendLine($"NOrder:\t {minerInRound.FinalOrderOfNextRound}");
 
                 logs.Append(minerInformation);

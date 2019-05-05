@@ -73,16 +73,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                         currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime =
                         currentBlockTime.ToTimestamp();
-
-                    if (currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks != 1)
-                    {
-                        return new AElfConsensusHeaderInformation
-                        {
-                            SenderPublicKey = publicKey,
-                            Round = currentRound,
-                            Behaviour = behaviour
-                        };
-                    }
+                    
                     Assert(input.RandomHash != null, "Random hash should not be null.");
 
                     var inValue = currentRound.CalculateInValue(input.RandomHash);
@@ -111,6 +102,19 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                         SenderPublicKey = publicKey,
                         Round = updatedRound,
                         Behaviour = behaviour,
+                    };
+                case AElfConsensusBehaviour.UpdateValueOfTinyBlock:
+                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks = currentRound
+                        .RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks.Add(1);
+                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
+                        currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
+                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime =
+                        currentBlockTime.ToTimestamp();
+                    return new AElfConsensusHeaderInformation
+                    {
+                        SenderPublicKey = publicKey,
+                        Round = currentRound,
+                        Behaviour = behaviour
                     };
                 case AElfConsensusBehaviour.NextRound:
                     Assert(
@@ -154,6 +158,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
+                case AElfConsensusBehaviour.UpdateValueOfTinyBlock:
                     return new TransactionList
                     {
                         Transactions =
@@ -222,10 +227,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
-                    if (input.Round.RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks != 1)
-                    {
-                        break;
-                    }
                     // Need to check round id when updating current round information.
                     // This can tell the miner current block 
                     if (!RoundIdMatched(input.Round))
@@ -252,6 +253,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     break;
                 case AElfConsensusBehaviour.Nothing:
                     return new ValidationResult {Success = false, Message = "Invalid behaviour"};
+                case AElfConsensusBehaviour.UpdateValueOfTinyBlock:
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

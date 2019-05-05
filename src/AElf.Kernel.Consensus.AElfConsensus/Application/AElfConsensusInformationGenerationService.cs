@@ -88,6 +88,7 @@ namespace AElf.Kernel.Consensus.AElfConsensus.Application
 
                 if (triggerType != _firstTriggerType)
                 {
+                    Logger.LogTrace($"Update lasted random hash to {RandomHash.ToHex()}");
                     _latestRandomHash = RandomHash;
                 }
 
