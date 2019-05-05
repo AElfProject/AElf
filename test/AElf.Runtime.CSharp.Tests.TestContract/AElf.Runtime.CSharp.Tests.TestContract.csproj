@@ -30,4 +30,8 @@
         <Compile Include="./Protobuf/Generated/*.cs" />
       </ItemGroup>
     </Target>
+    <Target Name="CopyContractDll" AfterTargets="AfterBuild">
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll $(SolutionDir)/contracts"/>
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll $(SolutionDir)\contracts"/>
+    </Target>
 </Project>
