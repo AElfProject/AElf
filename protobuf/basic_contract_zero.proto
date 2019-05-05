@@ -2,66 +2,12 @@ syntax = "proto3";
 
 package zero;
 
-import "aelf/core.proto";
 import "aelf/options.proto";
-import "google/protobuf/empty.proto";
-import "google/protobuf/wrappers.proto";
+import "acs0.proto";
 
 option csharp_namespace = "AElf.Contracts.Genesis";
 
 service BasicContractZero {
     option (aelf.csharp_state) = "AElf.Contracts.Genesis.BasicContractZeroState";
-    // Actions
-    rpc DeploySystemSmartContract (aelf.SystemContractDeploymentInput) returns (aelf.Address) {
-    }
-    rpc DeploySmartContract (aelf.ContractDeploymentInput) returns (aelf.Address) {
-    }
-    rpc UpdateSmartContract (aelf.ContractUpdateInput) returns (aelf.Address) {
-    }
-    rpc ChangeContractOwner (aelf.ChangeContractOwnerInput) returns (google.protobuf.Empty) {
-    }
-    // Views
-    rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetContractInfo (aelf.Address) returns (aelf.ContractInfo) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetContractOwner (aelf.Address) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetContractHash (aelf.Address) returns (aelf.Hash) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetContractAddressByName (aelf.Hash) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration) {
-        option (aelf.is_view) = true;
-    }
-}
-
-// Events
-message ContractDeployed
-{
-    option (aelf.is_event) = true;
-    aelf.Address creator = 1 [(aelf.is_indexed) = true];
-    aelf.Hash codeHash = 2 [(aelf.is_indexed) = true];
-    aelf.Address address = 3;
-}
-
-message CodeUpdated
-{
-    option (aelf.is_event) = true;
-    aelf.Address address = 1 [(aelf.is_indexed) = true];
-    aelf.Hash oldCodeHash = 2;
-    aelf.Hash newCodeHash = 3;
-}
-
-message OwnerChanged
-{
-    option (aelf.is_event) = true;
-    aelf.Address address = 1 [(aelf.is_indexed) = true];
-    aelf.Address oldOwner = 2;
-    aelf.Address newOwner = 3;
+    option (aelf.base) = "acs0.proto";
 }
