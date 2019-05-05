@@ -60,6 +60,7 @@ namespace AElf.Runtime.CSharp.Tests
                         }
                         
                         _testOutputHelper.WriteLine("DLL Hash: " + formatted);
+                        Console.WriteLine("DLL Hash: " + formatted);
                     }
                 }
     
