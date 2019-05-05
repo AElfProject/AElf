@@ -29,9 +29,6 @@ namespace AElf.CrossChain.Grpc
 
         public async Task StartAsync(int chainId)
         {
-            if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.RemoteParentChainNodeIp) 
-                || _grpcCrossChainConfigOption.LocalServerPort == 0) 
-                return;
             var libIdHeight = await _blockchainService.GetLibHashAndHeight();
             
             if (libIdHeight.BlockHeight > KernelConstants.GenesisBlockHeight)
@@ -39,6 +36,10 @@ namespace AElf.CrossChain.Grpc
                 // start cache if the lib is higher than genesis 
                 await _crossChainDataProvider.RegisterNewChainsAsync(libIdHeight.BlockHash, libIdHeight.BlockHeight);
             }
+            
+            if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.RemoteParentChainNodeIp) 
+                || _grpcCrossChainConfigOption.LocalServerPort == 0) 
+                return;
             
             var task = _crossChainGrpcClientController.CreateClient(new GrpcCrossChainCommunicationContext
             {

@@ -8,13 +8,13 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.CrossChain.Grpc
 {
-    public abstract class CrossChainGrpcClient<TResponse> : IGrpcCrossChainClient where TResponse : IResponseIndexingMessage
+    public abstract class CrossChainGrpcClient<TResponse> : CrossChainGrpcClient where TResponse : IResponseIndexingMessage
     {
         protected CrossChainRpc.CrossChainRpcClient Client;
         protected int LocalChainId;
         protected int DialTimeout;
         
-        public async Task<bool> StartIndexingRequest(int chainId, long targetHeight,
+        public override async Task StartIndexingRequest(int chainId, long targetHeight,
             ICrossChainDataProducer crossChainDataProducer)
         {
             var requestData = new RequestCrossChainBlockData
@@ -39,11 +39,9 @@ namespace AElf.CrossChain.Grpc
                         $"Received response from chain {ChainHelpers.ConvertChainIdToBase58(response.BlockInfoResult.ChainId)} at height {response.Height}");
                 }
             }
-
-            return true;
         }
 
-        public Task<IndexingHandShakeReply> TryHandShakeAsync(int chainId, int localListeningPort)
+        public override Task<IndexingHandShakeReply> TryHandShakeAsync(int chainId, int localListeningPort)
         {
             var handShakeReply = Client.CrossChainIndexingShake(new IndexingHandShake
             {
@@ -53,14 +51,14 @@ namespace AElf.CrossChain.Grpc
             return Task.FromResult(handShakeReply);
         }
         
-        public Task<ChainInitializationResponse> RequestChainInitializationContext(int chainId)
+        public override Task<ChainInitializationContext> RequestChainInitializationContext(int chainId)
         {
             var chainInitializationResponse = Client.RequestChainInitializationContextFromParentChain(
                 new ChainInitializationRequest
                 {
                     ChainId = chainId
                 }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
-            return Task.FromResult(chainInitializationResponse);
+            return Task.FromResult(chainInitializationResponse.SideChainInitializationContext);
         }
 
         //protected abstract AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> CallWithDuplexStreaming(int milliSeconds = 0);
@@ -118,13 +116,21 @@ namespace AElf.CrossChain.Grpc
                 new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
         }
     }
-
-    public interface IGrpcCrossChainClient
+    
+    public abstract class CrossChainGrpcClient
     {
         //Task StartDuplexStreamingCall(int chainId, CancellationToken cancellationToken);
-        Task<IndexingHandShakeReply> TryHandShakeAsync(int chainId, int localListeningPort);
-        Task<bool> StartIndexingRequest(int chainId, long targetHeight,
-            ICrossChainDataProducer crossChainDataProducer);
-        Task<ChainInitializationResponse> RequestChainInitializationContext(int chainId);
+        public abstract Task<IndexingHandShakeReply> TryHandShakeAsync(int chainId, int localListeningPort);
+        public abstract Task StartIndexingRequest(int chainId, long targetHeight, ICrossChainDataProducer crossChainDataProducer);
+        public abstract Task<ChainInitializationContext> RequestChainInitializationContext(int chainId);
     }
+
+//    public interface IGrpcCrossChainClient
+//    {
+//        //Task StartDuplexStreamingCall(int chainId, CancellationToken cancellationToken);
+//        Task<IndexingHandShakeReply> TryHandShakeAsync(int chainId, int localListeningPort);
+//        Task<bool> StartIndexingRequest(int chainId, long targetHeight,
+//            ICrossChainDataProducer crossChainDataProducer);
+//        Task<ChainInitializationResponse> RequestChainInitializationContext(int chainId);
+//    }
 }
