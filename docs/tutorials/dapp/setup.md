@@ -134,7 +134,12 @@ click to install [dev version](https://chrome.google.com/webstore/detail/aelf-ex
 
 [extension repo](https://github.com/hzz780/aelf-web-extension)
 
-2.Next go into the extensions folder and run the app with the following commands:
+If you meet some problem when use the extension, please click the [extension repo](https://github.com/hzz780/aelf-web-extension/blob/master/aelf-web-extension-0.7.0.crx) and download the 0.7.0 version extension from the github.
+And add the extension manually.
+
+2.Open the extension, create your wallet, create your keypair.
+
+3.Next go into the extensions folder and run the app with the following commands:
 
 ```bash
 cd ../browserExtension/
