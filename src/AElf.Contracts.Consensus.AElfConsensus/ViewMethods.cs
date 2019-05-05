@@ -5,6 +5,7 @@ using System.Text;
 using AElf.Consensus.AElfConsensus;
 using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -12,6 +13,11 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 {
     public partial class AElfConsensusContract
     {
+        /// <summary>
+        /// In this method, `Context.CurrentBlockTime` is the time one miner start request his next consensus command.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override ConsensusCommand GetConsensusCommand(CommandInput input)
         {
             // Query state to determine whether produce tiny block.
@@ -61,6 +67,22 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
+                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks = currentRound
+                        .RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks.Add(1);
+                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
+                        currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
+                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime =
+                        currentBlockTime.ToTimestamp();
+
+                    if (currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks != 1)
+                    {
+                        return new AElfConsensusHeaderInformation
+                        {
+                            SenderPublicKey = publicKey,
+                            Round = currentRound,
+                            Behaviour = behaviour
+                        };
+                    }
                     Assert(input.RandomHash != null, "Random hash should not be null.");
 
                     var inValue = currentRound.CalculateInValue(input.RandomHash);
@@ -79,7 +101,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     }
 
                     var updatedRound = currentRound.ApplyNormalConsensusData(publicKey.ToHex(), previousInValue,
-                        outValue, signature, currentBlockTime);
+                        outValue, signature);
 
                     ShareAndRecoverInValue(updatedRound, previousRound, inValue, publicKey.ToHex());
 
@@ -200,6 +222,10 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
+                    if (input.Round.RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks != 1)
+                    {
+                        break;
+                    }
                     // Need to check round id when updating current round information.
                     // This can tell the miner current block 
                     if (!RoundIdMatched(input.Round))

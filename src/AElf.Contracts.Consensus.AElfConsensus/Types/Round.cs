@@ -88,16 +88,11 @@ namespace AElf.Consensus.AElfConsensus
         {
             minerInRound = null;
             var miningInterval = GetMiningInterval();
-            if (RealTimeMinersInformation.ContainsKey(publicKey))
-            {
-                minerInRound = RealTimeMinersInformation[publicKey];
-                return minerInRound.ExpectedMiningTime.ToDateTime().AddMilliseconds((double) miningInterval / 2) <
-                       dateTime;
-            }
-
-            return false;
+            if (!RealTimeMinersInformation.ContainsKey(publicKey)) return false;
+            minerInRound = RealTimeMinersInformation[publicKey];
+            return minerInRound.ExpectedMiningTime.ToDateTime().AddMilliseconds(miningInterval) <= dateTime;
         }
-        
+
         /// <summary>
         /// If one node produced block this round or missed his time slot,
         /// whatever how long he missed, we can give him a consensus command with new time slot
@@ -160,17 +155,15 @@ namespace AElf.Consensus.AElfConsensus
         }
         
         public Round ApplyNormalConsensusData(string publicKey, Hash previousInValue,
-            Hash outValue, Hash signature, DateTime dateTime)
+            Hash outValue, Hash signature)
         {
             if (!RealTimeMinersInformation.ContainsKey(publicKey))
             {
                 return this;
             }
 
-            RealTimeMinersInformation[publicKey].ActualMiningTime = dateTime.ToTimestamp();
             RealTimeMinersInformation[publicKey].OutValue = outValue;
             RealTimeMinersInformation[publicKey].Signature = signature;
-            RealTimeMinersInformation[publicKey].ProducedBlocks += 1;
             if (previousInValue != Hash.Empty)
             {
                 RealTimeMinersInformation[publicKey].PreviousInValue = previousInValue;

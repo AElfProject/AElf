@@ -86,13 +86,23 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             var publicKey = Context.RecoverPublicKey().ToHex();
 
+            round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
+            round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
+
+            round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks =
+                round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks.Add(1);
+
+            if (round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks != 1)
+            {
+                Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
+                return new Empty();
+            }
+
             round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
             round.RealTimeMinersInformation[publicKey].OutValue = input.OutValue;
             round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = input.PromiseTinyBlocks;
-            round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
             round.RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             round.RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
-            round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
 
             round.RealTimeMinersInformation[publicKey].EncryptedInValues.Add(input.EncryptedInValues);
             foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)

@@ -53,12 +53,6 @@ namespace AElf.Contracts.Vote
         {
             
         }
-
-        [Fact]
-        public async Task VoteContract_TakeSnapshot()
-        {
-            
-        }
         
         [Fact]
         public async Task VoteContract_AddOption()
@@ -68,6 +62,18 @@ namespace AElf.Contracts.Vote
         
         [Fact]
         public async Task VoteContract_RemoveOption()
+        {
+            
+        }
+        
+        [Fact]
+        public async Task VoteContract_AddOptions()
+        {
+            
+        }
+        
+        [Fact]
+        public async Task VoteContract_RemoveOptions()
         {
             
         }

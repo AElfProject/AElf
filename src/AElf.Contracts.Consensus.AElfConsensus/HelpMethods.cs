@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using AElf.Consensus.AElfConsensus;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -54,6 +55,10 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     return AElfConsensusBehaviour.UpdateValue;
                 }
             }
+            else if (minerInRound.ProducedTinyBlocks <= AElfConsensusContractConstants.TinyBlocksNumber)
+            {
+                return AElfConsensusBehaviour.UpdateValue;
+            }
 
             // If this node missed his time slot, a command of terminating current round will be fired,
             // and the terminate time will based on the order of this node (to avoid conflicts).
@@ -86,8 +91,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         }
 
         /// <summary>
-        /// DPoS Behaviour is changeable in this method.
-        /// It's the situation this miner should skip his time slot, more precisely.
+        /// AElf Consensus Behaviour is changeable in this method.
+        /// It's the situation this miner should skip his time slot more precisely.
         /// </summary>
         /// <param name="behaviour"></param>
         /// <param name="round"></param>
@@ -119,6 +124,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             var firstMinerOfCurrentRound =
                 round.RealTimeMinersInformation.Values.FirstOrDefault(m => m.OutValue != null);
+
+            var producedTinyBlocks = minerInRound.ProducedTinyBlocks;
 
             switch (behaviour)
             {
@@ -173,6 +180,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                         break;
                     }
 
+                    expectedMiningTime = expectedMiningTime.ToDateTime().AddMilliseconds(producedTinyBlocks
+                        .Mul(miningInterval).Div(AElfConsensusContractConstants.TinyBlocksNumber)).ToTimestamp();
                     nextBlockMiningLeftMilliseconds =
                         (int) (expectedMiningTime.ToDateTime() - dateTime).TotalMilliseconds;
                     break;
@@ -204,7 +213,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             {
                 ExpectedMiningTime = expectedMiningTime,
                 NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
-                LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
+                LimitMillisecondsOfMiningBlock = miningInterval / AElfConsensusContractConstants.TinyBlocksNumber,
                 Hint = hint
             };
         }
