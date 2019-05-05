@@ -223,17 +223,18 @@ namespace AElf.Contracts.Vote
             previousVotingResult.SnapshotEndTimestamp = Context.CurrentBlockTime.ToTimestamp();
             State.VotingResults[previousVotingResultHash] = previousVotingResult;
 
-            Assert(votingItem.CurrentSnapshotNumber + 1 == input.SnapshotNumber,
-                $"Can only increase epoch number 1 each time: {votingItem.CurrentSnapshotNumber} -> {input.SnapshotNumber}");
-            votingItem.CurrentSnapshotNumber = input.SnapshotNumber;
+            Assert(votingItem.CurrentSnapshotNumber == input.SnapshotNumber,
+                $"Can only take snapshot of current snapshot number: {votingItem.CurrentSnapshotNumber}, but {input.SnapshotNumber}");
+            var nextSnapshotNumber = input.SnapshotNumber.Add(1);
+            votingItem.CurrentSnapshotNumber = nextSnapshotNumber;
             State.VotingItems[votingItem.VotingItemId] = votingItem;
 
             // Initial next voting going information.
-            var currentVotingGoingHash = GetVotingResultHash(input.VotingItemId, input.SnapshotNumber);
+            var currentVotingGoingHash = GetVotingResultHash(input.VotingItemId, nextSnapshotNumber);
             State.VotingResults[currentVotingGoingHash] = new VotingResult
             {
                 VotingItemId = input.VotingItemId,
-                SnapshotNumber = input.SnapshotNumber,
+                SnapshotNumber = nextSnapshotNumber,
                 SnapshotStartTimestamp = Context.CurrentBlockTime.ToTimestamp()
             };
             return new Empty();

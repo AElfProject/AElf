@@ -86,7 +86,7 @@ namespace AElf.Contracts.Election
             // Update epoch of voting record btw.
             State.VoteContract.TakeSnapshot.Send(new TakeSnapshotInput
             {
-                SnapshotNumber = input.TermNumber,
+                SnapshotNumber = input.TermNumber - 1,
                 VotingItemId = State.MinerElectionVotingItemId.Value
             });
 

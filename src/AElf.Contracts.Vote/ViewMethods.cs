@@ -25,7 +25,6 @@ namespace AElf.Contracts.Vote
             return votingRecord;
         }
 
-
         public override VotingItem GetVotingItem(GetVotingItemInput input)
         {
             var votingEvent = State.VotingItems[input.VotingItemId];
