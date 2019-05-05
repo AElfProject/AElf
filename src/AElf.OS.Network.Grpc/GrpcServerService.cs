@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -7,6 +8,7 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
@@ -90,7 +92,8 @@ namespace AElf.OS.Network.Grpc
             }
 
             var pubKey = handshake.HskData.PublicKey.ToHex();
-            var grpcPeer = new GrpcPeer(channel, client, pubKey, peerAddress);
+            var grpcPeer = new GrpcPeer(channel, client, pubKey, peerAddress, handshake.HskData.Version,
+                DateTime.UtcNow.ToTimestamp().Seconds, handshake.Header.Height);
 
             // Verify auth
             bool valid = _peerPool.IsAuthenticatePeer(pubKey);
