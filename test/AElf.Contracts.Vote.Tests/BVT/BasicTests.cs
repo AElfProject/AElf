@@ -15,33 +15,68 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_Register()
         {
-            const int lastDays = 10;
+            var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 10);
 
-            var input = new VotingRegisterInput
+            // Check voting item according to the input.
+            (votingItem.EndTimestamp.ToDateTime() - votingItem.StartTimestamp.ToDateTime()).TotalDays.ShouldBe(10);
+            votingItem.Options.Count.ShouldBe(4);
+            votingItem.Sponsor.ShouldBe(DefaultSender);
+            votingItem.TotalSnapshotNumber.ShouldBe(10);
+            
+            // Check more about voting item.
+            votingItem.CurrentSnapshotNumber.ShouldBe(1);
+            votingItem.CurrentSnapshotStartTimestamp.ShouldBe(votingItem.StartTimestamp);
+            votingItem.RegisterTimestamp.ShouldBeGreaterThan(votingItem.StartTimestamp);// RegisterTimestamp should be a bit later.
+            
+            // Check voting result of first period initialized.
+            var votingResult = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput
             {
-                TotalSnapshotNumber = 1,
-                StartTimestamp = DateTime.UtcNow.ToTimestamp(),
-                EndTimestamp = DateTime.UtcNow.AddDays(lastDays).ToTimestamp(),
-                Options = { GenerateOptions(3) },
-                AcceptedCurrency = TestTokenSymbol
-            };
+                VotingItemId = votingItem.VotingItemId,
+                SnapshotNumber = 1
+            });
+            votingResult.VotingItemId.ShouldBe(votingItem.VotingItemId);
+            votingResult.SnapshotNumber.ShouldBe(1);
+            votingResult.SnapshotStartTimestamp.ShouldBe(votingItem.StartTimestamp);
+            votingResult.SnapshotEndTimestamp.ShouldBe(null);
+            votingResult.Results.Count.ShouldBe(0);
+            votingResult.VotersCount.ShouldBe(0);
+        }
 
-            var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
-
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            //register again
-            transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
-
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Voting item already exists");
+        [Fact]
+        public async Task VoteContract_Vote()
+        {
+            
         }
         
+        [Fact]
+        public async Task VoteContract_Withdraw()
+        {
+            
+        }
+
+        [Fact]
+        public async Task VoteContract_TakeSnapshot()
+        {
+            
+        }
+        
+        [Fact]
+        public async Task VoteContract_AddOption()
+        {
+            
+        }
+        
+        [Fact]
+        public async Task VoteContract_RemoveOption()
+        {
+            
+        }
+
         [Fact]
         public async Task VoteContract_GetVotingResult()
         {
             var voteUser = SampleECKeyPairs.KeyPairs[2];
-            var votingItem = await RegisterVotingItem(10, 3, true, DefaultSender, 2);
+            var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
             await Vote(voteUser, votingItem.VotingItemId, votingItem.Options.First(), 1000L);
 
             var votingResult = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput

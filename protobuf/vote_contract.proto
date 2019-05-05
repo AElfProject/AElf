@@ -27,6 +27,10 @@ service VoteContract {
     }
     rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty) {
     }
+    rpc AddOptions (AddOptionsInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveOptions (RemoveOptionsInput) returns (google.protobuf.Empty) {
+    }
     
     // View
     rpc GetVotingItem (GetVotingItemInput) returns (VotingItem) {

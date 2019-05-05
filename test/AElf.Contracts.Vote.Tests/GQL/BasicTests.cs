@@ -11,18 +11,42 @@ namespace AElf.Contracts.Vote
     public partial class VoteTests : VoteContractTestBase
     {
         [Fact]
-        public async Task VoteContract_InitializeMultiTimes()
+        public async Task VoteContract_Initialize_NotByContractZero()
         {
             var transactionResult = (await VoteContractStub.InitialVoteContract.SendAsync(new InitialVoteContractInput
             {
                 TokenContractSystemName = Hash.Generate(),
             })).TransactionResult;
-            
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Only zero contract can");
         }
-        
+
         [Fact]
-        public async Task VoteContract_VoteFailed()
+        public async Task VoteContract_Register_Again()
+        {
+            var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 10);
+            var transactionResult = (await VoteContractStub.Register.SendAsync(new VotingRegisterInput
+            {
+                // Basically same as previous one.
+                TotalSnapshotNumber = votingItem.TotalSnapshotNumber,
+                StartTimestamp = votingItem.StartTimestamp,
+                EndTimestamp = votingItem.EndTimestamp,
+                Options = {votingItem.Options},
+                AcceptedCurrency = votingItem.AcceptedCurrency,
+                IsLockToken = votingItem.IsLockToken
+            })).TransactionResult;
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Voting item already exists");
+        }
+
+        [Fact]
+        public async Task VoteContract_Register_CurrencyNotSupportVoting()
+        {
+            
+        }
+
+        [Fact]
+        public async Task VoteContract_Vote_NotSuccess()
         {
             //did not find related vote event
             {
@@ -39,7 +63,7 @@ namespace AElf.Contracts.Vote
             
             //without such option
             {
-                var votingItem = await RegisterVotingItem(100, 4, true, DefaultSender, 2);
+                var votingItem = await RegisterVotingItemAsync(100, 4, true, DefaultSender, 2);
                 
                 var input = new VoteInput
                 {
@@ -57,7 +81,7 @@ namespace AElf.Contracts.Vote
             
             //not enough token
             {
-                var votingItemId = await RegisterVotingItem(100, 4, true, DefaultSender, 2);
+                var votingItemId = await RegisterVotingItemAsync(100, 4, true, DefaultSender, 2);
                 
                 var input = new VoteInput
                 {

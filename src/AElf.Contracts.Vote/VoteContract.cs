@@ -17,13 +17,9 @@ namespace AElf.Contracts.Vote
         {
             Assert(Context.Sender == Context.GetZeroSmartContractAddress(),
                 "Only zero contract can initialize this contract.");
-
             Assert(!State.Initialized.Value, "Already initialized.");
-
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
-
             State.Initialized.Value = true;
-
             return new Empty();
         }
 
@@ -66,13 +62,9 @@ namespace AElf.Contracts.Vote
                 CurrentSnapshotStartTimestamp = input.StartTimestamp,
                 StartTimestamp = input.StartTimestamp,
                 EndTimestamp = input.EndTimestamp,
-                RegisterTimestamp = Context.CurrentBlockTime.ToTimestamp()
+                RegisterTimestamp = Context.CurrentBlockTime.ToTimestamp(),
+                Options = {input.Options}
             };
-            votingItem.Options.AddRange(input.Options);
-            if (Context.CurrentHeight > 1)
-            {
-                votingItem.RegisterTimestamp = Context.CurrentBlockTime.ToTimestamp();
-            }
 
             State.VotingItems[votingItemId] = votingItem;
 
@@ -90,15 +82,10 @@ namespace AElf.Contracts.Vote
 
         public override Empty Vote(VoteInput input)
         {
-            var votingItem = State.VotingItems[input.VotingItemId];
-            
-            Assert(votingItem != null, "Voting item not found.");
-            if (votingItem == null)
-            {
-                return new Empty();
-            }
+            var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Options.Contains(input.Option), $"Option {input.Option} not found.");
-            Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber, "Current voting item already ended.");
+            Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber,
+                "Current voting item already ended.");
             if (!votingItem.IsLockToken)
             {
                 Assert(votingItem.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
@@ -129,6 +116,7 @@ namespace AElf.Contracts.Vote
             {
                 votingResult.Results.Add(input.Option, 0);
             }
+
             var currentVotes = votingResult.Results[input.Option];
             votingResult.Results[input.Option] = currentVotes.Add(input.Amount);
             votingResult.VotersCount = votingResult.VotersCount.Add(1);
@@ -191,7 +179,7 @@ namespace AElf.Contracts.Vote
             State.VotingRecords[input.VoteId] = votingRecord;
 
             var votingResultHash = GetVotingResultHash(votingRecord.VotingItemId, votingRecord.SnapshotNumber);
-            
+
             var votedItems = State.VotedItemsMap[votingRecord.Voter];
             votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].ActiveVotes.Remove(input.VoteId);
             votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].WithdrawnVotes.Add(input.VoteId);
@@ -224,12 +212,8 @@ namespace AElf.Contracts.Vote
 
         public override Empty TakeSnapshot(TakeSnapshotInput input)
         {
-            var votingItem = State.VotingItems[input.VotingItemId];
-            Assert(votingItem != null, "Voting item not found.");
-            if (votingItem == null)
-            {
-                return new Empty();
-            }
+            var votingItem = AssertVotingItem(input.VotingItemId);
+
             Assert(votingItem.CurrentSnapshotNumber - 1 <= votingItem.TotalSnapshotNumber,
                 "Current voting item already ended.");
 
@@ -255,24 +239,9 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
-        public override VotingResult GetVotingResult(GetVotingResultInput input)
-        {
-            var votingResultHash = new VotingResult
-            {
-                VotingItemId = input.VotingItemId,
-                SnapshotNumber = input.SnapshotNumber
-            }.GetHash();
-            return State.VotingResults[votingResultHash];
-        }
-
         public override Empty AddOption(AddOptionInput input)
         {
-            var votingItem = State.VotingItems[input.VotingItemId];
-            Assert(votingItem != null, "Voting item not found.");
-            if (votingItem == null)
-            {
-                return new Empty();
-            }
+            var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
             Assert(!votingItem.Options.Contains(input.Option), "Option already exists.");
             votingItem.Options.Add(input.Option);
@@ -282,12 +251,7 @@ namespace AElf.Contracts.Vote
 
         public override Empty RemoveOption(RemoveOptionInput input)
         {
-            var votingItem = State.VotingItems[input.VotingItemId];
-            Assert(votingItem != null, "Voting item not found.");
-            if (votingItem == null)
-            {
-                return new Empty();
-            }
+            var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
             Assert(votingItem.Options.Contains(input.Option), "Option doesn't exist.");
             votingItem.Options.Remove(input.Option);
@@ -295,26 +259,39 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
-        public override VotedItems GetVotedItems(Address input)
+        public override Empty AddOptions(AddOptionsInput input)
         {
-            return State.VotedItemsMap[input] ?? new VotedItems();
+            var votingItem = AssertVotingItem(input.VotingItemId);
+            Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
+            foreach (var option in input.Options)
+            {
+                Assert(!votingItem.Options.Contains(option), "Option already exists.");
+            }
+            votingItem.Options.AddRange(input.Options);
+            State.VotingItems[votingItem.VotingItemId] = votingItem;
+            return new Empty();
         }
 
-        public override VotingRecord GetVotingRecord(Hash input)
+        public override Empty RemoveOptions(RemoveOptionsInput input)
         {
-            var votingRecord = State.VotingRecords[input];
-            Assert(votingRecord != null, "Voting record not found.");
-            return votingRecord;
+            var votingItem = AssertVotingItem(input.VotingItemId);
+            Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
+            foreach (var option in input.Options)
+            {
+                Assert(votingItem.Options.Contains(option), "Option doesn't exist.");
+                votingItem.Options.Remove(option);
+            }
+            State.VotingItems[votingItem.VotingItemId] = votingItem;
+            return new Empty();
         }
-        
 
-        public override VotingItem GetVotingItem(GetVotingItemInput input)
+        private VotingItem AssertVotingItem(Hash votingItemId)
         {
-            var votingEvent = State.VotingItems[input.VotingItemId];
-            Assert(votingEvent != null, "Voting Event not found.");
-            return votingEvent;
+            var votingItem = State.VotingItems[votingItemId];
+            Assert(votingItem != null, "Voting item not found.");
+            return votingItem;
         }
-        
+
         private void InitializeDependentContracts()
         {
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();

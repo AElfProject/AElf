@@ -84,6 +84,16 @@ message RemoveOptionInput {
     string option = 2;
 }
 
+message AddOptionsInput {
+    Hash voting_item_id = 1;
+    repeated string options = 2;
+}
+
+message RemoveOptionsInput {
+    Hash voting_item_id = 1;
+    repeated string options = 2;
+}
+
 message VotedItems {
     map<string, VotedIds> voted_item_vote_ids = 1;
 }

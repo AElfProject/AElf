@@ -29,7 +29,7 @@ namespace AElf.Contracts.Vote
         /// <param name="sender"></param>
         /// <param name="totalSnapshotNumber"></param>
         /// <returns></returns>
-        private async Task<VotingItem> RegisterVotingItem(int lastingDays, int optionsCount, bool isLockToken, Address sender,
+        private async Task<VotingItem> RegisterVotingItemAsync(int lastingDays, int optionsCount, bool isLockToken, Address sender,
             int totalSnapshotNumber = int.MaxValue)
         {
             var startTime = DateTime.UtcNow;
@@ -42,7 +42,8 @@ namespace AElf.Contracts.Vote
                 AcceptedCurrency = TestTokenSymbol,
                 IsLockToken = isLockToken
             };
-            await VoteContractStub.Register.SendAsync(input);
+            var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             return await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
                 {VotingItemId = input.GetHash(sender)});
         }
