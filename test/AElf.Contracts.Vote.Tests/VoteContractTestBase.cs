@@ -128,5 +128,14 @@ namespace AElf.Contracts.Vote
 
             return tokenContractCallList;
         }
+
+        protected long GetUserBalance(Address owner)
+        {
+            return TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = owner,
+                Symbol = TestTokenSymbol
+            }).Result.Balance;
+        }
     }
 }

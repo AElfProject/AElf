@@ -106,16 +106,21 @@ namespace AElf.Contracts.Vote
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1); 
 
                 var voteUser = SampleECKeyPairs.KeyPairs[1];
+                var voteAddress = Address.FromPublicKey(voteUser.PublicKey);
                 var withdrawUser = SampleECKeyPairs.KeyPairs[2];
                 
                 await Vote(voteUser, registerItem.VotingItemId, registerItem.Options[1], 100);
-                var snapshotResult = await TakeSnapshot(registerItem.VotingItemId, 1);
+                await TakeSnapshot(registerItem.VotingItemId, 1);
 
                 var voteIds = await GetVoteIds(voteUser, registerItem.VotingItemId);
-                var transactionResult = await Withdraw(withdrawUser, voteIds.WithdrawnVotes.First());
+                var beforeBalance = GetUserBalance(voteAddress);
                 
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("").ShouldBeTrue();
+                var transactionResult = await Withdraw(withdrawUser, voteIds.ActiveVotes.First());
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                var afterBalance = GetUserBalance(voteAddress);
+                
+                beforeBalance.ShouldBe(afterBalance);
             }
             
             //vote but not expire
@@ -130,7 +135,7 @@ namespace AElf.Contracts.Vote
                 var transactionResult = await Withdraw(voteUser, voteIds.ActiveVotes.First());
                 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("").ShouldBeTrue();
+                transactionResult.Error.Contains("Cannot withdraw votes of on-going voting item").ShouldBeTrue();
             }
             
             //success
@@ -138,21 +143,35 @@ namespace AElf.Contracts.Vote
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1); 
 
                 var voteUser = SampleECKeyPairs.KeyPairs[1];
+                var voteAddress = Address.FromPublicKey(voteUser.PublicKey);
                 
                 await Vote(voteUser, registerItem.VotingItemId, registerItem.Options[1], 100);
                 await TakeSnapshot(registerItem.VotingItemId, 1);
 
                 var voteIds = await GetVoteIds(voteUser, registerItem.VotingItemId);
-                var transactionResult = await Withdraw(voteUser, voteIds.WithdrawnVotes.First());
+                var beforeBalance = GetUserBalance(voteAddress);
+                var transactionResult = await Withdraw(voteUser, voteIds.ActiveVotes.First());
                 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var afterBalance = GetUserBalance(voteAddress);
+                beforeBalance.ShouldBe(afterBalance - 100);
             }
         }
         
         [Fact]
         public async Task VoteContract_AddOption()
         {
+            //add duplicate option
             
+            //add without permission
+            {
+                
+            }
+            //add success
+            {
+                
+            }
         }
         
         [Fact]
