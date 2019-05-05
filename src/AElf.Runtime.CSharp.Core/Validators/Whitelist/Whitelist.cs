@@ -138,12 +138,12 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
             }
             
             // Reached the most base type, now we can validate against the whitelist
-            results.AddRange(ValidateWhitelist(method, type, member));
+            results.AddRange(ValidateAgainstWhitelist(method, type, member));
 
             return results;
         }
 
-        private IEnumerable<ValidationResult> ValidateWhitelist(MethodDefinition method, TypeReference type, string member = null)
+        private IEnumerable<ValidationResult> ValidateAgainstWhitelist(MethodDefinition method, TypeReference type, string member = null)
         {
             // Allow own defined types
             if (type is TypeDefinition)
