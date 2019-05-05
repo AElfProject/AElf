@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using AElf.Contracts.AssociationAuth;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
@@ -44,6 +46,22 @@ namespace AElf.Runtime.CSharp.Tests
             foreach (var contract in contracts)
             {
                 var contractDllPath = "../../../../../contracts/" + contract;
+                
+                using (FileStream fs = new FileStream(contractDllPath, FileMode.Open))
+                using (BufferedStream bs = new BufferedStream(fs))
+                {
+                    using (SHA1Managed sha1 = new SHA1Managed())
+                    {
+                        byte[] hash = sha1.ComputeHash(bs);
+                        var formatted = new StringBuilder(2 * hash.Length);
+                        foreach (byte b in hash)
+                        {
+                            formatted.AppendFormat("{0:X2}", b);
+                        }
+                        
+                        _testOutputHelper.WriteLine("DLL Hash: " + formatted);
+                    }
+                }
     
                 Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), false));
             }
