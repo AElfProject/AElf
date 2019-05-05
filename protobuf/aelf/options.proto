@@ -1,6 +1,7 @@
 syntax = "proto2";
 
 package aelf;
+option csharp_namespace="AElf";
 
 import "google/protobuf/descriptor.proto";
 

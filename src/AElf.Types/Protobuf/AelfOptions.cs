@@ -9,10 +9,10 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace Aelf {
+namespace AElf {
 
   /// <summary>Holder for reflection information generated from aelf_options.proto</summary>
-  public static partial class AelfOptionsReflection {
+  public static partial class OptionsReflection {
 
     #region Descriptor
     /// <summary>File descriptor for aelf_options.proto</summary>
@@ -21,7 +21,7 @@ namespace Aelf {
     }
     private static pbr::FileDescriptor descriptor;
 
-    static AelfOptionsReflection()
+    static OptionsReflection()
     {
       byte[] descriptorData = global::System.Convert.FromBase64String(
         string.Concat(

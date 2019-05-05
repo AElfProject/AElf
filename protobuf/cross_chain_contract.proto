@@ -1,6 +1,5 @@
 syntax = "proto3";
 
-import "common.proto";
 import "core.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
@@ -190,6 +189,10 @@ message CrossChainBlockData {
     repeated SideChainBlockData SideChainBlockData = 1;
     repeated ParentChainBlockData ParentChainBlockData = 2;
     int64 PreviousBlockHeight = 3;
+}
+
+message MerklePath {
+    repeated Hash Path = 1;
 }
 
 message CrossChainMerkleProofContext{

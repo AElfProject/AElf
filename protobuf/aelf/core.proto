@@ -1,9 +1,10 @@
 syntax = "proto3";
 
-option csharp_namespace = "AElf.Kernel";
+package aelf;
+
+option csharp_namespace = "AElf.Types";
 
 import "google/protobuf/timestamp.proto";
-import "common.proto";
 
 message Transaction {
     Address From = 1;
@@ -200,9 +201,9 @@ message SmartContractRegistration {
 //    int32 LeafCount = 3;
 //}
 
-message MerklePath {
-    repeated Hash Path = 1;
-}
+//message MerklePath {
+//    repeated Hash Path = 1;
+//}
 
 message StringList {
     repeated string Values = 1;
@@ -378,4 +379,26 @@ message ValidationResult {
 
 message ConsensusInformation {
     bytes Bytes = 1;
+}
+
+// Common
+
+message Address
+{
+    bytes Value = 1;
+}
+
+message Hash
+{
+    bytes Value = 1;
+}
+
+message SInt32Value
+{
+    sint32 Value = 1;
+}
+
+message SInt64Value
+{
+    sint64 Value = 1;
 }

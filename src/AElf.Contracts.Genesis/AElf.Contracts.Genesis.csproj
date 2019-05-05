@@ -9,14 +9,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\..\protobuf\aelf_options.proto">
-            <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\common.proto">
-            <Link>Protobuf/Proto/common.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\kernel.proto">
-            <Link>Protobuf/Proto/kernel.proto</Link>
+        <None Include="..\..\protobuf\aelf\*">
+            <Link>Protobuf/Proto/aelf\*</Link>
         </None>
         <None Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>

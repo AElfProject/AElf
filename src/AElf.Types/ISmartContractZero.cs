@@ -1,3 +1,5 @@
+using AElf.Types;
+
 namespace AElf.Kernel.KernelAccount
 {
     public interface ISmartContractZero : ISmartContract

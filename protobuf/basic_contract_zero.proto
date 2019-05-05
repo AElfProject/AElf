@@ -2,9 +2,8 @@ syntax = "proto3";
 
 package zero;
 
-import "common.proto";
-import "core.proto";
-import "aelf_options.proto";
+import "aelf/core.proto";
+import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
@@ -13,31 +12,31 @@ option csharp_namespace = "AElf.Contracts.Genesis";
 service BasicContractZero {
     option (aelf.csharp_state) = "AElf.Contracts.Genesis.BasicContractZeroState";
     // Actions
-    rpc DeploySystemSmartContract (SystemContractDeploymentInput) returns (Address) {
+    rpc DeploySystemSmartContract (aelf.SystemContractDeploymentInput) returns (aelf.Address) {
     }
-    rpc DeploySmartContract (ContractDeploymentInput) returns (Address) {
+    rpc DeploySmartContract (aelf.ContractDeploymentInput) returns (aelf.Address) {
     }
-    rpc UpdateSmartContract (ContractUpdateInput) returns (Address) {
+    rpc UpdateSmartContract (aelf.ContractUpdateInput) returns (aelf.Address) {
     }
-    rpc ChangeContractOwner (ChangeContractOwnerInput) returns (google.protobuf.Empty) {
+    rpc ChangeContractOwner (aelf.ChangeContractOwnerInput) returns (google.protobuf.Empty) {
     }
     // Views
     rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetContractInfo (Address) returns (ContractInfo) {
+    rpc GetContractInfo (aelf.Address) returns (aelf.ContractInfo) {
         option (aelf.is_view) = true;
     }
-    rpc GetContractOwner (Address) returns (Address) {
+    rpc GetContractOwner (aelf.Address) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetContractHash (Address) returns (Hash) {
+    rpc GetContractHash (aelf.Address) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
-    rpc GetContractAddressByName (Hash) returns (Address) {
+    rpc GetContractAddressByName (aelf.Hash) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetSmartContractRegistrationByAddress (Address) returns (SmartContractRegistration) {
+    rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
     }
 }
@@ -46,23 +45,23 @@ service BasicContractZero {
 message ContractDeployed
 {
     option (aelf.is_event) = true;
-    Address creator = 1 [(aelf.is_indexed) = true];
-    Hash codeHash = 2 [(aelf.is_indexed) = true];
-    Address address = 3;
+    aelf.Address creator = 1 [(aelf.is_indexed) = true];
+    aelf.Hash codeHash = 2 [(aelf.is_indexed) = true];
+    aelf.Address address = 3;
 }
 
 message CodeUpdated
 {
     option (aelf.is_event) = true;
-    Address address = 1 [(aelf.is_indexed) = true];
-    Hash oldCodeHash = 2;
-    Hash newCodeHash = 3;
+    aelf.Address address = 1 [(aelf.is_indexed) = true];
+    aelf.Hash oldCodeHash = 2;
+    aelf.Hash newCodeHash = 3;
 }
 
 message OwnerChanged
 {
     option (aelf.is_event) = true;
-    Address address = 1 [(aelf.is_indexed) = true];
-    Address oldOwner = 2;
-    Address newOwner = 3;
+    aelf.Address address = 1 [(aelf.is_indexed) = true];
+    aelf.Address oldOwner = 2;
+    aelf.Address newOwner = 3;
 }

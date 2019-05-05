@@ -1,7 +1,6 @@
 ﻿using Google.Protobuf;
 
-// ReSharper disable once CheckNamespace
-namespace AElf.Kernel
+namespace AElf.Types
 {
     public partial class TransactionResult
     {

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using AElf.Types;
+
 namespace AElf.Sdk.CSharp.State
 {
     public class ContractReferenceState : SingletonState<Address>

@@ -2,7 +2,7 @@ using System;
 using System.Security.Cryptography;
 using Google.Protobuf;
 
-namespace AElf.Kernel
+namespace AElf.Types
 {
     public partial class Transaction
     {
