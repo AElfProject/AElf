@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets"/>
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Resource.FeeReceiver</PackageId>
@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -15,7 +15,7 @@
             <Link>$(ProjectDir)\Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
-    
+
     <ItemGroup>
         <ContractCode Include="$(SolutionDir)\protobuf\fee_receiver_contract.proto">
             <Link>$(ProjectDir)\Protobuf\Proto\fee_receiver_contract.proto</Link>
