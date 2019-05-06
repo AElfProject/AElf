@@ -1,4 +1,5 @@
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Types;
 
 namespace AElf.Contracts.ReferendumAuth
 {
