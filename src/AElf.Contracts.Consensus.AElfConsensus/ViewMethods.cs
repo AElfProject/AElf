@@ -40,7 +40,9 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             if (currentRound == null) return new ConsensusCommand();
 
-            var command = GetConsensusCommand(behaviour, currentRound, input.PublicKey.ToHex(),
+            TryToGetPreviousRoundInformation(out var previousRound);
+
+            var command = GetConsensusCommand(behaviour, currentRound, previousRound, input.PublicKey.ToHex(),
                 Context.CurrentBlockTime);
 
             Context.LogDebug(() =>
@@ -103,7 +105,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                         Round = updatedRound,
                         Behaviour = behaviour,
                     };
-                case AElfConsensusBehaviour.UpdateValueOfTinyBlock:
+                case AElfConsensusBehaviour.TinyBlock:
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks = currentRound
                         .RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks.Add(1);
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
@@ -158,13 +160,27 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
-                case AElfConsensusBehaviour.UpdateValueOfTinyBlock:
                     return new TransactionList
                     {
                         Transactions =
                         {
                             GenerateTransaction(nameof(UpdateValue),
                                 round.ExtractInformationToUpdateConsensus(publicKey.ToHex()))
+                        }
+                    };
+                case AElfConsensusBehaviour.TinyBlock:
+                    var minerInRound = round.RealTimeMinersInformation[publicKey.ToHex()];
+                    return new TransactionList
+                    {
+                        Transactions =
+                        {
+                            GenerateTransaction(nameof(TinyBlock),
+                                new TinyBlockInput
+                                {
+                                    ActualMiningTime = minerInRound.ActualMiningTime,
+                                    ProducedBlocks = minerInRound.ProducedBlocks,
+                                    RoundId = round.RoundId
+                                })
                         }
                     };
                 case AElfConsensusBehaviour.NextRound:
@@ -253,7 +269,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     break;
                 case AElfConsensusBehaviour.Nothing:
                     return new ValidationResult {Success = false, Message = "Invalid behaviour"};
-                case AElfConsensusBehaviour.UpdateValueOfTinyBlock:
+                case AElfConsensusBehaviour.TinyBlock:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

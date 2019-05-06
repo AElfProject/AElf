@@ -55,7 +55,7 @@ message Round {
 
 // The information of a miner in a specific round.
 message MinerInRound {
-    sint32 Order = 1;
+    sint32 order = 1;
     bool IsExtraBlockProducer = 2;
     Hash InValue = 3;
     Hash OutValue = 4;
@@ -90,7 +90,7 @@ enum AElfConsensusBehaviour {
     NextTerm = 2;
     UpdateValueWithoutPreviousInValue = 3;
     Nothing = 4;
-    UpdateValueOfTinyBlock = 5;
+    TinyBlock = 5;
 }
 
 message AElfConsensusTriggerInformation {
@@ -112,4 +112,10 @@ message TermInfo {
 message MinerListWithRoundNumber {
     Miners MinerList = 1;
     sint64 RoundNumber = 4;
+}
+
+message TinyBlockInput {
+    sint64 round_id = 1;
+    google.protobuf.Timestamp actual_mining_time = 2;
+    sint64 produced_blocks = 3;
 }

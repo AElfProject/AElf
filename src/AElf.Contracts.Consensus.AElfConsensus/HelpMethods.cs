@@ -48,6 +48,13 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     // Failed to get previous round information or just changed term.
                     return AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue;
                 }
+                
+                if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
+                    dateTime < currentRound.GetStartTime() &&
+                    minerInRound.ProducedTinyBlocks < AElfConsensusContractConstants.TinyBlocksNumber)
+                {
+                    return AElfConsensusBehaviour.TinyBlock;
+                }
 
                 if (!isTimeSlotPassed)
                 {
@@ -57,7 +64,12 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             }
             else if (minerInRound.ProducedTinyBlocks < AElfConsensusContractConstants.TinyBlocksNumber)
             {
-                return AElfConsensusBehaviour.UpdateValueOfTinyBlock;
+                return AElfConsensusBehaviour.TinyBlock;
+            }
+            else if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
+                     minerInRound.ProducedTinyBlocks < AElfConsensusContractConstants.TinyBlocksNumber.Mul(2))
+            {
+                return AElfConsensusBehaviour.TinyBlock;
             }
 
             // If this node missed his time slot, a command of terminating current round will be fired,
@@ -95,18 +107,17 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         /// It's the situation this miner should skip his time slot more precisely.
         /// </summary>
         /// <param name="behaviour"></param>
-        /// <param name="round"></param>
+        /// <param name="currentRound"></param>
         /// <param name="publicKey"></param>
         /// <param name="dateTime"></param>
-        /// <param name="isTimeSlotSkippable"></param>
         /// <returns></returns>
-        private ConsensusCommand GetConsensusCommand(AElfConsensusBehaviour behaviour, Round round, string publicKey,
+        private ConsensusCommand GetConsensusCommand(AElfConsensusBehaviour behaviour, Round currentRound, Round previousRound, string publicKey,
             DateTime dateTime)
         {
-            var minerInRound = round.RealTimeMinersInformation[publicKey];
-            var miningInterval = round.GetMiningInterval();
-            var myOrder = round.RealTimeMinersInformation[minerInRound.PublicKey].Order;
-            var expectedMiningTime = round.RealTimeMinersInformation[minerInRound.PublicKey].ExpectedMiningTime;
+            var minerInRound = currentRound.RealTimeMinersInformation[publicKey];
+            var miningInterval = currentRound.GetMiningInterval();
+            var myOrder = currentRound.RealTimeMinersInformation[minerInRound.PublicKey].Order;
+            var expectedMiningTime = currentRound.RealTimeMinersInformation[minerInRound.PublicKey].ExpectedMiningTime;
 
             int nextBlockMiningLeftMilliseconds;
             var hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString();
@@ -125,21 +136,37 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     nextBlockMiningLeftMilliseconds =
                         (int) (expectedMiningTime.ToDateTime() - dateTime).TotalMilliseconds;
                     break;
-                case AElfConsensusBehaviour.UpdateValueOfTinyBlock:
-                    expectedMiningTime = expectedMiningTime.ToDateTime().AddMilliseconds(producedTinyBlocks
-                        .Mul(miningInterval).Div(AElfConsensusContractConstants.TinyBlocksNumber)).ToTimestamp();
+                case AElfConsensusBehaviour.TinyBlock:
+                    if (minerInRound.OutValue != null)
+                    {
+                        if (currentRound.ExtraBlockProducerOfPreviousRound != publicKey)
+                        {
+                            expectedMiningTime = expectedMiningTime.ToDateTime().AddMilliseconds(producedTinyBlocks
+                                .Mul(miningInterval).Div(AElfConsensusContractConstants.TinyBlocksNumber)).ToTimestamp();
+                        }
+
+                        expectedMiningTime = expectedMiningTime.ToDateTime().AddMilliseconds(producedTinyBlocks
+                            .Sub(AElfConsensusContractConstants.TinyBlocksNumber)
+                            .Mul(miningInterval).Div(AElfConsensusContractConstants.TinyBlocksNumber)).ToTimestamp();
+
+                    }
+                    else if (previousRound != null)
+                    {
+                        expectedMiningTime = previousRound.GetExtraBlockMiningTime().AddMilliseconds(producedTinyBlocks
+                            .Mul(miningInterval).Div(AElfConsensusContractConstants.TinyBlocksNumber)).ToTimestamp();
+                    }
                     nextBlockMiningLeftMilliseconds =
                         (int) (expectedMiningTime.ToDateTime() - dateTime).TotalMilliseconds;
                     break;
                 case AElfConsensusBehaviour.NextRound:
-                    nextBlockMiningLeftMilliseconds = round.RoundNumber == 1
-                        ? round.RealTimeMinersInformation.Count * miningInterval + myOrder * miningInterval
-                        : (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
+                    nextBlockMiningLeftMilliseconds = currentRound.RoundNumber == 1
+                        ? currentRound.RealTimeMinersInformation.Count * miningInterval + myOrder * miningInterval
+                        : (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
                                  dateTime).TotalMilliseconds;
                     break;
                 case AElfConsensusBehaviour.NextTerm:
                     nextBlockMiningLeftMilliseconds =
-                        (int) (round.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
+                        (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
                                dateTime).TotalMilliseconds;
                     break;
                 default:

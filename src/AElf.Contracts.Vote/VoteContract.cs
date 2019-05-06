@@ -168,6 +168,8 @@ namespace AElf.Contracts.Vote
                 return new Empty();
             }
 
+            Assert(votingRecord.Voter == Context.Sender, "No privilege to withdraw these votes.");
+
             var votingItem = State.VotingItems[votingRecord.VotingItemId];
 
             Assert(votingItem.CurrentSnapshotNumber > votingRecord.SnapshotNumber,
@@ -213,6 +215,8 @@ namespace AElf.Contracts.Vote
         public override Empty TakeSnapshot(TakeSnapshotInput input)
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
+            
+            Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can take snapshot.");
 
             Assert(votingItem.CurrentSnapshotNumber - 1 <= votingItem.TotalSnapshotNumber,
                 "Current voting item already ended.");

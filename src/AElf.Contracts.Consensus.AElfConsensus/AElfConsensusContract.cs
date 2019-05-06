@@ -81,22 +81,14 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         public override Empty UpdateValue(ToUpdate input)
         {
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
-
             Assert(input.RoundId == round.RoundId, "Round Id not matched.");
 
             var publicKey = Context.RecoverPublicKey().ToHex();
 
             round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
             round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
-
-            round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks =
-                round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks.Add(1);
-
-            if (round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks != 1)
-            {
-                Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
-                return new Empty();
-            }
+            var producedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks;
+            round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks = producedTinyBlocks.Add(1);
 
             round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
             round.RealTimeMinersInformation[publicKey].OutValue = input.OutValue;
@@ -147,6 +139,23 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         }
 
         #endregion
+
+        public override Empty TinyBlock(TinyBlockInput input)
+        {
+            Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
+            Assert(input.RoundId == round.RoundId, "Round Id not matched.");
+
+            var publicKey = Context.RecoverPublicKey().ToHex();
+
+            round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
+            round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
+            var producedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks;
+            round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks = producedTinyBlocks.Add(1);
+
+            Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
+
+            return new Empty();
+        }
 
         #region NextRound
 

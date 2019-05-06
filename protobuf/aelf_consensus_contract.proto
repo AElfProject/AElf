@@ -22,6 +22,8 @@ service AElfConsensusContract {
     }
     rpc NextTerm (Round) returns (google.protobuf.Empty) {
     }
+    rpc TinyBlock (TinyBlockInput) returns (google.protobuf.Empty) {
+    }
     rpc GetLIBOffset (google.protobuf.Empty) returns (SInt64Value) {
     }
     

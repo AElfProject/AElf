@@ -293,16 +293,6 @@ namespace AElf.Consensus.AElfConsensus
 
             var minerInRound = RealTimeMinersInformation[publicKey];
 
-            if (RealTimeMinersInformation[publicKey].ProducedTinyBlocks > 1)
-            {
-                return new ToUpdate
-                {
-                    RoundId = RoundId,
-                    ActualMiningTime = minerInRound.ActualMiningTime,
-                    ProducedBlocks = minerInRound.ProducedBlocks
-                };
-            }
-
             var tuneOrderInformation = RealTimeMinersInformation.Values
                 .Where(m => m.FinalOrderOfNextRound != m.SupposedOrderOfNextRound)
                 .ToDictionary(m => m.PublicKey, m => m.FinalOrderOfNextRound);
