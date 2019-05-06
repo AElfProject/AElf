@@ -1,8 +1,7 @@
 syntax = "proto3";
 
-import "aelf_options.proto";
-import "common.proto";
-import "core.proto";
+import "aelf/options.proto";
+import "aelf/core.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -14,7 +13,7 @@ message InitialBasicContractInput {
     int64 MinValue = 2;
     int64 MaxValue = 3;
     int64 MortgageValue = 4;
-    Address Manager = 5;
+    aelf.Address Manager = 5;
 }
 
 message BetLimitInput {

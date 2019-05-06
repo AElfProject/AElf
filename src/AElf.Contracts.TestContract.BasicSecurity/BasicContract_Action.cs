@@ -1,5 +1,7 @@
 using System;
+using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.BasicSecurity
