@@ -207,7 +207,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"rawTransactions",rawTransactions}
             };
             var broadcastTransactionsResponse =
-                await PostResponseAsObjectAsync<string[]>("/api/blockChain/broadcastTransactions", parameters);
+                await PostResponseAsObjectAsync<string[]>("/api/blockChain/broadcastTransactions", parameters,
+                    useApplicationJson: true);
             var responseTransactionIds = broadcastTransactionsResponse.ToList();
 
             responseTransactionIds.Count.ShouldBe(2);

@@ -32,7 +32,7 @@ namespace AElf.WebApp.Application.Chain
 
         Task<BroadcastTransactionOutput> BroadcastTransaction(BroadcastTransactionInput input);
 
-        Task<string[]> BroadcastTransactions(string rawTransactions);
+        Task<string[]> BroadcastTransactions(BroadcastTransactionsInput input);
 
         Task<TransactionResultDto> GetTransactionResult(string transactionId);
 
@@ -215,11 +215,10 @@ namespace AElf.WebApp.Application.Chain
         /// <summary>
         /// Broadcast multiple transactions
         /// </summary>
-        /// <param name="rawTransactions">raw transactions</param>
         /// <returns></returns>
-        public async Task<string[]> BroadcastTransactions(string rawTransactions)
+        public async Task<string[]> BroadcastTransactions(BroadcastTransactionsInput input)
         {
-            var txIds = await PublishTransactionsAsync(rawTransactions.Split(","));
+            var txIds = await PublishTransactionsAsync(input.RawTransactions.Split(","));
             
             return txIds;
         }
