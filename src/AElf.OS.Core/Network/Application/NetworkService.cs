@@ -38,6 +38,11 @@ namespace AElf.OS.Network.Application
             return _peerPool.GetPeers(true).Select(p => p.PeerIpAddress).ToList();
         }
 
+        public List<IPeer> GetPeers()
+        {
+            return _peerPool.GetPeers(true).ToList();
+        }
+
         public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader)
         {
             int successfulBcasts = 0;
