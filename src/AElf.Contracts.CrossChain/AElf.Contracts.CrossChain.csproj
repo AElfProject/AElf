@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets" />
+    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets"/>
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.CrossChain</PackageId>
@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -30,42 +30,11 @@
             <Link>$(ProjectDir)\Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
-    
+
     <ItemGroup>
         <ContractCode Include="$(SolutionDir)\protobuf\cross_chain_contract.proto">
             <Link>$(ProjectDir)\Protobuf\Proto\cross_chain_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
-    <!--<ItemGroup>-->
-        <!--<None Include="..\..\protobuf\aelf_options.proto">-->
-            <!--<Link>Protobuf/Proto/aelf_options.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\core.proto">-->
-            <!--<Link>Protobuf/Proto/core.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\common.proto">-->
-            <!--<Link>Protobuf/Proto/common.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\token_contract.proto">-->
-            <!--<Link>Protobuf/Proto/token_contract.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\acs3.proto">-->
-            <!--<Link>Protobuf/Proto/acs3.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\cross_chain_contract.proto">-->
-            <!--<Link>Protobuf/Proto/cross_chain_contract.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\parliament_auth_contract.proto">-->
-            <!--<Link>Protobuf/Proto/parliament_auth_contract.proto</Link>-->
-        <!--</None>-->
-    <!--</ItemGroup>-->
-    <!--<Target Name="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh acs3.proto basic_contract_zero.proto token_contract.proto dpos_sidechain_contract.proto parliament_auth_contract.proto; ../../scripts/generate_contract_code.sh cross_chain_contract.proto" />-->
-        <!--<Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat acs3.proto basic_contract_zero.proto token_contract.proto dpos_sidechain_contract.proto parliament_auth_contract.proto &amp; ..\..\scripts\generate_contract_code.bat cross_chain_contract.proto" />-->
-    <!--</Target>-->
-    <!--<Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<ItemGroup>-->
-            <!--<Compile Include="./Protobuf/Generated/*.cs" />-->
-        <!--</ItemGroup>-->
-    <!--</Target>-->
+
 </Project>
