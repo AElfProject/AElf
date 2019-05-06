@@ -1,5 +1,6 @@
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Resource

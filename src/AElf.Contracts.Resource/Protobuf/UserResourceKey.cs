@@ -1,3 +1,5 @@
+using AElf.Types;
+
 namespace AElf.Contracts.Resource
 {
     public partial class UserResourceKey
