@@ -8,6 +8,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
@@ -51,7 +52,11 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogTrace($"Attempting to reach {ipAddress}.");
 
-            Channel channel = new Channel(ipAddress, ChannelCredentials.Insecure);
+            Channel channel = new Channel(ipAddress, ChannelCredentials.Insecure, new List<ChannelOption>
+            {
+                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConsts.DefaultMaxSendMessageLength),
+                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConsts.DefaultMaxReceiveMessageLength)
+            });
 
             var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
             {
@@ -92,7 +97,9 @@ namespace AElf.OS.Network.Grpc
             }
 
             var pubKey = connectReply.Handshake.HskData.PublicKey.ToHex();
-            var peer = new GrpcPeer(channel, client, pubKey, ipAddress);
+
+            var peer = new GrpcPeer(channel, client, pubKey, ipAddress, connectReply.Handshake.HskData.Version,
+                DateTime.UtcNow.ToTimestamp().Seconds, connectReply.Handshake.Header.Height, false);
 
             if (!_authenticatedPeers.TryAdd(pubKey, peer))
             {
