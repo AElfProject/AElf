@@ -116,6 +116,17 @@ namespace AElf.Contracts.Vote
                 user3VoteIds.ActiveVotes.Count.ShouldBe(3);
                 user3VoteIds.WithdrawnVotes.Count.ShouldBe(0);
             }
+            
+            //phase 3
+            {
+                //take snapshot
+                var snapshotResult = await TakeSnapshot(registerItem.VotingItemId, 3);
+                snapshotResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var transactionResult = await Vote(user2, registerItem.VotingItemId, registerItem.Options[0], 100);
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Current voting item already ended").ShouldBeTrue();
+            }
         }
     }
 }
