@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets"/>
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Consensus.DPoS</PackageId>
@@ -7,36 +7,27 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\..\protobuf\common.proto">
-            <Link>Protobuf/Proto/common.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\aelf_options.proto">
-            <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\dividend_contract.proto">
-            <Link>Protobuf/Proto/dividend_contract.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\dpos_contract.proto">
-            <Link>Protobuf/Proto/dpos_contract.proto</Link>
-        </None>
+        <ContractReference Include="$(ProtoBaseDir)\token_contract.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="$(ProtoBaseDir)\dividend_contract.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\reference\dividend_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="$(ProtoBaseDir)\acs0.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
     </ItemGroup>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto dividend_contract.proto token_contract.proto; ../../scripts/generate_contract_code.sh dpos_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto dividend_contract.proto token_contract.proto &amp; ..\..\scripts\generate_contract_code.bat dpos_contract.proto" />
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs" />
-        </ItemGroup>
-    </Target>
+    <ItemGroup>
+        <ContractBase Include="$(ProtoBaseDir)\acs4.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\acs4.proto</Link>
+        </ContractBase>
+        <ContractCode Include="$(ProtoBaseDir)\dpos_contract.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\dpos_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
 </Project>

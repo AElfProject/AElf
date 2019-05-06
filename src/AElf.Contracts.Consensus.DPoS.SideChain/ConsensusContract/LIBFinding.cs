@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs4;
 using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Consensus.DPoS.SideChain

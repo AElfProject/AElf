@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
 using System.Text;
+using Acs4;
 using AElf.Cryptography.SecretSharing;
-using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Contracts.Consensus.DPoS.SideChain

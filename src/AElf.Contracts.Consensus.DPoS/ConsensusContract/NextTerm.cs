@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs4;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 //using AddDividendsInput = AElf.Consensus.DPoS.AddDividendsInput;
 

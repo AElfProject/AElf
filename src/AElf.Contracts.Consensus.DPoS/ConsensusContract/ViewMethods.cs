@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Kernel;
+using Acs4;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 //using PageInfo = AElf.Consensus.DPoS.PageInfo;
 //using VotingRecord = AElf.Consensus.DPoS.VotingRecord;

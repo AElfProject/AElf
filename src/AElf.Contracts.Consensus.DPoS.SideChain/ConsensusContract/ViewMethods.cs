@@ -1,3 +1,4 @@
+using Acs4;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS.SideChain

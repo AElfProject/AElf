@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using AElf.Kernel;
+using Acs4;
 
 namespace AElf.Contracts.Consensus.DPoS
 {

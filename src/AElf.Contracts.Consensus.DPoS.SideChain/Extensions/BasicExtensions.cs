@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Acs4;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
@@ -295,95 +297,9 @@ namespace AElf.Contracts.Consensus.DPoS
             return new StringValue {Value = value};
         }
 
-        /// <summary>
-        /// Include both min and max value.
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="min"></param>
-        /// <param name="max"></param>
-        /// <returns></returns>
-        public static bool InRange(this int value, int min, int max)
-        {
-            return value >= min && value <= max;
-        }
-
-        public static Round GenerateFirstRoundOfNewTerm(this Miners miners, int miningInterval,
-            DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
-        {
-            var dict = new Dictionary<string, int>();
-
-            foreach (var miner in miners.PublicKeys)
-            {
-                dict.Add(miner, miner[0]);
-            }
-
-            var sortedMiners =
-                (from obj in dict
-                    orderby obj.Value descending
-                    select obj.Key).ToList();
-
-            var round = new Round();
-
-            for (var i = 0; i < sortedMiners.Count; i++)
-            {
-                var minerInRound = new MinerInRound();
-
-                // The first miner will be the extra block producer of first round of each term.
-                if (i == 0)
-                {
-                    minerInRound.IsExtraBlockProducer = true;
-                }
-
-                minerInRound.PublicKey = sortedMiners[i];
-                minerInRound.Order = i + 1;
-                minerInRound.ExpectedMiningTime =
-                    currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval).ToTimestamp();
-                minerInRound.PromisedTinyBlocks = 1;
-                // Should be careful during validation.
-                minerInRound.PreviousInValue = Hash.Empty;
-
-                round.RealTimeMinersInformation.Add(sortedMiners[i], minerInRound);
-            }
-
-            round.RoundNumber = currentRoundNumber + 1;
-            round.TermNumber = currentTermNumber + 1;
-
-            return round;
-        }
-
-        public static Hash GetMinersHash(this Miners miners)
-        {
-            var orderedMiners = miners.PublicKeys.OrderBy(p => p);
-            return Hash.FromString(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
-        }
-
         public static long GetMinedBlocks(this Round round)
         {
             return round.RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
-        }
-
-        public static void AddCandidate(this Candidates candidates, byte[] publicKey)
-        {
-            candidates.PublicKeys.Add(publicKey.ToHex());
-            candidates.Addresses.Add(Address.FromPublicKey(publicKey));
-        }
-
-        public static bool RemoveCandidate(this Candidates candidates, byte[] publicKey)
-        {
-            var result1 = candidates.PublicKeys.Remove(publicKey.ToHex());
-            var result2 = candidates.Addresses.Remove(Address.FromPublicKey(publicKey));
-            return result1 && result2;
-        }
-
-        public static bool IsExpired(this VotingRecord votingRecord, long currentAge)
-        {
-            var lockExpiredAge = votingRecord.VoteAge;
-            foreach (var day in votingRecord.LockDaysList)
-            {
-                lockExpiredAge += day;
-            }
-
-            return lockExpiredAge <= currentAge;
         }
 
         public static Miners ToMiners(this List<string> minerPublicKeys, long termNumber = 0)

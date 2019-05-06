@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package token;
 
-import "common.proto";
-import "aelf_options.proto";
+import "aelf/core.proto";
+import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
@@ -44,7 +44,7 @@ service TokenContract {
     }
     rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) {
     }
-    rpc SetFeePoolAddress (Hash) returns (google.protobuf.Empty) {
+    rpc SetFeePoolAddress (aelf.Hash) returns (google.protobuf.Empty) {
     }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -67,7 +67,7 @@ message TokenInfo {
     sint64 supply = 3;
     sint64 totalSupply = 4;
     sint32 decimals = 5;
-    Address issuer = 6;
+    aelf.Address issuer = 6;
     bool isBurnable = 7;
 }
 
@@ -76,9 +76,9 @@ message CreateInput {
     string tokenName = 2;
     sint64 totalSupply = 3;
     sint32 decimals = 4;
-    Address issuer = 5;
+    aelf.Address issuer = 5;
     bool isBurnable = 6;
-    repeated Address lockWhiteList = 7;
+    repeated aelf.Address lockWhiteList = 7;
 }
 
 message CreateNativeTokenInput {
@@ -86,66 +86,66 @@ message CreateNativeTokenInput {
     string tokenName = 2;
     sint64 totalSupply = 3;
     sint32 decimals = 4;
-    Address issuer = 5;
+    aelf.Address issuer = 5;
     bool isBurnable = 6;
-    repeated Hash lockWhiteSystemContractNameList = 7;
+    repeated aelf.Hash lockWhiteSystemContractNameList = 7;
 }
 
 message IssueInput {
     string symbol = 1;
     sint64 amount = 2;
     string memo = 3;
-    Address to = 4;
+    aelf.Address to = 4;
 }
 
 message IssueNativeTokenInput {
     string symbol = 1;
     sint64 amount = 2;
     string memo = 3;
-    Hash toSystemContractName = 4;
+    aelf.Hash toSystemContractName = 4;
 }
 
 message TransferInput {
-    Address to = 1;
+    aelf.Address to = 1;
     string symbol = 2;
     sint64 amount = 3;
     string memo = 4;
 }
 
 message LockInput {
-    Address from = 1; // The one want to lock his token.
-    Address to = 2; // The address in white list.
-    Hash lockId = 3;
+    aelf.Address from = 1; // The one want to lock his token.
+    aelf.Address to = 2; // The address in white list.
+    aelf.Hash lockId = 3;
     string symbol = 4;
     string usage = 5;
     int64 amount = 6;
 }
 
 message UnlockInput {
-    Address from = 1; // The one want to lock his token.
-    Address to = 2; // The address in white list.
-    Hash lockId = 3;
+    aelf.Address from = 1; // The one want to lock his token.
+    aelf.Address to = 2; // The address in white list.
+    aelf.Hash lockId = 3;
     string symbol = 4;
     string usage = 5;
     int64 amount = 6;
 }
 
 message TransferFromInput {
-    Address from = 1;
-    Address to = 2;
+    aelf.Address from = 1;
+    aelf.Address to = 2;
     string symbol = 3;
     sint64 amount = 4;
     string memo = 5;
 }
 
 message ApproveInput {
-    Address spender = 1;
+    aelf.Address spender = 1;
     string symbol = 2;
     sint64 amount = 3;
 }
 
 message UnApproveInput {
-    Address spender = 1;
+    aelf.Address spender = 1;
     string symbol = 2;
     sint64 amount = 3;
 }
@@ -171,34 +171,34 @@ message GetTokenInfoInput {
 
 message GetBalanceInput {
     string symbol = 1;
-    Address owner = 2;
+    aelf.Address owner = 2;
 }
 
 message GetBalanceOutput {
     string symbol = 1;
-    Address owner = 2;
+    aelf.Address owner = 2;
     sint64 balance = 3;
 }
 
 message GetAllowanceInput {
     string symbol = 1;
-    Address owner = 2;
-    Address spender = 3;
+    aelf.Address owner = 2;
+    aelf.Address spender = 3;
 }
 
 message GetAllowanceOutput {
     string symbol = 1;
-    Address owner = 2;
-    Address spender = 3;
+    aelf.Address owner = 2;
+    aelf.Address spender = 3;
     sint64 allowance = 4;
 }
 
 message IntializeTokenContractInput {
-    Hash crossChainContractSystemName = 1;
+    aelf.Hash crossChainContractSystemName = 1;
 }
 
 message CrossChainTransferInput {
-    Address to = 1;
+    aelf.Address to = 1;
     TokenInfo tokenInfo = 2;
     sint64 amount = 3;
     string memo = 4;
@@ -209,14 +209,14 @@ message CrossChainReceiveTokenInput {
     int32 fromChainId = 1;
     int64 parentChainHeight = 2;
     bytes transferTransactionBytes = 3;
-    repeated Hash merklePath = 4;
+    repeated aelf.Hash merklePath = 4;
 }
 
 // EventsCreateInput
 message Transferred {
     option (aelf.is_event) = true;
-    Address from = 1 [(aelf.is_indexed) = true];
-    Address to = 2 [(aelf.is_indexed) = true];
+    aelf.Address from = 1 [(aelf.is_indexed) = true];
+    aelf.Address to = 2 [(aelf.is_indexed) = true];
     string symbol = 3 [(aelf.is_indexed) = true];
     sint64 amount = 4;
     string memo = 5;
@@ -224,16 +224,16 @@ message Transferred {
 
 message Approved {
     option (aelf.is_event) = true;
-    Address owner = 1 [(aelf.is_indexed) = true];
-    Address spender = 2 [(aelf.is_indexed) = true];
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    aelf.Address spender = 2 [(aelf.is_indexed) = true];
     string symbol = 3 [(aelf.is_indexed) = true];
     sint64 amount = 4;
 }
 
 message UnApproved {
     option (aelf.is_event) = true;
-    Address owner = 1 [(aelf.is_indexed) = true];
-    Address spender = 2 [(aelf.is_indexed) = true];
+    aelf.Address owner = 1 [(aelf.is_indexed) = true];
+    aelf.Address spender = 2 [(aelf.is_indexed) = true];
     string symbol = 3 [(aelf.is_indexed) = true];
     sint64 amount = 4;
 }
@@ -241,12 +241,12 @@ message UnApproved {
 message Burned
 {
     option (aelf.is_event) = true;
-    Address burner = 1 [(aelf.is_indexed) = true];
+    aelf.Address burner = 1 [(aelf.is_indexed) = true];
     string symbol = 2 [(aelf.is_indexed) = true];
     sint64 amount = 3;
 }
 
 message IsInWhiteListInput {
     string symbol = 1;
-    Address address = 2;
+    aelf.Address address = 2;
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 //using VoteInput = AElf.Consensus.DPoS.VoteInput;

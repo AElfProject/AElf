@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Types;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Contracts.Consensus.DPoS.SideChain
+namespace Acs4
 {
     public partial class Round
     {

@@ -2,9 +2,8 @@ syntax = "proto3";
 
 package dividend;
 
-import "common.proto";
-import "core.proto";
-import "aelf_options.proto";
+import "aelf/core.proto";
+import "aelf/options.proto";
 //import "consensus_dpos.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
@@ -18,39 +17,39 @@ service DividendContract {
     }
     rpc SendDividends (SendDividendsInput) returns (google.protobuf.Empty) {
     }
-    rpc TransferDividends (VotingRecord) returns (SInt64Value) {
+    rpc TransferDividends (VotingRecord) returns (aelf.SInt64Value) {
     }
-    rpc AddDividends (AddDividendsInput) returns (SInt64Value) {
+    rpc AddDividends (AddDividendsInput) returns (aelf.SInt64Value) {
     }
-    rpc AddWeights (WeightsInfo) returns (SInt64Value) {
+    rpc AddWeights (WeightsInfo) returns (aelf.SInt64Value) {
     }
-    rpc KeepWeights (SInt64Value) returns (ActionResult) {
+    rpc KeepWeights (aelf.SInt64Value) returns (aelf.ActionResult) {
     }
-    rpc SubWeights (WeightsInfo) returns (ActionResult) {
+    rpc SubWeights (WeightsInfo) returns (aelf.ActionResult) {
     }
     // Views
-    rpc GetTermDividends (SInt64Value) returns (SInt64Value) {
+    rpc GetTermDividends (aelf.SInt64Value) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetTermTotalWeights (SInt64Value) returns (SInt64Value) {
+    rpc GetTermTotalWeights (aelf.SInt64Value) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetLatestRequestDividendsTermNumber (VotingRecord) returns (SInt64Value) {
+    rpc GetLatestRequestDividendsTermNumber (VotingRecord) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetAvailableDividends (VotingRecord) returns (SInt64Value) {
+    rpc GetAvailableDividends (VotingRecord) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetExpireTermNumber (VoteInfo) returns (SInt64Value) {
+    rpc GetExpireTermNumber (VoteInfo) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetDurationDays (VoteInfo) returns (SInt64Value) {
+    rpc GetDurationDays (VoteInfo) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetAllAvailableDividends (PublicKey) returns (SInt64Value) {
+    rpc GetAllAvailableDividends (PublicKey) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc CheckDividends (CheckDividendsInput) returns (SInt64Value) {
+    rpc CheckDividends (CheckDividendsInput) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
     rpc CheckDividendsOfPreviousTerm (google.protobuf.Empty) returns (LongList) {
@@ -64,25 +63,25 @@ service DividendContract {
 
 // Just used as parameter of consensus contract method.
 message ToUpdate {
-    Hash OutValue = 1;// Calculated from current in value.
-    Hash Signature = 2;// Calculated from current in value and signatures of previous round.
+    aelf.Hash OutValue = 1;// Calculated from current in value.
+    aelf.Hash Signature = 2;// Calculated from current in value and signatures of previous round.
     int64 RoundId = 3;// To ensure the values to update will be apply to correct round by comparing round id.
     int32 PromiseTinyBlocks = 4;// This value is 1 by default, except this miner wanna produce tiny blocks in one time slot.
-    Hash PreviousInValue = 5;// Publish previous in value for validation previous signature and previous out value.
+    aelf.Hash PreviousInValue = 5;// Publish previous in value for validation previous signature and previous out value.
     google.protobuf.Timestamp ActualMiningTime = 6;
     int32 SupposedOrderOfNextRound = 7;
     map<string, int32> TuneOrderInformation = 8;
     map<string, bytes> EncryptedInValues = 9;// For others to recover his in value of current round.
     map<string, bytes> DecryptedPreviousInValues = 10;
     int64 ProducedBlocks = 11;
-    map<string, Hash> MinersPreviousInValues = 12;
+    map<string, aelf.Hash> MinersPreviousInValues = 12;
 }
 
 // The miners public key list for each term.
 message Miners {
     int64 TermNumber = 1;
     repeated string PublicKeys = 2;
-    repeated Address Addresses = 3;
+    repeated aelf.Address Addresses = 3;
 }
 
 // To query to first round number of each term.
@@ -93,7 +92,7 @@ message TermNumberLookUp {
 // All the candidates.
 message Candidates {
     repeated string PublicKeys = 1;
-    repeated Address Addresses = 2;
+    repeated aelf.Address Addresses = 2;
     bool IsInitialMiners = 3;
 }
 
@@ -105,8 +104,8 @@ message Tickets {
     int64 VotedTickets = 4;
     int64 HistoryObtainedTickets = 5;
     int64 HistoryVotedTickets = 6;
-    repeated Hash VoteToTransactions = 8;
-    repeated Hash VoteFromTransactions = 9;
+    repeated aelf.Hash VoteToTransactions = 8;
+    repeated aelf.Hash VoteFromTransactions = 9;
     string PublicKey = 10;
 }
 
@@ -116,7 +115,7 @@ message VotingRecord {
     string To = 2;
     int64 Count = 3;
     int64 RoundNumber = 4;
-    Hash TransactionId = 5;
+    aelf.Hash TransactionId = 5;
     int64 VoteAge = 6;
     repeated int32 LockDaysList = 7;// Can be renewed by adding items.
     int64 UnlockAge = 8;
@@ -138,7 +137,7 @@ message TermSnapshot {
 // The information of a candidate of a specific term.
 message CandidateInTerm {
     string PublicKey = 1;
-    Address Address = 2;
+    aelf.Address Address = 2;
     int64 Votes = 3;
 }
 
@@ -156,16 +155,16 @@ message Round {
 message MinerInRound {
     int32 Order = 1;
     bool IsExtraBlockProducer = 2;
-    Hash InValue = 3;
-    Hash OutValue = 4;
-    Hash Signature = 5;
+    aelf.Hash InValue = 3;
+    aelf.Hash OutValue = 4;
+    aelf.Hash Signature = 5;
     google.protobuf.Timestamp ExpectedMiningTime = 6;
     int64 ProducedBlocks = 7;
     int64 MissedTimeSlots = 8;
     string PublicKey = 9;
     int32 PromisedTinyBlocks = 10;
     string Alias = 11;
-    Hash PreviousInValue = 12;
+    aelf.Hash PreviousInValue = 12;
     int32 SupposedOrderOfNextRound = 13;
     int32 FinalOrderOfNextRound = 14;
     google.protobuf.Timestamp ActualMiningTime = 15;// Miners must fill actual mining time when they do the mining.
@@ -184,8 +183,8 @@ message CandidateInHistory {
     repeated string Aliases = 7;
     string CurrentAlias = 8;
     int64 CurrentVotesNumber = 9;
-    Address Address = 11;
-    Hash AnnouncementTransactionId = 12;
+    aelf.Address Address = 11;
+    aelf.Hash AnnouncementTransactionId = 12;
     bool IsEvilNode = 13;
 }
 
@@ -237,8 +236,8 @@ enum DPoSBehaviour {
 
 message DPoSTriggerInformation {
     bytes PublicKey = 1;// A must-have.
-    Hash RandomHash = 2;// To calculate In Value.
-    Hash PreviousRandomHash = 3;// Random hash of previous round for validation.
+    aelf.Hash RandomHash = 2;// To calculate In Value.
+    aelf.Hash PreviousRandomHash = 3;// Random hash of previous round for validation.
     DPoSBehaviour Behaviour = 4;
     int64 InitialTermNumber = 5;
 }
@@ -248,14 +247,14 @@ message CommandInput {
 }
 
 message InitialDPoSContractInput {
-    Hash tokenContractSystemName = 1;
-    Hash dividendsContractSystemName = 2;
+    aelf.Hash tokenContractSystemName = 1;
+    aelf.Hash dividendsContractSystemName = 2;
     sint64 lockTokenForElection = 3;
 }
 
 message InitialDividendContractInput {
-    Hash tokenContractSystemName = 1;
-    Hash consensusContractSystemName = 2;
+    aelf.Hash tokenContractSystemName = 1;
+    aelf.Hash consensusContractSystemName = 2;
 }
 
 message DPoSStrategyInput {
@@ -310,7 +309,7 @@ message MinerListWithRoundNumber {
 }
 
 message SendDividendsInput {
-    Address to = 1;
+    aelf.Address to = 1;
     sint64 amount = 2;
 }
 
@@ -333,4 +332,9 @@ message CheckDividendsInput {
     sint64 termNumber = 1;
     sint64 ticketsAmount = 2;
     sint32 lockTime = 3;
+}
+
+message LongList {
+    repeated int64 Values = 1;
+    string Remark = 2;
 }

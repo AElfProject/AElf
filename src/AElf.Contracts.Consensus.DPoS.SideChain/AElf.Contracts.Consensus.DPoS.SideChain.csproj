@@ -1,32 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets"/>
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
-
     <ItemGroup>
-      <None Include="..\..\protobuf\aelf_options.proto">
-        <Link>Protobuf/Proto/aelf_options.proto</Link>
-      </None>
-      <None Include="..\..\protobuf\core.proto">
-        <Link>Protobuf/Proto/core.proto</Link>
-      </None>
-      <None Include="..\..\protobuf\dpos_sidechain_contract.proto">
-        <Link>Protobuf/Proto/dpos_sidechain_contract.proto</Link>
-      </None>
+        <ContractBase Include="$(ProtoBaseDir)\acs4.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\acs4.proto</Link>
+        </ContractBase>
+        <ContractBase Include="$(ProtoBaseDir)\acs0.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\acs0.proto</Link>
+        </ContractBase>
+        <ContractCode Include="$(ProtoBaseDir)\dpos_sidechain_contract.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\dpos_sidechain_contract.proto</Link>
+        </ContractCode>
+        <ContractInternal Include="$(ProtoBaseDir)\dpos_sidechain_contract_internal.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\internal\dpos_sidechain_contract_internal.proto</Link>
+        </ContractInternal>
     </ItemGroup>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh dpos_sidechain_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_code.bat dpos_sidechain_contract.proto" />
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs" />
-        </ItemGroup>
-    </Target>
-
 </Project>

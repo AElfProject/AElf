@@ -1,3 +1,4 @@
+using Acs4;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf.WellKnownTypes;
 
@@ -23,7 +24,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// Record the start round of each term.
         /// In Map: term number -> round number
         /// </summary>
-        public SingletonState<TermNumberLookUp> TermNumberLookupField { get; set; }
+//        public SingletonState<TermNumberLookUp> TermNumberLookupField { get; set; }
 
         /// <summary>
         /// Timestamp for genesis of this blockchain.
@@ -33,7 +34,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// <summary>
         /// The nodes declared join the election for Miners.
         /// </summary>
-        public SingletonState<Candidates> CandidatesField { get; set; }
+//        public SingletonState<Candidates> CandidatesField { get; set; }
 
         /// <summary>
         /// Days since we started this blockchain.
