@@ -4,5 +4,7 @@ namespace AElf.Contracts.Consensus.DPoS
     internal static class ConsensusDPoSConsts
     {
         public const long DaysEachTerm = 7;
+
+        public const double BlockMiningTimeRatio = 0.4;
     }
 }

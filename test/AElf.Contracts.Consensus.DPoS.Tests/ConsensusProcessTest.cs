@@ -203,7 +203,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Assert
             Assert.Equal(DPoSBehaviour.NextRound, DPoSHint.Parser.ParseFrom(command.Hint).Behaviour);
             Assert.True(command.NextBlockMiningLeftMilliseconds > 0);
-            Assert.Equal(4000, command.LimitMillisecondsOfMiningBlock);
+            Assert.Equal(4000 * ConsensusDPoSConsts.BlockMiningTimeRatio, command.LimitMillisecondsOfMiningBlock);
         }
 
         [Fact]

@@ -39,7 +39,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 var command = await BootMiner.GetConsensusCommand.CallAsync(new CommandInput
                     {PublicKey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)});
                 command.NextBlockMiningLeftMilliseconds.ShouldBe(MiningInterval);
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval);
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(
+                    (int) (MiningInterval * ConsensusDPoSConsts.BlockMiningTimeRatio));
                 command.Hint.ShouldBe(new DPoSHint {Behaviour = DPoSBehaviour.UpdateValueWithoutPreviousInValue}
                     .ToByteArray());
             }
@@ -53,7 +54,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 var command = await otherMiner.GetConsensusCommand.CallAsync(new CommandInput
                     {PublicKey = ByteString.CopyFrom(otherMinerKeyPair.PublicKey)});
                 command.NextBlockMiningLeftMilliseconds.ShouldBe(MiningInterval * MinersCount + MiningInterval * order);
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval);
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(
+                    (int) (MiningInterval * ConsensusDPoSConsts.BlockMiningTimeRatio));
                 command.Hint.ShouldBe(new DPoSHint {Behaviour = DPoSBehaviour.NextRound}
                     .ToByteArray());
             }
@@ -91,7 +93,8 @@ namespace AElf.Contracts.Consensus.DPoS
                 var command = await miner.GetConsensusCommand.CallAsync(new CommandInput
                     {PublicKey = ByteString.CopyFrom(minerKeyPair.PublicKey)});
                 command.NextBlockMiningLeftMilliseconds.ShouldBe(leftMilliseconds);
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval);
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(
+                    (int) (MiningInterval * ConsensusDPoSConsts.BlockMiningTimeRatio));
                 command.Hint.ShouldBe(new DPoSHint {Behaviour = DPoSBehaviour.UpdateValue}
                     .ToByteArray());
             }
@@ -117,7 +120,9 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     command.NextBlockMiningLeftMilliseconds.ShouldBe(leftMilliseconds);
                 }
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval);
+
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(
+                    (int) (MiningInterval * ConsensusDPoSConsts.BlockMiningTimeRatio));
                 command.Hint.ShouldBe(new DPoSHint {Behaviour = DPoSBehaviour.NextRound}
                     .ToByteArray());
             }

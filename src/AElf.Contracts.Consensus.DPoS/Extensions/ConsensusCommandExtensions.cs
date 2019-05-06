@@ -126,7 +126,8 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 ExpectedMiningTime = expectedMiningTime,
                 NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
-                LimitMillisecondsOfMiningBlock = miningInterval / minerInRound.PromisedTinyBlocks,
+                LimitMillisecondsOfMiningBlock = (int) (miningInterval * ConsensusDPoSConsts.BlockMiningTimeRatio /
+                                                        minerInRound.PromisedTinyBlocks),
                 Hint = hint
             };
         }
