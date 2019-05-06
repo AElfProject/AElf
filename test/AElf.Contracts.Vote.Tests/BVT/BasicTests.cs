@@ -162,35 +162,214 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_AddOption()
         {
-            //add duplicate option
-            
             //add without permission
             {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var transactionResult = (await GetVoteContractTester(otherUser).AddOption.SendAsync(new AddOptionInput
+                {
+                    Option = Address.Generate().GetFormatted(),
+                    VotingItemId = registerItem.VotingItemId
+                })).TransactionResult;
                 
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Only sponsor can update options").ShouldBeTrue();
             }
+            
+            //add duplicate option
+            {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+                var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
+                {
+                    Option = registerItem.Options[0],
+                    VotingItemId = registerItem.VotingItemId
+                })).TransactionResult;
+             
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Option already exists").ShouldBeTrue();
+            }
+            
             //add success
             {
-                
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+                var address = Address.Generate().GetFormatted();
+                var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
+                {
+                    Option = address,
+                    VotingItemId = registerItem.VotingItemId
+                })).TransactionResult;
+             
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var votingItem = await GetVoteItem(registerItem.VotingItemId);
+                votingItem.Options.Count.ShouldBe(4);
+                votingItem.Options.Contains(address).ShouldBeTrue();
             }
         }
         
         [Fact]
         public async Task VoteContract_RemoveOption()
         {
+            //remove without permission
+            {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1); 
+                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var transactionResult = (await GetVoteContractTester(otherUser).RemoveOption.SendAsync(new RemoveOptionInput
+                {
+                    Option = registerItem.Options[0],
+                    VotingItemId = registerItem.VotingItemId
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Only sponsor can update options").ShouldBeTrue();
+            }
             
+            //remove not exist one
+            {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1); 
+                var transactionResult = (await VoteContractStub.RemoveOption.SendAsync(new RemoveOptionInput
+                {
+                    Option = Address.Generate().GetFormatted(),
+                    VotingItemId = registerItem.VotingItemId
+                })).TransactionResult;
+             
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Option doesn't exist").ShouldBeTrue();
+            }
+            
+            //remove success
+            {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
+                var removeOption = registerItem.Options[0];
+                var transactionResult = (await VoteContractStub.RemoveOption.SendAsync(new RemoveOptionInput
+                {
+                    Option = removeOption,
+                    VotingItemId = registerItem.VotingItemId
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var votingItem = await GetVoteItem(registerItem.VotingItemId);
+                votingItem.Options.Count.ShouldBe(2);
+                votingItem.Options.Contains(removeOption).ShouldBeFalse();
+            }
         }
         
         [Fact]
         public async Task VoteContract_AddOptions()
         {
-            
+            //without permission
+            {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1); 
+                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var transactionResult = (await GetVoteContractTester(otherUser).AddOptions.SendAsync(new AddOptionsInput
+                {
+                    VotingItemId = registerItem.VotingItemId,
+                    Options =
+                    {
+                        Address.Generate().GetFormatted(),
+                        Address.Generate().GetFormatted()
+                    }
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Only sponsor can update options").ShouldBeTrue();
+            }
+            //with some of exist
+            {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1); 
+                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var transactionResult = (await VoteContractStub.AddOptions.SendAsync(new AddOptionsInput
+                {
+                    VotingItemId = registerItem.VotingItemId,
+                    Options =
+                    {
+                        Address.Generate().GetFormatted(),
+                        registerItem.Options[1]
+                    }
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Option already exists").ShouldBeTrue();
+            }
+            //success
+            {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1); 
+                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var transactionResult = (await VoteContractStub.AddOptions.SendAsync(new AddOptionsInput
+                {
+                    VotingItemId = registerItem.VotingItemId,
+                    Options =
+                    {
+                        Address.Generate().GetFormatted(),
+                        Address.Generate().GetFormatted()
+                    }
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var votingItem = await GetVoteItem(registerItem.VotingItemId);
+                votingItem.Options.Count.ShouldBe(5);
+            }
         }
-        
+
         [Fact]
         public async Task VoteContract_RemoveOptions()
         {
-            
-        }
+            //without permission
+            {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1); 
+                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var transactionResult = (await GetVoteContractTester(otherUser).RemoveOptions.SendAsync(new RemoveOptionsInput
+                {
+                    VotingItemId = registerItem.VotingItemId,
+                    Options =
+                    {
+                        registerItem.Options[0],
+                        registerItem.Options[1]
+                    }
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Only sponsor can update options").ShouldBeTrue();
+            }
+            //with some of not exist
+            {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1); 
+                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var transactionResult = (await VoteContractStub.RemoveOptions.SendAsync(new RemoveOptionsInput
+                {
+                    VotingItemId = registerItem.VotingItemId,
+                    Options =
+                    {
+                        registerItem.Options[0],
+                        Address.Generate().GetFormatted()
+                    }
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Option doesn't exist").ShouldBeTrue();
+            }
+            //success
+            {
+                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1); 
+                var otherUser = SampleECKeyPairs.KeyPairs[10];
+                var transactionResult = (await VoteContractStub.RemoveOptions.SendAsync(new RemoveOptionsInput
+                {
+                    VotingItemId = registerItem.VotingItemId,
+                    Options =
+                    {
+                        registerItem.Options[0],
+                        registerItem.Options[1]
+                    }
+                })).TransactionResult;
+                
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var votingItem = await GetVoteItem(registerItem.VotingItemId);
+                votingItem.Options.Count.ShouldBe(1);
+            }
+        }    
 
         [Fact]
         public async Task VoteContract_GetVotingResult()

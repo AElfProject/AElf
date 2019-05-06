@@ -84,6 +84,14 @@ namespace AElf.Contracts.Vote
             })).TransactionResult;
         }
 
+        private async Task<VotingItem> GetVoteItem(Hash votingItemId)
+        {
+            return await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
+            {
+                VotingItemId = votingItemId
+            });
+        }
+        
         private async Task<VotedIds> GetVoteIds(ECKeyPair voterKeyPair, Hash votingItemId)
         {
             var voterStub = GetVoteContractTester(voterKeyPair);
