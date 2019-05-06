@@ -196,7 +196,7 @@ namespace AElf.Contracts.Vote
 
             State.VotingResults[votingResultHash] = votingResult;
 
-            if (!State.VotingItems[votingRecord.VotingItemId].IsLockToken)
+            if (State.VotingItems[votingRecord.VotingItemId].IsLockToken)
             {
                 State.TokenContract.Unlock.Send(new UnlockInput
                 {

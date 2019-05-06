@@ -1,7 +1,9 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Vote;
 using Xunit;
@@ -42,7 +44,23 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_Register_CurrencyNotSupportVoting()
         {
+            var startTime = DateTime.UtcNow;
+            var input = new VotingRegisterInput
+            {
+                TotalSnapshotNumber = 5,
+                EndTimestamp = startTime.AddDays(100).ToTimestamp(),
+                StartTimestamp = startTime.ToTimestamp(),
+                Options =
+                {
+                    GenerateOptions(3)
+                },
+                AcceptedCurrency = "USDT",
+                IsLockToken = true
+            };
+            var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
             
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed); 
+            transactionResult.Error.Contains("Claimed accepted token is not available for voting").ShouldBeTrue();
         }
 
         [Fact]
