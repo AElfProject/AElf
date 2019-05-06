@@ -1,10 +1,11 @@
 syntax = "proto3";
 
+package aelf;
+
 option csharp_namespace = "AElf.Kernel";
 
 import "google/protobuf/timestamp.proto";
-import "common.proto";
-import "core.proto";
+import "aelf/core.proto";
 
 //message Transaction {
 //    Address From = 1;

@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using AElf.Contracts.CrossChain;
+using AElf.Types;
 
 namespace AElf.Kernel
 {
@@ -108,7 +111,7 @@ namespace AElf.Kernel
         ///     10 ------ 11
         ///   6 -- 7    8 -- 9   
         ///  0-1  2-3  4-5
-        /// For leaf [4], the returned <see cref="MerklePath.Path"/> is {5, 9, 10}.
+        /// For leaf [4], the returned <see cref="Path"/> is {5, 9, 10}.
         /// </example>
         public MerklePath GenerateMerklePath(int index)
         {
