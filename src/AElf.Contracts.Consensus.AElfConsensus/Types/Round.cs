@@ -391,7 +391,7 @@ namespace AElf.Consensus.AElfConsensus
             };
             return checkableRound.ToByteArray();
         }
-        
+
         public string GetLogs(string publicKey, AElfConsensusBehaviour behaviour)
         {
             var logs = new StringBuilder($"\n[Round {RoundNumber}](Round Id: {RoundId})[Term {TermNumber}]");
