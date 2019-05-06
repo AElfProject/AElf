@@ -11,18 +11,24 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\..\protobuf\common.proto">
-            <Link>Protobuf/Proto/common.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\aelf_options.proto">
-            <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\fee_receiver_contract.proto">
-            <Link>Protobuf/Proto/fee_receiver_contract.proto</Link>
-        </None>
+        <ContractReference Include="$(SolutionDir)\protobuf\token_contract.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <!--<None Include="..\..\protobuf\common.proto">-->
+            <!--<Link>Protobuf/Proto/common.proto</Link>-->
+        <!--</None>-->
+        <!--<None Include="..\..\protobuf\aelf_options.proto">-->
+            <!--<Link>Protobuf/Proto/aelf_options.proto</Link>-->
+        <!--</None>-->
+        <!--<None Include="..\..\protobuf\token_contract.proto">-->
+            <!--<Link>Protobuf/Proto/token_contract.proto</Link>-->
+        <!--</None>-->
+        <ContractCode Include="$(SolutionDir)\protobuf\fee_receiver_contract.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\fee_receiver_contract.proto</Link>
+        </ContractCode>
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
