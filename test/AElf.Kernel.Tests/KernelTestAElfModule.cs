@@ -72,21 +72,22 @@ namespace AElf.Kernel
                 return mockService.Object;
             });
 
-            services.AddTransient(o =>
-            {
-                var mockService = new Mock<IBlockExecutingService>();
-                mockService.Setup(m=>m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>(), It.IsAny<IEnumerable<Transaction>>(), It.IsAny<CancellationToken>()))
-                    .Returns(Task.FromResult(new Block()
-                    {
-                        Body = new BlockBody()
-                        {
-                            TransactionList = { transactionList }
-                        },
-                        Header = new BlockHeader(),
-                        Height = 10
-                    }));
-                return mockService.Object;
-            });
+            // todo add this again
+//            services.AddTransient(o =>
+//            {
+//                var mockService = new Mock<IBlockExecutingService>();
+//                mockService.Setup(m=>m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>(), It.IsAny<IEnumerable<Transaction>>(), It.IsAny<CancellationToken>()))
+//                    .Returns(Task.FromResult(new Block()
+//                    {
+//                        Body = new BlockBody()
+//                        {
+//                            TransactionList = { transactionList }
+//                        },
+//                        Header = new BlockHeader(),
+//                        Height = 10
+//                    }));
+//                return mockService.Object;
+//            });
             
 //            services.AddTransient<IConsensusService, ConsensusService>();
 //            

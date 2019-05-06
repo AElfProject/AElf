@@ -157,7 +157,7 @@ namespace AElf.OS.Network.Grpc
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested block {request.Hash}.");
             
-            var block = await _blockChainService.GetBlockByHashAsync(request.Hash);
+            var block = await _blockChainService.GetBlockWithTransactionsByHashAsync(request.Hash);
 
             if (block == null)
                 Logger.LogDebug($"Could not find block {request.Hash} for {context.GetPeerInfo()}.");

@@ -51,21 +51,21 @@ namespace AElf.OS.Jobs
                 if (args.BlockHash != null && args.BlockHeight < chain.BestChainHeight + 5)
                 {
                     var peerBlockHash = args.BlockHash;
-                    var peerBlock = await _blockchainService.GetBlockByHashAsync(peerBlockHash);
-                    if (peerBlock != null)
+                    var localBlock = await _blockchainService.GetBlockByHashAsync(peerBlockHash);
+                    if (localBlock != null)
                     {
-                        Logger.LogDebug($"Block {peerBlock} already know.");
+                        Logger.LogDebug($"Block {localBlock} already know.");
                         return;
                     }
 
-                    peerBlock = await _networkService.GetBlockByHashAsync(peerBlockHash, args.SuggestedPeerPubKey);
+                    var peerBlock = await _networkService.GetBlockByHashAsync(peerBlockHash, args.SuggestedPeerPubKey);
                     if (peerBlock == null)
                     {
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
                         return;
                     }
 
-                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(peerBlock),
+                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachReceivedBlock(peerBlock),
                         KernelConsts.UpdateChainQueueName);
                     return;
                 }

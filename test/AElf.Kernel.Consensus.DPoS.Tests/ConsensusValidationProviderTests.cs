@@ -56,7 +56,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             var body = new BlockBody
             {
                 BlockHeader = header.GetHash(),
-                TransactionList = { new Transaction() },
                 Transactions = { Hash.Generate() }
             };
             

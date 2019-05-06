@@ -280,15 +280,17 @@ namespace AElf.Contracts.MultiToken
             var feePoolAddressNotSet =
                 State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
             Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
-            var blk = Context.GetPreviousBlock();
-            var senders = blk.TransactionList.Select(t => t.From).ToList();
-            var feePool = State.FeePoolAddress.Value;
-            foreach (var sender in senders)
-            {
-                var fee = State.ChargedFees[sender][input.Symbol];
-                State.ChargedFees[sender][input.Symbol] = 0;
-                State.Balances[feePool][input.Symbol] = State.Balances[feePool][input.Symbol].Add(fee);
-            }
+            
+            // todo change this to get block with tx
+//            var blk = Context.GetPreviousBlock();
+//            var senders = blk.TransactionList.Select(t => t.From).ToList();
+//            var feePool = State.FeePoolAddress.Value;
+//            foreach (var sender in senders)
+//            {
+//                var fee = State.ChargedFees[sender][input.Symbol];
+//                State.ChargedFees[sender][input.Symbol] = 0;
+//                State.Balances[feePool][input.Symbol] = State.Balances[feePool][input.Symbol].Add(fee);
+//            }
 
             return new Empty();
         }

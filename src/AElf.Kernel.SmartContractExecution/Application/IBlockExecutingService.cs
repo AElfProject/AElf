@@ -48,14 +48,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public ILogger<FullBlockchainExecutingService> Logger { get; set; }
 
-        private async Task<bool> ExecuteBlock(ChainBlockLink blockLink, Block block)
+        private async Task<bool> ExecuteBlock(ChainBlockLink blockLink, BlockWithTransaction block)
         {
             var blockState = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
             if (blockState != null)
                 return true;
 
             var blockHash = block.GetHash();
-            var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, block.Body.TransactionList);
+            var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.BlockHeader, block.Transactions);
 
             return executedBlock.GetHash().Equals(blockHash);
         }
@@ -75,10 +75,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 foreach (var blockLink in blockLinks)
                 {
-                    var linkedBlock = await _blockchainService.GetBlockByHashAsync(blockLink.BlockHash);
-
+                    var linkedBlock = await _blockchainService.GetBlockWithTransactionsByHashAsync(blockLink.BlockHash);
+                    
+                    // todo refactor - only used for validation
+                    var linkedBlockAsBlock = linkedBlock.ToBlock();
+                    
                     // Set the other blocks as bad block if found the first bad block
-                    if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(linkedBlock))
+                    if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(linkedBlockAsBlock))
                     {
                         await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
                         Logger.LogWarning($"Block validate fails before execution. block hash : {blockLink.BlockHash}");
@@ -92,7 +95,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                         break;
                     }
 
-                    if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(linkedBlock))
+                    if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(linkedBlockAsBlock))
                     {
                         await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
                         Logger.LogWarning($"Block validate fails after execution. block hash : {blockLink.BlockHash}");
@@ -107,7 +110,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
                     await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                     {
-                        BlockHeader = linkedBlock.Header
+                        BlockHeader = linkedBlock.BlockHeader
                     });
                 }
             }

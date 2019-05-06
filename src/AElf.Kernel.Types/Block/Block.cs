@@ -45,7 +45,5 @@ namespace AElf.Kernel
         {
             return this.ToByteArray();
         }
-
-        public IEnumerable<Transaction> TransactionList => Body.TransactionList;
     }
 }

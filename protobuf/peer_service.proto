@@ -67,7 +67,7 @@ message BlockRequest {
 
 message BlockReply {
     string Error = 1;
-    Block Block = 2;
+    BlockWithTransaction Block = 2;
 }
 
 // **** No reply *****

@@ -28,7 +28,7 @@ namespace AElf.OS
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<Block>()));
                     
                     p1.Setup(p => p.RequestBlockAsync(It.Is<Hash>(h => h == Hash.FromString("bHash1"))))
-                        .Returns<Hash>(h => Task.FromResult(new Block()));
+                        .Returns<Hash>(h => Task.FromResult(new BlockWithTransaction()));
                         
                     return p1.Object;
                 });
@@ -52,7 +52,7 @@ namespace AElf.OS
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<Block> { new Block() }));
                     
                     p2.Setup(p => p.RequestBlockAsync(It.Is<Hash>(h => h == Hash.FromString("block"))))
-                        .Returns<Hash>(h => Task.FromResult(new Block()));
+                        .Returns<Hash>(h => Task.FromResult(new BlockWithTransaction()));
                     peers.Add(p2.Object);
                     
                     var p3 = new Mock<IPeer>();
@@ -60,7 +60,7 @@ namespace AElf.OS
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<Block> { new Block(), new Block() }));
                     
                     p3.Setup(p => p.RequestBlockAsync(It.Is<Hash>(h => h == Hash.FromString("bHash2"))))
-                        .Returns<Hash>(h => Task.FromResult(new Block()));
+                        .Returns<Hash>(h => Task.FromResult(new BlockWithTransaction()));
                     peers.Add(p3.Object);
                     
                     var exceptionOnBcast = new Mock<IPeer>();

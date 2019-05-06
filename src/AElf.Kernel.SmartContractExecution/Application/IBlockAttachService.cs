@@ -9,6 +9,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public interface IBlockAttachService
     {
         Task AttachBlockAsync(Block block);
+        Task AttachReceivedBlock(BlockWithTransaction blockWithTransaction);
     }
 
     public class BlockAttachService : IBlockAttachService, ITransientDependency
@@ -27,24 +28,48 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger = NullLogger<BlockAttachService>.Instance;
         }
 
+        public async Task AttachReceivedBlock(BlockWithTransaction blockWithTransaction)
+        {
+            Block block = blockWithTransaction.ToBlock();
+            
+            if (!await ValidateAsync(block))
+                return;
+            
+            await _blockchainService.AddBlockWithTransactionsAsync(blockWithTransaction);
+            await AttachAndExecute(block);
+        }
+
         public async Task AttachBlockAsync(Block block)
+        {
+            if (!await ValidateAsync(block))
+                return;
+
+            await _blockchainService.AddBlockAsync(block);
+            await AttachAndExecute(block);
+        }
+
+        private async Task AttachAndExecute(Block block)
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
+            await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+        }
+
+        private async Task<bool> ValidateAsync(Block block)
         {
             var existBlock = await _blockchainService.GetBlockHeaderByHashAsync(block.GetHash());
             if (existBlock != null)
             {
                 Logger.LogDebug($"Try attaching block but already exist, {block}");
-                return;
+                return false;
             }
             if (! await _blockValidationService.ValidateBlockBeforeAttachAsync(block))
             {
                 Logger.LogWarning($"Validate block failed (before attach to chain), {block}");
-                return;
+                return false;
             }
 
-            await _blockchainService.AddBlockAsync(block);
-            var chain = await _blockchainService.GetChainAsync();
-            var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
-            await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
+            return true;
         }
     }
 }

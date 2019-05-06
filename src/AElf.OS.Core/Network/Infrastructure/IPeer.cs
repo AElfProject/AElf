@@ -23,7 +23,7 @@ namespace AElf.OS.Network.Infrastructure
 
         Task AnnounceAsync(PeerNewBlockAnnouncement an);
         Task SendTransactionAsync(Transaction tx);
-        Task<Block> RequestBlockAsync(Hash hash);
+        Task<BlockWithTransaction> RequestBlockAsync(Hash hash);
         Task<List<Block>> GetBlocksAsync(Hash previousHash, int count);
     }
 }

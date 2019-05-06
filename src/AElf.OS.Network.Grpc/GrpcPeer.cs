@@ -61,7 +61,7 @@ namespace AElf.OS.Network.Grpc
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
         }
 
-        public async Task<Block> RequestBlockAsync(Hash hash)
+        public async Task<BlockWithTransaction> RequestBlockAsync(Hash hash)
         {
             var blockRequest = new BlockRequest {Hash = hash};
 

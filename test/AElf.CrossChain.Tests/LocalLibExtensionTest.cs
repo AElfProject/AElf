@@ -41,7 +41,6 @@ namespace AElf.CrossChain
             foreach (var txId in body.Transactions)
             {
                 var tx = await _transactionManager.GetTransaction(txId);
-                body.TransactionList.Add(tx);
             }
             irreversibleBlock.Equals(block).ShouldBeTrue();
         }
