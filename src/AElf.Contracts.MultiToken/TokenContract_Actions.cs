@@ -5,6 +5,7 @@ using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Approved = AElf.Contracts.MultiToken.Messages.Approved;
 
