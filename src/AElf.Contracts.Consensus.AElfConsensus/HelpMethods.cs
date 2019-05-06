@@ -108,6 +108,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         /// </summary>
         /// <param name="behaviour"></param>
         /// <param name="currentRound"></param>
+        /// <param name="previousRound"></param>
         /// <param name="publicKey"></param>
         /// <param name="dateTime"></param>
         /// <returns></returns>

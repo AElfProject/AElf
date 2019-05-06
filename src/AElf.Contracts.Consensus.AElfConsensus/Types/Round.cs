@@ -373,6 +373,7 @@ namespace AElf.Consensus.AElfConsensus
             {
                 var checkableMinerInRound = minerInRound.Value.Clone();
                 checkableMinerInRound.EncryptedInValues.Clear();
+                checkableMinerInRound.ActualMiningTime = null;
                 if (!isContainPreviousInValue)
                 {
                     checkableMinerInRound.PreviousInValue = Hash.Empty;
