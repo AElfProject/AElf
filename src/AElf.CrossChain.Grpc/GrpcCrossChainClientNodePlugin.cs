@@ -7,7 +7,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Grpc
 {
-    public class GrpcCrossChainClientNodePlugin : IChainInitializationPlugin, ILocalEventHandler<GrpcServeNewChainReceivedEvent>, ILocalEventHandler<CrossChainDataValidatedEvent>
+    public class GrpcCrossChainClientNodePlugin : IChainInitializationPlugin, ILocalEventHandler<GrpcCrossChainRequestReceivedEvent>, ILocalEventHandler<CrossChainDataValidatedEvent>
     {
         private readonly CrossChainGrpcClientController _crossChainGrpcClientController;
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
@@ -15,6 +15,7 @@ namespace AElf.CrossChain.Grpc
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IBlockchainService _blockchainService;
         private bool _readyToLaunchClient;
+        private int _chainId;
         public GrpcCrossChainClientNodePlugin(CrossChainGrpcClientController crossChainGrpcClientController, 
             IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
             IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption, 
@@ -29,6 +30,7 @@ namespace AElf.CrossChain.Grpc
 
         public async Task StartAsync(int chainId)
         {
+            _chainId = chainId;
             var libIdHeight = await _blockchainService.GetLibHashAndHeight();
             
             if (libIdHeight.BlockHeight > KernelConstants.GenesisBlockHeight)
@@ -41,10 +43,10 @@ namespace AElf.CrossChain.Grpc
                 || _grpcCrossChainConfigOption.LocalServerPort == 0) 
                 return;
             
-            var task = _crossChainGrpcClientController.CreateClient(new GrpcCrossChainCommunicationContext
+            _crossChainGrpcClientController.CreateClient(new GrpcCrossChainCommunicationContext
             {
                 RemoteChainId = _crossChainConfigOption.ParentChainId,
-                RemoteIsSideChain = false,
+                IsClientToParentChain = true,
                 TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
                 TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
                 LocalChainId = chainId,
@@ -53,26 +55,27 @@ namespace AElf.CrossChain.Grpc
             });
         }
 
-        public Task HandleEventAsync(GrpcServeNewChainReceivedEvent receivedEventData)
+        public async Task HandleEventAsync(GrpcCrossChainRequestReceivedEvent requestReceivedEventData)
         {
+            if (!await IsReadyToRequest())
+                return;
             GrpcCrossChainCommunicationContext grpcCrossChainCommunicationContext =
-                (GrpcCrossChainCommunicationContext) receivedEventData.CrossChainCommunicationContextDto;
+                (GrpcCrossChainCommunicationContext) requestReceivedEventData.CrossChainCommunicationContextDto;
             grpcCrossChainCommunicationContext.LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort;
             grpcCrossChainCommunicationContext.ConnectionTimeout = _grpcCrossChainConfigOption.ConnectionTimeout;
-            return _crossChainGrpcClientController.CreateClient(grpcCrossChainCommunicationContext);
+            grpcCrossChainCommunicationContext.LocalChainId = _chainId;
+            await _crossChainGrpcClientController.CreateClient(grpcCrossChainCommunicationContext);
         }
         public async Task HandleEventAsync(CrossChainDataValidatedEvent eventData)
         {
-            if (!await IsReadyToLaunchClient())
+            if (!await IsReadyToRequest())
                 return;
             _crossChainGrpcClientController.RequestCrossChainIndexing();
         }
         
-        public Task ShutdownAsync()
+        public async Task ShutdownAsync()
         {
-            _crossChainGrpcClientController.CloseClientsToSideChain();
-            _crossChainGrpcClientController.CloseClientToParentChain();
-            return Task.CompletedTask;
+            await _crossChainGrpcClientController.CloseClients();
         }
 
         public async Task<ChainInitializationContext> RequestChainInitializationContextAsync(int chainId)
@@ -82,7 +85,7 @@ namespace AElf.CrossChain.Grpc
             return chainInitializationContext;
         }
 
-        private async Task<bool> IsReadyToLaunchClient()
+        private async Task<bool> IsReadyToRequest()
         {
             if (!_readyToLaunchClient)
             {
@@ -92,6 +95,5 @@ namespace AElf.CrossChain.Grpc
 
             return _readyToLaunchClient;
         }
-        
     }
 }

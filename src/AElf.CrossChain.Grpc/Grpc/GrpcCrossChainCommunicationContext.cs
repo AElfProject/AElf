@@ -6,7 +6,7 @@ namespace AElf.CrossChain.Grpc
         public int TargetPort { get; set; }
         public int RemoteChainId { get; set; }
         public int LocalChainId { get; set; }
-        public bool RemoteIsSideChain { get; set; }
+        public bool IsClientToParentChain { get; set; }
         
         public int LocalListeningPort { get; set; }
         public int ConnectionTimeout { get; set; }

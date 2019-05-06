@@ -7,6 +7,6 @@ namespace AElf.CrossChain.Grpc
         int RemoteChainId { get; set; }
         
         int LocalChainId { get; set; }
-        bool RemoteIsSideChain { get; set; }
+        bool IsClientToParentChain { get; set; }
     }
 }

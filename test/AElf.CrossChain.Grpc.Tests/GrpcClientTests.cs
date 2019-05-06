@@ -44,21 +44,21 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task ParentChainClient_TryHandShakeAsync()
         {
-            var result = await parentClient.TryHandShakeAsync(0, ListenPort);
+            var result = await parentClient.HandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
 
             parentClient = new GrpcClientForParentChain("localhost:3000", 0,1);
-            await Assert.ThrowsAsync<RpcException>(()=>parentClient.TryHandShakeAsync(0, 3000));
+            await Assert.ThrowsAsync<RpcException>(()=>parentClient.HandShakeAsync(0, 3000));
         }
         
         [Fact]
         public async Task SideChainClient_TryHandShakeAsync()
         {
-            var result = await sideClient.TryHandShakeAsync(0, ListenPort);
+            var result = await sideClient.HandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
 
             sideClient = new GrpcClientForSideChain("localhost:3000", 1);
-            await Assert.ThrowsAsync<RpcException>(()=>sideClient.TryHandShakeAsync(0, 3000));
+            await Assert.ThrowsAsync<RpcException>(()=>sideClient.HandShakeAsync(0, 3000));
         }
 
         private void InitServerAndClient()

@@ -40,13 +40,13 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task GrpcServeNewChainReceivedEventTest()
         {
-            var receivedEventData = new GrpcServeNewChainReceivedEvent
+            var receivedEventData = new GrpcCrossChainRequestReceivedEvent
             {
                 LocalChainId = _chainOptions.ChainId,
                 CrossChainCommunicationContextDto = new GrpcCrossChainCommunicationContext
                 {
                     RemoteChainId = ChainHelpers.ConvertBase58ToChainId("ETH"),
-                    RemoteIsSideChain = false,
+                    IsClientToParentChain = true,
                     TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
                     TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
                     LocalChainId = _chainOptions.ChainId,

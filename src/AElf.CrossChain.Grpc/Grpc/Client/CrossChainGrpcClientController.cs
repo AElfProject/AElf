@@ -32,13 +32,13 @@ namespace AElf.CrossChain.Grpc
         {
             if(_grpcCrossChainClients.ContainsKey(crossChainCommunicationContext.RemoteChainId))
                 return;
-            if (crossChainCommunicationContext.RemoteIsSideChain && 
+            if (!crossChainCommunicationContext.IsClientToParentChain && 
                 !_crossChainMemoryCacheService.GetCachedChainIds().Contains(crossChainCommunicationContext.RemoteChainId)) 
                 return; // dont create client for not cached remote side chain
             var client = CreateGrpcClient((GrpcCrossChainCommunicationContext)crossChainCommunicationContext);
             Logger.LogTrace(
                 $"Try shake with chain {ChainHelpers.ConvertChainIdToBase58(crossChainCommunicationContext.RemoteChainId)}");
-            var reply = await RequestAsync(client, c => c.TryHandShakeAsync(crossChainCommunicationContext.LocalChainId,
+            var reply = await RequestAsync(client, c => c.HandShakeAsync(crossChainCommunicationContext.LocalChainId,
                 ((GrpcCrossChainCommunicationContext) crossChainCommunicationContext).LocalListeningPort));
             if (reply == null || !reply.Result)
                 return;
@@ -57,14 +57,14 @@ namespace AElf.CrossChain.Grpc
         /// Create a new client to parent chain 
         /// </summary>
         /// <returns>
-        /// </returns>    
+        /// </returns>
         private CrossChainGrpcClient CreateGrpcClient(GrpcCrossChainCommunicationContext grpcClientBase)
         {
             string uri = grpcClientBase.ToUriStr();
 
-            if (!grpcClientBase.RemoteIsSideChain)
+            if (grpcClientBase.IsClientToParentChain)
                 return new GrpcClientForParentChain(uri, grpcClientBase.LocalChainId, grpcClientBase.ConnectionTimeout);
-            var clientToSideChain = new GrpcClientForSideChain(uri, grpcClientBase.ConnectionTimeout);
+            var clientToSideChain = new GrpcClientForSideChain(uri, grpcClientBase.LocalChainId, grpcClientBase.ConnectionTimeout);
             return clientToSideChain;
         }
 
@@ -112,25 +112,14 @@ namespace AElf.CrossChain.Grpc
         }
         
         #endregion
-        
-        /// <summary>
-        /// Close and clear clients to side chain
-        /// </summary>
-        public void CloseClientsToSideChain()
-        {
-            //TokenSourceToSideChain?.Cancel();
-            //TokenSourceToSideChain?.Dispose();
-            throw new NotImplementedException();
-        }
 
-        /// <summary>
-        /// close and clear clients to parent chain
-        /// </summary>
-        public void CloseClientToParentChain()
+        public async Task CloseClients()
         {
-            //TokenSourceToParentChain?.Cancel();
-            //TokenSourceToParentChain?.Dispose();
-            throw new NotImplementedException();
+            foreach (var client in _grpcCrossChainClients.Values)
+            {
+                await client.Close();
+            }
         }
+        
     }
 }

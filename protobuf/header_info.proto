@@ -8,6 +8,7 @@ import "crosschain.proto";
 message RequestCrossChainBlockData {
     int32 FromChainId = 1; // own chain id
     int64 NextHeight = 2;
+    int32 ListeningPort = 3;
 }
 
 message ResponseSideChainBlockData {
@@ -22,7 +23,8 @@ message ResponseParentChainBlockData {
 
 message IndexingHandShake {
     int32 ListeningPort = 1;
-    int32 ChainId = 2; // side chain shake with parent chain.
+    int32 ChainId = 2;
+    bool fromSideChain = 3;
 }
 
 message IndexingHandShakeReply {
