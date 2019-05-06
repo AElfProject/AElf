@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -9,7 +10,7 @@ namespace AElf.Runtime.CSharp.Tests
 {
     public class ContractAuditorTests : CSharpRuntimeTestBase
     {
-        private readonly string _contractDllDirectory = "../../../../../contracts/";
+        private readonly string _contractDllDirectory = AppDomain.CurrentDomain.BaseDirectory;
         private ContractAuditor _auditor;
 
         public ContractAuditorTests(ITestOutputHelper testOutputHelper)
