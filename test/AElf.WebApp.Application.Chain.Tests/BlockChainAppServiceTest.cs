@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
@@ -42,6 +44,38 @@ namespace AElf.WebApp.Application.Chain.Tests
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
+        }
+        
+        [Fact]
+        public async Task Deploy_Contract_success()
+        {
+            var keyPair = CryptoHelpers.GenerateKeyPair();
+            var chain = await _blockchainService.GetChainAsync();
+            var transaction = new Transaction
+            {
+                From = Address.FromPublicKey(keyPair.PublicKey),
+                To = _smartContractAddressService.GetZeroSmartContractAddress(),
+                MethodName = nameof(BasicContractZero.DeploySmartContract),
+                Params = ByteString.CopyFrom(new ContractDeploymentInput
+                {
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                }.ToByteArray()),
+                RefBlockNumber = chain.BestChainHeight,
+                RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
+            };
+            transaction.Signature = ByteString.CopyFrom(CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().DumpByteArray()));
+            
+            var parameters = new Dictionary<string,string>
+            {
+                {"rawTransaction",transaction.ToByteArray().ToHex()}
+            };
+
+            var broadcastTransactionResponse =
+                await PostResponseAsObjectAsync<BroadcastTransactionOutput>("/api/blockChain/broadcastTransaction",
+                    parameters, useApplicationJson: true);
+
+            broadcastTransactionResponse.TransactionId.ShouldBe(transaction.GetHash().ToHex());
         }
         
         [Fact]
@@ -110,7 +144,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             
             var broadcastTransactionResponse =
-                await PostResponseAsObjectAsync<BroadcastTransactionOutput>("/api/blockChain/broadcastTransaction", parameters);
+                await PostResponseAsObjectAsync<BroadcastTransactionOutput>("/api/blockChain/broadcastTransaction",
+                    parameters, useApplicationJson: true);
 
             broadcastTransactionResponse.TransactionId.ShouldBe(transactionHash.ToHex());
 
@@ -128,7 +163,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             var response =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/broadcastTransaction",
-                    parameters, expectedStatusCode: HttpStatusCode.Forbidden);
+                    parameters, useApplicationJson: true, expectedStatusCode: HttpStatusCode.Forbidden);
 
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
@@ -146,7 +181,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"rawTransaction",transaction.ToByteArray().ToHex()}
             };
             var response = await PostResponseAsObjectAsync<WebAppErrorResponse>(
-                "/api/blockChain/broadcastTransaction", parameters, expectedStatusCode: HttpStatusCode.Forbidden);
+                "/api/blockChain/broadcastTransaction", parameters, useApplicationJson: true,
+                expectedStatusCode: HttpStatusCode.Forbidden);
 
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
