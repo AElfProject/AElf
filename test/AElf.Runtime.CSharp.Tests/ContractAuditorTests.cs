@@ -10,7 +10,6 @@ namespace AElf.Runtime.CSharp.Tests
 {
     public class ContractAuditorTests : CSharpRuntimeTestBase
     {
-        private readonly string _contractDllDirectory = AppDomain.CurrentDomain.BaseDirectory;
         private ContractAuditor _auditor;
 
         public ContractAuditorTests(ITestOutputHelper testOutputHelper)
@@ -32,7 +31,7 @@ namespace AElf.Runtime.CSharp.Tests
             // Load the DLL's from contracts folder to prevent codecov injection
             foreach (var contract in contracts)
             {
-                var contractDllPath = _contractDllDirectory + contract;
+                var contractDllPath = "../../../contracts/" + contract;
 
                 Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), false));
             }

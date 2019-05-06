@@ -44,13 +44,8 @@
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_base.sh acs1.proto acs2.proto token_contract.proto; ../../scripts/generate_contract_reference.sh basic_contract_zero.proto resource.proto crosschain.proto cross_chain_contract.proto; ../../scripts/generate_contract_code.sh token_contract_impl.proto" />
         <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_base.bat acs1.proto acs2.proto token_contract.proto &amp; ..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto resource.proto crosschain.proto cross_chain_contract.proto &amp; ..\..\scripts\generate_contract_code.bat token_contract_impl.proto" />
     </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs" />
-        </ItemGroup>
-    </Target>
     <Target Name="CopyContractDll" AfterTargets="AfterBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll $(SolutionDir)/contracts"/>
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll $(SolutionDir)\contracts"/>
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll $(SolutionDir)/test/AElf.Runtime.CSharp.Tests/contracts"/>
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll $(SolutionDir)\test\AElf.Runtime.CSharp.Tests\contracts"/>
     </Target>
 </Project>
