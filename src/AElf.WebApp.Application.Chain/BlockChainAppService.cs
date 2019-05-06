@@ -22,7 +22,7 @@ namespace AElf.WebApp.Application.Chain
 {
     public interface IBlockChainAppService : IApplicationService
     {
-        Task<string> Call(string rawTransaction);
+        Task<string> Call(CallInput input);
 
         Task<byte[]> GetContractFileDescriptorSet(string address);
 
@@ -88,13 +88,12 @@ namespace AElf.WebApp.Application.Chain
         /// <summary>
         /// Call a read-only method on a contract.
         /// </summary>
-        /// <param name="rawTransaction">raw transaction</param>
         /// <returns></returns>
-        public async Task<string> Call(string rawTransaction)
+        public async Task<string> Call(CallInput input)
         {
             try
             {
-                var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
+                var hexString = ByteArrayHelpers.FromHexString(input.RawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
                 if (!transaction.VerifySignature())
                 {

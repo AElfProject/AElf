@@ -114,7 +114,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"rawTransaction", transaction.ToByteArray().ToHex()}
             };
 
-            var response = await PostResponseAsStringAsync("/api/blockChain/call",paramters);
+            var response = await PostResponseAsStringAsync("/api/blockChain/call", paramters, useApplicationJson: true);
             response.ShouldNotBeNullOrEmpty();
         }
 
@@ -125,7 +125,9 @@ namespace AElf.WebApp.Application.Chain.Tests
             {
                 {"rawTransaction", "0a200a1e4604ccbdaa377fd7022b56436b99309e8b71cc5d78e909d271dbd1aeee6412200a1eaaa58b6cf58d4ef337f6dc55b701fd57d622015a3548a91a4e40892aa355180b220436957f93320c476574546f6b656e496e666f3a060a04454c46324a416246d781d80759d8ae6bb895b17203a3c9d4e89f083d7d89d9b6cbbf1c67ded52e134108fc8b3646f6549313868ce3e68a7117815cc0c2107ef1a986430a12ba002"}
             };
-            var response = await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/call",paramters,expectedStatusCode: HttpStatusCode.Forbidden);
+            var response =
+                await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/call", paramters,
+                    useApplicationJson: true, expectedStatusCode: HttpStatusCode.Forbidden);
             
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
