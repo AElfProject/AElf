@@ -2,14 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Vote;
-using Xunit;
 
 namespace AElf.Contracts.Vote
 {
@@ -83,6 +80,21 @@ namespace AElf.Contracts.Vote
                 Amount = amount
             })).TransactionResult;
         }
+
+        private async Task<VotingRecord> GetVotingRecord(Hash voteHash)
+        {
+            return await VoteContractStub.GetVotingRecord.CallAsync(voteHash);
+        }
+
+        private async Task<VotingResult> GetVotingResult(Hash votingItemId, long snapshotNumber)
+        {
+            return await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput
+            {
+                VotingItemId = votingItemId,
+                SnapshotNumber = snapshotNumber
+            });
+        }
+            
 
         private async Task<VotingItem> GetVoteItem(Hash votingItemId)
         {

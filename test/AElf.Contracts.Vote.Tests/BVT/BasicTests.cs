@@ -1,9 +1,7 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
-using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Vote;
 using Xunit;
