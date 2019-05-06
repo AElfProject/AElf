@@ -1,6 +1,5 @@
-using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.Genesis;
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 
 namespace AElf.Contracts.ParliamentAuth
 {
@@ -12,8 +11,8 @@ namespace AElf.Contracts.ParliamentAuth
         
         public SingletonState<Address> DefaultOrganizationAddress { get; set; }
         public SingletonState<Hash> ConsensusContractSystemName { get; set; }
-        internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract {get; set; }    
-        internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
+        internal Acs4.ACS4Container.ACS4ReferenceState ConsensusContract {get; set; }    
+        internal Acs0.ACS0Container.ACS0ReferenceState BasicContractZero { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
     }
 }
