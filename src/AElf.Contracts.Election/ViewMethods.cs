@@ -1,5 +1,5 @@
-using AElf.Kernel;
-using Vote;
+using AElf.Contracts.Vote;
+using AElf.Types;
 
 namespace AElf.Contracts.Election
 {

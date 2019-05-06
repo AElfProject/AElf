@@ -1,7 +1,7 @@
-using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Vote;
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 
 namespace AElf.Contracts.Election
 {
@@ -9,7 +9,7 @@ namespace AElf.Contracts.Election
     {
         internal VoteContractContainer.VoteContractReferenceState VoteContract { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
+        internal Acs0.ACS0Container.ACS0ReferenceState BasicContractZero { get; set; }
         
         public SingletonState<Hash> VoteContractSystemName { get; set; }
         public SingletonState<Hash> TokenContractSystemName { get; set; }
