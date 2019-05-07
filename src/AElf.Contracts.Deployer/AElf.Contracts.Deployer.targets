@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    </PropertyGroup>
+
+    <Target Name="WriteContractManifest" BeforeTargets="BeforeBuild">
+        <PropertyGroup>
+            <ContractManifestFileName>Contracts.manifest</ContractManifestFileName>
+        </PropertyGroup>
+        <Delete Files="$(ContractManifestFileName)" ContinueOnError="true"/>
+        <WriteLinesToFile Condition="@(Contract) != ''" File="$(ContractManifestFileName)" Lines="%(Identity)"/>
+        <ItemGroup Condition="Exists($(ContractManifestFileName))">
+            <EmbeddedResource Include="$(ContractManifestFileName)"></EmbeddedResource>
+        </ItemGroup>
+    </Target>
+
+    <Target Name="BuildContracts" Condition="@(Contract) != ''" BeforeTargets="BeforeBuild">
+        <Message Text="Whatsup"/>
+        <MSBuild Projects="@(Contract)" ContinueOnError="false" Properties="Configuration=$(Configuration)">
+            <Output ItemName="ContractDlls" TaskParameter="TargetOutputs"/>
+        </MSBuild>
+    </Target>
+    <Target Name="CopyContractDlls" Condition="@(Contract) != ''" AfterTargets="AfterBuild">
+        <Copy SourceFiles="@(ContractDlls)"
+              DestinationFiles="@(ContractDlls->'$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')"/>
+    </Target>
+</Project>

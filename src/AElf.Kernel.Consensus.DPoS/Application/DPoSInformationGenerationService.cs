@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Acs4;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;

@@ -8,13 +8,13 @@
         <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
 
-    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets"/>
+    <Import Project="..\..\AElf.Contract.Tools.targets"/>
 
     <ItemGroup>
-        <ContractBase Include="$(SolutionDir)\protobuf\acs0.proto">
+        <ContractBase Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\acs0.proto</Link>
         </ContractBase>
-        <ContractCode Include="$(SolutionDir)\protobuf\basic_contract_zero.proto">
+        <ContractCode Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractCode>
     </ItemGroup>

@@ -288,3 +288,5 @@ scripts/contract_csharp_plugin.exe
 
 **/BenchmarkDotNet.Artifacts/*
 
+Contracts.manifest
+

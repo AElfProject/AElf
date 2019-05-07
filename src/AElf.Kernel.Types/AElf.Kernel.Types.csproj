@@ -6,7 +6,6 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
         <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
     <ItemGroup>

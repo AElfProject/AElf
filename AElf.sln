@@ -300,6 +300,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ReferendumAu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Token", "src\AElf.Kernel.Token\AElf.Kernel.Token.csproj", "{8981C7F9-9A37-44F3-B4AF-C8C2C635388E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Deployer", "src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj", "{567AB0C7-3B13-4FD3-9881-6CB6A6A03E7C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -850,6 +852,10 @@ Global
 		{8981C7F9-9A37-44F3-B4AF-C8C2C635388E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8981C7F9-9A37-44F3-B4AF-C8C2C635388E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8981C7F9-9A37-44F3-B4AF-C8C2C635388E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{567AB0C7-3B13-4FD3-9881-6CB6A6A03E7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{567AB0C7-3B13-4FD3-9881-6CB6A6A03E7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{567AB0C7-3B13-4FD3-9881-6CB6A6A03E7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{567AB0C7-3B13-4FD3-9881-6CB6A6A03E7C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1004,5 +1010,6 @@ Global
 		{68B98ED7-103C-4DC6-9C89-0B90F2809284} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{3B0D744C-AFCD-441A-B960-07273CBAA9EA} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{8981C7F9-9A37-44F3-B4AF-C8C2C635388E} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{567AB0C7-3B13-4FD3-9881-6CB6A6A03E7C} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 	EndGlobalSection
 EndGlobal

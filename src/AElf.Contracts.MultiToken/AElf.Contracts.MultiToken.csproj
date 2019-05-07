@@ -10,27 +10,27 @@
         <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
-    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets" />
+    <Import Project="..\..\AElf.Contract.Tools.targets" />
 
     <ItemGroup>
-        <ContractReference Include="$(SolutionDir)\protobuf\acs0.proto">
+        <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
-        <ContractReference Include="$(SolutionDir)\protobuf\cross_chain_contract.proto">
+        <ContractReference Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\reference\cross_chain_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
-        <ContractBase Include="$(SolutionDir)\protobuf\acs1.proto">
+        <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractBase>
-        <ContractBase Include="$(SolutionDir)\protobuf\acs2.proto">
+        <ContractBase Include="..\..\protobuf\acs2.proto">
             <Link>Protobuf\Proto\acs2.proto</Link>
         </ContractBase>
-        <ContractBase Include="$(SolutionDir)\protobuf\token_contract.proto">
+        <ContractBase Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractBase>
-        <ContractCode Include="$(SolutionDir)\protobuf\token_contract_impl.proto">
+        <ContractCode Include="..\..\protobuf\token_contract_impl.proto">
             <Link>Protobuf\Proto\token_contract_impl.proto</Link>
         </ContractCode>
     </ItemGroup>

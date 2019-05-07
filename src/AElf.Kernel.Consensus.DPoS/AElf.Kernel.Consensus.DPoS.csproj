@@ -45,13 +45,13 @@
     <!--</Target>-->
 
 
-    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets" />
+    <Import Project="..\..\AElf.Contract.Tools.targets" />
 
     <ItemGroup>
-        <ContractMessage Include="$(SolutionDir)\protobuf\acs4.proto">
+        <ContractMessage Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\stub\acs4.proto</Link>
         </ContractMessage>
-        <ContractMessage Include="$(SolutionDir)\protobuf\dpos_internal.proto">
+        <ContractMessage Include="..\..\protobuf\dpos_internal.proto">
             <Link>Protobuf\Proto\stub\dpos_internal.proto</Link>
         </ContractMessage>
     </ItemGroup>

@@ -30,14 +30,14 @@
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
 
-    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets" />
+    <Import Project="..\..\AElf.Contract.Tools.targets" />
     <ItemGroup>
-        <ContractStub Include="$(SolutionDir)\protobuf\acs0.proto">
+        <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractStub>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="$(SolutionDir)\protobuf\execution.proto">
+        <ContractCode Include="..\..\protobuf\execution.proto">
             <Link>Protobuf\Proto\execution.proto</Link>
         </ContractCode>
     </ItemGroup>

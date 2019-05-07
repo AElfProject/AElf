@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.CrossChain

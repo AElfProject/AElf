@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs4;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf.WellKnownTypes;
 

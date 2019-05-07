@@ -62,6 +62,7 @@ namespace AElf.OS.Node.Application
         public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
             Hash name = null, SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList = null)
         {
+            // TODO: Change this
             genesisSmartContracts.AddGenesisSmartContract(typeof(T), name, systemTransactionMethodCallList);
         }
         public static void Add(this SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList, string methodName,

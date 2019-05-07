@@ -10,22 +10,22 @@
       <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
-    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets"/>
+    <Import Project="..\..\AElf.Contract.Tools.targets"/>
 
     <ItemGroup>
-        <ContractReference Include="$(SolutionDir)\protobuf\acs0.proto">
+        <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
-        <ContractReference Include="$(SolutionDir)\protobuf\token_contract.proto">
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
-        <ContractBase Include="$(SolutionDir)\protobuf\acs4.proto">
+        <ContractBase Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\reference\acs4.proto</Link>
         </ContractBase>
     </ItemGroup>
 
     <ItemGroup>
-        <ContractCode Include="$(SolutionDir)\protobuf\dividend_contract.proto">
+        <ContractCode Include="..\..\protobuf\dividend_contract.proto">
             <Link>Protobuf\Proto\dividend_contract.proto</Link>
         </ContractCode>
     </ItemGroup>

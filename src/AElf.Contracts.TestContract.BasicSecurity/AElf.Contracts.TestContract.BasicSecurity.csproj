@@ -11,18 +11,18 @@
       <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
-    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets" />
+    <Import Project="..\..\AElf.Contract.Tools.targets" />
 
     <ItemGroup>
-        <ContractReference Include="$(SolutionDir)\protobuf\acs0.proto">
+        <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
-        <ContractReference Include="$(SolutionDir)\protobuf\test_basic_function_contract.proto">
+        <ContractReference Include="..\..\protobuf\test_basic_function_contract.proto">
             <Link>Protobuf\Proto\reference\test_basic_function_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="$(SolutionDir)\protobuf\test_basic_security_contract.proto">
+        <ContractCode Include="..\..\protobuf\test_basic_security_contract.proto">
             <Link>Protobuf\Proto\test_basic_security_contract.proto</Link>
         </ContractCode>
     </ItemGroup>

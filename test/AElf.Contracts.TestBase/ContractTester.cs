@@ -2,15 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs0;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
-using AElf.Contracts.Resource;
-using AElf.Contracts.Resource.FeeReceiver;
 using AElf.CrossChain;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -26,6 +23,7 @@ using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +32,13 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
+using ConsensusContract = AElf.Contracts.Consensus.DPoS.ConsensusContractContainer.ConsensusContractStub;
+using TokenContract = AElf.Contracts.MultiToken.Messages.TokenContractContainer.TokenContractStub;
+using ParliamentAuthContract = AElf.Contracts.ParliamentAuth.ParliamentAuthContractContainer.ParliamentAuthContractStub;
+using DividendContract = AElf.Contracts.Dividend.DividendContractContainer.DividendContractStub;
+using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
+using FeeReceiverContract = AElf.Contracts.Resource.FeeReceiver.FeeReceiverContractContainer.FeeReceiverContractStub;
+using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
 
 namespace AElf.Contracts.TestBase
 {
@@ -265,7 +270,7 @@ namespace AElf.Contracts.TestBase
                     DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
                     LockTokenForElection = 100_000
                 });
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
+            consensusMethodCallList.Add(nameof(ConsensusContractContainer.ConsensusContractStub.InitialConsensus),
                 dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
                     dposOptions.StartTimestamp.ToUniversalTime()));
             return consensusMethodCallList;
@@ -300,7 +305,7 @@ namespace AElf.Contracts.TestBase
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.SideChain.ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.SideChain.ConsensusContractContainer.ConsensusContractStub>(
                 ConsensusSmartContractAddressNameProvider.Name);
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 

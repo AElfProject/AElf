@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AElf.Contracts.CrossChain;
 using AElf.Types;
 
 namespace AElf.Kernel

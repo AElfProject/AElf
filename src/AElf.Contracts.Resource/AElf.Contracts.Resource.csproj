@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets" />
+    <Import Project="..\..\AElf.Contract.Tools.targets" />
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Resource</PackageId>
@@ -9,12 +9,12 @@
         <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <ContractReference Include="$(ProtoBaseDir)\token_contract.proto">
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="$(ProtoBaseDir)\resource_contract.proto">
+        <ContractCode Include="..\..\protobuf\resource_contract.proto">
             <Link>Protobuf\Proto\resource_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
