@@ -13,10 +13,10 @@
     </ItemGroup>
     <ItemGroup>
         <ContractBase Include="$(SolutionDir)\protobuf\acs3.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\acs3.proto</Link>
+            <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractBase>
         <ContractCode Include="$(SolutionDir)\protobuf\association_auth_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\association_auth_contract.proto</Link>
+            <Link>Protobuf\Proto\association_auth_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
     <ItemGroup>

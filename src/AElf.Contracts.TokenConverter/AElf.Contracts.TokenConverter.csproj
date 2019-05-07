@@ -13,12 +13,12 @@
 
     <ItemGroup>
         <ContractReference Include="$(SolutionDir)\protobuf\token_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\token_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="$(SolutionDir)\protobuf\token_converter_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\token_converter_contract.proto</Link>
+            <Link>Protobuf\Proto\token_converter_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

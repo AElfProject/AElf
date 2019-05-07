@@ -10,16 +10,16 @@
     </ItemGroup>
     <ItemGroup>
         <ContractBase Include="$(ProtoBaseDir)\acs4.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\acs4.proto</Link>
+            <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractBase>
         <ContractBase Include="$(ProtoBaseDir)\acs0.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\acs0.proto</Link>
+            <Link>Protobuf\Proto\acs0.proto</Link>
         </ContractBase>
         <ContractCode Include="$(ProtoBaseDir)\dpos_sidechain_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\dpos_sidechain_contract.proto</Link>
+            <Link>Protobuf\Proto\dpos_sidechain_contract.proto</Link>
         </ContractCode>
         <ContractInternal Include="$(ProtoBaseDir)\dpos_sidechain_contract_internal.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\internal\dpos_sidechain_contract_internal.proto</Link>
+            <Link>Protobuf\Proto\internal\dpos_sidechain_contract_internal.proto</Link>
         </ContractInternal>
     </ItemGroup>
 </Project>

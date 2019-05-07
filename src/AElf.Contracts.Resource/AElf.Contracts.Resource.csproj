@@ -10,12 +10,12 @@
     </ItemGroup>
     <ItemGroup>
         <ContractReference Include="$(ProtoBaseDir)\token_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\token_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="$(ProtoBaseDir)\resource_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\resource_contract.proto</Link>
+            <Link>Protobuf\Proto\resource_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

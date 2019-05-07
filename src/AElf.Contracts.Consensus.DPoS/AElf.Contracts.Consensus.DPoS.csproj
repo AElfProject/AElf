@@ -12,21 +12,21 @@
 
     <ItemGroup>
         <ContractReference Include="$(ProtoBaseDir)\token_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\token_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="$(ProtoBaseDir)\dividend_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\dividend_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\dividend_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="$(ProtoBaseDir)\acs0.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
         <ContractBase Include="$(ProtoBaseDir)\acs4.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\acs4.proto</Link>
+            <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractBase>
         <ContractCode Include="$(ProtoBaseDir)\dpos_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\dpos_contract.proto</Link>
+            <Link>Protobuf\Proto\dpos_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 

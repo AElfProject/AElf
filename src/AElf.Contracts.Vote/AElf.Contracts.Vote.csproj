@@ -10,53 +10,19 @@
         <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
-    <!--<ItemGroup>-->
-        <!--<None Include="..\..\protobuf\common.proto">-->
-            <!--<Link>Protobuf/Proto/common.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\kernel.proto">-->
-            <!--<Link>Protobuf/Proto/kernel.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\aelf_options.proto">-->
-            <!--<Link>Protobuf/Proto/aelf_options.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\vote.proto">-->
-            <!--<Link>Protobuf/Proto/vote.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\vote_contract.proto">-->
-            <!--<Link>Protobuf/Proto/vote_contract.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\basic_contract_zero.proto">-->
-            <!--<Link>Protobuf/Proto/basic_contract_zero.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\dpos_contract.proto">-->
-            <!--<Link>Protobuf/Proto/dpos_contract.proto</Link>-->
-        <!--</None>-->
-    <!--</ItemGroup>-->
-
-    <!--<Target Name="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto token_contract.proto ; ../../scripts/generate_contract_code.sh  vote.proto vote_contract.proto" />-->
-        <!--<Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto token_contract.proto &amp; ..\..\scripts\generate_contract_code.bat  vote.proto vote_contract.proto" />-->
-    <!--</Target>-->
-    <!--<Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<ItemGroup>-->
-            <!--<Compile Include="./Protobuf/Generated/*.cs" />-->
-        <!--</ItemGroup>-->
-    <!--</Target>-->
-
     <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets" />
 
     <ItemGroup>
         <ContractReference Include="$(SolutionDir)\protobuf\acs0.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
         <ContractReference Include="$(SolutionDir)\protobuf\token_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\token_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="$(SolutionDir)\protobuf\vote_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\vote_contract.proto</Link>
+            <Link>Protobuf\Proto\vote_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

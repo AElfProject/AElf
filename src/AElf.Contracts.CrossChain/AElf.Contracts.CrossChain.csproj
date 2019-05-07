@@ -12,28 +12,28 @@
 
     <ItemGroup>
         <ContractReference Include="$(SolutionDir)\protobuf\acs3.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\acs3.proto</Link>
+            <Link>Protobuf\Proto\reference\acs3.proto</Link>
         </ContractReference>
         <ContractReference Include="$(SolutionDir)\protobuf\acs0.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
         <ContractReference Include="$(SolutionDir)\protobuf\token_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\token_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
         <ContractBase Include="$(SolutionDir)\protobuf\acs4.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\acs4.proto</Link>
+            <Link>Protobuf\Proto\reference\acs4.proto</Link>
         </ContractBase>
         <ContractReference Include="$(SolutionDir)\protobuf\dpos_sidechain_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\dpos_sidechain_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\dpos_sidechain_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="$(SolutionDir)\protobuf\parliament_auth_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
 
     <ItemGroup>
         <ContractCode Include="$(SolutionDir)\protobuf\cross_chain_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\cross_chain_contract.proto</Link>
+            <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 

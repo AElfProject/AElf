@@ -14,15 +14,15 @@
 
     <ItemGroup>
         <ContractReference Include="$(SolutionDir)\protobuf\acs0.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
         <ContractReference Include="$(SolutionDir)\protobuf\token_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\token_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="$(SolutionDir)\protobuf\profit_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\profit_contract.proto</Link>
+            <Link>Protobuf\Proto\profit_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

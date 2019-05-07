@@ -14,18 +14,18 @@
 
     <ItemGroup>
         <ContractReference Include="$(SolutionDir)\protobuf\acs0.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
         <ContractReference Include="$(SolutionDir)\protobuf\vote_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\vote_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\vote_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="$(SolutionDir)\protobuf\token_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\token_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="$(SolutionDir)\protobuf\election_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\election_contract.proto</Link>
+            <Link>Protobuf\Proto\election_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

@@ -12,18 +12,18 @@
 
     <ItemGroup>
         <ContractReference Include="$(SolutionDir)\protobuf\acs0.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
         <ContractReference Include="$(SolutionDir)\protobuf\token_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\token_contract.proto</Link>
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
         <ContractBase Include="$(SolutionDir)\protobuf\acs3.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\acs3.proto</Link>
+            <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractBase>
         <ContractCode Include="$(SolutionDir)\protobuf\referendum_auth_contract.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\referendum_auth_contract.proto</Link>
+            <Link>Protobuf\Proto\referendum_auth_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>
