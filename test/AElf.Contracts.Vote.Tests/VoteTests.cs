@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
-using Vote;
 using Xunit;
 
 namespace AElf.Contracts.Vote

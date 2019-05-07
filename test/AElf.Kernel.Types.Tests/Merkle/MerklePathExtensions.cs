@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using AElf.Contracts.CrossChain;
+using AElf.Types;
 
 namespace AElf.Kernel.Types.Tests
 {

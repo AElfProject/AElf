@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
+using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -8,9 +9,9 @@ using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.Threading;
-using Vote;
 
 namespace AElf.Contracts.Election
 {

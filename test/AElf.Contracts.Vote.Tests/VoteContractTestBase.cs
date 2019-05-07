@@ -1,16 +1,16 @@
 using System.IO;
+using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.Threading;
-using Vote;
 
 namespace AElf.Contracts.Vote
 {

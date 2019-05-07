@@ -5,6 +5,7 @@ using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.TestBase;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 

@@ -10,16 +10,36 @@
         </None>
     </ItemGroup>
 
+    <Choose>
+        <When Condition="!$([MSBuild]::IsOsPlatform(Windows))">
+            <PropertyGroup>
+                <GenerateContractBaseCommand>$(SolutionDir)/scripts/generate_contract_base.sh</GenerateContractBaseCommand>
+                <GenerateContractCodeCommand>$(SolutionDir)/scripts/generate_contract_code.sh</GenerateContractCodeCommand>
+                <GenerateContractReferenceCommand>$(SolutionDir)/scripts/generate_contract_reference.sh</GenerateContractReferenceCommand>
+                <GenerateContractStubCommand>$(SolutionDir)/scripts/generate_contract_stub.sh</GenerateContractStubCommand>
+                <GenerateContractMessageCommand>$(SolutionDir)/scripts/generate_event_only.sh</GenerateContractMessageCommand>
+            </PropertyGroup>
+        </When>
+        <Otherwise>
+            <PropertyGroup>
+                <GenerateContractBaseCommand>$(SolutionDir)\scripts\generate_contract_base.bat</GenerateContractBaseCommand>
+                <GenerateContractCodeCommand>$(SolutionDir)\scripts\generate_contract_code.bat</GenerateContractCodeCommand>
+                <GenerateContractReferenceCommand>$(SolutionDir)\scripts\generate_contract_reference.bat</GenerateContractReferenceCommand>
+                <GenerateContractStubCommand>$(SolutionDir)\scripts\generate_contract_stub.bat</GenerateContractStubCommand>
+                <GenerateContractMessageCommand>$(SolutionDir)\scripts\generate_event_only.bat</GenerateContractMessageCommand>
+            </PropertyGroup>
+        </Otherwise>
+    </Choose>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="@(ContractInternal) != ''" Command="protoc --proto_path=$(SolutionDir)/protobuf --csharp_out=internal_access:$(ProjectDir)/Protobuf/Generated --csharp_opt=file_extension=.g.cs %(Identity)"/>
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows)) And @(ContractBase) != ''" Command="$(SolutionDir)/scripts/generate_contract_base.sh %(Identity)"/>
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows)) And @(ContractCode) != ''" Command="$(SolutionDir)/scripts/generate_contract_code.sh %(Identity)"/>
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows)) And @(ContractReference) != ''" Command="$(SolutionDir)/scripts/generate_contract_reference.sh %(Identity)"/>
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows)) And @(ContractStub) != ''" Command="$(SolutionDir)/scripts/generate_contract_stub.sh %(Identity)"/>
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows)) And @(ContractBase) != ''" Command="$(SolutionDir)\scripts\generate_contract_base.bat %(Identity)"/>
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows)) And @(ContractCode) != ''" Command="$(SolutionDir)\scripts\generate_contract_code.bat %(Identity)"/>
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows)) And @(ContractReference) != ''" Command="$(SolutionDir)\scripts\generate_contract_reference.bat %(Identity)"/>
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows)) And @(ContractStub) != ''" Command="$(SolutionDir)\scripts\generate_contract_stub.bat %(Identity)"/>
+        <PropertyGroup>
+            <GenerateContractInternalCommand>protoc --proto_path=$(SolutionDir)/protobuf --csharp_out=internal_access:$(ProjectDir)/Protobuf/Generated --csharp_opt=file_extension=.g.cs</GenerateContractInternalCommand>
+        </PropertyGroup>
+        <Exec Condition="@(ContractInternal) != ''" Command="$(GenerateContractInternalCommand) %(Identity)"/>
+        <Exec Condition="@(ContractBase) != ''" Command="$(GenerateContractBaseCommand) %(Identity)"/>
+        <Exec Condition="@(ContractCode) != ''" Command="$(GenerateContractCodeCommand) %(Identity)"/>
+        <Exec Condition="@(ContractReference) != ''" Command="$(GenerateContractReferenceCommand)  %(Identity)"/>
+        <Exec Condition="@(ContractStub) != ''" Command="$(GenerateContractStubCommand) %(Identity)"/>
+        <Exec Condition="@(ContractMessage) != ''" Command="$(GenerateContractMessageCommand) %(Identity)"/>
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

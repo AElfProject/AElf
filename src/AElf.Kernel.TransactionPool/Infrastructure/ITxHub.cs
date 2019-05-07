@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.EventMessages;
+using AElf.Types;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {

@@ -1,9 +1,11 @@
 using System.Threading.Tasks;
+using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1

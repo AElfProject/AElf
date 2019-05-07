@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.CrossChain

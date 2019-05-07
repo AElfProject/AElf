@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;

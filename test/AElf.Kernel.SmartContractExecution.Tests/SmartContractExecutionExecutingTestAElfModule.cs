@@ -7,6 +7,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;

@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.EventMessages;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -20,7 +22,7 @@ namespace AElf.Kernel.Consensus.Application
 
         private DateTime _nextMiningTime;
 
-        public ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
+        internal ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
             IConsensusScheduler consensusScheduler, ConsensusControlInformation consensusControlInformation)
         {
             _consensusInformationGenerationService = consensusInformationGenerationService;

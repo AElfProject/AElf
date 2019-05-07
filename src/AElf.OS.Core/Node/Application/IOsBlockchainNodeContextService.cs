@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs0;
+using AElf.Contracts.Genesis;
 using AElf.Kernel;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Domain;
+using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
@@ -172,7 +174,7 @@ namespace AElf.OS.Node.Application
             {
                 From = zeroAddress,
                 To = zeroAddress,
-                MethodName = nameof(ISmartContractZero.DeploySystemSmartContract),
+                MethodName = nameof(BasicContractZero.DeploySystemSmartContract),
                 // TODO: change cagtegory to 0
                 Params = new SystemContractDeploymentInput()
                 {

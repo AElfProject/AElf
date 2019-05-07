@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 
 namespace AElf.OS.Network.Application
 {

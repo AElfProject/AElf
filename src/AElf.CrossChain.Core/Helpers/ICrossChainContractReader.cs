@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
@@ -12,7 +13,7 @@ namespace AElf.CrossChain
 {
     public interface ICrossChainContractReader
     {
-        Task<MerklePath> GetTxRootMerklePathInParentChainAsync(long blockHeight);
+//        Task<MerklePath> GetTxRootMerklePathInParentChainAsync(long blockHeight);
 //        Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(long height);
         Task<long> GetBoundParentChainHeightAsync(long localChainHeight);
 
@@ -44,10 +45,10 @@ namespace AElf.CrossChain
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public Task<MerklePath> GetTxRootMerklePathInParentChainAsync(long blockHeight)
-        {
-            throw new System.NotImplementedException();
-        }
+//        public Task<MerklePath> GetTxRootMerklePathInParentChainAsync(long blockHeight)
+//        {
+//            throw new System.NotImplementedException();
+//        }
 
 //        public Task<ParentChainBlockData> GetBoundParentChainBlockInfoAsync(long height)
 //        {

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -42,7 +44,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
-        public DPoSInformationGenerationService(IAccountService accountService,
+        internal DPoSInformationGenerationService(IAccountService accountService,
             ConsensusControlInformation controlInformation, ISmartContractAddressService smartContractAddressService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {

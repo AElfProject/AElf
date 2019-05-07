@@ -1,5 +1,6 @@
 ﻿using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Types;
 using Xunit;
 using Google.Protobuf;
 

@@ -1,12 +1,14 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs0;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Resource;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Volo.Abp.EventBus.Local;

@@ -5,6 +5,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Types;
 
 namespace AElf.Contracts.TokenConverter
 {

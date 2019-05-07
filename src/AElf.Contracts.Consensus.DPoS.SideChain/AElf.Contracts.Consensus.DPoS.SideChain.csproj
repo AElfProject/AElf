@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets"/>
+    <Import Project="$(SolutionDir)\AElf.Contract.Tools.targets" />
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
+        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractBase Include="$(ProtoBaseDir)\acs4.proto">
@@ -18,8 +18,8 @@
         <ContractCode Include="$(ProtoBaseDir)\dpos_sidechain_contract.proto">
             <Link>Protobuf\Proto\dpos_sidechain_contract.proto</Link>
         </ContractCode>
-        <ContractInternal Include="$(ProtoBaseDir)\dpos_sidechain_contract_internal.proto">
-            <Link>Protobuf\Proto\internal\dpos_sidechain_contract_internal.proto</Link>
+        <ContractInternal Include="$(ProtoBaseDir)\dpos_internal.proto">
+            <Link>Protobuf\Proto\internal\dpos_internal.proto</Link>
         </ContractInternal>
     </ItemGroup>
 </Project>
