@@ -20,9 +20,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestContract.BasicSecurity\AElf.Contracts.TestContract.BasicSecurity.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestContract.BasicUpdate\AElf.Contracts.TestContract.BasicUpdate.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicSecurity\AElf.Contracts.TestContract.BasicSecurity.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicUpdate\AElf.Contracts.TestContract.BasicUpdate.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
     </ItemGroup>
 
