@@ -18,19 +18,19 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Create_Chain_Success()
         {
-            var block = new Block
+            var block = new BlockWithTransaction
             {
-                Header = new BlockHeader
+                BlockHeader = new BlockHeader
                 {
                     Height = KernelConstants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                },
-                Body = new BlockBody()
+                }
             };
 
             var chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldBeNull();
+            
             var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.ShouldBeNull();
 

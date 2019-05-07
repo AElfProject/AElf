@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Google.Protobuf;
 
 namespace AElf.Kernel
@@ -24,6 +25,8 @@ namespace AElf.Kernel
             Header = new BlockHeader(preBlockHash);
             Body = new BlockBody();
         }
+
+        public IEnumerable<Hash> TransactionList => Body.Transactions;
 
         public long Height
         {

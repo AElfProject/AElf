@@ -1,11 +1,14 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Net;
 
 namespace AElf.Kernel
 {
-    public partial class BlockWithTransaction
+    public partial class BlockWithTransaction : IBlock, IBlockWithTransactionBase
     {
-        public IEnumerable<Transaction> TransactionList => Transactions;
+        public IEnumerable<Transaction> FullTransactionList => Transactions;
+        public IEnumerable<Hash> TransactionList => Transactions.Select(tx => tx.GetHash());
         
         /// <summary>
         /// Used to override IMessage's default string representation.
@@ -15,6 +18,23 @@ namespace AElf.Kernel
         {
             return $"{{ id: {GetHash()}, height: {Height} }}";
         }
+
+        public BlockHeader Header
+        {
+            get { return BlockHeader; }
+            set { BlockHeader = value; }
+        }
+
+        public BlockBody Body
+        {
+            get
+            {
+                var body = new BlockBody();
+                body.Transactions.AddRange(Transactions.Select(tx => tx.GetHash()).ToList());
+                return body;
+            }
+            set { throw new NotImplementedException(); }
+        } 
         
         public long Height
         {
@@ -27,6 +47,16 @@ namespace AElf.Kernel
             return BlockHeader.GetHash();
         }
         
+        public byte[] GetHashBytes()
+        {
+            return Header.GetHashBytes();
+        }
+
+        Block IBlock.Clone()
+        {
+            throw new NotImplementedException();
+        }
+
         public Block ToBlock()
         {
             return new Block

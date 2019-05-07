@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -33,7 +34,7 @@ namespace AElf.Kernel.ChainController.Application
         }
 
         /// <summary>
-        /// Creates a new chain with the provided and Smart Contract Zero.
+        /// Creates a new chain with the provided genesis transactions and Smart Contract Zero.
         /// </summary>
         /// <returns>The new chain async.</returns>
         /// <param name="">The new chain id which will be derived from the creator address.</param>
@@ -50,8 +51,13 @@ namespace AElf.Kernel.ChainController.Application
                     ChainId = _blockchainService.GetChainId()
                 };
 
-                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions);
-                var chain = await _blockchainService.CreateChainAsync(block);
+                var transactionsToInclude = genesisTransactions.ToList();
+                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactionsToInclude);
+
+                var blockWithTx = new BlockWithTransaction { BlockHeader = block.Header };
+                blockWithTx.Transactions.AddRange(transactionsToInclude);
+                
+                var chain = await _blockchainService.CreateChainAsync(blockWithTx);
                 await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, BlockAttachOperationStatus.LongestChainFound);
 
                 return await _blockchainService.GetChainAsync();

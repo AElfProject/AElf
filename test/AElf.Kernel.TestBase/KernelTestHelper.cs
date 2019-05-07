@@ -230,16 +230,16 @@ namespace AElf.Kernel
 
         private async Task<Chain> CreateChain()
         {
-            var genesisBlock = new Block
+            var block = new BlockWithTransaction
             {
                 Header = new BlockHeader
                 {
                     Height = KernelConstants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty
                 },
-                Body = new BlockBody()
             };
-            var chain = await _blockchainService.CreateChainAsync(genesisBlock);
+            
+            var chain = await _blockchainService.CreateChainAsync(block);
             return chain;
         }
         

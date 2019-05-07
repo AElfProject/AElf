@@ -46,7 +46,7 @@ namespace AElf
         byte[] RecoverPublicKey();
 
         // TODO: Remove GetBlockByHeight
-        IBlockBase GetPreviousBlock();
+        IBlockWithTransactionBase GetPreviousBlock();
 
         bool VerifySignature(Transaction tx);
 

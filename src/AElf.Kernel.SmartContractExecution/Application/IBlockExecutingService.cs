@@ -77,11 +77,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 {
                     var linkedBlock = await _blockchainService.GetBlockWithTransactionsByHashAsync(blockLink.BlockHash);
                     
-                    // todo refactor - only used for validation
-                    var linkedBlockAsBlock = linkedBlock.ToBlock();
-                    
                     // Set the other blocks as bad block if found the first bad block
-                    if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(linkedBlockAsBlock))
+                    if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(linkedBlock))
                     {
                         await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
                         Logger.LogWarning($"Block validate fails before execution. block hash : {blockLink.BlockHash}");
@@ -95,7 +92,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                         break;
                     }
 
-                    if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(linkedBlockAsBlock))
+                    if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(linkedBlock))
                     {
                         await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
                         Logger.LogWarning($"Block validate fails after execution. block hash : {blockLink.BlockHash}");

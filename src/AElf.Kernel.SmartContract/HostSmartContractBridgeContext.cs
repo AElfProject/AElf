@@ -199,9 +199,9 @@ namespace AElf.Kernel.SmartContract
         }
 
 
-        public IBlockBase GetPreviousBlock()
+        public IBlockWithTransactionBase GetPreviousBlock()
         {
-            return AsyncHelper.RunSync(() => _smartContractBridgeService.GetBlockByHashAsync(
+            return AsyncHelper.RunSync(() => _smartContractBridgeService.GetBlockWithTransactionsByHashAsync(
                 TransactionContext.PreviousBlockHash));
         }
 

@@ -26,11 +26,15 @@ namespace AElf.Contracts.TestKit
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var minerService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
+            
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 new List<Transaction> {transaction},
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
 
-            await blockAttachService.AttachBlockAsync(block);
+            var blckWithTrx = new BlockWithTransaction {BlockHeader = block.Header};
+            blckWithTrx.Transactions.AddRange(new List<Transaction> {transaction});
+            
+            await blockAttachService.AttachReceivedBlock(blckWithTrx);
         }
 
         public async Task<ByteString> ReadAsync(Transaction transaction)
