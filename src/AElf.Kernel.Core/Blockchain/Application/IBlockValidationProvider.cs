@@ -2,6 +2,7 @@ using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Blockchain.Application
