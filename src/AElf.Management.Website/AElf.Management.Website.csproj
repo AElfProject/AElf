@@ -9,7 +9,7 @@
         <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
         <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="0.15.0" />
-        <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="0.17.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Management\AElf.Management.csproj"/>
