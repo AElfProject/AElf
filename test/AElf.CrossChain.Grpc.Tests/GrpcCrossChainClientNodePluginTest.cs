@@ -43,12 +43,12 @@ namespace AElf.CrossChain.Grpc
             var receivedEventData = new GrpcCrossChainRequestReceivedEvent
             {
                 LocalChainId = _chainOptions.ChainId,
-                CrossChainCommunicationContextDto = new GrpcCrossChainCommunicationContext
+                CrossChainCommunicationContextDto = new GrpcCrossChainCommunicationDto
                 {
                     RemoteChainId = ChainHelpers.ConvertBase58ToChainId("ETH"),
                     IsClientToParentChain = true,
-                    TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
-                    TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
+                    RemoteIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
+                    RemotePort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
                     LocalChainId = _chainOptions.ChainId,
                     LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort
                 }

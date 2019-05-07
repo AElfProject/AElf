@@ -24,7 +24,7 @@ message ResponseParentChainBlockData {
 
 message IndexingHandShake {
     int32 ListeningPort = 1;
-    int32 ChainId = 2;
+    int32 fromChainId = 2;
     bool fromSideChain = 3;
 }
 
