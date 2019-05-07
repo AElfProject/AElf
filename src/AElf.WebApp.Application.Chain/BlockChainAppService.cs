@@ -150,7 +150,8 @@ namespace AElf.WebApp.Application.Chain
             try
             {
                 var parameters = methodDescriptor.InputType.Parser.ParseJson(input.Params);
-                ValidateMessage(parameters, Error.InvalidParams);
+                if (!IsValidMessage(parameters))
+                    throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
                 transaction.Params = parameters.ToByteString();
             }
             catch
@@ -568,12 +569,14 @@ namespace AElf.WebApp.Application.Chain
                 {
                     var hexString = ByteArrayHelpers.FromHexString(rawTransactions[i]);
                     transaction = Transaction.Parser.ParseFrom(hexString);
-                    ValidateMessage(transaction, Error.InvalidTransaction);
                 }
                 catch
                 {
                     throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
                 }
+                
+                if(!IsValidMessage(transaction))
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
                 
                 var contractMethodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
                 if (contractMethodDescriptor == null)
@@ -581,7 +584,11 @@ namespace AElf.WebApp.Application.Chain
                         Error.NoMatchMethodInContractAddress.ToString());
 
                 var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
-                ValidateMessage(parameters, Error.InvalidParams);
+                
+                if (!IsValidMessage(parameters))
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
+                }
 
                 if (!transaction.VerifySignature())
                 {
@@ -667,8 +674,8 @@ namespace AElf.WebApp.Application.Chain
 
             return null;
         }
-        
-        private void ValidateMessage(IMessage message,int errorCode)
+
+        private bool IsValidMessage(IMessage message)
         {
             try
             {
@@ -676,8 +683,10 @@ namespace AElf.WebApp.Application.Chain
             }
             catch
             {
-                throw new UserFriendlyException(Error.Message[errorCode], errorCode.ToString());
+                return false;
             }
+
+            return true;
         }
     }
 }
