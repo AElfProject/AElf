@@ -42,7 +42,7 @@ namespace AElf.CrossChain.Grpc
         {
             var handShakeReply = _client.CrossChainIndexingShake(new IndexingHandShake
             {
-                ChainId = chainId,
+                FromChainId = chainId,
                 ListeningPort = localListeningPort
             }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
             return Task.FromResult(handShakeReply);
