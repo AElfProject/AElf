@@ -168,9 +168,12 @@ namespace AElf.Contracts.Vote
                 return new Empty();
             }
 
-            Assert(votingRecord.Voter == Context.Sender, "No privilege to withdraw these votes.");
-
             var votingItem = State.VotingItems[votingRecord.VotingItemId];
+
+            if (votingItem.IsLockToken)
+            {
+                Assert(votingRecord.Voter == Context.Sender, "No permission to withdraw votes of others.");
+            }
 
             Assert(votingItem.CurrentSnapshotNumber > votingRecord.SnapshotNumber,
                 "Cannot withdraw votes of on-going voting item.");
@@ -196,7 +199,7 @@ namespace AElf.Contracts.Vote
 
             State.VotingResults[votingResultHash] = votingResult;
 
-            if (State.VotingItems[votingRecord.VotingItemId].IsLockToken)
+            if (votingItem.IsLockToken)
             {
                 State.TokenContract.Unlock.Send(new UnlockInput
                 {

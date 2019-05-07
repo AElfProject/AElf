@@ -48,7 +48,6 @@ namespace AElf.Kernel.Consensus.Application
                 TimeSpan.FromMilliseconds(_consensusControlInformation.ConsensusCommand
                     .LimitMillisecondsOfMiningBlock));
             _consensusScheduler.CancelCurrentEvent();
-            // TODO: Remove NextBlockMiningLeftMilliseconds.
             _consensusScheduler.NewEvent(_consensusControlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds,
                 blockMiningEventData);
 
