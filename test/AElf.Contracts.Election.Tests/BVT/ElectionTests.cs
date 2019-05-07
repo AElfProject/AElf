@@ -119,7 +119,7 @@ namespace AElf.Contracts.Election
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task ElectionContract_Vote()
+        public async Task<List<ECKeyPair>> ElectionContract_Vote()
         {
             const int votersCount = 2;
             const long amount = 500;
@@ -217,6 +217,8 @@ namespace AElf.Contracts.Election
                 });
                 details.Details.Count.ShouldBe(candidatesKeyPairs.Count);
             }
+
+            return candidatesKeyPairs;
         }
         
         [Fact]
@@ -273,6 +275,18 @@ namespace AElf.Contracts.Election
             {
                 var balance = await GetVoteTokenBalance(voterKeyPair.PublicKey);
                 balance.ShouldBe(0);
+            }
+        }
+
+        [Fact]
+        public async Task ElectionContract_GetCandidates()
+        {
+            var announcedFullNodesKeyPairs = await ElectionContract_AnnounceElection();
+            var candidates = await ElectionContractStub.GetCandidates.CallAsync(new Empty());
+            announcedFullNodesKeyPairs.Count.ShouldBe(candidates.Value.Count);
+            foreach (var keyPair in announcedFullNodesKeyPairs)
+            {
+                candidates.Value.ShouldContain(ByteString.CopyFrom(keyPair.PublicKey));
             }
         }
         

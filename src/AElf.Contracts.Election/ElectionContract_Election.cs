@@ -298,7 +298,7 @@ namespace AElf.Contracts.Election
                 ProfitId = State.WelfareHash.Value,
                 Receiver = Context.Sender,
                 Weight = GetVotesWeight(input.Amount, (long)lockDays),
-                EndPeriod = GetEndPeriod((long)lockDays)
+                EndPeriod = GetEndPeriod((long)lockDays) + 1
             });
 
             return new Empty();

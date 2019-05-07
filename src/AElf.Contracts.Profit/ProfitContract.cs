@@ -279,6 +279,23 @@ namespace AElf.Contracts.Profit
 
             Assert(Context.Sender == profitItem.Creator, "Only creator can release profits.");
 
+            var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
+
+            if (input.Period < 0 && input.Amount > 0)
+            {
+                // Which means the creator gonna burn this amount of profits.
+                var profitsBurningVirtualAddress =
+                    GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, input.Period);
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = profitVirtualAddress,
+                    To = profitsBurningVirtualAddress,
+                    Amount = input.Amount,
+                    Symbol = profitItem.TokenSymbol
+                });
+                return new Empty();
+            }
+
             // Update current_period.
             var releasingPeriod = profitItem.CurrentPeriod;
 
@@ -292,8 +309,6 @@ namespace AElf.Contracts.Profit
 
                 return new Empty();
             }
-
-            var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {

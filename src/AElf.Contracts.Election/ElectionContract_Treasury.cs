@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -202,14 +203,11 @@ namespace AElf.Contracts.Election
 
             // Citizen Welfare release should delay one term.
             // Voter voted during term x, can profit after term (x + 1).
-            if (termNumber != 1)
+            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
-                State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
-                {
-                    ProfitId = State.WelfareHash.Value,
-                    Period = termNumber - 1
-                });
-            }
+                ProfitId = State.WelfareHash.Value,
+                Period = termNumber > 1 ? termNumber - 1 : -1
+            });
         }
 
         private void UpdateTreasurySubItemsWeights(long termNumber)

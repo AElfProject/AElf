@@ -826,6 +826,35 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
+        public async Task ProfitContract_ReleaseProfits_BurnProfits()
+        {
+            const long amount = 100;
+            // Will burn specific amount of profits. Because no one can receive profits from -1 period.
+            const long period = -1;
+
+            var creator = Creators[0];
+
+            var profitId = await CreateProfitItem();
+
+            await TransferToProfitItemVirtualAddress(profitId, amount);
+            
+            var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            {
+                ProfitId = profitId,
+                Amount = amount,
+                Period = period
+            });
+            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            // Check balance.
+            var address = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(new GetProfitItemVirtualAddressInput
+                {ProfitId = profitId, Period = -1});
+            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {Owner = address, Symbol = ProfitContractTestConsts.NativeTokenSymbol});
+            balance.Balance.ShouldBe(amount);
+        }
+
+        [Fact]
         public async Task ProfitContract_ReleaseProfits_WithSubProfitItems()
         {
             const long amount = 100;

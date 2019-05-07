@@ -177,7 +177,7 @@ namespace AElf.Contracts.Election
             {
                 {ProfitType.Treasury, profitIds[0]},
                 {ProfitType.MinerReward, profitIds[1]},
-                {ProfitType.BackSubsidy, profitIds[2]},
+                {ProfitType.BackupSubsidy, profitIds[2]},
                 {ProfitType.CitizenWelfare, profitIds[3]},
                 {ProfitType.BasicMinerReward, profitIds[4]},
                 {ProfitType.VotesWeightReward, profitIds[5]},
@@ -192,7 +192,7 @@ namespace AElf.Contracts.Election
         {
             Treasury,
             MinerReward,
-            BackSubsidy,
+            BackupSubsidy,
             CitizenWelfare,
             BasicMinerReward,
             VotesWeightReward,

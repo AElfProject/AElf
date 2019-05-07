@@ -1,6 +1,6 @@
 namespace AElf.Contracts.Election
 {
-    public class ElectionContractConstants
+    public static class ElectionContractConstants
     {
         public const long LockTokenForElection = 100_000;
 
@@ -9,9 +9,9 @@ namespace AElf.Contracts.Election
 
         public const long ElfTokenPerBlock = 100;
 
-        public const int CitizenWelfareWeight = 20;
-        public const int BackupSubsidyWeight = 20;
-        public const int MinerRewardWeight = 60;
+        public const int CitizenWelfareWeight = 1;
+        public const int BackupSubsidyWeight = 1;
+        public const int MinerRewardWeight = 3;
         
         public const int BasicMinerRewardWeight = 4;
         public const int VotesWeightRewardWeight = 1;
