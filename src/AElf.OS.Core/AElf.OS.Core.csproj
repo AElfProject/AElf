@@ -14,7 +14,7 @@
         <PackageReference Include="Volo.Abp.BackgroundJobs" Version="0.15.0"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.15.0"/>
+        <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.17.0"/>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec LogStandardErrorAsError="true" Command="protoc --proto_path=../../protobuf --csharp_out=./Network/Generated --csharp_opt=file_extension=.g.cs network_types.proto"/>
