@@ -836,8 +836,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             response =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>(
-                    "/api/blockChain/rawTransaction", parameters, useApplicationJson: true,
-                    expectedStatusCode: HttpStatusCode.Forbidden);
+                    "/api/blockChain/rawTransaction", parameters, expectedStatusCode: HttpStatusCode.Forbidden);
             response.Error.Code.ShouldBe(Error.InvalidParams.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
         }
@@ -947,7 +946,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             var errorResponse =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/sendRawTransaction",
-                    parameters, useApplicationJson: true, expectedStatusCode: HttpStatusCode.Forbidden);
+                    parameters, expectedStatusCode: HttpStatusCode.Forbidden);
             errorResponse.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             errorResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
         }
@@ -971,7 +970,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             var errorResponse =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/sendRawTransaction",
-                    parameters, useApplicationJson: true, expectedStatusCode: HttpStatusCode.Forbidden);
+                    parameters, expectedStatusCode: HttpStatusCode.Forbidden);
             errorResponse.Error.Code.ShouldBe(Error.NoMatchMethodInContractAddress.ToString());
             errorResponse.Error.Message.ShouldBe(Error.Message[Error.NoMatchMethodInContractAddress]);
         }
@@ -999,7 +998,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             var errorResponse =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/sendRawTransaction",
-                    parameters, useApplicationJson: true, expectedStatusCode: HttpStatusCode.Forbidden);
+                    parameters, expectedStatusCode: HttpStatusCode.Forbidden);
             errorResponse.Error.Code.ShouldBe(Error.InvalidParams.ToString());
             errorResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
             
@@ -1019,7 +1018,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             errorResponse =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/sendRawTransaction",
-                    parameters, useApplicationJson: true, expectedStatusCode: HttpStatusCode.Forbidden);
+                    parameters, expectedStatusCode: HttpStatusCode.Forbidden);
             errorResponse.Error.Code.ShouldBe(Error.InvalidParams.ToString());
             errorResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
         }
