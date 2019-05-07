@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
-using AElf.Database.RedisProtocol;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -136,7 +136,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             
             var contractAddress = _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
 
-            var from = Base64.ToBase64String("InvalidAddress".ToUtf8Bytes());
+            var from = Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress"));
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
                 "{ \"From\": { \"Value\": \""+from+"\" }, \"To\": { \"Value\": \""+to+"\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"Transfer\", \"Params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
@@ -190,7 +190,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var transactionParams = TransferInput.Parser.ParseJson(
-                "{\"to\":{ \"Value\": \"" + Base64.ToBase64String("InvalidAddress".ToUtf8Bytes()) +
+                "{\"to\":{ \"Value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
                 "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
 
             var json = "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
@@ -268,7 +268,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
 
-            var from = Base64.ToBase64String("InvalidAddress".ToUtf8Bytes());
+            var from = Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress"));
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
                 "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
@@ -335,7 +335,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var transactionParams = TransferInput.Parser.ParseJson(
-                "{\"to\":{ \"Value\": \"" + Base64.ToBase64String("InvalidAddress".ToUtf8Bytes()) +
+                "{\"to\":{ \"Value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
                 "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
 
             var json = "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
@@ -799,7 +799,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"RefBlockNumber","2788"},
                 {"RefBlockHash","190db8baaad13e40900a6a5970915a1402d18f2b685e2183efdd954ba890a418"},
                 {"MethodName","Transfer"},
-                {"Params","{\"to\":{ \"Value\": \""+Base64.ToBase64String("InvalidAddress".ToUtf8Bytes()) + "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}"}
+                {"Params","{\"to\":{ \"Value\": \""+Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) + "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}"}
             };
             response =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>(
@@ -900,7 +900,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             var contractAddress = _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
 
-            var from = Base64.ToBase64String("InvalidAddress".ToUtf8Bytes());
+            var from = Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress"));
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
                 "{ \"From\": { \"Value\": \""+from+"\" }, \"To\": { \"Value\": \""+to+"\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"Transfer\", \"Params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
@@ -951,7 +951,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var contractAddress = _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var transactionParams = TransferInput.Parser.ParseJson(
-                "{\"to\":{ \"Value\": \"" + Base64.ToBase64String("InvalidAddress".ToUtf8Bytes()) + "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
+                "{\"to\":{ \"Value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) + "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
 
             var json = "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
                    "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"Transfer\", \"Params\": \"" +
@@ -971,7 +971,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             errorResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
             
             var issueNativeTokenInput = IssueNativeTokenInput.Parser.ParseJson(
-                "{\"toSystemContractName\":{ \"Value\": \"" + Base64.ToBase64String("InvalidHash".ToUtf8Bytes()) + "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
+                "{\"toSystemContractName\":{ \"Value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidHash")) + "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
 
             json = "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
                        "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"IssueNativeToken\", \"Params\": \"" +
