@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using AElf.BenchBase;
@@ -49,7 +50,10 @@ namespace AElf.Kernel.SmartContractExecution.Benches
 
                 _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
                 
-                await _blockchainService.AddBlockAsync(_block);
+                BlockWithTransaction blck = new BlockWithTransaction { BlockHeader = _block.Header };
+                blck.Transactions.AddRange(transactions);
+                
+                await _blockchainService.AddBlockWithTransactionsAsync(blck);
                 chain = await _blockchainService.GetChainAsync();
                 await _blockchainService.AttachBlockToChainAsync(chain, _block);
             });
@@ -61,13 +65,20 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, .0d)]
         public void ExecuteBlocksAttachedToLongestChainTest()
         {
-            AsyncHelper.RunSync(async () =>
+            try
             {
-                var chain = await _blockchainService.GetChainAsync();
-                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain,
-                    BlockAttachOperationStatus.LongestChainFound);
-            });
-            _counter.Increment();
+                AsyncHelper.RunSync(async () =>
+                {
+                    var chain = await _blockchainService.GetChainAsync();
+                    await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain,
+                        BlockAttachOperationStatus.LongestChainFound);
+                });
+                _counter.Increment();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
         
         [NBenchFact]

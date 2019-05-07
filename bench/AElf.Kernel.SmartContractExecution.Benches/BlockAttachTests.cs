@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using AElf.BenchBase;
@@ -19,7 +20,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         
         private Counter _counter;
         
-        private Block _block;
+        private BlockWithTransaction _block;
         
         public BlockAttachTests(ITestOutputHelper output)
         {
@@ -42,7 +43,9 @@ namespace AElf.Kernel.SmartContractExecution.Benches
 
                 var transactions = await _osTestHelper.GenerateTransferTransactions(1000);
 
-                _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+                var block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+                _block = new BlockWithTransaction { BlockHeader = block.Header };
+                _block.Transactions.AddRange(transactions);
             });
         }
         
@@ -52,7 +55,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, .0d)]
         public void AttachBlockTest()
         {
-            AsyncHelper.RunSync(() => _blockAttachService.AttachBlockAsync(_block));
+            AsyncHelper.RunSync(() => _blockAttachService.AttachReceivedBlock(_block));
             _counter.Increment();
         }
     }
