@@ -11,9 +11,9 @@ namespace AElf.CrossChain.Grpc
 {
     public interface IParentChainServerService
     {
-        Task<ResponseParentChainBlockData> GenerateResponseAsync(Block block, int remoteSideChainId, LastIrreversibleBlockDto libDto);
+        Task<ResponseParentChainBlockData> GenerateResponseAsync(Block block, int remoteSideChainId);
 
-        Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight);
+        Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto);
     }
 
     public class ParentChainServerService : IParentChainServerService, ITransientDependency
@@ -27,12 +27,12 @@ namespace AElf.CrossChain.Grpc
             _crossChainDataProvider = crossChainDataProvider;
         }
 
-        public async Task<ResponseParentChainBlockData> GenerateResponseAsync(Block block, int remoteSideChainId, LastIrreversibleBlockDto libDto)
+        public async Task<ResponseParentChainBlockData> GenerateResponseAsync(Block block, int remoteSideChainId)
         {
             var responseParentChainBlockData = new ResponseParentChainBlockData
             {
                 Success = true,
-                BlockData = new ParentChainBlockData
+                BlockData = new ParentChainBlockDataInResponse
                 {
                     Root = new ParentChainBlockRootInfo
                     {
@@ -41,11 +41,7 @@ namespace AElf.CrossChain.Grpc
                     }
                 }
             };
-            var parentChainHeightOfCreation =
-                (await GetChainInitializationContextAsync(remoteSideChainId, libDto.BlockHash, libDto.BlockHeight))
-                .ParentChainHeightOfCreation;
-            responseParentChainBlockData = FillExtraDataInResponse(responseParentChainBlockData, block.Header,
-                block.Height >= parentChainHeightOfCreation);
+            responseParentChainBlockData = FillExtraDataInResponse(responseParentChainBlockData, block.Header);
 
             if (responseParentChainBlockData.BlockData.Root.CrossChainExtraData == null)
                 return responseParentChainBlockData;
@@ -60,15 +56,14 @@ namespace AElf.CrossChain.Grpc
             return responseParentChainBlockData;
         }
 
-        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight)
+        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto)
         {
-            var message = await _crossChainDataProvider.GetChainInitializationContextAsync(chainId, blockHash, blockHeight);
-
+            var message = await _crossChainDataProvider.GetChainInitializationContextAsync(chainId, libDto.BlockHash, libDto.BlockHeight);
             return message==null ? null : ChainInitializationContext.Parser.ParseFrom(message.ToByteString());
         }
         
         private ResponseParentChainBlockData FillExtraDataInResponse(ResponseParentChainBlockData
-            responseParentChainBlockData, BlockHeader blockHeader, bool needOtherExtraData)
+            responseParentChainBlockData, BlockHeader blockHeader)
         {
             var transactionStatusMerkleRoot = GetTransactionStatusMerkleTreeRootFromHeader(blockHeader);
 
@@ -80,14 +75,8 @@ namespace AElf.CrossChain.Grpc
                 : CrossChainExtraData.Parser.ParseFrom(crossChainExtraByteString);
             responseParentChainBlockData.BlockData.Root.CrossChainExtraData = crossChainExtra;
 
-            if (needOtherExtraData)
-            {
-                // only pack extra information after side chain creation
-                // but the problem of communication data size still exists 
-                responseParentChainBlockData.BlockData.ExtraData.Add(
-                    GetExtraDataForExchange(blockHeader, new[] {"Consensus"}));
-            }
-
+            responseParentChainBlockData.BlockData.ExtraData.Add(GetExtraDataForExchange(blockHeader,
+                new[] {"Consensus"}));
             return responseParentChainBlockData;
         }
         

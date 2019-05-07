@@ -42,8 +42,7 @@ namespace AElf.CrossChain.Grpc
                 var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestedHeight);
                 if (block == null)
                     break;
-                var libDto = await _blockchainService.GetLibHashAndHeight();
-                var res = await _parentChainServerService.GenerateResponseAsync(block, remoteChainId, libDto);
+                var res = await _parentChainServerService.GenerateResponseAsync(block, remoteChainId);
                 await responseStream.WriteAsync(res);
                 requestedHeight++;
             }
@@ -78,7 +77,7 @@ namespace AElf.CrossChain.Grpc
             var libDto = await _blockchainService.GetLibHashAndHeight();
             return new ChainInitializationResponse
             {
-                SideChainInitializationContext = await _parentChainServerService.GetChainInitializationContextAsync(request.ChainId, libDto.BlockHash, libDto.BlockHeight)
+                SideChainInitializationContext = await _parentChainServerService.GetChainInitializationContextAsync(request.ChainId, libDto)
             };
         }
         
