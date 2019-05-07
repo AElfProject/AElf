@@ -26,12 +26,13 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Add_Block_Success()
         {
-            var block = new Block
+            var block = new Block()
             {
                 Height = 2,
                 Header = new BlockHeader(),
                 Body = new BlockBody()
             };
+            
             for (var i = 0; i < 3; i++)
             {
                 block.Body.AddTransaction(_kernelTestHelper.GenerateTransaction());
@@ -45,13 +46,6 @@ namespace AElf.Kernel.Blockchain.Application
             existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.GetHash().ShouldBe(block.GetHash());
             existBlock.Body.TransactionsCount.ShouldBe(3);
-
-            // todo
-//            foreach (var tx in block.Body.TransactionList)
-//            {
-//                var existTransaction = await _transactionManager.GetTransaction(tx.GetHash());
-//                existTransaction.ShouldBe(tx);
-//            }
         }
 
         [Fact]

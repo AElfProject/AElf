@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -64,18 +65,23 @@ namespace AElf.Kernel.Services
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IAccountService _accountService;
         private readonly IBlockExecutingService _blockExecutingService;
+        private readonly ITransactionManager _transactionManager;
+        
         public ILocalEventBus EventBus { get; set; }
 
         public MiningService(IAccountService accountService,
             IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
-            IBlockExecutingService blockExecutingService)
+            IBlockExecutingService blockExecutingService,
+            ITransactionManager txManager)
         {
             Logger = NullLogger<MiningService>.Instance;
             _blockGenerationService = blockGenerationService;
             _systemTransactionGenerationService = systemTransactionGenerationService;
             _blockExecutingService = blockExecutingService;
             _accountService = accountService;
+            _transactionManager = txManager;
+            
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -83,11 +89,12 @@ namespace AElf.Kernel.Services
             long previousBlockHeight)
         {
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
-            var systemTransactions = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
+            var systemTransactions = await _systemTransactionGenerationService.GenerateSystemTransactions(address, 
                                     previousBlockHeight, previousBlockHash);
             foreach (var transaction in systemTransactions)
             {
                 await SignAsync(transaction);
+                await _transactionManager.AddTransactionAsync(transaction);
             }
 
             return systemTransactions;

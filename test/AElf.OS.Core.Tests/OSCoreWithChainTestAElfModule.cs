@@ -37,7 +37,7 @@ namespace AElf.OS
                 var mockService = new Mock<ISystemTransactionGenerationService>();
                 mockService.Setup(s =>
                         s.GenerateSystemTransactions(It.IsAny<Address>(), It.IsAny<long>(), It.IsAny<Hash>()))
-                    .Returns(new List<Transaction>());
+                    .Returns(Task.FromResult(new List<Transaction>()));
                 return mockService.Object;
             });
 

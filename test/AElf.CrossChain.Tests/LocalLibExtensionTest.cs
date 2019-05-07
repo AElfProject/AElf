@@ -37,12 +37,7 @@ namespace AElf.CrossChain
             height = 4;
             irreversibleBlock = await _blockchainService.GetIrreversibleBlockByHeightAsync(height);
             var block = _kernelTestHelper.BestBranchBlockList[height - 1];
-            var body = block.Body;
-            foreach (var txId in body.Transactions)
-            {
-                var tx = await _transactionManager.GetTransaction(txId);
-            }
-            irreversibleBlock.Equals(block).ShouldBeTrue();
+            irreversibleBlock.GetHash().Equals(block.GetHash()).ShouldBeTrue();
         }
     }
 }

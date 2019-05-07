@@ -71,7 +71,7 @@ namespace AElf.OS.Network.Grpc
             return blockReply?.Block;
         }
 
-        public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
+        public async Task<List<BlockWithTransaction>> GetBlocksAsync(Hash firstHash, int count)
         {
             var blockRequest = new BlocksRequest {PreviousBlockHash = firstHash, Count = count};
 
@@ -79,7 +79,7 @@ namespace AElf.OS.Network.Grpc
                 $"Get blocks for {{ first: {firstHash}, count: {count} }} failed.");
 
             if (list == null)
-                return new List<Block>();
+                return new List<BlockWithTransaction>();
 
             return list.Blocks.ToList();
         }

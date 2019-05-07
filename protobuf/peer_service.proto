@@ -47,7 +47,7 @@ message BlocksRequest {
 }
 
 message BlockList {
-    repeated Block Blocks = 1;
+    repeated BlockWithTransaction Blocks = 1;
 }
 
 message DisconnectReason {

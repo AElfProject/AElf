@@ -202,8 +202,11 @@ namespace AElf.Kernel
             {
                 await _transactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
             }
+            
+            BlockWithTransaction blockWithTransaction = new BlockWithTransaction { BlockHeader = newBlock.Header};
+            blockWithTransaction.Transactions.AddRange(transactions);
 
-            await _blockchainService.AddBlockAsync(newBlock);
+            await _blockchainService.AddBlockWithTransactionsAsync(blockWithTransaction);
             var chain = await _blockchainService.GetChainAsync();
             await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
 

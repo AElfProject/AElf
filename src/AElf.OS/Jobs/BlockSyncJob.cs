@@ -113,7 +113,7 @@ namespace AElf.OS.Jobs
                         }
 
                         Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
-                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachReceivedBlock(block),
                             KernelConsts.UpdateChainQueueName);
                     }
 
