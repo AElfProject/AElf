@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContract

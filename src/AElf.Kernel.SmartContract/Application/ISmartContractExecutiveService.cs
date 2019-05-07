@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 

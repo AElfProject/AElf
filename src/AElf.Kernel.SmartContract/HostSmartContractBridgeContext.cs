@@ -7,6 +7,7 @@ using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
