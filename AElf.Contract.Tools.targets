@@ -15,9 +15,11 @@
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows)) And @(ContractBase) != ''" Command="$(SolutionDir)/scripts/generate_contract_base.sh %(Identity)"/>
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows)) And @(ContractCode) != ''" Command="$(SolutionDir)/scripts/generate_contract_code.sh %(Identity)"/>
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows)) And @(ContractReference) != ''" Command="$(SolutionDir)/scripts/generate_contract_reference.sh %(Identity)"/>
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows)) And @(ContractStub) != ''" Command="$(SolutionDir)/scripts/generate_contract_stub.sh %(Identity)"/>
         <Exec Condition="$([MSBuild]::IsOsPlatform(Windows)) And @(ContractBase) != ''" Command="$(SolutionDir)\scripts\generate_contract_base.bat %(Identity)"/>
         <Exec Condition="$([MSBuild]::IsOsPlatform(Windows)) And @(ContractCode) != ''" Command="$(SolutionDir)\scripts\generate_contract_code.bat %(Identity)"/>
         <Exec Condition="$([MSBuild]::IsOsPlatform(Windows)) And @(ContractReference) != ''" Command="$(SolutionDir)\scripts\generate_contract_reference.bat %(Identity)"/>
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows)) And @(ContractStub) != ''" Command="$(SolutionDir)\scripts\generate_contract_stub.bat %(Identity)"/>
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
