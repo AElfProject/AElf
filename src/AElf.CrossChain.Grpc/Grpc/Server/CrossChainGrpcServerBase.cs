@@ -38,6 +38,8 @@ namespace AElf.CrossChain.Grpc
         {
             Logger.LogTrace("Parent Chain Server received IndexedInfo message.");
             await WriteResponseStream(request, responseStream, true);
+            var splitRes = context.Peer.Split(':');
+            PublishCrossChainRequestReceivedEvent(splitRes[1], request.ListeningPort, request.FromChainId);
         }
         
         public override async Task RequestIndexingFromSideChain(RequestCrossChainBlockData request, 
@@ -45,22 +47,15 @@ namespace AElf.CrossChain.Grpc
         {
             Logger.LogTrace("Side Chain Server received IndexedInfo message.");
             await WriteResponseStream(request, responseStream, false);
+            var splitRes = context.Peer.Split(':');
+            PublishCrossChainRequestReceivedEvent(splitRes[1], request.ListeningPort, request.FromChainId);
         }
 
         public override Task<IndexingHandShakeReply> CrossChainIndexingShake(IndexingHandShake request, ServerCallContext context)
         {
+            Logger.LogTrace($"Received shake from chain {ChainHelpers.ConvertChainIdToBase58(request.ChainId)}.");
             var splitRes = context.Peer.Split(':');
-            LocalEventBus.PublishAsync(new GrpcServeNewChainReceivedEvent
-            {
-                CrossChainCommunicationContextDto = new GrpcCrossChainCommunicationContext
-                {
-                    TargetIp = splitRes[1],
-                    TargetPort = request.ListeningPort,
-                    RemoteChainId = request.ChainId,
-                    RemoteIsSideChain = true,
-                }
-            });
-            //Logger.LogWarning($"Hand shake from chain {request.ChainId}, ip {splitRes[1]}, port {request.ListeningPort}");
+            PublishCrossChainRequestReceivedEvent(splitRes[1], request.ListeningPort, request.ChainId);
             return Task.FromResult(new IndexingHandShakeReply{Result = true});
         }
 
@@ -104,7 +99,7 @@ namespace AElf.CrossChain.Grpc
                 var merklePath = binaryMerkleTree.GenerateMerklePath(i);
                 merklepathList.Add((info.Height, merklePath));
             }
-            //Logger.LogTrace($"Got merkle path list size {merklepathList.Count}");
+                //Logger.LogTrace($"Got merkle path list size {merklepathList.Count}");
             return merklepathList;
         }
         
@@ -207,6 +202,19 @@ namespace AElf.CrossChain.Grpc
             }
 
             return responseParentChainBlockData;
+        }
+
+        private void PublishCrossChainRequestReceivedEvent(string ip, int port, int chainId)
+        {
+            LocalEventBus.PublishAsync(new GrpcCrossChainRequestReceivedEvent
+            {
+                CrossChainCommunicationContextDto = new GrpcCrossChainCommunicationContext
+                {
+                    TargetIp = ip,
+                    TargetPort = port,
+                    RemoteChainId = chainId
+                }
+            });
         }
     }
 }
