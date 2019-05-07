@@ -39,7 +39,9 @@ namespace AElf.Kernel.Services
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime dateTime,
             TimeSpan timeSpan)
         {
+            Logger.LogTrace("Entered MineAsync");
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
+            Logger.LogTrace("Got executable tx set");
             var pending = new List<Transaction>();
             if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
             {
@@ -124,9 +126,11 @@ namespace AElf.Kernel.Services
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight,
             List<Transaction> transactions, DateTime blockTime, TimeSpan timeSpan)
         {
+            Logger.LogTrace("Entered MiningService.MineAsync");
             var block = await GenerateBlock(previousBlockHash, previousBlockHeight, blockTime);
+            Logger.LogTrace("Generated block");
             var systemTransactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
-
+            Logger.LogTrace("Generated system txs");
             var pending = transactions;
 
             using (var cts = new CancellationTokenSource())
@@ -135,6 +139,7 @@ namespace AElf.Kernel.Services
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
             }
+            Logger.LogTrace($"Cancel mining after {timeSpan.TotalMilliseconds} ms");
 
             await SignBlockAsync(block);
             // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
