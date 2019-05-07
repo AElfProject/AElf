@@ -281,35 +281,6 @@ namespace AElf.Contracts.Profit
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
-            if (input.Period < 0 && input.Amount > 0)
-            {
-                // Which means the creator gonna burn this amount of profits.
-                var profitsBurningVirtualAddress =
-                    GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, input.Period);
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
-                {
-                    From = profitVirtualAddress,
-                    To = profitsBurningVirtualAddress,
-                    Amount = input.Amount,
-                    Symbol = profitItem.TokenSymbol
-                });
-                return new Empty();
-            }
-
-            // Update current_period.
-            var releasingPeriod = profitItem.CurrentPeriod;
-
-            Assert(input.Period == releasingPeriod, $"Invalid period. When release profit item {input.ProfitId} of period {input.Period}");
-
-            // No one registered.
-            if (profitItem.TotalWeight <= 0)
-            {
-                profitItem.CurrentPeriod = input.Period + 1;
-                State.ProfitItemsMap[input.ProfitId] = profitItem;
-
-                return new Empty();
-            }
-
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Owner = profitVirtualAddress,
@@ -322,6 +293,42 @@ namespace AElf.Contracts.Profit
             {
                 input.Amount = balance;
             }
+
+            if (input.Period < 0 || profitItem.TotalWeight <= 0)
+            {
+                // Release to an address no one can receive profits.
+                
+                if (input.Amount <= 0)
+                {
+                    return new Empty();
+                }
+
+                profitItem.CurrentPeriod = input.Period > 0 ? input.Period.Add(1) : profitItem.CurrentPeriod;
+
+                if (input.Period >= 0)
+                {
+                    input.Period = -1;
+                }
+
+                // Which means the creator gonna burn this amount of profits.
+                var profitsBurningVirtualAddress =
+                    GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, input.Period);
+                State.TokenContract.TransferFrom.Send(new TransferFromInput
+                {
+                    From = profitVirtualAddress,
+                    To = profitsBurningVirtualAddress,
+                    Amount = input.Amount,
+                    Symbol = profitItem.TokenSymbol
+                });
+                profitItem.TotalAmount -= input.Amount;
+                State.ProfitItemsMap[input.ProfitId] = profitItem;
+                return new Empty();
+            }
+
+            // Update current_period.
+            var releasingPeriod = profitItem.CurrentPeriod;
+
+            Assert(input.Period == releasingPeriod, $"Invalid period. When release profit item {input.ProfitId.ToHex()} of period {input.Period}");
 
             var profitsReceivingVirtualAddress =
                 GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, releasingPeriod);
