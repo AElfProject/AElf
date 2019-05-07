@@ -14,7 +14,7 @@
     <PackageReference Include="Mono.Cecil" Version="0.10.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AElf.Contracts.AElfConsensus\AElf.Contracts.AElfConsensus.csproj" />
+    <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AElfConsensus\AElf.Contracts.Consensus.AElfConsensus.csproj" />
     <ProjectReference Include="..\..\src\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj" />
     <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />
     <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />

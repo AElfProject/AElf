@@ -2,8 +2,6 @@ namespace AElf.Contracts.Election
 {
     public class ElectionContractConstants
     {
-        public static readonly Hash Topic = Hash.FromString("Main Chain Miner Election");
-
         public const long LockTokenForElection = 100_000;
 
         public const string VoteSymbol = "VOTE";

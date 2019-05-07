@@ -136,12 +136,14 @@ namespace AElf.Kernel.Services
             using (var cts = new CancellationTokenSource())
             {
                 cts.CancelAfter(timeSpan);
+                Logger.LogTrace($"Cancel mining after {timeSpan.TotalMilliseconds} ms");
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
             }
-            Logger.LogTrace($"Cancel mining after {timeSpan.TotalMilliseconds} ms");
 
             await SignBlockAsync(block);
+            Logger.LogTrace("Singed block.");
+
             // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
             //await _txHub.OnNewBlock(block);
 
