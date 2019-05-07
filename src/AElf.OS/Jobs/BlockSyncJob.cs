@@ -80,7 +80,7 @@ namespace AElf.OS.Jobs
                 {
                     // Limit block sync job count, control memory usage
                     chain = await _blockchainService.GetChainAsync();
-                    if (chain.BestChainHeight < blockHeight - BlockSyncJobLimit)
+                    if (chain.LongestChainHeight < blockHeight - BlockSyncJobLimit)
                     {
                         Logger.LogWarning($"Pause sync task and wait for synced block to be processed, best chain height: {chain.BestChainHeight}");
                         break;

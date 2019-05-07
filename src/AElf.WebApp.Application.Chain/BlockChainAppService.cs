@@ -22,7 +22,7 @@ namespace AElf.WebApp.Application.Chain
 {
     public interface IBlockChainAppService : IApplicationService
     {
-        Task<string> Call(string rawTransaction);
+        Task<string> Call(CallInput input);
 
         Task<byte[]> GetContractFileDescriptorSet(string address);
 
@@ -30,9 +30,9 @@ namespace AElf.WebApp.Application.Chain
         
         Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input);
 
-        Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction);
+        Task<BroadcastTransactionOutput> BroadcastTransaction(BroadcastTransactionInput input);
 
-        Task<string[]> BroadcastTransactions(string rawTransactions);
+        Task<string[]> BroadcastTransactions(BroadcastTransactionsInput input);
 
         Task<TransactionResultDto> GetTransactionResult(string transactionId);
 
@@ -88,13 +88,12 @@ namespace AElf.WebApp.Application.Chain
         /// <summary>
         /// Call a read-only method on a contract.
         /// </summary>
-        /// <param name="rawTransaction">raw transaction</param>
         /// <returns></returns>
-        public async Task<string> Call(string rawTransaction)
+        public async Task<string> Call(CallInput input)
         {
             try
             {
-                var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
+                var hexString = ByteArrayHelpers.FromHexString(input.RawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
                 if (!transaction.VerifySignature())
                 {
@@ -196,11 +195,10 @@ namespace AElf.WebApp.Application.Chain
         /// <summary>
         /// Broadcast a transaction
         /// </summary>
-        /// <param name="rawTransaction">raw transaction</param>
         /// <returns></returns>
-        public async Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction)
+        public async Task<BroadcastTransactionOutput> BroadcastTransaction(BroadcastTransactionInput input)
         {
-            var txIds = await PublishTransactionsAsync(new []{rawTransaction});
+            var txIds = await PublishTransactionsAsync(new[] {input.RawTransaction});
             return new BroadcastTransactionOutput
             {
                 TransactionId = txIds[0]
@@ -211,11 +209,10 @@ namespace AElf.WebApp.Application.Chain
         /// <summary>
         /// Broadcast multiple transactions
         /// </summary>
-        /// <param name="rawTransactions">raw transactions</param>
         /// <returns></returns>
-        public async Task<string[]> BroadcastTransactions(string rawTransactions)
+        public async Task<string[]> BroadcastTransactions(BroadcastTransactionsInput input)
         {
-            var txIds = await PublishTransactionsAsync(rawTransactions.Split(","));
+            var txIds = await PublishTransactionsAsync(input.RawTransactions.Split(","));
             
             return txIds;
         }
