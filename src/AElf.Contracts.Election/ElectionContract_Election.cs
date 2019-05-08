@@ -382,6 +382,14 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        public override Empty UpdateMinersCount(UpdateMinersCountInput input)
+        {
+            Assert(State.AElfConsensusContract.Value == Context.Sender,
+                "Only consensus contract can update miners count.");
+            State.MinersCount.Value = input.MinersCount;
+            return new Empty();
+        }
+
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             return (long) (((double) lockTime / 270 + 2.0 / 3.0) * votesAmount);

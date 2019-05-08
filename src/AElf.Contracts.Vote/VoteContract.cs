@@ -25,6 +25,8 @@ namespace AElf.Contracts.Vote
 
         public override Empty Register(VotingRegisterInput input)
         {
+            var votingItemId = input.GetHash(Context.Sender);
+
             if (input.TotalSnapshotNumber == 0)
             {
                 input.TotalSnapshotNumber = 1;
@@ -40,9 +42,10 @@ namespace AElf.Contracts.Vote
 
             InitializeDependentContracts();
 
-            var votingItemId = input.GetHash(Context.Sender);
-
             Assert(State.VotingItems[votingItemId] == null, "Voting item already exists.");
+            
+            Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
+            
             var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
                 Symbol = input.AcceptedCurrency,
@@ -296,7 +299,7 @@ namespace AElf.Contracts.Vote
         private VotingItem AssertVotingItem(Hash votingItemId)
         {
             var votingItem = State.VotingItems[votingItemId];
-            Assert(votingItem != null, "Voting item not found.");
+            Assert(votingItem != null, $"Voting item not found. {votingItemId.ToHex()}");
             return votingItem;
         }
 

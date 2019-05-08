@@ -35,6 +35,8 @@ service ElectionContract {
     }
     rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
     }
+    rpc UpdateMinersCount (UpdateMinersCountInput) returns (google.protobuf.Empty) {
+    }
 
     // View
     rpc GetCandidates (google.protobuf.Empty) returns (PublicKeysList) {

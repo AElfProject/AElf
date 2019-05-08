@@ -38,7 +38,8 @@ namespace AElf.Blockchains.MainChain
                 {
                     ElectionSmartContractAddressNameProvider.Name,
                     VoteSmartContractAddressNameProvider.Name,
-                    ProfitSmartContractAddressNameProvider.Name
+                    ProfitSmartContractAddressNameProvider.Name,
+                    MinersCountProviderSmartContractAddress.Name
                 }
             });
 

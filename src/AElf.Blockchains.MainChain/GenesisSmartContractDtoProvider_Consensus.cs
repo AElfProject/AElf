@@ -4,6 +4,7 @@ using AElf.Consensus.AElfConsensus;
 using AElf.Contracts.Consensus.AElfConsensus;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AElfConsensus;
+using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 
@@ -26,7 +27,10 @@ namespace AElf.Blockchains.MainChain
             aelfConsensusMethodCallList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name
+                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
+                    MinersCountProviderContractSystemName = MinersCountProviderSmartContractAddress.Name,
+                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
             aelfConsensusMethodCallList.Add(nameof(AElfConsensusContract.FirstRound),
                 new Miners

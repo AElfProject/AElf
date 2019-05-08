@@ -33,7 +33,9 @@ namespace AElf.Blockchains.MainChain
                     ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
                     
                     // Get current miners.
-                    AelfConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
+                    AelfConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                    MaximumLockTime = 1080,
+                    MinimumLockTime = 90
                 });
             return electionContractMethodCallList;
         }

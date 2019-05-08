@@ -42,6 +42,17 @@ namespace AElf.Contracts.Vote
             return State.VotingResults[votingResultHash];
         }
 
+        public override VotingResult GetLatestVotingResult(Hash input)
+        {
+            var votingItem = AssertVotingItem(input);
+            var votingResultHash = new VotingResult
+            {
+                VotingItemId = input,
+                SnapshotNumber = votingItem.CurrentSnapshotNumber
+            }.GetHash();
+            return State.VotingResults[votingResultHash];
+        }
+
         public override VotedIds GetVotingIds(GetVotingIdsInput input)
         {
             return State.VotedItemsMap[input.Voter].VotedItemVoteIds.Where(p => p.Key == input.VotingItemId.ToHex())

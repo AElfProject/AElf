@@ -118,3 +118,7 @@ message TermSnapshot {
     sint64 mined_blocks = 2;
     map<string, sint64> election_result = 3;
 }
+
+message UpdateMinersCountInput {
+     sint32 miners_count = 1;
+ }

@@ -6,6 +6,7 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Consensus.AElfConsensus\AElf.Contracts.Consensus.AElfConsensus.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Consensus.MinersCountProvider\AElf.Contracts.Consensus.MinersCountProvider.csproj" />
         <ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
