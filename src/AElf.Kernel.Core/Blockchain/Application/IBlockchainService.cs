@@ -16,16 +16,16 @@ namespace AElf.Kernel.Blockchain.Application
     {
         int GetChainId();
 
-        Task<Chain> CreateChainAsync(BlockWithTransaction block);
+        Task<Chain> CreateChainAsync(BlockWithTransactions block);
         Task AddBlockAsync(Block block);
-        Task AddBlockWithTransactionsAsync(BlockWithTransaction blockWithTxs);
+        Task AddBlockWithTransactionsAsync(BlockWithTransactions blockWithTxs);
         Task<bool> HasBlockAsync(Hash blockId);
 
         Task<Block> GetBlockByHashAsync(Hash blockId);
 
         Task<BlockHeader> GetBlockHeaderByHashAsync(Hash blockId);
 
-        Task<BlockWithTransaction> GetBlockWithTransactionsByHashAsync(Hash blockId);
+        Task<BlockWithTransactions> GetBlockWithTransactionsByHashAsync(Hash blockId);
 
         Task<Chain> GetChainAsync();
 
@@ -68,7 +68,7 @@ namespace AElf.Kernel.Blockchain.Application
             return await blockchainService.GetBlockByHashAsync(hash);
         }
 
-        public static async Task<List<BlockWithTransaction>> GetBlocksInBestChainBranchAsync(this IBlockchainService blockchainService,
+        public static async Task<List<BlockWithTransactions>> GetBlocksInBestChainBranchAsync(this IBlockchainService blockchainService,
             Hash firstHash,
             int count)
         {
@@ -99,7 +99,7 @@ namespace AElf.Kernel.Blockchain.Application
             return (await Task.WhenAll(list)).ToList();
         }
         
-        public static async Task<List<BlockWithTransaction>> GetBlocksWithTxsInChainBranchAsync(this IBlockchainService blockchainService,
+        public static async Task<List<BlockWithTransactions>> GetBlocksWithTxsInChainBranchAsync(this IBlockchainService blockchainService,
             Chain chain,
             Hash firstHash,
             int count,
@@ -174,7 +174,7 @@ namespace AElf.Kernel.Blockchain.Application
             return _chainManager.GetChainId();
         }
 
-        public async Task<Chain> CreateChainAsync(BlockWithTransaction block)
+        public async Task<Chain> CreateChainAsync(BlockWithTransactions block)
         {
             await AddBlockWithTransactionsAsync(block);
             var chain = await _chainManager.CreateAsync(block.GetHash());
@@ -187,7 +187,7 @@ namespace AElf.Kernel.Blockchain.Application
             await _blockManager.AddBlockHeaderAsync(block.Header);
         }
 
-        public async Task AddBlockWithTransactionsAsync(BlockWithTransaction blockWithTxs)
+        public async Task AddBlockWithTransactionsAsync(BlockWithTransactions blockWithTxs)
         {
             //await _blockManager.AddBlockHeaderAsync(blockWithTxs.BlockHeader);
             // todo not good
@@ -381,14 +381,14 @@ namespace AElf.Kernel.Blockchain.Application
             return hashes;
         }
 
-        public async Task<BlockWithTransaction> GetBlockWithTransactionsByHashAsync(Hash blockId)
+        public async Task<BlockWithTransactions> GetBlockWithTransactionsByHashAsync(Hash blockId)
         {
             var block = await _blockManager.GetBlockAsync(blockId);
             
             if (block?.Body?.Transactions == null) 
                 return null;
             
-            var blockWithTxs = new BlockWithTransaction();
+            var blockWithTxs = new BlockWithTransactions();
             blockWithTxs.BlockHeader = block.Header;
             
             foreach (var txId in block.Body.Transactions)

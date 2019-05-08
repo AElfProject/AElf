@@ -5,7 +5,7 @@ using System.Net;
 
 namespace AElf.Kernel
 {
-    public partial class BlockWithTransaction : IBlock, IBlockWithTransactionBase
+    public partial class BlockWithTransactions : IBlock, IBlockWithTransactionBase
     {
         public IEnumerable<Transaction> FullTransactionList => Transactions;
         public IEnumerable<Hash> TransactionList => Transactions.Select(tx => tx.GetHash());

@@ -18,7 +18,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Create_Chain_Success()
         {
-            var block = new BlockWithTransaction
+            var block = new BlockWithTransactions
             {
                 BlockHeader = new BlockHeader
                 {

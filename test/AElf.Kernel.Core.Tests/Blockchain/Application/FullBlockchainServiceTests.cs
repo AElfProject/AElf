@@ -51,7 +51,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Add_BlockWithTransactions_Success()
         {
-            var block = new BlockWithTransaction { BlockHeader = new BlockHeader() };
+            var block = new BlockWithTransactions { BlockHeader = new BlockHeader() };
             
             for (var i = 0; i < 3; i++)
             {

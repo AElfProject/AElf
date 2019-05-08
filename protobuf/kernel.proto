@@ -177,7 +177,7 @@ message Block {
     BlockBody Body = 2;
 }
 
-message BlockWithTransaction {
+message BlockWithTransactions {
     BlockHeader blockHeader = 1;
     repeated Transaction Transactions = 2;
 

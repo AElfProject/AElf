@@ -20,7 +20,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         
         private Counter _counter;
         
-        private BlockWithTransaction _block;
+        private BlockWithTransactions _block;
         
         public BlockAttachTests(ITestOutputHelper output)
         {
@@ -44,7 +44,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
                 var transactions = await _osTestHelper.GenerateTransferTransactions(1000);
 
                 var block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
-                _block = new BlockWithTransaction { BlockHeader = block.Header };
+                _block = new BlockWithTransactions { BlockHeader = block.Header };
                 _block.Transactions.AddRange(transactions);
             });
         }

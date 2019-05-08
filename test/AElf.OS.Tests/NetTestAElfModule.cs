@@ -41,7 +41,7 @@ namespace AElf.OS
                         if (requested == null)
                             return null;
                         
-                        var selection = _blockList.Where(b => b.Height > requested.Height).Select(b => new BlockWithTransaction {BlockHeader = b.Header}).OrderBy(b => b.Height).Take(cnt).ToList();
+                        var selection = _blockList.Where(b => b.Height > requested.Height).Select(b => new BlockWithTransactions {BlockHeader = b.Header}).OrderBy(b => b.Height).Take(cnt).ToList();
                         
                         return Task.FromResult(selection);
                     });

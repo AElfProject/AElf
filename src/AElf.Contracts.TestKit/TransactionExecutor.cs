@@ -31,7 +31,7 @@ namespace AElf.Contracts.TestKit
                 new List<Transaction> {transaction},
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
 
-            var blckWithTrx = new BlockWithTransaction {BlockHeader = block.Header};
+            var blckWithTrx = new BlockWithTransactions {BlockHeader = block.Header};
             blckWithTrx.Transactions.AddRange(new List<Transaction> {transaction});
             
             await blockAttachService.AttachReceivedBlock(blckWithTrx);

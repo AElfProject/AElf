@@ -9,7 +9,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public interface IBlockAttachService
     {
         Task AttachBlockAsync(Block block);
-        Task AttachReceivedBlock(BlockWithTransaction blockWithTransaction);
+        Task AttachReceivedBlock(BlockWithTransactions blockWithTransactions);
     }
 
     public class BlockAttachService : IBlockAttachService, ITransientDependency
@@ -28,14 +28,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger = NullLogger<BlockAttachService>.Instance;
         }
 
-        public async Task AttachReceivedBlock(BlockWithTransaction blockWithTransaction)
+        public async Task AttachReceivedBlock(BlockWithTransactions blockWithTransactions)
         {
-            Block block = blockWithTransaction.ToBlock();
+            Block block = blockWithTransactions.ToBlock();
             
             if (!await ValidateAsync(block))
                 return;
             
-            await _blockchainService.AddBlockWithTransactionsAsync(blockWithTransaction);
+            await _blockchainService.AddBlockWithTransactionsAsync(blockWithTransactions);
             await AttachAndExecute(block);
         }
 

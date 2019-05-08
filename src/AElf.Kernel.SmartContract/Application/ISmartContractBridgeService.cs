@@ -18,7 +18,7 @@ namespace AElf.Kernel.SmartContract.Application
         Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged, Hash name);
 
-        Task<BlockWithTransaction> GetBlockWithTransactionsByHashAsync(Hash blockId);
+        Task<BlockWithTransactions> GetBlockWithTransactionsByHashAsync(Hash blockId);
         int GetChainId();
 
         Address GetAddressByContractName(Hash contractName);
@@ -68,7 +68,7 @@ namespace AElf.Kernel.SmartContract.Application
             await _smartContractService.UpdateContractAsync(contractAddress, registration, isPrivileged, name);
         }
 
-        public async Task<BlockWithTransaction> GetBlockWithTransactionsByHashAsync(Hash blockId)
+        public async Task<BlockWithTransactions> GetBlockWithTransactionsByHashAsync(Hash blockId)
         {
             return await _blockchainService.GetBlockWithTransactionsByHashAsync(blockId);
         }

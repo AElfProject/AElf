@@ -21,8 +21,8 @@ namespace AElf.OS
         {
             context.Services.Configure<BackgroundJobOptions>(options => { options.IsJobExecutionEnabled = false; });
             
-            var block = new BlockWithTransaction { BlockHeader = new BlockHeader { Height = 1 } };
-            var block2 = new BlockWithTransaction { BlockHeader = new BlockHeader { Height = 2 } };
+            var block = new BlockWithTransactions { BlockHeader = new BlockHeader { Height = 1 } };
+            var block2 = new BlockWithTransactions { BlockHeader = new BlockHeader { Height = 2 } };
             
             context.Services.AddTransient<PeerConnectedEventHandler>();
 

@@ -48,7 +48,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public ILogger<FullBlockchainExecutingService> Logger { get; set; }
 
-        private async Task<bool> ExecuteBlock(ChainBlockLink blockLink, BlockWithTransaction block)
+        private async Task<bool> ExecuteBlock(ChainBlockLink blockLink, BlockWithTransactions block)
         {
             var blockState = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
             if (blockState != null)
