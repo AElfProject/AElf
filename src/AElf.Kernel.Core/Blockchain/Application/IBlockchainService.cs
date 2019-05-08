@@ -183,8 +183,8 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task AddBlockAsync(Block block)
         {
-            await _blockManager.AddBlockHeaderAsync(block.Header);
             await _blockManager.AddBlockBodyAsync(block.Header.GetHash(), block.Body);
+            await _blockManager.AddBlockHeaderAsync(block.Header);
         }
 
         public async Task AddBlockWithTransactionsAsync(BlockWithTransaction blockWithTxs)

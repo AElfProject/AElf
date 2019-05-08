@@ -47,6 +47,27 @@ namespace AElf.Kernel.Blockchain.Application
             existBlock.GetHash().ShouldBe(block.GetHash());
             existBlock.Body.TransactionsCount.ShouldBe(3);
         }
+        
+        [Fact]
+        public async Task Add_BlockWithTransactions_Success()
+        {
+            var block = new BlockWithTransaction { BlockHeader = new BlockHeader() };
+            
+            for (var i = 0; i < 3; i++)
+            {
+                block.Transactions.Add(_kernelTestHelper.GenerateTransaction());
+            }
+
+            var existBlock = await _fullBlockchainService.GetBlockWithTransactionsByHashAsync(block.GetHash());
+            existBlock.ShouldBeNull();
+
+            await _fullBlockchainService.AddBlockWithTransactionsAsync(block);
+
+            existBlock = await _fullBlockchainService.GetBlockWithTransactionsByHashAsync(block.GetHash());
+            existBlock.GetHash().ShouldBe(block.GetHash());
+            existBlock.Body.TransactionsCount.ShouldBe(3);
+            existBlock.Transactions.Count.ShouldBe(3);
+        }
 
         [Fact]
         public async Task Has_Block_ReturnTrue()

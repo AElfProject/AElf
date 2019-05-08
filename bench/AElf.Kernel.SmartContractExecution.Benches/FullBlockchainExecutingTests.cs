@@ -65,20 +65,13 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, .0d)]
         public void ExecuteBlocksAttachedToLongestChainTest()
         {
-            try
+            AsyncHelper.RunSync(async () =>
             {
-                AsyncHelper.RunSync(async () =>
-                {
-                    var chain = await _blockchainService.GetChainAsync();
-                    await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain,
-                        BlockAttachOperationStatus.LongestChainFound);
-                });
-                _counter.Increment();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+                var chain = await _blockchainService.GetChainAsync();
+                await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain,
+                    BlockAttachOperationStatus.LongestChainFound);
+            });
+            _counter.Increment();
         }
         
         [NBenchFact]
