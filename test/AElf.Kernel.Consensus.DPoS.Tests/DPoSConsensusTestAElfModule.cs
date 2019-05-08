@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -12,11 +13,11 @@ using AElf.Modularity;
 using AElf.OS;
 using AElf.Runtime.CSharp;
 using AElf.TestBase;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
-using AElf.Contracts.Consensus.DPoS;
 
 namespace AElf.Kernel.Consensus.DPoS
 {

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using Acs4;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -20,6 +20,13 @@ using AElf.OS.Node.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using CommandInput = AElf.Contracts.Dividend.CommandInput;
+//using DPoSHeaderInformation = AElf.Contracts.Dividend.DPoSHeaderInformation;
+//using DPoSTriggerInformation = AElf.Contractsntracts.Dividend.DPoSTriggerInformation;
+//using Round = AElf.Contracts.Dividend.Round;
+//using ToUpdate = AElf.Contracts.Dividend.ToUpdate;
+//using DPoSContractConsts = AElf.Contracts.Consensus.DPoS.DPoSContractConsts;
+
 //using VoteInput = AElf.Consensus.DPoS.VoteInput;
 //using VotingRecord = AElf.Consensus.DPoS.VotingRecord;
 
@@ -156,7 +163,7 @@ namespace AElf.Contracts.Consensus.DPoS
             int miningInterval = 4000, Timestamp blockchainStartTimestamp = null)
         {
             var dividendMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            dividendMethodCallList.Add(nameof(DividendContract.InitializeDividendContract),
+            dividendMethodCallList.Add(nameof(DividendContractContainer.DividendContractStub.InitializeDividendContract),
                 new InitialDividendContractInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
@@ -240,7 +247,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 var currentMinerPublicKey = round.RealTimeMinersInformation.Values.First(v => v.Order == i).PublicKey;
                 var currentMiner = miners.First(m => m.PublicKey == currentMinerPublicKey);
                 var (block, tx) = await currentMiner.ExecuteConsensusContractMethodWithMiningReturnBlockAsync(
-                    nameof(ConsensusContract.UpdateValue), new ToUpdate
+                    nameof(ConsensusContractContainer.ConsensusContractStub.UpdateValue), new Acs4.ToUpdate
                     {
                         OutValue = Hash.Generate(),
                         PreviousInValue = Hash.Generate(),
@@ -280,7 +287,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 {
                     var currentMiner = miners.First(m => m.PublicKey == miner.PublicKey);
                     var (block, tx) = await currentMiner.ExecuteConsensusContractMethodWithMiningReturnBlockAsync(
-                        nameof(ConsensusContract.UpdateValue), new ToUpdate
+                        nameof(ConsensusContractContainer.ConsensusContractStub.UpdateValue), new Acs4.ToUpdate
                         {
                             OutValue = Hash.Generate(),
                             PreviousInValue = Hash.Generate(),
@@ -328,7 +335,7 @@ namespace AElf.Contracts.Consensus.DPoS
             round.GenerateNextRoundInformation(DateTime.UtcNow, DateTime.UtcNow.ToTimestamp(),
                 out var nextRound);
             var (extraBlock, extraTx) = await miners.First(m => m.PublicKey == extraBlockProducer.PublicKey)
-                .ExecuteConsensusContractMethodWithMiningReturnBlockAsync(nameof(ConsensusContract.NextRound),
+                .ExecuteConsensusContractMethodWithMiningReturnBlockAsync(nameof(ConsensusContractContainer.ConsensusContractStub.NextRound),
                     nextRound);
 
             foreach (var otherMiner in miners.Where(m => m.PublicKey != extraBlockProducer.PublicKey))
@@ -359,13 +366,13 @@ namespace AElf.Contracts.Consensus.DPoS
 
             var termNumberBytes = await miners.AnyOne().CallContractMethodAsync(
                 miners.AnyOne().GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetCurrentTermNumber),
+                nameof(ConsensusContractContainer.ConsensusContractStub.GetCurrentTermNumber),
                 new Empty());
             var termNumber = SInt64Value.Parser.ParseFrom(termNumberBytes).Value;
 
             var nextTermTx = await miners.AnyOne().GenerateTransactionAsync(
                 miners.AnyOne().GetConsensusContractAddress(),
-                nameof(ConsensusContract.NextTerm), nextRound);
+                nameof(ConsensusContractContainer.ConsensusContractStub.NextTerm), nextRound);
 
             var extraBlockMiner = miners.First(m => m.PublicKey == extraBlockProducer.PublicKey);
             var block = await extraBlockMiner.MineAsync(new List<Transaction> {nextTermTx});
@@ -381,7 +388,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public static async Task<Round> GetCurrentRoundInformationAsync(
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
-            var result = await contractTester.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract
+            var result = await contractTester.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContractContainer.ConsensusContractStub
                 .GetCurrentRoundInformation), new Empty());
             return Round.Parser.ParseFrom(result.ReturnValue);
         }
@@ -389,7 +396,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public static async Task<long> GetCurrentTermNumber(
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
-            var result = await contractTester.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract
+            var result = await contractTester.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContractContainer.ConsensusContractStub
                 .GetCurrentTermNumber), new Empty());
             return SInt64Value.Parser.ParseFrom(result.ReturnValue).Value;
         }
@@ -454,7 +461,7 @@ namespace AElf.Contracts.Consensus.DPoS
             }
 
             return await candidate.ExecuteContractWithMiningAsync(candidate.GetConsensusContractAddress(),
-                nameof(ConsensusContract.AnnounceElection),
+                nameof(ConsensusContractContainer.ConsensusContractStub.AnnounceElection),
                 new Alias() {Value = alias});
         }
 
@@ -462,7 +469,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> candidate)
         {
             return await candidate.ExecuteContractWithMiningAsync(candidate.GetConsensusContractAddress(),
-                nameof(ConsensusContract.QuitElection), new Empty());
+                nameof(ConsensusContractContainer.ConsensusContractStub.QuitElection), new Empty());
         }
 
         public static async Task<List<ContractTester<DPoSContractTestAElfModule>>> GenerateCandidatesAsync(
@@ -484,7 +491,7 @@ namespace AElf.Contracts.Consensus.DPoS
                         Symbol = "ELF"
                     }));
                 announceElectionTxs.Add(await starter.GenerateTransactionAsync(starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.AnnounceElection), candidateKeyPair,
+                    nameof(ConsensusContractContainer.ConsensusContractStub.AnnounceElection), candidateKeyPair,
                     new Alias
                     {
                         Value = $"{candidateKeyPair.PublicKey.ToHex().Substring(0, DPoSContractConsts.AliasLimit)}"
@@ -532,7 +539,7 @@ namespace AElf.Contracts.Consensus.DPoS
             string publicKey,
             long amount, int lockTime)
         {
-            return await voter.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.Vote),
+            return await voter.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContractContainer.ConsensusContractStub.Vote),
                 new VoteInput()
                 {
                     CandidatePublicKey = publicKey,
@@ -545,7 +552,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetCandidatesList), new Empty());
+                nameof(ConsensusContractContainer.ConsensusContractStub.GetCandidatesList), new Empty());
             return StringList.Parser.ParseFrom(bytes);
         }
 
@@ -553,7 +560,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetCandidates), new Empty());
+                nameof(ConsensusContractContainer.ConsensusContractStub.GetCandidates), new Empty());
             return Candidates.Parser.ParseFrom(bytes);
         }
 
@@ -561,7 +568,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester)
         {
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetTicketsInformation), new PublicKey()
+                nameof(ConsensusContractContainer.ConsensusContractStub.GetTicketsInformation), new PublicKey()
                 {
                     Hex = contractTester.PublicKey
                 });
@@ -572,7 +579,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester, Hash txId)
         {
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetVotingRecord), txId);
+                nameof(ConsensusContractContainer.ConsensusContractStub.GetVotingRecord), txId);
             return VotingRecord.Parser.ParseFrom(bytes);
         }
 
@@ -581,7 +588,7 @@ namespace AElf.Contracts.Consensus.DPoS
             int length)
         {
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetPageableTicketsInfo),
+                nameof(ConsensusContractContainer.ConsensusContractStub.GetPageableTicketsInfo),
                 new PageableTicketsInfoInput()
                 {
                     PublicKey = publicKey,
@@ -596,7 +603,7 @@ namespace AElf.Contracts.Consensus.DPoS
             int length)
         {
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetPageableNotWithdrawnTicketsInfo),
+                nameof(ConsensusContractContainer.ConsensusContractStub.GetPageableNotWithdrawnTicketsInfo),
                 new PageableTicketsInfoInput()
                 {
                     PublicKey = publicKey,
@@ -615,7 +622,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             var bytes = await contractTester.CallContractMethodAsync(
                 contractTester.GetDividendsContractAddress(),
-                nameof(DividendContract.CheckDividendsOfPreviousTerm),
+                nameof(DividendContractContainer.DividendContractStub.CheckDividendsOfPreviousTerm),
                 new Empty());
             return LongList.Parser.ParseFrom(bytes);
         }
@@ -625,7 +632,7 @@ namespace AElf.Contracts.Consensus.DPoS
         public static async Task SetBlockchainAgeAsync(this ContractTester<DPoSContractTestAElfModule> starter,
             long age)
         {
-            await starter.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.SetBlockchainAge),
+            await starter.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContractContainer.ConsensusContractStub.SetBlockchainAge),
                 new SInt64Value()
                 {
                     Value = age
@@ -644,7 +651,7 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             return SInt64Value.Parser.ParseFrom((await miner.CallContractMethodAsync(
                 miner.GetConsensusContractAddress(),
-                nameof(ConsensusContract.GetLIBOffset),
+                nameof(ConsensusContractContainer.ConsensusContractStub.GetLIBOffset),
                 new Empty()
             ))).Value;
         }

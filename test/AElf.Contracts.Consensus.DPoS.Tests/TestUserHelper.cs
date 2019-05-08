@@ -1,5 +1,6 @@
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Types;
 
 namespace AElf.Contracts.Consensus.DPoS
 {

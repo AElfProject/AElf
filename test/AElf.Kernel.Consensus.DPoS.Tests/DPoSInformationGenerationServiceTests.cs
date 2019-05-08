@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
@@ -7,11 +8,11 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
-using AElf.Contracts.Consensus.DPoS;
 
 namespace AElf.Kernel.Consensus.DPoS
 {
@@ -122,7 +123,7 @@ namespace AElf.Kernel.Consensus.DPoS
         {
             var information = new ConsensusControlInformation()
             {
-                ConsensusCommand = new ConsensusCommand
+                ConsensusCommand = new Acs4.ConsensusCommand
                 {
                     Hint = ByteString.CopyFrom(new DPoSHint
                     {

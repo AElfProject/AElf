@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
+using Acs4;
 using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;

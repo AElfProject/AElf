@@ -3,12 +3,19 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using Acs4;
+using AElf;
 using AElf.Contracts.Dividend;
-using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+//using DPoSBehaviour = AElf.Contracts.Dividend.DPoSBehaviour;
+//using Miners = AElf.Contracts.Dividend.Miners;
+//using Round = AElf.Contracts.Dividend.Round;
+//using ToUpdate = AElf.Contracts.Dividend.ToUpdate;
+//using ValidationResult = Acs4.ValidationResult;
+//using AElf.Contracts.Consensus.DPoS;
 
-namespace AElf.Contracts.Consensus.DPoS
+namespace Acs4
 {
     internal static class BasicExtensions
     {
@@ -411,7 +418,7 @@ namespace AElf.Contracts.Consensus.DPoS
             if (miners.Count == 1)
             {
                 // No need to check single node.
-                return new ValidationResult {Success = true};
+                return new  ValidationResult {Success = true};
             }
 
             if (miners.Any(m => m.ExpectedMiningTime == null))

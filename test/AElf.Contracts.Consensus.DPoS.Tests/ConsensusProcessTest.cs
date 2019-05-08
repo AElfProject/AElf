@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -49,7 +50,7 @@ namespace AElf.Contracts.Consensus.DPoS
             var newInformation = new DPoSHeaderInformation
             {
                 SenderPublicKey = ByteString.CopyFrom(testers.Testers[0].KeyPair.PublicKey),
-                Round = await testers.Testers[0].GetCurrentRoundInformationAsync(),
+                Round = Round.Parser.ParseFrom((await testers.Testers[0].GetCurrentRoundInformationAsync()).ToByteString()),
                 Behaviour = DPoSBehaviour.UpdateValueWithoutPreviousInValue
             };
             
@@ -320,7 +321,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 voteTxs.Add(await voter.GenerateTransactionAsync(
                     starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.Vote),
+                    nameof(ConsensusContractContainer.ConsensusContractStub.Vote),
                     new VoteInput
                     {
                         CandidatePublicKey = candidate.PublicKey,
@@ -374,12 +375,12 @@ namespace AElf.Contracts.Consensus.DPoS
             };
 
             var transactionResult = await testers.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                nameof(ConsensusContract.ConfigStrategy), input);
+                nameof(ACS4Container.ACS4Stub.ConfigStrategy), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //set again
             transactionResult = await testers.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                nameof(ConsensusContract.ConfigStrategy), input);
+                nameof(ACS4Container.ACS4Stub.ConfigStrategy), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already configured").ShouldBeTrue();
         }

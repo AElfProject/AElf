@@ -141,35 +141,35 @@ message CandidateInTerm {
 }
 
 // The information of a round.
-message Round {
-    int64 RoundNumber = 1;
-    map<string, MinerInRound> RealTimeMinersInformation = 2;
-    int64 MainChainMinersRoundNumber = 3;
-    int64 BlockchainAge = 4;
-    string ExtraBlockProducerOfPreviousRound = 7;
-    int64 TermNumber = 8;
-}
+//message Round {
+//    int64 RoundNumber = 1;
+//    map<string, MinerInRound> RealTimeMinersInformation = 2;
+//    int64 MainChainMinersRoundNumber = 3;
+//    int64 BlockchainAge = 4;
+//    string ExtraBlockProducerOfPreviousRound = 7;
+//    int64 TermNumber = 8;
+//}
 
 // The information of a miner in a specific round.
-message MinerInRound {
-    int32 Order = 1;
-    bool IsExtraBlockProducer = 2;
-    aelf.Hash InValue = 3;
-    aelf.Hash OutValue = 4;
-    aelf.Hash Signature = 5;
-    google.protobuf.Timestamp ExpectedMiningTime = 6;
-    int64 ProducedBlocks = 7;
-    int64 MissedTimeSlots = 8;
-    string PublicKey = 9;
-    int32 PromisedTinyBlocks = 10;
-    string Alias = 11;
-    aelf.Hash PreviousInValue = 12;
-    int32 SupposedOrderOfNextRound = 13;
-    int32 FinalOrderOfNextRound = 14;
-    google.protobuf.Timestamp ActualMiningTime = 15;// Miners must fill actual mining time when they do the mining.
-    map<string, bytes> EncryptedInValues = 16;
-    map<string, bytes> DecryptedPreviousInValues = 17;
-}
+//message MinerInRound {
+//    int32 Order = 1;
+//    bool IsExtraBlockProducer = 2;
+//    aelf.Hash InValue = 3;
+//    aelf.Hash OutValue = 4;
+//    aelf.Hash Signature = 5;
+//    google.protobuf.Timestamp ExpectedMiningTime = 6;
+//    int64 ProducedBlocks = 7;
+//    int64 MissedTimeSlots = 8;
+//    string PublicKey = 9;
+//    int32 PromisedTinyBlocks = 10;
+//    string Alias = 11;
+//    aelf.Hash PreviousInValue = 12;
+//    int32 SupposedOrderOfNextRound = 13;
+//    int32 FinalOrderOfNextRound = 14;
+//    google.protobuf.Timestamp ActualMiningTime = 15;// Miners must fill actual mining time when they do the mining.
+//    map<string, bytes> EncryptedInValues = 16;
+//    map<string, bytes> DecryptedPreviousInValues = 17;
+//}
 
 // The information of a candidate.
 message CandidateInHistory {
@@ -215,31 +215,31 @@ enum TicketsHistoryType {
     Vote = 2;
 }
 
-message DPoSHeaderInformation {
-    bytes SenderPublicKey = 1;
-    Round Round = 2;
-    DPoSBehaviour Behaviour = 3;
-}
+//message DPoSHeaderInformation {
+//    bytes SenderPublicKey = 1;
+//    Round Round = 2;
+//    DPoSBehaviour Behaviour = 3;
+//}
 
-message DPoSHint {
-    DPoSBehaviour Behaviour = 1;
-}
+//message DPoSHint {
+//    DPoSBehaviour Behaviour = 1;
+//}
+//
+//enum DPoSBehaviour {
+//    UpdateValue = 0;
+//    NextRound = 1;
+//    NextTerm = 2;
+//    UpdateValueWithoutPreviousInValue = 3;
+//    Nothing = 4;
+//}
 
-enum DPoSBehaviour {
-    UpdateValue = 0;
-    NextRound = 1;
-    NextTerm = 2;
-    UpdateValueWithoutPreviousInValue = 3;
-    Nothing = 4;
-}
-
-message DPoSTriggerInformation {
-    bytes PublicKey = 1;// A must-have.
-    aelf.Hash RandomHash = 2;// To calculate In Value.
-    aelf.Hash PreviousRandomHash = 3;// Random hash of previous round for validation.
-    DPoSBehaviour Behaviour = 4;
-    int64 InitialTermNumber = 5;
-}
+//message DPoSTriggerInformation {
+//    bytes PublicKey = 1;// A must-have.
+//    aelf.Hash RandomHash = 2;// To calculate In Value.
+//    aelf.Hash PreviousRandomHash = 3;// Random hash of previous round for validation.
+//    DPoSBehaviour Behaviour = 4;
+//    int64 InitialTermNumber = 5;
+//}
 
 message CommandInput {
     bytes PublicKey = 1;

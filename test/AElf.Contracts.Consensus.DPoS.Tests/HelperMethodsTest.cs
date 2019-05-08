@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -21,14 +22,14 @@ namespace AElf.Contracts.Consensus.DPoS
             await starter.InitialChainAndTokenAsync(initialMiners);
             var initialMiner = starter.CreateNewContractTester(initialMiners[0]);
             await initialMiner.ExecuteConsensusContractMethodWithMiningAsync(
-                nameof(ConsensusContract.SetBlockchainAge),
+                nameof(ConsensusContractContainer.ConsensusContractStub.SetBlockchainAge),
                 new SInt64Value(){Value = age});
 
             // Starter can set blockchain age.
             {
                 var blockchainAge = SInt64Value.Parser.ParseFrom(await starter.CallContractMethodAsync(
                     starter.GetConsensusContractAddress(),
-                    nameof(ConsensusContract.GetBlockchainAge),
+                    nameof(ConsensusContractContainer.ConsensusContractStub.GetBlockchainAge),
                     new Empty())).Value;
 
                 blockchainAge.ShouldBe(age);

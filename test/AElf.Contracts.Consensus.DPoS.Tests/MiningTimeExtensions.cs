@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using Acs4;
+using AElf.Contracts.Dividend;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS
