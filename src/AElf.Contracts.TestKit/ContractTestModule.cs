@@ -67,8 +67,6 @@ namespace AElf.Contracts.TestKit
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
                 options.ContextVariables[ContextVariableDictionary.TimeEachTermName] = "7";
-                options.ContextVariables[ContextVariableDictionary.MinimumLockTimeName] = "90";
-                options.ContextVariables[ContextVariableDictionary.MaximumLockTimeName] = "1080";
                 options.ContextVariables[ContextVariableDictionary.BaseTimeUnitName] = "0";// TimeUnit.Days
             });
 

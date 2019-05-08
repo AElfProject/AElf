@@ -21,14 +21,6 @@ namespace AElf
 
         public const string TimeEachTermName = nameof(TimeEachTerm);
 
-        public string MinimumLockTime => this[nameof(MinimumLockTime)];
-    
-        public const string MinimumLockTimeName = nameof(MinimumLockTime);
-
-        public string MaximumLockTime => this[nameof(MaximumLockTime)];
-    
-        public const string MaximumLockTimeName = nameof(MaximumLockTime);
-
         public string BaseTimeUnit => this[nameof(BaseTimeUnit)];
 
         public const string BaseTimeUnitName = nameof(BaseTimeUnit);
