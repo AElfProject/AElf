@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using AElf.Blockchains.BasicBaseChain;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
@@ -64,7 +65,10 @@ namespace AElf.Launcher
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseCors(builder => builder
-                .AllowAnyOrigin()
+                .WithOrigins(_configuration["CorsOrigins"]
+                    .Split(",", StringSplitOptions.RemoveEmptyEntries)
+                    .Select(o => o.RemovePostFix("/"))
+                    .ToArray())
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials()
