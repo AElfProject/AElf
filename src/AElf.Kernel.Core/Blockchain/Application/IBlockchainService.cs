@@ -353,7 +353,8 @@ namespace AElf.Kernel.Blockchain.Application
 
             if (chainBlockLink.PreviousBlockHash != firstHash)
             {
-                return new List<Hash>();
+                //TODO need to improve
+                throw new Exception("wrong branch");
             }
 
             hashes.Reverse();
