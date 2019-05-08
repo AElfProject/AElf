@@ -33,6 +33,7 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 var contractDllPath = _contractDllDir + contract;
 
+                // TODO: Check each bad condition here whether it is found by contract auditor
                 Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), false));
             }
         }

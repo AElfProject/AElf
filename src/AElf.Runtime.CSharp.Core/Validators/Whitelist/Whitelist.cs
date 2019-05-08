@@ -209,9 +209,19 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
 
             if (!typeRule.Members.TryGetValue(member, out var memberRule))
             {
-                return typeRule.Permission == Permission.Allowed
-                    ? WhitelistSearchResult.Allowed
-                    : WhitelistSearchResult.DeniedMember;
+                if (!member.StartsWith("get_") && !member.StartsWith("set_"))
+                    return typeRule.Permission == Permission.Allowed
+                        ? WhitelistSearchResult.Allowed
+                        : WhitelistSearchResult.DeniedMember;
+    
+                // Check without the prefix as well
+                member = member.Split("_", 2)[1];
+                if (!typeRule.Members.TryGetValue(member, out memberRule))
+                {
+                    return typeRule.Permission == Permission.Allowed
+                        ? WhitelistSearchResult.Allowed
+                        : WhitelistSearchResult.DeniedMember;
+                }
             }
 
             return memberRule.Permission == Permission.Allowed
