@@ -84,7 +84,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
 
             block.Body.Transactions.ShouldBe(allTxIds);
-            // todo block.Body.TransactionList.ShouldBe(allTxs);
         }
 
         private List<Transaction> BuildTransactions(int txCount)
