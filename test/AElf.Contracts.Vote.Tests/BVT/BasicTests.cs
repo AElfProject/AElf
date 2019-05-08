@@ -115,10 +115,11 @@ namespace AElf.Contracts.Vote
                 
                 var transactionResult = await Withdraw(withdrawUser, voteIds.ActiveVotes.First());
                 
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                var afterBalance = GetUserBalance(voteAddress);
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.ShouldContain("No permission to withdraw votes of others");
                 
-                beforeBalance.ShouldBe(afterBalance);
+                var afterBalance = GetUserBalance(voteAddress);
+                beforeBalance.ShouldBe(afterBalance);// Stay same
             }
             
             //vote but not expire

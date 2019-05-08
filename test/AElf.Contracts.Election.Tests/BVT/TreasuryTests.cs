@@ -25,27 +25,33 @@ namespace AElf.Contracts.Election
         public async Task ElectionContract_RegisterToTreasury()
         {
             var treasury = await ProfitContractStub.GetProfitItem.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
-            // MinerReward (weight 60) -> Treasury
+            // MinerReward (weight 3) -> Treasury
             treasury.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.MinerReward]);
-            treasury.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.MinerReward]).Weight.ShouldBe(60);
-            // BackupSubsidy (weight 20) -> Treasury
+            treasury.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.MinerReward]).Weight
+                .ShouldBe(ElectionContractConstants.MinerRewardWeight);
+            // BackupSubsidy (weight 1) -> Treasury
             treasury.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.BackupSubsidy]);
-            treasury.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.BackupSubsidy]).Weight.ShouldBe(20);
-            // CitizenWelfare (weight 20) -> Treasury
+            treasury.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.BackupSubsidy]).Weight
+                .ShouldBe(ElectionContractConstants.BackupSubsidyWeight);
+            // CitizenWelfare (weight 1) -> Treasury
             treasury.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.CitizenWelfare]);
-            treasury.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.CitizenWelfare]).Weight.ShouldBe(20);
+            treasury.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.CitizenWelfare]).Weight
+                .ShouldBe(ElectionContractConstants.CitizenWelfareWeight);
 
             var reward = await ProfitContractStub.GetProfitItem.CallAsync(ProfitItemsIds[ProfitType.MinerReward]);
             // BasicMinerReward (weight 4) -> Reward
             reward.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.BasicMinerReward]);
-            reward.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.BasicMinerReward]).Weight.ShouldBe(4);
+            reward.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.BasicMinerReward]).Weight
+                .ShouldBe(ElectionContractConstants.BasicMinerRewardWeight);
             // VotesWeightReward (weight 1) -> Reward
             reward.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.VotesWeightReward]);
-            reward.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.VotesWeightReward]).Weight.ShouldBe(1);
+            reward.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.VotesWeightReward]).Weight
+                .ShouldBe(ElectionContractConstants.VotesWeightRewardWeight);
             // ReElectionReward (weight 1) -> Reward
             reward.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.ReElectionReward]);
-            reward.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.ReElectionReward]).Weight.ShouldBe(1);
-            
+            reward.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.ReElectionReward]).Weight
+                .ShouldBe(ElectionContractConstants.ReElectionRewardWeight);
+
             // Check the balance of Treasury
             var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {

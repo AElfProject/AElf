@@ -37,7 +37,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 var command = await BootMiner.GetConsensusCommand.CallAsync(new CommandInput
                     {PublicKey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)});
                 command.NextBlockMiningLeftMilliseconds.ShouldBe(MiningInterval);
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval);
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval / AElfConsensusContractConstants.TinyBlocksNumber);
                 command.Hint.ShouldBe(new AElfConsensusHint
                         {Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue}
                     .ToByteArray());
@@ -53,7 +53,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     {PublicKey = ByteString.CopyFrom(otherMinerKeyPair.PublicKey)});
                 command.NextBlockMiningLeftMilliseconds.ShouldBe(
                     MiningInterval * InitialMinersCount + MiningInterval * order);
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval);
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval / AElfConsensusContractConstants.TinyBlocksNumber);
                 command.Hint.ShouldBe(new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextRound}
                     .ToByteArray());
             }
@@ -91,7 +91,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 var command = await miner.GetConsensusCommand.CallAsync(new CommandInput
                     {PublicKey = ByteString.CopyFrom(minerKeyPair.PublicKey)});
                 command.NextBlockMiningLeftMilliseconds.ShouldBe(leftMilliseconds);
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval);
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval / AElfConsensusContractConstants.TinyBlocksNumber);
                 command.Hint.ShouldBe(new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValue}
                     .ToByteArray());
             }
@@ -119,7 +119,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     command.NextBlockMiningLeftMilliseconds.ShouldBe(leftMilliseconds);
                 }
 
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval);
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval / AElfConsensusContractConstants.TinyBlocksNumber);
                 command.Hint.ShouldBe(new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextRound}
                     .ToByteArray());
             }

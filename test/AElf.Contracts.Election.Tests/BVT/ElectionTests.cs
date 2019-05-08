@@ -299,7 +299,7 @@ namespace AElf.Contracts.Election
 
             await ElectionContract_GetVictories_ValidCandidatesEnough();
 
-            await NextTerm(BootMinerKeyPair);
+            await ProduceBlocks(BootMinerKeyPair, 1, true);
 
             await ProduceBlocks(minerKeyPair, roundCount, true);
 
