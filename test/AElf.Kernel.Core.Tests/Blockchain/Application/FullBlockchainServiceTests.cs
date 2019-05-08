@@ -336,7 +336,6 @@ namespace AElf.Kernel.Blockchain.Application
             await _fullBlockchainService.AddBlockAsync(block);
             var result = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             result.GetHash().ShouldBe(block.GetHash());
-            // result.Body.TransactionList.Count.ShouldBe(block.Body.TransactionsCount); todo
             result.Body.Transactions[0].ShouldBe(block.Body.Transactions[0]);
             result.Body.Transactions[1].ShouldBe(block.Body.Transactions[1]);
             result.Body.Transactions[2].ShouldBe(block.Body.Transactions[2]);
