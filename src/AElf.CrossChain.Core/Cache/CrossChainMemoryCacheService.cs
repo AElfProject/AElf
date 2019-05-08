@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using AElf.CrossChain.Cache.Exception;
-using AElf.Kernel;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache
@@ -22,7 +21,7 @@ namespace AElf.CrossChain.Cache
         public void RegisterNewChainCache(int remoteChainId, long chainHeight = Constants.GenesisBlockHeight)
         {
             if(!_multiChainBlockInfoCacheProvider.ContainsChain(remoteChainId))
-                _multiChainBlockInfoCacheProvider.AddBlockInfoCache(remoteChainId, new BlockInfoCache(chainHeight));
+                _multiChainBlockInfoCacheProvider.AddBlockInfoCache(remoteChainId, new CrossChainCacheCollection(chainHeight));
         }
 
         public long GetNeededChainHeightForCache(int chainId)

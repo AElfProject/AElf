@@ -1,4 +1,3 @@
-using AElf.Contracts.CrossChain;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
@@ -14,15 +13,15 @@ namespace AElf.CrossChain.Cache
             _multiChainBlockInfoCacheProvider = multiChainBlockInfoCacheProvider;
         }
 
-        public bool AddNewBlockInfo(IBlockInfo blockInfo)
+        public bool AddNewBlockInfo(CrossChainCacheData crossChainCacheInfo)
         {
-            if (blockInfo == null)
+            if (crossChainCacheInfo == null)
                 return false;
-            var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(blockInfo.ChainId);
+            var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(crossChainCacheInfo.ChainId);
 
             if (blockInfoCache == null)
                 return false;
-            var res = blockInfoCache.TryAdd(blockInfo);
+            var res = blockInfoCache.TryAdd(crossChainCacheInfo);
             return res;
         }
     }

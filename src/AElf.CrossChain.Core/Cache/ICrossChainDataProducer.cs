@@ -1,11 +1,10 @@
-using AElf.Contracts.CrossChain;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.CrossChain.Cache
 {
     public interface ICrossChainDataProducer
     {
-        bool AddNewBlockInfo(IBlockInfo blockInfo);
+        bool AddNewBlockInfo(CrossChainCacheData crossChainCacheInfo);
         ILogger<CrossChainDataProducer> Logger { get; set; }
     }
 }

@@ -7,8 +7,8 @@ namespace AElf.CrossChain.Cache
 {
     public interface IMultiChainBlockInfoCacheProvider
     {
-        void AddBlockInfoCache(int remoteChainId, BlockInfoCache blockInfoCache);
-        BlockInfoCache GetBlockInfoCache(int remoteChainId);
+        void AddBlockInfoCache(int remoteChainId, CrossChainCacheCollection crossChainCacheCollection);
+        CrossChainCacheCollection GetBlockInfoCache(int remoteChainId);
 
         bool ContainsChain(int remoteChainId);
         int Size { get; }
@@ -17,7 +17,7 @@ namespace AElf.CrossChain.Cache
     
     public class MultiChainBlockInfoCacheProvider : IMultiChainBlockInfoCacheProvider, ISingletonDependency
     {
-        private readonly ConcurrentDictionary<int, BlockInfoCache> _blockInfoCaches = new ConcurrentDictionary<int, BlockInfoCache>();
+        private readonly ConcurrentDictionary<int, CrossChainCacheCollection> _blockInfoCaches = new ConcurrentDictionary<int, CrossChainCacheCollection>();
         public bool ContainsChain(int remoteChainId)
         {
             return _blockInfoCaches.ContainsKey(remoteChainId);
@@ -26,14 +26,14 @@ namespace AElf.CrossChain.Cache
         public int Size => _blockInfoCaches.Count;
         public IEnumerable<int> CachedChainIds => _blockInfoCaches.Keys.ToList();
 
-        public void AddBlockInfoCache(int remoteChainId, BlockInfoCache blockInfoCache)
+        public void AddBlockInfoCache(int remoteChainId, CrossChainCacheCollection crossChainCacheCollection)
         {
-            if (blockInfoCache == null)
+            if (crossChainCacheCollection == null)
                 return;
-            _blockInfoCaches.TryAdd(remoteChainId, blockInfoCache);
+            _blockInfoCaches.TryAdd(remoteChainId, crossChainCacheCollection);
         }
 
-        public BlockInfoCache GetBlockInfoCache(int remoteChainId)
+        public CrossChainCacheCollection GetBlockInfoCache(int remoteChainId)
         {
             return !_blockInfoCaches.TryGetValue(remoteChainId, out _) ? null : _blockInfoCaches[remoteChainId];
         }
