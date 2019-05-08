@@ -245,17 +245,15 @@ namespace AElf.Contracts.Election
                 ProfitId = State.BasicRewardHash.Value
             };
 
-            var currentMiners = State.AElfConsensusContract.GetPreviousRoundInformation.Call(new Empty())
+            var previousMiners = State.AElfConsensusContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
-            var victories = GetVictories(currentMiners);
-            var currentMinersAddress = new List<Address>();
-            foreach (var publicKey in currentMiners)
+            var victories = GetVictories(previousMiners);
+            var previousMinersAddresses = new List<Address>();
+            foreach (var publicKey in previousMiners)
             {
                 var address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey));
 
-                currentMinersAddress.Add(address);
-
-                basicRewardProfitAddWeights.Weights.Add(new WeightMap {Receiver = address, Weight = 1});
+                previousMinersAddresses.Add(address);
 
                 var history = State.CandidateInformationMap[publicKey];
                 history.Terms.Add(termNumber - 1);
@@ -288,24 +286,31 @@ namespace AElf.Contracts.Election
             }
 
             // Manage weights of `MinerBasicReward`
-            basicRewardProfitSubWeights.Receivers.AddRange(currentMinersAddress);
+            basicRewardProfitSubWeights.Receivers.AddRange(previousMinersAddresses);
             State.ProfitContract.SubWeights.Send(basicRewardProfitSubWeights);
+            basicRewardProfitAddWeights.Weights.AddRange(victories.Select(bs => Address.FromPublicKey(bs.ToByteArray()))
+                .Select(a => new WeightMap {Receiver = a, Weight = 1}));
             State.ProfitContract.AddWeights.Send(basicRewardProfitAddWeights);
 
             // Manage weights of `ReElectedMinerReward`
-            reElectionProfitSubWeights.Receivers.AddRange(currentMinersAddress);
+            reElectionProfitSubWeights.Receivers.AddRange(previousMinersAddresses);
+            var treasuryVirtualAddress = Context.ConvertVirtualAddressToContractAddress(State.TreasuryHash.Value);
+            reElectionProfitSubWeights.Receivers.Add(treasuryVirtualAddress);
             State.ProfitContract.SubWeights.Send(reElectionProfitSubWeights);
             if (!reElectionProfitAddWeights.Weights.Any())
             {
                 // Give this part of reward back to Treasury Virtual Address.
                 reElectionProfitAddWeights.Weights.Add(new WeightMap
-                    {Receiver = Context.ConvertVirtualAddressToContractAddress(State.TreasuryHash.Value), Weight = 1});
+                {
+                    Receiver = treasuryVirtualAddress,
+                    Weight = 1
+                });
             }
 
             State.ProfitContract.AddWeights.Send(reElectionProfitAddWeights);
 
             // Manage weights of `MinerVotesWeightReward`
-            votesWeightRewardProfitSubWeights.Receivers.AddRange(currentMinersAddress);
+            votesWeightRewardProfitSubWeights.Receivers.AddRange(previousMinersAddresses);
             State.ProfitContract.SubWeights.Send(votesWeightRewardProfitSubWeights);
             if (!votesWeightRewardProfitAddWeights.Weights.Any())
             {

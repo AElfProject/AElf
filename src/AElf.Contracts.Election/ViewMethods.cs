@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel;
@@ -41,7 +42,8 @@ namespace AElf.Contracts.Election
                 victories =
                     new List<ByteString>(validCandidates.Select(vc =>
                         ByteString.CopyFrom(ByteArrayHelpers.FromHexString(vc))));
-                victories.AddRange(currentMiners.Where(k => !validCandidates.Contains(k)).OrderBy(p => p).Take(diff)
+                victories.AddRange(currentMiners.Where(k => !validCandidates.Contains(k)).OrderBy(p => p)
+                    .Take(Math.Min(diff, currentMiners.Count))
                     .Select(p => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p))));
                 Context.LogDebug(() => string.Join("\n", victories.Select(v => v.ToHex().Substring(0, 10)).ToList()));
                 return victories;

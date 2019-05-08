@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Shouldly;
@@ -54,8 +55,12 @@ namespace AElf.Contracts.Election
             balance.Balance.ShouldBe(ElectionContractConstants.VotesTotalSupply);
         }
 
+        /// <summary>
+        /// In first term, new miners elected.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
-        public async Task ElectionContract_ReleaseTreasuryProfits()
+        public async Task<List<ECKeyPair>> ElectionContract_ReleaseTreasuryProfits_ReleaseFirstTerm()
         {
             var candidatesKeyPairs = await ElectionContract_Vote();
 
@@ -158,7 +163,8 @@ namespace AElf.Contracts.Election
                             .Div(totalWeightsOfTreasury));
                     }
                 }
-                
+
+                var actualMinersRewardAmount = 0L;
                 // Check MinerReward
                 {
                     // Check BasicMinerReward
@@ -201,6 +207,8 @@ namespace AElf.Contracts.Election
                                 .Div(totalWeightsOfTreasury)
                                 .Mul(ElectionContractConstants.BasicMinerRewardWeight)
                                 .Div(totalWeightsOfMinerReward));
+
+                            actualMinersRewardAmount += balance.Balance;
                         }
                     }
 
@@ -243,6 +251,8 @@ namespace AElf.Contracts.Election
                                 .Div(totalWeightsOfTreasury)
                                 .Mul(ElectionContractConstants.VotesWeightRewardWeight)
                                 .Div(totalWeightsOfMinerReward));
+                            
+                            actualMinersRewardAmount += balance.Balance;
                         }
                     }
                     
@@ -298,43 +308,303 @@ namespace AElf.Contracts.Election
                                 .Div(totalWeightsOfTreasury)
                                 .Mul(ElectionContractConstants.ReElectionRewardWeight)
                                 .Div(totalWeightsOfMinerReward));
+                            
+                            actualMinersRewardAmount += balance.Balance;
                         }
                     }
 
                     // Already released to sub profit items.
                     profitItems[ProfitType.MinerReward].TotalAmount.ShouldBe(0);
                     profitItems[ProfitType.MinerReward].TotalWeight.ShouldBe(totalWeightsOfMinerReward);
-                    var actualMinersRewardAmount = profitItems[ProfitType.BasicMinerReward].TotalAmount +
-                                                   profitItems[ProfitType.VotesWeightReward].TotalAmount +
-                                                   profitItems[ProfitType.ReElectionReward].TotalAmount;
                     actualMinersRewardAmount.ShouldBe(releasedAmount
                         .Mul(ElectionContractConstants.MinerRewardWeight).Div(totalWeightsOfTreasury));
                 }
             }
 
-            // Check released information of BackSubsidy of period 1.
-            {
-                var releasedProfitInformation = await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(
-                    new GetReleasedProfitsInformationInput
-                    {
-                        ProfitId = ProfitItemsIds[ProfitType.BackupSubsidy],
-                        Period = 1
-                    });
-                releasedProfitInformation.ProfitsAmount.ShouldBe(200);
-                releasedProfitInformation.IsReleased.ShouldBe(true);
-            }
+            return candidatesKeyPairs;
+        }
 
-            // Check released information of BackSubsidy of period 2.
+        /// <summary>
+        /// In second term, new miners do the mining instead of initial miners.
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task<List<ECKeyPair>> ElectionContract_ReleaseTreasuryProfits_ReleaseSecondTerm()
+        {
+            var candidatesKeyPairs = await ElectionContract_ReleaseTreasuryProfits_ReleaseFirstTerm();
+
+            await NextRound(candidatesKeyPairs[0]);
+
+            await ProduceBlocks(candidatesKeyPairs[0], 10, true);
+            
+            // Update profitItems
+            var profitItems = new Dictionary<ProfitType, ProfitItem>();
+            foreach (var (profitType, profitId) in ProfitItemsIds)
             {
-                var releasedProfitInformation = await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(
-                    new GetReleasedProfitsInformationInput
+                var profitItem = await ProfitContractStub.GetProfitItem.CallAsync(profitId);
+                profitItems.Add(profitType, profitItem);
+            }
+            
+            // Update releasedAmount
+            var releasedAmount =
+                (ElectionContractConstants.VotesTotalSupply - profitItems[ProfitType.Treasury].TotalAmount) / 2;
+            var totalWeightsOfTreasury = ElectionContractConstants.MinerRewardWeight
+                .Add(ElectionContractConstants.BackupSubsidyWeight)
+                .Add(ElectionContractConstants.CitizenWelfareWeight);
+            var totalWeightsOfMinerReward = ElectionContractConstants.BasicMinerRewardWeight
+                .Add(ElectionContractConstants.VotesWeightRewardWeight)
+                .Add(ElectionContractConstants.ReElectionRewardWeight);
+
+            // Check current period of each profit item.
+            profitItems.Values.Where(i => i.VirtualAddress != profitItems[ProfitType.CitizenWelfare].VirtualAddress)
+                .ShouldAllBe(i => i.CurrentPeriod == 3);
+            profitItems[ProfitType.CitizenWelfare].CurrentPeriod.ShouldBe(2);
+            
+            // Check profit items status after term 2.
+            // Current term number: 3
+            {
+                // Check BackupSubsidy.
+                {
+                    // Already released to receiving profits address.
+                    profitItems[ProfitType.BackupSubsidy].TotalAmount.ShouldBe(0);
+
+                    // Each candidate takes 1 weight.
+                    profitItems[ProfitType.BackupSubsidy].TotalWeight.ShouldBe(candidatesKeyPairs.Count);
+
+                    var releasedProfitsInformation = await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(new GetReleasedProfitsInformationInput
                     {
                         ProfitId = ProfitItemsIds[ProfitType.BackupSubsidy],
                         Period = 2
                     });
-                releasedProfitInformation.ProfitsAmount.ShouldBe(0);
-                releasedProfitInformation.IsReleased.ShouldBe(false);
+                    releasedProfitsInformation.TotalWeight.ShouldBe(candidatesKeyPairs.Count);
+                    releasedProfitsInformation.ProfitsAmount.ShouldBe(releasedAmount
+                        .Mul(ElectionContractConstants.MinerRewardWeight)
+                        .Div(totalWeightsOfTreasury)
+                        .Mul(ElectionContractConstants.BackupSubsidyWeight)
+                        .Div(ElectionContractConstants.MinerRewardWeight));
+                    releasedProfitsInformation.IsReleased.ShouldBe(true);
+                    
+                    // Check balance of virtual address.
+                    {
+                        var virtualAddress = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(
+                            new GetProfitItemVirtualAddressInput
+                            {
+                                ProfitId = ProfitItemsIds[ProfitType.BackupSubsidy],
+                                Period = 2
+                            });
+                        var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = virtualAddress,
+                            Symbol = ElectionContractTestConstants.NativeTokenSymbol
+                        });
+                        balance.Balance.ShouldBe(releasedProfitsInformation.ProfitsAmount);
+                    }
+                }
+
+                // Check CitizenWelfare.
+                {
+                    // Already released to receiving profits address (though no one can really receive this amount of profits).
+                    profitItems[ProfitType.CitizenWelfare].TotalAmount.ShouldBe(0);
+
+                    var releasedProfitsInformation = await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(new GetReleasedProfitsInformationInput
+                    {
+                        ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                        Period = 1
+                    });
+                    releasedProfitsInformation.TotalWeight.ShouldNotBe(0);
+                    releasedProfitsInformation.ProfitsAmount.ShouldBe(releasedAmount
+                        .Mul(ElectionContractConstants.CitizenWelfareWeight)
+                        .Div(totalWeightsOfTreasury));
+                    releasedProfitsInformation.IsReleased.ShouldBe(true);
+                    
+                    // Check balance of virtual address.
+                    {
+                        var virtualAddress = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(
+                            new GetProfitItemVirtualAddressInput
+                            {
+                                ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                                Period = 1
+                            });
+                        var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = virtualAddress,
+                            Symbol = ElectionContractTestConstants.NativeTokenSymbol
+                        });
+                        balance.Balance.ShouldBe(releasedAmount
+                            .Mul(ElectionContractConstants.CitizenWelfareWeight)
+                            .Div(totalWeightsOfTreasury));
+                    }
+                }
+
+                var actualMinersRewardAmount = 0L;
+                // Check MinerReward
+                {
+                    // Check BasicMinerReward
+                    {
+                        // Already burned.
+                        profitItems[ProfitType.BasicMinerReward].TotalAmount.ShouldBe(0);
+                        // Each new miner takes 1 weight.
+                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBeLessThan(candidatesKeyPairs.Count);
+
+                        // Check released profit information.
+                        // We don't give initial miners rewards.
+                        {
+                            var releasedProfitsInformation =
+                                await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(
+                                    new GetReleasedProfitsInformationInput
+                                    {
+                                        ProfitId = ProfitItemsIds[ProfitType.BasicMinerReward],
+                                        Period = 2
+                                    });
+                            releasedProfitsInformation.TotalWeight.ShouldBe(profitItems[ProfitType.BasicMinerReward].TotalWeight);
+                            releasedProfitsInformation.ProfitsAmount.ShouldBe(releasedAmount
+                                .Mul(ElectionContractConstants.MinerRewardWeight)
+                                .Div(totalWeightsOfTreasury)
+                                .Mul(ElectionContractConstants.BasicMinerRewardWeight)
+                                .Div(totalWeightsOfMinerReward));
+                            releasedProfitsInformation.IsReleased.ShouldBe(true);
+                        }
+
+                        // Check balance of virtual address.
+                        {
+                            var virtualAddress = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(
+                                new GetProfitItemVirtualAddressInput
+                                {
+                                    ProfitId = ProfitItemsIds[ProfitType.BasicMinerReward],
+                                    Period = 2
+                                });
+                            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                            {
+                                Owner = virtualAddress,
+                                Symbol = ElectionContractTestConstants.NativeTokenSymbol
+                            });
+                            balance.Balance.ShouldBe(releasedAmount
+                                .Mul(ElectionContractConstants.MinerRewardWeight)
+                                .Div(totalWeightsOfTreasury)
+                                .Mul(ElectionContractConstants.BasicMinerRewardWeight)
+                                .Div(totalWeightsOfMinerReward));
+
+                            actualMinersRewardAmount += balance.Balance;
+                        }
+                    }
+
+                    // Check VotesWeightReward
+                    {
+                        // Already released to receiving profits address.
+                        profitItems[ProfitType.VotesWeightReward].TotalAmount.ShouldBe(0);
+                        // The only receiver is Virtual Address of Treasury.
+                        profitItems[ProfitType.VotesWeightReward].TotalWeight.ShouldBeGreaterThan(0);
+
+                        // Check released profit information.
+                        {
+                            var releasedProfitsInformation =
+                                await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(
+                                    new GetReleasedProfitsInformationInput
+                                    {
+                                        ProfitId = ProfitItemsIds[ProfitType.VotesWeightReward],
+                                        Period = 2
+                                    });
+                            releasedProfitsInformation.TotalWeight.ShouldBe(1);
+                            releasedProfitsInformation.ProfitsAmount.ShouldBe(releasedAmount
+                                .Mul(ElectionContractConstants.MinerRewardWeight)
+                                .Div(totalWeightsOfTreasury)
+                                .Mul(ElectionContractConstants.VotesWeightRewardWeight)
+                                .Div(totalWeightsOfMinerReward));
+                            releasedProfitsInformation.IsReleased.ShouldBe(true);
+                        }
+
+                        // Check balance of virtual address.
+                        {
+                            var virtualAddress = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(
+                                new GetProfitItemVirtualAddressInput
+                                {
+                                    ProfitId = ProfitItemsIds[ProfitType.VotesWeightReward],
+                                    Period = 2
+                                });
+                            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                            {
+                                Owner = virtualAddress,
+                                Symbol = ElectionContractTestConstants.NativeTokenSymbol
+                            });
+                            balance.Balance.ShouldBe(releasedAmount
+                                .Mul(ElectionContractConstants.MinerRewardWeight)
+                                .Div(totalWeightsOfTreasury)
+                                .Mul(ElectionContractConstants.VotesWeightRewardWeight)
+                                .Div(totalWeightsOfMinerReward));
+                            
+                            actualMinersRewardAmount += balance.Balance;
+                        }
+                    }
+                    
+                    // Check ReElectionReward
+                    {
+                        profitItems[ProfitType.ReElectionReward].TotalAmount.ShouldBe(0);
+                        // The only receiver is Virtual Address of Treasury.
+                        profitItems[ProfitType.ReElectionReward].TotalWeight.ShouldBe(profitItems[ProfitType.BasicMinerReward].TotalWeight);
+                        
+                        // Check released profit information.
+                        {
+                            var releasedProfitsInformation =
+                                await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(
+                                    new GetReleasedProfitsInformationInput
+                                    {
+                                        ProfitId = ProfitItemsIds[ProfitType.ReElectionReward],
+                                        Period = 2
+                                    });
+                            releasedProfitsInformation.TotalWeight.ShouldBe(1);
+                            releasedProfitsInformation.ProfitsAmount.ShouldBe(releasedAmount
+                                .Mul(ElectionContractConstants.MinerRewardWeight)
+                                .Div(totalWeightsOfTreasury)
+                                .Mul(ElectionContractConstants.ReElectionRewardWeight)
+                                .Div(totalWeightsOfMinerReward));
+                            releasedProfitsInformation.IsReleased.ShouldBe(true);
+                        }
+                        
+                        // Check balance of virtual address.
+                        {
+                            var virtualAddress = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(
+                                new GetProfitItemVirtualAddressInput
+                                {
+                                    ProfitId = ProfitItemsIds[ProfitType.ReElectionReward],
+                                    Period = 2
+                                });
+                            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                            {
+                                Owner = virtualAddress,
+                                Symbol = ElectionContractTestConstants.NativeTokenSymbol
+                            });
+                            balance.Balance.ShouldBe(releasedAmount
+                                .Mul(ElectionContractConstants.MinerRewardWeight)
+                                .Div(totalWeightsOfTreasury)
+                                .Mul(ElectionContractConstants.ReElectionRewardWeight)
+                                .Div(totalWeightsOfMinerReward));
+                            
+                            actualMinersRewardAmount += balance.Balance;
+                        }
+                    }
+
+                    // Already released to sub profit items.
+                    profitItems[ProfitType.MinerReward].TotalAmount.ShouldBe(0);
+                    profitItems[ProfitType.MinerReward].TotalWeight.ShouldBe(totalWeightsOfMinerReward);
+                    actualMinersRewardAmount.ShouldBe(releasedAmount
+                        .Mul(ElectionContractConstants.MinerRewardWeight).Div(totalWeightsOfTreasury));
+                }
             }
+            return candidatesKeyPairs;
+        }
+
+        [Fact]
+        public async Task ElectionContract_ReleaseTreasuryProfits_ReleaseThirdTerm()
+        {
+            var candidatesKeyPairs = await ElectionContract_ReleaseTreasuryProfits_ReleaseSecondTerm();
+            
+            // Replace miners before starting third term.
+            
+            
+            
+            await NextRound(candidatesKeyPairs[0]);
+
+            await ProduceBlocks(candidatesKeyPairs[0], 10, true);
         }
     }
 }
