@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -66,8 +67,9 @@ namespace AElf.OS.Network.Grpc
                 return new ConnectReply { Err = AuthError.ProtocolMismatch };
 
             // verify signature
-            var validData = await _accountService.VerifySignatureAsync(handshake.Sig.ToByteArray(), 
-                Hash.FromMessage(handshake.HskData).ToByteArray(), handshake.HskData.PublicKey.ToByteArray());
+            var recoverResult = CryptoHelpers.RecoverPublicKey(handshake.Sig.ToByteArray(),
+                Hash.FromMessage(handshake.HskData).ToByteArray(), out var recoverPublicKey);
+            var validData = recoverResult && handshake.HskData.PublicKey.ToByteArray().BytesEqual(recoverPublicKey);
             if (!validData)
                 return new ConnectReply { Err = AuthError.WrongSig };
             

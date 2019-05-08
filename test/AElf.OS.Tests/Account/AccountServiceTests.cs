@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Cryptography;
 using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
@@ -41,7 +42,9 @@ namespace AElf.OS.Account
 
             var signature = await _accountService.SignAsync(data);
             var publicKey = await _accountService.GetPublicKeyAsync();
-            var verifyResult = await _accountService.VerifySignatureAsync(signature, data, publicKey);
+            
+            var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
+            var verifyResult =  recoverResult && publicKey.BytesEqual(recoverPublicKey);
 
             Assert.True(verifyResult);
         }
@@ -54,8 +57,10 @@ namespace AElf.OS.Account
 
             var signature = await _accountService.SignAsync(data1);
             var publicKey = await _accountService.GetPublicKeyAsync();
-            var verifyResult = await _accountService.VerifySignatureAsync(signature, data2, publicKey);
 
+            var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data2, out var recoverPublicKey);
+            var verifyResult =  recoverResult && publicKey.BytesEqual(recoverPublicKey);
+            
             Assert.False(verifyResult);
         }
 
