@@ -6,20 +6,14 @@ import "common.proto";
 import "core.proto";
 import "google/protobuf/timestamp.proto";
 
-message RequestCrossChainBlockData {
+message RequestData {
     int32 FromChainId = 1; // own chain id
     int64 NextHeight = 2;
     int32 ListeningPort = 3;
 }
 
-message ResponseSideChainBlockData {
-    SideChainBlockData BlockData = 1;
-    bool Success = 2;
-}
-
-message ResponseParentChainBlockData {
-    ParentChainBlockData BlockData = 1;
-    bool Success = 2;
+message ResponseData {
+    BlockData BlockData = 1;
 }
 
 message IndexingHandShake {
@@ -41,45 +35,62 @@ message ChainInitializationResponse{
 }
 
 service CrossChainRpc {
-    rpc RequestIndexingFromSideChain (RequestCrossChainBlockData) returns (stream ResponseSideChainBlockData) {}
-    rpc RequestIndexingFromParentChain (RequestCrossChainBlockData) returns (stream ResponseParentChainBlockData) {}
+    rpc RequestIndexingFromSideChain (RequestData) returns (stream ResponseData) {}
+    rpc RequestIndexingFromParentChain (RequestData) returns (stream ResponseData) {}
     rpc CrossChainIndexingShake (IndexingHandShake) returns (IndexingHandShakeReply) {} // only side chain shake with parent chain.
     rpc RequestChainInitializationContextFromParentChain (ChainInitializationRequest) returns (ChainInitializationResponse) {}
 }
 
 // from crosschain.proto
-message SideChainBlockData {
-    int64 SideChainHeight = 1;
-    Hash BlockHeaderHash = 2;
-    Hash TransactionMerkleTreeRoot = 3;
-    int32 SideChainId = 4;
+//message SideChainBlockDataInResponse {
+//    int64 SideChainHeight = 1;
+//    Hash BlockHeaderHash = 2;
+//    Hash TransactionMerkleTreeRoot = 3;
+//    int32 SideChainId = 4;
+//}
+
+//message ParentChainBlockDataInResponse {
+//    ParentChainBlockRootInfo Root = 1;
+//
+//    // Indexed block height from side chain and merkle path for this side chain block
+//    map<int64, MerklePath> IndexedMerklePath = 2;
+//    map<string, bytes> ExtraData = 3;
+//}
+
+//message ParentChainBlockRootInfo
+//{
+//    int64 ParentChainHeight = 1;
+//    CrossChainExtraData CrossChainExtraData = 2;
+//    int32 ParentChainId = 3;
+//    Hash TransactionStatusMerkleRoot = 4;
+//}
+
+//message ParentChainBlockData {
+//    int64 ParentChainHeight = 1;
+//    CrossChainExtraData CrossChainExtraData = 2;
+//    int32 ParentChainId = 3;
+//    Hash TransactionStatusMerkleRoot = 4;
+//
+//    // Indexed block height from side chain and merkle path for this side chain block
+//    map<int64, MerklePath> IndexedMerklePath = 5;
+//    map<string, bytes> ExtraData = 6;
+//}
+
+message BlockData{
+    int32 chainId = 1;
+    int64 height = 2;
+    bytes payload = 3;
 }
 
-message ParentChainBlockData {
-    ParentChainBlockRootInfo Root = 1;
-
-    // Indexed block height from side chain and merkle path for this side chain block
-    map<int64, MerklePath> IndexedMerklePath = 2;
-    map<string, bytes> ExtraData = 3;
-}
-
-message ParentChainBlockRootInfo
-{
-    int64 ParentChainHeight = 1;
-    CrossChainExtraData CrossChainExtraData = 2;
-    int32 ParentChainId = 3;
-    Hash TransactionStatusMerkleRoot = 4;
-}
-
-message CrossChainExtraData{
-    // Merkle tree root of side chain block headers
-    Hash SideChainBlockHeadersRoot = 2;
-
-    // Merkle tree root of side chain block transaction roots
-    Hash SideChainTransactionsRoot = 3;
-
-    // more
-}
+//message CrossChainExtraData{
+//    // Merkle tree root of side chain block headers
+//    Hash SideChainBlockHeadersRoot = 2;
+//
+//    // Merkle tree root of side chain block transaction roots
+//    Hash SideChainTransactionsRoot = 3;
+//
+//    // more
+//}
 
 message ChainInitializationContext{
     int32 chainId =1;

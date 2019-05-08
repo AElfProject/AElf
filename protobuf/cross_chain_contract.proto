@@ -82,6 +82,7 @@ message InitializeInput {
     Hash consensusContractSystemName = 2;
     Hash parliamentContractSystemName = 3;
     int32 parentChainId = 4;
+    int64 parentChainHeightOfCreation = 5;
 }
 
 message RechargeInput {
@@ -148,20 +149,23 @@ message IndexedSideChainBlockDataResult {
 }
 
 message ParentChainBlockData {
-    ParentChainBlockRootInfo Root = 1;
-
-    // Indexed block height from side chain and merkle path for this side chain block
-    map<int64, MerklePath> IndexedMerklePath = 2;
-    map<string, bytes> ExtraData = 3;
-}
-
-message ParentChainBlockRootInfo
-{
     int64 ParentChainHeight = 1;
     CrossChainExtraData CrossChainExtraData = 2;
     int32 ParentChainId = 3;
     Hash TransactionStatusMerkleRoot = 4;
+
+    // Indexed block height from side chain and merkle path for this side chain block
+    map<int64, MerklePath> IndexedMerklePath = 5;
+    map<string, bytes> ExtraData = 6;
 }
+
+//message ParentChainBlockRootInfo
+//{
+//    int64 ParentChainHeight = 1;
+//    CrossChainExtraData CrossChainExtraData = 2;
+//    int32 ParentChainId = 3;
+//    Hash TransactionStatusMerkleRoot = 4;
+//}
 
 message CrossChainExtraData{
     // Merkle tree root of side chain block headers
