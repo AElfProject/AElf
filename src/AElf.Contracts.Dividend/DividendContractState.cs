@@ -1,3 +1,4 @@
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
@@ -7,7 +8,7 @@ namespace AElf.Contracts.Dividend
     public class DividendsContractState : ContractState
     {
         public BoolState Initialized { get; set; }
-        internal Acs4.ACS4Container.ACS4ReferenceState ConsensusContract { get; set; }
+        internal ConsensusContractContainer.ConsensusContractReferenceState ConsensusContract { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal  Acs0.ACS0Container.ACS0ReferenceState BasicContractZero { get; set; }
 
