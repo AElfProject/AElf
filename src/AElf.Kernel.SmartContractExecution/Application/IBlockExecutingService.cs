@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -81,25 +82,29 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(linkedBlock))
                     {
                         await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
+                        await _chainManager.RemoveCannotExecutedLongestBranchAsync(chain);
                         Logger.LogWarning($"Block validate fails before execution. block hash : {blockLink.BlockHash}");
-                        break;
+                        return null;
                     }
 
                     if (!await ExecuteBlock(blockLink, linkedBlock))
                     {
                         await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
+                        await _chainManager.RemoveCannotExecutedLongestBranchAsync(chain);
                         Logger.LogWarning($"Block execution failed. block hash : {blockLink.BlockHash}");
-                        break;
+                        return null;
                     }
 
                     if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(linkedBlock))
                     {
                         await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
+                        await _chainManager.RemoveCannotExecutedLongestBranchAsync(chain);
                         Logger.LogWarning($"Block validate fails after execution. block hash : {blockLink.BlockHash}");
-                        break;
+                        return null;
                     }
 
-                    await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess);
+                    await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                        ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
                     successLinks.Add(blockLink);
 
@@ -114,6 +119,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
             catch (ValidateNextTimeBlockValidationException ex)
             {
                 Logger.LogWarning($"Block validate fails after execution. Exception message {ex.Message}");
+            }
+            catch (Exception e)
+            {
+                await _chainManager.RemoveCannotExecutedLongestBranchAsync(chain);
+                Logger.LogWarning($"Block validate or execute fails. Exception message {e.Message}");
+                throw e;
             }
 
             if (successLinks.Count > 0)
