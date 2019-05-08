@@ -4,7 +4,6 @@ package dividend;
 
 import "aelf/core.proto";
 import "aelf/options.proto";
-//import "consensus_dpos.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 

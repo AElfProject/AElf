@@ -35,6 +35,9 @@
             <LocalProtobufDir>$(ProjectDir)/Protobuf</LocalProtobufDir>
             <GenerateContractInternalCommand>protoc --proto_path=../../protobuf --csharp_out=internal_access:$(LocalProtobufDir)/Generated --csharp_opt=file_extension=.g.cs</GenerateContractInternalCommand>
         </PropertyGroup>
+
+        <RemoveDir Directories="Protobuf\Generated" />
+        
         <MakeDir Condition="@(ContractInternal) != '' Or @(ContractBase) != '' Or @(ContractCode) != '' Or @(ContractReference) != '' Or @(ContractStub) != '' Or @(ContractMessage) != ''" Directories="$(LocalProtobufDir)/Generated"/>
         <Exec Condition="@(ContractInternal) != ''" Command="$(GenerateContractInternalCommand) %(Identity)"/>
         <Exec Condition="@(ContractBase) != ''" Command="$(GenerateContractBaseCommand) %(Identity)"/>
@@ -45,7 +48,8 @@
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs"/>
+            <Compile Remove="Protobuf/Generated/*.cs"/>
+            <Compile Include="Protobuf/Generated/*.cs"/>
         </ItemGroup>
     </Target>
 </Project>
