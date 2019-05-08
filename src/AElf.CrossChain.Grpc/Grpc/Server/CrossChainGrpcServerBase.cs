@@ -46,6 +46,7 @@ namespace AElf.CrossChain.Grpc
                 await responseStream.WriteAsync(res);
                 requestedHeight++;
             }
+            
             PublishCrossChainRequestReceivedEvent(context.Peer, request.ListeningPort, request.FromChainId);
         }
         
@@ -62,6 +63,7 @@ namespace AElf.CrossChain.Grpc
                 await responseStream.WriteAsync(_sideChainServerService.GenerateResponse(block));
                 requestedHeight++;
             }
+            
             PublishCrossChainRequestReceivedEvent(context.Peer, request.ListeningPort, request.FromChainId);
         }
 
@@ -81,17 +83,14 @@ namespace AElf.CrossChain.Grpc
             };
         }
         
-        private void PublishCrossChainRequestReceivedEvent(string peer, int port, int chainId)
+        private void PublishCrossChainRequestReceivedEvent(string peerContext, int port, int chainId)
         {
-            var ip = peer.Split(':')[1];
+            var ip = peerContext.Split(':')[1];
             LocalEventBus.PublishAsync(new GrpcCrossChainRequestReceivedEvent
             {
-                CrossChainCommunicationContextDto = new GrpcCrossChainCommunicationDto
-                {
-                    RemoteIp = ip,
-                    RemotePort = port,
-                    RemoteChainId = chainId
-                }
+                RemoteIp = ip,
+                RemotePort = port,
+                RemoteChainId = chainId
             });
         }
 //        private async Task<Block> GetIrreversibleBlock(long height)

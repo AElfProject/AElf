@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace AElf.CrossChain
 {
     public class CrossChainConstants

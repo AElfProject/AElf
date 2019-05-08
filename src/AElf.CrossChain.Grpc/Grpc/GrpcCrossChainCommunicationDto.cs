@@ -1,3 +1,5 @@
+using System;
+
 namespace AElf.CrossChain.Grpc
 {
     public class GrpcCrossChainCommunicationDto
@@ -6,14 +8,12 @@ namespace AElf.CrossChain.Grpc
         public int RemotePort { get; set; }
         public int RemoteChainId { get; set; }
         public int LocalChainId { get; set; }
-        public bool IsClientToParentChain { get; set; }
-        
         public int LocalListeningPort { get; set; }
         public int ConnectionTimeout { get; set; }
 
         public string ToUriStr()
         {
-            return string.Join(":",RemoteIp, RemotePort);
+            return $"{RemoteIp}:{RemotePort}";
         }
     }
 }

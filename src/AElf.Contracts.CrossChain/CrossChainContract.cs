@@ -98,6 +98,7 @@ namespace AElf.Contracts.CrossChain
 
             sideChainInfo.SideChainStatus = SideChainStatus.Active;
             sideChainInfo.CreatedTime = Timestamp.FromDateTime(Context.CurrentBlockTime);
+            sideChainInfo.ParentChainHeightOfCreation = Context.CurrentHeight;
             State.SideChainInfos[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = 0;
 

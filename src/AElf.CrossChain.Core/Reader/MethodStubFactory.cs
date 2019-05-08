@@ -58,12 +58,13 @@ namespace AElf.CrossChain
                     return method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray());
                 }
 
-                trace.SurfaceUpError();
-                if (string.IsNullOrEmpty(trace.StdErr))
-                {
-                    return default(TOutput);
-                }
-                throw new Exception(trace.StdErr);
+//                trace.SurfaceUpError();
+//                if (string.IsNullOrEmpty(trace.StdErr))
+//                {
+//                    return default(TOutput);
+//                }
+//                throw new Exception(trace.StdErr);
+                return default(TOutput);
             }
 
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync);
