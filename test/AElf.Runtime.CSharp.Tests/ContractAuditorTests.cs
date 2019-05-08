@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -11,6 +10,7 @@ namespace AElf.Runtime.CSharp.Tests
     public class ContractAuditorTests : CSharpRuntimeTestBase
     {
         private ContractAuditor _auditor;
+        private readonly string _contractDllDir = "../../../contracts/";
 
         public ContractAuditorTests(ITestOutputHelper testOutputHelper)
         {
@@ -31,10 +31,17 @@ namespace AElf.Runtime.CSharp.Tests
             // Load the DLL's from contracts folder to prevent codecov injection
             foreach (var contract in contracts)
             {
-                var contractDllPath = "../../../contracts/" + contract;
+                var contractDllPath = _contractDllDir + contract;
 
                 Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), false));
             }
+        }
+
+        [Fact]
+        public void CodeCheck_BadContract()
+        {
+            Should.Throw<InvalidCodeException>(() => _auditor.Audit(ReadCode(_contractDllDir + 
+                                                                         typeof(BadContract.BadContract).Module.ToString()), false));
         }
 
         private byte[] ReadCode(string path)
