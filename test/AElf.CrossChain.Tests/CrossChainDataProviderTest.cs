@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Types;
 using Xunit;
 
 namespace AElf.CrossChain
