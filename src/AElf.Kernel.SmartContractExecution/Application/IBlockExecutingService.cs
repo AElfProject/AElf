@@ -120,11 +120,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 Logger.LogWarning($"Block validate fails after execution. Exception message {ex.Message}");
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 await _chainManager.RemoveCannotExecutedLongestBranchAsync(chain);
-                Logger.LogWarning($"Block validate or execute fails. Exception message {e.Message}");
-                throw e;
+                Logger.LogWarning($"Block validate or execute fails. Exception message {ex.Message}");
+                throw;
             }
 
             if (successLinks.Count > 0)
