@@ -89,7 +89,7 @@ namespace AElf.Kernel.Services
             long previousBlockHeight)
         {
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
-            var systemTransactions = await _systemTransactionGenerationService.GenerateSystemTransactions(address, 
+            var systemTransactions = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
                                     previousBlockHeight, previousBlockHash);
             foreach (var transaction in systemTransactions)
             {
