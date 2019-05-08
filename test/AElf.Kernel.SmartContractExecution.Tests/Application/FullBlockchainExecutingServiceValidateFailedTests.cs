@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Infrastructure;
 using Shouldly;
 using Xunit;
 
@@ -34,6 +35,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
             
             await _blockchainService.AddBlockAsync(newBlock);
             var status = await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
+            
+            chain = await _blockchainService.GetChainAsync();
+            chain.LongestChainHash.ShouldBe(newBlock.GetHash());
+            chain.LongestChainHeight.ShouldBe(newBlock.Height);
+            chain.Branches.ShouldContainKey(newBlock.GetHash().ToStorageKey());
+            
             var attachResult =
                 await _fullBlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
             
@@ -47,6 +54,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             chain.BestChainHeight.ShouldBe(bestChainHeight);
             chain.LongestChainHash.ShouldBe(bestChainHash);
             chain.LongestChainHeight.ShouldBe(bestChainHeight);
+            chain.Branches.ShouldNotContainKey(newBlock.GetHash().ToStorageKey());
         }
     }
 }
