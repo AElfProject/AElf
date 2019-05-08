@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs0;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -15,6 +17,7 @@ using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 //using VoteInput = AElf.Consensus.DPoS.VoteInput;

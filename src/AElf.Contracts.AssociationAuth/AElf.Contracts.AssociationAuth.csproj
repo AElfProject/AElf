@@ -4,8 +4,6 @@
         <TargetFramework>netstandard2.0</TargetFramework>
     </PropertyGroup>
 
-    <Import Project="..\..\AElf.Contract.Tools.targets" />
-
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>

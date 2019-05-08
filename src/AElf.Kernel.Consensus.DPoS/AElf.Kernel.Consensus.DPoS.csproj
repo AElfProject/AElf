@@ -23,30 +23,6 @@
       <Folder Include="Infrastructure" />
     </ItemGroup>
 
-    <!--<ItemGroup>-->
-      <!--<Content Include="..\..\protobuf\aelf_options.proto">-->
-        <!--<Link>Protobuf/Proto/aelf_options.proto</Link>-->
-      <!--</Content>-->
-      <!--<Content Include="..\..\protobuf\common.proto">-->
-        <!--<Link>Protobuf/Proto/common.proto</Link>-->
-      <!--</Content>-->
-      <!--<Content Include="..\..\protobuf\dpos_contract.proto">-->
-        <!--<Link>Protobuf/Proto/dpos_contract.proto</Link>-->
-      <!--</Content>-->
-    <!--</ItemGroup>-->
-    <!--<Target Name="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_event_only.sh dpos_contract.proto" />-->
-        <!--<Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_event_only.bat dpos_contract.proto" />-->
-    <!--</Target>-->
-    <!--<Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<ItemGroup>-->
-            <!--<Compile Include="./Protobuf/Generated/*.cs" />-->
-        <!--</ItemGroup>-->
-    <!--</Target>-->
-
-
-    <Import Project="..\..\AElf.Contract.Tools.targets" />
-
     <ItemGroup>
         <ContractMessage Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\stub\acs4.proto</Link>

@@ -14,6 +14,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

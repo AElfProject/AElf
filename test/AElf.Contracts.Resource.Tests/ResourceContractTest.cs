@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Acs0;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.TestBase;
 using AElf.Contracts.MultiToken;
@@ -13,6 +15,7 @@ using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract;
 using AElf.CSharp.Core;
 using AElf.Kernel.Token;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Google.Protobuf;
 using Newtonsoft.Json;
@@ -51,14 +54,14 @@ namespace AElf.Contracts.Resource.Tests
         public async Task Deploy_Contracts()
         {
             var tokenTx = await Tester.GenerateTransactionAsync(BasicZeroContractAddress,
-                nameof(ISmartContractZero.DeploySmartContract),
+                nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract),
                 new ContractDeploymentInput()
                 {
                     Category = SmartContractTestConstants.TestRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
                 });
             var resourceTx = await Tester.GenerateTransactionAsync(BasicZeroContractAddress,
-                nameof(ISmartContractZero.DeploySmartContract),
+                nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract),
                 new ContractDeploymentInput()
                 {
                     Category = SmartContractTestConstants.TestRunnerCategory,

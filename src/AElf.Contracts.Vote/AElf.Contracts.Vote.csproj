@@ -10,8 +10,6 @@
         <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
-    <Import Project="..\..\AElf.Contract.Tools.targets" />
-
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>

@@ -13,24 +13,11 @@
         <Compile Remove="IConcurrencyExecutingService.cs" />
         <Compile Remove="ConcurrencyExecutingService.cs" />
     </ItemGroup>
-    <!--<Target Name="Gen_proto" BeforeTargets="BeforeBuild">-->
-    <!--<Exec Command="protoc &#45;&#45;proto_path=../../protobuf &#45;&#45;csharp_out=./Protobuf/Generated &#45;&#45;csharp_opt=file_extension=.g.cs execution.proto"/>-->
-    <!--</Target>-->
-    <!--<Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">-->
-    <!--<ItemGroup>-->
-    <!--<Compile Include="./Protobuf/Generated/*.g.cs"/>-->
-    <!--</ItemGroup>-->
-    <!--</Target>-->
-    <!--<ItemGroup>-->
-    <!--<None Include="..\..\protobuf\execution.proto">-->
-    <!--<Link>Protobuf/Proto/execution.proto</Link>-->
-    <!--</None>-->
-    <!--</ItemGroup>-->
+
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
 
-    <Import Project="..\..\AElf.Contract.Tools.targets" />
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>

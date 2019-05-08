@@ -33,7 +33,6 @@
         <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
 
-    <Import Project="..\..\AElf.Contract.Tools.targets" />
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\stub\acs3.proto</Link>
