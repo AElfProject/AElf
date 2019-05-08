@@ -38,9 +38,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var attachResult =
                 await _fullBlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
 
-            attachResult.Count.ShouldBe(1);
-            attachResult.Last().Height.ShouldBe(16);
-            attachResult.Last().BlockHash.ShouldBe(newBlock.GetHash());
+            attachResult.ShouldBeNull();
 
             chain = await _blockchainService.GetChainAsync();
             var newBlockLink = await _chainManager.GetChainBlockLinkAsync(newBlock.GetHash());
@@ -48,6 +46,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             newBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
             chain.BestChainHash.ShouldBe(bestChainHash);
             chain.BestChainHeight.ShouldBe(bestChainHeight);
+            chain.LongestChainHash.ShouldBe(bestChainHash);
+            chain.LongestChainHeight.ShouldBe(bestChainHeight);
         }
     }
 }
