@@ -43,7 +43,7 @@ namespace AElf.Kernel.Consensus.DPoS.Application
                         {
                             await _blockchainService.SetIrreversibleBlockAsync(currentChain, index.Height, index.Hash);
                         }
-                    }, KernelConsts.UpdateChainQueueName);
+                    }, KernelConstants.UpdateChainQueueName);
             }
         }
     }

@@ -31,7 +31,7 @@ namespace AElf.Kernel
             {
                 await _blockchainStateMergingService.MergeBlockStateAsync(eventData.BlockHeight,
                     eventData.BlockHash);
-            }, KernelConsts.MergeBlockStateQueueName);
+            }, KernelConstants.MergeBlockStateQueueName);
         }
     }
 }

@@ -35,7 +35,7 @@ namespace AElf.Kernel.Miner.Application
                     eventData.BlockTime, eventData.TimeSpan);
                 //TODO: Before attach block should add block signature verify
                 _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
-                    KernelConsts.UpdateChainQueueName);
+                    KernelConstants.UpdateChainQueueName);
             }
             catch (Exception e)
             {
