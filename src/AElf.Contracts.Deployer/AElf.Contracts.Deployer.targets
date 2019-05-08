@@ -24,7 +24,10 @@
         </MSBuild>
         <!--  Create Manifest -->
         <Delete Files="$(ContractManifestFileName)" ContinueOnError="true"/>
-        <WriteLinesToFile Condition="@(ContractDlls) != ''" File="$(ContractManifestFileName)" Lines="@(ContractDlls->'%(RecursiveDir)%(Filename)%(Extension)')"/>
+        <GetAssemblyIdentity AssemblyFiles="@(ContractDlls)">
+            <Output TaskParameter="Assemblies" ItemName="ContractDllIdentities" />
+        </GetAssemblyIdentity>
+        <WriteLinesToFile Condition="@(ContractDllIdentities) != ''" File="$(ContractManifestFileName)" Lines="%(Identity)"/>
         <ItemGroup Condition="Exists($(ContractManifestFileName))">
             <EmbeddedResource Include="$(ContractManifestFileName)"></EmbeddedResource>
         </ItemGroup>
