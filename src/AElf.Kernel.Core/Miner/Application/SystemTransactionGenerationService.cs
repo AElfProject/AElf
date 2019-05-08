@@ -7,12 +7,10 @@ namespace AElf.Kernel.Miner.Application
     public class SystemTransactionGenerationService : ISystemTransactionGenerationService
     {
         private readonly IEnumerable<ISystemTransactionGenerator> _systemTransactionGenerators;
-        private readonly ITransactionManager _transactionManager;
 
-        public SystemTransactionGenerationService(IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators, ITransactionManager txManager)
+        public SystemTransactionGenerationService(IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators)
         {
             _systemTransactionGenerators = systemTransactionGenerators;
-            _transactionManager = txManager;
         }
 
         public async Task<List<Transaction>> GenerateSystemTransactions(Address from, long preBlockHeight, Hash preBlockHash)

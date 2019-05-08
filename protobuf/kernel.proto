@@ -180,7 +180,6 @@ message Block {
 message BlockWithTransactions {
     BlockHeader blockHeader = 1;
     repeated Transaction Transactions = 2;
-
 }
 
 //message SmartContractRegistration {

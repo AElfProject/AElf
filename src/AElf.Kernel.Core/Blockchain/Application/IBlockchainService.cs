@@ -189,8 +189,6 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task AddBlockWithTransactionsAsync(BlockWithTransactions blockWithTxs)
         {
-            //await _blockManager.AddBlockHeaderAsync(blockWithTxs.BlockHeader);
-            // todo not good
             await AddBlockAsync(blockWithTxs.ToBlock());
             
             foreach (var transaction in blockWithTxs.FullTransactionList)
