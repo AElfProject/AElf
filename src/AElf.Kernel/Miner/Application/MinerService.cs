@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -12,8 +11,16 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
 using ByteString = Google.Protobuf.ByteString;
 
-namespace AElf.Kernel.Services
+namespace AElf.Kernel.Miner.Application
 {
+    public interface IMinerService
+    {
+        /// <summary>
+        /// This method mines a block.
+        /// </summary>
+        /// <returns>The block that has been produced.</returns>
+        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime, TimeSpan timeSpan);
+    }
     public class MinerService : IMinerService
     {
         public ILogger<MinerService> Logger { get; set; }
