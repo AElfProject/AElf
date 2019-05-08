@@ -32,16 +32,11 @@ namespace AElf
         Address Sender { get; }
 
         Address Self { get; }
-
-        // TODO: Remove genesis
-        Address Genesis { get; }
+        
         long CurrentHeight { get; }
 
         DateTime CurrentBlockTime { get; }
         Hash PreviousBlockHash { get; }
-
-        // TODO: Remove RecoverPublicKey(byte[] signature, byte[] hash)
-        byte[] RecoverPublicKey(byte[] signature, byte[] hash);
 
         byte[] RecoverPublicKey();
 
