@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.CrossChain;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -24,6 +22,7 @@ namespace AElf.Contracts.CrossChain
             //State.AuthorizationContract.Value = authorizationContractAddress;
             State.Initialized.Value = true;
             State.ParentChainId.Value = input.ParentChainId;
+            State.ParentChainHeightOfCreation.Value = input.ParentChainHeightOfCreation;
             return new Empty();
         }
 
@@ -244,15 +243,15 @@ namespace AElf.Contracts.CrossChain
             var parentChainId = State.ParentChainId.Value;
             foreach (var blockInfo in parentChainBlockData)
             {
-                Assert(parentChainId == blockInfo.Root.ParentChainId, "Wrong parent chain id.");
-                long parentChainHeight = blockInfo.Root.ParentChainHeight;
+                Assert(parentChainId == blockInfo.ParentChainId, "Wrong parent chain id.");
+                long parentChainHeight = blockInfo.ParentChainHeight;
                 var currentHeight = State.CurrentParentChainHeight.Value;
-                var target = currentHeight != 0 ? currentHeight + 1 : Constants.GenesisBlockHeight;
+                var target = currentHeight != 0 ? currentHeight + 1 : State.ParentChainHeightOfCreation.Value;
                 Assert(target == parentChainHeight,
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
-                Assert(blockInfo.Root.TransactionStatusMerkleRoot != null,
+                Assert(blockInfo.TransactionStatusMerkleRoot != null,
                     "Parent chain transaction status merkle tree root needed.");
-                State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight] = blockInfo.Root.TransactionStatusMerkleRoot;
+                State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight] = blockInfo.TransactionStatusMerkleRoot;
                 foreach (var indexedBlockInfo in blockInfo.IndexedMerklePath)
                 {
                     BindParentChainHeight(indexedBlockInfo.Key, parentChainHeight);
@@ -267,9 +266,9 @@ namespace AElf.Contracts.CrossChain
 
                 State.CurrentParentChainHeight.Value = parentChainHeight;
                 
-                if (blockInfo.Root.CrossChainExtraData != null)
+                if (blockInfo.CrossChainExtraData != null)
                     State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
-                        blockInfo.Root.CrossChainExtraData.SideChainTransactionsRoot;
+                        blockInfo.CrossChainExtraData.SideChainTransactionsRoot;
             }
         }
 

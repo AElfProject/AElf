@@ -1,5 +1,3 @@
-using AElf.CrossChain;
-using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -97,7 +95,9 @@ namespace AElf.Contracts.CrossChain
             if (State.ParentChainId.Value == 0)
                 return dict;
             var parentChainHeight = State.CurrentParentChainHeight.Value;
-            dict.IdHeightDict.Add(State.ParentChainId.Value, parentChainHeight);
+            
+            if(parentChainHeight == 0)
+                dict.IdHeightDict.Add(State.ParentChainId.Value, State.ParentChainHeightOfCreation.Value - 1); // from parent chain height of creation
             return dict;
         }
         
