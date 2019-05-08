@@ -2,6 +2,7 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using Google.Protobuf;
@@ -30,7 +31,19 @@ namespace AElf.Kernel
 
             services.AddStoreKeyPrefixProvide<BlockBody>("b");
             services.AddStoreKeyPrefixProvide<BlockHeader>("h");
+            services.AddStoreKeyPrefixProvide<BlockStateSet>("bss");
             services.AddStoreKeyPrefixProvide<Chain>("c");
+            services.AddStoreKeyPrefixProvide<ChainBlockLink>("cbl");
+            services.AddStoreKeyPrefixProvide<ChainBlockIndex>("cbi");
+            services.AddStoreKeyPrefixProvide<ChainStateInfo>("csi");
+            services.AddStoreKeyPrefixProvide<FunctionMetadata>("fm");
+            services.AddStoreKeyPrefixProvide<SerializedCallGraph>("scg");
+            services.AddStoreKeyPrefixProvide<Transaction>("t");
+            services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("tbi");
+            services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
+            services.AddStoreKeyPrefixProvide<TransactionReceipt>("trc");
+            services.AddStoreKeyPrefixProvide<VersionedState>("vs");
+            
 
             services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
             services.AddSingleton(typeof(INotModifiedCachedStateStore<>), typeof(NotModifiedCachedStateStore<>));
