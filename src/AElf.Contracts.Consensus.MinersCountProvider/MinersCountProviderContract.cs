@@ -8,10 +8,11 @@ using Vote;
 
 namespace AElf.Contracts.Consensus.MinersCountProvider
 {
-    public partial class MinersCountProviderContract : MinersCountProviderContractContainer.MinersCountProviderContractBase
+    public class MinersCountProviderContract : MinersCountProviderContractContainer.MinersCountProviderContractBase
     {
         public override Empty InitialMinersCountProviderContract(InitialMinersCountProviderContractInput input)
         {
+            Assert(!State.Initialized.Value, "Already initialized.");
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
 
             State.VoteContract.Value =
@@ -42,16 +43,18 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
                 Context.LogDebug(() => $"Miners Count Voting Item Id: {State.MinersCountVotingItemId.Value.ToHex()}");
             }
 
+            State.Initialized.Value = true;
+
             return new Empty();
         }
 
+        /// <summary>
+        /// Only for testing.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty VoteMinersCount(VoteMinersCountInput input)
         {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
-            }
             State.TokenContract.Lock.Send(new LockInput
             {
                 From = Context.Sender,
@@ -72,10 +75,19 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
             return new Empty();
         }
 
+        public override Empty SetInitialMinersCount(SInt32Value input)
+        {
+            Assert(!State.IsInitialMinersCountSet.Value, "Initial miners count already set.");
+            State.MinersCount.Value = input.Value;
+            State.IsInitialMinersCountSet.Value = true;
+            return new Empty();
+        }
+
         public override SInt32Value GetMinersCount(Empty input)
         {
-            if (State.Mode.Value == MinersCountMode.Vote && State.MinersCountVotingItemId.Value != null)
+            if (State.Mode.Value == MinersCountMode.Vote)
             {
+                Assert(State.MinersCountVotingItemId.Value != null, "Corresponding voting item id shouldn't be null.");
                 // Check voting item of Miners Count.
                 var votingResult = State.VoteContract.GetLatestVotingResult.Call(State.MinersCountVotingItemId.Value);
                 if (votingResult.Results.Any())
@@ -84,7 +96,12 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
                     return new SInt32Value {Value = int.Parse(count)};
                 }
             }
-            
+
+            if (State.Mode.Value == MinersCountMode.IncreaseEveryHour)
+            {
+                
+            }
+
             return new SInt32Value();
         }
     }

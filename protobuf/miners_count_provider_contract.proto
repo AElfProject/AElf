@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package miners_count_provider;
+
+import "common.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.MinersCountProvider";
+
+service MinersCountProviderContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.MinersCountProvider.MinersCountProviderContractState";
+
+    // Action
+    rpc InitialMinersCountProviderContract (InitialMinersCountProviderContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc VoteMinersCount (VoteMinersCountInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetInitialMinersCount (SInt32Value) returns (google.protobuf.Empty) {
+    }
+    
+    // View
+    rpc GetMinersCount (google.protobuf.Empty) returns (SInt32Value) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitialMinersCountProviderContractInput {
+    Hash token_contract_system_name = 1;
+    Hash vote_contract_system_name = 2;
+    MinersCountMode mode = 3;
+}
+
+enum MinersCountMode {
+    vote = 0;// Just for testing.
+    increase_every_hour = 1;
+    increase_every_year = 2;
+}
+
+message VoteMinersCountInput {
+    sint32 miners_count = 1;
+    sint64 amount = 2;
+}

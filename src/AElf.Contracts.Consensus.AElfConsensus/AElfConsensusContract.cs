@@ -23,7 +23,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 : int.Parse(Context.Variables.TimeEachTerm);
 
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-            
+
             State.MinersCountProviderContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(input.MinersCountProviderContractSystemName);
 
@@ -35,7 +35,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             State.BaseTimeUnit.Value = int.Parse(Context.Variables.BaseTimeUnit);
 
             State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
-            
+
             State.ElectionContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(input.ElectionContractSystemName);
 
@@ -44,14 +44,15 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             State.ElectionContract.CreateTreasury.Send(new Empty());
 
             State.ElectionContract.RegisterToTreasury.Send(new Empty());
-            
-            State.MinersCountProviderContract.InitialMinersCountProviderContract.Send(new InitialMinersCountProviderContractInput
-            {
-                // To Lock and Unlock tokens of voters.
-                TokenContractSystemName = input.TokenContractSystemName,
-                VoteContractSystemName = input.VoteContractSystemName,
-                Mode = MinersCountMode.Vote
-            });
+
+            State.MinersCountProviderContract.InitialMinersCountProviderContract.Send(
+                new InitialMinersCountProviderContractInput
+                {
+                    // To Lock and Unlock tokens of voters.
+                    TokenContractSystemName = input.TokenContractSystemName,
+                    VoteContractSystemName = input.VoteContractSystemName,
+                    Mode = MinersCountMode.Vote
+                });
 
             return new Empty();
         }
@@ -88,6 +89,10 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 
+            State.MinersCountProviderContract.SetInitialMinersCount.Send(new SInt32Value
+            {
+                Value = input.RealTimeMinersInformation.Count
+            });
             return new Empty();
         }
 
