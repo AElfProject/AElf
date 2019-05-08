@@ -30,8 +30,8 @@ namespace AElf.CrossChain.Grpc
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
-        public override async Task RequestIndexingFromParentChain(RequestCrossChainBlockData request, 
-            IServerStreamWriter<ResponseParentChainBlockData> responseStream, ServerCallContext context)
+        public override async Task RequestIndexingFromParentChain(RequestData request, 
+            IServerStreamWriter<ResponseData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace(
                 $"Parent Chain Server received IndexedInfo message from chain {ChainHelpers.ConvertChainIdToBase58(request.FromChainId)}.");
@@ -49,8 +49,8 @@ namespace AElf.CrossChain.Grpc
             PublishCrossChainRequestReceivedEvent(context.Peer, request.ListeningPort, request.FromChainId);
         }
         
-        public override async Task RequestIndexingFromSideChain(RequestCrossChainBlockData request, 
-            IServerStreamWriter<ResponseSideChainBlockData> responseStream, ServerCallContext context)
+        public override async Task RequestIndexingFromSideChain(RequestData request, 
+            IServerStreamWriter<ResponseData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Side Chain Server received IndexedInfo message.");
             var requestedHeight = request.NextHeight;

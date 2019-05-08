@@ -11,7 +11,7 @@ namespace AElf.CrossChain.Grpc
 {
     public interface IParentChainServerService
     {
-        Task<ResponseParentChainBlockData> GenerateResponseAsync(Block block, int remoteSideChainId);
+        Task<ResponseData> GenerateResponseAsync(Block block, int remoteSideChainId);
 
         Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto);
     }
@@ -27,32 +27,38 @@ namespace AElf.CrossChain.Grpc
             _crossChainDataProvider = crossChainDataProvider;
         }
 
-        public async Task<ResponseParentChainBlockData> GenerateResponseAsync(Block block, int remoteSideChainId)
+        public async Task<ResponseData> GenerateResponseAsync(Block block, int remoteSideChainId)
         {
-            var responseParentChainBlockData = new ResponseParentChainBlockData
+            var responseParentChainBlockData = new ResponseData
             {
-                Success = true,
-                BlockData = new ParentChainBlockDataInResponse
+                BlockData = new BlockData
                 {
-                    Root = new ParentChainBlockRootInfo
-                    {
-                        ParentChainHeight = block.Height,
-                        ParentChainId = block.Header.ChainId
-                    }
+                    ChainId = block.Header.ChainId,
+                    Height = block.Height,
+//                    Root = new ParentChainBlockRootInfo
+//                    {
+//                        ParentChainHeight = block.Height,
+//                        ParentChainId = block.Header.ChainId
+//                    }
                 }
             };
-            responseParentChainBlockData = FillExtraDataInResponse(responseParentChainBlockData, block.Header);
+            var parentChainBlockData = new ParentChainBlockData();
+            parentChainBlockData = FillExtraDataInResponse(parentChainBlockData, block.Header);
 
-            if (responseParentChainBlockData.BlockData.Root.CrossChainExtraData == null)
+            if (parentChainBlockData.CrossChainExtraData == null)
+            {
+                responseParentChainBlockData.BlockData.Payload = parentChainBlockData.ToByteString();
                 return responseParentChainBlockData;
+            }
 
             var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockInfoResult(block);
             var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, remoteSideChainId);
             foreach (var (sideChainHeight, merklePath) in enumerableMerklePath)
             {
-                responseParentChainBlockData.BlockData.IndexedMerklePath.Add(sideChainHeight, merklePath);
+                parentChainBlockData.IndexedMerklePath.Add(sideChainHeight, merklePath);
             }
-
+            
+            responseParentChainBlockData.BlockData.Payload = parentChainBlockData.ToByteString();
             return responseParentChainBlockData;
         }
 
@@ -62,22 +68,21 @@ namespace AElf.CrossChain.Grpc
             return message==null ? null : ChainInitializationContext.Parser.ParseFrom(message.ToByteString());
         }
         
-        private ResponseParentChainBlockData FillExtraDataInResponse(ResponseParentChainBlockData
-            responseParentChainBlockData, BlockHeader blockHeader)
+        private ParentChainBlockData FillExtraDataInResponse(ParentChainBlockData parentChainBlockData, BlockHeader blockHeader)
         {
             var transactionStatusMerkleRoot = GetTransactionStatusMerkleTreeRootFromHeader(blockHeader);
 
-            responseParentChainBlockData.BlockData.Root.TransactionStatusMerkleRoot = transactionStatusMerkleRoot;
+            parentChainBlockData.TransactionStatusMerkleRoot = transactionStatusMerkleRoot;
 
             var crossChainExtraByteString = GetExtraDataFromHeader(blockHeader, "CrossChain");
             var crossChainExtra = crossChainExtraByteString == ByteString.Empty || crossChainExtraByteString == null
                 ? null
                 : CrossChainExtraData.Parser.ParseFrom(crossChainExtraByteString);
-            responseParentChainBlockData.BlockData.Root.CrossChainExtraData = crossChainExtra;
+            parentChainBlockData.CrossChainExtraData = crossChainExtra;
 
-            responseParentChainBlockData.BlockData.ExtraData.Add(GetExtraDataForExchange(blockHeader,
+            parentChainBlockData.ExtraData.Add(GetExtraDataForExchange(blockHeader,
                 new[] {"Consensus"}));
-            return responseParentChainBlockData;
+            return parentChainBlockData;
         }
         
         private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockInfoResult(Block block)
@@ -106,10 +111,10 @@ namespace AElf.CrossChain.Grpc
             for (var i = 0; i < indexedSideChainBlockDataResult.Count; i++)
             {
                 var info = indexedSideChainBlockDataResult[i];
-                if (!info.ChainId.Equals(sideChainId))
+                if (!info.SideChainId.Equals(sideChainId))
                     continue;
                 var merklePath = binaryMerkleTree.GenerateMerklePath(i);
-                merklepathList.Add((info.Height, merklePath));
+                merklepathList.Add((info.SideChainHeight, merklePath));
             }
             return merklepathList;
         }

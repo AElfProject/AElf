@@ -1,12 +1,14 @@
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Grpc
 {
     public interface ISideChainServerService
     {
-        ResponseSideChainBlockData GenerateResponse(Block block);
+        ResponseData GenerateResponse(Block block);
     }
 
     public class SideChainServerService : ISideChainServerService, ITransientDependency
@@ -18,18 +20,22 @@ namespace AElf.CrossChain.Grpc
             _blockExtraDataService = blockExtraDataService;
         }
 
-        public ResponseSideChainBlockData GenerateResponse(Block block)
+        public ResponseData GenerateResponse(Block block)
         {
             var transactionStatusMerkleRoot = ExtractTransactionStatusMerkleTreeRoot(block.Header); 
-            return new ResponseSideChainBlockData
+            return new ResponseData
             {
-                Success = block.Header != null,
-                BlockData = new SideChainBlockData
+                BlockData = new BlockData
                 {
-                    SideChainHeight = block.Height,
-                    BlockHeaderHash = block.GetHash(),
-                    TransactionMerkleTreeRoot = transactionStatusMerkleRoot,
-                    SideChainId = block.Header.ChainId
+                    Height = block.Height,
+                    ChainId = block.Header.ChainId,
+                    Payload = new SideChainBlockData
+                    {
+                        SideChainHeight = block.Height,
+                        BlockHeaderHash = block.GetHash(),
+                        TransactionMerkleTreeRoot = transactionStatusMerkleRoot,
+                        SideChainId = block.Header.ChainId
+                    }.ToByteString()
                 }
             };
         }
