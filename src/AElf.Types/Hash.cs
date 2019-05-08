@@ -201,6 +201,11 @@ namespace AElf
         /// <returns></returns>
         public string ToHex()
         {
+            if (Value.Length != TypeConsts.HashByteArrayLength)
+            {
+                throw new ArgumentOutOfRangeException($"Hash bytes has to be " +
+                                                      $"{TypeConsts.HashByteArrayLength} bytes long. The input is {Value.Length} bytes long.");
+            }
             return Value.ToHex();
         }
 
