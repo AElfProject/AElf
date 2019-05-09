@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestContract;
@@ -67,7 +68,7 @@ namespace AElf.Contract.TestContract
             BasicFunctionContractAddress = AsyncHelper.RunSync(async () =>
                 await DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    File.ReadAllBytes(typeof(BasicFunctionContract).Assembly.Location),
+                    Codes.Single(kv => kv.Key.Contains("BasicFunction")).Value,
                     TestBasicFunctionContractSystemName,
                     DefaultSenderKeyPair));
             TestBasicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
@@ -77,7 +78,7 @@ namespace AElf.Contract.TestContract
             BasicSecurityContractAddress = AsyncHelper.RunSync(async () =>
                 await DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    File.ReadAllBytes(typeof(BasicSecurityContract).Assembly.Location),
+                    Codes.Single(kv => kv.Key.Contains("BasicSecurity")).Value,
                     TestBasicSecurityContractSystemName,
                     DefaultSenderKeyPair));
             TestBasicSecurityContractStub = GetTestBasicSecurityContractStub(DefaultSenderKeyPair);
