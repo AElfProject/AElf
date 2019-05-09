@@ -144,8 +144,6 @@ namespace AElf.Kernel.Miner.Application
             }
 
             await SignBlockAsync(block);
-            // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
-            //await _txHub.OnNewBlock(block);
 
             Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                   $"previous: {block.Header.PreviousBlockHash}, " +
