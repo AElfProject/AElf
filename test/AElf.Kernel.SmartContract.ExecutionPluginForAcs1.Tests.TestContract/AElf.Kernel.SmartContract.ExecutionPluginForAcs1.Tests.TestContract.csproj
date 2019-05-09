@@ -13,12 +13,9 @@
       <None Include="..\..\protobuf\acs1.proto">
         <Link>Protobuf/Proto/acs1.proto</Link>
       </None>
-      <None Include="..\..\protobuf\aelf_options.proto">
-        <Link>Protobuf/Proto/aelf_options.proto</Link>
-      </None>
-      <None Include="..\..\protobuf\acs1_plugin_test_contract.proto">
+      <ContractCode Include="..\..\protobuf\acs1_plugin_test_contract.proto">
         <Link>Protobuf/Proto/acs1_plugin_test_contract.proto</Link>
-      </None>
+      </ContractCode>
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
