@@ -148,7 +148,10 @@ namespace AElf.WebApp.Application.Chain
                     Error.NoMatchMethodInContractAddress.ToString());
             try
             {
-                transaction.Params = methodDescriptor.InputType.Parser.ParseJson(input.Params).ToByteString();
+                var parameters = methodDescriptor.InputType.Parser.ParseJson(input.Params);
+                if (!IsValidMessage(parameters))
+                    throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
+                transaction.Params = parameters.ToByteString();
             }
             catch
             {
@@ -180,19 +183,10 @@ namespace AElf.WebApp.Application.Chain
             
             var transactionDto = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             var contractMethodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
-            if (contractMethodDescriptor == null)
-                throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
-                    Error.NoMatchMethodInContractAddress.ToString());
-            try
-            {
-                transactionDto.Params =
-                    JsonFormatter.ToDiagnosticString(
-                        contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
-            }
-            catch
-            {
-                throw new UserFriendlyException(Error.Message[Error.InvalidParams],Error.InvalidParams.ToString());
-            }
+
+            var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
+
+            transactionDto.Params = JsonFormatter.ToDiagnosticString(parameters);
             output.Transaction = transactionDto;
 
             return output;
@@ -577,6 +571,21 @@ namespace AElf.WebApp.Application.Chain
                 {
                     throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
                 }
+                
+                if(!IsValidMessage(transaction))
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
+                
+                var contractMethodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+                if (contractMethodDescriptor == null)
+                    throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
+                        Error.NoMatchMethodInContractAddress.ToString());
+
+                var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
+                
+                if (!IsValidMessage(parameters))
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
+                }
 
                 if (!transaction.VerifySignature())
                 {
@@ -661,6 +670,20 @@ namespace AElf.WebApp.Application.Chain
             }
 
             return null;
+        }
+
+        private bool IsValidMessage(IMessage message)
+        {
+            try
+            {
+                JsonFormatter.ToDiagnosticString(message);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
