@@ -1,7 +1,8 @@
 using AElf.Cryptography.ECDSA;
 using Volo.Abp.DependencyInjection;
+// ReSharper disable InconsistentNaming
 
-namespace AElf.Kernel.Account.Application
+namespace AElf.Kernel.Account.Infrastructure
 {
     public interface IECKeyPairProvider
     {

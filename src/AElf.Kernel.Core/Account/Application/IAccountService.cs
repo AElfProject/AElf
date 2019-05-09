@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel.Account.Infrastructure;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Account.Application

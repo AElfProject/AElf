@@ -4,6 +4,7 @@ using AElf.Contracts.Genesis;
 using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.ChainController;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus;
@@ -98,22 +99,6 @@ namespace AElf.Contracts.TestKit
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             context.Services.AddTransient(o => Mock.Of<IConsensusService>());
-
-            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
-            context.Services.AddTransient<IAccountService>(o =>
-            {
-                var mockService = new Mock<IAccountService>();
-                mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
-                    Task.FromResult(CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
-                mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()
-                )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
-                {
-                    var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
-                    return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
-                });
-                mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(ecKeyPair.PublicKey);
-                return mockService.Object;
-            });
             #endregion
 
             context.Services.AddTransient<IAccount, Account>();
@@ -127,6 +112,9 @@ namespace AElf.Contracts.TestKit
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            
+            context.ServiceProvider.GetService<IECKeyPairProvider>().SetECKeyPair(CryptoHelpers.GenerateKeyPair());
+            
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = ChainId,
