@@ -2,7 +2,7 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.EventMessages;
+using AElf.Kernel.Consensus.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;

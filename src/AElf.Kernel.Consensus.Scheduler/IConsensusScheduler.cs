@@ -1,4 +1,4 @@
-using AElf.Kernel.EventMessages;
+using AElf.Kernel.Consensus.Events;
 
 namespace AElf.Kernel.Consensus.Application
 {

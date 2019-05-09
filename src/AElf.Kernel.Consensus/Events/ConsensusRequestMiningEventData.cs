@@ -1,6 +1,6 @@
 using System;
 
-namespace AElf.Kernel.EventMessages
+namespace AElf.Kernel.Consensus.Events
 {
     public class ConsensusRequestMiningEventData
     {

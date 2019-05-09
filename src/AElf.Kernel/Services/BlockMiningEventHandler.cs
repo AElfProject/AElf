@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.EventMessages;
+using AElf.Kernel.Consensus.Events;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using Microsoft.Extensions.Logging;
