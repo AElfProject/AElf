@@ -5,7 +5,7 @@ using Mono.Cecil.Cil;
 
 namespace AElf.Runtime.CSharp.Validators.Method
 {
-    public class FloatValidator : IValidator<MethodDefinition>
+    public class FloatOpsValidator : IValidator<MethodDefinition>
     {
         private static readonly HashSet<OpCode> FloatOpCodes = new HashSet<OpCode>
         {
@@ -28,13 +28,15 @@ namespace AElf.Runtime.CSharp.Validators.Method
         {
             if (!method.HasBody)
                 return Enumerable.Empty<ValidationResult>();
-            var errors = new List<FloatValidationResult>();
+            var errors = new List<ValidationResult>();
             
             foreach (var instruction in method.Body.Instructions)
             {
                 if (FloatOpCodes.Contains(instruction.OpCode))
                 {
-                    errors.Add(new FloatValidationResult("Method " + method.Name + " contains " + instruction.OpCode + " opcode."));
+                    errors.Add(
+                        new FloatOpsValidationResult("Method " + method.Name + " contains " + instruction.OpCode + " opcode.")
+                                 .WithInfo(method.GetType().Namespace, method.GetType().Name, method.Name, null));
                 }
             }
 
@@ -42,9 +44,9 @@ namespace AElf.Runtime.CSharp.Validators.Method
         }
     }
     
-    public class FloatValidationResult : ValidationResult
+    public class FloatOpsValidationResult : ValidationResult
     {
-        public FloatValidationResult(string message) : base(message)
+        public FloatOpsValidationResult(string message) : base(message)
         {
         }
     }

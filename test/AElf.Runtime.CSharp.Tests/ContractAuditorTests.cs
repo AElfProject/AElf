@@ -1,6 +1,11 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Runtime.CSharp.Validators;
+using AElf.Runtime.CSharp.Validators.Method;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
@@ -10,11 +15,61 @@ namespace AElf.Runtime.CSharp.Tests
     public class ContractAuditorTests : CSharpRuntimeTestBase
     {
         private ContractAuditor _auditor;
+        private IEnumerable<ValidationResult> _findings;
         private readonly string _contractDllDir = "../../../contracts/";
 
         public ContractAuditorTests(ITestOutputHelper testOutputHelper)
         {
             _auditor = new ContractAuditor();
+            
+            Should.Throw<InvalidCodeException>(() =>
+            {
+                try
+                {
+                    _auditor.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module),
+                        false);
+                }
+                catch (InvalidCodeException ex)
+                {
+                    _findings = ex.Findings;
+                    throw ex;
+                }
+            });
+        }
+
+        [Fact]
+        public void CheckBadContract_ForRandomUsage()
+        {
+            LookFor(_findings, i => i.Namespace == "System" && i.Type == "Random")
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
+        public void CheckBadContract_ForUtcNowUsage()
+        {
+            LookFor(_findings, i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_UtcNow")
+                .ShouldNotBeNull();
+        }        
+        
+        [Fact]
+        public void CheckBadContract_ForDoubleType()
+        {
+            LookFor(_findings, i => i.Namespace == "System" && i.Type == "Double")
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
+        public void CheckBadContract_ForDiskOperations()
+        {
+            LookFor(_findings, i => i.Namespace == "System.IO")
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
+        public void CheckBadContract_ForFloatOperations()
+        {
+            _findings.FirstOrDefault(f => f.GetType() == typeof(FloatOpsValidationResult))
+                .ShouldNotBeNull();
         }
 
         [Fact]
@@ -32,17 +87,14 @@ namespace AElf.Runtime.CSharp.Tests
             foreach (var contract in contracts)
             {
                 var contractDllPath = _contractDllDir + contract;
-
-                // TODO: Check each bad condition here whether it is found by contract auditor
+                
                 Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), false));
             }
         }
 
-        [Fact]
-        public void CodeCheck_BadContract()
+        private Info LookFor(IEnumerable<ValidationResult>  findings, Func<Info, bool> criteria)
         {
-            Should.Throw<InvalidCodeException>(() => _auditor.Audit(ReadCode(_contractDllDir + 
-                                                                         typeof(BadContract.BadContract).Module.ToString()), false));
+            return findings.Select(f => f.Info).Where(criteria).FirstOrDefault();
         }
 
         private byte[] ReadCode(string path)

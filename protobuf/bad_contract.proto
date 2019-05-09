@@ -38,7 +38,7 @@ message RandomOutput {
 }
 
 message DateTimeOutput {
-    google.protobuf.Timestamp CurrentDateTime = 1; 
+    google.protobuf.Timestamp DateTimeValue = 1;
 }
 
 message FileInfoInput {

@@ -71,7 +71,7 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(nameof(AssemblyTitleAttribute), Permission.Allowed));
             
             MethodValidators.AddRange(new IValidator<MethodDefinition>[]{
-                new FloatValidator(),
+                new FloatOpsValidator(),
                 new MultiDimArrayValidator(),
                 // new UnsafeMathValidator(), // Google protobuf generated code contains unsafe opcodes
                 // new NewObjValidator(),     // Define a blacklist of objects types

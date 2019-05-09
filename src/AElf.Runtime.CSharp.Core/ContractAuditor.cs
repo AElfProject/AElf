@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,30 +14,30 @@ namespace AElf.Runtime.CSharp
 
         public void Audit(byte[] code, bool priority)
         {
-            var errors = new List<ValidationResult>();
+            var findings = new List<ValidationResult>();
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
             
             // Check against whitelist
-            errors.AddRange(policy.Whitelist.Validate(modDef));
+            findings.AddRange(policy.Whitelist.Validate(modDef));
             
             // Run module validators
-            errors.AddRange(policy.ModuleValidators.SelectMany(v => v.Validate(modDef)));
+            findings.AddRange(policy.ModuleValidators.SelectMany(v => v.Validate(modDef)));
             
             // Run method validators
             foreach (var typ in modDef.Types)
             {
                 foreach (var method in typ.Methods)
                 {
-                    errors.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));    
+                    findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));    
                 }
             }
 
-            if (errors.Count > 0)
+            if (findings.Count > 0)
             {
                 throw new InvalidCodeException("Audit failed for contract: " 
-                                                       + modDef.Assembly.MainModule.Name + "\r\n"
+                                                       + modDef.Assembly.MainModule.Name + "\r\n",
                                                        // List down validation results
-                                                       + string.Join("\r\n", errors.Select(e => e.ToString()).Distinct().ToArray()));
+                                                       findings);
             }
         }
     }

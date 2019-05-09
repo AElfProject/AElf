@@ -11,6 +11,10 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
 
         public SingletonState<DateTime> CurrentTime;
 
+        public SingletonState<DateTime> CurrentTimeUtc;
+
+        public SingletonState<DateTime> CurrentTimeToday;
+
         public SingletonState<Int32> CurrentRandom;
     }
 }

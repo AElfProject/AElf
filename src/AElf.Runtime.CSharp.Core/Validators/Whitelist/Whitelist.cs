@@ -159,23 +159,24 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
             {
                 case WhitelistSearchResult.DeniedNamespace:
                     var ns = string.IsNullOrWhiteSpace(type.Namespace) ? @"""" : type.Namespace;
-                    yield return new WhitelistValidationResult($"{ns} is not allowed. (Ref Source: {method.FullName})");
+                    yield return new WhitelistValidationResult($"{ns} is not allowed.")
+                                    .WithInfo(type.Namespace, type.Name, method.Name, member);
                     break;
                     
                 case WhitelistSearchResult.DeniedType:
-                    yield return new WhitelistValidationResult($"{type.Name} in {type.Namespace} is not allowed. (Ref Source: {method.FullName})");
+                    yield return new WhitelistValidationResult($"{type.Name} in {type.Namespace} is not allowed.")
+                                    .WithInfo(type.Namespace, type.Name, method.Name, member);
                     break;
                 
                 case WhitelistSearchResult.DeniedMember:
-                    yield return new WhitelistValidationResult($"{member} in {type.FullName} is not allowed. (Ref Source: {method.FullName})");
+                    yield return new WhitelistValidationResult($"{member} in {type.FullName} is not allowed.")
+                                    .WithInfo(type.Namespace, type.Name, method.Name, member);
                     break;
             }
         }
 
         private WhitelistSearchResult Search(TypeReference type, string member = null)
         {
-            var error = Enumerable.Empty<WhitelistValidationResult>();
-
             var typeNs = GetNameSpace(type);
             
             // Fail if there is no rule for the namespace
