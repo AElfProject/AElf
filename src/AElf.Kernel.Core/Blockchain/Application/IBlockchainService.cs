@@ -265,12 +265,6 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHeight = irreversibleBlockHeight
             };
 
-            // TODO: move to background job, it will slow down our system
-            // Clean last branches and not linked
-            var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, chain.LastIrreversibleBlockHash,
-                chain.LastIrreversibleBlockHeight);
-            await RemoveBlocksAsync(toCleanBlocks);
-
             await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
 
             await LocalEventBus.PublishAsync(eventDataToPublish);
