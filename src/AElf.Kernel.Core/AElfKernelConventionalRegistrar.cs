@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
 
@@ -14,34 +15,24 @@ namespace AElf.Kernel
                 return lifeTime;
             }
             
-            //TODO! use IsAssignableFrom
+            var interfaceName = "I" + type.Name;
             
+            if (type.GetInterfaces().Any(p => p.Name == interfaceName))
+            {
+                
+                if (type.Name.EndsWith("Factory"))
+                {
+                    return ServiceLifetime.Transient;
+                }
             
-            
-            if (type.Name.EndsWith("Factory"))
-            {
-                return ServiceLifetime.Transient;
-            }
-            if (type.Name.EndsWith("Store"))
-            {
-                return ServiceLifetime.Transient;
-            }
-            if (type.Name.EndsWith("Info"))
-            {
-                return ServiceLifetime.Transient;
-            }
-            
-            if (type.Name.EndsWith("Manager") || type.Name.EndsWith("Store") || type.Name.EndsWith("Service"))
-            {
-                return ServiceLifetime.Transient;
+                if (type.Name.EndsWith("Manager") || type.Name.EndsWith("Store") || type.Name.EndsWith("Service") || type.Name.EndsWith("Provider"))
+                {
+                    return ServiceLifetime.Transient;
+                }
             }
 
             return null;
         }
         
-        /*private static bool IsPageModel(Type type)
-        {
-            return typeof(PageModel).IsAssignableFrom(type) || type.IsDefined(typeof(PageModelAttribute), true);
-        }*/
     }
 }
