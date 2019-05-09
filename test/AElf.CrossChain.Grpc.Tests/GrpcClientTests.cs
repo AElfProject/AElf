@@ -24,8 +24,6 @@ namespace AElf.CrossChain.Grpc
             _server = GetRequiredService<ICrossChainServer>();
             _certificateStore = GetRequiredService<ICertificateStore>();
             _crossChainDataProducer = GetRequiredService<ICrossChainDataProducer>();
-            
-            InitServerAndClient();      
         }
 
         // TODO: These cases are meaningless and should be rewritten.
@@ -45,32 +43,26 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task ParentChainClient_TryHandShakeAsync()
         {
+            InitServerAndClient(5000);
             var result = await parentClient.HandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
-
-            parentClient = new GrpcClientForParentChain("localhost:3000", 0,1);
-            await Assert.ThrowsAsync<RpcException>(()=>parentClient.HandShakeAsync(0, 3000));
+            Dispose();
         }
         
         [Fact]
         public async Task SideChainClient_TryHandShakeAsync()
         {
+            InitServerAndClient(6000);
             var result = await sideClient.HandShakeAsync(0, ListenPort);
             result.Result.ShouldBeTrue();
-
-            sideClient = new GrpcClientForSideChain("localhost:3000", 1, 1);
-            await Assert.ThrowsAsync<RpcException>(()=>sideClient.HandShakeAsync(0, 3000));
+            Dispose();
         }
 
-        private void InitServerAndClient()
+        private void InitServerAndClient(int port)
         {
-            var keyStore = _certificateStore.LoadKeyStore("test");
-            var cert = _certificateStore.LoadCertificate("test");
-            var keyCert = new KeyCertificatePair(cert, keyStore);
+            _server.StartAsync(Host, port).Wait();
             
-            _server.StartAsync(Host, ListenPort).Wait();
-            
-            string uri = $"{Host}:{ListenPort}";
+            string uri = $"{Host}:{port}";
             parentClient = new GrpcClientForParentChain(uri, 0, 1);
             sideClient = new GrpcClientForSideChain(uri, 1, 1);
         }

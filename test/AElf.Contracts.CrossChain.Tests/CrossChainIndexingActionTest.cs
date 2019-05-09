@@ -30,15 +30,14 @@ namespace AElf.Contract.CrossChain.Tests
                 SideChainId = sideChainId,
                 TransactionMerkleTreeRoot = fakeTxMerkleTreeRoot
             };
-            var parentChainBlockData = new ParentChainBlockData
-            {
-                ParentChainId = parentChainId,
-                ParentChainHeight = 1,
-                TransactionStatusMerkleRoot = fakeTxMerkleTreeRoot
-            };
+//            var parentChainBlockData = new ParentChainBlockData
+//            {
+//                ParentChainId = parentChainId,
+//                ParentChainHeight = 1,
+//                TransactionStatusMerkleRoot = fakeTxMerkleTreeRoot
+//            };
             var crossChainBlockData = new CrossChainBlockData
             {
-                ParentChainBlockData = {parentChainBlockData},
                 SideChainBlockData = {sideChainBlockData}
             };
 
@@ -54,13 +53,14 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task RecordParentChainData()
         {
             int parentChainId = 123;
-            await InitAndCreateSideChain(parentChainId);
+            long parentChainHeightOfCreation = 10;
+            await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId);
 
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = new ParentChainBlockData
             {
                 ParentChainId = parentChainId,
-                ParentChainHeight = 1,
+                ParentChainHeight = parentChainHeightOfCreation,
                 TransactionStatusMerkleRoot = fakeTransactionStatusMerkleRoot
             };
             var crossChainBlockData = new CrossChainBlockData
@@ -78,12 +78,13 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task RecordParentChainData_Twice()
         {
             int parentChainId = 123;
-            await InitAndCreateSideChain(parentChainId);
+            long parentChainHeightOfCreation = 10;
+            await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId);
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = new ParentChainBlockData
             {
                 ParentChainId = parentChainId,
-                ParentChainHeight = 1,
+                ParentChainHeight = parentChainHeightOfCreation,
                 TransactionStatusMerkleRoot = fakeTransactionStatusMerkleRoot
             };
             var crossChainBlockData = new CrossChainBlockData
@@ -149,13 +150,14 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task RecordParentChainData_ContinuousData()
         {
             int parentChainId = 123;
-            await InitAndCreateSideChain(parentChainId);
+            long parentChainHeightOfCreation = 10;
+            await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId);
 
             Hash fakeTransactionStatusMerkleRoot1 = Hash.FromString("TransactionStatusMerkleRoot1");
             var parentChainBlockData1 = new ParentChainBlockData
             {
                 ParentChainId = parentChainId,
-                ParentChainHeight = 1,
+                ParentChainHeight = parentChainHeightOfCreation,
                 TransactionStatusMerkleRoot = fakeTransactionStatusMerkleRoot1
             };
 
@@ -163,7 +165,7 @@ namespace AElf.Contract.CrossChain.Tests
             var parentChainBlockData2 = new ParentChainBlockData
             {
                 ParentChainId = parentChainId,
-                ParentChainHeight = 2,
+                ParentChainHeight = parentChainHeightOfCreation + 1,
                 TransactionStatusMerkleRoot = fakeTransactionStatusMerkleRoot2
             };
             var crossChainBlockData = new CrossChainBlockData
@@ -208,14 +210,14 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task GetParentChainHeight()
         {
             int parentChainId = 123;
-            long parentChainHeight = 1;
-            await InitAndCreateSideChain(parentChainId);
+            long parentChainHeightOfCreation = 10;
+            await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId);
 
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = new ParentChainBlockData
             {
                 ParentChainId = parentChainId,
-                ParentChainHeight = parentChainHeight,
+                ParentChainHeight = parentChainHeightOfCreation,
                 TransactionStatusMerkleRoot = fakeTransactionStatusMerkleRoot
             };
             var crossChainBlockData = new CrossChainBlockData
@@ -233,7 +235,7 @@ namespace AElf.Contract.CrossChain.Tests
                 CrossChainContractAddress,
                 nameof(CrossChainContract.GetParentChainHeight),
                 new Empty())).Value;
-            Assert.True(parentChainHeight == height);
+            Assert.True(parentChainHeightOfCreation == height);
         }
 
         [Fact]
@@ -340,7 +342,8 @@ namespace AElf.Contract.CrossChain.Tests
         {
             var parentChainId = 123;
             var lockedToken = 10L;
-            var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            long parentChainHeightOfCreation = 10;
+            var sideChainId = await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId, lockedToken);
             var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
             var fakeTxMerkleTreeRoot = Hash.FromString("txMerkleTreeRoot");
             var sideChainBlockData = new SideChainBlockData
@@ -384,7 +387,8 @@ namespace AElf.Contract.CrossChain.Tests
         {
             int parentChainId = 123;
             long lockedToken = 10;
-            var sideChainId1 = await InitAndCreateSideChain(parentChainId, lockedToken);
+            long parentChainHeightOfCreation = 10;
+            var sideChainId1 = await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId, lockedToken);
 
             // create second side chain
             long lockedTokenAmount = 10;
@@ -468,7 +472,8 @@ namespace AElf.Contract.CrossChain.Tests
         {
             int parentChainId = 123;
             long lockedToken = 2;
-            var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            long parentChainHeightOfCreation = 10;
+            var sideChainId = await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId, lockedToken);
 
             var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
             var fakeTxMerkleTreeRoot = Hash.FromString("txMerkleTreeRoot");
@@ -525,7 +530,8 @@ namespace AElf.Contract.CrossChain.Tests
         {
             var parentChainId = 123;
             var lockedToken = 10L;
-            var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            long parentChainHeightOfCreation = 10;
+            var sideChainId = await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId, lockedToken);
             var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
             var fakeTxMerkleTreeRoot = Hash.FromString("txMerkleTreeRoot");
             var sideChainBlockData = new SideChainBlockData
@@ -579,7 +585,8 @@ namespace AElf.Contract.CrossChain.Tests
         {
             int parentChainId = 123;
             long lockedToken = 10;
-            var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            long parentChainHeightOfCreation = 10;
+            var sideChainId = await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId, lockedToken);
             var txHash = Hash.FromString("sideChainBlockHash");
             var binaryMerkleTree = new BinaryMerkleTree();
             var fakeHash1 = Hash.FromString("fake1");
@@ -591,7 +598,7 @@ namespace AElf.Contract.CrossChain.Tests
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = new ParentChainBlockData
             {
-                ParentChainHeight = 1,
+                ParentChainHeight = parentChainHeightOfCreation,
                 ParentChainId = parentChainId,
                 TransactionStatusMerkleRoot = fakeTransactionStatusMerkleRoot
             };
@@ -623,7 +630,8 @@ namespace AElf.Contract.CrossChain.Tests
         {
             int parentChainId = 123;
             long lockedToken = 10;
-            var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            long parentChainHeightOfCreation = 10;
+            var sideChainId = await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId, lockedToken);
             var txId = Hash.FromString("sideChainBlockHash");
             var binaryMerkleTree = new BinaryMerkleTree();
             var fakeHash1 = Hash.FromString("fake1");
@@ -637,11 +645,10 @@ namespace AElf.Contract.CrossChain.Tests
             binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
             var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
             var merklePath = binaryMerkleTree.GenerateMerklePath(0);
-            var parentChainHeight = 1;
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = new ParentChainBlockData
             {
-                ParentChainHeight = parentChainHeight,
+                ParentChainHeight = parentChainHeightOfCreation,
                 ParentChainId = parentChainId,
                 CrossChainExtraData = new CrossChainExtraData
                 {
@@ -661,7 +668,7 @@ namespace AElf.Contract.CrossChain.Tests
             var verificationInput = new VerifyTransactionInput()
             {
                 TransactionId = txId,
-                ParentChainHeight = parentChainHeight
+                ParentChainHeight = parentChainHeightOfCreation
             };
             verificationInput.Path.AddRange(merklePath.Path);
             var txRes = await ExecuteContractWithMiningAsync(
@@ -677,7 +684,8 @@ namespace AElf.Contract.CrossChain.Tests
         {
             var parentChainId = 123;
             var lockedToken = 100_000L;
-            await InitAndCreateSideChain(parentChainId, lockedToken);
+            long parentChainHeightOfCreation = 10;
+            await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId, lockedToken);
 
             var serialNumber = SInt64Value.Parser.ParseFrom(
                 await Tester.CallContractMethodAsync(CrossChainContractAddress,
@@ -691,7 +699,8 @@ namespace AElf.Contract.CrossChain.Tests
         {
             var parentChainId = 123;
             var lockedToken = 100_000L;
-            var sideChainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            long parentChainHeightOfCreation = 10;
+            var sideChainId = await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId, lockedToken);
 
             var lockedToken1 = SInt64Value.Parser.ParseFrom(
                 await Tester.CallContractMethodAsync(CrossChainContractAddress,
@@ -757,7 +766,8 @@ namespace AElf.Contract.CrossChain.Tests
             int parentChainId = 123;
             int chainId1 = ChainHelpers.ConvertBase58ToChainId("AELF");
             long lockedToken = 10;
-            var sidechainId = await InitAndCreateSideChain(parentChainId, lockedToken);
+            long parentChainHeightOfCreation = 10;
+            var sidechainId = await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId, lockedToken);
             var tokenInfoResult = await Tester.CallContractMethodAsync(TokenContractAddress,
                 nameof(TokenContract.GetTokenInfo), new GetTokenInfoInput
                 {
@@ -790,11 +800,10 @@ namespace AElf.Contract.CrossChain.Tests
             binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
             var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
             var merklePath = binaryMerkleTree.GenerateMerklePath(0);
-            var parentChainHeight = 1;
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = new ParentChainBlockData
             {
-                ParentChainHeight = parentChainHeight,
+                ParentChainHeight = parentChainHeightOfCreation,
                 ParentChainId = parentChainId,
                 CrossChainExtraData = new CrossChainExtraData
                 {
@@ -814,7 +823,7 @@ namespace AElf.Contract.CrossChain.Tests
             var crossChainReceiveTokenInput = new CrossChainReceiveTokenInput
             {
                 FromChainId = chainId2,
-                ParentChainHeight = parentChainHeight,
+                ParentChainHeight = parentChainHeightOfCreation,
                 TransferTransactionBytes = crossChainTransferTransaction.ToByteString(),
             };
             crossChainReceiveTokenInput.MerklePath.AddRange(merklePath.Path);

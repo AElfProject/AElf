@@ -49,12 +49,7 @@ namespace AElf.CrossChain.Grpc
             await _grpcCrossChainClientNodePlugin.HandleEventAsync(receivedEventData);
         }
 
-        [Fact]
-        public async Task Client_Shutdown_Test()
-        {
-            //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
-            await Assert.ThrowsAsync<NotImplementedException>(()=>_grpcCrossChainClientNodePlugin.ShutdownAsync()); 
-        }
+        //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
 
         public override void Dispose()
         {
