@@ -28,5 +28,10 @@ namespace AElf
         {
             return Base58CheckEncoding.DecodePlain(value);
         }
+        
+        public static byte[] GetBytes(this string value)
+        {
+            return Encoding.UTF8.GetBytes(value);
+        }
     }
 }
