@@ -1,8 +1,6 @@
 using AElf.Contracts.Consensus.MinersCountProvider;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.Vote;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Contracts.Consensus.AElfConsensus

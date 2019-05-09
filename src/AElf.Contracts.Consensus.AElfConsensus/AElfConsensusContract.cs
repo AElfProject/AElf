@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Consensus.AElfConsensus;
 using AElf.Contracts.Consensus.MinersCountProvider;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Crypto.Tls;
-using Vote;
 
 namespace AElf.Contracts.Consensus.AElfConsensus
 {
