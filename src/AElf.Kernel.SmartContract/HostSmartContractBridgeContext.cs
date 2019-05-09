@@ -99,12 +99,12 @@ namespace AElf.Kernel.SmartContract
 
         public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
         {
-            return AsyncHelper.RunSync(() => _accountService.EncryptMessage(receiverPublicKey, plainMessage));
+            return AsyncHelper.RunSync(() => _accountService.EncryptMessageAsync(receiverPublicKey, plainMessage));
         }
 
         public byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
         {
-            return AsyncHelper.RunSync(() => _accountService.DecryptMessage(senderPublicKey, cipherMessage));
+            return AsyncHelper.RunSync(() => _accountService.DecryptMessageAsync(senderPublicKey, cipherMessage));
         }
 
         public Transaction Transaction => TransactionContext.Transaction.Clone();
@@ -116,7 +116,7 @@ namespace AElf.Kernel.SmartContract
         public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();
 
-        public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
+        private byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
             var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);
             return !cabBeRecovered ? null : publicKey;
