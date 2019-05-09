@@ -20,7 +20,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var block = new BlockWithTransactions
             {
-                BlockHeader = new BlockHeader
+                Header = new BlockHeader
                 {
                     Height = KernelConstants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,

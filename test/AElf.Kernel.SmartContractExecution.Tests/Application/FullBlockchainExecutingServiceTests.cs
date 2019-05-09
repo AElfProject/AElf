@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var transactions = new List<Transaction> { _kernelTestHelper.GenerateTransaction() };
             var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash, transactions);
 
-            var blckWithTrx = new BlockWithTransactions {BlockHeader = newBlock.Header};
+            var blckWithTrx = new BlockWithTransactions {Header = newBlock.Header};
             blckWithTrx.Transactions.AddRange(transactions);
             await _blockchainService.AddBlockWithTransactionsAsync(blckWithTrx);
             var status = await _blockchainService.AttachBlockToChainAsync(chain, newBlock);

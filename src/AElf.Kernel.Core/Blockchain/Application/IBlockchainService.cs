@@ -387,7 +387,7 @@ namespace AElf.Kernel.Blockchain.Application
                 return null;
             
             var blockWithTxs = new BlockWithTransactions();
-            blockWithTxs.BlockHeader = block.Header;
+            blockWithTxs.Header = block.Header;
             
             foreach (var txId in block.Body.Transactions)
             {

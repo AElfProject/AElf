@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return true;
 
             var blockHash = block.GetHash();
-            var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.BlockHeader, block.Transactions);
+            var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, block.Transactions);
 
             return executedBlock.GetHash().Equals(blockHash);
         }
@@ -107,7 +107,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
                     await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                     {
-                        BlockHeader = linkedBlock.BlockHeader
+                        BlockHeader = linkedBlock.Header
                     });
                 }
             }

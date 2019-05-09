@@ -178,7 +178,7 @@ message Block {
 }
 
 message BlockWithTransactions {
-    BlockHeader blockHeader = 1;
+    BlockHeader Header = 1;
     repeated Transaction Transactions = 2;
 }
 

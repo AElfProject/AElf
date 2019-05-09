@@ -54,7 +54,7 @@ namespace AElf.Kernel.ChainController.Application
                 var transactionsToInclude = genesisTransactions.ToList();
                 var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactionsToInclude);
 
-                var blockWithTx = new BlockWithTransactions { BlockHeader = block.Header };
+                var blockWithTx = new BlockWithTransactions { Header = block.Header };
                 blockWithTx.Transactions.AddRange(transactionsToInclude);
                 
                 var chain = await _blockchainService.CreateChainAsync(blockWithTx);

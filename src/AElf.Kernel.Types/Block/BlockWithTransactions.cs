@@ -7,7 +7,12 @@ using Google.Protobuf;
 namespace AElf.Kernel
 {
     public partial class BlockWithTransactions : IBlock, IBlockWithTransactionBase, ICustomDiagnosticMessage
-    {        
+    {
+        partial void OnConstruction()
+        {
+            Header = new BlockHeader();
+        }
+
         /// <summary>
         /// Used to override IMessage's default string representation.
         /// </summary>
@@ -20,17 +25,11 @@ namespace AElf.Kernel
         public IEnumerable<Transaction> FullTransactionList => Transactions;
         public IEnumerable<Hash> TransactionList => Transactions.Select(tx => tx.GetHash());
         public BlockBody Body => new BlockBody { Transactions = { Transactions.Select(tx => tx.GetHash()).ToList() }}; 
-        public long Height => BlockHeader?.Height ?? 0;
-        
-        public BlockHeader Header
-        {
-            get { return BlockHeader; }
-            set { BlockHeader = value; }
-        }
+        public long Height => Header?.Height ?? 0;        
         
         public Hash GetHash()
         {
-            return BlockHeader.GetHash();
+            return Header.GetHash();
         }
         
         public byte[] GetHashBytes()
@@ -42,10 +41,10 @@ namespace AElf.Kernel
         {
             return new Block
             {
-                Header = BlockHeader,
+                Header = Header,
                 Body = new BlockBody
                 {
-                    BlockHeader = BlockHeader.GetHash(),
+                    BlockHeader = Header.GetHash(),
                     Transactions = {Transactions.Select(tx => tx.GetHash()).ToList()}
                 }
             };

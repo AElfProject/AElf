@@ -203,7 +203,7 @@ namespace AElf.Kernel
                 await _transactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
             }
             
-            BlockWithTransactions blockWithTransactions = new BlockWithTransactions { BlockHeader = newBlock.Header};
+            BlockWithTransactions blockWithTransactions = new BlockWithTransactions { Header = newBlock.Header};
             blockWithTransactions.Transactions.AddRange(transactions);
 
             await _blockchainService.AddBlockWithTransactionsAsync(blockWithTransactions);

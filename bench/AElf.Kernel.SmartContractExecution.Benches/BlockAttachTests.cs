@@ -44,7 +44,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
                 var transactions = await _osTestHelper.GenerateTransferTransactions(1000);
 
                 var block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
-                _block = new BlockWithTransactions { BlockHeader = block.Header };
+                _block = new BlockWithTransactions { Header = block.Header };
                 _block.Transactions.AddRange(transactions);
             });
         }
