@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Consensus.AElfConsensus;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Vote;
 
@@ -19,29 +20,6 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
                 State.BasicContractZero.GetContractAddressByName.Call(input.VoteContractSystemName);
             State.TokenContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(input.TokenContractSystemName);
-            State.Mode.Value = input.Mode;
-
-            if (input.Mode == MinersCountMode.Vote)
-            {
-                // Create Miners Count Voting Item.
-                var votingRegisterInput = new VotingRegisterInput
-                {
-                    IsLockToken = false,
-                    AcceptedCurrency = Context.Variables.NativeSymbol,
-                    TotalSnapshotNumber = long.MaxValue,
-                    StartTimestamp = DateTime.MinValue.ToUniversalTime().ToTimestamp(),
-                    EndTimestamp = DateTime.MaxValue.ToUniversalTime().ToTimestamp(),
-                    Options = {Enumerable.Range(1, 100).Select(i => i.ToString())}
-                };
-                State.VoteContract.Register.Send(votingRegisterInput);
-
-                // In order to calculate voting item id.
-                votingRegisterInput.Options.Clear();
-                State.MinersCountVotingItemId.Value = Hash.FromTwoHashes(Hash.FromMessage(votingRegisterInput),
-                    Hash.FromMessage(Context.Self));
-
-                Context.LogDebug(() => $"Miners Count Voting Item Id: {State.MinersCountVotingItemId.Value.ToHex()}");
-            }
 
             State.Initialized.Value = true;
 
@@ -75,16 +53,41 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
             return new Empty();
         }
 
-        public override Empty SetInitialMinersCount(SInt32Value input)
+        public override Empty ConfigMinersCountProviderContract(ConfigMinersCountProviderContractInput input)
         {
-            Assert(!State.IsInitialMinersCountSet.Value, "Initial miners count already set.");
-            State.MinersCount.Value = input.Value;
-            State.IsInitialMinersCountSet.Value = true;
+            Assert(!State.Configured.Value, "Initial miners count already set.");
+            State.Mode.Value = input.Mode;
+            State.BlockchainStartTimestamp.Value = input.BlockchainStartTimestamp;
+            if (input.Mode == MinersCountMode.Vote)
+            {
+                // Create Miners Count Voting Item.
+                var votingRegisterInput = new VotingRegisterInput
+                {
+                    IsLockToken = false,
+                    AcceptedCurrency = Context.Variables.NativeSymbol,
+                    TotalSnapshotNumber = long.MaxValue,
+                    StartTimestamp = DateTime.MinValue.ToUniversalTime().ToTimestamp(),
+                    EndTimestamp = DateTime.MaxValue.ToUniversalTime().ToTimestamp(),
+                    Options = {Enumerable.Range(1, 50).Select(i => i.ToString())}
+                };
+                State.VoteContract.Register.Send(votingRegisterInput);
+
+                // In order to calculate voting item id.
+                votingRegisterInput.Options.Clear();
+                State.MinersCountVotingItemId.Value = Hash.FromTwoHashes(Hash.FromMessage(votingRegisterInput),
+                    Hash.FromMessage(Context.Self));
+
+                Context.LogDebug(() => $"Miners Count Voting Item Id: {State.MinersCountVotingItemId.Value.ToHex()}");
+            }
+
+            State.MinersCount.Value = input.MinersCountInitialValue;
+            State.Configured.Value = true;
             return new Empty();
         }
 
         public override SInt32Value GetMinersCount(Empty input)
         {
+            Assert(State.Configured.Value, "Miners Count Provider Contract not configured.");
             if (State.Mode.Value == MinersCountMode.Vote)
             {
                 Assert(State.MinersCountVotingItemId.Value != null, "Corresponding voting item id shouldn't be null.");
@@ -97,12 +100,20 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
                 }
             }
 
+            var offset = 0;
             if (State.Mode.Value == MinersCountMode.IncreaseEveryHour)
             {
-                
+                offset = (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value.ToDateTime())
+                    .TotalHours;
+            }
+            
+            if (State.Mode.Value == MinersCountMode.IncreaseEveryYear)
+            {
+                offset = ((int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value.ToDateTime())
+                    .TotalDays).Div(12);
             }
 
-            return new SInt32Value();
+            return new SInt32Value {Value = State.MinersCount.Value.Add(offset.Mul(State.Step.Value))};
         }
     }
 }

@@ -8,6 +8,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Org.BouncyCastle.Crypto.Tls;
 using Vote;
 
 namespace AElf.Contracts.Consensus.AElfConsensus
@@ -51,7 +52,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     // To Lock and Unlock tokens of voters.
                     TokenContractSystemName = input.TokenContractSystemName,
                     VoteContractSystemName = input.VoteContractSystemName,
-                    Mode = MinersCountMode.Vote
                 });
 
             return new Empty();
@@ -88,11 +88,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             SetMiners(miners);
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
-
-            State.MinersCountProviderContract.SetInitialMinersCount.Send(new SInt32Value
-            {
-                Value = input.RealTimeMinersInformation.Count
-            });
             return new Empty();
         }
 
@@ -160,7 +155,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
         #endregion
 
-        public override Empty TinyBlock(TinyBlockInput input)
+        public override Empty UpdateTinyBlockInformation(TinyBlockInput input)
         {
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
             Assert(input.RoundId == round.RoundId, "Round Id not matched.");
@@ -188,7 +183,15 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             if (currentRoundNumber == 1)
             {
-                SetBlockchainStartTimestamp(input.GetStartTime().ToTimestamp());
+                var actualBlockchainStartTimestamp = input.GetStartTime().ToTimestamp();
+                SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
+                State.MinersCountProviderContract.ConfigMinersCountProviderContract.Send(new ConfigMinersCountProviderContractInput
+                {
+                    MinersCountInitialValue = input.RealTimeMinersInformation.Count,
+                    Mode = MinersCountMode.Vote,
+                    BlockchainStartTimestamp = actualBlockchainStartTimestamp,
+                    IncreaseStep = 2
+                });
             }
 
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");

@@ -174,7 +174,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                     {
                         Transactions =
                         {
-                            GenerateTransaction(nameof(TinyBlock),
+                            GenerateTransaction(nameof(UpdateTinyBlockInformation),
                                 new TinyBlockInput
                                 {
                                     ActualMiningTime = minerInRound.ActualMiningTime,

@@ -5,6 +5,7 @@ package miners_count_provider;
 import "common.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.MinersCountProvider";
 
@@ -16,7 +17,7 @@ service MinersCountProviderContract {
     }
     rpc VoteMinersCount (VoteMinersCountInput) returns (google.protobuf.Empty) {
     }
-    rpc SetInitialMinersCount (SInt32Value) returns (google.protobuf.Empty) {
+    rpc ConfigMinersCountProviderContract (ConfigMinersCountProviderContractInput) returns (google.protobuf.Empty) {
     }
     
     // View
@@ -28,7 +29,6 @@ service MinersCountProviderContract {
 message InitialMinersCountProviderContractInput {
     Hash token_contract_system_name = 1;
     Hash vote_contract_system_name = 2;
-    MinersCountMode mode = 3;
 }
 
 enum MinersCountMode {
@@ -40,4 +40,11 @@ enum MinersCountMode {
 message VoteMinersCountInput {
     sint32 miners_count = 1;
     sint64 amount = 2;
+}
+
+message ConfigMinersCountProviderContractInput {
+    MinersCountMode mode = 1;
+    sint32 increase_step = 2;
+    sint32 miners_count_initial_value = 3;
+    google.protobuf.Timestamp blockchain_start_timestamp = 4;
 }
