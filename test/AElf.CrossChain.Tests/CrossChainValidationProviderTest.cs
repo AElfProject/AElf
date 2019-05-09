@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
+using AElf.CrossChain.Cache;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
@@ -190,9 +191,20 @@ namespace AElf.CrossChain
             _crossChainTestHelper.AddFakeSideChainIdHeight(fakeSideChainId, 0);
             
             // mock data in cache
-            AddFakeCacheData(new Dictionary<int, List<IBlockInfo>>
+            AddFakeCacheData(new Dictionary<int, List<CrossChainCacheData>>
             {
-                {fakeSideChainId, new List<IBlockInfo>{fakeSideChainBlockData}}
+                {
+                    fakeSideChainId,
+                    new List<CrossChainCacheData>
+                    {
+                        new CrossChainCacheData
+                        {
+                            ChainId = fakeSideChainBlockData.SideChainId,
+                            Height = fakeSideChainBlockData.SideChainHeight,
+                            Payload = fakeSideChainBlockData.ToByteString()
+                        }
+                    }
+                }
             });
         }
     }

@@ -26,9 +26,9 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_NotExistChain()
         {
             int chainId = 123;
-            var res = _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
+            var res = _crossChainDataProducer.AddNewBlockInfo(new CrossChainCacheData
             {
-                SideChainId = chainId
+                ChainId = chainId
             });
             Assert.False(res);
         }
@@ -37,17 +37,17 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_ExistChain_WrongIndex()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, BlockInfoCache>
+            var dict = new Dictionary<int, CrossChainCacheCollection>
             {
                 {
-                    chainId, new BlockInfoCache(1)
+                    chainId, new CrossChainCacheCollection(1)
                 }
             };
             CreateFakeCache(dict);
-            var res = _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
+            var res = _crossChainDataProducer.AddNewBlockInfo(new CrossChainCacheData
             {
-                SideChainId = chainId,
-                SideChainHeight = 2
+                ChainId = chainId,
+                Height = 2
             });
             Assert.False(res);
         }
@@ -56,17 +56,17 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_ExistChain_CorrectIndex()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, BlockInfoCache>
+            var dict = new Dictionary<int, CrossChainCacheCollection>
             {
                 {
-                    chainId, new BlockInfoCache(1)
+                    chainId, new CrossChainCacheCollection(1)
                 }
             };
             CreateFakeCache(dict);
-            var res = _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
+            var res = _crossChainDataProducer.AddNewBlockInfo(new CrossChainCacheData
             {
-                SideChainId = chainId,
-                SideChainHeight = 1
+                ChainId = chainId,
+                Height = 1
             });
             Assert.True(res);
         }

@@ -51,14 +51,6 @@ namespace AElf.CrossChain.Grpc
 
             services.AddTransient(o =>
             {
-                var mockService = new Mock<ICrossChainExtraDataExtractor>();
-                mockService.Setup(m => m.ExtractTransactionStatusMerkleTreeRoot(It.IsAny<BlockHeader>()))
-                    .Returns(Hash.Generate);
-                return mockService.Object;
-            });
-
-            services.AddTransient(o =>
-            {
                 var mockCrossChainDataProvider = new Mock<ICrossChainDataProvider>();
                 mockCrossChainDataProvider
                     .Setup(c => c.GetChainInitializationContextAsync(It.IsAny<int>(), It.IsAny<Hash>(),

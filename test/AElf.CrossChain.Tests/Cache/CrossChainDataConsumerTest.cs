@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AElf.Contracts.CrossChain;
+using Google.Protobuf;
 using Xunit;
 
 namespace AElf.CrossChain.Cache
@@ -27,9 +28,9 @@ namespace AElf.CrossChain.Cache
         public void TryTake_NotExistChain()
         {
             int chainIdA = 123;
-            var dict = new Dictionary<int, BlockInfoCache>
+            var dict = new Dictionary<int, CrossChainCacheCollection>
             {
-                {chainIdA, new BlockInfoCache(1)}
+                {chainIdA, new CrossChainCacheCollection(1)}
             };
             CreateFakeCache(dict);
             int chainIdB = 124;
@@ -41,13 +42,19 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WrongIndex()
         {
             int chainId = 123;
-            var blockInfoCache = new BlockInfoCache(1);
-            blockInfoCache.TryAdd(new SideChainBlockData
+            var blockInfoCache = new CrossChainCacheCollection(1);
+            var sideChainBlockData = new SideChainBlockData
             {
                 SideChainId = chainId,
                 SideChainHeight = 1
+            };
+            blockInfoCache.TryAdd(new CrossChainCacheData
+            {
+                ChainId = sideChainBlockData.SideChainId,
+                Height = sideChainBlockData.SideChainHeight,
+                Payload = sideChainBlockData.ToByteString()
             });
-            var dict = new Dictionary<int, BlockInfoCache>
+            var dict = new Dictionary<int, CrossChainCacheCollection>
             {
                 {chainId, blockInfoCache}
             };
@@ -68,7 +75,12 @@ namespace AElf.CrossChain.Cache
                 SideChainId = chainId,
                 SideChainHeight = 1
             };
-            blockInfoCache.TryAdd(expectedBlockInfo);
+            blockInfoCache.TryAdd(new CrossChainCacheData
+            {
+                ChainId = expectedBlockInfo.SideChainId,
+                Height = expectedBlockInfo.SideChainHeight,
+                Payload = expectedBlockInfo.ToByteString()
+            });
             var actualBlockInfo = _crossChainDataConsumer.TryTake<SideChainBlockData>(chainId, 1, false);
             Assert.Equal(expectedBlockInfo, actualBlockInfo);
         }
@@ -85,7 +97,12 @@ namespace AElf.CrossChain.Cache
                 SideChainId = chainId,
                 SideChainHeight = 1
             };
-            blockInfoCache.TryAdd(expectedBlockInfo);
+            blockInfoCache.TryAdd(new CrossChainCacheData
+            {
+                ChainId = expectedBlockInfo.SideChainId,
+                Height = expectedBlockInfo.SideChainHeight,
+                Payload = expectedBlockInfo.ToByteString()
+            });
             var blockInfo = _crossChainDataConsumer.TryTake<SideChainBlockData>(chainId, 2, false);
             Assert.Null(blockInfo);
         }

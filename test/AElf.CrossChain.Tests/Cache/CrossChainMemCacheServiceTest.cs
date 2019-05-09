@@ -24,9 +24,9 @@ namespace AElf.CrossChain.Cache
         public void CachedCount_NotEmpty()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, BlockInfoCache>
+            var dict = new Dictionary<int, CrossChainCacheCollection>
             {
-                {chainId, new BlockInfoCache(1)}
+                {chainId, new CrossChainCacheCollection(1)}
             };
             CreateFakeCache(dict);
             var count = _crossChainMemoryCacheService.GetCachedChainCount();
@@ -53,10 +53,10 @@ namespace AElf.CrossChain.Cache
         public void GetChainHeightNeeded_ExistChain()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, BlockInfoCache>
+            var dict = new Dictionary<int, CrossChainCacheCollection>
             {
                 {
-                    chainId, new BlockInfoCache(1)
+                    chainId, new CrossChainCacheCollection(1)
                 }
             };
             CreateFakeCache(dict);

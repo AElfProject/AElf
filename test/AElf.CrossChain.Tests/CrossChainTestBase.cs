@@ -21,7 +21,7 @@ namespace AElf.CrossChain
             CrossChainMemoryCacheService = GetRequiredService<ICrossChainMemoryCacheService>();
         }
 
-        protected void CreateFakeCache(Dictionary<int, BlockInfoCache> cachingData)
+        protected void CreateFakeCache(Dictionary<int, CrossChainCacheCollection> cachingData)
         {
             foreach (var (key, value) in cachingData)
             {
@@ -29,7 +29,7 @@ namespace AElf.CrossChain
             }
         }
 
-        protected void AddFakeCacheData(Dictionary<int, List<IBlockInfo>> fakeCache)
+        protected void AddFakeCacheData(Dictionary<int, List<CrossChainCacheData>> fakeCache)
         {
             foreach (var (crossChainId, blockInfos) in fakeCache)
             {
@@ -53,7 +53,7 @@ namespace AElf.CrossChain
             _crossChainMemoryCacheService = Application.ServiceProvider.GetRequiredService<ICrossChainMemoryCacheService>();
         }
         
-        protected void AddFakeCacheData(Dictionary<int, List<IBlockInfo>> fakeCache)
+        protected void AddFakeCacheData(Dictionary<int, List<CrossChainCacheData>> fakeCache)
         {
             foreach (var (crossChainId, blockInfos) in fakeCache)
             {

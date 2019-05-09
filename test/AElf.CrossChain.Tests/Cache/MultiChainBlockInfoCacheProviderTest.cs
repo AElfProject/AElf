@@ -24,7 +24,7 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_New()
         {
             int chainId = 123;
-            _multiChainBlockInfoCacheProvider.AddBlockInfoCache(chainId, new BlockInfoCache(1));
+            _multiChainBlockInfoCacheProvider.AddBlockInfoCache(chainId, new CrossChainCacheCollection(1));
             Assert.True(_multiChainBlockInfoCacheProvider.Size == 1);
         }
         
@@ -42,7 +42,7 @@ namespace AElf.CrossChain.Cache
         {
             int chainId = 123;
             
-            var blockInfoCache = new BlockInfoCache(1);
+            var blockInfoCache = new CrossChainCacheCollection(1);
             _multiChainBlockInfoCacheProvider.AddBlockInfoCache(chainId, blockInfoCache);
 
             var actualBlockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
@@ -54,7 +54,7 @@ namespace AElf.CrossChain.Cache
         {
             int chainId = 123;
             
-            var blockInfoCache = new BlockInfoCache(1);
+            var blockInfoCache = new CrossChainCacheCollection(1);
             _multiChainBlockInfoCacheProvider.AddBlockInfoCache(chainId, blockInfoCache);
             _multiChainBlockInfoCacheProvider.AddBlockInfoCache(chainId, blockInfoCache);
             Assert.True(_multiChainBlockInfoCacheProvider.Size == 1);
@@ -67,9 +67,9 @@ namespace AElf.CrossChain.Cache
         {
             int chainId = 123;
             
-            var blockInfoCache1 = new BlockInfoCache(1);
+            var blockInfoCache1 = new CrossChainCacheCollection(1);
             _multiChainBlockInfoCacheProvider.AddBlockInfoCache(chainId, blockInfoCache1);
-            var blockInfoCache2 = new BlockInfoCache(2);
+            var blockInfoCache2 = new CrossChainCacheCollection(2);
             _multiChainBlockInfoCacheProvider.AddBlockInfoCache(chainId, blockInfoCache2);
             Assert.True(_multiChainBlockInfoCacheProvider.Size == 1);
             var actualBlockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(chainId);
