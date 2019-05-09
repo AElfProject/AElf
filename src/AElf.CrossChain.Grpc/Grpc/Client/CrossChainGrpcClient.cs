@@ -49,12 +49,13 @@ namespace AElf.CrossChain.Grpc
         private readonly CrossChainRpc.CrossChainRpcClient _client;
         
         public async Task StartIndexingRequest(int chainId, long targetHeight,
-            ICrossChainDataProducer crossChainDataProducer)
+            ICrossChainDataProducer crossChainDataProducer, int localListeningPort)
         {
             var requestData = new RequestData
             {
                 FromChainId = _localChainId,
-                NextHeight = targetHeight
+                NextHeight = targetHeight,
+                ListeningPort = localListeningPort
             };
 
             using (var serverStream = RequestIndexing(requestData))
@@ -64,7 +65,7 @@ namespace AElf.CrossChain.Grpc
                     var response = serverStream.ResponseStream.Current;
 
                     // requestCrossChain failed or useless response
-                    if (!crossChainDataProducer.AddNewBlockInfo(new CrossChainCacheData{ChainId = response.BlockData.ChainId, Height = response.BlockData.Height, Payload = response.BlockData.Payload}))
+                    if (!crossChainDataProducer.AddNewBlockInfo(new CrossChainCacheData {ChainId = response.BlockData.ChainId, Height = response.BlockData.Height, Payload = response.BlockData.Payload}))
                     {
                         break;
                     }
@@ -95,15 +96,8 @@ namespace AElf.CrossChain.Grpc
             return Task.FromResult(chainInitializationResponse.SideChainInitializationContext);
         }
 
-        //protected abstract AsyncDuplexStreamingCall<RequestCrossChainBlockData, TResponse> CallWithDuplexStreaming(int milliSeconds = 0);
-
         protected abstract AsyncServerStreamingCall<ResponseData> RequestIndexing(
             RequestData request);
-
-//        protected CrossChainGrpcClient(string uri, int localChainId, int dialTimeout) : base(uri, localChainId, dialTimeout)
-//        {
-//            _client = new CrossChainRpc.CrossChainRpcClient(Channel);
-//        }
     }
     
     public class GrpcClientForSideChain : CrossChainGrpcClient

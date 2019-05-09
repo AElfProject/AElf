@@ -78,7 +78,7 @@ namespace AElf.CrossChain.Grpc
         {
             if (!await IsReadyToRequest())
                 return;
-            _crossChainGrpcClientController.RequestCrossChainIndexing();
+            _crossChainGrpcClientController.RequestCrossChainIndexing(_grpcCrossChainConfigOption.LocalServerPort);
         }
         
         public async Task ShutdownAsync()

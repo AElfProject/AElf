@@ -69,11 +69,11 @@ namespace AElf.CrossChain.Grpc
             var uriStr = crossChainCommunicationDto.ToUriStr();
             var localChainId = crossChainCommunicationDto.LocalChainId;
             var connectionTimeout = crossChainCommunicationDto.ConnectionTimeout;
-            
+            var localListeningPort = crossChainCommunicationDto.LocalListeningPort;
             if (IsClientCreated(chainId, uriStr) || !IsAlreadyCachedChain(chainId, isClientToParentChain))
                 return;
             var client = CreateGrpcClient(uriStr, localChainId, connectionTimeout, isClientToParentChain);
-            var handShakeResult = await TryHandShakeAsync(client, chainId);
+            var handShakeResult = await TryHandShakeAsync(client, chainId, localListeningPort);
             if (!handShakeResult)
             {
                 return;
@@ -110,7 +110,7 @@ namespace AElf.CrossChain.Grpc
 
         #region Request cross chain indexing
 
-        public void RequestCrossChainIndexing()
+        public void RequestCrossChainIndexing(int localListeningPort)
         {
             //Logger.LogTrace("Request cross chain indexing ..");
             var chainIds = _crossChainMemoryCacheService.GetCachedChainIds();
@@ -120,16 +120,16 @@ namespace AElf.CrossChain.Grpc
                     continue;
                 Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
                 var targetHeight = _crossChainMemoryCacheService.GetNeededChainHeightForCache(chainId);
-                Request(client, c => c.StartIndexingRequest(chainId, targetHeight, _crossChainDataProducer));
+                Request(client, c => c.StartIndexingRequest(chainId, targetHeight, _crossChainDataProducer, localListeningPort));
             }
         }
         
-        private async Task<bool> TryHandShakeAsync(CrossChainGrpcClient client, int chainId)
+        private async Task<bool> TryHandShakeAsync(CrossChainGrpcClient client, int chainId, int localListeningPort)
         {
             Logger.LogTrace(
                 $"Try shake with chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
             var reply = await RequestAsync(client,
-                c => c.HandShakeAsync(chainId, chainId));
+                c => c.HandShakeAsync(chainId, localListeningPort));
             return reply != null && reply.Result;
         }
 
