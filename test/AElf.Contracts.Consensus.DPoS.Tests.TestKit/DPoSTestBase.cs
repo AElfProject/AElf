@@ -31,8 +31,8 @@ namespace AElf.Contracts.Consensus.DPoS
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
         
-        protected IECKeyPairProvider ECKeyPairProvider =>
-            Application.ServiceProvider.GetRequiredService<IECKeyPairProvider>();
+        protected IAElfAsymmetricCipherKeyPairProvider ECKeyPairProvider =>
+            Application.ServiceProvider.GetRequiredService<IAElfAsymmetricCipherKeyPairProvider>();
         
         protected Address ConsensusContractAddress { get; set; }
         
@@ -57,7 +57,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         protected void InitializeContracts()
         {
-            ECKeyPairProvider.SetECKeyPair(BootMinerKeyPair);
+            ECKeyPairProvider.SetKeyPair(BootMinerKeyPair);
             // Deploy useful contracts.
             ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)
                 .DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput

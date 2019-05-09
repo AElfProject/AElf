@@ -11,8 +11,8 @@ namespace AElf.Kernel.Account.Application
         Task<byte[]> SignAsync(byte[] data);
         Task<bool> VerifySignatureAsync(byte[] signature, byte[] data, byte[] publicKey);
         Task<byte[]> GetPublicKeyAsync();
-        Task<byte[]> EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage);
-        Task<byte[]> DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage);
+        Task<byte[]> EncryptMessageAsync(byte[] receiverPublicKey, byte[] plainMessage);
+        Task<byte[]> DecryptMessageAsync(byte[] senderPublicKey, byte[] cipherMessage);
     }
 
     public static class AccountServiceExtensions
@@ -28,16 +28,16 @@ namespace AElf.Kernel.Account.Application
     /// </summary>
     public class AccountService : IAccountService, ISingletonDependency
     {
-        private readonly IECKeyPairProvider _ecKeyPairProvider;
+        private readonly IAElfAsymmetricCipherKeyPairProvider _ecKeyPairProvider;
 
-        public AccountService(IECKeyPairProvider ecKeyPairProvider)
+        public AccountService(IAElfAsymmetricCipherKeyPairProvider ecKeyPairProvider)
         {
             _ecKeyPairProvider = ecKeyPairProvider;
         }
 
         public Task<byte[]> SignAsync(byte[] data)
         {
-            var signature = CryptoHelpers.SignWithPrivateKey(_ecKeyPairProvider.GetECKeyPair().PrivateKey, data);
+            var signature = CryptoHelpers.SignWithPrivateKey(_ecKeyPairProvider.GetKeyPair().PrivateKey, data);
             return Task.FromResult(signature);
         }
 
@@ -49,20 +49,20 @@ namespace AElf.Kernel.Account.Application
 
         public Task<byte[]> GetPublicKeyAsync()
         {
-            return Task.FromResult(_ecKeyPairProvider.GetECKeyPair().PublicKey);
+            return Task.FromResult(_ecKeyPairProvider.GetKeyPair().PublicKey);
         }
 
-        public Task<byte[]> EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
+        public Task<byte[]> EncryptMessageAsync(byte[] receiverPublicKey, byte[] plainMessage)
         {
-            return Task.FromResult(CryptoHelpers.EncryptMessage(_ecKeyPairProvider.GetECKeyPair().PrivateKey,
+            return Task.FromResult(CryptoHelpers.EncryptMessage(_ecKeyPairProvider.GetKeyPair().PrivateKey,
                 receiverPublicKey,
                 plainMessage));
         }
 
-        public Task<byte[]> DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
+        public Task<byte[]> DecryptMessageAsync(byte[] senderPublicKey, byte[] cipherMessage)
         {
             return Task.FromResult(CryptoHelpers.DecryptMessage(senderPublicKey,
-                _ecKeyPairProvider.GetECKeyPair().PrivateKey,
+                _ecKeyPairProvider.GetKeyPair().PrivateKey,
                 cipherMessage));
         }
     }
