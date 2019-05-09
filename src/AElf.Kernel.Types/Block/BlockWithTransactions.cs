@@ -2,10 +2,11 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Net;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
-    public partial class BlockWithTransactions : IBlock, IBlockWithTransactionBase
+    public partial class BlockWithTransactions : IBlock, IBlockWithTransactionBase, ICustomDiagnosticMessage
     {
         public IEnumerable<Transaction> FullTransactionList => Transactions;
         public IEnumerable<Hash> TransactionList => Transactions.Select(tx => tx.GetHash());
