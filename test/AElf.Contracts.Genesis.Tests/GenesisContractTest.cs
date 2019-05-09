@@ -1,8 +1,6 @@
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -21,14 +19,14 @@ namespace AElf.Contracts.Genesis
         private ISmartContractAddressService ContractAddressService =>
             Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
         private Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
-        internal BasicContractZeroContainer.BasicContractZeroStub DefaultTester =>
-            GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, DefaultSenderKeyPair);
+        internal ACS0Container.ACS0Stub DefaultTester =>
+            GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, DefaultSenderKeyPair);
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs.First();
         private Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         private ECKeyPair AnotherUserKeyPair => SampleECKeyPairs.KeyPairs.Last();
         private Address AnotherUser => Address.FromPublicKey(AnotherUserKeyPair.PublicKey);
-        internal BasicContractZeroContainer.BasicContractZeroStub AnotherTester =>
-            GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, AnotherUserKeyPair);
+        internal ACS0Container.ACS0Stub AnotherTester =>
+            GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, AnotherUserKeyPair);
 
         [Fact]
         public async Task<Address> Deploy_SmartContracts()
@@ -36,7 +34,7 @@ namespace AElf.Contracts.Genesis
             var result = await DefaultTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-                Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
             });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             result.Output.ShouldNotBeNull();
@@ -59,7 +57,7 @@ namespace AElf.Contracts.Genesis
 
             {
                 var resultHash = await DefaultTester.GetContractHash.CallAsync(contractAddress);
-                var contractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
+                var contractCode = Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
                 var contractHash = Hash.FromRawBytes(contractCode);
                 resultHash.ShouldBe(contractHash);                
             }
@@ -80,7 +78,7 @@ namespace AElf.Contracts.Genesis
                 new ContractUpdateInput()
                 {
                     Address = contractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ResourceContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value)
                 });
             resultUpdate.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
@@ -88,7 +86,7 @@ namespace AElf.Contracts.Genesis
             updateAddress.ShouldBe(contractAddress);
 
             var resultHash = await DefaultTester.GetContractHash.CallAsync(updateAddress);
-            var contractCode = File.ReadAllBytes(typeof(ResourceContract).Assembly.Location);
+            var contractCode = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
             var contractHash = Hash.FromRawBytes(contractCode);
             resultHash.ShouldBe(contractHash);
         }
@@ -101,7 +99,7 @@ namespace AElf.Contracts.Genesis
                 new ContractUpdateInput()
                 {
                     Address = contractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ResourceContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value)
                 });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Only owner is allowed to update code.").ShouldBeTrue();
@@ -116,7 +114,7 @@ namespace AElf.Contracts.Genesis
                 new ContractUpdateInput()
                 {
                     Address = contractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))    
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)    
                 });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Code is not changed.").ShouldBeTrue();
