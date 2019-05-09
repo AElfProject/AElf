@@ -35,14 +35,8 @@
         <Content Include="..\..\protobuf\aelf_options.proto">
             <Link>Protobuf/Proto/aelf_options.proto</Link>
         </Content>
-        <Content Include="..\..\protobuf\vote.proto">
-            <Link>Protobuf/Proto/vote.proto</Link>
-        </Content>
         <Content Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf/Proto/vote_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\profit.proto">
-            <Link>Protobuf/Proto/profit.proto</Link>
         </Content>
         <Content Include="..\..\protobuf\profit_contract.proto">
             <Link>Protobuf/Proto/profit_contract.proto</Link>
@@ -52,9 +46,6 @@
         </Content>
         <Content Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\election.proto">
-            <Link>Protobuf/Proto/election.proto</Link>
         </Content>
         <Content Include="..\..\protobuf\election_contract.proto">
             <Link>Protobuf/Proto/election_contract.proto</Link>
@@ -67,8 +58,8 @@
         <Folder Include="Protobuf\Generated" />
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto vote_contract.proto profit_contract.proto token_contract.proto election_contract.proto aelf_consensus_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto vote_contract.proto profit_contract.proto token_contract.proto election_contract.proto aelf_consensus_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto vote_contract.proto profit_contract.proto token_contract.proto aelf_consensus_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto vote_contract.proto profit_contract.proto token_contract.proto aelf_consensus_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

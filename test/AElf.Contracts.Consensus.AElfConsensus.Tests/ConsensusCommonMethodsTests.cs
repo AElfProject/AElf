@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Consensus.AElfConsensus;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

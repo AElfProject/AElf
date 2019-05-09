@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Consensus.AElfConsensus;
 using AElf.Contracts.Consensus.AElfConsensus;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -19,8 +18,8 @@ using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
+using Shouldly;
 using Volo.Abp.Threading;
-using Miners = AElf.Contracts.Consensus.AElfConsensus.Miners;
 
 namespace AElf.Contracts.Election
 {

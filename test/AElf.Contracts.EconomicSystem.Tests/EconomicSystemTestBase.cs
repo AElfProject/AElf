@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Consensus.AElfConsensus;
 using AElf.Contracts.Consensus.AElfConsensus;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;

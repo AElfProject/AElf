@@ -26,9 +26,6 @@
         <Content Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
         </Content>
-        <Content Include="..\..\protobuf\profit.proto">
-            <Link>Protobuf/Proto/profit.proto</Link>
-        </Content>
         <Content Include="..\..\protobuf\profit_contract.proto">
             <Link>Protobuf/Proto/profit_contract.proto</Link>
         </Content>

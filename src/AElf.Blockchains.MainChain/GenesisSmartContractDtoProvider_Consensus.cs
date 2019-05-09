@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Consensus.AElfConsensus;
 using AElf.Contracts.Consensus.AElfConsensus;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AElfConsensus;

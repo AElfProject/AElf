@@ -147,7 +147,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
 
-            TryToFindLIB();
+            TryToFindLastIrreversibleBlock();
 
             return new Empty();
         }
@@ -196,7 +196,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
-            TryToFindLIB();
+            TryToFindLastIrreversibleBlock();
             return new Empty();
         }
 
@@ -207,12 +207,12 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         /// <returns></returns>
         public override SInt64Value GetLIBOffset(Empty input)
         {
-            return new SInt64Value {Value = CalculateLIB(out var offset) ? offset : 0};
+            return new SInt64Value {Value = CalculateLastIrreversibleBlock(out var offset) ? offset : 0};
         }
 
-        private void TryToFindLIB()
+        private void TryToFindLastIrreversibleBlock()
         {
-            if (CalculateLIB(out var offset))
+            if (CalculateLastIrreversibleBlock(out var offset))
             {
                 Context.LogDebug(() => $"LIB found, offset is {offset}");
                 Context.Fire(new IrreversibleBlockFound()
@@ -222,7 +222,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             }
         }
 
-        private bool CalculateLIB(out long offset)
+        private bool CalculateLastIrreversibleBlock(out long offset)
         {
             offset = 0;
 

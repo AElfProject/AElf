@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 
 namespace AElf.Contracts.Vote
 {
@@ -39,8 +40,10 @@ namespace AElf.Contracts.Vote
             };
             var transactionResult = (await VoteContractStub.Register.SendAsync(input)).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            input.Options.Clear();
+            var votingItemId = Hash.FromTwoHashes(Hash.FromMessage(input), Hash.FromMessage(sender));
             return await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
-                {VotingItemId = input.GetHash(sender)});
+                {VotingItemId = votingItemId});
         }
 
         private async Task<TransactionResult> TakeSnapshot(Hash votingItemId, long snapshotNumber)

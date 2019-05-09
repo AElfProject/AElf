@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.Vote;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 

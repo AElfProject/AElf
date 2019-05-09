@@ -32,13 +32,13 @@
       <Content Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
       </Content>
-      <Content Include="..\..\protobuf\aelf_consensus.proto">
+      <Content Include="..\..\protobuf\aelf_consensus_contract.proto">
         <Link>Protobuf/Proto/dpos_contract.proto</Link>
       </Content>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_event_only.sh aelf_consensus.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_event_only.bat aelf_consensus.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_event_only.sh aelf_consensus_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_event_only.bat aelf_consensus_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

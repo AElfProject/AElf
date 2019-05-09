@@ -18,12 +18,6 @@
         <None Include="..\..\protobuf\kernel.proto">
             <Link>Protobuf/Proto/kernel.proto</Link>
         </None>
-        <None Include="..\..\protobuf\aelf_consensus.proto">
-            <Link>Protobuf/Proto/aelf_consensus.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\vote.proto">
-            <Link>Protobuf/Proto/vote.proto</Link>
-        </None>
         <None Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf/Proto/vote_contract.proto</Link>
         </None>
@@ -37,6 +31,9 @@
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
         </None>
         <None Include="..\..\protobuf\aelf_consensus_contract.proto">
+            <Link>Protobuf/Proto/aelf_consensus_contract.proto</Link>
+        </None>
+        <None Include="..\..\protobuf\aelf_consensus.proto">
             <Link>Protobuf/Proto/aelf_consensus_contract.proto</Link>
         </None>
         <None Include="..\..\protobuf\miners_count_provider_contract.proto">
