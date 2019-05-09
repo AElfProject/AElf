@@ -1,4 +1,4 @@
-namespace AElf.Contracts.Consensus.DPoS
+namespace Acs4
 {
     // ReSharper disable once InconsistentNaming
     internal static class ConsensusDPoSConsts

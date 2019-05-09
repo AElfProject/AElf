@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Acs4;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -322,7 +323,7 @@ namespace AElf.Contracts.Consensus.DPoS
                     orderby obj.Value descending
                     select obj.Key).ToList();
 
-            var round = new Round();
+            var round = new  Round();
 
             for (var i = 0; i < sortedMiners.Count; i++)
             {

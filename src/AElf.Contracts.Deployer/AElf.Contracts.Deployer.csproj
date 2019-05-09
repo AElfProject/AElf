@@ -4,6 +4,9 @@
         <TargetFramework>netstandard2.0</TargetFramework>
     </PropertyGroup>
     <ItemGroup Label="NuGet package assets">
-        <None Pack="true" PackagePath="build\" Include="*.targets;"/>
+        <None Pack="true" PackagePath="build\" Include="*.targets;" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
 </Project>

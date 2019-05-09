@@ -204,9 +204,11 @@ namespace AElf.Contracts.Consensus.DPoS
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
-                    list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name,
+                    list.AddGenesisSmartContract<DividendContractContainer.DividendContractStub>(
+                        DividendSmartContractAddressNameProvider.Name,
                         dividendMethodCallList);
-                    list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name,
+                    list.AddGenesisSmartContract<TokenContract>(
+                        TokenSmartContractAddressNameProvider.Name,
                         tokenContractCallList);
                 });
         }

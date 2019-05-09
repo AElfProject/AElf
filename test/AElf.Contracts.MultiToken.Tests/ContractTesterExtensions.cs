@@ -3,6 +3,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Kernel;
 using AElf.Kernel.Token;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Contracts.MultiToken

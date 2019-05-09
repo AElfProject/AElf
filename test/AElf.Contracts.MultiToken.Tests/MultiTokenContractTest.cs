@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Acs0;
 using Acs1;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
+using AElf.Types;
 using Google.Protobuf;
 using Xunit;
 using Shouldly;

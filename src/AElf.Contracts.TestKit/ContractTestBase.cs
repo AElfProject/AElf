@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
@@ -21,6 +24,11 @@ namespace AElf.Contracts.TestKit
     public class ContractTestBase<TModule> : AbpIntegratedTest<TModule>
         where TModule : ContractTestModule
     {
+        private IReadOnlyDictionary<string, byte[]> _codes;
+
+        public IReadOnlyDictionary<string, byte[]> Codes =>
+            _codes ?? (_codes = ContractsDeployer.GetContractCodes<TModule>());
+
         protected override void SetAbpApplicationCreationOptions(AbpApplicationCreationOptions options)
         {
             options.UseAutofac();

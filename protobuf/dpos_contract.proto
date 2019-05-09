@@ -321,10 +321,10 @@ message InitialDPoSContractInput {
     sint64 lockTokenForElection = 3;
 }
 
-message InitialDividendContractInput {
-    aelf.Hash tokenContractSystemName = 1;
-    aelf.Hash consensusContractSystemName = 2;
-}
+//message InitialDividendContractInput {
+//    aelf.Hash tokenContractSystemName = 1;
+//    aelf.Hash consensusContractSystemName = 2;
+//}
 
 //message DPoSStrategyInput {
 //    bool isBlockchainAgeSettable = 1;// For testing.

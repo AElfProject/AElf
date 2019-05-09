@@ -5,6 +5,7 @@ using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.TestBase;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 

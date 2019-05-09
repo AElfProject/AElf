@@ -31,19 +31,19 @@ namespace AElf.Contracts.Consensus.DPoS
 
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
-        
+
         protected IECKeyPairProvider ECKeyPairProvider =>
             Application.ServiceProvider.GetRequiredService<IECKeyPairProvider>();
-        
+
         protected Address ConsensusContractAddress { get; set; }
-        
+
         protected Address DividendContractAddress { get; set; }
-        
+
         protected Address TokenContractAddress { get; set; }
 
         internal ConsensusContractContainer.ConsensusContractStub BootMiner =>
             GetTester<ConsensusContractContainer.ConsensusContractStub>(ConsensusContractAddress, BootMinerKeyPair);
-        
+
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs.First();
 
         protected List<ECKeyPair> InitialMinersKeyPairs => SampleECKeyPairs.KeyPairs.Take(MinersCount).ToList();
@@ -60,34 +60,28 @@ namespace AElf.Contracts.Consensus.DPoS
         {
             ECKeyPairProvider.SetECKeyPair(BootMinerKeyPair);
             // Deploy useful contracts.
-            ConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)
-                .DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput
-                {
-                    Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ConsensusContract).Assembly.Location)),
-                    Name = ConsensusSmartContractAddressNameProvider.Name,
-                    TransactionMethodCallList = GenerateConsensusInitializationCallList()
-                })).Output;
+            ConsensusContractAddress = AsyncHelper.RunSync(async () => await DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                File.ReadAllBytes(typeof(ConsensusContractContainer.ConsensusContractStub).Assembly.Location),
+                ConsensusSmartContractAddressNameProvider.Name,
+                BootMinerKeyPair));
 
-            DividendContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)
-                .DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(DividendContract).Assembly.Location)),
-                        Name = DividendSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateDividendInitializationCallList()
-                    })).Output;
-            
-            TokenContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)
-                .DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
-                        Name = TokenSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateTokenInitializationCallList()
-                    })).Output;
+            AsyncHelper.RunSync(async () => { await InitializeConsensus(); });
+            DividendContractAddress = AsyncHelper.RunSync(async () =>
+                await DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    File.ReadAllBytes(typeof(DividendContractContainer.DividendContractStub).Assembly.Location),
+                    DividendSmartContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
+            AsyncHelper.RunSync(async () => { await InitializeDividend(); });
+            TokenContractAddress = AsyncHelper.RunSync(
+                async () =>
+                    await DeploySystemSmartContract(
+                        KernelConstants.CodeCoverageRunnerCategory,
+                        File.ReadAllBytes(typeof(TokenContractContainer.TokenContractStub).Assembly.Location),
+                        TokenSmartContractAddressNameProvider.Name,
+                        BootMinerKeyPair));
+            AsyncHelper.RunSync(async () => { await InitializeToken(); });
         }
 
         protected async Task InitializeCandidates(int take = CandidatesCount)
@@ -107,7 +101,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 });
             }
         }
-        
+
         protected async Task InitializeVoters()
         {
             var initialMiner = GetTokenContractTester(BootMinerKeyPair);
@@ -132,68 +126,60 @@ namespace AElf.Contracts.Consensus.DPoS
             await BootMiner.NextRound.SendAsync(nextRound);
         }
 
-        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
-        {
-            return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
-        }
-        
         internal ConsensusContractContainer.ConsensusContractStub GetConsensusContractTester(ECKeyPair keyPair)
         {
             return GetTester<ConsensusContractContainer.ConsensusContractStub>(ConsensusContractAddress, keyPair);
         }
-        
+
         internal DividendContractContainer.DividendContractStub GetDividendContractTester(ECKeyPair keyPair)
         {
             return GetTester<DividendContractContainer.DividendContractStub>(DividendContractAddress, keyPair);
         }
-        
+
         internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
         {
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSStrategyInput input = null)
+        private async Task InitializeConsensus(Acs4.DPoSStrategyInput input = null)
         {
-            var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
-                new InitialDPoSContractInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
-                    LockTokenForElection = 100_000
-                });
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
-                InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(
-                    MiningInterval, BlockchainStartTime));
-            consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
-                input ?? new DPoSStrategyInput
-                {
-                    IsTimeSlotSkippable = true,
-                    IsBlockchainAgeSettable = true,
-                    IsVerbose = false
-                });
-            return consensusMethodCallList;
+            var consensus =
+                GetTester<ConsensusContractContainer.ConsensusContractStub>(ConsensusContractAddress, BootMinerKeyPair);
+            await consensus.InitialDPoSContract.SendAsync(new InitialDPoSContractInput
+            {
+                TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
+                LockTokenForElection = 100_000
+            });
+            await consensus.InitialConsensus.SendAsync(
+                InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners()
+                    .GenerateFirstRoundOfNewTerm(MiningInterval, BlockchainStartTime));
+            await consensus.ConfigStrategy.SendAsync(input ?? new Acs4.DPoSStrategyInput()
+            {
+                IsTimeSlotSkippable = true,
+                IsBlockchainAgeSettable = true,
+                IsVerbose = false
+            });
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateDividendInitializationCallList()
+        private async Task InitializeDividend()
         {
-            var dividendMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            dividendMethodCallList.Add(nameof(DividendContract.InitializeDividendContract),
-                new InitialDividendContractInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
-                });
-            return dividendMethodCallList;
+            await GetTester<DividendContractContainer.DividendContractStub>(DividendContractAddress, BootMinerKeyPair)
+                .InitializeDividendContract.SendAsync(
+                    new InitialDividendContractInput
+                    {
+                        ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                        TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+                    });
         }
-        
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+
+        private async Task InitializeToken()
         {
             const string symbol = "ELF";
             const long totalSupply = 10_0000_0000;
             var issuer = Address.FromPublicKey(BootMinerKeyPair.PublicKey);
-            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            var token = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, BootMinerKeyPair);
+            await token.CreateNativeToken.SendAsync(new CreateNativeTokenInput
             {
                 Symbol = symbol,
                 Decimals = 2,
@@ -204,18 +190,18 @@ namespace AElf.Contracts.Consensus.DPoS
                 Issuer = issuer,
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
-
-            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            await token.IssueNativeToken.SendAsync(new IssueNativeTokenInput
             {
                 Symbol = symbol,
-                Amount = (long)(totalSupply * 0.2),
+                Amount = (long) (totalSupply * 0.2),
                 ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
 
+
             foreach (var initialMinerKeyPair in InitialMinersKeyPairs)
             {
-                tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                await token.Issue.SendAsync(new IssueInput
                 {
                     Symbol = symbol,
                     Amount = (long) (totalSupply * 0.2) / MinersCount,
@@ -224,11 +210,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 });
             }
 
-            // Set fee pool address to dividend contract address.
-            tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
-                DividendSmartContractAddressNameProvider.Name);
-
-            return tokenContractCallList;
+            await token.SetFeePoolAddress.SendAsync(DividendSmartContractAddressNameProvider.Name);
         }
     }
 }

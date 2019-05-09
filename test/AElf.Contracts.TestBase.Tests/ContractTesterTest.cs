@@ -47,7 +47,7 @@ namespace AElf.Contracts.TestBase.Tests
                 new ContractDeploymentInput()
                 {
                     Category = SmartContractTestConstants.TestRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TestContract).Assembly.Location))
                 });
 
             var chain = await tester.GetChainAsync();
@@ -109,7 +109,8 @@ namespace AElf.Contracts.TestBase.Tests
 
             var tokenContractAddress = tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
 
-            var bytes = await tester.CallContractMethodAsync(tokenContractAddress, nameof(TokenContract.GetBalance),
+            var bytes = await tester.CallContractMethodAsync(tokenContractAddress, 
+                nameof(TokenContractContainer.TokenContractStub.GetBalance),
                 new GetBalanceInput
                 {
                     Symbol = "ELF",

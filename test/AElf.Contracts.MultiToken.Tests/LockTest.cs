@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Acs0;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken.Messages;
@@ -12,6 +13,7 @@ using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
