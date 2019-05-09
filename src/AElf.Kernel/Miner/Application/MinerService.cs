@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -13,8 +12,16 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
 using ByteString = Google.Protobuf.ByteString;
 
-namespace AElf.Kernel.Services
+namespace AElf.Kernel.Miner.Application
 {
+    public interface IMinerService
+    {
+        /// <summary>
+        /// This method mines a block.
+        /// </summary>
+        /// <returns>The block that has been produced.</returns>
+        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime, TimeSpan timeSpan);
+    }
     public class MinerService : IMinerService
     {
         public ILogger<MinerService> Logger { get; set; }
@@ -144,8 +151,6 @@ namespace AElf.Kernel.Services
             }
 
             await SignBlockAsync(block);
-            // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
-            //await _txHub.OnNewBlock(block);
 
             Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                   $"previous: {block.Header.PreviousBlockHash}, " +

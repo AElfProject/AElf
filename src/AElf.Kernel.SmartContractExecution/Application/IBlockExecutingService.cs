@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Domain;
 using Microsoft.Extensions.Logging;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContractExecution.Application
@@ -24,7 +25,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain, BlockAttachOperationStatus status);
     }
 
-    public class FullBlockchainExecutingService : IBlockchainExecutingService
+    public class FullBlockchainExecutingService : IBlockchainExecutingService, ISingletonDependency
     {
         private readonly IChainManager _chainManager;
         private readonly IBlockchainService _blockchainService;
@@ -42,7 +43,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             _blockValidationService = blockValidationService;
             _blockExecutingService = blockExecutingService;
             _blockchainStateManager = blockchainStateManager;
-            
+
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -55,12 +56,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return true;
 
             var blockHash = block.GetHash();
-            var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, block.Transactions);
+            var executedBlock =
+                await _blockExecutingService.ExecuteBlockAsync(block.Header, block.Transactions);
 
             return executedBlock.GetHash().Equals(blockHash);
         }
 
-        public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain, BlockAttachOperationStatus status)
+        public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain,
+            BlockAttachOperationStatus status)
         {
             if (!status.HasFlag(BlockAttachOperationStatus.LongestChainFound))
             {
@@ -80,26 +83,30 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     // Set the other blocks as bad block if found the first bad block
                     if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(linkedBlock))
                     {
-                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
+                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                            ChainBlockLinkExecutionStatus.ExecutionFailed);
                         Logger.LogWarning($"Block validate fails before execution. block hash : {blockLink.BlockHash}");
                         break;
                     }
 
                     if (!await ExecuteBlock(blockLink, linkedBlock))
                     {
-                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
+                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                            ChainBlockLinkExecutionStatus.ExecutionFailed);
                         Logger.LogWarning($"Block execution failed. block hash : {blockLink.BlockHash}");
                         break;
                     }
 
                     if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(linkedBlock))
                     {
-                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionFailed);
+                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                            ChainBlockLinkExecutionStatus.ExecutionFailed);
                         Logger.LogWarning($"Block validate fails after execution. block hash : {blockLink.BlockHash}");
                         break;
                     }
 
-                    await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, ChainBlockLinkExecutionStatus.ExecutionSuccess);
+                    await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                        ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
                     successLinks.Add(blockLink);
 
@@ -128,7 +135,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 });
             }
 
-            Logger.LogInformation($"Attach blocks to best chain, status: {status}, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
+            Logger.LogInformation(
+                $"Attach blocks to best chain, status: {status}, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
 
             return blockLinks;
         }

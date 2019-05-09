@@ -35,8 +35,6 @@ namespace AElf.Sdk.CSharp
 
         public Address Self => _smartContractBridgeContextImplementation.Self;
 
-        public Address Genesis => _smartContractBridgeContextImplementation.Genesis;
-
         public long CurrentHeight => _smartContractBridgeContextImplementation.CurrentHeight;
 
         public DateTime CurrentBlockTime => _smartContractBridgeContextImplementation.CurrentBlockTime;
@@ -44,11 +42,6 @@ namespace AElf.Sdk.CSharp
         public Hash PreviousBlockHash => _smartContractBridgeContextImplementation.PreviousBlockHash;
 
         public ContextVariableDictionary Variables => _smartContractBridgeContextImplementation.Variables;
-        
-        public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
-        {
-            return _smartContractBridgeContextImplementation.RecoverPublicKey(signature, hash);
-        }
 
         public byte[] RecoverPublicKey()
         {
