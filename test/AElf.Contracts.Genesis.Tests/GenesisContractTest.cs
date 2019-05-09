@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.Resource;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
