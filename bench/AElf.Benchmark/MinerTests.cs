@@ -10,7 +10,6 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using BenchmarkDotNet.Attributes;
