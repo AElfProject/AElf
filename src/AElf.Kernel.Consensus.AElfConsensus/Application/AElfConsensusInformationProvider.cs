@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Consensus.AElfConsensus;
+using AElf.Contracts.Consensus.AElfConsensus;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Consensus.AElfConsensus.Application

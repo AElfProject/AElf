@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using Shouldly;
-using Vote;
 using Xunit;
 
 namespace AElf.Contracts.Vote

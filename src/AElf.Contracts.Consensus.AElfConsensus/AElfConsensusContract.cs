@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using AElf.Consensus.AElfConsensus;
 using AElf.Contracts.Consensus.MinersCountProvider;
-using AElf.Kernel;
+using AElf.Contracts.Election;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -89,7 +88,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
         #region UpdateValue
 
-        public override Empty UpdateValue(ToUpdate input)
+        public override Empty UpdateValue(UpdateValueInput input)
         {
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
             Assert(input.RoundId == round.RoundId, "Round Id not matched.");
@@ -124,8 +123,12 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 var filledValue = round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue;
                 if (filledValue != null && filledValue != previousInValue.Value)
                 {
-                    // TODO: Mark this node as evil node directly.
                     Context.LogDebug(() => $"Something wrong happened to previous in value of {previousInValue.Key}.");
+                    State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
+                    {
+                        PublicKey = publicKey,
+                        IsEvilNode = true
+                    });
                 }
 
                 round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;

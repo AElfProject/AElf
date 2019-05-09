@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using AElf.Contracts.Consensus.MinersCountProvider;
-using AElf.Contracts.Vote;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AElfConsensus;
-using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
-using Vote;
 
 namespace AElf.Blockchains.MainChain
 {

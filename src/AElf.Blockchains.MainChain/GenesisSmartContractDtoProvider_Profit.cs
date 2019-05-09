@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using AElf.Contracts.Profit;
-using AElf.Contracts.Vote;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
-using Vote;
 
 namespace AElf.Blockchains.MainChain
 {

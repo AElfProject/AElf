@@ -1,10 +1,10 @@
 ﻿using System;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
+using AElf.Contracts.Profit;
+using AElf.Contracts.Vote;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Vote;
 
 namespace AElf.Contracts.Election
 {

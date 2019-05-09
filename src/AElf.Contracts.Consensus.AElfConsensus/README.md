@@ -16,7 +16,7 @@ Basically initial miners list are hard coded to `Genesis Block`.
 
 Initial miners will be replaced as soon as we have enough voted miners.
 
-Miners will be changed every time our Main Chain turn to next term, like every 7 days.
+Miners will be changed according to the amount of votes they obtained every time our Main Chain turn to next term, like every 7 days.
 
 Miners count will be changed every year.
 

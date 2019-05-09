@@ -6,7 +6,6 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus.AElfConsensus;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
-using Vote;
 
 namespace AElf.Blockchains.MainChain
 {

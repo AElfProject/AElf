@@ -1,6 +1,4 @@
-using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
-using Vote;
 
 namespace AElf.Contracts.Vote
 {

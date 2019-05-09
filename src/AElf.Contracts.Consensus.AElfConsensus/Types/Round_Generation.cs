@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Consensus.AElfConsensus
+namespace AElf.Contracts.Consensus.AElfConsensus
 {
     public partial class Round
     {

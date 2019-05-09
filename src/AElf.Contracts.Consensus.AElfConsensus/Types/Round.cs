@@ -6,7 +6,7 @@ using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Consensus.AElfConsensus
+namespace AElf.Contracts.Consensus.AElfConsensus
 {
     public partial class Round
     {
@@ -281,10 +281,9 @@ namespace AElf.Consensus.AElfConsensus
         /// Maybe tune other miners' supposed order of next round,
         /// will record this purpose to their FinalOrderOfNextRound field.
         /// </summary>
-        /// <param name="round"></param>
         /// <param name="publicKey"></param>
         /// <returns></returns>
-        public ToUpdate ExtractInformationToUpdateConsensus(string publicKey)
+        public UpdateValueInput ExtractInformationToUpdateConsensus(string publicKey)
         {
             if (!RealTimeMinersInformation.ContainsKey(publicKey))
             {
@@ -305,7 +304,7 @@ namespace AElf.Consensus.AElfConsensus
                 RealTimeMinersInformation.Values.Where(info => info.PreviousInValue != null).ToDictionary(info => info.PublicKey,
                     info => info.PreviousInValue);
 
-            return new ToUpdate
+            return new UpdateValueInput
             {
                 OutValue = minerInRound.OutValue,
                 Signature = minerInRound.Signature,
@@ -390,42 +389,6 @@ namespace AElf.Consensus.AElfConsensus
                 BlockchainAge = BlockchainAge
             };
             return checkableRound.ToByteArray();
-        }
-
-        public string GetLogs(string publicKey, AElfConsensusBehaviour behaviour)
-        {
-            var logs = new StringBuilder($"\n[Round {RoundNumber}](Round Id: {RoundId})[Term {TermNumber}]");
-            foreach (var minerInRound in RealTimeMinersInformation.Values.OrderBy(m => m.Order))
-            {
-                var minerInformation = new StringBuilder("\n");
-                minerInformation.Append($"[{minerInRound.PublicKey.Substring(0, 10)}]");
-                minerInformation.Append(minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "");
-                minerInformation.AppendLine(minerInRound.PublicKey == publicKey
-                    ? "(This Node)"
-                    : "");
-                minerInformation.AppendLine($"Order:\t {minerInRound.Order}");
-                minerInformation.AppendLine(
-                    $"Expect:\t {minerInRound.ExpectedMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,ffffff}");
-                minerInformation.AppendLine(
-                    $"Actual:\t {minerInRound.ActualMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,ffffff}");
-                minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");
-                if (RoundNumber != 1)
-                {
-                    minerInformation.AppendLine($"PreIn:\t {minerInRound.PreviousInValue?.ToHex()}");
-                }
-
-                minerInformation.AppendLine($"Sig:\t {minerInRound.Signature?.ToHex()}");
-                minerInformation.AppendLine($"Mine:\t {minerInRound.ProducedBlocks}");
-                minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
-                minerInformation.AppendLine($"Tiny:\t {minerInRound.ProducedTinyBlocks}");
-                minerInformation.AppendLine($"NOrder:\t {minerInRound.FinalOrderOfNextRound}");
-
-                logs.Append(minerInformation);
-            }
-
-            logs.AppendLine($"Recent behaviour: {behaviour.ToString()}");
-
-            return logs.ToString();
         }
         
         private static int GetAbsModulus(long longValue, int intValue)

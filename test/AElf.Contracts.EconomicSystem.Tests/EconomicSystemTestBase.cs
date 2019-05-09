@@ -19,7 +19,6 @@ using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Volo.Abp.Threading;
-using Vote;
 
 namespace AElf.Contracts.EconomicSystem
 {

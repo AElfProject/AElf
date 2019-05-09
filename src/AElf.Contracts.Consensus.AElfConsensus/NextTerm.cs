@@ -1,6 +1,5 @@
 using System.Linq;
-using AElf.Consensus.AElfConsensus;
-using AElf.Kernel;
+using AElf.Contracts.Election;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 

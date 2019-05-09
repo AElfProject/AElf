@@ -1,6 +1,3 @@
-using AElf.Kernel;
-using Vote;
-
 namespace AElf.Contracts.Vote
 {
     public static class VoteExtensions

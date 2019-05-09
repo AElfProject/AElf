@@ -3,9 +3,9 @@ syntax = "proto3";
 package vote;
 
 import "common.proto";
-import "vote.proto";
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.Vote";
 
@@ -54,4 +54,119 @@ service VoteContract {
     rpc GetVotingIds (GetVotingIdsInput) returns (VotedIds) {
         option (aelf.is_view) = true;
     }
+}
+
+message InitialVoteContractInput {
+    Hash token_contract_system_name = 1;
+}
+
+message VotingRegisterInput {
+    google.protobuf.Timestamp start_timestamp = 1;
+    google.protobuf.Timestamp end_timestamp = 2;
+    string accepted_currency = 3;
+    bool is_lock_token = 4;
+    sint64 total_snapshot_number = 5;
+    repeated string options = 6;
+}
+
+message VotingItem {
+    Hash voting_item_id = 1;
+    string accepted_currency = 2;
+    bool is_lock_token = 3;
+    sint64 current_snapshot_number = 4;
+    sint64 total_snapshot_number = 5;
+    repeated string options = 6;
+    google.protobuf.Timestamp register_timestamp = 7;
+    google.protobuf.Timestamp start_timestamp = 8;
+    google.protobuf.Timestamp end_timestamp = 9;
+    google.protobuf.Timestamp current_snapshot_start_timestamp = 10;
+    Address sponsor = 11;
+}
+
+message VoteInput {
+    Hash voting_item_id = 1;
+    Address voter = 2;
+    sint64 amount = 3;
+    string option = 4;
+    Hash vote_id = 5;
+}
+
+message WithdrawInput {
+    Hash vote_id = 1;
+}
+
+message GetVotingResultInput {
+    Hash voting_item_id = 1;
+    sint64 snapshot_number = 2;
+}
+
+message VotingResult {
+    Hash voting_item_id = 1;
+    map<string, sint64> results = 2;// option -> amount
+    sint64 snapshot_number = 3;
+    sint64 voters_count = 4;
+    google.protobuf.Timestamp snapshot_start_timestamp = 5;
+    google.protobuf.Timestamp snapshot_end_timestamp = 6;
+}
+
+message TakeSnapshotInput {
+    Hash voting_item_id = 1;
+    sint64 snapshot_number = 2;
+}
+
+message VotingRecord {
+    Hash voting_item_id = 1;
+    Address voter = 2;
+    sint64 snapshot_number = 3;
+    sint64 amount = 4;
+    google.protobuf.Timestamp withdraw_timestamp = 5;
+    google.protobuf.Timestamp vote_timestamp = 6;
+    bool is_withdrawn = 7;
+    string option = 8;
+}
+
+message AddOptionInput {
+    Hash voting_item_id = 1;
+    string option = 2;
+}
+
+message RemoveOptionInput {
+    Hash voting_item_id = 1;
+    string option = 2;
+}
+
+message AddOptionsInput {
+    Hash voting_item_id = 1;
+    repeated string options = 2;
+}
+
+message RemoveOptionsInput {
+    Hash voting_item_id = 1;
+    repeated string options = 2;
+}
+
+message VotedItems {
+    map<string, VotedIds> voted_item_vote_ids = 1;
+}
+
+message VotedIds {
+    repeated Hash active_votes = 1;
+    repeated Hash withdrawn_votes = 2;
+}
+
+message GetVotingIdsInput {
+    Address voter = 1;
+    Hash voting_item_id = 2;
+}
+
+message GetVotingItemInput {
+    Hash voting_item_id = 1;
+}
+
+message GetVotingRecordsInput {
+    repeated Hash ids = 1;
+}
+
+message VotingRecords {
+    repeated VotingRecord records = 1;
 }

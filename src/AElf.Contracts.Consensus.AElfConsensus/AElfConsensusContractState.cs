@@ -1,5 +1,3 @@
-using AElf.Consensus.AElfConsensus;
-using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf.WellKnownTypes;
 

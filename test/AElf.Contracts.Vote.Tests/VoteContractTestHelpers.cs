@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
-using Shouldly;
-using Vote;
 
 namespace AElf.Contracts.Vote
 {

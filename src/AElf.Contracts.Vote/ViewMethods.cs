@@ -1,6 +1,4 @@
 using System.Linq;
-using AElf.Kernel;
-using Vote;
 
 namespace AElf.Contracts.Vote
 {

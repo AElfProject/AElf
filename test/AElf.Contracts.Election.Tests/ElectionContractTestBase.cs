@@ -19,11 +19,8 @@ using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
-using Shouldly;
 using Volo.Abp.Threading;
-using Vote;
-using Miners = AElf.Consensus.AElfConsensus.Miners;
-using ToUpdate = AElf.Consensus.AElfConsensus.ToUpdate;
+using Miners = AElf.Contracts.Consensus.AElfConsensus.Miners;
 
 namespace AElf.Contracts.Election
 {
@@ -365,7 +362,7 @@ namespace AElf.Contracts.Election
             var miner = GetAElfConsensusContractStub(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             var minerInRound = round.RealTimeMinersInformation[keyPair.PublicKey.ToHex()];
-            await miner.UpdateValue.SendAsync(new ToUpdate
+            await miner.UpdateValue.SendAsync(new UpdateValueInput
             {
                 OutValue = Hash.Generate(),
                 Signature = Hash.Generate(),

@@ -7,7 +7,6 @@ using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
-using Vote;
 using Xunit;
 
 namespace AElf.Contracts.Election

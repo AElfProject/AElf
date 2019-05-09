@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AElf.Consensus.AElfConsensus;
+using AElf.Contracts.Election;
 using AElf.Cryptography.SecretSharing;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
