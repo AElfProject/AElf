@@ -77,7 +77,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         }
 
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight,
-            List<Transaction> transactions, DateTime blockTime, TimeSpan timeSpan)
+            List<Transaction> transactions, DateTime blockTime, TimeSpan blockExecutionTime)
         {
             var block = await GenerateBlock(previousBlockHash, previousBlockHeight, blockTime);
             var systemTransactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
@@ -86,7 +86,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             using (var cts = new CancellationTokenSource())
             {
-                cts.CancelAfter(timeSpan);
+                cts.CancelAfter(blockExecutionTime);
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
             }

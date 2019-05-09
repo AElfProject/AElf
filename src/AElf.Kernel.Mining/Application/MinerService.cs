@@ -11,8 +11,8 @@ namespace AElf.Kernel.Mining.Application
     public class MinerService : IMinerService
     {
         public ILogger<MinerService> Logger { get; set; }
-        private ITxHub _txHub;
-        private IMiningService _miningService;
+        private readonly ITxHub _txHub;
+        private readonly IMiningService _miningService;
         public ILocalEventBus EventBus { get; set; }
 
         private const float RatioMine = 0.3f;
@@ -31,7 +31,7 @@ namespace AElf.Kernel.Mining.Application
         /// </summary>
         /// <returns></returns>
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime dateTime,
-            TimeSpan timeSpan)
+            TimeSpan blockExecutionTime)
         {
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
             var pending = new List<Transaction>();
@@ -46,7 +46,7 @@ namespace AElf.Kernel.Mining.Application
                                   $"best chain hash {previousBlockHash}.");
             }
 
-            return await _miningService.MineAsync(previousBlockHash, previousBlockHeight, pending, dateTime, timeSpan);
+            return await _miningService.MineAsync(previousBlockHash, previousBlockHeight, pending, dateTime, blockExecutionTime);
         }
     }
 }

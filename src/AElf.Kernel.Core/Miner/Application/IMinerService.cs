@@ -10,7 +10,7 @@ namespace AElf.Kernel.Miner.Application
         /// This method mines a block.
         /// </summary>
         /// <returns>The block that has been produced.</returns>
-        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime, TimeSpan timeSpan);
+        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime, TimeSpan blockExecutionTime);
     }
 
     public interface IMiningService
@@ -20,6 +20,6 @@ namespace AElf.Kernel.Miner.Application
         /// </summary>
         /// <returns>The block that has been produced.</returns>
         Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, List<Transaction> transactions,
-            DateTime blockTime, TimeSpan timeSpan);
+            DateTime blockTime, TimeSpan blockExecutionTime);
     }
 }
