@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AElf.Kernel.EventMessages
+namespace AElf.Kernel.SmartContractExecution.Events
 {
     public sealed class UnexecutableTransactionsFoundEvent
     {
