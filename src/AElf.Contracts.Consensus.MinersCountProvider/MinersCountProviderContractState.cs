@@ -7,7 +7,7 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
     {
         public SingletonState<Hash> MinersCountVotingItemId { get; set; }
 
-        public SingletonState<MinersCountMode> Mode { get; set; }
+        public SingletonState<int> Mode { get; set; }
 
         public SingletonState<bool> Configured { get; set; }
         

@@ -56,7 +56,7 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
             Assert(!State.Configured.Value, "Initial miners count already set.");
             State.Mode.Value = input.Mode;
             State.BlockchainStartTimestamp.Value = input.BlockchainStartTimestamp;
-            if (input.Mode == MinersCountMode.Vote)
+            if (input.Mode == 0)
             {
                 // Create Miners Count Voting Item.
                 var votingRegisterInput = new VotingRegisterInput
@@ -86,7 +86,7 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
         public override SInt32Value GetMinersCount(Empty input)
         {
             Assert(State.Configured.Value, "Miners Count Provider Contract not configured.");
-            if (State.Mode.Value == MinersCountMode.Vote)
+            if (State.Mode.Value == 0)
             {
                 Assert(State.MinersCountVotingItemId.Value != null, "Corresponding voting item id shouldn't be null.");
                 // Check voting item of Miners Count.
@@ -99,19 +99,21 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
             }
 
             var offset = 0;
-            if (State.Mode.Value == MinersCountMode.IncreaseEveryHour)
+            if (State.Mode.Value == 1)
             {
                 offset = (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value.ToDateTime())
-                    .TotalHours;
+                    .TotalMinutes;
             }
 
-            if (State.Mode.Value == MinersCountMode.IncreaseEveryYear)
+            if (State.Mode.Value == 2)
             {
                 offset = ((int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value.ToDateTime())
                     .TotalDays).Div(12);
             }
 
-            return new SInt32Value {Value = State.MinersCount.Value.Add(offset.Mul(State.Step.Value))};
+            var minersCount = State.MinersCount.Value.Add(offset.Mul(State.Step.Value));
+            Context.LogDebug(() => $"Current miners count: {minersCount}");
+            return new SInt32Value {Value = minersCount};
         }
     }
 }

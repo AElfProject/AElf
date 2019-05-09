@@ -30,19 +30,13 @@
         <None Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
         </None>
-        <None Include="..\..\protobuf\aelf_consensus_contract.proto">
-            <Link>Protobuf/Proto/aelf_consensus_contract.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\aelf_consensus.proto">
-            <Link>Protobuf/Proto/aelf_consensus_contract.proto</Link>
-        </None>
         <None Include="..\..\protobuf\miners_count_provider_contract.proto">
             <Link>Protobuf/Proto/miners_count_provider_contract.proto</Link>
         </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto vote_contract.proto token_contract.proto aelf_consensus_contract.proto; ../../scripts/generate_contract_code.sh miners_count_provider_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto vote_contract.proto token_contract.proto aelf_consensus_contract.proto &amp; ..\..\scripts\generate_contract_code.bat miners_count_provider_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto vote_contract.proto token_contract.proto ; ../../scripts/generate_contract_code.sh miners_count_provider_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto vote_contract.proto token_contract.proto &amp; ..\..\scripts\generate_contract_code.bat miners_count_provider_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

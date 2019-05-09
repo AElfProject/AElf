@@ -187,9 +187,9 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 State.MinersCountProviderContract.ConfigMinersCountProviderContract.Send(new ConfigMinersCountProviderContractInput
                 {
                     MinersCountInitialValue = input.RealTimeMinersInformation.Count,
-                    Mode = MinersCountMode.Vote,
+                    Mode = 1,
                     BlockchainStartTimestamp = actualBlockchainStartTimestamp,
-                    IncreaseStep = 2
+                    IncreaseStep = 1
                 });
             }
 

@@ -35,6 +35,9 @@
         <None Include="..\..\protobuf\aelf_consensus_contract.proto">
             <Link>Protobuf/Proto/aelf_consensus_contract.proto</Link>
         </None>
+        <None Include="..\..\protobuf\miners_count_provider_contract.proto">
+            <Link>Protobuf/Proto/miners_count_provider_contract.proto</Link>
+        </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto election_contract.proto miners_count_provider_contract.proto; ../../scripts/generate_contract_code.sh aelf_consensus_contract.proto" />

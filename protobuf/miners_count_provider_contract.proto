@@ -33,7 +33,7 @@ message InitialMinersCountProviderContractInput {
 
 enum MinersCountMode {
     vote = 0;// Just for testing.
-    increase_every_hour = 1;
+    increase_every_minute = 1;// For testing
     increase_every_year = 2;
 }
 
@@ -43,7 +43,7 @@ message VoteMinersCountInput {
 }
 
 message ConfigMinersCountProviderContractInput {
-    MinersCountMode mode = 1;
+    sint32 mode = 1;
     sint32 increase_step = 2;
     sint32 miners_count_initial_value = 3;
     google.protobuf.Timestamp blockchain_start_timestamp = 4;

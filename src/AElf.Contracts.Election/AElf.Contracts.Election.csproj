@@ -38,9 +38,6 @@
         <None Include="..\..\protobuf\aelf_consensus_contract.proto">
             <Link>Protobuf/Proto/aelf_consensus_contract.proto</Link>
         </None>
-        <None Include="..\..\protobuf\aelf_consensus.proto">
-            <Link>Protobuf/Proto/aelf_consensus_contract.proto</Link>
-        </None>
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
