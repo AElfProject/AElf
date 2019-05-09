@@ -36,18 +36,5 @@ namespace AElf.Kernel
         {
             return Header.GetHashBytes();
         }
-
-        public Block ToBlock()
-        {
-            return new Block
-            {
-                Header = Header,
-                Body = new BlockBody
-                {
-                    BlockHeader = Header.GetHash(),
-                    Transactions = {Transactions.Select(tx => tx.GetHash()).ToList()}
-                }
-            };
-        }
     }
 }
