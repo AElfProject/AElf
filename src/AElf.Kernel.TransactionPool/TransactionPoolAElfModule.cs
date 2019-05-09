@@ -18,11 +18,5 @@ namespace AElf.Kernel.TransactionPool
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));
         }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-            
-            //TODO! should define a interface like RuntimeEnvironment and inject it in ClientManager.
-        }
     }
 }
