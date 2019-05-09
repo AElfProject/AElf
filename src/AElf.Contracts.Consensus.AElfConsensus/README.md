@@ -1,32 +1,29 @@
-# AElf Consensus Contract
+# Mining Node Management
 
-## Actions
+## Related Contracts
 
-<details>
+- AElf Consensus Contract
 
-  <summary><b>InitialAElfConsensusContract</b></summary>
+- Election Contract
 
-### Usage
+- Miners Count Provider Contract
 
-Iniitalize this contract.
+## Initial Miners
 
-### Required
+Basically initial miners list are hard coded to `Genesis Block`.
 
-None.
+## Voting Miners
 
-### Optional
+Initial miners will be replaced as soon as we have enough voted miners.
 
-- `ElectionContractSystemName`. `AElf Consensus Contract` of AElf Mainchain need to use `Election Contract` to provide election information and release profits from `Treasury` item.
+Miners will be changed every time our Main Chain turn to next term, like every 7 days.
 
-- `DaysEachTerm`. Will be `int.MaxValue` if not provided.
+Miners count will be changed every year.
 
-- `IsSideChain`. If true, DaysEachTerm will be `int.MaxValue`.
+### Register as a candidate
 
-- `IsTermStayOne`. If true, DaysEachTerm will be `int.MaxValue`.
+Send a transaction of `AnnounceElection` to `Election Contract`, this will lock 100,000 ELF tokens of sender.
 
-### Notes
+### Vote to candidates
 
-- For AElf Mainchain or any test chain, `ElectionContractSystemName` and `DaysEachTerm` are required.
-
-</details>
-
+Voters can send a transaction of `Vote` to `Election Contract` voting for any registered candidate, this will lock a certain amount a ELF tokens of this voter, and transfer `VOTE` token to him from `Election Contract`.

@@ -106,7 +106,7 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
                 offset = (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value.ToDateTime())
                     .TotalHours;
             }
-            
+
             if (State.Mode.Value == MinersCountMode.IncreaseEveryYear)
             {
                 offset = ((int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value.ToDateTime())

@@ -1,5 +1,4 @@
-﻿using System;
-using AElf.Sdk.CSharp.State;
+﻿using AElf.Sdk.CSharp.State;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.MinersCountProvider

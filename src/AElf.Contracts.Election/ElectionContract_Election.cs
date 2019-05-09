@@ -363,6 +363,8 @@ namespace AElf.Contracts.Election
 
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {
+            var candidateInformation = State.CandidateInformationMap[input.PublicKey];
+
             if (input.IsEvilNode)
             {
                 var publicKeyByte = ByteArrayHelpers.FromHexString(input.PublicKey);
@@ -373,9 +375,14 @@ namespace AElf.Contracts.Election
                     Receiver = Address.FromPublicKey(publicKeyByte)
                 });
                 Context.LogDebug(() => $"Marked {input.PublicKey.Substring(0, 10)} as an evil node.");
+                // TODO: Set to null.
+                State.CandidateInformationMap[input.PublicKey] = new CandidateInformation();
+                var candidates = State.Candidates.Value;
+                candidates.Value.Remove(ByteString.CopyFrom(publicKeyByte));
+                State.Candidates.Value = candidates;
+                return new Empty();
             }
 
-            var candidateInformation = State.CandidateInformationMap[input.PublicKey];
             candidateInformation.ProducedBlocks += input.RecentlyProducedBlocks;
             candidateInformation.MissedTimeSlots += input.RecentlyMissedTimeSlots;
             State.CandidateInformationMap[input.PublicKey] = candidateInformation;
