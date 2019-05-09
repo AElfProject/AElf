@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
