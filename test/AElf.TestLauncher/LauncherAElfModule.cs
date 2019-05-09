@@ -84,8 +84,6 @@ namespace AElf.TestLauncher
                 TokenSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
                 DividendSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
-                ResourceSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
                 ResourceFeeReceiverSmartContractAddressNameProvider.Name);
 

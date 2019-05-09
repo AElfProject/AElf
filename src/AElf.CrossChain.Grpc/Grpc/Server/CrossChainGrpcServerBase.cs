@@ -82,7 +82,7 @@ namespace AElf.CrossChain.Grpc
                 .Select(m => SideChainBlockData.Parser.ParseFrom(m.ToByteString())).ToList();
         }
 
-        private IEnumerable<(long, MerklePath)> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 
+        private IEnumerable<(long, Kernel.MerklePath)> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 
             int sideChainId)
         {
             var binaryMerkleTree = new BinaryMerkleTree();
@@ -95,7 +95,7 @@ namespace AElf.CrossChain.Grpc
             // This is to tell side chain the merkle path for one side chain block,
             // which could be removed with subsequent improvement.
             // This assumes indexing multi blocks from one chain at once, actually only one block every time right now.
-            var merklepathList = new List<(long, MerklePath)>();
+            var merklepathList = new List<(long, Kernel.MerklePath)>();
             for (var i = 0; i < indexedSideChainBlockDataResult.Count; i++)
             {
                 var info = indexedSideChainBlockDataResult[i];

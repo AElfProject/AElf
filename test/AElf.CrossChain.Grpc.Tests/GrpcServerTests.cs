@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
