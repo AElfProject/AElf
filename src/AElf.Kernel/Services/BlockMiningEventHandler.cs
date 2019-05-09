@@ -32,7 +32,7 @@ namespace AElf.Kernel.Miner.Application
             try
             {
                 var block = await _minerService.MineAsync(eventData.PreviousBlockHash, eventData.PreviousBlockHeight,
-                    eventData.BlockTime, eventData.TimeSpan);
+                    eventData.BlockTime, eventData.BlockExecutionTime);
                 //TODO: Before attach block should add block signature verify
                 _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
                     KernelConsts.UpdateChainQueueName);
