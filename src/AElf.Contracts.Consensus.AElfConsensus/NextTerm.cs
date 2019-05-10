@@ -77,15 +77,6 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             Context.LogDebug(() => $"Changing term number to {input.TermNumber}");
             TryToFindLastIrreversibleBlock();
 
-            var minersCount = State.MinersCountProviderContract.GetMinersCount.Call(new Empty()).Value;
-            if (minersCount != 0)
-            {
-                State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
-                {
-                    MinersCount = minersCount
-                });
-            }
-
             return new Empty();
         }
 

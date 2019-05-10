@@ -80,6 +80,7 @@ namespace AElf.Contracts.Consensus.MinersCountProvider
 
             State.MinersCount.Value = input.MinersCountInitialValue;
             State.Configured.Value = true;
+            State.Step.Value = input.IncreaseStep;
             return new Empty();
         }
 

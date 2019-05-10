@@ -187,16 +187,28 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 State.MinersCountProviderContract.ConfigMinersCountProviderContract.Send(new ConfigMinersCountProviderContractInput
                 {
                     MinersCountInitialValue = input.RealTimeMinersInformation.Count,
-                    Mode = 1,
+                    Mode = 0,
                     BlockchainStartTimestamp = actualBlockchainStartTimestamp,
                     IncreaseStep = 1
                 });
+            }
+            else
+            {
+                var minersCount = State.MinersCountProviderContract.GetMinersCount.Call(new Empty()).Value;
+                if (minersCount != 0)
+                {
+                    State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+                    {
+                        MinersCount = minersCount
+                    });
+                }
             }
 
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
             TryToFindLastIrreversibleBlock();
+
             return new Empty();
         }
 
