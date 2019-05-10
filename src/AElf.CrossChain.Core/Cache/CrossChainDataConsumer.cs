@@ -5,20 +5,20 @@ namespace AElf.CrossChain.Cache
 {
     public class CrossChainDataConsumer : ICrossChainDataConsumer, ITransientDependency
     {
-        private readonly IMultiChainBlockInfoCacheProvider _multiChainBlockInfoCacheProvider;
+        private readonly IChainCacheEntityProvider _chainCacheEntityProvider;
 
-        public CrossChainDataConsumer(IMultiChainBlockInfoCacheProvider multiChainBlockInfoCacheProvider)
+        public CrossChainDataConsumer(IChainCacheEntityProvider chainCacheEntityProvider)
         {
-            _multiChainBlockInfoCacheProvider = multiChainBlockInfoCacheProvider;
+            _chainCacheEntityProvider = chainCacheEntityProvider;
         }
 
-        public T TryTake<T>(int crossChainId, long height, bool isCacheSizeLimited) where T : IMessage, new()
+        public T Take<T>(int crossChainId, long height, bool isCacheSizeLimited) where T : IMessage, new()
         {
-            var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(crossChainId);
-            if (blockInfoCache == null || !blockInfoCache.TryTake(height, out var blockInfo, isCacheSizeLimited))
+            var chainCacheCollection = _chainCacheEntityProvider.GetBlockInfoCache(crossChainId);
+            if (chainCacheCollection == null || !chainCacheCollection.TryTake(height, out var blockCacheEntity, isCacheSizeLimited))
                 return default(T);
             var t = new T();
-            t.MergeFrom(blockInfo.Payload);
+            t.MergeFrom(blockCacheEntity.Payload);
             return t;
         }
     }

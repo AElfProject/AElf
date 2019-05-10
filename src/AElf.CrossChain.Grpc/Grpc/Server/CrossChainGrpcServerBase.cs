@@ -30,13 +30,13 @@ namespace AElf.CrossChain.Grpc
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
-        public override async Task RequestIndexingFromParentChain(RequestData request, 
-            IServerStreamWriter<ResponseData> responseStream, ServerCallContext context)
+        public override async Task RequestIndexingFromParentChain(CrossChainRequest crossChainRequest, 
+            IServerStreamWriter<CrossChainResponse> responseStream, ServerCallContext context)
         {
             Logger.LogTrace(
-                $"Parent Chain Server received IndexedInfo message from chain {ChainHelpers.ConvertChainIdToBase58(request.FromChainId)}.");
-            var requestedHeight = request.NextHeight;
-            var remoteChainId = request.FromChainId;
+                $"Parent Chain Server received IndexedInfo message from chain {ChainHelpers.ConvertChainIdToBase58(crossChainRequest.FromChainId)}.");
+            var requestedHeight = crossChainRequest.NextHeight;
+            var remoteChainId = crossChainRequest.FromChainId;
             while (true)
             {
                 var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestedHeight);
@@ -47,14 +47,14 @@ namespace AElf.CrossChain.Grpc
                 requestedHeight++;
             }
             
-            PublishCrossChainRequestReceivedEvent(context.Peer, request.ListeningPort, request.FromChainId);
+            PublishCrossChainRequestReceivedEvent(context.Peer, crossChainRequest.ListeningPort, crossChainRequest.FromChainId);
         }
         
-        public override async Task RequestIndexingFromSideChain(RequestData request, 
-            IServerStreamWriter<ResponseData> responseStream, ServerCallContext context)
+        public override async Task RequestIndexingFromSideChain(CrossChainRequest crossChainRequest, 
+            IServerStreamWriter<CrossChainResponse> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Side Chain Server received IndexedInfo message.");
-            var requestedHeight = request.NextHeight;
+            var requestedHeight = crossChainRequest.NextHeight;
             while (true)
             {
                 var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestedHeight);
@@ -64,20 +64,20 @@ namespace AElf.CrossChain.Grpc
                 requestedHeight++;
             }
             
-            PublishCrossChainRequestReceivedEvent(context.Peer, request.ListeningPort, request.FromChainId);
+            PublishCrossChainRequestReceivedEvent(context.Peer, crossChainRequest.ListeningPort, crossChainRequest.FromChainId);
         }
 
-        public override Task<IndexingHandShakeReply> CrossChainIndexingShake(IndexingHandShake request, ServerCallContext context)
+        public override Task<HandShakeReply> CrossChainIndexingShake(HandShake request, ServerCallContext context)
         {
             Logger.LogTrace($"Received shake from chain {ChainHelpers.ConvertChainIdToBase58(request.FromChainId)}.");
             PublishCrossChainRequestReceivedEvent(context.Peer, request.ListeningPort, request.FromChainId);
-            return Task.FromResult(new IndexingHandShakeReply{Result = true});
+            return Task.FromResult(new HandShakeReply{Result = true});
         }
 
-        public override async Task<ChainInitializationResponse> RequestChainInitializationContextFromParentChain(ChainInitializationRequest request, ServerCallContext context)
+        public override async Task<SideChainInitializationResponse> RequestChainInitializationContextFromParentChain(SideChainInitializationRequest request, ServerCallContext context)
         {
             var libDto = await _blockchainService.GetLibHashAndHeight();
-            return new ChainInitializationResponse
+            return new SideChainInitializationResponse
             {
                 SideChainInitializationContext = await _parentChainServerService.GetChainInitializationContextAsync(request.ChainId, libDto)
             };

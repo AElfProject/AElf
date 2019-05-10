@@ -5,20 +5,21 @@ using System.Linq;
 
 namespace AElf.CrossChain.Cache
 {
-    public class CrossChainCacheCollection
+    public class ChainCacheEntity
     {
-        private BlockingCollection<CrossChainCacheData> ToBeIndexedBlockInfoQueue { get; } =
-            new BlockingCollection<CrossChainCacheData>(new ConcurrentQueue<CrossChainCacheData>());
+        private BlockingCollection<BlockCacheEntity> ToBeIndexedBlockInfoQueue { get; } =
+            new BlockingCollection<BlockCacheEntity>(new ConcurrentQueue<BlockCacheEntity>());
 
-        private Queue<CrossChainCacheData> CachedIndexedBlockInfoQueue { get; } = new Queue<CrossChainCacheData>();
+        private Queue<BlockCacheEntity> CachedIndexedBlockInfoQueue { get; } = new Queue<BlockCacheEntity>();
 
         private readonly int _cachedBoundedCapacity =
             Math.Max(CrossChainConstants.MaximalCountForIndexingSideChainBlock,
                 CrossChainConstants.MaximalCountForIndexingParentChainBlock) *
             CrossChainConstants.MinimalBlockInfoCacheThreshold;
+        
         private readonly long _initTargetHeight;
         
-        public CrossChainCacheCollection(long chainHeight)
+        public ChainCacheEntity(long chainHeight)
         {
             _initTargetHeight = chainHeight;
         }
@@ -34,14 +35,14 @@ namespace AElf.CrossChain.Cache
             return _initTargetHeight;
         }
         
-        public bool TryAdd(CrossChainCacheData crossChainCacheInfo)
+        public bool TryAdd(BlockCacheEntity blockCacheEntity)
         {
             if (ToBeIndexedBlockInfoQueue.Count() >= _cachedBoundedCapacity)
                 return false;
             // thread unsafe in some extreme cases, but it can be covered with caching mechanism.
-            if (crossChainCacheInfo.Height != TargetChainHeight())
+            if (blockCacheEntity.Height != TargetChainHeight())
                 return false;
-            var res = ToBeIndexedBlockInfoQueue.TryAdd(crossChainCacheInfo);
+            var res = ToBeIndexedBlockInfoQueue.TryAdd(blockCacheEntity);
             return res;
         }
         
@@ -49,10 +50,10 @@ namespace AElf.CrossChain.Cache
         /// Try Take element from cached queue.
         /// </summary>
         /// <param name="height">Height of block info needed</param>
-        /// <param name="crossChainCacheInfo"></param>
+        /// <param name="blockCacheEntity"></param>
         /// <param name="isCacheSizeLimited">Use <see cref="_cachedBoundedCapacity"/> as cache count threshold if true.</param>
         /// <returns></returns>
-        public bool TryTake(long height, out CrossChainCacheData crossChainCacheInfo, bool isCacheSizeLimited)
+        public bool TryTake(long height, out BlockCacheEntity blockCacheEntity, bool isCacheSizeLimited)
         {
             // clear outdated data
             var cachedInQueue = CacheBlockInfoBeforeHeight(height);
@@ -60,15 +61,15 @@ namespace AElf.CrossChain.Cache
             var lastQueuedHeight = ToBeIndexedBlockInfoQueue.LastOrDefault()?.Height ?? 0;
             if (cachedInQueue && !(isCacheSizeLimited && lastQueuedHeight < height + CrossChainConstants.MinimalBlockInfoCacheThreshold))
             {
-                var res = ToBeIndexedBlockInfoQueue.TryTake(out crossChainCacheInfo, 
+                var res = ToBeIndexedBlockInfoQueue.TryTake(out blockCacheEntity, 
                     CrossChainConstants.WaitingIntervalInMillisecond);
                 if(res)
-                    CacheBlockInfo(crossChainCacheInfo);
+                    CacheBlockInfo(blockCacheEntity);
                 return res;
             }
             
-            crossChainCacheInfo = LastBlockInfoInCache(height);
-            if (crossChainCacheInfo != null)
+            blockCacheEntity = LastBlockInfoInCache(height);
+            if (blockCacheEntity != null)
                 return !isCacheSizeLimited ||
                        ToBeIndexedBlockInfoQueue.Count + CachedIndexedBlockInfoQueue.Count(ci => ci.Height >= height) 
                        >= CrossChainConstants.MinimalBlockInfoCacheThreshold;
@@ -80,7 +81,7 @@ namespace AElf.CrossChain.Cache
         /// Return first element in cached queue.
         /// </summary>
         /// <returns></returns>
-        private CrossChainCacheData LastBlockInfoInCache(long height)
+        private BlockCacheEntity LastBlockInfoInCache(long height)
         {
             return CachedIndexedBlockInfoQueue.LastOrDefault(c => c.Height == height);
         }
@@ -107,11 +108,11 @@ namespace AElf.CrossChain.Cache
         /// <summary>
         /// Cache block info lately removed.
         /// Dequeue one element if the cached count reaches <see cref="_cachedBoundedCapacity"/>
-        /// </summary>                                                   
-        /// <param name="crossChainCacheInfo"></param>
-        private void CacheBlockInfo(CrossChainCacheData crossChainCacheInfo)
+        /// </summary>
+        /// <param name="blockCacheEntity"></param>
+        private void CacheBlockInfo(BlockCacheEntity blockCacheEntity)
         {
-            CachedIndexedBlockInfoQueue.Enqueue(crossChainCacheInfo);
+            CachedIndexedBlockInfoQueue.Enqueue(blockCacheEntity);
             if (CachedIndexedBlockInfoQueue.Count <= _cachedBoundedCapacity)
                 return;
             CachedIndexedBlockInfoQueue.Dequeue();

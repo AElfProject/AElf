@@ -42,7 +42,7 @@ namespace AElf.CrossChain
             
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, previousBlockHeight);
             
-            var blockInfoCache = new List<CrossChainCacheData>();
+            var blockInfoCache = new List<BlockCacheEntity>();
             var cachingCount = CrossChainConstants.MaximalCountForIndexingSideChainBlock;
             for (var i = 1; i <= cachingCount; i++)
             {
@@ -51,7 +51,7 @@ namespace AElf.CrossChain
                     SideChainId = chainId,
                     SideChainHeight = previousBlockHeight + i,
                 };
-                blockInfoCache.Add(new CrossChainCacheData()
+                blockInfoCache.Add(new BlockCacheEntity()
                 {
                     Height = sideChainBlockData.SideChainHeight,
                     ChainId = sideChainBlockData.SideChainId,
@@ -59,7 +59,7 @@ namespace AElf.CrossChain
                 });
             }
 
-            var fakeCache = new Dictionary<int, List<CrossChainCacheData>> {{chainId, blockInfoCache}};
+            var fakeCache = new Dictionary<int, List<BlockCacheEntity>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
 
             var smartContractAddress = Address.FromString("CrossChainContract");

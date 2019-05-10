@@ -1,67 +1,30 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
-using AElf.Kernel;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Grpc
 {
-    public class CrossChainGrpcClientController : ISingletonDependency
+    public class GrpcClientProvider : ISingletonDependency
     {
         private readonly ICrossChainDataProducer _crossChainDataProducer;
-        public ILogger<CrossChainGrpcClientController> Logger { get; set; }
+        public ILogger<GrpcClientProvider> Logger { get; set; }
 
         private readonly ConcurrentDictionary<int, CrossChainGrpcClient> _grpcCrossChainClients =
             new ConcurrentDictionary<int, CrossChainGrpcClient>();
         
-        private readonly ICrossChainMemoryCacheService _crossChainMemoryCacheService;
-        
-        public CrossChainGrpcClientController(ICrossChainDataProducer crossChainDataProducer, 
-            ICrossChainMemoryCacheService crossChainMemoryCacheService)
+        private readonly IChainCacheEntityProvider _chainCacheEntityProvider;
+
+        public GrpcClientProvider(ICrossChainDataProducer crossChainDataProducer, IChainCacheEntityProvider chainCacheEntityProvider)
         {
             _crossChainDataProducer = crossChainDataProducer;
-            _crossChainMemoryCacheService = crossChainMemoryCacheService;
+            _chainCacheEntityProvider = chainCacheEntityProvider;
         }
 
         #region Create client
-
-//        public async Task CreateClient(GrpcCrossChainCommunicationDto crossChainCommunicationDto)
-//        {
-//            if(_grpcCrossChainClients.ContainsKey(crossChainCommunicationDto.RemoteChainId))
-//                return;
-//            if (!crossChainCommunicationDto.IsClientToParentChain && 
-//                !_crossChainMemoryCacheService.GetCachedChainIds().Contains(crossChainCommunicationDto.RemoteChainId)) 
-//                return; // dont create client for not cached remote side chain
-//            var client = CreateGrpcClient(crossChainCommunicationDto);
-//            Logger.LogTrace(
-//                $"Try shake with chain {ChainHelpers.ConvertChainIdToBase58(crossChainCommunicationDto.RemoteChainId)}");
-//            var reply = await RequestAsync(client,
-//                c => c.HandShakeAsync(crossChainCommunicationDto.LocalChainId,
-//                    crossChainCommunicationDto.LocalListeningPort));
-//            if (reply == null || !reply.Result)
-//                return;
-//            _grpcCrossChainClients[crossChainCommunicationDto.RemoteChainId] = client;
-//        }
-
-//        public async Task CreateClientToSideChain(GrpcCrossChainCommunicationDto crossChainCommunicationDto)
-//        {
-//            int chainId = crossChainCommunicationDto.RemoteChainId;
-//            if (IsClientCreated(chainId) || !IsChainCached(chainId))
-//                return;
-//            var client = CreateGrpcClient(crossChainCommunicationDto, false);
-//            var handShakeResult = await TryHandShakeAsync(client, chainId);
-//            if (!handShakeResult)
-//            {
-//                return;
-//            }
-//            
-//            _grpcCrossChainClients[crossChainCommunicationDto.RemoteChainId] = client;
-//        }
         
         public async Task CreateOrUpdateClient(GrpcCrossChainCommunicationDto crossChainCommunicationDto, bool isClientToParentChain)
         {
@@ -103,7 +66,7 @@ namespace AElf.CrossChain.Grpc
         private bool IsAlreadyCachedChain(int chainId, bool isClientToParentChain)
         {
             // dont create client for not cached remote side chain
-            return isClientToParentChain || _crossChainMemoryCacheService.GetCachedChainIds().Contains(chainId);
+            return isClientToParentChain || _chainCacheEntityProvider.CachedChainIds.Contains(chainId);
         }
         
         #endregion Create client
@@ -113,13 +76,13 @@ namespace AElf.CrossChain.Grpc
         public void RequestCrossChainIndexing(int localListeningPort)
         {
             //Logger.LogTrace("Request cross chain indexing ..");
-            var chainIds = _crossChainMemoryCacheService.GetCachedChainIds();
+            var chainIds = _chainCacheEntityProvider.CachedChainIds;
             foreach (var chainId in chainIds)
             {
-                if(!_grpcCrossChainClients.TryGetValue(chainId, out var client))
+                if (!_grpcCrossChainClients.TryGetValue(chainId, out var client))
                     continue;
                 Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
-                var targetHeight = _crossChainMemoryCacheService.GetNeededChainHeightForCache(chainId);
+                var targetHeight = _chainCacheEntityProvider.GetBlockInfoCache(chainId).TargetChainHeight();
                 Request(client, c => c.StartIndexingRequest(chainId, targetHeight, _crossChainDataProducer, localListeningPort));
             }
         }
@@ -160,7 +123,7 @@ namespace AElf.CrossChain.Grpc
         
         #endregion      
         
-        public async Task<ChainInitializationContext> RequestChainInitializationContext(string uri, int chainId, int timeout)
+        public async Task<ChainInitializationContext> RequestChainInitializationContextAsync(string uri, int chainId, int timeout)
         {
             var clientForParentChain = new GrpcClientForParentChain(uri, chainId, timeout);
             var chainInitializationContext = await RequestAsync(clientForParentChain, 

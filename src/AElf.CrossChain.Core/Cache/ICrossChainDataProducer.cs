@@ -4,7 +4,7 @@ namespace AElf.CrossChain.Cache
 {
     public interface ICrossChainDataProducer
     {
-        bool AddNewBlockInfo(CrossChainCacheData crossChainCacheInfo);
+        bool AddCacheEntity(BlockCacheEntity blockCacheEntity);
         ILogger<CrossChainDataProducer> Logger { get; set; }
     }
 }

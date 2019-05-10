@@ -14,11 +14,6 @@ namespace AElf.CrossChain
         Task<IMessage> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight);
     }
 
-    public interface INewChainRegistrationService
-    {
-        Task RegisterNewChainsAsync(Hash blockHash, long blockHeight);
-    }
-
     internal interface ICrossChainDataProvider : IBasicCrossChainDataProvider
     {
         Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
@@ -35,5 +30,13 @@ namespace AElf.CrossChain
             long currentBlockHeight);
 
         CrossChainBlockData GetUsedCrossChainBlockDataForLastMiningAsync(Hash blockHash, long previousBlockHeight);
+
+        void HandleLibEvent(IrreversibleBlockDto eventData);
+    }
+
+    internal class IrreversibleBlockDto
+    {
+        public Hash BlockHash { get; set; }
+        public long BlockHeight { get; set; }
     }
 }

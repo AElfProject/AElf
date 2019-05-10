@@ -32,12 +32,12 @@ namespace AElf.CrossChain
         public async Task GetSideChainBlock_WithoutEnoughCache()
         {
             int chainId = 123;
-            var fakeCache = new Dictionary<int, List<CrossChainCacheData>>
+            var fakeCache = new Dictionary<int, List<BlockCacheEntity>>
             {
                 {
-                    chainId, new List<CrossChainCacheData>
+                    chainId, new List<BlockCacheEntity>
                     {
-                        new CrossChainCacheData()
+                        new BlockCacheEntity()
                         {
                             ChainId = 1
                         }
@@ -54,7 +54,7 @@ namespace AElf.CrossChain
         public async Task GetSideChainBlock_WithEnoughCache()
         {
             int chainId = 123;
-            var blockInfoCache = new List<CrossChainCacheData>();
+            var blockInfoCache = new List<BlockCacheEntity>();
             for (int i = 0; i <= CrossChainConstants.MinimalBlockInfoCacheThreshold; i++)
             {
                 var sideChainBlockData = new SideChainBlockData
@@ -62,14 +62,14 @@ namespace AElf.CrossChain
                     SideChainId = chainId,
                     SideChainHeight = i + 1,
                 };
-                blockInfoCache.Add(new CrossChainCacheData
+                blockInfoCache.Add(new BlockCacheEntity
                 {
                     Height = sideChainBlockData.SideChainHeight,
                     ChainId = sideChainBlockData.SideChainId,
                     Payload = sideChainBlockData.ToByteString()
                 });
             }
-            var fakeCache = new Dictionary<int, List<CrossChainCacheData>> {{chainId, blockInfoCache}};
+            var fakeCache = new Dictionary<int, List<BlockCacheEntity>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
             var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(Hash.Empty, 1);

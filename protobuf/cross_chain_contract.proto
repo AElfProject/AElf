@@ -129,7 +129,7 @@ message SideChainInfo {
     SideChainStatus SideChainStatus = 3;
     int32 SideChainId = 4;
     Hash ProposalHash = 5;
-    google.protobuf.Timestamp CreatedTime = 6;
+    google.protobuf.Timestamp CreationTimestamp = 6;
     int64 ParentChainHeightOfCreation = 7;
 }
 
@@ -159,22 +159,12 @@ message ParentChainBlockData {
     map<string, bytes> ExtraData = 6;
 }
 
-//message ParentChainBlockRootInfo
-//{
-//    int64 ParentChainHeight = 1;
-//    CrossChainExtraData CrossChainExtraData = 2;
-//    int32 ParentChainId = 3;
-//    Hash TransactionStatusMerkleRoot = 4;
-//}
-
 message CrossChainExtraData{
     // Merkle tree root of side chain block headers
-    Hash SideChainBlockHeadersRoot = 2;
+    Hash SideChainBlockHeadersRoot = 1;
 
     // Merkle tree root of side chain block transaction roots
-    Hash SideChainTransactionsRoot = 3;
-
-    // more
+    Hash SideChainTransactionsRoot = 2;
 }
 
 enum SideChainStatus
@@ -204,7 +194,7 @@ message CrossChainMerkleProofContext{
 message ChainInitializationContext{
     int32 chainId =1;
     Address Creator = 2;
-    google.protobuf.Timestamp CreatedTime = 3;
+    google.protobuf.Timestamp CreationTimestamp = 3;
     repeated bytes ExtraInformation = 4;
     int64 ParentChainHeightOfCreation = 5;
 }

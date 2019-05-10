@@ -8,7 +8,7 @@ namespace AElf.CrossChain.Grpc
 {
     public interface ISideChainServerService
     {
-        ResponseData GenerateResponse(Block block);
+        CrossChainResponse GenerateResponse(Block block);
     }
 
     public class SideChainServerService : ISideChainServerService, ITransientDependency
@@ -20,10 +20,10 @@ namespace AElf.CrossChain.Grpc
             _blockExtraDataService = blockExtraDataService;
         }
 
-        public ResponseData GenerateResponse(Block block)
+        public CrossChainResponse GenerateResponse(Block block)
         {
             var transactionStatusMerkleRoot = ExtractTransactionStatusMerkleTreeRoot(block.Header); 
-            return new ResponseData
+            return new CrossChainResponse
             {
                 BlockData = new BlockData
                 {

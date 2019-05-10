@@ -26,13 +26,13 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task RequestIndexingParentChain_WithoutExtraData()
         {
-            var requestData = new RequestData
+            var requestData = new CrossChainRequest
             {
                 FromChainId = 0,
                 NextHeight = 15
             };
 
-            IServerStreamWriter<ResponseData> responseStream = Mock.Of<IServerStreamWriter<ResponseData>>();
+            IServerStreamWriter<CrossChainResponse> responseStream = Mock.Of<IServerStreamWriter<CrossChainResponse>>();
             var context = BuildServerCallContext();
             await CrossChainGrpcServer.RequestIndexingFromParentChain(requestData, responseStream, context);
         }
@@ -40,13 +40,13 @@ namespace AElf.CrossChain.Grpc
         [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1643")]
         public async Task RequestIndexingParentChain_WithExtraData()
         {
-            var requestData = new RequestData
+            var requestData = new CrossChainRequest
             {
                 FromChainId = 0,
                 NextHeight = 9
             };
 
-            IServerStreamWriter<ResponseData> responseStream = Mock.Of<IServerStreamWriter<ResponseData>>();
+            IServerStreamWriter<CrossChainResponse> responseStream = Mock.Of<IServerStreamWriter<CrossChainResponse>>();
             var context = BuildServerCallContext();
             await CrossChainGrpcServer.RequestIndexingFromParentChain(requestData, responseStream, context);
         }
@@ -54,13 +54,13 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task RequestIndexingSideChain()
         {
-            var requestData = new RequestData
+            var requestData = new CrossChainRequest
             {
                 FromChainId = 0,
                 NextHeight = 10
             };
             
-            IServerStreamWriter<ResponseData> responseStream = Mock.Of<IServerStreamWriter<ResponseData>>();
+            IServerStreamWriter<CrossChainResponse> responseStream = Mock.Of<IServerStreamWriter<CrossChainResponse>>();
             var context = BuildServerCallContext();
             await CrossChainGrpcServer.RequestIndexingFromSideChain(requestData, responseStream, context);
         }
@@ -68,7 +68,7 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task CrossChainIndexingShake()
         {
-            var request = new IndexingHandShake
+            var request = new HandShake
             {
                 ListeningPort = 2100,
                 FromChainId =  0

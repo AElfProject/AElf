@@ -191,13 +191,13 @@ namespace AElf.CrossChain
             _crossChainTestHelper.AddFakeSideChainIdHeight(fakeSideChainId, 0);
             
             // mock data in cache
-            AddFakeCacheData(new Dictionary<int, List<CrossChainCacheData>>
+            AddFakeCacheData(new Dictionary<int, List<BlockCacheEntity>>
             {
                 {
                     fakeSideChainId,
-                    new List<CrossChainCacheData>
+                    new List<BlockCacheEntity>
                     {
-                        new CrossChainCacheData
+                        new BlockCacheEntity
                         {
                             ChainId = fakeSideChainBlockData.SideChainId,
                             Height = fakeSideChainBlockData.SideChainHeight,

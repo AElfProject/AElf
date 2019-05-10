@@ -77,7 +77,7 @@ namespace AElf.Blockchains.SideChain
             var miners = chainInitializationContext == null
                 ? _dposOptions.InitialMiners.ToMiners()
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;
-            var timestamp = chainInitializationContext?.CreatedTime.ToDateTime() ?? _dposOptions.StartTimestamp;
+            var timestamp = chainInitializationContext?.CreationTime.ToDateTime() ?? _dposOptions.StartTimestamp;
             consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
                 miners.GenerateFirstRoundOfNewTerm(_dposOptions.MiningInterval, timestamp.ToUniversalTime()));
             consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),

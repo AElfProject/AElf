@@ -97,7 +97,7 @@ namespace AElf.Contracts.CrossChain
                 sideChainInfo.SideChainStatus == SideChainStatus.Review, "Side chain creation request not found.");
 
             sideChainInfo.SideChainStatus = SideChainStatus.Active;
-            sideChainInfo.CreatedTime = Timestamp.FromDateTime(Context.CurrentBlockTime);
+            sideChainInfo.CreationTimestamp = Timestamp.FromDateTime(Context.CurrentBlockTime);
             sideChainInfo.ParentChainHeightOfCreation = Context.CurrentHeight;
             State.SideChainInfos[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = 0;

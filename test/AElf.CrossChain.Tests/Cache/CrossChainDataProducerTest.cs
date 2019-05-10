@@ -18,7 +18,7 @@ namespace AElf.CrossChain.Cache
         [Fact]
         public void TryAdd_Null()
         {
-            var res = _crossChainDataProducer.AddNewBlockInfo(null);
+            var res = _crossChainDataProducer.AddCacheEntity(null);
             Assert.False(res);
         }
 
@@ -26,7 +26,7 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_NotExistChain()
         {
             int chainId = 123;
-            var res = _crossChainDataProducer.AddNewBlockInfo(new CrossChainCacheData
+            var res = _crossChainDataProducer.AddCacheEntity(new BlockCacheEntity
             {
                 ChainId = chainId
             });
@@ -37,14 +37,14 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_ExistChain_WrongIndex()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, CrossChainCacheCollection>
+            var dict = new Dictionary<int, ChainCacheEntity>
             {
                 {
-                    chainId, new CrossChainCacheCollection(1)
+                    chainId, new ChainCacheEntity(1)
                 }
             };
             CreateFakeCache(dict);
-            var res = _crossChainDataProducer.AddNewBlockInfo(new CrossChainCacheData
+            var res = _crossChainDataProducer.AddCacheEntity(new BlockCacheEntity
             {
                 ChainId = chainId,
                 Height = 2
@@ -56,14 +56,14 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_ExistChain_CorrectIndex()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, CrossChainCacheCollection>
+            var dict = new Dictionary<int, ChainCacheEntity>
             {
                 {
-                    chainId, new CrossChainCacheCollection(1)
+                    chainId, new ChainCacheEntity(1)
                 }
             };
             CreateFakeCache(dict);
-            var res = _crossChainDataProducer.AddNewBlockInfo(new CrossChainCacheData
+            var res = _crossChainDataProducer.AddCacheEntity(new BlockCacheEntity
             {
                 ChainId = chainId,
                 Height = 1

@@ -5,23 +5,24 @@ namespace AElf.CrossChain.Cache
 {
     public class CrossChainDataProducer : ICrossChainDataProducer, ISingletonDependency
     {
-        private readonly IMultiChainBlockInfoCacheProvider _multiChainBlockInfoCacheProvider;
+        private readonly IChainCacheEntityProvider _chainCacheEntityProvider;
 
         public ILogger<CrossChainDataProducer> Logger { get; set; }
-        public CrossChainDataProducer(IMultiChainBlockInfoCacheProvider multiChainBlockInfoCacheProvider)
+        
+        public CrossChainDataProducer(IChainCacheEntityProvider chainCacheEntityProvider)
         {
-            _multiChainBlockInfoCacheProvider = multiChainBlockInfoCacheProvider;
+            _chainCacheEntityProvider = chainCacheEntityProvider;
         }
 
-        public bool AddNewBlockInfo(CrossChainCacheData crossChainCacheInfo)
+        public bool AddCacheEntity(BlockCacheEntity blockCacheEntity)
         {
-            if (crossChainCacheInfo == null)
+            if (blockCacheEntity == null)
                 return false;
-            var blockInfoCache = _multiChainBlockInfoCacheProvider.GetBlockInfoCache(crossChainCacheInfo.ChainId);
+            var blockInfoCache = _chainCacheEntityProvider.GetBlockInfoCache(blockCacheEntity.ChainId);
 
             if (blockInfoCache == null)
                 return false;
-            var res = blockInfoCache.TryAdd(crossChainCacheInfo);
+            var res = blockInfoCache.TryAdd(blockCacheEntity);
             return res;
         }
     }

@@ -4,6 +4,6 @@ namespace AElf.CrossChain.Cache
 {
     public interface ICrossChainDataConsumer
     {
-        T TryTake<T>(int crossChainId, long height, bool isCacheSizeLimited) where T : IMessage, new();
+        T Take<T>(int crossChainId, long height, bool isCacheSizeLimited) where T : IMessage, new();
     }
 }

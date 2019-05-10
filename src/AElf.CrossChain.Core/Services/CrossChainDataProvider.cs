@@ -15,22 +15,20 @@ using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain
 {
-    internal class CrossChainDataProvider : ICrossChainDataProvider, INewChainRegistrationService, ILocalEventHandler<NewIrreversibleBlockFoundEvent>, ISingletonDependency
+    internal class CrossChainDataProvider : ICrossChainDataProvider, ISingletonDependency
     {
         private readonly IReaderFactory _readerFactory;
+        
         private readonly ICrossChainDataConsumer _crossChainDataConsumer;
-        private readonly ICrossChainMemoryCacheService _crossChainMemoryCacheService;
         public ILogger<CrossChainDataProvider> Logger { get; set; }
 
         private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData =
             new Dictionary<Hash, CrossChainBlockData>();
 
-        public CrossChainDataProvider(IReaderFactory readerFactory, ICrossChainDataConsumer crossChainDataConsumer,
-            ICrossChainMemoryCacheService crossChainMemoryCacheService)
+        public CrossChainDataProvider(IReaderFactory readerFactory, ICrossChainDataConsumer crossChainDataConsumer)
         {
             _readerFactory = readerFactory;
             _crossChainDataConsumer = crossChainDataConsumer;
-            _crossChainMemoryCacheService = crossChainMemoryCacheService;
         }
 
         public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
@@ -43,14 +41,16 @@ namespace AElf.CrossChain
                 var targetHeight = idHeight.Value + 1;
                 while (i < CrossChainConstants.MaximalCountForIndexingSideChainBlock)
                 {
-                    var blockInfo = _crossChainDataConsumer.TryTake<SideChainBlockData>(idHeight.Key, targetHeight, true);
+                    var blockInfo = _crossChainDataConsumer.Take<SideChainBlockData>(idHeight.Key, targetHeight, true);
                     if (blockInfo == null)
                     {
                         // no more available parent chain block info
                         break;
                     }
+                    
                     sideChainBlockData.Add(blockInfo);
-                    Logger.LogTrace($"Got height {blockInfo.SideChainHeight} of side chain  {ChainHelpers.ConvertChainIdToBase58(idHeight.Key)}");
+                    Logger.LogTrace(
+                        $"Got height {blockInfo.SideChainHeight} of side chain  {ChainHelpers.ConvertChainIdToBase58(idHeight.Key)}");
                     targetHeight++;
                     i++;
                 }
@@ -89,7 +89,7 @@ namespace AElf.CrossChain
                     // this should not happen if it is good data.
                     return false;
 
-                var cachedBlockInfo = _crossChainDataConsumer.TryTake<SideChainBlockData>(blockInfo.SideChainId, targetHeight, false);
+                var cachedBlockInfo = _crossChainDataConsumer.Take<SideChainBlockData>(blockInfo.SideChainId, targetHeight, false);
                 if (cachedBlockInfo == null)
                     throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");
                 if(!cachedBlockInfo.Equals(blockInfo))
@@ -123,7 +123,7 @@ namespace AElf.CrossChain
             var i = 0;
             while (i < length)
             {
-                var blockInfo = _crossChainDataConsumer.TryTake<ParentChainBlockData>(parentChainId, targetHeight, true);
+                var blockInfo = _crossChainDataConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, true);
                 if (blockInfo == null)
                 {
                     // no more available parent chain block info
@@ -135,9 +135,9 @@ namespace AElf.CrossChain
                 targetHeight++;
                 i++;
             }
+            
             Logger.LogTrace($"Parent chain block data count {parentChainBlockData.Count}");
             return parentChainBlockData;
-
         }
 
         public async Task<bool> ValidateParentChainBlockDataAsync(List<ParentChainBlockData> parentChainBlockData, 
@@ -158,12 +158,12 @@ namespace AElf.CrossChain
 
             var i = 0;
 
-            var targetHeight =(await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetParentChainHeight
-                    .CallAsync(new Empty())).Value + 1;
+            var targetHeight = (await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetParentChainHeight
+                                   .CallAsync(new Empty())).Value + 1;
             var res = true;
             while (i < length)
             {
-                var blockInfo = _crossChainDataConsumer.TryTake<ParentChainBlockData>(parentChainId, targetHeight, false);
+                var blockInfo = _crossChainDataConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
                 if (blockInfo == null)
                 {
                     throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");
@@ -232,21 +232,10 @@ namespace AElf.CrossChain
             });
         }
 
-        public async Task RegisterNewChainsAsync(Hash blockHash, long blockHeight)
+        public void HandleLibEvent(IrreversibleBlockDto irreversibleBlockDto)
         {
-            var dict = await _readerFactory.Create(blockHash, blockHeight).GetAllChainsIdAndHeight.CallAsync(new Empty());
-
-            foreach (var chainIdHeight in dict.IdHeightDict)
-            {
-                    _crossChainMemoryCacheService.RegisterNewChainCache(chainIdHeight.Key, chainIdHeight.Value + 1);
-            }
-        }
-
-        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
-        {
-            await RegisterNewChainsAsync(eventData.BlockHash, eventData.BlockHeight);
             // clear useless cache
-            var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight + 1 < eventData.BlockHeight)
+            var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight < irreversibleBlockDto.BlockHeight)
                 .Select(kv => kv.Key).ToList();
             foreach (var hash in toRemoveList)
             {

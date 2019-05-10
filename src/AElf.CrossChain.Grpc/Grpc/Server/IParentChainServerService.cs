@@ -11,7 +11,7 @@ namespace AElf.CrossChain.Grpc
 {
     public interface IParentChainServerService
     {
-        Task<ResponseData> GenerateResponseAsync(Block block, int remoteSideChainId);
+        Task<CrossChainResponse> GenerateResponseAsync(Block block, int remoteSideChainId);
 
         Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto);
     }
@@ -27,9 +27,9 @@ namespace AElf.CrossChain.Grpc
             _crossChainDataProvider = crossChainDataProvider;
         }
 
-        public async Task<ResponseData> GenerateResponseAsync(Block block, int remoteSideChainId)
+        public async Task<CrossChainResponse> GenerateResponseAsync(Block block, int remoteSideChainId)
         {
-            var responseParentChainBlockData = new ResponseData
+            var responseParentChainBlockData = new CrossChainResponse
             {
                 BlockData = new BlockData
                 {
