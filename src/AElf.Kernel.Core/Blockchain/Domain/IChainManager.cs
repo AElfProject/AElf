@@ -32,7 +32,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
         int GetChainId();
         Task<List<Hash>> CleanBranchesAsync(Chain chain, Hash irreversibleBlockHash, long irreversibleBlockHeight);
-        Task RemoveCannotExecutedLongestBranchAsync(Chain chain);
+        Task RemoveLongestBranchAsync(Chain chain);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -412,7 +412,7 @@ namespace AElf.Kernel.Blockchain.Domain
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
         }
 
-        public async Task RemoveCannotExecutedLongestBranchAsync(Chain chain)
+        public async Task RemoveLongestBranchAsync(Chain chain)
         {
             chain.Branches.Remove(chain.LongestChainHash.ToStorageKey());
             chain.Branches[chain.BestChainHash.ToStorageKey()] = chain.BestChainHeight;
