@@ -39,6 +39,11 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type("Func`1", Permission.Allowed) // Required for protobuf generated code
                     .Type("Func`2", Permission.Allowed) // Required for protobuf generated code
                     .Type("Func`3", Permission.Allowed) // Required for protobuf generated code
+                    // Required to support yield keyword in protobuf generated code
+                    .Type(typeof(Environment), Permission.Denied, member => member
+                        .Member(nameof(Environment.CurrentManagedThreadId), Permission.Allowed))
+                    .Type(typeof(NotImplementedException), Permission.Allowed) // Required for protobuf generated code
+                    .Type(typeof(NotSupportedException), Permission.Allowed)   // Required for protobuf generated code
                     .Type(nameof(DateTime), Permission.Allowed, member => member
                         .Member(nameof(DateTime.Now), Permission.Denied)
                         .Member(nameof(DateTime.UtcNow), Permission.Denied)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -46,6 +47,9 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
             
             // Validate types in the module
             results.AddRange(module.Types.SelectMany(Validate));
+            
+            // Validate nested types
+            results.AddRange(module.Types.SelectMany(t => t.NestedTypes).SelectMany(Validate));
 
             return results;
         }
@@ -53,7 +57,7 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
         private IEnumerable<ValidationResult> Validate(TypeDefinition type)
         {
             var results = new List<ValidationResult>();
-            
+
             foreach (var method in type.Methods)
             {
                 if (!method.HasBody)
