@@ -2,7 +2,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AElfConsensus
 {
-    public class MinersCountProviderSmartContractAddress : ISmartContractAddressNameProvider, ISingletonDependency
+    public class MinersCountProviderSmartContractAddressNameProvider : ISmartContractAddressNameProvider, ISingletonDependency
     {
         public static Hash Name = Hash.FromString("AElf.ContractNames.MinersCountProvider");
 

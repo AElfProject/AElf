@@ -13,7 +13,7 @@ namespace AElf.Blockchains.MainChain
             var l = new List<GenesisSmartContractDto>();
 
             l.AddGenesisSmartContract<MinersCountProviderContract>(
-                MinersCountProviderSmartContractAddress.Name, GenerateMinersCountProviderInitializationCallList());
+                MinersCountProviderSmartContractAddressNameProvider.Name, GenerateMinersCountProviderInitializationCallList());
 
             return l;
         }

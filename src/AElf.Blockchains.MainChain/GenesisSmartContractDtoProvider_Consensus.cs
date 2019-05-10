@@ -27,7 +27,7 @@ namespace AElf.Blockchains.MainChain
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    MinersCountProviderContractSystemName = MinersCountProviderSmartContractAddress.Name,
+                    MinersCountProviderContractSystemName = MinersCountProviderSmartContractAddressNameProvider.Name,
                     VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });

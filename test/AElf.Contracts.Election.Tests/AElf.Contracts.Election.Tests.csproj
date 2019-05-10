@@ -17,6 +17,7 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AElfConsensus\AElf.Contracts.Consensus.AElfConsensus.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.MinersCountProvider\AElf.Contracts.Consensus.MinersCountProvider.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
@@ -53,13 +54,16 @@
         <Content Include="..\..\protobuf\aelf_consensus_contract.proto">
             <Link>Protobuf/Proto/aelf_consensus_contract.proto</Link>
         </Content>
+        <Content Include="..\..\protobuf\miners_count_provider_contract.proto">
+            <Link>Protobuf/Proto/miners_count_provider_contract.proto</Link>
+        </Content>
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Protobuf\Generated" />
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto vote_contract.proto profit_contract.proto token_contract.proto aelf_consensus_contract.proto election_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto vote_contract.proto profit_contract.proto token_contract.proto aelf_consensus_contract.proto election_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto vote_contract.proto profit_contract.proto token_contract.proto aelf_consensus_contract.proto election_contract.proto miners_count_provider_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto vote_contract.proto profit_contract.proto token_contract.proto aelf_consensus_contract.proto election_contract.proto miners_count_provider_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

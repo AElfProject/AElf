@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AElfConsensus;
+using AElf.Contracts.Consensus.MinersCountProvider;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -54,6 +55,7 @@ namespace AElf.Contracts.Election
         protected Address VoteContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         protected Address ElectionContractAddress { get; set; }
+        protected Address MinersCountProviderContractAddress { get; set; }
         protected Address ConsensusContractAddress { get; set; }
 
         protected Hash MinerElectionVotingItemId { get; set; }
@@ -64,6 +66,7 @@ namespace AElf.Contracts.Election
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
+        internal MinersCountProviderContractContainer.MinersCountProviderContractStub MinersCountProviderContractStub { get; set; }
         internal AElfConsensusContractContainer.AElfConsensusContractStub AElfConsensusContractStub { get; set; }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -89,6 +92,11 @@ namespace AElf.Contracts.Election
         internal ElectionContractContainer.ElectionContractStub GetElectionContractTester(ECKeyPair keyPair)
         {
             return GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, keyPair);
+        }
+
+        internal MinersCountProviderContractContainer.MinersCountProviderContractStub GetMinersCountProviderContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<MinersCountProviderContractContainer.MinersCountProviderContractStub>(MinersCountProviderContractAddress, keyPair);
         }
 
         internal AElfConsensusContractContainer.AElfConsensusContractStub GetAElfConsensusContractStub(
@@ -138,6 +146,18 @@ namespace AElf.Contracts.Election
                         TransactionMethodCallList = GenerateElectionInitializationCallList()
                     })).Output;
             ElectionContractStub = GetElectionContractTester(BootMinerKeyPair);
+
+            // Deploy Miners Count Provider Contract
+            MinersCountProviderContractAddress = AsyncHelper.RunSync(() =>
+                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
+                    new SystemContractDeploymentInput
+                    {
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(MinersCountProviderContract).Assembly.Location)),
+                        Name = MinersCountProviderSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
+                    })).Output;
+            MinersCountProviderContractStub = GetMinersCountProviderContractTester(BootMinerKeyPair);
 
             // Deploy Token Contract
             TokenContractAddress = AsyncHelper.RunSync(() =>
@@ -234,7 +254,8 @@ namespace AElf.Contracts.Election
                 {
                     ElectionSmartContractAddressNameProvider.Name,
                     VoteSmartContractAddressNameProvider.Name,
-                    ProfitSmartContractAddressNameProvider.Name
+                    ProfitSmartContractAddressNameProvider.Name,
+                    MinersCountProviderSmartContractAddressNameProvider.Name
                 }
             });
 
@@ -316,7 +337,7 @@ namespace AElf.Contracts.Election
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    MinersCountProviderContractSystemName = MinersCountProviderSmartContractAddress.Name,
+                    MinersCountProviderContractSystemName = MinersCountProviderSmartContractAddressNameProvider.Name,
                     VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                 });

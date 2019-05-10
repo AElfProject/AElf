@@ -148,7 +148,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    MinersCountProviderContractSystemName = MinersCountProviderSmartContractAddress.Name,
+                    MinersCountProviderContractSystemName = MinersCountProviderSmartContractAddressNameProvider.Name,
                     VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     IsTermStayOne = true
