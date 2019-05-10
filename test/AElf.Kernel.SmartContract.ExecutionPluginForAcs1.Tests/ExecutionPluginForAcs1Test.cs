@@ -33,7 +33,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 // TokenContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
-                var code = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
+                var code = Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
                 TokenContractAddress = await DeploySystemSmartContract(category, code,
                     TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 TokenContractStub =
