@@ -34,10 +34,9 @@ namespace AElf.Runtime.CSharp
 
             if (findings.Count > 0)
             {
-                throw new InvalidCodeException("Audit failed for contract: " 
-                                                       + modDef.Assembly.MainModule.Name + "\r\n",
-                                                       // List down validation results
-                                                       findings);
+                throw new InvalidCodeException($"Audit failed for contract: {modDef.Assembly.MainModule.Name }\n"
+                                                        + string.Join("\n", findings)
+                                                        , findings);
             }
         }
     }

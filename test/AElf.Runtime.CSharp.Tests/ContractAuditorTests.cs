@@ -2,8 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AElf.Contracts.AssociationAuth;
+using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Profit;
+using AElf.Contracts.ReferendumAuth;
+using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Runtime.CSharp.Validators;
 using AElf.Runtime.CSharp.Validators.Method;
 using Shouldly;
@@ -45,9 +51,15 @@ namespace AElf.Runtime.CSharp.Tests
             // TODO: Add other contracts in contract security test once contract dependencies are simplified.
             var contracts = new[]
             {
-                typeof(TestContract.TestContract).Module.ToString(),
+                //typeof(AssociationAuthContract).Module.ToString(),
+                typeof(ElectionContract).Module.ToString(), // Failing due to TimeSpan / FloatOps
                 typeof(BasicContractZero).Module.ToString(),
                 typeof(TokenContract).Module.ToString(),
+                //typeof(ParliamentAuthContract).Module.ToString(),
+                //typeof(ProfitContract).Module.ToString(),
+                //typeof(ReferendumAuthContract).Module.ToString(),
+                //typeof(FeeReceiverContract).Module.ToString(),
+                //typeof(TestContract.TestContract).Module.ToString(),
             };
 
             // Load the DLL's from contracts folder to prevent codecov injection
