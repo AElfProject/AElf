@@ -30,7 +30,7 @@ namespace AElf.Contracts.MultiToken
         {
             Starter = new ContractTester<MultiTokenContractTestAElfModule>();
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",
                 Decimals = 2,
@@ -41,7 +41,7 @@ namespace AElf.Contracts.MultiToken
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
 
-            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.IssueNativeToken), new IssueNativeTokenInput
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 20,
@@ -50,7 +50,7 @@ namespace AElf.Contracts.MultiToken
             });
 
             // For testing.
-            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 80,
@@ -59,7 +59,7 @@ namespace AElf.Contracts.MultiToken
             });
             AsyncHelper.RunSync(() => Starter.InitialChainAsync(list =>
             {
-                list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(DividendContractCode, DividendSmartContractAddressNameProvider.Name);
                 
                 //test extension AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts, Hash name, Action<SystemTransactionMethodCallList> action)
                 void Action(SystemContractDeploymentInput.Types.SystemTransactionMethodCallList x)
@@ -67,7 +67,7 @@ namespace AElf.Contracts.MultiToken
                     x.Value.Add(tokenContractCallList.Value);
                 }
 
-                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, Action);
+                list.AddGenesisSmartContract(TokenContractCode, TokenSmartContractAddressNameProvider.Name, Action);
             }));
         }
 
@@ -91,7 +91,7 @@ namespace AElf.Contracts.MultiToken
             var lockId = Hash.Generate();
 
             // Lock.
-            await tester.ExecuteContractWithMiningAsync(tester.GetTokenContractAddress(), nameof(TokenContract.Lock),
+            await tester.ExecuteContractWithMiningAsync(tester.GetTokenContractAddress(), nameof(TokenContractContainer.TokenContractStub.Lock),
                 new LockInput
                 {
                     From = user,
@@ -109,7 +109,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             // Unlock.
-            await tester.ExecuteContractWithMiningAsync(tester.GetTokenContractAddress(), nameof(TokenContract.Unlock),
+            await tester.ExecuteContractWithMiningAsync(tester.GetTokenContractAddress(), nameof(TokenContractContainer.TokenContractStub.Unlock),
                 new UnlockInput
                 {
                     From = user,
