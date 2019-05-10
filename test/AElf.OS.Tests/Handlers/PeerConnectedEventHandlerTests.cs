@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 

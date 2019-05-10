@@ -5,6 +5,7 @@ using AElf.BenchBase;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using NBench;
 using Pro.NBench.xUnit.XunitExtensions;

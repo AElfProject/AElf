@@ -13,6 +13,7 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
+using AElf.Types;
 using BenchmarkDotNet.Attributes;
 using Volo.Abp.Threading;
 
