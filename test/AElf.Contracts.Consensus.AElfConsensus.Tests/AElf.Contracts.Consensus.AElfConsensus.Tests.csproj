@@ -21,6 +21,7 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AElfConsensus\AElf.Contracts.Consensus.AElfConsensus.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AElfConsensus\AElf.Kernel.Consensus.AElfConsensus.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="..\..\protobuf\common.proto">

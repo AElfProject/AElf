@@ -315,7 +315,10 @@ namespace AElf.Contracts.Election
             consensusMethodList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name
+                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
+                    MinersCountProviderContractSystemName = MinersCountProviderSmartContractAddress.Name,
+                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                 });
             var miners = new Miners
             {

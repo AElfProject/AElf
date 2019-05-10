@@ -10,11 +10,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<AElfConsensusContractTestAElfModule>();
-            
             context.Services.AddSingleton<ITransactionExecutor, AElfConsensusTransactionExecutor>();
-            context.Services.AddSingleton<IECKeyPairProvider, ECKeyPairProvider>();
-            context.Services.AddSingleton<IAccountService, MockAccountService>();
         }
     }
 }

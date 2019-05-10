@@ -8,7 +8,9 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.Consensus.AElfConsensus;
+using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -23,8 +25,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
         
-        protected IECKeyPairProvider ECKeyPairProvider =>
-            Application.ServiceProvider.GetRequiredService<IECKeyPairProvider>();
+        protected IAElfAsymmetricCipherKeyPairProvider ECKeyPairProvider =>
+            Application.ServiceProvider.GetRequiredService<IAElfAsymmetricCipherKeyPairProvider>();
         
         protected const int InitialMinersCount = 5;
 
@@ -62,7 +64,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
         protected void InitializeContracts()
         {
-            ECKeyPairProvider.SetECKeyPair(BootMinerKeyPair);
+            ECKeyPairProvider.SetKeyPair(BootMinerKeyPair);
 
             BasicContractZeroStub = GetContractZeroTester(BootMinerKeyPair);
 
@@ -135,6 +137,9 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
+                    MinersCountProviderContractSystemName = MinersCountProviderSmartContractAddress.Name,
+                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     IsTermStayOne = true
                 });
             aelfConsensusMethodCallList.Add(nameof(AElfConsensusContract.FirstRound),
