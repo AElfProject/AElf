@@ -13,7 +13,15 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
+    </ItemGroup>
+    
+    <Import Project="..\AllContracts.props"/>
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\dividend_contract.proto">
+            <Link>Protobuf/Proto/dividend_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
 </Project>

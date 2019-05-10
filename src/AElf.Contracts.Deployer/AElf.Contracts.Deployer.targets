@@ -8,7 +8,6 @@
     </PropertyGroup>
 
     <Target Name="BuildContracts" Condition="@(Contract) != ''" BeforeTargets="BeforeBuild">
-        <Message Text="Whatsup"/>
         <MSBuild Projects="@(Contract)" ContinueOnError="false" Properties="Configuration=$(Configuration)">
             <Output ItemName="ContractDlls" TaskParameter="TargetOutputs"/>
         </MSBuild>

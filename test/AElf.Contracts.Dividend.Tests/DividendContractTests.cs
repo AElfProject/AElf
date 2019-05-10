@@ -42,12 +42,12 @@ namespace AElf.Contracts.Dividend
                 TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
             };
             var transactionResult = await Tester.ExecuteContractWithMiningAsync(DividendContractAddress,
-                nameof(DividendContract.InitializeDividendContract), input);
+                nameof(DividendContractContainer.DividendContractStub.InitializeDividendContract), input);
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             transactionResult = await Tester.ExecuteContractWithMiningAsync(DividendContractAddress,
-                nameof(DividendContract.InitializeDividendContract), input);
+                nameof(DividendContractContainer.DividendContractStub.InitializeDividendContract), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
@@ -56,7 +56,7 @@ namespace AElf.Contracts.Dividend
         public async Task CheckDividendsOfPreviousTermToFriendlyString()
         {
             var bytes = await Tester.CallContractMethodAsync(DividendContractAddress,
-                nameof(DividendContract.CheckDividendsOfPreviousTermToFriendlyString),
+                nameof(DividendContractContainer.DividendContractStub.CheckDividendsOfPreviousTermToFriendlyString),
                 new Empty());
             var stringValue = FriendlyString.Parser.ParseFrom(bytes);
             stringValue.ShouldNotBeNull();
