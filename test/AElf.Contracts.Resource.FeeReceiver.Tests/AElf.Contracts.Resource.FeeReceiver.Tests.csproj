@@ -15,4 +15,18 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
     </ItemGroup>
+    <ItemGroup>
+        <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf/Proto/token_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\fee_receiver_contract.proto">
+            <Link>Protobuf/Proto/fee_receiver_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
 </Project>

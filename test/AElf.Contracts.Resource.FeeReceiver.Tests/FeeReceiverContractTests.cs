@@ -42,19 +42,19 @@ namespace AElf.Contracts.Resource.FeeReceiver
         {
             {
                 var addressResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress,
-                    nameof(FeeReceiverContract.GetElfTokenAddress), new Empty());
+                    nameof(FeeReceiverContractContainer.FeeReceiverContractStub.GetElfTokenAddress), new Empty());
                 Address.Parser.ParseFrom(addressResult).ShouldBe(TokenContractAddress);
             }
 
             {
                 var foundationAddress = Tester.GetAddress(FoundationKeyPair);
                 var address1Result = await Tester.CallContractMethodAsync(FeeReceiverContractAddress,
-                    nameof(FeeReceiverContract.GetFoundationAddress), new Empty());
+                    nameof(FeeReceiverContractContainer.FeeReceiverContractStub.GetFoundationAddress), new Empty());
                 Address.Parser.ParseFrom(address1Result).ShouldBe(foundationAddress);
             }
             
             var balanceResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.GetOwedToFoundation), new Empty());
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.GetOwedToFoundation), new Empty());
             SInt64Value.Parser.ParseFrom(balanceResult).Value.ShouldBe(0);
         }
 
@@ -63,7 +63,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         {
             var anotherUser = Tester.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
             var withdrawResult = await anotherUser.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.Withdraw), new SInt32Value {Value = 100});
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Withdraw), new SInt32Value {Value = 100});
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
             withdrawResult.Error.Contains("Only foundation can withdraw token.").ShouldBeTrue();
         }
@@ -73,7 +73,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.Withdraw),
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Withdraw),
                 new SInt64Value()
                 {
                     Value = 100
@@ -87,7 +87,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.Withdraw),
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Withdraw),
                 new SInt64Value()
                 {
                     Value = 0
@@ -100,7 +100,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.WithdrawAll),
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.WithdrawAll),
                 new Empty());
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -111,7 +111,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             //Give FeeReceiver address some token for burn operation
             var balance = 5;
             var transferResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContract.Transfer),
+                nameof(TokenContractContainer.TokenContractStub.Transfer),
                 new TransferInput()
                 {
                     Symbol = "ELF",
@@ -124,7 +124,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             //Check balance before burn
             var feeReceiverBalance =GetBalanceOutput.Parser.ParseFrom(
                 await Tester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContract.GetBalance), new GetBalanceInput
+                nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
                 {
                     Owner = FeeReceiverContractAddress,
                     Symbol = "ELF"
@@ -135,13 +135,13 @@ namespace AElf.Contracts.Resource.FeeReceiver
             //Action burn
             var burnResult =
                 await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                    nameof(FeeReceiverContract.Burn), new Empty());
+                    nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Burn), new Empty());
             burnResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //Check burned balance.
             feeReceiverBalance = GetBalanceOutput.Parser.ParseFrom(
                 await Tester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContract.GetBalance), new GetBalanceInput
+                nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
                 {
                     Owner = FeeReceiverContractAddress,
                     Symbol = "ELF"
@@ -157,7 +157,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             //init fee receiver contract
             var foundationAddress = Tester.GetAddress(FoundationKeyPair);
             var feeReceiverResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.Initialize),
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Initialize),
                 new InitializeInput()
                 {
                     ElfTokenAddress = TokenContractAddress,
