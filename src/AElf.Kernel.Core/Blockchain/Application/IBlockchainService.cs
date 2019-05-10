@@ -191,13 +191,22 @@ namespace AElf.Kernel.Blockchain.Application
         /// <returns></returns>
         public async Task<Hash> GetBlockHashByHeightAsync(Chain chain, long height, Hash chainBranchBlockHash)
         {
+            // 1 2 3 4(lib) 5 6
+            // 4 >= height
+            // return any(1,2,3,4)
+
             if (chain.LastIrreversibleBlockHeight >= height)
             {
                 // search irreversible section of the chain
                 return (await _chainManager.GetChainBlockIndexAsync(height)).BlockHash;
             }
 
-            // TODO: may introduce cache to improve the performance
+            // Last irreversible block can make the loops in acceptable size, do not need cache 
+
+            // 1 2 3 4(lib) 5 6
+            // 4 < height
+            // return any(5,6)
+
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBranchBlockHash);
             if (chainBlockLink.Height < height)
@@ -210,7 +219,7 @@ namespace AElf.Kernel.Blockchain.Application
                 chainBranchBlockHash = chainBlockLink.PreviousBlockHash;
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBranchBlockHash);
 
-                if (chainBlockLink == null)
+                if (chainBlockLink == null || chainBlockLink.Height <= chain.LastIrreversibleBlockHeight)
                     return null;
             }
         }

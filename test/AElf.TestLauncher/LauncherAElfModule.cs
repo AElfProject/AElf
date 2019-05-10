@@ -37,7 +37,6 @@ namespace AElf.TestLauncher
         typeof(CSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
 
-        //TODO: should move to OSAElfModule
         typeof(ChainControllerRpcModule),
         typeof(WalletRpcModule),
         typeof(NetRpcAElfModule)

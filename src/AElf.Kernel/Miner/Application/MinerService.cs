@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -12,8 +11,16 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
 using ByteString = Google.Protobuf.ByteString;
 
-namespace AElf.Kernel.Services
+namespace AElf.Kernel.Miner.Application
 {
+    public interface IMinerService
+    {
+        /// <summary>
+        /// This method mines a block.
+        /// </summary>
+        /// <returns>The block that has been produced.</returns>
+        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime, TimeSpan timeSpan);
+    }
     public class MinerService : IMinerService
     {
         public ILogger<MinerService> Logger { get; set; }
@@ -39,9 +46,7 @@ namespace AElf.Kernel.Services
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime dateTime,
             TimeSpan timeSpan)
         {
-            Logger.LogTrace("Entered MineAsync");
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
-            Logger.LogTrace("Got executable tx set");
             var pending = new List<Transaction>();
             if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
             {
@@ -113,12 +118,12 @@ namespace AElf.Kernel.Services
                 PreviousBlockHeight = preBlockHeight,
                 BlockTime = expectedMiningTime
             });
+            block.Header.SignerPubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
             return block;
         }
 
         private async Task SignBlockAsync(Block block)
         {
-            block.Header.SignerPubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
             var signature = await _accountService.SignAsync(block.GetHash().DumpByteArray());
             block.Header.Signature = ByteString.CopyFrom(signature);
         }
@@ -126,26 +131,19 @@ namespace AElf.Kernel.Services
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight,
             List<Transaction> transactions, DateTime blockTime, TimeSpan timeSpan)
         {
-            Logger.LogTrace("Entered MiningService.MineAsync");
             var block = await GenerateBlock(previousBlockHash, previousBlockHeight, blockTime);
-            Logger.LogTrace("Generated block");
             var systemTransactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
-            Logger.LogTrace("Generated system txs");
+
             var pending = transactions;
 
             using (var cts = new CancellationTokenSource())
             {
                 cts.CancelAfter(timeSpan);
-                Logger.LogTrace($"Cancel mining after {timeSpan.TotalMilliseconds} ms");
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
             }
 
             await SignBlockAsync(block);
-            Logger.LogTrace("Singed block.");
-
-            // TODO: TxHub needs to be updated when BestChain is found/extended, so maybe the call should be centralized
-            //await _txHub.OnNewBlock(block);
 
             Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                   $"previous: {block.Header.PreviousBlockHash}, " +

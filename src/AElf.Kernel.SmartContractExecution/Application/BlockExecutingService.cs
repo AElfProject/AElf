@@ -71,8 +71,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 await EventBus.PublishAsync(new UnexecutableTransactionsFoundEvent(blockHeader, unexecutable));
             }
-            // TODO: Insert deferredTransactions to TxPool
-
+            
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions =
                 nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
