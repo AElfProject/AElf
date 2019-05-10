@@ -10,7 +10,7 @@ namespace AElf.CrossChain.Cache
         private BlockingCollection<BlockCacheEntity> BlockCacheEntities { get; } =
             new BlockingCollection<BlockCacheEntity>(new ConcurrentQueue<BlockCacheEntity>());
 
-        private Queue<BlockCacheEntity> DequeuedBlockCacheEntities { get; } = new Queue<BlockCacheEntity>();
+        private BlockingCollection<BlockCacheEntity> DequeuedBlockCacheEntities { get; } = new BlockingCollection<BlockCacheEntity>();
 
         private readonly int _cachedBoundedCapacity =
             Math.Max(CrossChainConstants.MaximalCountForIndexingSideChainBlock,
@@ -61,11 +61,7 @@ namespace AElf.CrossChain.Cache
             var lastQueuedHeight = BlockCacheEntities.LastOrDefault()?.Height ?? 0;
             if (cachedInQueue && !(isCacheSizeLimited && lastQueuedHeight < height + CrossChainConstants.MinimalBlockCacheEntityCount))
             {
-                var res = BlockCacheEntities.TryTake(out blockCacheEntity, 
-                    CrossChainConstants.WaitingIntervalInMillisecond);
-                if (res)
-                    DequeueBlockCacheEntity(blockCacheEntity);
-                return res;
+                return TryDequeue(out blockCacheEntity);
             }
             
             blockCacheEntity = GetLastDequeuedBlockCacheEntity(height);
@@ -99,9 +95,7 @@ namespace AElf.CrossChain.Cache
                     return false;
                 if (blockCacheEntity.Height == height)
                     return true;
-                var res = BlockCacheEntities.TryTake(out blockCacheEntity, CrossChainConstants.WaitingIntervalInMillisecond);
-                if (res)
-                    DequeueBlockCacheEntity(blockCacheEntity);
+                TryDequeue(out blockCacheEntity);
             }
         }
         
@@ -110,12 +104,18 @@ namespace AElf.CrossChain.Cache
         /// Dequeue one element if the cached count reaches <see cref="_cachedBoundedCapacity"/>
         /// </summary>
         /// <param name="blockCacheEntity"></param>
-        private void DequeueBlockCacheEntity(BlockCacheEntity blockCacheEntity)
+        private bool TryDequeue(out BlockCacheEntity blockCacheEntity)
         {
-            DequeuedBlockCacheEntities.Enqueue(blockCacheEntity);
-            if (DequeuedBlockCacheEntities.Count <= _cachedBoundedCapacity)
-                return;
-            DequeuedBlockCacheEntities.Dequeue();
+            var res = BlockCacheEntities.TryTake(out blockCacheEntity,
+                CrossChainConstants.WaitingIntervalInMillisecond);
+            if (res)
+            {
+                DequeuedBlockCacheEntities.Add(blockCacheEntity);
+                if (DequeuedBlockCacheEntities.Count >= _cachedBoundedCapacity)
+                    DequeuedBlockCacheEntities.Take();
+            }
+
+            return res;
         }
     }
 }

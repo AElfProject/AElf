@@ -213,15 +213,17 @@ namespace AElf.CrossChain.Cache
             var initTarget = 2;
             var blockInfoCache = new ChainCacheEntity(initTarget);
             int i = 0;
-            while (i++ < (int)initTarget +  CrossChainConstants.MinimalBlockCacheEntityCount)
+            while (i++ < initTarget + CrossChainConstants.MinimalBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new BlockCacheEntity
                 {
                     Height = i
                 });
             }
-            blockInfoCache.TryTake(initTarget, out var b1, true);
-            var res = blockInfoCache.TryTake(initTarget, out var b2, true);
+            
+            var res = blockInfoCache.TryTake(initTarget, out var b1, true);
+            Assert.True(res);
+            res = blockInfoCache.TryTake(initTarget, out var b2, true);
             Assert.True(res);
             Assert.Equal(b1, b2);
         }
@@ -232,13 +234,14 @@ namespace AElf.CrossChain.Cache
             var initTarget = 1;
             var blockInfoCache = new ChainCacheEntity(initTarget);
             int i = 0;
-            while (i++ < (int)initTarget +  CrossChainConstants.MinimalBlockCacheEntityCount)
+            while (i++ < initTarget + CrossChainConstants.MinimalBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new BlockCacheEntity
                 {
                     Height = i
                 });
             }
+            
             blockInfoCache.TryTake(2, out var b1, true);
             var res = blockInfoCache.TryTake(1, out var b2, true);
             Assert.True(res);
@@ -261,7 +264,7 @@ namespace AElf.CrossChain.Cache
             blockInfoCache.TryTake(1, out _, false);
             blockInfoCache.TryTake(2, out _, false);
 
-            Assert.True(blockInfoCache.TargetChainHeight() == 3);
+            Assert.Equal(3, blockInfoCache.TargetChainHeight());
         }
     }
 }

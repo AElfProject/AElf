@@ -85,7 +85,7 @@ namespace AElf.CrossChain.Grpc
             return Task.FromResult(handShakeReply);
         }
         
-        public Task<SideChainInitializationResponse> RequestChainInitializationContext(int chainId)
+        public Task<SideChainInitializationContext> RequestChainInitializationContext(int chainId)
         {
             var sideChainInitializationResponse = _grpcClient.RequestChainInitializationContextFromParentChain(
                 new SideChainInitializationRequest
@@ -124,44 +124,4 @@ namespace AElf.CrossChain.Grpc
                 new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
         }
     }
-    
-//    public abstract class CrossChainGrpcClient
-//    {
-//        protected readonly Channel Channel;
-//        protected readonly int LocalChainId;
-//        protected readonly int DialTimeout;
-//
-//        protected CrossChainGrpcClient(string uri, int localChainId, int dialTimeout)
-//        {
-//            LocalChainId = localChainId;
-//            DialTimeout = dialTimeout;
-//            Channel = CreateChannel(uri);
-//        }
-//        
-//        public abstract Task<IndexingHandShakeReply> HandShakeAsync(int chainId, int localListeningPort);
-//        public abstract Task StartIndexingRequest(int chainId, long targetHeight, ICrossChainDataProducer crossChainDataProducer);
-//        public abstract Task<ChainInitializationContext> RequestChainInitializationContext(int chainId);
-//
-//        /// <summary>
-//        /// Create a new channel
-//        /// </summary>
-//        /// <param name="uriStr"></param>
-//        /// <param name="crt">Certificate</param>
-//        /// <returns></returns>
-//        private Channel CreateChannel(string uriStr, string crt)
-//        {
-//            var channelCredentials = new SslCredentials(crt);
-//            var channel = new Channel(uriStr, channelCredentials);
-//            return channel;
-//        }
-//
-//        private Channel CreateChannel(string uriStr)
-//        {
-//            return new Channel(uriStr, ChannelCredentials.Insecure);
-//        }
-//        public async Task Close()
-//        {
-//            await Channel.ShutdownAsync();
-//        }
-//    }
 }

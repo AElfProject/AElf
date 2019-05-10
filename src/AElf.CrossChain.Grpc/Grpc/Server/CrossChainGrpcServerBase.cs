@@ -74,7 +74,7 @@ namespace AElf.CrossChain.Grpc
             return Task.FromResult(new HandShakeReply{Result = true});
         }
 
-        public override async Task<SideChainInitializationResponse> RequestChainInitializationContextFromParentChain(SideChainInitializationRequest request, ServerCallContext context)
+        public override async Task<SideChainInitializationContext> RequestChainInitializationContextFromParentChain(SideChainInitializationRequest request, ServerCallContext context)
         {
             var libDto = await _blockchainService.GetLibHashAndHeight();
             var sideChainInitializationResponse =

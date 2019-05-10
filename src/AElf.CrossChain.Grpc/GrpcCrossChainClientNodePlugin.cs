@@ -87,7 +87,7 @@ namespace AElf.CrossChain.Grpc
             await _grpcClientProvider.CloseClients();
         }
 
-        public async Task<SideChainInitializationResponse> RequestChainInitializationContextAsync(int chainId)
+        public async Task<SideChainInitializationContext> RequestChainInitializationContextAsync(int chainId)
         {
             string uri = string.Join(":", _grpcCrossChainConfigOption.RemoteParentChainNodeIp, _grpcCrossChainConfigOption.RemoteParentChainNodePort);
             var chainInitializationContext = await _grpcClientProvider.RequestChainInitializationContextAsync(uri, chainId, _grpcCrossChainConfigOption.ConnectionTimeout);
