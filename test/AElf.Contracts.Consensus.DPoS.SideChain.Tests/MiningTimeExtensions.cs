@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Acs4;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.DPoS.SideChain
@@ -7,7 +8,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
     /// <summary>
     /// Extension methods of Round for dealing with miners' mining time.
     /// </summary>
-    public static class MiningTimeExtensions
+    internal static class MiningTimeExtensions
     {
         /// <summary>
         /// Simply read the expected mining time of provided public key from round information.
@@ -16,7 +17,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// <param name="round"></param>
         /// <param name="publicKey"></param>
         /// <returns>If provided public key not contained in current miners list, will return an invalid mining time.</returns>
-        public static Timestamp GetExpectedMiningTime(this Round round, string publicKey)
+        internal static Timestamp GetExpectedMiningTime(this Round round, string publicKey)
         {
             return round.RealTimeMinersInformation.ContainsKey(publicKey)
                 ? round.RealTimeMinersInformation[publicKey].ExpectedMiningTime
@@ -36,7 +37,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// when this node hasn't missed his time slot.
         /// </summary>
         /// <returns></returns>
-        public static Timestamp ArrangeAbnormalMiningTime(this Round round, string publicKey, DateTime dateTime,
+        internal static Timestamp ArrangeAbnormalMiningTime(this Round round, string publicKey, DateTime dateTime,
             int miningInterval = 0)
         {
             if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
@@ -80,7 +81,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// </summary>
         /// <param name="round"></param>
         /// <returns></returns>
-        public static int GetMiningInterval(this Round round)
+        internal static int GetMiningInterval(this Round round)
         {
             if (round.RealTimeMinersInformation.Count == 1)
             {
@@ -106,7 +107,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// <param name="round"></param>
         /// <param name="miningInterval"></param>
         /// <returns></returns>                                                
-        public static int TotalMilliseconds(this Round round, int miningInterval = 0)
+        internal static int TotalMilliseconds(this Round round, int miningInterval = 0)
         {
             if (miningInterval == 0)
             {
@@ -121,7 +122,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// </summary>
         /// <param name="round"></param>
         /// <returns></returns>
-        public static DateTime GetStartTime(this Round round)
+        internal static DateTime GetStartTime(this Round round)
         {
             return round.RealTimeMinersInformation.Values.First(m => m.Order == 1).ExpectedMiningTime.ToDateTime();
         }
@@ -134,7 +135,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// <param name="miningInterval"></param>
         /// <param name="missedRoundsCount"></param>
         /// <returns></returns>
-        public static Timestamp GetExpectedEndTime(this Round round, int missedRoundsCount = 0, int miningInterval = 0)
+        internal static Timestamp GetExpectedEndTime(this Round round, int missedRoundsCount = 0, int miningInterval = 0)
         {
             if (miningInterval == 0)
             {
@@ -156,7 +157,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// <param name="dateTime"></param>
         /// <param name="minerInRound"></param>
         /// <returns></returns>
-        public static bool IsTimeSlotPassed(this Round round, string publicKey, DateTime dateTime,
+        internal static bool IsTimeSlotPassed(this Round round, string publicKey, DateTime dateTime,
             out MinerInRound minerInRound)
         {
             minerInRound = null;
@@ -171,7 +172,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return false;
         }
 
-        public static DateTime GetExtraBlockMiningTime(this Round round)
+        internal static DateTime GetExtraBlockMiningTime(this Round round)
         {
             return round.RealTimeMinersInformation.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value
                 .ExpectedMiningTime.ToDateTime()

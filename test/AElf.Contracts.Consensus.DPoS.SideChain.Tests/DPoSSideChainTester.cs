@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Acs4;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -7,6 +8,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 using AElf.Contracts.Consensus.DPoS.SideChain;
+using AElf.Types;
 
 namespace AElf.Contracts.DPoS.SideChain
 {
@@ -50,7 +52,7 @@ namespace AElf.Contracts.DPoS.SideChain
             DPoSSideChainContractAddress = SingleTester.GetConsensusContractAddress();
         }
 
-        public DPoSTriggerInformation GetTriggerInformationForNormalBlock(string publicKey, Hash randomHash,
+        internal DPoSTriggerInformation GetTriggerInformationForNormalBlock(string publicKey, Hash randomHash,
             Hash previousRandomHash = null)
         {
             if (previousRandomHash == null)
@@ -66,7 +68,7 @@ namespace AElf.Contracts.DPoS.SideChain
             };
         }
 
-        public DPoSTriggerInformation GetTriggerInformationForNextRoundOrTerm(string publicKey, Timestamp timestamp, bool isBootMiner = true)
+        internal DPoSTriggerInformation GetTriggerInformationForNextRoundOrTerm(string publicKey, Timestamp timestamp, bool isBootMiner = true)
         {
             return new DPoSTriggerInformation
             {

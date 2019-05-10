@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using Acs4;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using ValidationResult = System.ComponentModel.DataAnnotations.ValidationResult;
 
 namespace AElf.Contracts.Consensus.DPoS.SideChain
 {
@@ -363,29 +364,29 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
             return round.RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
         }
 
-        public static void AddCandidate(this Candidates candidates, byte[] publicKey)
-        {
-            candidates.PublicKeys.Add(publicKey.ToHex());
-            candidates.Addresses.Add(Address.FromPublicKey(publicKey));
-        }
-
-        public static bool RemoveCandidate(this Candidates candidates, byte[] publicKey)
-        {
-            var result1 = candidates.PublicKeys.Remove(publicKey.ToHex());
-            var result2 = candidates.Addresses.Remove(Address.FromPublicKey(publicKey));
-            return result1 && result2;
-        }
-
-        public static bool IsExpired(this VotingRecord votingRecord, long currentAge)
-        {
-            var lockExpiredAge = votingRecord.VoteAge;
-            foreach (var day in votingRecord.LockDaysList)
-            {
-                lockExpiredAge += day;
-            }
-
-            return lockExpiredAge <= currentAge;
-        }
+//        public static void AddCandidate(this Candidates candidates, byte[] publicKey)
+//        {
+//            candidates.PublicKeys.Add(publicKey.ToHex());
+//            candidates.Addresses.Add(Address.FromPublicKey(publicKey));
+//        }
+//
+//        public static bool RemoveCandidate(this Candidates candidates, byte[] publicKey)
+//        {
+//            var result1 = candidates.PublicKeys.Remove(publicKey.ToHex());
+//            var result2 = candidates.Addresses.Remove(Address.FromPublicKey(publicKey));
+//            return result1 && result2;
+//        }
+//
+//        public static bool IsExpired(this VotingRecord votingRecord, long currentAge)
+//        {
+//            var lockExpiredAge = votingRecord.VoteAge;
+//            foreach (var day in votingRecord.LockDaysList)
+//            {
+//                lockExpiredAge += day;
+//            }
+//
+//            return lockExpiredAge <= currentAge;
+//        }
 
         public static Miners ToMiners(this List<string> minerPublicKeys, long termNumber = 0)
         {
@@ -404,18 +405,18 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
         /// </summary>
         /// <param name="round"></param>
         /// <returns></returns>
-        public static ValidationResult CheckTimeSlots(this Round round)
+        public static Acs4.ValidationResult CheckTimeSlots(this Round round)
         {
             var miners = round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).ToList();
             if (miners.Count == 1)
             {
                 // No need to check single node.
-                return new ValidationResult {Success = true};
+                return new Acs4.ValidationResult {Success = true};
             }
 
             if (miners.Any(m => m.ExpectedMiningTime == null))
             {
-                return new ValidationResult {Success = false, Message = "Incorrect expected mining time."};
+                return new Acs4.ValidationResult {Success = false, Message = "Incorrect expected mining time."};
             }
 
             var baseMiningInterval =
@@ -424,7 +425,7 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
 
             if (baseMiningInterval <= 0)
             {
-                return new ValidationResult {Success = false, Message = $"Mining interval must greater than 0.\n{round}"};
+                return new Acs4.ValidationResult {Success = false, Message = $"Mining interval must greater than 0.\n{round}"};
             }
 
             for (var i = 1; i < miners.Count - 1; i++)
@@ -434,11 +435,11 @@ namespace AElf.Contracts.Consensus.DPoS.SideChain
                     .TotalMilliseconds;
                 if (Math.Abs(miningInterval - baseMiningInterval) > baseMiningInterval)
                 {
-                    return new ValidationResult {Success = false, Message = "Time slots are so different."};
+                    return new Acs4.ValidationResult {Success = false, Message = "Time slots are so different."};
                 }
             }
 
-            return new ValidationResult {Success = true};
+            return new Acs4.ValidationResult {Success = true};
         }
 
         private static int GetAbsModulus(long longValue, int intValue)

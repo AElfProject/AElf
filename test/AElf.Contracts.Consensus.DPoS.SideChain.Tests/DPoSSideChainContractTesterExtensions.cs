@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.TestBase;
 using AElf.Kernel;
@@ -13,7 +14,7 @@ namespace AElf.Contracts.DPoS.SideChain
 {
     public static class DPoSSideChainContractTesterExtensions
     {
-        public static async Task<ConsensusCommand> GetConsensusCommandAsync(
+        internal static async Task<ConsensusCommand> GetConsensusCommandAsync(
             this ContractTester<DPoSSideChainTestAElfModule> tester,
             Timestamp timestamp = null)
         {
@@ -28,7 +29,7 @@ namespace AElf.Contracts.DPoS.SideChain
             return ConsensusCommand.Parser.ParseFrom(bytes);
         }
         
-        public static async Task<DPoSHeaderInformation> GetNewConsensusInformationAsync(
+        internal static async Task<DPoSHeaderInformation> GetNewConsensusInformationAsync(
             this ContractTester<DPoSSideChainTestAElfModule> tester,
             DPoSTriggerInformation triggerInformation)
         {
@@ -37,7 +38,7 @@ namespace AElf.Contracts.DPoS.SideChain
             return DPoSHeaderInformation.Parser.ParseFrom(bytes);
         }
         
-        public static async Task<List<Transaction>> GenerateConsensusTransactionsAsync(
+        internal static async Task<List<Transaction>> GenerateConsensusTransactionsAsync(
             this ContractTester<DPoSSideChainTestAElfModule> tester,
             DPoSTriggerInformation triggerInformation)
         {
@@ -50,7 +51,7 @@ namespace AElf.Contracts.DPoS.SideChain
             return txs;
         }
         
-        public static async Task<Block> GenerateConsensusTransactionsAndMineABlockAsync(
+        internal static async Task<Block> GenerateConsensusTransactionsAndMineABlockAsync(
             this ContractTester<DPoSSideChainTestAElfModule> tester,
             DPoSTriggerInformation triggerInformation,
             params ContractTester<DPoSSideChainTestAElfModule>[] testersGonnaExecuteThisBlock)
@@ -71,7 +72,7 @@ namespace AElf.Contracts.DPoS.SideChain
             return block;
         }
         
-        public static async Task<ValidationResult> ValidateConsensusBeforeExecutionAsync(
+        internal static async Task<ValidationResult> ValidateConsensusBeforeExecutionAsync(
             this ContractTester<DPoSSideChainTestAElfModule> tester,
             DPoSHeaderInformation information)
         {
@@ -80,7 +81,7 @@ namespace AElf.Contracts.DPoS.SideChain
             return ValidationResult.Parser.ParseFrom(bytes);
         }
         
-        public static async Task<ValidationResult> ValidateConsensusAfterExecutionAsync(
+        internal static async Task<ValidationResult> ValidateConsensusAfterExecutionAsync(
             this ContractTester<DPoSSideChainTestAElfModule> tester, DPoSHeaderInformation information)
         {
             var bytes = await tester.CallContractMethodAsync(tester.GetConsensusContractAddress(),
@@ -102,11 +103,11 @@ namespace AElf.Contracts.DPoS.SideChain
                 methodName, input);
         }
 
-        public static async Task<Round> GetCurrentRoundInformation(
+        internal static async Task<Round> GetCurrentRoundInformation(
             this ContractTester<DPoSSideChainTestAElfModule> contractTester
         )
         {
-            var result = await contractTester.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContract.GetCurrentRoundInformation
+            var result = await contractTester.ExecuteConsensusContractMethodWithMiningAsync(nameof(ConsensusContractContainer.ConsensusContractStub.GetCurrentRoundInformation
                 ), new Empty());
             return Round.Parser.ParseFrom(result.ReturnValue);
         }

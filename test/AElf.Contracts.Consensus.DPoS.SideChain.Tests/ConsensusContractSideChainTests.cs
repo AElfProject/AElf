@@ -1,11 +1,13 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Kernel;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
 using AElf.Contracts.Consensus.DPoS.SideChain;
+using AElf.Types;
 
 namespace AElf.Contracts.DPoS.SideChain
 {
@@ -44,10 +46,10 @@ namespace AElf.Contracts.DPoS.SideChain
             TesterManager.InitialTesters();
             
             //term number < main chain term number
-            var dposInformation = new AElf.Contracts.Consensus.DPoS.DPoSHeaderInformation
+            var dposInformation = new DPoSHeaderInformation
             {
-                Behaviour = AElf.Contracts.Consensus.DPoS.DPoSBehaviour.NextRound,
-                Round = new AElf.Contracts.Consensus.DPoS.Round(),
+                Behaviour = DPoSBehaviour.NextRound,
+                Round = new Round(),
                 SenderPublicKey = ByteString.CopyFrom(TesterManager.MinersKeyPairs[0].PublicKey)
             };
             var transactionResult = await TesterManager.Testers[0].ExecuteContractWithMiningAsync(
@@ -62,10 +64,10 @@ namespace AElf.Contracts.DPoS.SideChain
         {
             TesterManager.InitialTesters();
             
-            var dposInformation = new AElf.Contracts.Consensus.DPoS.DPoSHeaderInformation
+            var dposInformation = new DPoSHeaderInformation
             {
-                Behaviour = AElf.Contracts.Consensus.DPoS.DPoSBehaviour.NextRound,
-                Round = new AElf.Contracts.Consensus.DPoS.Round()
+                Behaviour = DPoSBehaviour.NextRound,
+                Round = new Round()
                 {
                     TermNumber = 2
                 },

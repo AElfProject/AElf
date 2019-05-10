@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -107,7 +109,7 @@ namespace AElf.Contracts.DPoS.SideChain
                     RoundNumber = 2
                 };
                 var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                    nameof(ConsensusContract.InitialConsensus), roundInformation);
+                    nameof(ConsensusContractContainer.ConsensusContractStub.InitialConsensus), roundInformation);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Invalid round number").ShouldBeTrue();
@@ -121,7 +123,7 @@ namespace AElf.Contracts.DPoS.SideChain
                     RealTimeMinersInformation = { }
                 };
                 var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                    nameof(ConsensusContract.InitialConsensus), roundInformation);
+                    nameof(ConsensusContractContainer.ConsensusContractStub.InitialConsensus), roundInformation);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("No miner in input data").ShouldBeTrue();
@@ -150,7 +152,7 @@ namespace AElf.Contracts.DPoS.SideChain
             };
 
             var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                nameof(ConsensusContract.InitialConsensus), roundInformation);
+                nameof(ConsensusContractContainer.ConsensusContractStub.InitialConsensus), roundInformation);
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -171,12 +173,12 @@ namespace AElf.Contracts.DPoS.SideChain
             };
 
             var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                nameof(ConsensusContract.ConfigStrategy), input);
+                nameof(ConsensusContractContainer.ConsensusContractStub.ConfigStrategy), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //set again
             transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                nameof(ConsensusContract.ConfigStrategy), input);
+                nameof(ConsensusContractContainer.ConsensusContractStub.ConfigStrategy), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already configured").ShouldBeTrue();
         }
@@ -193,7 +195,7 @@ namespace AElf.Contracts.DPoS.SideChain
             };
 
             var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                nameof(ConsensusContract.UpdateValue), input);
+                nameof(ConsensusContractContainer.ConsensusContractStub.UpdateValue), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Round information not found").ShouldBeTrue();
         }
@@ -223,7 +225,7 @@ namespace AElf.Contracts.DPoS.SideChain
             };
 
             var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                nameof(ConsensusContract.UpdateValue), input);
+                nameof(ConsensusContractContainer.ConsensusContractStub.UpdateValue), input);
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -240,7 +242,7 @@ namespace AElf.Contracts.DPoS.SideChain
                 BlockchainAge = 10
             };
             var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                nameof(ConsensusContract.NextRound), input);
+                nameof(ConsensusContractContainer.ConsensusContractStub.NextRound), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Incorrect round number for next round.").ShouldBeTrue();
         }
@@ -258,7 +260,7 @@ namespace AElf.Contracts.DPoS.SideChain
                 ExtraBlockProducerOfPreviousRound = TesterManager.Testers[1].PublicKey
             };
             var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                nameof(ConsensusContract.NextRound), input);
+                nameof(ConsensusContractContainer.ConsensusContractStub.NextRound), input);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
@@ -275,7 +277,7 @@ namespace AElf.Contracts.DPoS.SideChain
                     Behaviour = DPoSBehaviour.NextRound
                 };
                 var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                    nameof(ConsensusContract.GetInformationToUpdateConsensus), input);
+                    nameof(ConsensusContractContainer.ConsensusContractStub.GetInformationToUpdateConsensus), input);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Invalid public key").ShouldBeTrue();
@@ -290,7 +292,7 @@ namespace AElf.Contracts.DPoS.SideChain
                 };
                 
                 var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                    nameof(ConsensusContract.GetInformationToUpdateConsensus), input);
+                    nameof(ConsensusContractContainer.ConsensusContractStub.GetInformationToUpdateConsensus), input);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Failed to get current round information").ShouldBeTrue();
@@ -310,7 +312,7 @@ namespace AElf.Contracts.DPoS.SideChain
                 await InitialConsensus_Success();
                 
                 var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                    nameof(ConsensusContract.GetInformationToUpdateConsensus), input);
+                    nameof(ConsensusContractContainer.ConsensusContractStub.GetInformationToUpdateConsensus), input);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("The given key was not present in the dictionary").ShouldBeTrue();
@@ -330,7 +332,7 @@ namespace AElf.Contracts.DPoS.SideChain
                     InitialTermNumber = 1
                 };
                 var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                    nameof(ConsensusContract.GenerateConsensusTransactions), input);
+                    nameof(ConsensusContractContainer.ConsensusContractStub.GenerateConsensusTransactions), input);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Data to request consensus information should contain public key").ShouldBeTrue();
             }
@@ -347,7 +349,7 @@ namespace AElf.Contracts.DPoS.SideChain
                 await InitialConsensus_Success();
                 
                 var transactionResult = await TesterManager.Testers[0].ExecuteConsensusContractMethodWithMiningAsync(
-                    nameof(ConsensusContract.GenerateConsensusTransactions), input);
+                    nameof(ConsensusContractContainer.ConsensusContractStub.GenerateConsensusTransactions), input);
                 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("The given key was not present in the dictionary").ShouldBeTrue();

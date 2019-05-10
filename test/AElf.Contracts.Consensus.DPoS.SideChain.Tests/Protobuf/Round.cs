@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Types;
 using Google.Protobuf;
 
 // ReSharper disable once CheckNamespace
-namespace AElf.Contracts.Consensus.DPoS.SideChain
+namespace Acs4
 {
-    public partial class Round
+    internal partial class Round
     {
         public long RoundId =>
             RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
