@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
@@ -19,6 +21,12 @@ namespace AElf.Contracts.TestBase.Tests
 {
     public class ContractTesterTest
     {
+        private IReadOnlyDictionary<string, byte[]> _codes;
+
+        public IReadOnlyDictionary<string, byte[]> Codes =>
+            _codes ?? (_codes = ContractsDeployer.GetContractCodes<ContractTesterTest>());
+        public byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("Consensus.DPoS")).Value;
+        public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         private int ChainId { get; } = ChainHelpers.ConvertBase58ToChainId("AELF");
         private int DefaultCategory { get; } = SmartContractTestConstants.TestRunnerCategory;
 
@@ -47,7 +55,7 @@ namespace AElf.Contracts.TestBase.Tests
                 new ContractDeploymentInput()
                 {
                     Category = SmartContractTestConstants.TestRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TestContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 });
 
             var chain = await tester.GetChainAsync();
@@ -80,7 +88,7 @@ namespace AElf.Contracts.TestBase.Tests
                 new ContractDeploymentInput()
                 {
                     Category = SmartContractTestConstants.TestRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 });
 
             await tester1.MineAsync(new List<Transaction> {tx});
@@ -101,9 +109,11 @@ namespace AElf.Contracts.TestBase.Tests
             var tester = new ContractTester<ContractTestAElfModule>(ChainId, callerKeyPair);
             await tester.InitialChainAsync(list =>
             {
-                list.AddGenesisSmartContract<ConsensusContract>(
+                list.AddGenesisSmartContract(
+                    ConsensusContractCode,
                     ConsensusSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract<TokenContract>(
+                list.AddGenesisSmartContract(
+                    TokenContractCode,
                     TokenSmartContractAddressNameProvider.Name);
             });
 
@@ -133,7 +143,7 @@ namespace AElf.Contracts.TestBase.Tests
                 new ContractDeploymentInput
                 {
                     Category = DefaultCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 }
             );
 
@@ -155,7 +165,7 @@ namespace AElf.Contracts.TestBase.Tests
                 new ContractDeploymentInput()
                 {
                     Category = SmartContractTestConstants.TestRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 });
 
             await tester.MineAsync(new List<Transaction> {tx});
