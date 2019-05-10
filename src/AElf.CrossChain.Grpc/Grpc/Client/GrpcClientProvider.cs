@@ -82,7 +82,7 @@ namespace AElf.CrossChain.Grpc
                 if (!_grpcCrossChainClients.TryGetValue(chainId, out var client))
                     continue;
                 Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
-                var targetHeight = _chainCacheEntityProvider.GetBlockInfoCache(chainId).TargetChainHeight();
+                var targetHeight = _chainCacheEntityProvider.GetChainCacheEntity(chainId).TargetChainHeight();
                 Request(client, c => c.StartIndexingRequest(chainId, targetHeight, _crossChainDataProducer, localListeningPort));
             }
         }
@@ -123,7 +123,7 @@ namespace AElf.CrossChain.Grpc
         
         #endregion      
         
-        public async Task<ChainInitializationContext> RequestChainInitializationContextAsync(string uri, int chainId, int timeout)
+        public async Task<SideChainInitializationResponse> RequestChainInitializationContextAsync(string uri, int chainId, int timeout)
         {
             var clientForParentChain = new GrpcClientForParentChain(uri, chainId, timeout);
             var chainInitializationContext = await RequestAsync(clientForParentChain, 

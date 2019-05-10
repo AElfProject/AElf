@@ -34,7 +34,7 @@ namespace AElf.CrossChain
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {
-            async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
+            Task<IExecutionResult<TOutput>> SendAsync(TInput input)
             {
                 throw new NotSupportedException();
             }
@@ -58,12 +58,6 @@ namespace AElf.CrossChain
                     return method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray());
                 }
 
-//                trace.SurfaceUpError();
-//                if (string.IsNullOrEmpty(trace.StdErr))
-//                {
-//                    return default(TOutput);
-//                }
-//                throw new Exception(trace.StdErr);
                 return default(TOutput);
             }
 

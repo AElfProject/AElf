@@ -16,9 +16,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\..\protobuf\cross_chain_contract.proto">
-          <Link>Protobuf/Proto/cross_chain_contract.proto</Link>
-        </None>
         <None Include="..\..\protobuf\header_info.proto">
             <Link>./Grpc/Protobuf/header_info.proto</Link>
         </None>

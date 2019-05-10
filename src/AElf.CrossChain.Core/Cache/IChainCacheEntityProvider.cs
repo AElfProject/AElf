@@ -9,7 +9,7 @@ namespace AElf.CrossChain.Cache
     public interface IChainCacheEntityProvider
     {
         void AddChainCacheEntity(int remoteChainId, ChainCacheEntity chainCacheEntity);
-        ChainCacheEntity GetBlockInfoCache(int remoteChainId);
+        ChainCacheEntity GetChainCacheEntity(int remoteChainId);
 
         bool ContainsChain(int remoteChainId);
         int Size { get; }
@@ -18,26 +18,26 @@ namespace AElf.CrossChain.Cache
     
     public class ChainCacheEntityProvider : IChainCacheEntityProvider, ISingletonDependency
     {
-        private readonly ConcurrentDictionary<int, ChainCacheEntity> _blockInfoCaches = new ConcurrentDictionary<int, ChainCacheEntity>();
+        private readonly ConcurrentDictionary<int, ChainCacheEntity> _chainCacheEntities = new ConcurrentDictionary<int, ChainCacheEntity>();
         
         public bool ContainsChain(int remoteChainId)
         {
-            return _blockInfoCaches.ContainsKey(remoteChainId);
+            return _chainCacheEntities.ContainsKey(remoteChainId);
         }
 
-        public int Size => _blockInfoCaches.Count;
-        public List<int> CachedChainIds => _blockInfoCaches.Keys.ToList();
+        public int Size => _chainCacheEntities.Count;
+        public List<int> CachedChainIds => _chainCacheEntities.Keys.ToList();
 
         public void AddChainCacheEntity(int remoteChainId, ChainCacheEntity chainCacheEntity)
         {
             if (chainCacheEntity == null)
                 throw new ArgumentNullException(nameof(chainCacheEntity)); 
-            _blockInfoCaches.TryAdd(remoteChainId, chainCacheEntity);
+            _chainCacheEntities.TryAdd(remoteChainId, chainCacheEntity);
         }
 
-        public ChainCacheEntity GetBlockInfoCache(int remoteChainId)
+        public ChainCacheEntity GetChainCacheEntity(int remoteChainId)
         {
-            return !_blockInfoCaches.TryGetValue(remoteChainId, out _) ? null : _blockInfoCaches[remoteChainId];
+            return !_chainCacheEntities.TryGetValue(remoteChainId, out var chainCacheEntity) ? null : chainCacheEntity;
         }
     }
 }

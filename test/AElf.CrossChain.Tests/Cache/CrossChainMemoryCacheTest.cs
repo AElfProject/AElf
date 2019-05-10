@@ -146,7 +146,7 @@ namespace AElf.CrossChain.Cache
             var initTarget = 1;
             var blockInfoCache = new ChainCacheEntity(initTarget);
             int i = 0;
-            while (i++ < CrossChainConstants.MinimalBlockInfoCacheThreshold)
+            while (i++ < CrossChainConstants.MinimalBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new BlockCacheEntity
                 {
@@ -163,7 +163,7 @@ namespace AElf.CrossChain.Cache
             var initTarget = 1;
             var blockInfoCache = new ChainCacheEntity(initTarget);
             int i = 0;
-            while (i++ <= CrossChainConstants.MinimalBlockInfoCacheThreshold)
+            while (i++ <= CrossChainConstants.MinimalBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new BlockCacheEntity
                 {
@@ -195,7 +195,7 @@ namespace AElf.CrossChain.Cache
             var initTarget = 2;
             var blockInfoCache = new ChainCacheEntity(initTarget);
             int i = 0;
-            while (i++ < (int)initTarget +  CrossChainConstants.MinimalBlockInfoCacheThreshold)
+            while (i++ < (int)initTarget +  CrossChainConstants.MinimalBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new BlockCacheEntity
                 {
@@ -213,7 +213,7 @@ namespace AElf.CrossChain.Cache
             var initTarget = 2;
             var blockInfoCache = new ChainCacheEntity(initTarget);
             int i = 0;
-            while (i++ < (int)initTarget +  CrossChainConstants.MinimalBlockInfoCacheThreshold)
+            while (i++ < (int)initTarget +  CrossChainConstants.MinimalBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new BlockCacheEntity
                 {
@@ -232,7 +232,7 @@ namespace AElf.CrossChain.Cache
             var initTarget = 1;
             var blockInfoCache = new ChainCacheEntity(initTarget);
             int i = 0;
-            while (i++ < (int)initTarget +  CrossChainConstants.MinimalBlockInfoCacheThreshold)
+            while (i++ < (int)initTarget +  CrossChainConstants.MinimalBlockCacheEntityCount)
             {
                 var t = blockInfoCache.TryAdd(new BlockCacheEntity
                 {

@@ -18,15 +18,14 @@ namespace AElf.CrossChain.Cache
         [Fact]
         public void TryAdd_Null()
         {
-            var res = _crossChainDataProducer.AddCacheEntity(null);
-            Assert.False(res);
+            Assert.Throws<ArgumentNullException>(() => _crossChainDataProducer.TryAddBlockCacheEntity(null));
         }
 
         [Fact]
         public void TryAdd_NotExistChain()
         {
             int chainId = 123;
-            var res = _crossChainDataProducer.AddCacheEntity(new BlockCacheEntity
+            var res = _crossChainDataProducer.TryAddBlockCacheEntity(new BlockCacheEntity
             {
                 ChainId = chainId
             });
@@ -44,7 +43,7 @@ namespace AElf.CrossChain.Cache
                 }
             };
             CreateFakeCache(dict);
-            var res = _crossChainDataProducer.AddCacheEntity(new BlockCacheEntity
+            var res = _crossChainDataProducer.TryAddBlockCacheEntity(new BlockCacheEntity
             {
                 ChainId = chainId,
                 Height = 2
@@ -63,7 +62,7 @@ namespace AElf.CrossChain.Cache
                 }
             };
             CreateFakeCache(dict);
-            var res = _crossChainDataProducer.AddCacheEntity(new BlockCacheEntity
+            var res = _crossChainDataProducer.TryAddBlockCacheEntity(new BlockCacheEntity
             {
                 ChainId = chainId,
                 Height = 1

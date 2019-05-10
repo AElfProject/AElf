@@ -83,7 +83,7 @@ namespace AElf.CrossChain
             crossChainBlockData.ParentChainBlockData.Count.ShouldBe(0);
             crossChainBlockData.SideChainBlockData.Count.ShouldBe(
                 CrossChainConstants.MaximalCountForIndexingSideChainBlock -
-                CrossChainConstants.MinimalBlockInfoCacheThreshold);
+                CrossChainConstants.MinimalBlockCacheEntityCount);
             crossChainBlockData.SideChainBlockData[0].SideChainId.ShouldBe(chainId);
             crossChainBlockData.SideChainBlockData[0].SideChainHeight.ShouldBe(previousBlockHeight + 1);
         }

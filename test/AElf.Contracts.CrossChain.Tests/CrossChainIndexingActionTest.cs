@@ -242,14 +242,14 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task GetParentChainHeight_WithoutIndexing()
         {
             int parentChainId = 123;
-            long parentChainHeight = 0;
-            await InitAndCreateSideChain(parentChainId);
+            long parentChainHeightOfCreation = 10;
+            await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId);
 
             var height = SInt64Value.Parser.ParseFrom(await CallContractMethodAsync(
                 CrossChainContractAddress,
                 nameof(CrossChainContract.GetParentChainHeight),
                 new Empty())).Value;
-            Assert.True(parentChainHeight == height);
+            Assert.Equal(parentChainHeightOfCreation - 1, height);
         }
 
         [Fact]

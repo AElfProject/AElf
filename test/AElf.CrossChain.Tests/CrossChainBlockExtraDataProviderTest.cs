@@ -51,7 +51,7 @@ namespace AElf.CrossChain
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId1, 0);
             var fakeParentChainBlockDataList = new List<BlockCacheEntity>();
 
-            for (int i = 0; i < CrossChainConstants.MinimalBlockInfoCacheThreshold + 1; i++)
+            for (int i = 0; i < CrossChainConstants.MinimalBlockCacheEntityCount + 1; i++)
             {
                 fakeParentChainBlockDataList.Add(new BlockCacheEntity()
                 {

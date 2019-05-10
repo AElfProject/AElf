@@ -55,7 +55,7 @@ namespace AElf.CrossChain
         {
             int chainId = 123;
             var blockInfoCache = new List<BlockCacheEntity>();
-            for (int i = 0; i <= CrossChainConstants.MinimalBlockInfoCacheThreshold; i++)
+            for (int i = 0; i <= CrossChainConstants.MinimalBlockCacheEntityCount; i++)
             {
                 var sideChainBlockData = new SideChainBlockData
                 {

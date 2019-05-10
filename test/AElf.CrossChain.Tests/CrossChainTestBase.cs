@@ -35,7 +35,7 @@ namespace AElf.CrossChain
                     new ChainCacheEntity(blockInfos.First().Height));
                 foreach (var blockInfo in blockInfos)
                 {
-                    CrossChainDataProducer.AddCacheEntity(blockInfo);
+                    CrossChainDataProducer.TryAddBlockCacheEntity(blockInfo);
                 }
             }
         }
@@ -60,7 +60,7 @@ namespace AElf.CrossChain
                     new ChainCacheEntity(blockInfos.First().Height));
                 foreach (var blockInfo in blockInfos)
                 {
-                    _crossChainDataProducer.AddCacheEntity(blockInfo);
+                    _crossChainDataProducer.TryAddBlockCacheEntity(blockInfo);
                 }
             }
         }

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
@@ -86,7 +87,7 @@ namespace AElf.CrossChain.Grpc
             await _grpcClientProvider.CloseClients();
         }
 
-        public async Task<IMessage> RequestChainInitializationContextAsync(int chainId)
+        public async Task<SideChainInitializationResponse> RequestChainInitializationContextAsync(int chainId)
         {
             string uri = string.Join(":", _grpcCrossChainConfigOption.RemoteParentChainNodeIp, _grpcCrossChainConfigOption.RemoteParentChainNodePort);
             var chainInitializationContext = await _grpcClientProvider.RequestChainInitializationContextAsync(uri, chainId, _grpcCrossChainConfigOption.ConnectionTimeout);

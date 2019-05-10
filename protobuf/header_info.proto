@@ -7,23 +7,23 @@ import "core.proto";
 import "google/protobuf/timestamp.proto";
 
 message CrossChainRequest {
-    int32 FromChainId = 1; // own chain id
-    int64 NextHeight = 2;
-    int32 ListeningPort = 3;
+    int32 fromChainId = 1; // own chain id
+    int64 nextHeight = 2;
+    int32 listeningPort = 3;
 }
 
 message CrossChainResponse {
-    BlockData BlockData = 1;
+    BlockData blockData = 1;
 }
 
 message HandShake {
-    int32 ListeningPort = 1;
+    int32 listeningPort = 1;
     int32 fromChainId = 2;
     bool fromSideChain = 3;
 }
 
 message HandShakeReply {
-    bool Result = 1;
+    bool result = 1;
 }
 
 message SideChainInitializationRequest{
@@ -31,13 +31,17 @@ message SideChainInitializationRequest{
 }
 
 message SideChainInitializationResponse{
-    ChainInitializationContext SideChainInitializationContext = 1; 
+    int32 chainId =1;
+    Address creator = 2;
+    google.protobuf.Timestamp creationTimestamp = 3;
+    repeated bytes extraInformation = 4;
+    int64 parentChainHeightOfCreation = 5; 
 }
 
 service CrossChainRpc {
     rpc RequestIndexingFromSideChain (CrossChainRequest) returns (stream CrossChainResponse) {}
     rpc RequestIndexingFromParentChain (CrossChainRequest) returns (stream CrossChainResponse) {}
-    rpc CrossChainIndexingShake (HandShake) returns (HandShakeReply) {} // only side chain shake with parent chain.
+    rpc CrossChainIndexingShake (HandShake) returns (HandShakeReply) {}
     rpc RequestChainInitializationContextFromParentChain (SideChainInitializationRequest) returns (SideChainInitializationResponse) {}
 }
 
@@ -47,10 +51,10 @@ message BlockData{
     bytes payload = 3;
 }
 
-message ChainInitializationContext{
-    int32 chainId =1;
-    Address Creator = 2;
-    google.protobuf.Timestamp CreationTimestamp = 3;
-    repeated bytes ExtraInformation = 4;
-    int64 ParentChainHeightOfCreation = 5;
-}
+//message ChainInitializationContext{
+//    int32 chainId =1;
+//    Address creator = 2;
+//    google.protobuf.Timestamp creationTimestamp = 3;
+//    repeated bytes extraInformation = 4;
+//    int64 parentChainHeightOfCreation = 5;
+//}

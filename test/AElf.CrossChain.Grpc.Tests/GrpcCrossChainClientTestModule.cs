@@ -32,15 +32,7 @@ namespace AElf.CrossChain.Grpc
                     }));
                 return mockService.Object;
             });
-
-            services.AddTransient(o =>
-            {
-                var mockService = new Mock<ICrossChainContractReader>();
-                mockService.Setup(m => m.GetAllChainsIdAndHeightAsync(It.IsAny<Hash>(), It.IsAny<long>())).Returns(
-                    Task.FromResult(new Dictionary<int, long>()) // add data if needed
-                    );
-                return mockService.Object;
-            });
+            
             services.AddTransient(o =>
             {
                 var mockService = new Mock<INewChainRegistrationService>();

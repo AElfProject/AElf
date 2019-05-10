@@ -3,10 +3,10 @@ using AElf.Contracts.CrossChain;
 using AElf.Kernel.Node.Infrastructure;
 using Google.Protobuf;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Grpc
 {
     public interface IChainInitializationPlugin : INodePlugin
     {
-        Task<IMessage> RequestChainInitializationContextAsync(int chainId);
+        Task<SideChainInitializationResponse> RequestChainInitializationContextAsync(int chainId);
     }
 }

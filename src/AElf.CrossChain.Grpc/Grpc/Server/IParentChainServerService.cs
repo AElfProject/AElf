@@ -13,15 +13,15 @@ namespace AElf.CrossChain.Grpc
     {
         Task<CrossChainResponse> GenerateResponseAsync(Block block, int remoteSideChainId);
 
-        Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto);
+        Task<SideChainInitializationResponse> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto);
     }
 
-    public class ParentChainServerService : IParentChainServerService, ITransientDependency
+    internal class ParentChainServerService : IParentChainServerService, ITransientDependency
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
-        private readonly IBasicCrossChainDataProvider _crossChainDataProvider;
+        private readonly ICrossChainDataProvider _crossChainDataProvider;
 
-        public ParentChainServerService(IBlockExtraDataService blockExtraDataService, IBasicCrossChainDataProvider crossChainDataProvider)
+        public ParentChainServerService(IBlockExtraDataService blockExtraDataService, ICrossChainDataProvider crossChainDataProvider)
         {
             _blockExtraDataService = blockExtraDataService;
             _crossChainDataProvider = crossChainDataProvider;
@@ -34,15 +34,13 @@ namespace AElf.CrossChain.Grpc
                 BlockData = new BlockData
                 {
                     ChainId = block.Header.ChainId,
-                    Height = block.Height,
-//                    Root = new ParentChainBlockRootInfo
-//                    {
-//                        ParentChainHeight = block.Height,
-//                        ParentChainId = block.Header.ChainId
-//                    }
+                    Height = block.Height
                 }
             };
-            var parentChainBlockData = new ParentChainBlockData();
+            var parentChainBlockData = new ParentChainBlockData
+            {
+                ParentChainHeight = block.Height, ParentChainId = block.Header.ChainId
+            };
             parentChainBlockData = FillExtraDataInResponse(parentChainBlockData, block.Header);
 
             if (parentChainBlockData.CrossChainExtraData == null)
@@ -51,7 +49,7 @@ namespace AElf.CrossChain.Grpc
                 return responseParentChainBlockData;
             }
 
-            var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockInfoResult(block);
+            var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockDataResult(block);
             var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, remoteSideChainId);
             foreach (var (sideChainHeight, merklePath) in enumerableMerklePath)
             {
@@ -62,10 +60,20 @@ namespace AElf.CrossChain.Grpc
             return responseParentChainBlockData;
         }
 
-        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto)
+        public async Task<SideChainInitializationResponse> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto)
         {
-            var message = await _crossChainDataProvider.GetChainInitializationContextAsync(chainId, libDto.BlockHash, libDto.BlockHeight);
-            return message==null ? null : ChainInitializationContext.Parser.ParseFrom(message.ToByteString());
+            var chainInitializationContext =
+                await _crossChainDataProvider.GetChainInitializationContextAsync(chainId, libDto.BlockHash,
+                    libDto.BlockHeight);
+            var sideChainInitializationResponse = new SideChainInitializationResponse
+            {
+                ChainId = chainInitializationContext.ChainId,
+                Creator = chainInitializationContext.Creator,
+                CreationTimestamp = chainInitializationContext.CreationTimestamp,
+                ParentChainHeightOfCreation = chainInitializationContext.ParentChainHeightOfCreation
+            };
+            sideChainInitializationResponse.ExtraInformation.AddRange(chainInitializationContext.ExtraInformation);
+            return sideChainInitializationResponse;
         }
         
         private ParentChainBlockData FillExtraDataInResponse(ParentChainBlockData parentChainBlockData, BlockHeader blockHeader)
@@ -85,12 +93,12 @@ namespace AElf.CrossChain.Grpc
             return parentChainBlockData;
         }
         
-        private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockInfoResult(Block block)
+        private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockDataResult(Block block)
         {
-            var message =
+            var crossChainBlockData =
                 await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
             //Logger.LogTrace($"Indexed side chain block size {crossChainBlockData.SideChainBlockData.Count}");
-            var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
+            //var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
             return crossChainBlockData.SideChainBlockData
                 .Select(m => SideChainBlockData.Parser.ParseFrom(m.ToByteString())).ToList();
         }
@@ -99,9 +107,9 @@ namespace AElf.CrossChain.Grpc
             int sideChainId)
         {
             var binaryMerkleTree = new BinaryMerkleTree();
-            foreach (var blockInfo in indexedSideChainBlockDataResult)
+            foreach (var sideChainBlockData in indexedSideChainBlockDataResult)
             {
-                binaryMerkleTree.AddNode(blockInfo.TransactionMerkleTreeRoot);
+                binaryMerkleTree.AddNode(sideChainBlockData.TransactionMerkleTreeRoot);
             }
 
             binaryMerkleTree.ComputeRootHash();
@@ -116,6 +124,7 @@ namespace AElf.CrossChain.Grpc
                 var merklePath = binaryMerkleTree.GenerateMerklePath(i);
                 merklepathList.Add((info.SideChainHeight, merklePath));
             }
+            
             return merklepathList;
         }
         
@@ -138,6 +147,7 @@ namespace AElf.CrossChain.Grpc
                 if(extraData != null)
                     res.Add(symbol, extraData);
             }
+            
             return res;
         }
     }

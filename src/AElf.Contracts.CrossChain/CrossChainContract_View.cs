@@ -36,6 +36,7 @@ namespace AElf.Contracts.CrossChain
             //Api.Assert((parentRoot??Hash.Empty).Equals(rootCalculated), "Transaction verification Failed");
             return new BoolValue {Value = merkleTreeRoot.Equals(rootCalculated)};
         }
+        
         public override SInt32Value GetChainStatus(SInt32Value input)
         {
             var info = State.SideChainInfos[input.Value];
@@ -51,8 +52,12 @@ namespace AElf.Contracts.CrossChain
         }
 
         public override SInt64Value GetParentChainHeight(Empty input)
-        {
-            return new SInt64Value() {Value = State.CurrentParentChainHeight.Value};
+        {            
+            var parentChainHeight = State.CurrentParentChainHeight.Value;
+            return new SInt64Value()
+            {
+                Value = parentChainHeight == 0 ? State.ParentChainHeightOfCreation.Value - 1 : parentChainHeight
+            }; // from parent chain height of creation
         }
 
         public override SInt32Value GetParentChainId(Empty input)

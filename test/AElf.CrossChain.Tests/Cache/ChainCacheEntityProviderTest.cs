@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Cache
         {
             int chainId = 123;
             
-            var actualBlockInfoCache = _chainCacheEntityProvider.GetBlockInfoCache(chainId);
+            var actualBlockInfoCache = _chainCacheEntityProvider.GetChainCacheEntity(chainId);
             Assert.Null(actualBlockInfoCache);
         }
         
@@ -44,7 +44,7 @@ namespace AElf.CrossChain.Cache
             var blockInfoCache = new ChainCacheEntity(1);
             _chainCacheEntityProvider.AddChainCacheEntity(chainId, blockInfoCache);
 
-            var actualBlockInfoCache = _chainCacheEntityProvider.GetBlockInfoCache(chainId);
+            var actualBlockInfoCache = _chainCacheEntityProvider.GetChainCacheEntity(chainId);
             Assert.Equal(blockInfoCache, actualBlockInfoCache);
         }
         
@@ -57,7 +57,7 @@ namespace AElf.CrossChain.Cache
             _chainCacheEntityProvider.AddChainCacheEntity(chainId, blockInfoCache);
             _chainCacheEntityProvider.AddChainCacheEntity(chainId, blockInfoCache);
             Assert.True(_chainCacheEntityProvider.Size == 1);
-            var actualBlockInfoCache = _chainCacheEntityProvider.GetBlockInfoCache(chainId);
+            var actualBlockInfoCache = _chainCacheEntityProvider.GetChainCacheEntity(chainId);
             Assert.Equal(blockInfoCache, actualBlockInfoCache);
         }
         
@@ -71,7 +71,7 @@ namespace AElf.CrossChain.Cache
             var blockInfoCache2 = new ChainCacheEntity(2);
             _chainCacheEntityProvider.AddChainCacheEntity(chainId, blockInfoCache2);
             Assert.True(_chainCacheEntityProvider.Size == 1);
-            var actualBlockInfoCache = _chainCacheEntityProvider.GetBlockInfoCache(chainId);
+            var actualBlockInfoCache = _chainCacheEntityProvider.GetChainCacheEntity(chainId);
             Assert.Equal(blockInfoCache1, actualBlockInfoCache);
         }
     }
