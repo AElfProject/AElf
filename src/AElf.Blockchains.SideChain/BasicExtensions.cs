@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acs4;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Contracts.Consensus.DPoS.SideChain;
 
 namespace AElf.Blockchains.SideChain
 {
