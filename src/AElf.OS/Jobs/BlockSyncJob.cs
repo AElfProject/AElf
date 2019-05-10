@@ -17,7 +17,7 @@ namespace AElf.OS.Jobs
     {
         private const long InitialSyncLimit = 10;
         private const int BlockSyncJobLimit = 200;
-        private const int BlockSyncWaitTime = 10000;
+        private const int BlockSyncWaitTime = 5000;
 
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
