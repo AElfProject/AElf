@@ -10,12 +10,12 @@ namespace AElf.Kernel
     public class BlockMiningEventHandlerTests : KernelWithChainTestBase
     {
         private IBlockchainService _chainService;
-        private BlockMiningEventHandler _miningEventHandler;
+        private ConsensusRequestMiningEventHandler _miningEventHandler;
 
         public BlockMiningEventHandlerTests()
         {
             _chainService = GetRequiredService<IBlockchainService>();
-            _miningEventHandler = GetRequiredService<BlockMiningEventHandler>();
+            _miningEventHandler = GetRequiredService<ConsensusRequestMiningEventHandler>();
         }
 
         [Fact]

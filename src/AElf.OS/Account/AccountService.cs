@@ -34,13 +34,13 @@ namespace AElf.OS.Account
             return (await GetAccountKeyPairAsync()).PublicKey;
         }
 
-        public async Task<byte[]> EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
+        public async Task<byte[]> EncryptMessageAsync(byte[] receiverPublicKey, byte[] plainMessage)
         {
              return CryptoHelpers.EncryptMessage((await GetAccountKeyPairAsync()).PrivateKey, receiverPublicKey,
                 plainMessage);
         }
 
-        public async Task<byte[]> DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
+        public async Task<byte[]> DecryptMessageAsync(byte[] senderPublicKey, byte[] cipherMessage)
         {
             return CryptoHelpers.DecryptMessage(senderPublicKey, (await GetAccountKeyPairAsync()).PrivateKey,
                 cipherMessage);

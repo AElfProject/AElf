@@ -5,7 +5,7 @@ using Secp256k1Net;
 
 namespace AElf.Cryptography.ECDSA
 {
-    public class ECKeyPair
+    public class ECKeyPair : IAElfAsymmetricCipherKeyPair
     {
         public byte[] PrivateKey { get; }
         public byte[] PublicKey { get; }
