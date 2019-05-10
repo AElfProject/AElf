@@ -109,6 +109,16 @@ namespace AElf.Runtime.CSharp.Tests
         }
         
         [Fact]
+        public void CheckBadContract_ForFloatTypeUsage()
+        {
+            // http://docs.microsoft.com/en-us/dotnet/api/system.single
+            LookFor(_findings, 
+                    "UpdateFloatState",
+                    i => i.Namespace == "System" && i.Type == "Single") 
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
         public void CheckBadContract_ForDiskOpsUsage()
         {
             LookFor(_findings, 
