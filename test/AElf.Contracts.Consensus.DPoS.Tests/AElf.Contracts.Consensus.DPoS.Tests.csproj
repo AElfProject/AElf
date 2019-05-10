@@ -28,9 +28,6 @@
         <ProjectReference Include="..\..\src\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
     </ItemGroup>
     <ItemGroup>
-      <ContractStub Include="..\..\protobuf\acs0.proto">
-        <Link>Protobuf/Proto/acs0.proto</Link>
-      </ContractStub>
       <ContractStub Include="..\..\protobuf\dividend_contract.proto">
         <Link>Protobuf/Proto/dividend_contract.proto</Link>
       </ContractStub>
