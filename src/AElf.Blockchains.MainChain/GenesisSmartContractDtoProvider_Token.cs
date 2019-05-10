@@ -1,17 +1,12 @@
 using System.Collections.Generic;
-using AElf.Contracts.CrossChain;
-using AElf.Contracts.Election;
-using AElf.Contracts.MultiToken;
+using System.Linq;
+using Acs0;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.Resource;
-using AElf.Contracts.Resource.FeeReceiver;
-using AElf.Contracts.Vote;
 using AElf.CrossChain;
-using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
-using Vote;
+using AElf.Types;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -20,7 +15,9 @@ namespace AElf.Blockchains.MainChain
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForToken(Address zeroContractAddress)
         {
             var l = new List<GenesisSmartContractDto>();
-            l.AddGenesisSmartContract<TokenContract>(
+//            l.AddGenesisSmartContract<TokenContract>(
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("MultiToken")).Value,
                 TokenSmartContractAddressNameProvider.Name,
                 GenerateTokenInitializationCallList(zeroContractAddress));
             return l;
@@ -30,7 +27,7 @@ namespace AElf.Blockchains.MainChain
             Address issuer)
         {
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = _tokenInitialOptions.Symbol,
                 Decimals = _tokenInitialOptions.Decimals,
@@ -42,7 +39,7 @@ namespace AElf.Blockchains.MainChain
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
 
-            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.IssueNativeToken), new IssueNativeTokenInput
             {
                 Symbol = _tokenInitialOptions.Symbol,
                 Amount = (long) (_tokenInitialOptions.TotalSupply * _tokenInitialOptions.DividendPoolRatio),
@@ -53,7 +50,7 @@ namespace AElf.Blockchains.MainChain
             //TODO: Maybe should be removed after testing.
             foreach (var tokenReceiver in _dposOptions.InitialMiners)
             {
-                tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
                 {
                     Symbol = _tokenInitialOptions.Symbol,
                     Amount = (long) (_tokenInitialOptions.TotalSupply * (1 - _tokenInitialOptions.DividendPoolRatio)) /
@@ -64,10 +61,10 @@ namespace AElf.Blockchains.MainChain
             }
 
             // Set fee pool address to dividend contract address.
-            tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetFeePoolAddress),
                 DividendSmartContractAddressNameProvider.Name);
 
-            tokenContractCallList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeTokenContract), new IntializeTokenContractInput
             {
                 CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
             });

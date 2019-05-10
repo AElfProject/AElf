@@ -1,17 +1,10 @@
 using System.Collections.Generic;
-using AElf.Contracts.CrossChain;
-using AElf.Contracts.Election;
-using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.Resource;
-using AElf.Contracts.Resource.FeeReceiver;
+using System.Linq;
+using Acs0;
 using AElf.Contracts.Vote;
-using AElf.CrossChain;
-using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
-using Vote;
+using AElf.Types;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -21,7 +14,8 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
 
-            l.AddGenesisSmartContract<VoteContract>(
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("Vote")).Value,
                 VoteSmartContractAddressNameProvider.Name, GenerateVoteInitializationCallList());
 
             return l;
@@ -30,7 +24,7 @@ namespace AElf.Blockchains.MainChain
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
             var voteContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteContractMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
+            voteContractMethodCallList.Add(nameof(VoteContractContainer.VoteContractStub.InitialVoteContract),
                 new InitialVoteContractInput
                 {
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name

@@ -1,4 +1,5 @@
-﻿using AElf.Contracts.Consensus.DPoS;
+﻿using Acs0;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;

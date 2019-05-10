@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.Deployer;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using Microsoft.Extensions.Options;
 
 namespace AElf.Blockchains.MainChain
 {
     public partial class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
+        private readonly IReadOnlyDictionary<string, byte[]> _codes =
+            ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>();
         private readonly DPoSOptions _dposOptions;
         private readonly TokenInitialOptions _tokenInitialOptions;
 
@@ -26,7 +30,7 @@ namespace AElf.Blockchains.MainChain
                 GetGenesisSmartContractDtosForConsensus(zeroContractAddress),
                 GetGenesisSmartContractDtosForDividend(zeroContractAddress),
                 GetGenesisSmartContractDtosForToken(zeroContractAddress),
-                GetGenesisSmartContractDtosForResource(zeroContractAddress),
+//                GetGenesisSmartContractDtosForResource(zeroContractAddress),
                 GetGenesisSmartContractDtosForCrossChain(zeroContractAddress),
                 GetGenesisSmartContractDtosForVote(zeroContractAddress),
                 GetGenesisSmartContractDtosForParliament()

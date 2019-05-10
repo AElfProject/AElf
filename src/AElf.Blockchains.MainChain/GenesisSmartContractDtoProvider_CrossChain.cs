@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using System.Linq;
+using Acs0;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -14,7 +17,9 @@ namespace AElf.Blockchains.MainChain
             Address zeroContractAddress)
         {
             var l = new List<GenesisSmartContractDto>();
-            l.AddGenesisSmartContract<CrossChainContract>(CrossChainSmartContractAddressNameProvider.Name,
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("CrossChain")).Value,
+                CrossChainSmartContractAddressNameProvider.Name,
                 GenerateCrossChainInitializationCallList());
 
             return l;
@@ -24,7 +29,7 @@ namespace AElf.Blockchains.MainChain
             GenerateCrossChainInitializationCallList()
         {
             var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
+            crossChainMethodCallList.Add(nameof(CrossChainContractContainer.CrossChainContractStub.Initialize),
                 new AElf.Contracts.CrossChain.InitializeInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
