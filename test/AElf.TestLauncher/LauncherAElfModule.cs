@@ -1,5 +1,8 @@
-﻿using Acs0;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Acs0;
 using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -47,6 +50,18 @@ namespace AElf.TestLauncher
     )]
     public class MainBlockchainAElfModule : AElfModule
     {
+        private IReadOnlyDictionary<string, byte[]> _codes;
+
+        public IReadOnlyDictionary<string, byte[]> Codes =>
+            _codes ?? (_codes = ContractsDeployer.GetContractCodes<MainBlockchainAElfModule>());
+        public byte[] ConsensusContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.DPoS")).Value;
+        public byte[] DividendContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Dividend")).Value;
+        public byte[] TokenContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
+        public byte[] FeeReceiverContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("FeeReceiver")).Value;
         public ILogger<MainBlockchainAElfModule> Logger { get; set; }
 
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
@@ -79,13 +94,17 @@ namespace AElf.TestLauncher
                 ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                TokenContractCode,
                 TokenSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                DividendContractCode,
                 DividendSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                FeeReceiverContractCode,
                 ResourceFeeReceiverSmartContractAddressNameProvider.Name);
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
