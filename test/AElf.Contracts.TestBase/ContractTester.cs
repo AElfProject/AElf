@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
@@ -58,6 +59,27 @@ namespace AElf.Contracts.TestBase
     public class ContractTester<TContractTestAElfModule> : ITransientDependency
         where TContractTestAElfModule : ContractTestAElfModule
     {
+        private IReadOnlyDictionary<string, byte[]> _codes;
+
+        public IReadOnlyDictionary<string, byte[]> Codes =>
+            _codes ?? (_codes = ContractsDeployer.GetContractCodes<TContractTestAElfModule>());
+
+        public byte[] ConsensusContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.DPoS")).Value;
+        public byte[] SideChainConsensusContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.DPoS.SideChain")).Value;
+        public byte[] DividendContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Dividend")).Value;
+        public byte[] TokenContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
+        public byte[] FeeReceiverContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("FeeReceiver")).Value;
+
+        public byte[] CrossChainContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("CrossChain")).Value;
+        public byte[] ParliamentAuthContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("ParliamentAuth")).Value;
+        
         private IAbpApplicationWithInternalServiceProvider Application { get; }
 
         public ECKeyPair KeyPair { get; }
@@ -220,7 +242,8 @@ namespace AElf.Contracts.TestBase
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList(dposOptions));
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
@@ -252,7 +275,8 @@ namespace AElf.Contracts.TestBase
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList(initialMiners, miningInterval, startTimestamp));
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
@@ -305,7 +329,8 @@ namespace AElf.Contracts.TestBase
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.SideChain.ConsensusContractContainer.ConsensusContractStub>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                SideChainConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name);
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 
@@ -657,14 +682,13 @@ namespace AElf.Contracts.TestBase
             });
             return list =>
             {
-                list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(DividendContractCode, DividendSmartContractAddressNameProvider.Name);
                 //TODO: support initialize method, make the tester auto issue elf token
-                list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
-                list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider
+                list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
+                list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
                     .Name);
-                list.AddGenesisSmartContract<CrossChainContract>(CrossChainSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract<ParliamentAuthContract>(ParliamentAuthContractAddressNameProvider.Name,
+                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthContractAddressNameProvider.Name,
                     parliamentContractCallList);
             };
         }

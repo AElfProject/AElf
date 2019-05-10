@@ -18,6 +18,10 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
     </ItemGroup>
+    <ItemGroup>
+        <Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />    
+    </ItemGroup>
+
     <!--<ItemGroup>-->
       <!--<None Include="..\..\protobuf\aelf_options.proto">-->
         <!--<Link>Protobuf/Proto/aelf_options.proto</Link>-->

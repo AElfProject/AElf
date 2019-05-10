@@ -74,12 +74,12 @@ namespace AElf.OS.Node.Application
                 TransactionMethodCallList = systemTransactionMethodCallList
             });
         }
-        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
-            Hash name = null, SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList = null)
-        {
-            // TODO: Change this
-            genesisSmartContracts.AddGenesisSmartContract(typeof(T), name, systemTransactionMethodCallList);
-        }
+//        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
+//            Hash name = null, SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList = null)
+//        {
+//            // TODO: Change this
+//            genesisSmartContracts.AddGenesisSmartContract(typeof(T), name, systemTransactionMethodCallList);
+//        }
         public static void Add(this SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList, string methodName,
             IMessage input)
         {
@@ -111,15 +111,15 @@ namespace AElf.OS.Node.Application
             genesisSmartContracts.AddGenesisSmartContract(code, name, systemTransactionMethodCallList);
         }
 
-        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
-            Hash name, Action<SystemContractDeploymentInput.Types.SystemTransactionMethodCallList> action)
-        {
-            SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-
-            action?.Invoke(systemTransactionMethodCallList);
-
-            genesisSmartContracts.AddGenesisSmartContract<T>(name, systemTransactionMethodCallList);
-        }
+//        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
+//            Hash name, Action<SystemContractDeploymentInput.Types.SystemTransactionMethodCallList> action)
+//        {
+//            SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+//
+//            action?.Invoke(systemTransactionMethodCallList);
+//
+//            genesisSmartContracts.AddGenesisSmartContract<T>(name, systemTransactionMethodCallList);
+//        }
 
     }
 
