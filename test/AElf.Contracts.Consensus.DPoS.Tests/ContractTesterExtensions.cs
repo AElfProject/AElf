@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using Acs4;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.Dividend;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -171,7 +172,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 });
 
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",
                 Decimals = 2,
@@ -182,7 +183,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
 
-            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.IssueNativeToken), new IssueNativeTokenInput
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 20,
@@ -191,7 +192,7 @@ namespace AElf.Contracts.Consensus.DPoS
             });
 
             // For testing.
-            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
                 Symbol = "ELF",
                 Amount = DPoSContractConsts.LockTokenForElection * 80,
@@ -204,10 +205,15 @@ namespace AElf.Contracts.Consensus.DPoS
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
-                    list.AddGenesisSmartContract<DividendContractContainer.DividendContractStub>(
+                    // TODO: This is a workaround, need cleanup
+                    list.AddGenesisSmartContract(
+                        ContractsDeployer.GetContractCodes<DividendContractContainer.DividendContractStub>()
+                            .Single(kv=>kv.Key.Contains("Dividend")).Value,
                         DividendSmartContractAddressNameProvider.Name,
                         dividendMethodCallList);
-                    list.AddGenesisSmartContract<TokenContract>(
+                    list.AddGenesisSmartContract(
+                        ContractsDeployer.GetContractCodes<TokenContractContainer.TokenContractStub>()
+                            .Single(kv=>kv.Key.Contains("MultiToken")).Value,
                         TokenSmartContractAddressNameProvider.Name,
                         tokenContractCallList);
                 });
@@ -407,7 +413,7 @@ namespace AElf.Contracts.Consensus.DPoS
             this ContractTester<DPoSContractTestAElfModule> contractTester,
             Address receiverAddress, long amount)
         {
-            return await contractTester.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Transfer),
+            return await contractTester.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContractContainer.TokenContractStub.Transfer),
                 new TransferInput
                 {
                     To = receiverAddress,
@@ -424,7 +430,7 @@ namespace AElf.Contracts.Consensus.DPoS
             foreach (var receiverAddress in receiverAddresses)
             {
                 var result = await contractTester.ExecuteTokenContractMethodWithMiningAsync(
-                    nameof(TokenContract.Transfer),
+                    nameof(TokenContractContainer.TokenContractStub.Transfer),
                     new TransferInput
                     {
                         To = receiverAddress,
@@ -441,7 +447,7 @@ namespace AElf.Contracts.Consensus.DPoS
             Address targetAddress)
         {
             var bytes = await contractTester.CallContractMethodAsync(contractTester.GetTokenContractAddress(),
-                nameof(TokenContract.GetBalance), new GetBalanceInput
+                nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
                 {
                     Owner = targetAddress,
                     Symbol = "ELF"
@@ -486,7 +492,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 var candidateKeyPair = CryptoHelpers.GenerateKeyPair();
                 transferTxs.Add(await starter.GenerateTransactionAsync(starter.GetTokenContractAddress(),
-                    nameof(TokenContract.Transfer), starter.KeyPair, new TransferInput
+                    nameof(TokenContractContainer.TokenContractStub.Transfer), starter.KeyPair, new TransferInput
                     {
                         To = Address.FromPublicKey(candidateKeyPair.PublicKey),
                         Amount = DPoSContractConsts.LockTokenForElection,
