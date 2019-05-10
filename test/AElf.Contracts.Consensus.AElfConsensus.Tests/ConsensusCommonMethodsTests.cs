@@ -59,7 +59,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         }
 
 
-        [Fact]
+        [Fact(Skip = "Need more contracts to be deployed.")]
         public async Task AElfConsensusContract_Process()
         {
             await BootMinerChangeRoundAsync();

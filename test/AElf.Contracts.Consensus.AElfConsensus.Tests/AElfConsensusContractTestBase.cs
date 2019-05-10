@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.MinersCountProvider;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestKit;
@@ -79,6 +80,16 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                         TransactionMethodCallList = GenerateElectionInitializationCallList()
                     })).Output;
             ElectionContractStub = GetElectionContractTester(BootMinerKeyPair);
+
+//            AsyncHelper.RunSync(() =>
+//                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
+//                    new SystemContractDeploymentInput
+//                    {
+//                        Category = KernelConstants.CodeCoverageRunnerCategory,
+//                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(MinersCountProviderContract).Assembly.Location)),
+//                        Name = MinersCountProviderSmartContractAddress.Name,
+//                        TransactionMethodCallList = GenerateElectionInitializationCallList()
+//                    }));
 
             // Deploy AElf Consensus Contract.
             AElfConsensusContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)

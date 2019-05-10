@@ -17,6 +17,7 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.MinersCountProvider\AElf.Contracts.Consensus.MinersCountProvider.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AElfConsensus\AElf.Contracts.Consensus.AElfConsensus.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
