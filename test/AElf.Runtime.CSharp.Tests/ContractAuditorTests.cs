@@ -36,44 +36,11 @@ namespace AElf.Runtime.CSharp.Tests
                 }
             });
         }
-
-        [Fact]
-        public void CheckBadContract_ForRandomUsage()
-        {
-            LookFor(_findings, i => i.Namespace == "System" && i.Type == "Random")
-                .ShouldNotBeNull();
-        }
+        
+        #region Positive Cases
         
         [Fact]
-        public void CheckBadContract_ForUtcNowUsage()
-        {
-            LookFor(_findings, i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_UtcNow")
-                .ShouldNotBeNull();
-        }        
-        
-        [Fact]
-        public void CheckBadContract_ForDoubleType()
-        {
-            LookFor(_findings, i => i.Namespace == "System" && i.Type == "Double")
-                .ShouldNotBeNull();
-        }
-        
-        [Fact]
-        public void CheckBadContract_ForDiskOperations()
-        {
-            LookFor(_findings, i => i.Namespace == "System.IO")
-                .ShouldNotBeNull();
-        }
-        
-        [Fact]
-        public void CheckBadContract_ForFloatOperations()
-        {
-            _findings.FirstOrDefault(f => f.GetType() == typeof(FloatOpsValidationResult))
-                .ShouldNotBeNull();
-        }
-
-        [Fact]
-        public void CodeCheck_DefaultContracts()
+        public void CheckDefaultContracts_AllShouldPass()
         {
             // TODO: Add other contracts in contract security test once contract dependencies are simplified.
             var contracts = new[]
@@ -91,15 +58,104 @@ namespace AElf.Runtime.CSharp.Tests
                 Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), false));
             }
         }
+        
+        #endregion
+        
+        #region Negative Cases
 
-        private Info LookFor(IEnumerable<ValidationResult>  findings, Func<Info, bool> criteria)
+        [Fact]
+        public void CheckBadContract_ForRandomUsage()
         {
-            return findings.Select(f => f.Info).Where(criteria).FirstOrDefault();
+            LookFor(_findings, 
+                    "UpdateStateWithRandom", 
+                    i => i.Namespace == "System" && i.Type == "Random")
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
+        public void CheckBadContract_ForDateTimeUtcNowUsage()
+        {
+            LookFor(_findings, 
+                    "UpdateStateWithCurrentTime", 
+                    i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_UtcNow")
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
+        public void CheckBadContract_ForDateTimeNowUsage()
+        {
+            LookFor(_findings, 
+                    "UpdateStateWithCurrentTime",
+                    i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_Now")
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
+        public void CheckBadContract_ForDateTimeTodayUsage()
+        {
+            LookFor(_findings, 
+                    "UpdateStateWithCurrentTime",
+                    i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_Today")
+                .ShouldNotBeNull();
+        }
+
+        [Fact]
+        public void CheckBadContract_ForDoubleTypeUsage()
+        {
+            LookFor(_findings, 
+                    "UpdateDoubleState",
+                    i => i.Namespace == "System" && i.Type == "Double")
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
+        public void CheckBadContract_ForDiskOpsUsage()
+        {
+            LookFor(_findings, 
+                    "WriteFileToNode",
+                    i => i.Namespace == "System.IO")
+                .ShouldNotBeNull();
+        }
+
+        [Fact]
+        public void CheckBadContract_ForDeniedMemberUseInNestedClass()
+        {
+            LookFor(_findings, 
+                    "UseDeniedMemberInNestedClass",
+                    i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_Now")
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
+        public void CheckBadContract_ForDeniedMemberUseInSeparateClass()
+        {
+            LookFor(_findings, 
+                    "UseDeniedMemberInSeparateClass",
+                    i => i.Namespace == "System" && i.Type == "DateTime" && i.Member == "get_Now")
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
+        public void CheckBadContract_ForFloatOperations()
+        {
+            _findings.FirstOrDefault(f => f.GetType() == typeof(FloatOpsValidationResult))
+                .ShouldNotBeNull();
+        }
+        
+        #endregion
+
+        #region Test Helpers
+
+        private Info LookFor(IEnumerable<ValidationResult>  findings, string referencingMethod, Func<Info, bool> criteria)
+        {
+            return findings.Select(f => f.Info).FirstOrDefault(i => i.ReferencingMethod == referencingMethod && criteria(i));
         }
 
         private byte[] ReadCode(string path)
         {
             return File.Exists(path) ? File.ReadAllBytes(path) : throw new FileNotFoundException("Contract DLL cannot be found. " + path);
         }
+        
+        #endregion
     }
 }

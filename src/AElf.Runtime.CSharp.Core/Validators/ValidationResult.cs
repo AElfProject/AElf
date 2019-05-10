@@ -14,39 +14,39 @@ namespace AElf.Runtime.CSharp.Validators
             Message = message;
         }
 
-        public ValidationResult WithInfo(string nm, string type, string method, string member)
+        public ValidationResult WithInfo(string referencingMethod, string nm, string type, string member)
         {
-            Info = new Info(nm, type, method, member);
+            Info = new Info(referencingMethod, nm, type, member);
             return this;
         }
 
         public override string ToString()
         {
-            return $"[{GetType().Name}] {Message}" + Info;
+            return $"[{GetType().Name}] {Message} " + Info;
         }
     }
     
     public class Info
     {
+        public readonly string ReferencingMethod;
+        
         public readonly string Namespace;
 
         public readonly string Type;
 
-        public readonly string Method;
-
         public readonly string Member;
 
-        public Info(string nm, string type, string method, string member)
+        public Info(string referencingMethod, string nm, string type, string member)
         {
             Namespace = nm;
             Type = type;
-            Method = method;
+            ReferencingMethod = referencingMethod;
             Member = member;
         }
 
         public override string ToString()
         {
-            return $"{Namespace} > {Type} > {Method} > {Member}";
+            return $"{ReferencingMethod} > {Namespace} | {Type} | {Member}";
         }
     }
 }

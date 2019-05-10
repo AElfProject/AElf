@@ -58,5 +58,35 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
             
             return new Empty();
         }
+
+        public override Empty TestCallToNestedClass(Empty input)
+        {
+            State.CurrentTime.Value = NestedClass.UseDeniedMemberInNestedClass();
+
+            return new Empty();
+        }
+        
+        public override Empty TestCallToSeparateClass(Empty input)
+        {
+            State.CurrentTime.Value = SeparateClass.UseDeniedMemberInSeparateClass();
+            
+            return new Empty();
+        }
+
+        private class NestedClass
+        {
+            public static DateTime UseDeniedMemberInNestedClass()
+            {
+                return DateTime.Now;
+            }
+        }
+    }
+    
+    public class SeparateClass
+    {
+        public static DateTime UseDeniedMemberInSeparateClass()
+        {
+            return DateTime.Now;
+        }
     }
 }

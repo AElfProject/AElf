@@ -9,20 +9,19 @@ option csharp_namespace = "AElf.Runtime.CSharp.Tests.BadContract";
 service BadContract {
     option (aelf.csharp_state) = "AElf.Runtime.CSharp.Tests.BadContract.BadContractState";
 
-    rpc UpdateDoubleState (DoubleInput) returns (google.protobuf.Empty) {
-    }
+    rpc UpdateDoubleState (DoubleInput) returns (google.protobuf.Empty) { }
     
-    rpc UpdateFloatState (FloatInput) returns (google.protobuf.Empty) {
-    }
+    rpc UpdateFloatState (FloatInput) returns (google.protobuf.Empty) { }
     
-    rpc UpdateStateWithRandom (google.protobuf.Empty) returns (RandomOutput) {
-    }
+    rpc UpdateStateWithRandom (google.protobuf.Empty) returns (RandomOutput) { }
     
-    rpc UpdateStateWithCurrentTime (google.protobuf.Empty) returns (DateTimeOutput) {
-    }
+    rpc UpdateStateWithCurrentTime (google.protobuf.Empty) returns (DateTimeOutput) { }
     
-    rpc WriteFileToNode (FileInfoInput) returns (google.protobuf.Empty) {
-    }
+    rpc WriteFileToNode (FileInfoInput) returns (google.protobuf.Empty) { }
+    
+    rpc TestCallToNestedClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestCallToSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
 }
 
 message DoubleInput {
