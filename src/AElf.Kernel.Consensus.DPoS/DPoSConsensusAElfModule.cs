@@ -26,7 +26,7 @@ namespace AElf.Kernel.Consensus.DPoS
         {
 
             context.Services.AddAssemblyOf<DPoSConsensusAElfModule>();
-            context.Services.AddSingleton<IConsensusService, ConsensusService>();
+            context.Services.AddSingleton<IConsensusService,ConsensusService>();
             context.Services.AddSingleton<ConsensusControlInformation>();
 
             context.Services.AddScoped<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();

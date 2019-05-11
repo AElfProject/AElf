@@ -7,6 +7,7 @@ using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.Threading;
@@ -43,9 +44,19 @@ namespace AElf.Kernel.Consensus.DPoS.Application
 
         public ILogger<DPoSInformationGenerationService> Logger { get; set; }
 
+        // Workaround
+        public DPoSInformationGenerationService(IAccountService accountService,
+            ISmartContractAddressService smartContractAddressService,
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+            IServiceProvider serviceProvider) : this(accountService, smartContractAddressService,
+            transactionReadOnlyExecutionService, serviceProvider.GetRequiredService<ConsensusControlInformation>())
+        {
+        }
+
         internal DPoSInformationGenerationService(IAccountService accountService,
-            ConsensusControlInformation controlInformation, ISmartContractAddressService smartContractAddressService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
+            ISmartContractAddressService smartContractAddressService,
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+            ConsensusControlInformation controlInformation)
         {
             _accountService = accountService;
             _controlInformation = controlInformation;

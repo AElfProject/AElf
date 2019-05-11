@@ -132,8 +132,8 @@ namespace AElf.Kernel.Consensus.DPoS
                 }
             };
 
-            return new DPoSInformationGenerationService(_accountService, information, _smartContractAddressService,
-                _transactionReadOnlyExecutionService);
+            return new DPoSInformationGenerationService(_accountService, _smartContractAddressService,
+                _transactionReadOnlyExecutionService, information);
         }
     }
 }
