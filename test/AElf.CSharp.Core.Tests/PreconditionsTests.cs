@@ -19,7 +19,7 @@ namespace AElf.CSharp.Core
             reference.ShouldNotBeNull();
             var addressInfo = reference();
             addressInfo.ShouldNotBeNull();
-            addressInfo.GetType().ToString().ShouldBe("AElf.Address");
+            addressInfo.GetType().ToString().ShouldBe("AElf.Types.Address");
 
             Func<Address, string> func2 = address => address.GetFormatted();
             var reference1 = Preconditions.CheckNotNull(func2, "address");
