@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.Events;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Miner.Application;
 using Xunit;
 

@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Kernel.Consensus.Events;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using Microsoft.Extensions.Logging;
