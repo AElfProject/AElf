@@ -29,8 +29,8 @@ namespace AElf.Kernel
 
             services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
 
-            services.AddStoreKeyPrefixProvide<BlockBody>("b");
-            services.AddStoreKeyPrefixProvide<BlockHeader>("h");
+            services.AddStoreKeyPrefixProvide<BlockBody>("bb");
+            services.AddStoreKeyPrefixProvide<BlockHeader>("bh");
             services.AddStoreKeyPrefixProvide<BlockStateSet>("bss");
             services.AddStoreKeyPrefixProvide<Chain>("c");
             services.AddStoreKeyPrefixProvide<ChainBlockLink>("cbl");
