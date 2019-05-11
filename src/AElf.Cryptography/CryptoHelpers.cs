@@ -92,6 +92,12 @@ namespace AElf.Cryptography
             }
         }
 
+        public static bool VerifySignature(byte[] signature, byte[] data, byte[] publicKey)
+        {
+            var recoverResult = RecoverPublicKey(signature, data, out var recoverPublicKey);
+            return recoverResult && publicKey.BytesEqual(recoverPublicKey);
+        }
+
         public static bool RecoverPublicKey(byte[] signature, byte[] hash, out byte[] publicKey)
         {
             publicKey = null;
