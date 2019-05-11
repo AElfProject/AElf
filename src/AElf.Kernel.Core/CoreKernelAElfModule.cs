@@ -31,17 +31,17 @@ namespace AElf.Kernel
 
             services.AddStoreKeyPrefixProvide<BlockBody>("bb");
             services.AddStoreKeyPrefixProvide<BlockHeader>("bh");
-            services.AddStoreKeyPrefixProvide<BlockStateSet>("bss");
-            services.AddStoreKeyPrefixProvide<Chain>("c");
-            services.AddStoreKeyPrefixProvide<ChainBlockLink>("cbl");
-            services.AddStoreKeyPrefixProvide<ChainBlockIndex>("cbi");
-            services.AddStoreKeyPrefixProvide<ChainStateInfo>("csi");
+            services.AddStoreKeyPrefixProvide<BlockStateSet>("bs");
+            services.AddStoreKeyPrefixProvide<Chain>("ch");
+            services.AddStoreKeyPrefixProvide<ChainBlockLink>("cl");
+            services.AddStoreKeyPrefixProvide<ChainBlockIndex>("ci");
+            services.AddStoreKeyPrefixProvide<ChainStateInfo>("cs");
             services.AddStoreKeyPrefixProvide<FunctionMetadata>("fm");
-            services.AddStoreKeyPrefixProvide<SerializedCallGraph>("scg");
-            services.AddStoreKeyPrefixProvide<Transaction>("t");
-            services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("tbi");
+            services.AddStoreKeyPrefixProvide<SerializedCallGraph>("sg");
+            services.AddStoreKeyPrefixProvide<Transaction>("tx");
+            services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("ti");
             services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
-            services.AddStoreKeyPrefixProvide<TransactionReceipt>("trc");
+            services.AddStoreKeyPrefixProvide<TransactionReceipt>("tc");
             services.AddStoreKeyPrefixProvide<VersionedState>("vs");
             
 
