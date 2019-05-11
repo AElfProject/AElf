@@ -24,9 +24,6 @@
         <None Include="..\..\protobuf\core.proto">
             <Link>Protobuf/Proto/core.proto</Link>
         </None>
-        <None Include="..\..\protobuf\aelf_consensus_contract.proto">
-            <Link>Protobuf/Proto/dpos_sidechain_contract.proto</Link>
-        </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="protoc --proto_path=../../protobuf --csharp_out=./Protobuf/Generated --csharp_opt=file_extension=.g.cs aelf_consensus_contract.proto" />

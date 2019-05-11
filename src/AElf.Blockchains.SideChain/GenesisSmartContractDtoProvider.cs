@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Contracts.Consensus.AElfConsensus;
-using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -9,9 +9,9 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus.AElfConsensus;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
-using MinerListWithRoundNumber = AElf.Contracts.Consensus.DPoS.SideChain.MinerListWithRoundNumber;
 
 namespace AElf.Blockchains.SideChain
 {
@@ -71,7 +71,14 @@ namespace AElf.Blockchains.SideChain
                 await _chainInitializationPlugin.RequestChainInitializationContextAsync(_chainOptions.ChainId));
 
             var miners = chainInitializationContext == null
-                ? _consensusOptions.InitialMiners.ToMiners()
+                ? new Miners
+                {
+                    PublicKeys =
+                    {
+                        _consensusOptions.InitialMiners.Select(p =>
+                            ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p)))
+                    }
+                }
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;
             var timestamp = chainInitializationContext?.CreatedTime.ToDateTime() ?? _consensusOptions.StartTimestamp;
             consensusMethodCallList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract),

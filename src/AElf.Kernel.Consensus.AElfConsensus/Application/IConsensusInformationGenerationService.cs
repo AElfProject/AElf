@@ -4,9 +4,11 @@ using Google.Protobuf;
 
 namespace AElf.Kernel.Consensus.AElfConsensus.Application
 {
+    // TODO: Refactor.
     public interface IConsensusInformationGenerationService
     {
         IMessage GetTriggerInformation(TriggerType triggerType);
+
         IMessage ParseConsensusTriggerInformation(byte[] consensusTriggerInformation);
 
         Task<T> ExecuteContractAsync<T>(IChainContext chainContext, string consensusMethodName,

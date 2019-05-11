@@ -16,6 +16,7 @@ service AElfConsensusContract {
     }
     rpc FirstRound (Round) returns (google.protobuf.Empty) {
     }
+    
     rpc UpdateValue (UpdateValueInput) returns (google.protobuf.Empty) {
     }
     rpc NextRound (Round) returns (google.protobuf.Empty) {
@@ -24,8 +25,10 @@ service AElfConsensusContract {
     }
     rpc UpdateTinyBlockInformation (TinyBlockInput) returns (google.protobuf.Empty) {
     }
+    
     rpc GetLIBOffset (google.protobuf.Empty) returns (SInt64Value) {
     }
+    
     rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
     }
 
@@ -45,6 +48,7 @@ service AElfConsensusContract {
     rpc ValidateConsensusAfterExecution (AElfConsensusHeaderInformation) returns (ValidationResult) {
         option (aelf.is_view) = true;
     }
+    
     rpc GetCurrentMiners (google.protobuf.Empty) returns (Miners) {
         option (aelf.is_view) = true;
     }

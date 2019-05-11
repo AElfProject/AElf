@@ -27,6 +27,7 @@ namespace AElf.Kernel.Consensus.AElfConsensus.Application
 
         private TriggerType _firstTriggerType;
 
+        // TODO: Method
         private Hash RandomHash
         {
             get
@@ -112,7 +113,7 @@ namespace AElf.Kernel.Consensus.AElfConsensus.Application
         {
             var tx = new Transaction
             {
-                From = Address.Generate(),
+                From = Address.Zero,
                 To = _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
                     .Name),
                 MethodName = consensusMethodName,

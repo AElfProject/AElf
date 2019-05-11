@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Google.Protobuf;
 
 namespace AElf
 {

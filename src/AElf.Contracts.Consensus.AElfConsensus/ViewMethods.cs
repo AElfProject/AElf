@@ -331,6 +331,16 @@ namespace AElf.Contracts.Consensus.AElfConsensus
             return new Miners();
         }
 
+        public override MinerListWithRoundNumber GetCurrentMinerListWithRoundNumber(Empty input)
+        {
+            var miners = GetCurrentMiners(new Empty());
+            return new MinerListWithRoundNumber
+            {
+                MinerList = miners,
+                RoundNumber = State.CurrentRoundNumber.Value
+            };
+        }
+
         public override Round GetPreviousRoundInformation(Empty input)
         {
             return TryToGetPreviousRoundInformation(out var previousRound) ? previousRound : new Round();

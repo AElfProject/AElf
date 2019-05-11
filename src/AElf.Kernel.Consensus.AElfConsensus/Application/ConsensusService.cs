@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.Application
 {
+    // TODO: Use xxprovider to refactor.
     public class ConsensusService : IConsensusService
     {
 

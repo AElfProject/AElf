@@ -23,6 +23,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
         public MappedState<long, Miners> MinersMap { get; set; }
         
+        // TODO: Remove
         public SingletonState<int> BaseTimeUnit { get; set; }
 
         public SingletonState<long> MainChainRoundNumber { get; set; }

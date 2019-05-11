@@ -19,16 +19,18 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 ? int.MaxValue
                 : input.TimeEachTerm;
 
+            // TODO: Use Context to get contract address.
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
 
             if (input.IsTermStayOne || input.IsSideChain)
             {
                 return new Empty();
             }
-            
+
             State.MinersCountProviderContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(input.MinersCountProviderContractSystemName);
 
+            // TODO: Remove
             State.BaseTimeUnit.Value = input.BaseTimeUnit;
 
             State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
@@ -55,8 +57,8 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
         public override Empty FirstRound(Round input)
         {
+            Assert(Context.Sender == Context.GetZeroSmartContractAddress(), "Sender must be contract zero.");
             Assert(input.RoundNumber == 1, "Invalid round number.");
-
             Assert(input.RealTimeMinersInformation.Any(), "No miner in input data.");
 
             State.CurrentTermNumber.Value = 1;
@@ -74,7 +76,9 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 });
             }
 
+            // TODO: -> MinerList
             var miners = new Miners {TermNumber = 1};
+            // TODO: Imple to SDK. ToMappingKey() like ToStorageKey()
             miners.PublicKeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k =>
                 ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k))));
             miners.TermNumber = 1;
@@ -227,7 +231,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
                 Context.LogDebug(() => $"LIB found, offset is {offset}");
                 Context.Fire(new IrreversibleBlockFound()
                 {
-                    Offset = offset
+                    Offset = offset.Mul(AElfConsensusContractConstants.TinyBlocksNumber)
                 });
             }
         }
@@ -320,6 +324,7 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
         {
+            Assert(State.ElectionContract.Value == null, "Only side chain can update consensus information.");
             // For now we just extract the miner list from main chain consensus information, then update miners list.
             if(input == null || input.Bytes.IsEmpty)
                 return new Empty();
