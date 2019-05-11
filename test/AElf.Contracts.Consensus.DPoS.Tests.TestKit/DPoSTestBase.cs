@@ -1,21 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
 using AElf.Contracts.Dividend;
-using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
-using AElf.OS.Node.Application;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
@@ -24,6 +18,15 @@ namespace AElf.Contracts.Consensus.DPoS
 {
     public class DPoSTestBase : ContractTestBase<DPoSTestAElfModule>
     {
+        public byte[] ConsensusContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.DPoS")).Value;
+        public byte[] SideChainConsensusContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.DPoS.SideChain")).Value;
+        public byte[] DividendContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Dividend")).Value;
+        public byte[] TokenContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
+
         protected const int MinersCount = 5;
         protected const int CandidatesCount = 10;
         protected const int VotersCount = 10;
@@ -62,7 +65,7 @@ namespace AElf.Contracts.Consensus.DPoS
             // Deploy useful contracts.
             ConsensusContractAddress = AsyncHelper.RunSync(async () => await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
-                File.ReadAllBytes(typeof(ConsensusContractContainer.ConsensusContractStub).Assembly.Location),
+                ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name,
                 BootMinerKeyPair));
 
@@ -70,7 +73,7 @@ namespace AElf.Contracts.Consensus.DPoS
             DividendContractAddress = AsyncHelper.RunSync(async () =>
                 await DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    File.ReadAllBytes(typeof(DividendContractContainer.DividendContractStub).Assembly.Location),
+                    DividendContractCode,
                     DividendSmartContractAddressNameProvider.Name,
                     BootMinerKeyPair));
             AsyncHelper.RunSync(async () => { await InitializeDividend(); });
@@ -78,7 +81,7 @@ namespace AElf.Contracts.Consensus.DPoS
                 async () =>
                     await DeploySystemSmartContract(
                         KernelConstants.CodeCoverageRunnerCategory,
-                        File.ReadAllBytes(typeof(TokenContractContainer.TokenContractStub).Assembly.Location),
+                        TokenContractCode,
                         TokenSmartContractAddressNameProvider.Name,
                         BootMinerKeyPair));
             AsyncHelper.RunSync(async () => { await InitializeToken(); });
