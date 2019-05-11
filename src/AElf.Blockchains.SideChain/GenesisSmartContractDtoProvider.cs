@@ -44,7 +44,7 @@ namespace AElf.Blockchains.SideChain
             var l = new List<GenesisSmartContractDto>();
 
             l.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Contains("Consensus.DPoS")).Value,
+                _codes.Single(kv=>kv.Key.Contains("Consensus.DPoS.SideChain")).Value,
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList());
 
@@ -65,7 +65,8 @@ namespace AElf.Blockchains.SideChain
             GenerateTokenInitializationCallList()
         {
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeTokenContract), new IntializeTokenContractInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeTokenContract),
+                new IntializeTokenContractInput
             {
                 CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
             });

@@ -119,7 +119,9 @@ namespace AElf.Runtime.CSharp
                 if (!_callHandlers.TryGetValue(methodName, out var handler))
                 {
                     throw new RuntimeException(
-                        $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers.");
+                        $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: "+
+                        string.Join(", ", _callHandlers.Keys.OrderBy(k=>k))
+                        );
                 }
 
                 try

@@ -29,15 +29,6 @@
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
-    <!--<Target Name="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="protoc &#45;&#45;proto_path=../../protobuf &#45;&#45;csharp_out=./Protobuf/Generated &#45;&#45;csharp_opt=file_extension=.g.cs dpos_sidechain_contract.proto" />-->
-        <!--<Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="protoc &#45;&#45;proto_path=../../protobuf &#45;&#45;csharp_out=./Protobuf/Generated &#45;&#45;csharp_opt=file_extension=.g.cs dpos_sidechain_contract.proto" />-->
-    <!--</Target>-->
-    <!--<Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<ItemGroup>-->
-            <!--<Compile Include="./Protobuf/Generated/*.cs" />-->
-        <!--</ItemGroup>-->
-    <!--</Target>-->
     <ItemGroup>
         <Contract Include="..\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />
         <Contract Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />

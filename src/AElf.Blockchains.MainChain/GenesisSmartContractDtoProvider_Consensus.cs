@@ -19,7 +19,7 @@ namespace AElf.Blockchains.MainChain
             var l = new List<GenesisSmartContractDto>();
 
             l.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Contains("Consensus.DPoS")).Value,
+                _codes.Single(kv=>kv.Key.Split(",").First().Trim().EndsWith("Consensus.DPoS")).Value,
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList());
             return l;
