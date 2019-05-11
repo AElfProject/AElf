@@ -18,9 +18,6 @@
       <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
       <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
     </ItemGroup>
-    <ItemGroup>
-        <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
-    </ItemGroup>
 
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs3.proto">
@@ -36,4 +33,6 @@
             <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
+
+    <Import Project="..\..\test\AllContracts.props"/>
 </Project>
