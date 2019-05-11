@@ -118,12 +118,12 @@ namespace AElf.Kernel.Miner.Application
                 PreviousBlockHeight = preBlockHeight,
                 BlockTime = expectedMiningTime
             });
+            block.Header.SignerPubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
             return block;
         }
 
         private async Task SignBlockAsync(Block block)
         {
-            block.Header.SignerPubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync());
             var signature = await _accountService.SignAsync(block.GetHash().DumpByteArray());
             block.Header.Signature = ByteString.CopyFrom(signature);
         }
