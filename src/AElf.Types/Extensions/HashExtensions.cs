@@ -9,6 +9,7 @@ namespace AElf
             return Hash.FromRawBytes(BitConverter.GetBytes(obj));
         }
         
+        // TODO: Consider Span
         public static Hash Xor(this Hash hash, Hash another)
         {
             if (hash.Value.Length != another.Value.Length)
@@ -16,15 +17,13 @@ namespace AElf
                 throw new InvalidOperationException("The two hashes don't have the same length");
             }
 
-            Span<byte> newBytesSpan = new byte[hash.Value.Length];
-            Span<byte> hashSpan = hash.Value.ToByteArray();
-            Span<byte> anotherHashSpan = another.Value.ToByteArray();
+            var newBytes = new byte[hash.Value.Length];
             for (var i = 0; i < hash.Value.Length; ++i)
             {
-                newBytesSpan[i] = (byte) (hashSpan[i] ^ anotherHashSpan[i]);
+                newBytes[i] = (byte) (hash.Value[i] ^ another.Value[i]);
             }
 
-            return Hash.LoadByteArray(newBytesSpan.ToArray());
+            return Hash.LoadByteArray(newBytes);
         }
     }
 }

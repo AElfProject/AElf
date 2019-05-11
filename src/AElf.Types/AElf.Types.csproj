@@ -7,7 +7,6 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Google.Protobuf" Version="3.7.0" />
-        <PackageReference Include="System.Memory" Version="4.5.2" />
     </ItemGroup>
     <ItemGroup>
       <None Include="..\..\protobuf\common.proto">
