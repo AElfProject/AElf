@@ -47,6 +47,8 @@ namespace AElf.Contracts.Election
 
         public SingletonState<int> MaximumLockTime { get; set; }
 
+        public SingletonState<int> TimeEachTerm { get; set; }
+
         public SingletonState<Hash> MinerElectionVotingItemId { get; set; }
 
     }

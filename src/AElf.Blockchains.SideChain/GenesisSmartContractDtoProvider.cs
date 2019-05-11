@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AElf.Contracts.Consensus.AElfConsensus;
 using AElf.Contracts.Consensus.DPoS.SideChain;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
@@ -10,6 +11,7 @@ using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
+using MinerListWithRoundNumber = AElf.Contracts.Consensus.DPoS.SideChain.MinerListWithRoundNumber;
 
 namespace AElf.Blockchains.SideChain
 {
@@ -17,16 +19,16 @@ namespace AElf.Blockchains.SideChain
     public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly ChainOptions _chainOptions;
-        private readonly ConsensusOptions _dposOptions;
+        private readonly ConsensusOptions _consensusOptions;
         private readonly CrossChainConfigOption _crossChainConfigOptions;
         private readonly IChainInitializationPlugin _chainInitializationPlugin;
 
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ChainOptions> chainOptions,
-            IOptionsSnapshot<ConsensusOptions> dposOptions, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOptions,
+            IOptionsSnapshot<ConsensusOptions> consensusOptions, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOptions,
             IChainInitializationPlugin chainInitializationPlugin)
         {
             _chainOptions = chainOptions.Value;
-            _dposOptions = dposOptions.Value;
+            _consensusOptions = consensusOptions.Value;
             _crossChainConfigOptions = crossChainConfigOptions.Value;
             _chainInitializationPlugin = chainInitializationPlugin;
         }
@@ -35,7 +37,7 @@ namespace AElf.Blockchains.SideChain
         {
             var l = new List<GenesisSmartContractDto>();
 
-            l.AddGenesisSmartContract<ConsensusContract>(
+            l.AddGenesisSmartContract<AElfConsensusContract>(
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList());
 
@@ -69,16 +71,16 @@ namespace AElf.Blockchains.SideChain
                 await _chainInitializationPlugin.RequestChainInitializationContextAsync(_chainOptions.ChainId));
 
             var miners = chainInitializationContext == null
-                ? _dposOptions.InitialMiners.ToMiners()
+                ? _consensusOptions.InitialMiners.ToMiners()
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;
-            var timestamp = chainInitializationContext?.CreatedTime.ToDateTime() ?? _dposOptions.StartTimestamp;
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
-                miners.GenerateFirstRoundOfNewTerm(_dposOptions.MiningInterval, timestamp.ToUniversalTime()));
-            consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
-                new DPoSStrategyInput
+            var timestamp = chainInitializationContext?.CreatedTime.ToDateTime() ?? _consensusOptions.StartTimestamp;
+            consensusMethodCallList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract),
+                new InitialAElfConsensusContractInput
                 {
-                    IsTimeSlotSkippable = _dposOptions.IsTimeSlotSkippable,
+                    IsSideChain = true
                 });
+            consensusMethodCallList.Add(nameof(AElfConsensusContract.FirstRound),
+                miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp.ToUniversalTime()));
             return consensusMethodCallList;
         }
 
@@ -87,7 +89,7 @@ namespace AElf.Blockchains.SideChain
         {
             var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
-                new AElf.Contracts.CrossChain.InitializeInput
+                new InitializeInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,

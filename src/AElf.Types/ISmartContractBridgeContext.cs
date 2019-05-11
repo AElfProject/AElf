@@ -16,14 +16,6 @@ namespace AElf
         public string NativeSymbol => this[nameof(NativeSymbol)];
 
         public const string NativeSymbolName = nameof(NativeSymbol);
-    
-        public string TimeEachTerm => this[nameof(TimeEachTerm)];
-
-        public const string TimeEachTermName = nameof(TimeEachTerm);
-
-        public string BaseTimeUnit => this[nameof(BaseTimeUnit)];
-
-        public const string BaseTimeUnitName = nameof(BaseTimeUnit);
     }
 
     public interface ISmartContractBridgeContext

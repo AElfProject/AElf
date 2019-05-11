@@ -26,7 +26,9 @@ service AElfConsensusContract {
     }
     rpc GetLIBOffset (google.protobuf.Empty) returns (SInt64Value) {
     }
-    
+    rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
+    }
+
     // Views
     rpc GetConsensusCommand (CommandInput) returns (ConsensusCommand) {
         option (aelf.is_view) = true;
@@ -44,6 +46,9 @@ service AElfConsensusContract {
         option (aelf.is_view) = true;
     }
     rpc GetCurrentMiners (google.protobuf.Empty) returns (Miners) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber) {
         option (aelf.is_view) = true;
     }
     rpc GetRoundInformation (SInt64Value) returns (Round) {
@@ -73,6 +78,8 @@ message InitialAElfConsensusContractInput {
     Hash miners_count_provider_contract_system_name = 4;
     Hash token_contract_system_name = 5;
     Hash vote_contract_system_name = 6;
+    sint32 time_each_term = 7;
+    sint32 base_time_unit = 8;
 }
 
 // Just used as parameter of consensus contract method.
@@ -175,7 +182,7 @@ message TermInfo {
 
 message MinerListWithRoundNumber {
     Miners MinerList = 1;
-    sint64 RoundNumber = 4;
+    sint64 RoundNumber = 2;
 }
 
 message TinyBlockInput {

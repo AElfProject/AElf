@@ -29,7 +29,9 @@ namespace AElf.Blockchains.MainChain
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
                     MinersCountProviderContractSystemName = MinersCountProviderSmartContractAddressNameProvider.Name,
                     VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
+                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    TimeEachTerm = _consensusOptions.TimeEachTerm,
+                    BaseTimeUnit = 2 // TODO: Remove this after testing.
                 });
             aelfConsensusMethodCallList.Add(nameof(AElfConsensusContract.FirstRound),
                 new Miners

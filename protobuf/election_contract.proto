@@ -15,7 +15,7 @@ service ElectionContract {
     // Action
     rpc InitialElectionContract (InitialElectionContractInput) returns (google.protobuf.Empty) {
     }
-    rpc SetInitialMiners (PublicKeysList) returns (google.protobuf.Empty) {
+    rpc ConfigElectionContract (ConfigElectionContractInput) returns (google.protobuf.Empty) {
     }
     rpc RegisterElectionVotingEvent (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
@@ -90,6 +90,11 @@ message InitialElectionContractInput {
     Hash aelf_consensus_contract_system_name = 4;
     sint32 minimum_lock_time = 5;
     sint32 maximum_lock_time = 6;
+}
+
+message ConfigElectionContractInput {
+    repeated string miner_list = 1;
+    sint32 time_each_term = 2;
 }
 
 message GetTermSnapshotInput {

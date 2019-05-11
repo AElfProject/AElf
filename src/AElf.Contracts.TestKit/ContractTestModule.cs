@@ -67,8 +67,6 @@ namespace AElf.Contracts.TestKit
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
-                options.ContextVariables[ContextVariableDictionary.TimeEachTermName] = "7";
-                options.ContextVariables[ContextVariableDictionary.BaseTimeUnitName] = "0";// TimeUnit.Days
             });
 
             #region Infra

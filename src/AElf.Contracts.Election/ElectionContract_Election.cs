@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
@@ -26,19 +27,20 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        public override Empty SetInitialMiners(PublicKeysList input)
+        public override Empty ConfigElectionContract(ConfigElectionContractInput input)
         {
             State.AElfConsensusContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
             Assert(State.AElfConsensusContract.Value == Context.Sender, "Only Consensus Contract can call this method.");
             Assert(State.InitialMiners.Value == null, "Initial miners already set.");
-            State.InitialMiners.Value = new PublicKeysList {Value = {input.Value}};
-            foreach (var publicKey in input.Value)
+            State.InitialMiners.Value = new PublicKeysList
+                {Value = {input.MinerList.Select(k => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))}};
+            foreach (var publicKey in input.MinerList)
             {
-                State.CandidateInformationMap[publicKey.ToHex()] = new CandidateInformation {PublicKey = publicKey.ToHex()};
+                State.CandidateInformationMap[publicKey] = new CandidateInformation {PublicKey = publicKey};
             }
-
-            State.MinersCount.Value = input.Value.Count;
+            State.MinersCount.Value = input.MinerList.Count;
+            State.TimeEachTerm.Value = input.TimeEachTerm;
             return new Empty();
         }
 
@@ -53,11 +55,6 @@ namespace AElf.Contracts.Election
                 State.BasicContractZero.GetContractAddressByName.Call(State.VoteContractSystemName.Value);
             State.AElfConsensusContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
-
-            Context.LogDebug(() =>
-                $"Will change term every {Context.Variables.TimeEachTerm} Days");
-            Context.LogDebug(() => $"Minimum lock time: {State.MinimumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
-            Context.LogDebug(() => $"Maximum lock time: {State.MaximumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
 
             State.TokenContract.Create.Send(new CreateInput
             {
@@ -405,13 +402,14 @@ namespace AElf.Contracts.Election
         private long GetEndPeriod(long lockTime)
         {
             var treasury = State.ProfitContract.GetProfitItem.Call(State.TreasuryHash.Value);
-            return lockTime.Div(int.Parse(Context.Variables.TimeEachTerm)).Add(treasury.CurrentPeriod);
+            return lockTime.Div(State.TimeEachTerm.Value).Add(treasury.CurrentPeriod);
         }
 
         private long GetTimeSpan(DateTime endTime, DateTime startTime)
         {
             if ((TimeUnit) State.BaseTimeUnit.Value == TimeUnit.Minutes)
             {
+                // For testing.
                 return (long) (endTime - startTime).TotalMinutes;
             }
 

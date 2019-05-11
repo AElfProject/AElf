@@ -2,6 +2,7 @@
 using System.Linq;
 using AElf.Contracts.Consensus.MinersCountProvider;
 using AElf.Contracts.Election;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -16,19 +17,19 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             State.TimeEachTerm.Value = input.IsSideChain || input.IsTermStayOne
                 ? int.MaxValue
-                : int.Parse(Context.Variables.TimeEachTerm);
+                : input.TimeEachTerm;
 
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-
-            State.MinersCountProviderContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(input.MinersCountProviderContractSystemName);
 
             if (input.IsTermStayOne || input.IsSideChain)
             {
                 return new Empty();
             }
+            
+            State.MinersCountProviderContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(input.MinersCountProviderContractSystemName);
 
-            State.BaseTimeUnit.Value = int.Parse(Context.Variables.BaseTimeUnit);
+            State.BaseTimeUnit.Value = input.BaseTimeUnit;
 
             State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
 
@@ -66,13 +67,10 @@ namespace AElf.Contracts.Consensus.AElfConsensus
 
             if (State.ElectionContract.Value != null)
             {
-                State.ElectionContract.SetInitialMiners.Send(new PublicKeysList
+                State.ElectionContract.ConfigElectionContract.Send(new ConfigElectionContractInput
                 {
-                    Value =
-                    {
-                        input.RealTimeMinersInformation.Keys.Select(k =>
-                            ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))
-                    }
+                    MinerList = {input.RealTimeMinersInformation.Keys},
+                    TimeEachTerm = State.TimeEachTerm.Value
                 });
             }
 
@@ -319,6 +317,26 @@ namespace AElf.Contracts.Consensus.AElfConsensus
         }
 
         #endregion
+        
+        public override Empty UpdateConsensusInformation(ConsensusInformation input)
+        {
+            // For now we just extract the miner list from main chain consensus information, then update miners list.
+            if(input == null || input.Bytes.IsEmpty)
+                return new Empty();
+            var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Bytes);
+            
+            // check round number of shared consensus, not term number
+            if(consensusInformation.Round.RoundNumber <= State.MainChainRoundNumber.Value)
+                return new Empty();
+            Context.LogDebug(() => $"Shared miner list of round {consensusInformation.Round.RoundNumber}");
+            var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
+            State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
+            State.MainChainCurrentMiners.Value = new Miners
+            {
+                PublicKeys = {minersKeys.Select(k => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))}
+            };
+            return new Empty();
+        }
 
         private bool TryToAddRoundInformation(Round round)
         {
