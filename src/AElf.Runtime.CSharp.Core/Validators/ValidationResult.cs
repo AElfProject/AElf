@@ -7,7 +7,7 @@ namespace AElf.Runtime.CSharp.Validators
     {
         public string Message { get; }
 
-        public Info Info;
+        public Info Info { get; private set;  }
 
         protected ValidationResult(string message)
         {
