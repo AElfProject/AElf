@@ -240,7 +240,10 @@ namespace AElf.Kernel.Blockchain.Application
             else
             {
                 chainBlockLink.IsLinked = false;
-                chainBlockLink.ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone;
+                chainBlockLink.ExecutionStatus =
+                    chainBlockLink.ExecutionStatus == ChainBlockLinkExecutionStatus.ExecutionSuccess
+                        ? ChainBlockLinkExecutionStatus.ExecutionSuccess
+                        : ChainBlockLinkExecutionStatus.ExecutionNone;
             }
 
             var status = await _chainManager.AttachBlockToChainAsync(chain, chainBlockLink);
