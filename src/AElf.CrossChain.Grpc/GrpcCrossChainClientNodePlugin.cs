@@ -1,9 +1,5 @@
 using System.Threading.Tasks;
-using AElf.Contracts.CrossChain;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Events;
-using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus;
 
@@ -34,7 +30,7 @@ namespace AElf.CrossChain.Grpc
         public async Task StartAsync(int chainId)
         {
             _localChainId = chainId;
-            var libIdHeight = await _blockchainService.GetLibHashAndHeight();
+            var libIdHeight = await _blockchainService.GetLibHashAndHeightAsync();
             
             if (libIdHeight.BlockHeight > Constants.GenesisBlockHeight)
             {
@@ -42,15 +38,15 @@ namespace AElf.CrossChain.Grpc
                 await _newChainRegistrationService.RegisterNewChainsAsync(libIdHeight.BlockHash, libIdHeight.BlockHeight);
             }
             
-            if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.RemoteParentChainNodeIp) 
+            if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.RemoteParentChainServerHost) 
                 || _grpcCrossChainConfigOption.LocalServerPort == 0) 
                 return;
             
             await _grpcClientProvider.CreateOrUpdateClient(new GrpcCrossChainCommunicationDto
             {
                 RemoteChainId = _crossChainConfigOption.ParentChainId,
-                RemoteIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
-                RemotePort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
+                RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
+                RemoteServerPort = _grpcCrossChainConfigOption.RemoteParentChainServerPort,
                 LocalChainId = chainId,
                 LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort,
                 ConnectionTimeout = _grpcCrossChainConfigOption.ConnectionTimeout
@@ -59,14 +55,14 @@ namespace AElf.CrossChain.Grpc
 
         public async Task HandleEventAsync(GrpcCrossChainRequestReceivedEvent requestReceivedEventData)
         {
-            if (!await IsReadyToRequest())
+            if (!await IsReadyToRequestAsync())
                 return;
             var grpcCrossChainCommunicationDto = new GrpcCrossChainCommunicationDto
             {
                 ConnectionTimeout = _grpcCrossChainConfigOption.ConnectionTimeout,
                 LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort,
-                RemoteIp = requestReceivedEventData.RemoteIp,
-                RemotePort = requestReceivedEventData.RemotePort,
+                RemoteServerHost = requestReceivedEventData.RemoteServerHost,
+                RemoteServerPort = requestReceivedEventData.RemoteServerPort,
                 RemoteChainId = requestReceivedEventData.RemoteChainId,
                 LocalChainId = _localChainId
             };
@@ -77,7 +73,7 @@ namespace AElf.CrossChain.Grpc
         
         public async Task HandleEventAsync(CrossChainDataValidatedEvent eventData)
         {
-            if (!await IsReadyToRequest())
+            if (!await IsReadyToRequestAsync())
                 return;
             _grpcClientProvider.RequestCrossChainIndexing(_grpcCrossChainConfigOption.LocalServerPort);
         }
@@ -89,16 +85,16 @@ namespace AElf.CrossChain.Grpc
 
         public async Task<SideChainInitializationContext> RequestChainInitializationContextAsync(int chainId)
         {
-            string uri = string.Join(":", _grpcCrossChainConfigOption.RemoteParentChainNodeIp, _grpcCrossChainConfigOption.RemoteParentChainNodePort);
+            string uri = string.Join(":", _grpcCrossChainConfigOption.RemoteParentChainServerHost, _grpcCrossChainConfigOption.RemoteParentChainServerPort);
             var chainInitializationContext = await _grpcClientProvider.RequestChainInitializationContextAsync(uri, chainId, _grpcCrossChainConfigOption.ConnectionTimeout);
             return chainInitializationContext;
         }
 
-        private async Task<bool> IsReadyToRequest()
+        private async Task<bool> IsReadyToRequestAsync()
         {
             if (!_readyToLaunchClient)
             {
-                var libIdHeight = await _blockchainService.GetLibHashAndHeight();
+                var libIdHeight = await _blockchainService.GetLibHashAndHeightAsync();
                 _readyToLaunchClient = libIdHeight.BlockHeight > Constants.GenesisBlockHeight;
             }
 

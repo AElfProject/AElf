@@ -43,8 +43,8 @@ namespace AElf.CrossChain.Grpc
             var receivedEventData = new GrpcCrossChainRequestReceivedEvent
             {
                 RemoteChainId = ChainHelpers.ConvertBase58ToChainId("ETH"),
-                RemoteIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
-                RemotePort = _grpcCrossChainConfigOption.RemoteParentChainNodePort
+                RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
+                RemoteServerPort = _grpcCrossChainConfigOption.RemoteParentChainServerPort
             };
             await _grpcCrossChainClientNodePlugin.HandleEventAsync(receivedEventData);
         }

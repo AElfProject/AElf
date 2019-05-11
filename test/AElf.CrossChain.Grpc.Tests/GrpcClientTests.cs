@@ -17,13 +17,13 @@ namespace AElf.CrossChain.Grpc
         
         private ICrossChainServer _server;
         private ICertificateStore _certificateStore;
-        private ICrossChainDataProducer _crossChainDataProducer;
+        private IBlockCacheEntityProducer _blockCacheEntityProducer;
         
         public GrpcClientTests()
         {
             _server = GetRequiredService<ICrossChainServer>();
             _certificateStore = GetRequiredService<ICertificateStore>();
-            _crossChainDataProducer = GetRequiredService<ICrossChainDataProducer>();
+            _blockCacheEntityProducer = GetRequiredService<IBlockCacheEntityProducer>();
         }
 
         // TODO: These cases are meaningless and should be rewritten.

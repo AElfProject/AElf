@@ -72,10 +72,12 @@ namespace AElf.CrossChain
                 return false;
             
             // check cache identity
-            var res = await _crossChainDataProvider.ValidateSideChainBlockDataAsync(
-                       crossChainBlockData.SideChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Height - 1) &&
-                   await _crossChainDataProvider.ValidateParentChainBlockDataAsync(
-                       crossChainBlockData.ParentChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Height - 1);
+            var res =
+                await _crossChainDataProvider.ValidateSideChainBlockDataAsync(
+                    crossChainBlockData.SideChainBlockData.ToList(), block.Header.PreviousBlockHash,
+                    block.Height - 1) && await _crossChainDataProvider.ValidateParentChainBlockDataAsync(
+                    crossChainBlockData.ParentChainBlockData.ToList(), block.Header.PreviousBlockHash,
+                    block.Height - 1);
             return res;
         }
 
@@ -84,6 +86,5 @@ namespace AElf.CrossChain
             var bytes = _blockExtraDataService.GetExtraDataFromBlockHeader("CrossChain", header);
             return bytes == ByteString.Empty || bytes == null ? null : CrossChainExtraData.Parser.ParseFrom(bytes);
         }
-
     }
 }

@@ -3,11 +3,16 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache
 {
-    public class CrossChainDataConsumer : ICrossChainDataConsumer, ITransientDependency
+    public interface IBlockCacheEntityConsumer
+    {
+        T Take<T>(int crossChainId, long height, bool isCacheSizeLimited) where T : IMessage, new();
+    }
+    
+    public class BlockCacheEntityConsumer : IBlockCacheEntityConsumer, ITransientDependency
     {
         private readonly IChainCacheEntityProvider _chainCacheEntityProvider;
 
-        public CrossChainDataConsumer(IChainCacheEntityProvider chainCacheEntityProvider)
+        public BlockCacheEntityConsumer(IChainCacheEntityProvider chainCacheEntityProvider)
         {
             _chainCacheEntityProvider = chainCacheEntityProvider;
         }

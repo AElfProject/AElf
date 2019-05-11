@@ -48,7 +48,7 @@ namespace AElf.CrossChain.Grpc
         }
         
         public async Task StartIndexingRequest(int chainId, long targetHeight,
-            ICrossChainDataProducer crossChainDataProducer, int localListeningPort)
+            IBlockCacheEntityProducer blockCacheEntityProducer, int localListeningPort)
         {
             var requestData = new CrossChainRequest
             {
@@ -64,12 +64,12 @@ namespace AElf.CrossChain.Grpc
                     var response = serverStream.ResponseStream.Current;
 
                     // requestCrossChain failed or useless response
-                    if (!crossChainDataProducer.TryAddBlockCacheEntity(new BlockCacheEntity {ChainId = response.BlockData.ChainId, Height = response.BlockData.Height, Payload = response.BlockData.Payload}))
+                    if (!blockCacheEntityProducer.TryAddBlockCacheEntity(new BlockCacheEntity {ChainId = response.BlockData.ChainId, Height = response.BlockData.Height, Payload = response.BlockData.Payload}))
                     {
                         break;
                     }
 
-                    crossChainDataProducer.Logger.LogTrace(
+                    blockCacheEntityProducer.Logger.LogTrace(
                         $"Received response from chain {ChainHelpers.ConvertChainIdToBase58(response.BlockData.ChainId)} at height {response.BlockData.Height}");
                 }
             }
@@ -77,7 +77,7 @@ namespace AElf.CrossChain.Grpc
     
         public Task<HandShakeReply> HandShakeAsync(int chainId, int localListeningPort)
         {
-            var handShakeReply = _grpcClient.CrossChainIndexingShake(new HandShake
+            var handShakeReply = _grpcClient.CrossChainIndexingShakeAsync(new HandShake
             {
                 FromChainId = chainId,
                 ListeningPort = localListeningPort
@@ -87,7 +87,7 @@ namespace AElf.CrossChain.Grpc
         
         public Task<SideChainInitializationContext> RequestChainInitializationContext(int chainId)
         {
-            var sideChainInitializationResponse = _grpcClient.RequestChainInitializationContextFromParentChain(
+            var sideChainInitializationResponse = _grpcClient.RequestChainInitializationContextFromParentChainAsync(
                 new SideChainInitializationRequest
                 {
                     ChainId = chainId
@@ -107,7 +107,7 @@ namespace AElf.CrossChain.Grpc
 
         protected override AsyncServerStreamingCall<CrossChainResponse> RequestIndexing(CrossChainRequest crossChainRequest)
         {
-            return new CrossChainRpc.CrossChainRpcClient(Channel).RequestIndexingFromSideChain(crossChainRequest,
+            return new CrossChainRpc.CrossChainRpcClient(Channel).RequestIndexingFromSideChainAsync(crossChainRequest,
                 new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
         }
     }
@@ -120,7 +120,7 @@ namespace AElf.CrossChain.Grpc
 
         protected override AsyncServerStreamingCall<CrossChainResponse> RequestIndexing(CrossChainRequest crossChainRequest)
         {
-            return new CrossChainRpc.CrossChainRpcClient(Channel).RequestIndexingFromParentChain(crossChainRequest,
+            return new CrossChainRpc.CrossChainRpcClient(Channel).RequestIndexingFromParentChainAsync(crossChainRequest,
                 new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
         }
     }

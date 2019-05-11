@@ -19,16 +19,16 @@ namespace AElf.CrossChain
     {
         private readonly IReaderFactory _readerFactory;
         
-        private readonly ICrossChainDataConsumer _crossChainDataConsumer;
+        private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
         public ILogger<CrossChainDataProvider> Logger { get; set; }
 
         private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData =
             new Dictionary<Hash, CrossChainBlockData>();
 
-        public CrossChainDataProvider(IReaderFactory readerFactory, ICrossChainDataConsumer crossChainDataConsumer)
+        public CrossChainDataProvider(IReaderFactory readerFactory, IBlockCacheEntityConsumer blockCacheEntityConsumer)
         {
             _readerFactory = readerFactory;
-            _crossChainDataConsumer = crossChainDataConsumer;
+            _blockCacheEntityConsumer = blockCacheEntityConsumer;
         }
 
         public async Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
@@ -41,7 +41,7 @@ namespace AElf.CrossChain
                 var targetHeight = idHeight.Value + 1;
                 while (i < CrossChainConstants.MaximalCountForIndexingSideChainBlock)
                 {
-                    var sideChainBlockData = _crossChainDataConsumer.Take<SideChainBlockData>(idHeight.Key, targetHeight, true);
+                    var sideChainBlockData = _blockCacheEntityConsumer.Take<SideChainBlockData>(idHeight.Key, targetHeight, true);
                     if (sideChainBlockData == null)
                     {
                         // no more available parent chain block info
@@ -89,7 +89,7 @@ namespace AElf.CrossChain
                     // this should not happen if it is good data.
                     return false;
 
-                var cachedSideChainBlockData = _crossChainDataConsumer.Take<SideChainBlockData>(sideChainBlockData.SideChainId, targetHeight, false);
+                var cachedSideChainBlockData = _blockCacheEntityConsumer.Take<SideChainBlockData>(sideChainBlockData.SideChainId, targetHeight, false);
                 if (cachedSideChainBlockData == null)
                     throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");
                 if(!cachedSideChainBlockData.Equals(sideChainBlockData))
@@ -123,7 +123,7 @@ namespace AElf.CrossChain
             var i = 0;
             while (i < length)
             {
-                var parentChainBlockData = _crossChainDataConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, true);
+                var parentChainBlockData = _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, true);
                 if (parentChainBlockData == null)
                 {
                     // no more available parent chain block info
@@ -163,7 +163,7 @@ namespace AElf.CrossChain
             var res = true;
             while (i < length)
             {
-                var parentChainBlockData = _crossChainDataConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
+                var parentChainBlockData = _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
                 if (parentChainBlockData == null)
                 {
                     throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");

@@ -39,10 +39,10 @@ message SideChainInitializationContext{
 }
 
 service CrossChainRpc {
-    rpc RequestIndexingFromSideChain (CrossChainRequest) returns (stream CrossChainResponse) {}
-    rpc RequestIndexingFromParentChain (CrossChainRequest) returns (stream CrossChainResponse) {}
-    rpc CrossChainIndexingShake (HandShake) returns (HandShakeReply) {}
-    rpc RequestChainInitializationContextFromParentChain (SideChainInitializationRequest) returns (SideChainInitializationContext) {}
+    rpc RequestIndexingFromSideChainAsync (CrossChainRequest) returns (stream CrossChainResponse) {}
+    rpc RequestIndexingFromParentChainAsync (CrossChainRequest) returns (stream CrossChainResponse) {}
+    rpc CrossChainIndexingShakeAsync (HandShake) returns (HandShakeReply) {}
+    rpc RequestChainInitializationContextFromParentChainAsync (SideChainInitializationRequest) returns (SideChainInitializationContext) {}
 }
 
 message BlockData{

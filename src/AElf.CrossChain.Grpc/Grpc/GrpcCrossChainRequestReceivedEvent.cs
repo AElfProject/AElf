@@ -2,8 +2,8 @@ namespace AElf.CrossChain.Grpc
 {
     public sealed class GrpcCrossChainRequestReceivedEvent
     {
-        public string RemoteIp { get; set; }
-        public int RemotePort { get; set; }
+        public string RemoteServerHost { get; set; }
+        public int RemoteServerPort { get; set; }
         public int RemoteChainId { get; set; }
     }
 }

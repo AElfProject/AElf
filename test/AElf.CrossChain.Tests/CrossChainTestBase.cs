@@ -10,13 +10,13 @@ namespace AElf.CrossChain
     public class CrossChainTestBase : AElfIntegratedTest<CrossChainTestModule>
     {
         protected IChainCacheEntityProvider ChainCacheEntityProvider;
-        protected ICrossChainDataProducer CrossChainDataProducer;
-        protected ICrossChainDataConsumer CrossChainDataConsumer;
+        protected IBlockCacheEntityProducer BlockCacheEntityProducer;
+        protected IBlockCacheEntityConsumer BlockCacheEntityConsumer;
 
         public CrossChainTestBase()
         {
             ChainCacheEntityProvider = GetRequiredService<IChainCacheEntityProvider>();
-            CrossChainDataProducer = GetRequiredService<ICrossChainDataProducer>();
+            BlockCacheEntityProducer = GetRequiredService<IBlockCacheEntityProducer>();
         }
 
         protected void CreateFakeCache(Dictionary<int, ChainCacheEntity> cachingData)
@@ -35,7 +35,7 @@ namespace AElf.CrossChain
                     new ChainCacheEntity(blockInfos.First().Height));
                 foreach (var blockInfo in blockInfos)
                 {
-                    CrossChainDataProducer.TryAddBlockCacheEntity(blockInfo);
+                    BlockCacheEntityProducer.TryAddBlockCacheEntity(blockInfo);
                 }
             }
         }
@@ -43,12 +43,12 @@ namespace AElf.CrossChain
 
     public class CrossChainWithChainTestBase : AElfIntegratedTest<CrossChainWithChainTestModule>
     {
-        private readonly ICrossChainDataProducer _crossChainDataProducer;
+        private readonly IBlockCacheEntityProducer _blockCacheEntityProducer;
         private readonly IChainCacheEntityProvider _chainCacheEntityProvider;
 
         protected CrossChainWithChainTestBase()
         {
-            _crossChainDataProducer = Application.ServiceProvider.GetRequiredService<ICrossChainDataProducer>();
+            _blockCacheEntityProducer = Application.ServiceProvider.GetRequiredService<IBlockCacheEntityProducer>();
             _chainCacheEntityProvider = Application.ServiceProvider.GetRequiredService<IChainCacheEntityProvider>();
         }
         
@@ -60,7 +60,7 @@ namespace AElf.CrossChain
                     new ChainCacheEntity(blockInfos.First().Height));
                 foreach (var blockInfo in blockInfos)
                 {
-                    _crossChainDataProducer.TryAddBlockCacheEntity(blockInfo);
+                    _blockCacheEntityProducer.TryAddBlockCacheEntity(blockInfo);
                 }
             }
         }

@@ -10,7 +10,7 @@ namespace AElf.CrossChain.Grpc
 {
     public class GrpcClientProvider : ISingletonDependency
     {
-        private readonly ICrossChainDataProducer _crossChainDataProducer;
+        private readonly IBlockCacheEntityProducer _blockCacheEntityProducer;
         public ILogger<GrpcClientProvider> Logger { get; set; }
 
         private readonly ConcurrentDictionary<int, CrossChainGrpcClient> _grpcCrossChainClients =
@@ -18,9 +18,9 @@ namespace AElf.CrossChain.Grpc
         
         private readonly IChainCacheEntityProvider _chainCacheEntityProvider;
 
-        public GrpcClientProvider(ICrossChainDataProducer crossChainDataProducer, IChainCacheEntityProvider chainCacheEntityProvider)
+        public GrpcClientProvider(IBlockCacheEntityProducer blockCacheEntityProducer, IChainCacheEntityProvider chainCacheEntityProvider)
         {
-            _crossChainDataProducer = crossChainDataProducer;
+            _blockCacheEntityProducer = blockCacheEntityProducer;
             _chainCacheEntityProvider = chainCacheEntityProvider;
         }
 
@@ -83,7 +83,7 @@ namespace AElf.CrossChain.Grpc
                     continue;
                 Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
                 var targetHeight = _chainCacheEntityProvider.GetChainCacheEntity(chainId).TargetChainHeight();
-                Request(client, c => c.StartIndexingRequest(chainId, targetHeight, _crossChainDataProducer, localListeningPort));
+                Request(client, c => c.StartIndexingRequest(chainId, targetHeight, _blockCacheEntityProducer, localListeningPort));
             }
         }
         

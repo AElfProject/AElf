@@ -4,8 +4,8 @@ namespace AElf.CrossChain.Grpc
 {
     public class GrpcCrossChainCommunicationDto
     {
-        public string RemoteIp { get; set; }
-        public int RemotePort { get; set; }
+        public string RemoteServerHost { get; set; }
+        public int RemoteServerPort { get; set; }
         public int RemoteChainId { get; set; }
         public int LocalChainId { get; set; }
         public int LocalListeningPort { get; set; }
@@ -13,7 +13,7 @@ namespace AElf.CrossChain.Grpc
 
         public string ToUriStr()
         {
-            return $"{RemoteIp}:{RemotePort}";
+            return $"{RemoteServerHost}:{RemoteServerPort}";
         }
     }
 }

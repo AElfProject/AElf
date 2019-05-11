@@ -4,13 +4,19 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Cache
 {
-    public class CrossChainDataProducer : ICrossChainDataProducer, ISingletonDependency
+    public interface IBlockCacheEntityProducer
+    {
+        bool TryAddBlockCacheEntity(BlockCacheEntity blockCacheEntity);
+        ILogger<BlockCacheEntityProducer> Logger { get; set; }
+    }
+    
+    public class BlockCacheEntityProducer : IBlockCacheEntityProducer, ISingletonDependency
     {
         private readonly IChainCacheEntityProvider _chainCacheEntityProvider;
 
-        public ILogger<CrossChainDataProducer> Logger { get; set; }
+        public ILogger<BlockCacheEntityProducer> Logger { get; set; }
         
-        public CrossChainDataProducer(IChainCacheEntityProvider chainCacheEntityProvider)
+        public BlockCacheEntityProducer(IChainCacheEntityProvider chainCacheEntityProvider)
         {
             _chainCacheEntityProvider = chainCacheEntityProvider;
         }

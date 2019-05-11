@@ -34,7 +34,7 @@ namespace AElf.CrossChain.Grpc
 
             IServerStreamWriter<CrossChainResponse> responseStream = Mock.Of<IServerStreamWriter<CrossChainResponse>>();
             var context = BuildServerCallContext();
-            await CrossChainGrpcServer.RequestIndexingFromParentChain(requestData, responseStream, context);
+            await CrossChainGrpcServer.RequestIndexingFromParentChainAsync(requestData, responseStream, context);
         }
         
         [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1643")]
@@ -48,7 +48,7 @@ namespace AElf.CrossChain.Grpc
 
             IServerStreamWriter<CrossChainResponse> responseStream = Mock.Of<IServerStreamWriter<CrossChainResponse>>();
             var context = BuildServerCallContext();
-            await CrossChainGrpcServer.RequestIndexingFromParentChain(requestData, responseStream, context);
+            await CrossChainGrpcServer.RequestIndexingFromParentChainAsync(requestData, responseStream, context);
         }
 
         [Fact]
@@ -62,7 +62,7 @@ namespace AElf.CrossChain.Grpc
             
             IServerStreamWriter<CrossChainResponse> responseStream = Mock.Of<IServerStreamWriter<CrossChainResponse>>();
             var context = BuildServerCallContext();
-            await CrossChainGrpcServer.RequestIndexingFromSideChain(requestData, responseStream, context);
+            await CrossChainGrpcServer.RequestIndexingFromSideChainAsync(requestData, responseStream, context);
         }
 
         [Fact]
@@ -71,10 +71,10 @@ namespace AElf.CrossChain.Grpc
             var request = new HandShake
             {
                 ListeningPort = 2100,
-                FromChainId =  0
+                FromChainId = 0
             };
             var context = BuildServerCallContext();
-            var indexingHandShakeReply = await CrossChainGrpcServer.CrossChainIndexingShake(request, context);
+            var indexingHandShakeReply = await CrossChainGrpcServer.CrossChainIndexingShakeAsync(request, context);
             
             indexingHandShakeReply.ShouldNotBeNull();
             indexingHandShakeReply.Result.ShouldBeTrue();

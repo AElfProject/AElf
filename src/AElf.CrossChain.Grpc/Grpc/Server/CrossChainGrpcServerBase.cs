@@ -1,13 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.CrossChain;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -30,7 +24,7 @@ namespace AElf.CrossChain.Grpc
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
-        public override async Task RequestIndexingFromParentChain(CrossChainRequest crossChainRequest, 
+        public override async Task RequestIndexingFromParentChainAsync(CrossChainRequest crossChainRequest, 
             IServerStreamWriter<CrossChainResponse> responseStream, ServerCallContext context)
         {
             Logger.LogTrace(
@@ -50,7 +44,7 @@ namespace AElf.CrossChain.Grpc
             PublishCrossChainRequestReceivedEvent(context.Peer, crossChainRequest.ListeningPort, crossChainRequest.FromChainId);
         }
         
-        public override async Task RequestIndexingFromSideChain(CrossChainRequest crossChainRequest, 
+        public override async Task RequestIndexingFromSideChainAsync(CrossChainRequest crossChainRequest, 
             IServerStreamWriter<CrossChainResponse> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Side Chain Server received IndexedInfo message.");
@@ -67,16 +61,16 @@ namespace AElf.CrossChain.Grpc
             PublishCrossChainRequestReceivedEvent(context.Peer, crossChainRequest.ListeningPort, crossChainRequest.FromChainId);
         }
 
-        public override Task<HandShakeReply> CrossChainIndexingShake(HandShake request, ServerCallContext context)
+        public override Task<HandShakeReply> CrossChainIndexingShakeAsync(HandShake request, ServerCallContext context)
         {
             Logger.LogTrace($"Received shake from chain {ChainHelpers.ConvertChainIdToBase58(request.FromChainId)}.");
             PublishCrossChainRequestReceivedEvent(context.Peer, request.ListeningPort, request.FromChainId);
-            return Task.FromResult(new HandShakeReply{Result = true});
+            return Task.FromResult(new HandShakeReply {Result = true});
         }
 
-        public override async Task<SideChainInitializationContext> RequestChainInitializationContextFromParentChain(SideChainInitializationRequest request, ServerCallContext context)
+        public override async Task<SideChainInitializationContext> RequestChainInitializationContextFromParentChainAsync(SideChainInitializationRequest request, ServerCallContext context)
         {
-            var libDto = await _blockchainService.GetLibHashAndHeight();
+            var libDto = await _blockchainService.GetLibHashAndHeightAsync();
             var sideChainInitializationResponse =
                 await _parentChainServerService.GetChainInitializationContextAsync(request.ChainId, libDto);
             return sideChainInitializationResponse;
@@ -87,8 +81,8 @@ namespace AElf.CrossChain.Grpc
             var ip = peerContext.Split(':')[1];
             LocalEventBus.PublishAsync(new GrpcCrossChainRequestReceivedEvent
             {
-                RemoteIp = ip,
-                RemotePort = port,
+                RemoteServerHost = ip,
+                RemoteServerPort = port,
                 RemoteChainId = chainId
             });
         }

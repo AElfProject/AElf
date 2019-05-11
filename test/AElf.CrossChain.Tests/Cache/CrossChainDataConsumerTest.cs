@@ -7,12 +7,12 @@ namespace AElf.CrossChain.Cache
 {
     public class CrossChainDataConsumerTest : CrossChainTestBase
     {
-        private readonly ICrossChainDataConsumer _crossChainDataConsumer;
+        private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
         private readonly IChainCacheEntityProvider _chainCacheEntityProvider;
 
         public CrossChainDataConsumerTest()
         {
-            _crossChainDataConsumer = GetRequiredService<ICrossChainDataConsumer>();
+            _blockCacheEntityConsumer = GetRequiredService<IBlockCacheEntityConsumer>();
             _chainCacheEntityProvider = GetRequiredService<IChainCacheEntityProvider>();
         }
         
@@ -20,7 +20,7 @@ namespace AElf.CrossChain.Cache
         public void TryTake_EmptyCache()
         {
             int chainId = 123;
-            var blockInfo = _crossChainDataConsumer.Take<SideChainBlockData>(chainId, 1, false);
+            var blockInfo = _blockCacheEntityConsumer.Take<SideChainBlockData>(chainId, 1, false);
             Assert.Null(blockInfo);
         }
 
@@ -34,7 +34,7 @@ namespace AElf.CrossChain.Cache
             };
             CreateFakeCache(dict);
             int chainIdB = 124;
-            var blockInfo = _crossChainDataConsumer.Take<SideChainBlockData>(chainIdB, 1, false);
+            var blockInfo = _blockCacheEntityConsumer.Take<SideChainBlockData>(chainIdB, 1, false);
             Assert.Null(blockInfo);
         }
 
@@ -59,7 +59,7 @@ namespace AElf.CrossChain.Cache
                 {chainId, blockInfoCache}
             };
             CreateFakeCache(dict);
-            var blockInfo = _crossChainDataConsumer.Take<SideChainBlockData>(chainId, 2, false);
+            var blockInfo = _blockCacheEntityConsumer.Take<SideChainBlockData>(chainId, 2, false);
             Assert.Null(blockInfo);
         }
 
@@ -81,7 +81,7 @@ namespace AElf.CrossChain.Cache
                 Height = expectedBlockInfo.SideChainHeight,
                 Payload = expectedBlockInfo.ToByteString()
             });
-            var actualBlockInfo = _crossChainDataConsumer.Take<SideChainBlockData>(chainId, 1, false);
+            var actualBlockInfo = _blockCacheEntityConsumer.Take<SideChainBlockData>(chainId, 1, false);
             Assert.Equal(expectedBlockInfo, actualBlockInfo);
         }
         
@@ -103,7 +103,7 @@ namespace AElf.CrossChain.Cache
                 Height = expectedBlockInfo.SideChainHeight,
                 Payload = expectedBlockInfo.ToByteString()
             });
-            var blockInfo = _crossChainDataConsumer.Take<SideChainBlockData>(chainId, 2, false);
+            var blockInfo = _blockCacheEntityConsumer.Take<SideChainBlockData>(chainId, 2, false);
             Assert.Null(blockInfo);
         }
     }
