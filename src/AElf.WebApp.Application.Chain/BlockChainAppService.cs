@@ -23,7 +23,7 @@ namespace AElf.WebApp.Application.Chain
 {
     public interface IBlockChainAppService : IApplicationService
     {
-        Task<string> Call(string rawTransaction);
+        Task<string> Call(CallInput input);
 
         Task<byte[]> GetContractFileDescriptorSet(string address);
 
@@ -31,9 +31,9 @@ namespace AElf.WebApp.Application.Chain
         
         Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input);
 
-        Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction);
+        Task<BroadcastTransactionOutput> BroadcastTransaction(BroadcastTransactionInput input);
 
-        Task<string[]> BroadcastTransactions(string rawTransactions);
+        Task<string[]> BroadcastTransactions(BroadcastTransactionsInput input);
 
         Task<TransactionResultDto> GetTransactionResult(string transactionId);
 
@@ -89,13 +89,12 @@ namespace AElf.WebApp.Application.Chain
         /// <summary>
         /// Call a read-only method on a contract.
         /// </summary>
-        /// <param name="rawTransaction">raw transaction</param>
         /// <returns></returns>
-        public async Task<string> Call(string rawTransaction)
+        public async Task<string> Call(CallInput input)
         {
             try
             {
-                var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
+                var hexString = ByteArrayHelpers.FromHexString(input.RawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
                 if (!transaction.VerifySignature())
                 {
@@ -150,7 +149,10 @@ namespace AElf.WebApp.Application.Chain
                     Error.NoMatchMethodInContractAddress.ToString());
             try
             {
-                transaction.Params = methodDescriptor.InputType.Parser.ParseJson(input.Params).ToByteString();
+                var parameters = methodDescriptor.InputType.Parser.ParseJson(input.Params);
+                if (!IsValidMessage(parameters))
+                    throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
+                transaction.Params = parameters.ToByteString();
             }
             catch
             {
@@ -182,19 +184,10 @@ namespace AElf.WebApp.Application.Chain
             
             var transactionDto = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             var contractMethodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
-            if (contractMethodDescriptor == null)
-                throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
-                    Error.NoMatchMethodInContractAddress.ToString());
-            try
-            {
-                transactionDto.Params =
-                    JsonFormatter.ToDiagnosticString(
-                        contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
-            }
-            catch
-            {
-                throw new UserFriendlyException(Error.Message[Error.InvalidParams],Error.InvalidParams.ToString());
-            }
+
+            var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
+
+            transactionDto.Params = JsonFormatter.ToDiagnosticString(parameters);
             output.Transaction = transactionDto;
 
             return output;
@@ -203,11 +196,10 @@ namespace AElf.WebApp.Application.Chain
         /// <summary>
         /// Broadcast a transaction
         /// </summary>
-        /// <param name="rawTransaction">raw transaction</param>
         /// <returns></returns>
-        public async Task<BroadcastTransactionOutput> BroadcastTransaction(string rawTransaction)
+        public async Task<BroadcastTransactionOutput> BroadcastTransaction(BroadcastTransactionInput input)
         {
-            var txIds = await PublishTransactionsAsync(new []{rawTransaction});
+            var txIds = await PublishTransactionsAsync(new[] {input.RawTransaction});
             return new BroadcastTransactionOutput
             {
                 TransactionId = txIds[0]
@@ -218,11 +210,10 @@ namespace AElf.WebApp.Application.Chain
         /// <summary>
         /// Broadcast multiple transactions
         /// </summary>
-        /// <param name="rawTransactions">raw transactions</param>
         /// <returns></returns>
-        public async Task<string[]> BroadcastTransactions(string rawTransactions)
+        public async Task<string[]> BroadcastTransactions(BroadcastTransactionsInput input)
         {
-            var txIds = await PublishTransactionsAsync(rawTransactions.Split(","));
+            var txIds = await PublishTransactionsAsync(input.RawTransactions.Split(","));
             
             return txIds;
         }
@@ -581,6 +572,21 @@ namespace AElf.WebApp.Application.Chain
                 {
                     throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
                 }
+                
+                if(!IsValidMessage(transaction))
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
+                
+                var contractMethodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+                if (contractMethodDescriptor == null)
+                    throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
+                        Error.NoMatchMethodInContractAddress.ToString());
+
+                var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
+                
+                if (!IsValidMessage(parameters))
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
+                }
 
                 if (!transaction.VerifySignature())
                 {
@@ -665,6 +671,20 @@ namespace AElf.WebApp.Application.Chain
             }
 
             return null;
+        }
+
+        private bool IsValidMessage(IMessage message)
+        {
+            try
+            {
+                JsonFormatter.ToDiagnosticString(message);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

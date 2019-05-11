@@ -80,7 +80,11 @@ namespace AElf.OS.Network.Grpc
 
             Logger.LogDebug($"Attempting to create channel to {peerAddress}");
 
-            Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure);
+            Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure, new List<ChannelOption>
+            {
+                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConsts.DefaultMaxSendMessageLength),
+                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConsts.DefaultMaxReceiveMessageLength)
+            });
             var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
             {
                 metadata.Add(GrpcConsts.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());

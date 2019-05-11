@@ -29,12 +29,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public async Task AttachBlockAsync(Block block)
         {
-            var existBlock = await _blockchainService.GetBlockHeaderByHashAsync(block.GetHash());
-            if (existBlock != null)
-            {
-                Logger.LogDebug($"Try attaching block but already exist, {block}");
-                return;
-            }
             if (! await _blockValidationService.ValidateBlockBeforeAttachAsync(block))
             {
                 Logger.LogWarning($"Validate block failed (before attach to chain), {block}");

@@ -10,7 +10,7 @@ namespace AElf.WebApp.Application.Net
 {
     public interface INetAppService : IApplicationService
     {
-        Task<bool> AddPeer(string address);
+        Task<bool> AddPeer(AddPeerInput input);
 
         Task<bool> RemovePeer(string address);
 
@@ -33,11 +33,10 @@ namespace AElf.WebApp.Application.Net
         /// <summary>
         /// Attempts to add a node to the connected network nodes
         /// </summary>
-        /// <param name="address">ip address</param>
         /// <returns>true/false</returns>
-        public async Task<bool> AddPeer(string address)
+        public async Task<bool> AddPeer(AddPeerInput input)
         {
-            return await _networkService.AddPeerAsync(address);
+            return await _networkService.AddPeerAsync(input.Address);
         }
         
         /// <summary>

@@ -33,28 +33,6 @@ namespace AElf.Kernel.SmartContract
         }
 
         [Fact]
-        public void Recover_PublicKey_Success()
-        {
-            var hash = Hash.FromString("RecoverPublicKey").DumpByteArray();
-            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey,
-                Hash.FromString("RecoverPublicKeyFail").DumpByteArray());
-
-            var recoverPublicKey = _bridgeContext.RecoverPublicKey(signature, hash);
-            recoverPublicKey.ShouldNotBe(_keyPair.PublicKey);
-        }
-
-        [Fact]
-        public void Recover_PublicKey_Fail()
-        {
-            var hash = Hash.FromString("RecoverPublicKey").DumpByteArray();
-            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey,
-                Hash.FromString("RecoverPublicKeyFail").DumpByteArray());
-
-            var recoverPublicKey = _bridgeContext.RecoverPublicKey(signature, hash);
-            recoverPublicKey.ShouldNotBe(_keyPair.PublicKey);
-        }
-
-        [Fact]
         public void Recover_Context_PublicKey_Success()
         {
             var recoverPublicKey = _bridgeContext.RecoverPublicKey();

@@ -59,6 +59,8 @@ namespace AElf.Runtime.CSharp
             }
 
             var executive = new Executive(assembly, _executivePlugins);
+            
+            executive.ContractHash = reg.CodeHash;
 
             return await Task.FromResult(executive);
         }

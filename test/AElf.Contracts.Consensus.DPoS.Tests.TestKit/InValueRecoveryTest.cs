@@ -41,7 +41,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
 
-                ECKeyPairProvider.SetECKeyPair(currentKeyPair);
+                ECKeyPairProvider.SetKeyPair(currentKeyPair);
 
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
 
@@ -142,7 +142,7 @@ namespace AElf.Contracts.Consensus.DPoS
             {
                 var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
 
-                ECKeyPairProvider.SetECKeyPair(currentKeyPair);
+                ECKeyPairProvider.SetKeyPair(currentKeyPair);
 
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
 

@@ -238,7 +238,7 @@ namespace AElf.Kernel.SmartContractExecution.Scheduling
                 startIndex++;
             }
 
-            //in case there is a bug 
+            //check total count
             if (totalCount != transactionCount)
             {
                 Logger.LogCritical("There is a bug in the Grouper, get inconsist transaction count, some tx lost");

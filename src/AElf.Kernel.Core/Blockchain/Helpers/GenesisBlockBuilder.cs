@@ -23,9 +23,6 @@ namespace AElf.Kernel.Blockchain.Helpers
                 Body = new BlockBody()
             };
 
-            // Genesis block is empty
-            // TODO: Maybe add info like Consensus protocol in Genesis block
-
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
             block.Body.BlockHeader = block.Header.GetHash();         
             Block = block;

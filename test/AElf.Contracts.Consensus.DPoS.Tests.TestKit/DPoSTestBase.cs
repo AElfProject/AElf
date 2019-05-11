@@ -7,6 +7,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.Consensus.DPoS;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -34,10 +35,10 @@ namespace AElf.Contracts.Consensus.DPoS
 
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
-
-        protected IECKeyPairProvider ECKeyPairProvider =>
-            Application.ServiceProvider.GetRequiredService<IECKeyPairProvider>();
-
+        
+        protected IAElfAsymmetricCipherKeyPairProvider ECKeyPairProvider =>
+            Application.ServiceProvider.GetRequiredService<IAElfAsymmetricCipherKeyPairProvider>();
+        
         protected Address ConsensusContractAddress { get; set; }
 
         protected Address DividendContractAddress { get; set; }
@@ -61,7 +62,7 @@ namespace AElf.Contracts.Consensus.DPoS
 
         protected void InitializeContracts()
         {
-            ECKeyPairProvider.SetECKeyPair(BootMinerKeyPair);
+            ECKeyPairProvider.SetKeyPair(BootMinerKeyPair);
             // Deploy useful contracts.
             ConsensusContractAddress = AsyncHelper.RunSync(async () => await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,

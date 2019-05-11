@@ -8,10 +8,6 @@ namespace AElf.Cryptography.Tests.ECDSA
 {
     public class BlockSignatureTest
     {
-        // The length of an AElf address
-        // todo : modify this constant when we reach an agreement on the length
-        private const int ADR_LENGTH = 42;
-        
         [Fact]
         public void SignAndVerifyTransaction()
         {

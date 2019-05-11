@@ -223,12 +223,10 @@ namespace AElf.Sdk.CSharp.Tests
             };
             
             var tradeMessage = Contract.TestMapped1State(input);
-            tradeMessage.Timestamp.ShouldNotBeNull();
             tradeMessage.FromAmount.ShouldBe(100);
             tradeMessage.ToAmount.ShouldBe(620);
             
             tradeMessage = Contract.TestMapped1State(input);
-            tradeMessage.Timestamp.ShouldNotBeNull();
             tradeMessage.FromAmount.ShouldBe(200);
             tradeMessage.ToAmount.ShouldBe(1240);
 
@@ -245,7 +243,6 @@ namespace AElf.Sdk.CSharp.Tests
                 }
             };
             tradeMessage = Contract.TestMapped1State(input);
-            tradeMessage.Timestamp.ShouldNotBeNull();
             tradeMessage.FromAmount.ShouldBe(100);
             tradeMessage.ToAmount.ShouldBe(758);
         }
