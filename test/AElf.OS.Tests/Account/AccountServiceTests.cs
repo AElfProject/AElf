@@ -74,9 +74,9 @@ namespace AElf.OS.Account
             var pubicKey = await _accountService.GetPublicKeyAsync();
             var plainMessage = stringValue.ToByteArray();
 
-            var encryptMessage = await _accountService.EncryptMessage(pubicKey, plainMessage);
+            var encryptMessage = await _accountService.EncryptMessageAsync(pubicKey, plainMessage);
 
-            var decryptMessage = await _accountService.DecryptMessage(pubicKey, encryptMessage);
+            var decryptMessage = await _accountService.DecryptMessageAsync(pubicKey, encryptMessage);
 
             decryptMessage.ShouldBe(plainMessage);
         }

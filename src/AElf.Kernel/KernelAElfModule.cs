@@ -1,5 +1,4 @@
 ﻿using AElf.Kernel.ChainController;
-using AElf.Kernel.Mining;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution;
@@ -17,8 +16,7 @@ namespace AElf.Kernel
         typeof(SmartContractAElfModule),
         typeof(NodeAElfModule),
         typeof(SmartContractExecutionAElfModule),
-        typeof(TransactionPoolAElfModule),
-        typeof(MiningAElfModule)
+        typeof(TransactionPoolAElfModule)
     )]
     public class KernelAElfModule : AElfModule<KernelAElfModule>
     {

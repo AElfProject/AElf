@@ -162,7 +162,6 @@ namespace AElf.OS.Node.Application
                 From = zeroAddress,
                 To = zeroAddress,
                 MethodName = nameof(ISmartContractZero.DeploySystemSmartContract),
-                // TODO: change cagtegory to 0
                 Params = new SystemContractDeploymentInput()
                 {
                     Name = systemContractName,
