@@ -25,7 +25,9 @@ namespace AElf.Contracts.TestBase.Tests
 
         public IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<ContractTesterTest>());
-        public byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("Consensus.DPoS")).Value;
+
+        public byte[] ConsensusContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.DPoS")).Value;
         public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         private int ChainId { get; } = ChainHelpers.ConvertBase58ToChainId("AELF");
         private int DefaultCategory { get; } = SmartContractTestConstants.TestRunnerCategory;
