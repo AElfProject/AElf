@@ -1,5 +1,4 @@
 using AElf.Contracts.TestKit;
-using AElf.Kernel.Account.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
