@@ -25,6 +25,7 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="..\..\protobuf\common.proto">

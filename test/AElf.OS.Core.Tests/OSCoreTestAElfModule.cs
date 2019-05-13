@@ -40,6 +40,7 @@ namespace AElf.OS
 
                 o.InitialMiners = miners;
                 o.MiningInterval = 4000;
+                o.TimeEachTerm = 7;
             });
 
             context.Services.AddTransient<IAccountService>(o =>

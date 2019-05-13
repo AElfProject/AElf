@@ -18,7 +18,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         private AElfConsensusHint Hint => AElfConsensusHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
 
-        public ILogger<AElfConsensusInformationGenerationService> Logger { get; set; }
+        public ILogger<AEDPoSInformationGenerationService> Logger { get; set; }
 
         public AEDPoSTriggerInformationProvider(IAccountService accountService,
             ConsensusControlInformation controlInformation)

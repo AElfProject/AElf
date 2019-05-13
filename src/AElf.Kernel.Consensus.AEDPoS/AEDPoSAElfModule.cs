@@ -32,7 +32,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
 
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
-            context.Services.AddSingleton<IConsensusInformationGenerationService, AElfConsensusInformationGenerationService>();
+            context.Services.AddSingleton<IConsensusInformationGenerationService, AEDPoSInformationGenerationService>();
             context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
             context.Services.AddSingleton<IAEDPoSInformationProvider, IaedpoSInformationProvider>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();

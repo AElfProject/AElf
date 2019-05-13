@@ -94,7 +94,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             BasicContractZeroStub = GetContractZeroTester(BootMinerKeyPair);
 
-            //Deploy Vote Contract
+            // Deploy Vote Contract
             VoteContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
@@ -106,7 +106,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     })).Output;
             VoteContractStub = GetVoteContractTester(BootMinerKeyPair);
             
-            //Deploy Profit Contract
+            // Deploy Profit Contract
             ProfitContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
@@ -129,7 +129,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     })).Output;
             ElectionContractStub = GetElectionContractTester(BootMinerKeyPair);
             
-            //Deploy Token Contract
+            // Deploy Token Contract
             TokenContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(BootMinerKeyPair)
                 .DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput

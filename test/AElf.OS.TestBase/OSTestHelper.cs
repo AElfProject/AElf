@@ -262,9 +262,12 @@ namespace AElf.OS
                 ChainId = _chainOptions.ChainId
             };
 
+            dto.InitializationSmartContracts.AddGenesisSmartContract<AEDPoSContract>(
+                ConsensusSmartContractAddressNameProvider.Name);
+
             var ownAddress = await _accountService.GetAccountAsync();
             var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            callList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            callList.Add(nameof(TokenContract.CreateNativeToken), new CreateInput
             {
                 Symbol = "ELF",
                 TokenName = "ELF_Token",
@@ -281,6 +284,8 @@ namespace AElf.OS
                 Memo = "Issue"
             });
             
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ElectionContract>(
+                ElectionSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name, callList);
 

@@ -13,7 +13,7 @@ using Volo.Abp.Threading;
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     // ReSharper disable once InconsistentNaming
-    public class AElfConsensusInformationGenerationService : IConsensusInformationGenerationService
+    public class AEDPoSInformationGenerationService : IConsensusInformationGenerationService
     {
         private readonly IAccountService _accountService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -41,9 +41,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         private Hash _latestRandomHash = Hash.Empty;
 
-        public ILogger<AElfConsensusInformationGenerationService> Logger { get; set; }
+        public ILogger<AEDPoSInformationGenerationService> Logger { get; set; }
 
-        public AElfConsensusInformationGenerationService(IAccountService accountService,
+        public AEDPoSInformationGenerationService(IAccountService accountService,
             ConsensusControlInformation controlInformation, ISmartContractAddressService smartContractAddressService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
@@ -52,7 +52,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _smartContractAddressService = smartContractAddressService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
 
-            Logger = NullLogger<AElfConsensusInformationGenerationService>.Instance;
+            Logger = NullLogger<AEDPoSInformationGenerationService>.Instance;
         }
 
         public IMessage GetTriggerInformation(TriggerType triggerType)

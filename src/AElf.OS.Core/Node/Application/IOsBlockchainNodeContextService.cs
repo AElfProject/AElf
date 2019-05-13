@@ -127,8 +127,11 @@ namespace AElf.OS.Node.Application
                 dto.SmartContractRunnerCategory));
 
             transactions.AddRange(dto.InitializationSmartContracts
-                .Select(p => GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName, dto.SmartContractRunnerCategory,
-                    p.TransactionMethodCallList)));
+                .Select(p =>
+                {
+                    return GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName, dto.SmartContractRunnerCategory,
+                        p.TransactionMethodCallList);
+                }));
 
             if (dto.InitializationTransactions != null)
                 transactions.AddRange(dto.InitializationTransactions);
