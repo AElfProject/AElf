@@ -11,7 +11,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
-        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />

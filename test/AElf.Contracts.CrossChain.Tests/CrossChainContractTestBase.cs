@@ -20,6 +20,7 @@ using Shouldly;
 using Volo.Abp.Threading;
 using ApproveInput = AElf.Contracts.MultiToken.Messages.ApproveInput;
 using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
+using ResourceTypeBalancePair = AElf.Contracts.CrossChain.ResourceTypeBalancePair;
 
 namespace AElf.Contract.CrossChain.Tests
 {
@@ -64,7 +65,7 @@ namespace AElf.Contract.CrossChain.Tests
                 });
         }
 
-        protected async Task InitializeCrossChainContract(int parentChainId = 0)
+        protected async Task InitializeCrossChainContract(long parentChainHeightOfCreation = 0, int parentChainId = 0)
         {
             var crossChainInitializationTransaction = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.Initialize), new InitializeInput
@@ -72,15 +73,15 @@ namespace AElf.Contract.CrossChain.Tests
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     ParentChainId = parentChainId == 0 ? ChainHelpers.ConvertBase58ToChainId("AELF") : parentChainId,
-                    ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name
+                    ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name,
+                    CreationHeightOnParentChain = parentChainHeightOfCreation
                 });
             await Tester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});
-
         }
 
-        protected async Task<int> InitAndCreateSideChain(int parentChainId = 0, long lockedTokenAmount = 10)
+        protected async Task<int> InitAndCreateSideChain(long parentChainHeightOfCreation = 0, int parentChainId = 0, long lockedTokenAmount = 10)
         {
-            await InitializeCrossChainContract(parentChainId);
+            await InitializeCrossChainContract(parentChainHeightOfCreation, parentChainId);
 
             await ApproveBalance(lockedTokenAmount);
             var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
@@ -137,8 +138,9 @@ namespace AElf.Contract.CrossChain.Tests
                 IndexingPrice = indexingPrice,
                 LockedTokenAmount = lockedTokenAmount
             };
-            if(resourceTypeBalancePairs != null)
-                res.ResourceBalances.AddRange(resourceTypeBalancePairs);
+            if (resourceTypeBalancePairs != null)
+                res.ResourceBalances.AddRange(resourceTypeBalancePairs.Select(x =>
+                    ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
             return res;
         }
 

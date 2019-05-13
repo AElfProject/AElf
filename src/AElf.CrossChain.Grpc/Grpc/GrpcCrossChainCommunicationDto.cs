@@ -1,19 +1,19 @@
+using System;
+
 namespace AElf.CrossChain.Grpc
 {
-    public class GrpcCrossChainCommunicationContext : ICrossChainCommunicationContext
+    public class GrpcCrossChainCommunicationDto
     {
-        public string TargetIp { get; set; }
-        public int TargetPort { get; set; }
+        public string RemoteServerHost { private get; set; }
+        public int RemoteServerPort { private get; set; }
         public int RemoteChainId { get; set; }
         public int LocalChainId { get; set; }
-        public bool RemoteIsSideChain { get; set; }
-        
         public int LocalListeningPort { get; set; }
         public int ConnectionTimeout { get; set; }
 
         public string ToUriStr()
         {
-            return string.Join(":",TargetIp, TargetPort);
+            return new UriBuilder("http", RemoteServerHost, RemoteServerPort).Uri.Authority;
         }
     }
 }

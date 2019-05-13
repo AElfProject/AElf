@@ -16,14 +16,14 @@ namespace AElf.CrossChain.Grpc
             _serverBase = serverBase;
         }
 
-        public async Task StartAsync(string localServerIP, int localServerPort)
+        public async Task StartAsync(string localServerHost, int localServerPort)
         {
             _server = new global::Grpc.Core.Server
             {
                 Services = {CrossChainRpc.BindService(_serverBase)},
                 Ports =
                 {
-                    new ServerPort(localServerIP, localServerPort, ServerCredentials.Insecure)
+                    new ServerPort(localServerHost, localServerPort, ServerCredentials.Insecure)
                 }
             };
             

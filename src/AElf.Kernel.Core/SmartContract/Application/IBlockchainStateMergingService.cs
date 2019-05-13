@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             var firstHeightToMerge = chainStateInfo.BlockHeight == 0L
-                ? KernelConstants.GenesisBlockHeight
+                ? Constants.GenesisBlockHeight
                 : chainStateInfo.BlockHeight + 1;
             var mergeCount = lastIrreversibleBlockHeight - firstHeightToMerge;
             if (mergeCount < 0)

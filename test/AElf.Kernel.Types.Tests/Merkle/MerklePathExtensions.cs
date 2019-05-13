@@ -21,7 +21,7 @@ namespace AElf.Kernel.Types.Tests
             Hash hash = leaf.Clone();
             foreach (var node in merklePath.Path)
             {
-                hash = BinaryMerkleTree.CalculateRootFromMultiHash(new[] {hash, node});
+                hash = BinaryMerkleTree.ComputeParent(hash, node);
             }
 
             return hash;
