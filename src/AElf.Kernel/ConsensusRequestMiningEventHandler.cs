@@ -34,7 +34,7 @@ namespace AElf.Kernel
                     eventData.BlockTime, eventData.TimeSpan);
                 // Self mined block do not need do verify
                 _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
-                    KernelConsts.UpdateChainQueueName);
+                    KernelConstants.UpdateChainQueueName);
             }
             catch (Exception e)
             {
