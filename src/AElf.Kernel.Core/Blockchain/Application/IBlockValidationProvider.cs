@@ -110,7 +110,7 @@ namespace AElf.Kernel.Blockchain.Application
                 return false;
             }
 
-            if (block.Height != KernelConstants.GenesisBlockHeight && !block.VerifySignature())
+            if (block.Header.Height != KernelConstants.GenesisBlockHeight && !block.VerifySignature())
             {
                 Logger.LogWarning($"Block verify signature failed. {block}");
                 return false;
@@ -122,7 +122,7 @@ namespace AElf.Kernel.Blockchain.Application
                 return false;
             }
 
-            if (block.Height != KernelConstants.GenesisBlockHeight &&
+            if (block.Header.Height != KernelConstants.GenesisBlockHeight &&
                 block.Header.Time.ToDateTime() - DateTime.UtcNow > KernelConsts.AllowedFutureBlockTimeSpan)
             {
                 Logger.LogWarning($"Future block received {block}, {block.Header.Time.ToDateTime()}");

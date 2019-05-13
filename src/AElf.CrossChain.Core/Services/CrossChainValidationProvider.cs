@@ -33,11 +33,11 @@ namespace AElf.CrossChain
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            if (block.Height == KernelConstants.GenesisBlockHeight)
+            if (block.Header.Height == KernelConstants.GenesisBlockHeight)
                 return true;
             
             var indexedCrossChainBlockData =
-                await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Height);
+                await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Header.Height);
             var extraData = _crossChainExtraDataExtractor.ExtractCrossChainData(block.Header);
             try
             {
@@ -68,9 +68,9 @@ namespace AElf.CrossChain
             
             // check cache identity
             var res = await _crossChainDataProvider.ValidateSideChainBlockDataAsync(
-                       crossChainBlockData.SideChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Height - 1) &&
+                       crossChainBlockData.SideChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Header.Height - 1) &&
                    await _crossChainDataProvider.ValidateParentChainBlockDataAsync(
-                       crossChainBlockData.ParentChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Height - 1);
+                       crossChainBlockData.ParentChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Header.Height - 1);
             return res;
         }
     }

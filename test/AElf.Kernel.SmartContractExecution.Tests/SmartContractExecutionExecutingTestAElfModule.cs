@@ -151,7 +151,7 @@ namespace AElf.Kernel.SmartContractExecution
                 mockProvider.Setup(m => m.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>()))
                     .ReturnsAsync(true);
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
-                    .Returns<IBlock>((block) => Task.FromResult(block.Height == KernelConstants.GenesisBlockHeight));
+                    .Returns<IBlock>((block) => Task.FromResult(block.Header.Height == KernelConstants.GenesisBlockHeight));
 
                 return mockProvider.Object;
             });
