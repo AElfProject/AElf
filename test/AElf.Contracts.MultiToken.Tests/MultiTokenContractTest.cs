@@ -50,7 +50,7 @@ namespace AElf.Contracts.MultiToken
                 new ContractDeploymentInput()
                 {
                     Category = DefaultCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContractContainer.TokenContractStub).Assembly.Location))
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 });
 
             await Tester.MineAsync(new List<Transaction> {tx});
