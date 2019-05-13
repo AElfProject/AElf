@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Runtime.CSharp.Tests.BadContract";
+
+service BadContract {
+    option (aelf.csharp_state) = "AElf.Runtime.CSharp.Tests.BadContract.BadContractState";
+
+    rpc UpdateDoubleState (DoubleInput) returns (google.protobuf.Empty) { }
+    
+    rpc UpdateFloatState (FloatInput) returns (google.protobuf.Empty) { }
+    
+    rpc UpdateStateWithRandom (google.protobuf.Empty) returns (RandomOutput) { }
+    
+    rpc UpdateStateWithCurrentTime (google.protobuf.Empty) returns (DateTimeOutput) { }
+    
+    rpc WriteFileToNode (FileInfoInput) returns (google.protobuf.Empty) { }
+    
+    rpc TestCallToNestedClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc TestCallToSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+}
+
+message DoubleInput {
+    double DoubleValue = 1;
+}
+
+message FloatInput {
+    float FloatValue = 1;
+}
+
+message RandomOutput {
+    int32 RandomValue = 1;
+}
+
+message DateTimeOutput {
+    google.protobuf.Timestamp DateTimeValue = 1;
+}
+
+message FileInfoInput {
+    string FilePath = 1;
+    string FileContent = 2;
+}
