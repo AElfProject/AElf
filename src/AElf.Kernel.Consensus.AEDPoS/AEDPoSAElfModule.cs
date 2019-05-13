@@ -15,7 +15,6 @@ using BestChainFoundEventHandler = AElf.Kernel.Consensus.Application.BestChainFo
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
-    // TODO: Why does this appear here?
     [DependsOn(
         typeof(RxNetSchedulerAElfModule)
     )]
@@ -24,7 +23,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-
             context.Services.AddAssemblyOf<AEDPoSAElfModule>();
             context.Services.AddSingleton<IConsensusService, ConsensusService>();
             context.Services.AddSingleton<ConsensusControlInformation>();

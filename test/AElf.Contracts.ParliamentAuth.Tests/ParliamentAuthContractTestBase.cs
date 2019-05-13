@@ -157,9 +157,7 @@ namespace AElf.Contracts.ParliamentAuth
             consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    TimeEachTerm = 7,
+                    IsTermStayOne = true
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
                 InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(

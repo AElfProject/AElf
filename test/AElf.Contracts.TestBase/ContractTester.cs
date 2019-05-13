@@ -260,10 +260,7 @@ namespace AElf.Contracts.TestBase
             consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    TimeEachTerm = consensusOptions.TimeEachTerm,
+                    IsTermStayOne = true
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
                 new Miners
@@ -285,10 +282,7 @@ namespace AElf.Contracts.TestBase
             consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    TimeEachTerm = timeEachTerm
+                    IsTermStayOne = true
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
                 new Miners
@@ -658,12 +652,12 @@ namespace AElf.Contracts.TestBase
                 TokenName = "elf token",
                 TotalSupply = TokenTotalSupply
             });
-            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
-            {
-                Symbol = "ELF",
-                Amount = InitialTreasuryAmount,
-                ToSystemContractName = ElectionSmartContractAddressNameProvider.Name
-            });
+//            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+//            {
+//                Symbol = "ELF",
+//                Amount = InitialTreasuryAmount,
+//                ToSystemContractName = ElectionSmartContractAddressNameProvider.Name
+//            });
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = "ELF",

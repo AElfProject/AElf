@@ -22,8 +22,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = 1000_0000L,
-                Issuer = starter.GetCallOwnerAddress(),
-                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
+                Issuer = starter.GetCallOwnerAddress()
             });
             
             // For testing.
@@ -39,7 +38,6 @@ namespace AElf.Contracts.Resource.FeeReceiver
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
-                    list.AddGenesisSmartContract<ElectionContract>(ElectionSmartContractAddressNameProvider.Name);
                     list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
                     list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
                 });
