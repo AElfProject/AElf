@@ -41,9 +41,9 @@ namespace AElf.Contracts.Vote
             InitializeDependentContracts();
 
             Assert(State.VotingItems[votingItemId] == null, "Voting item already exists.");
-            
+
             Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
-            
+
             var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
                 Symbol = input.AcceptedCurrency,
@@ -157,6 +157,17 @@ namespace AElf.Contracts.Vote
                 });
             }
 
+            Context.Fire(new Voted
+            {
+                VoteId = input.VoteId,
+                VotingItemId = votingRecord.VotingItemId,
+                Voter = votingRecord.Voter,
+                Amount = votingRecord.Amount,
+                Option = votingRecord.Option,
+                SnapshotNumber = votingRecord.SnapshotNumber,
+                VoteTimestamp = votingRecord.VoteTimestamp
+            });
+
             return new Empty();
         }
 
@@ -213,13 +224,18 @@ namespace AElf.Contracts.Vote
                 });
             }
 
+            Context.Fire(new Withdrawn
+            {
+                VoteId = input.VoteId
+            });
+
             return new Empty();
         }
 
         public override Empty TakeSnapshot(TakeSnapshotInput input)
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
-            
+
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can take snapshot.");
 
             Assert(votingItem.CurrentSnapshotNumber - 1 <= votingItem.TotalSnapshotNumber,
@@ -276,6 +292,7 @@ namespace AElf.Contracts.Vote
             {
                 Assert(!votingItem.Options.Contains(option), "Option already exists.");
             }
+
             votingItem.Options.AddRange(input.Options);
             State.VotingItems[votingItem.VotingItemId] = votingItem;
             return new Empty();
@@ -290,6 +307,7 @@ namespace AElf.Contracts.Vote
                 Assert(votingItem.Options.Contains(option), "Option doesn't exist.");
                 votingItem.Options.Remove(option);
             }
+
             State.VotingItems[votingItem.VotingItemId] = votingItem;
             return new Empty();
         }

@@ -56,6 +56,24 @@ service VoteContract {
     }
 }
 
+// Events
+message Voted {
+    option (aelf.is_event) = true;
+    Hash voting_item_id = 1;
+    Address voter = 2;
+    sint64 snapshot_number = 3;
+    sint64 amount = 4;
+    google.protobuf.Timestamp vote_timestamp = 5;
+    string option = 6;
+    Hash vote_id = 7;
+}
+
+message Withdrawn {
+    option (aelf.is_event) = true;
+    Hash vote_id = 1;
+}
+
+// Messages
 message InitialVoteContractInput {
     Hash token_contract_system_name = 1;
 }
