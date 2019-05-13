@@ -554,7 +554,7 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.True(indexingRes.Status == TransactionResultStatus.Mined);
 
             //not exsit chain id
-            var chainInitializationContext = ChainInitializationContext.Parser.ParseFrom(
+            var chainInitializationContext = ChainInitializationInformation.Parser.ParseFrom(
                 await CallContractMethodAsync(CrossChainContractAddress,
                     nameof(CrossChainContract.GetChainInitializationContext),
                     new SInt32Value()
@@ -565,7 +565,7 @@ namespace AElf.Contract.CrossChain.Tests
             chainInitializationContext.Creator.ShouldBeNull();
 
             //valid chain id
-            chainInitializationContext = ChainInitializationContext.Parser.ParseFrom(
+            chainInitializationContext = ChainInitializationInformation.Parser.ParseFrom(
                 await CallContractMethodAsync(CrossChainContractAddress,
                     nameof(CrossChainContract.GetChainInitializationContext),
                     new SInt32Value()

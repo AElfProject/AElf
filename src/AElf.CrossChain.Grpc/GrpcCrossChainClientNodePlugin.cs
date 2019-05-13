@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using Microsoft.Extensions.Options;
@@ -83,10 +84,14 @@ namespace AElf.CrossChain.Grpc
             await _grpcClientProvider.CloseClients();
         }
 
-        public async Task<SideChainInitializationContext> RequestChainInitializationContextAsync(int chainId)
+        public async Task<SideChainInitializationInformation> RequestChainInitializationContextAsync(int chainId)
         {
-            string uri = string.Join(":", _grpcCrossChainConfigOption.RemoteParentChainServerHost, _grpcCrossChainConfigOption.RemoteParentChainServerPort);
-            var chainInitializationContext = await _grpcClientProvider.RequestChainInitializationContextAsync(uri, chainId, _grpcCrossChainConfigOption.ConnectionTimeout);
+            var uriStr = new UriBuilder("http", _grpcCrossChainConfigOption.RemoteParentChainServerHost,
+                _grpcCrossChainConfigOption.RemoteParentChainServerPort).Uri.Authority;
+            //string uri = string.Join(":", _grpcCrossChainConfigOption.RemoteParentChainServerHost, _grpcCrossChainConfigOption.RemoteParentChainServerPort);
+            var chainInitializationContext =
+                await _grpcClientProvider.RequestChainInitializationContextAsync(uriStr, chainId,
+                    _grpcCrossChainConfigOption.ConnectionTimeout);
             return chainInitializationContext;
         }
 

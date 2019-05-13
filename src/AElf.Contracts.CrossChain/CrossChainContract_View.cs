@@ -56,7 +56,7 @@ namespace AElf.Contracts.CrossChain
             var parentChainHeight = State.CurrentParentChainHeight.Value;
             return new SInt64Value()
             {
-                Value = parentChainHeight == 0 ? State.ParentChainHeightOfCreation.Value - 1 : parentChainHeight
+                Value = parentChainHeight == 0 ? State.CreationHeightOnParentChain.Value - 1 : parentChainHeight
             }; // from parent chain height of creation
         }
 
@@ -102,7 +102,7 @@ namespace AElf.Contracts.CrossChain
             var parentChainHeight = State.CurrentParentChainHeight.Value;
             
             if(parentChainHeight == 0)
-                dict.IdHeightDict.Add(State.ParentChainId.Value, State.ParentChainHeightOfCreation.Value - 1); // from parent chain height of creation
+                dict.IdHeightDict.Add(State.ParentChainId.Value, State.CreationHeightOnParentChain.Value - 1); // from parent chain height of creation
             return dict;
         }
         
@@ -128,14 +128,14 @@ namespace AElf.Contracts.CrossChain
             return info.Proposer;
         }
 
-        public override ChainInitializationContext GetChainInitializationContext(SInt32Value chainId)
+        public override ChainInitializationInformation GetChainInitializationContext(SInt32Value chainId)
         {
             var sideChainInfo = State.SideChainInfos[chainId.Value];
             Assert(sideChainInfo != null, "Side chain Not Found.");
             Assert(sideChainInfo.SideChainStatus > SideChainStatus.Review, "Incorrect side chain status.");
-            var res = new ChainInitializationContext
+            var res = new ChainInitializationInformation
             {
-                ParentChainHeightOfCreation = sideChainInfo.ParentChainHeightOfCreation,
+                CreationHeightOnParentChain = sideChainInfo.CreationHeightOnParentChain,
                 ChainId = chainId.Value,
                 Creator = sideChainInfo.Proposer,
                 CreationTimestamp = sideChainInfo.CreationTimestamp

@@ -79,13 +79,13 @@ namespace AElf.CrossChain.Grpc
         {
             var handShakeReply = _grpcClient.CrossChainIndexingShakeAsync(new HandShake
             {
-                FromChainId = chainId,
+                FromChainId = _localChainId,
                 ListeningPort = localListeningPort
             }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
             return Task.FromResult(handShakeReply);
         }
         
-        public Task<SideChainInitializationContext> RequestChainInitializationContext(int chainId)
+        public Task<SideChainInitializationInformation> RequestChainInitializationContext(int chainId)
         {
             var sideChainInitializationResponse = _grpcClient.RequestChainInitializationContextFromParentChainAsync(
                 new SideChainInitializationRequest

@@ -55,9 +55,9 @@ namespace AElf.CrossChain.Grpc
                 var mockCrossChainDataProvider = new Mock<ICrossChainDataProvider>();
                 mockCrossChainDataProvider
                     .Setup(c => c.GetChainInitializationContextAsync(It.IsAny<int>(), It.IsAny<Hash>(),
-                        It.IsAny<long>())).Returns(async () => await Task.FromResult(new ChainInitializationContext
+                        It.IsAny<long>())).Returns(async () => await Task.FromResult(new ChainInitializationInformation
                     {
-                        ParentChainHeightOfCreation = 1,
+                        CreationHeightOnParentChain = 1,
                     }));
                 return mockCrossChainDataProvider.Object;
             });

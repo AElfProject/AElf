@@ -224,7 +224,7 @@ namespace AElf.CrossChain
                 : null;
         }
 
-        public async Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight)
+        public async Task<ChainInitializationInformation> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight)
         {
             return await _readerFactory.Create(blockHash, blockHeight).GetChainInitializationContext.CallAsync(new SInt32Value()
             {
@@ -232,10 +232,10 @@ namespace AElf.CrossChain
             });
         }
 
-        public void HandleLibEvent(IrreversibleBlockDto irreversibleBlockDto)
+        public void UpdateWithLibIndex(BlockIndex blockIndex)
         {
             // clear useless cache
-            var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight < irreversibleBlockDto.BlockHeight)
+            var toRemoveList = _indexedCrossChainBlockData.Where(kv => kv.Value.PreviousBlockHeight < blockIndex.Height)
                 .Select(kv => kv.Key).ToList();
             foreach (var hash in toRemoveList)
             {

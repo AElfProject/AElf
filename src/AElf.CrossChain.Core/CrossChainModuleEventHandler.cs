@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
+using AElf.Kernel;
 using AElf.Kernel.Blockchain.Events;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
@@ -21,10 +22,10 @@ namespace AElf.CrossChain
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             await _newChainRegistrationService.RegisterNewChainsAsync(eventData.BlockHash, eventData.BlockHeight);
-            _crossChainDataProvider.HandleLibEvent(new IrreversibleBlockDto
+            _crossChainDataProvider.UpdateWithLibIndex(new BlockIndex
             {
-                BlockHash = eventData.BlockHash,
-                BlockHeight = eventData.BlockHeight
+                Hash = eventData.BlockHash,
+                Height = eventData.BlockHeight
             });
         }
     }

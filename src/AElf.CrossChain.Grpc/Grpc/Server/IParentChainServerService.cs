@@ -13,7 +13,7 @@ namespace AElf.CrossChain.Grpc
     {
         Task<CrossChainResponse> GenerateResponseAsync(Block block, int remoteSideChainId);
 
-        Task<SideChainInitializationContext> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto);
+        Task<SideChainInitializationInformation> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto);
     }
 
     internal class ParentChainServerService : IParentChainServerService, ITransientDependency
@@ -60,17 +60,17 @@ namespace AElf.CrossChain.Grpc
             return responseParentChainBlockData;
         }
 
-        public async Task<SideChainInitializationContext> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto)
+        public async Task<SideChainInitializationInformation> GetChainInitializationContextAsync(int chainId, LastIrreversibleBlockDto libDto)
         {
             var chainInitializationContext =
                 await _crossChainDataProvider.GetChainInitializationContextAsync(chainId, libDto.BlockHash,
                     libDto.BlockHeight);
-            var sideChainInitializationResponse = new SideChainInitializationContext
+            var sideChainInitializationResponse = new SideChainInitializationInformation
             {
                 ChainId = chainInitializationContext.ChainId,
                 Creator = chainInitializationContext.Creator,
                 CreationTimestamp = chainInitializationContext.CreationTimestamp,
-                ParentChainHeightOfCreation = chainInitializationContext.ParentChainHeightOfCreation
+                CreationHeightOnParentChain = chainInitializationContext.CreationHeightOnParentChain
             };
             sideChainInitializationResponse.ExtraInformation.AddRange(chainInitializationContext.ExtraInformation);
             return sideChainInitializationResponse;

@@ -7,6 +7,6 @@ namespace AElf.CrossChain.Grpc
 {
     public interface IChainInitializationPlugin : INodePlugin
     {
-        Task<SideChainInitializationContext> RequestChainInitializationContextAsync(int chainId);
+        Task<SideChainInitializationInformation> RequestChainInitializationContextAsync(int chainId);
     }
 }

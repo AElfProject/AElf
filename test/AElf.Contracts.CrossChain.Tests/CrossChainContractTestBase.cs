@@ -74,7 +74,7 @@ namespace AElf.Contract.CrossChain.Tests
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     ParentChainId = parentChainId == 0 ? ChainHelpers.ConvertBase58ToChainId("AELF") : parentChainId,
                     ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name,
-                    ParentChainHeightOfCreation = parentChainHeightOfCreation
+                    CreationHeightOnParentChain = parentChainHeightOfCreation
                 });
             await Tester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});
         }

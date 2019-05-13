@@ -22,7 +22,7 @@ namespace AElf.Contracts.CrossChain
             //State.AuthorizationContract.Value = authorizationContractAddress;
             State.Initialized.Value = true;
             State.ParentChainId.Value = input.ParentChainId;
-            State.ParentChainHeightOfCreation.Value = input.ParentChainHeightOfCreation;
+            State.CreationHeightOnParentChain.Value = input.CreationHeightOnParentChain;
             return new Empty();
         }
 
@@ -98,7 +98,7 @@ namespace AElf.Contracts.CrossChain
 
             sideChainInfo.SideChainStatus = SideChainStatus.Active;
             sideChainInfo.CreationTimestamp = Timestamp.FromDateTime(Context.CurrentBlockTime);
-            sideChainInfo.ParentChainHeightOfCreation = Context.CurrentHeight;
+            sideChainInfo.CreationHeightOnParentChain = Context.CurrentHeight;
             State.SideChainInfos[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = 0;
 
@@ -247,7 +247,7 @@ namespace AElf.Contracts.CrossChain
                 Assert(parentChainId == blockInfo.ParentChainId, "Wrong parent chain id.");
                 long parentChainHeight = blockInfo.ParentChainHeight;
                 var currentHeight = State.CurrentParentChainHeight.Value;
-                var target = currentHeight != 0 ? currentHeight + 1 : State.ParentChainHeightOfCreation.Value;
+                var target = currentHeight != 0 ? currentHeight + 1 : State.CreationHeightOnParentChain.Value;
                 Assert(target == parentChainHeight,
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
                 Assert(blockInfo.TransactionStatusMerkleRoot != null,

@@ -123,7 +123,7 @@ namespace AElf.CrossChain.Grpc
         
         #endregion      
         
-        public async Task<SideChainInitializationContext> RequestChainInitializationContextAsync(string uri, int chainId, int timeout)
+        public async Task<SideChainInitializationInformation> RequestChainInitializationContextAsync(string uri, int chainId, int timeout)
         {
             var clientForParentChain = new GrpcClientForParentChain(uri, chainId, timeout);
             var chainInitializationContext = await RequestAsync(clientForParentChain, 

@@ -83,7 +83,7 @@ namespace AElf.CrossChain.Grpc
         private ServerCallContext BuildServerCallContext(Metadata metadata = null)
         {
             var meta = metadata ?? new Metadata();
-            return TestServerCallContext.Create("mock", null, DateTime.UtcNow.AddHours(1), meta, CancellationToken.None, 
+            return TestServerCallContext.Create("mock", "127.0.0.1", DateTime.UtcNow.AddHours(1), meta, CancellationToken.None, 
                 "ipv4:127.0.0.1:2100", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
         }
     }

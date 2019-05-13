@@ -72,7 +72,7 @@ service CrossChainContract {
     rpc GetBoundParentChainHeightAndMerklePathByHeight (SInt64Value) returns (CrossChainMerkleProofContext) {
         option (aelf.is_view) = true;
     }
-    rpc GetChainInitializationContext(SInt32Value) returns (ChainInitializationContext){
+    rpc GetChainInitializationContext(SInt32Value) returns (ChainInitializationInformation){
         option (aelf.is_view) = true;
     }
 }
@@ -82,7 +82,7 @@ message InitializeInput {
     Hash consensusContractSystemName = 2;
     Hash parliamentContractSystemName = 3;
     int32 parentChainId = 4;
-    int64 parentChainHeightOfCreation = 5;
+    int64 creationHeightOnParentChain = 5;
 }
 
 message RechargeInput {
@@ -130,7 +130,7 @@ message SideChainInfo {
     int32 sideChainId = 4;
     Hash proposalHash = 5;
     google.protobuf.Timestamp creationTimestamp = 6;
-    int64 parentChainHeightOfCreation = 7;
+    int64 creationHeightOnParentChain = 7;
 }
 
 // from crosschain.proto
@@ -191,12 +191,12 @@ message CrossChainMerkleProofContext{
     MerklePath merklePathForParentChainRoot = 2;
 }
 
-message ChainInitializationContext{
+message ChainInitializationInformation{
     int32 chainId =1;
     Address creator = 2;
     google.protobuf.Timestamp CreationTimestamp = 3;
     repeated bytes extraInformation = 4;
-    int64 parentChainHeightOfCreation = 5;
+    int64 creationHeightOnParentChain = 5;
 }
 
 // from resource.proto

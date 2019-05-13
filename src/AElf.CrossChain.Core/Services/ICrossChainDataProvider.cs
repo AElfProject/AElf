@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
+using AElf.Kernel;
 using Google.Protobuf;
 
 namespace AElf.CrossChain
@@ -9,7 +10,7 @@ namespace AElf.CrossChain
     {
         Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
-        Task<ChainInitializationContext> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight);
+        Task<ChainInitializationInformation> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight);
 
         Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
@@ -26,12 +27,6 @@ namespace AElf.CrossChain
 
         CrossChainBlockData GetUsedCrossChainBlockDataForLastMiningAsync(Hash blockHash, long previousBlockHeight);
 
-        void HandleLibEvent(IrreversibleBlockDto eventData);
-    }
-
-    internal class IrreversibleBlockDto
-    {
-        public Hash BlockHash { get; set; }
-        public long BlockHeight { get; set; }
+        void UpdateWithLibIndex(BlockIndex blockIndex);
     }
 }

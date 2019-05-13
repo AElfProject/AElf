@@ -30,19 +30,19 @@ message SideChainInitializationRequest{
     int32 chainId =1;
 }
 
-message SideChainInitializationContext{
+message SideChainInitializationInformation{
     int32 chainId =1;
     Address creator = 2;
     google.protobuf.Timestamp creationTimestamp = 3;
     repeated bytes extraInformation = 4;
-    int64 parentChainHeightOfCreation = 5; 
+    int64 creationHeightOnParentChain = 5; 
 }
 
 service CrossChainRpc {
     rpc RequestIndexingFromSideChainAsync (CrossChainRequest) returns (stream CrossChainResponse) {}
     rpc RequestIndexingFromParentChainAsync (CrossChainRequest) returns (stream CrossChainResponse) {}
     rpc CrossChainIndexingShakeAsync (HandShake) returns (HandShakeReply) {}
-    rpc RequestChainInitializationContextFromParentChainAsync (SideChainInitializationRequest) returns (SideChainInitializationContext) {}
+    rpc RequestChainInitializationContextFromParentChainAsync (SideChainInitializationRequest) returns (SideChainInitializationInformation) {}
 }
 
 message BlockData{

@@ -11,7 +11,6 @@ using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
-using ChainInitializationContext = AElf.Contracts.CrossChain.ChainInitializationContext;
 
 namespace AElf.Blockchains.SideChain
 {
@@ -39,12 +38,12 @@ namespace AElf.Blockchains.SideChain
 
             var sideChainInitializationResponse = AsyncHelper.RunSync(async () =>
                 await _chainInitializationPlugin.RequestChainInitializationContextAsync(_chainOptions.ChainId));
-            var chainInitializationContext = new ChainInitializationContext
+            var chainInitializationContext = new ChainInitializationInformation
             {
                 ChainId = sideChainInitializationResponse.ChainId,
                 Creator = sideChainInitializationResponse.Creator,
                 CreationTimestamp = sideChainInitializationResponse.CreationTimestamp,
-                ParentChainHeightOfCreation = sideChainInitializationResponse.ParentChainHeightOfCreation
+                CreationHeightOnParentChain = sideChainInitializationResponse.CreationHeightOnParentChain
             };
             chainInitializationContext.ExtraInformation.AddRange(sideChainInitializationResponse.ExtraInformation);
 
@@ -75,7 +74,7 @@ namespace AElf.Blockchains.SideChain
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateConsensusInitializationCallList(ChainInitializationContext chainInitializationContext)
+            GenerateConsensusInitializationCallList(ChainInitializationInformation chainInitializationContext)
         {
             var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
 //            var chainInitializationContextByteString = AsyncHelper.RunSync(async () =>
@@ -98,7 +97,7 @@ namespace AElf.Blockchains.SideChain
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateCrossChainInitializationCallList(ChainInitializationContext chainInitializationContext)
+            GenerateCrossChainInitializationCallList(ChainInitializationInformation chainInitializationContext)
         {
             var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
@@ -108,7 +107,7 @@ namespace AElf.Blockchains.SideChain
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     ParentChainId = _crossChainConfigOptions.ParentChainId,
                     ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name,
-                    ParentChainHeightOfCreation = chainInitializationContext.ParentChainHeightOfCreation
+                    CreationHeightOnParentChain = chainInitializationContext.CreationHeightOnParentChain
                 });
             return crossChainMethodCallList;
         }
