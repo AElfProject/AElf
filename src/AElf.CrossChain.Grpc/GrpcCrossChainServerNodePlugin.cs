@@ -18,10 +18,10 @@ namespace AElf.CrossChain.Grpc
 
         public Task StartAsync(int chainId)
         {
-            if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.LocalServerIP) 
+            if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.LocalServerHost) 
                 || _grpcCrossChainConfigOption.LocalServerPort == 0)
                 return Task.CompletedTask;
-            return _crossChainServer.StartAsync(_grpcCrossChainConfigOption.LocalServerIP,
+            return _crossChainServer.StartAsync(_grpcCrossChainConfigOption.LocalServerHost,
                 _grpcCrossChainConfigOption.LocalServerPort);
         }
 

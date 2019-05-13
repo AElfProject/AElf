@@ -40,28 +40,16 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task GrpcServeNewChainReceivedEventTest()
         {
-            var receivedEventData = new GrpcServeNewChainReceivedEvent
+            var receivedEventData = new GrpcCrossChainRequestReceivedEvent
             {
-                LocalChainId = _chainOptions.ChainId,
-                CrossChainCommunicationContextDto = new GrpcCrossChainCommunicationContext
-                {
-                    RemoteChainId = ChainHelpers.ConvertBase58ToChainId("ETH"),
-                    RemoteIsSideChain = false,
-                    TargetIp = _grpcCrossChainConfigOption.RemoteParentChainNodeIp,
-                    TargetPort = _grpcCrossChainConfigOption.RemoteParentChainNodePort,
-                    LocalChainId = _chainOptions.ChainId,
-                    LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort
-                }
+                RemoteChainId = ChainHelpers.ConvertBase58ToChainId("ETH"),
+                RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
+                RemoteServerPort = _grpcCrossChainConfigOption.RemoteParentChainServerPort
             };
             await _grpcCrossChainClientNodePlugin.HandleEventAsync(receivedEventData);
         }
 
-        [Fact]
-        public async Task Client_Shutdown_Test()
-        {
-            //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
-            await Assert.ThrowsAsync<NotImplementedException>(()=>_grpcCrossChainClientNodePlugin.ShutdownAsync()); 
-        }
+        //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
 
         public override void Dispose()
         {

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.EventMessages;
+using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -37,7 +37,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> _futureByBlock =
             new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
 
-        private long _bestChainHeight = KernelConstants.GenesisBlockHeight - 1;
+        private long _bestChainHeight = Constants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
 
         public ILocalEventBus LocalEventBus { get; set; }

@@ -107,15 +107,6 @@ namespace AElf.Contracts.TestBase
                             mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
                                 Task.FromResult(CryptoHelpers.SignWithPrivateKey(KeyPair.PrivateKey, data)));
 
-                            mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(),
-                                It.IsAny<byte[]>()
-                            )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
-                            {
-                                var recoverResult =
-                                    CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
-                                return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
-                            });
-
                             mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(KeyPair.PublicKey);
 
                             return mockService.Object;
@@ -133,13 +124,6 @@ namespace AElf.Contracts.TestBase
                 var mockService = new Mock<IAccountService>();
                 mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
                     Task.FromResult(CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, data)));
-
-                mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()
-                )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
-                {
-                    var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
-                    return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
-                });
 
                 mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(keyPair.PublicKey);
 
@@ -173,15 +157,6 @@ namespace AElf.Contracts.TestBase
                         var mockService = new Mock<IAccountService>();
                         mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
                             Task.FromResult(CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, data)));
-
-                        mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(),
-                            It.IsAny<byte[]>()
-                        )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
-                        {
-                            var recoverResult =
-                                CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
-                            return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
-                        });
 
                         mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(keyPair.PublicKey);
 

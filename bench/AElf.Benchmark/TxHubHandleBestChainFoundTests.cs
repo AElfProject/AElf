@@ -56,7 +56,7 @@ namespace AElf.Benchmark
             _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
             await _blockchainService.AddBlockAsync(_block);
             await _chainBlockLinks.SetAsync(
-                chain.Id.ToStorageKey() + KernelConsts.StorageKeySeparator + _block.GetHash().ToStorageKey(),
+                chain.Id.ToStorageKey() + KernelConstants.StorageKeySeparator + _block.GetHash().ToStorageKey(),
                 new ChainBlockLink()
                 {
                     BlockHash = _block.GetHash(),

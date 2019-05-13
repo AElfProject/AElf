@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
-using AElf.Kernel.EventMessages;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

@@ -234,7 +234,7 @@ namespace AElf.Kernel
             {
                 Header = new BlockHeader
                 {
-                    Height = KernelConstants.GenesisBlockHeight,
+                    Height = Constants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty
                 },
                 Body = new BlockBody()

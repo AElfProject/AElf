@@ -16,7 +16,7 @@ namespace AElf.CrossChain
             return await blockchainService.GetBlockByHashAsync(blockHash);
         }
 
-        public static async Task<LastIrreversibleBlockDto> GetLibHashAndHeight(this IBlockchainService blockchainService)
+        public static async Task<LastIrreversibleBlockDto> GetLibHashAndHeightAsync(this IBlockchainService blockchainService)
         {
             var chain = await blockchainService.GetChainAsync();
             return new LastIrreversibleBlockDto

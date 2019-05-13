@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.EventMessages;
 using FluentScheduler;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
