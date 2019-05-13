@@ -33,7 +33,7 @@ namespace AElf.Contracts.TestKit
             var blckWithTrx = new BlockWithTransactions {Header = block.Header};
             blckWithTrx.Transactions.AddRange(new List<Transaction> {transaction});
             
-            await blockAttachService.AttachReceivedBlock(blckWithTrx);
+            await blockAttachService.AttachReceivedBlockAsync(blckWithTrx);
         }
 
         public async Task<ByteString> ReadAsync(Transaction transaction)

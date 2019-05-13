@@ -23,7 +23,7 @@ namespace AElf.Kernel
         }
 
         public IEnumerable<Transaction> FullTransactionList => Transactions;
-        public IEnumerable<Hash> TransactionList => Transactions.Select(tx => tx.GetHash());
+        public IEnumerable<Hash> TransactionHashList => Transactions.Select(tx => tx.GetHash());
         public BlockBody Body => new BlockBody { Transactions = { Transactions.Select(tx => tx.GetHash()).ToList() }}; 
         public long Height => Header?.Height ?? 0;        
         

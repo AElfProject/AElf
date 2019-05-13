@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, .0d)]
         public void AttachBlockTest()
         {
-            AsyncHelper.RunSync(() => _blockAttachService.AttachReceivedBlock(_block));
+            AsyncHelper.RunSync(() => _blockAttachService.AttachReceivedBlockAsync(_block));
             _counter.Increment();
         }
     }
