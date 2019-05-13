@@ -12,8 +12,21 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.CrossChain.Types\AElf.CrossChain.Types.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\..\protobuf\cross_chain_contract.proto">
+        <Link>Protobuf/Proto/cross_chain_contract.proto</Link>
+      </None>
+    </ItemGroup>
+    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh cross_chain_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat cross_chain_contract.proto" />
+    </Target>
+    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Compile Include="./Protobuf/Generated/*.cs" />
+        </ItemGroup>
+    </Target>
 </Project>

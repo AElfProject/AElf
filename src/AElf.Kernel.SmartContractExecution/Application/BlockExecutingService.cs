@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.EventMessages;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;

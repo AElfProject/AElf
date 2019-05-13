@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Kernel.EventMessages;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using Microsoft.Extensions.Logging;
@@ -31,10 +31,10 @@ namespace AElf.Kernel
             try
             {
                 var block = await _minerService.MineAsync(eventData.PreviousBlockHash, eventData.PreviousBlockHeight,
-                    eventData.BlockTime, eventData.TimeSpan);
+                    eventData.BlockTime, eventData.BlockExecutionTime);
                 // Self mined block do not need do verify
                 _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
-                    KernelConsts.UpdateChainQueueName);
+                    KernelConstants.UpdateChainQueueName);
             }
             catch (Exception e)
             {

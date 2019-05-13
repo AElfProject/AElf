@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.CrossChain;
+using AElf.CrossChain.Cache;
 using AElf.Kernel;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -40,18 +42,24 @@ namespace AElf.CrossChain
             
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, previousBlockHeight);
             
-            var blockInfoCache = new List<IBlockInfo>();
+            var blockInfoCache = new List<BlockCacheEntity>();
             var cachingCount = CrossChainConstants.MaximalCountForIndexingSideChainBlock;
             for (var i = 1; i <= cachingCount; i++)
             {
-                blockInfoCache.Add(new SideChainBlockData
+                var sideChainBlockData = new SideChainBlockData
                 {
+                    SideChainId = chainId,
                     SideChainHeight = previousBlockHeight + i,
-                    SideChainId = chainId
+                };
+                blockInfoCache.Add(new BlockCacheEntity()
+                {
+                    Height = sideChainBlockData.SideChainHeight,
+                    ChainId = sideChainBlockData.SideChainId,
+                    Payload = sideChainBlockData.ToByteString()
                 });
             }
 
-            var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
+            var fakeCache = new Dictionary<int, List<BlockCacheEntity>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
 
             var smartContractAddress = Address.FromString("CrossChainContract");
@@ -75,7 +83,7 @@ namespace AElf.CrossChain
             crossChainBlockData.ParentChainBlockData.Count.ShouldBe(0);
             crossChainBlockData.SideChainBlockData.Count.ShouldBe(
                 CrossChainConstants.MaximalCountForIndexingSideChainBlock -
-                CrossChainConstants.MinimalBlockInfoCacheThreshold);
+                CrossChainConstants.MinimalBlockCacheEntityCount);
             crossChainBlockData.SideChainBlockData[0].SideChainId.ShouldBe(chainId);
             crossChainBlockData.SideChainBlockData[0].SideChainHeight.ShouldBe(previousBlockHeight + 1);
         }

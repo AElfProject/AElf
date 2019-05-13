@@ -47,7 +47,7 @@ namespace AElf.OS.Consensus.DPos
                                 irreversibleBlockIndex.Hash);
                         }
                     }
-                }, KernelConsts.UpdateChainQueueName);
+                }, KernelConstants.UpdateChainQueueName);
             }
         }
     }

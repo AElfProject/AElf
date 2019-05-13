@@ -1,5 +1,3 @@
-using AElf.Kernel.EventMessages;
-
 namespace AElf.Kernel.Consensus.Application
 {
     public interface IConsensusScheduler

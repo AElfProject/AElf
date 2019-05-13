@@ -19,7 +19,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
-            if (block.Height == KernelConstants.GenesisBlockHeight)
+            if (block.Height == Constants.GenesisBlockHeight)
                 return true;
 
             if (block.Header.BlockExtraDatas.Count == 0)
@@ -40,7 +40,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
-            if (block.Height == KernelConstants.GenesisBlockHeight)
+            if (block.Height == Constants.GenesisBlockHeight)
                 return true;
 
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
@@ -61,7 +61,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            if (block.Height == KernelConstants.GenesisBlockHeight)
+            if (block.Height == Constants.GenesisBlockHeight)
                 return true;
 
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);

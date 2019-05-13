@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -46,6 +47,9 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
             
             // Validate types in the module
             results.AddRange(module.Types.SelectMany(Validate));
+            
+            // Validate nested types
+            results.AddRange(module.Types.SelectMany(t => t.NestedTypes).SelectMany(Validate));
 
             return results;
         }
@@ -53,7 +57,7 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
         private IEnumerable<ValidationResult> Validate(TypeDefinition type)
         {
             var results = new List<ValidationResult>();
-            
+
             foreach (var method in type.Methods)
             {
                 if (!method.HasBody)
@@ -159,23 +163,24 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
             {
                 case WhitelistSearchResult.DeniedNamespace:
                     var ns = string.IsNullOrWhiteSpace(type.Namespace) ? @"""" : type.Namespace;
-                    yield return new WhitelistValidationResult($"{ns} is not allowed. (Ref Source: {method.FullName})");
+                    yield return new WhitelistValidationResult($"{ns} is not allowed.")
+                                    .WithInfo(method.Name, type.Namespace, type.Name, member);
                     break;
                     
                 case WhitelistSearchResult.DeniedType:
-                    yield return new WhitelistValidationResult($"{type.Name} in {type.Namespace} is not allowed. (Ref Source: {method.FullName})");
+                    yield return new WhitelistValidationResult($"{type.Name} in {type.Namespace} is not allowed.")
+                                    .WithInfo(method.Name, type.Namespace, type.Name, member);
                     break;
                 
                 case WhitelistSearchResult.DeniedMember:
-                    yield return new WhitelistValidationResult($"{member} in {type.FullName} is not allowed. (Ref Source: {method.FullName})");
+                    yield return new WhitelistValidationResult($"{member} in {type.FullName} is not allowed.")
+                                    .WithInfo(method.Name, type.Namespace, type.Name, member);
                     break;
             }
         }
 
         private WhitelistSearchResult Search(TypeReference type, string member = null)
         {
-            var error = Enumerable.Empty<WhitelistValidationResult>();
-
             var typeNs = GetNameSpace(type);
             
             // Fail if there is no rule for the namespace
@@ -209,9 +214,19 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
 
             if (!typeRule.Members.TryGetValue(member, out var memberRule))
             {
-                return typeRule.Permission == Permission.Allowed
-                    ? WhitelistSearchResult.Allowed
-                    : WhitelistSearchResult.DeniedMember;
+                if (!member.StartsWith("get_") && !member.StartsWith("set_"))
+                    return typeRule.Permission == Permission.Allowed
+                        ? WhitelistSearchResult.Allowed
+                        : WhitelistSearchResult.DeniedMember;
+    
+                // Check without the prefix as well
+                member = member.Split("_", 2)[1];
+                if (!typeRule.Members.TryGetValue(member, out memberRule))
+                {
+                    return typeRule.Permission == Permission.Allowed
+                        ? WhitelistSearchResult.Allowed
+                        : WhitelistSearchResult.DeniedMember;
+                }
             }
 
             return memberRule.Permission == Permission.Allowed
