@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.EventMessages;
 using AElf.Kernel.Miner.Application;
 using Volo.Abp.EventBus;
 
