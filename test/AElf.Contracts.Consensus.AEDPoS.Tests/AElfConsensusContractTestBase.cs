@@ -21,7 +21,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public class AElfConsensusContractTestBase : ContractTestBase<AElfConsensusContractTestAElfModule>
+    public class AElfConsensusContractTestBase : ContractTestBase<AEDPoSContractTestAElfModule>
     {
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();

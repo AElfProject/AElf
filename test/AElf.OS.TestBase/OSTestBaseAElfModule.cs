@@ -1,5 +1,5 @@
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -8,7 +8,7 @@ namespace AElf.OS
 {
     [DependsOn(
         typeof(CoreOSAElfModule),
-        typeof(AEDPoSAElfModule),
+        typeof(AEDPoSContractTestAElfModule),
         typeof(KernelTestAElfModule)
     )]
     public class OSTestBaseAElfModule : AElfModule
