@@ -13,7 +13,7 @@ namespace AElf.Runtime.CSharp.Validators.Method
 
             return new List<ValidationResult>
             {
-                new GenericParamValidationResult(method.FullName + " contains generic parameter.")
+                new GenericParamValidationResult($"{method.FullName} contains generic parameter.")
             };
         }
     }

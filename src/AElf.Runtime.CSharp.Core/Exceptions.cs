@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using AElf.Runtime.CSharp.Validators;
 
 namespace AElf.Runtime.CSharp
 {
@@ -26,6 +28,7 @@ namespace AElf.Runtime.CSharp
 
     public class InvalidCodeException : Exception
     {
+        public List<ValidationResult> Findings { get; }
         public InvalidCodeException() : base()
         {
         }
@@ -33,6 +36,10 @@ namespace AElf.Runtime.CSharp
         public InvalidCodeException(string message) : base(message)
         {
         }
+        
+        public InvalidCodeException(string message, List<ValidationResult> findings) : base(message)
+        {
+            Findings = findings;
+        }
     }
-
 }
