@@ -72,7 +72,7 @@ namespace AElf.Kernel.Miner.Application
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IAccountService _accountService;
         private readonly IBlockExecutingService _blockExecutingService;
-        private readonly ITransactionManager _transactionManager;
+        private readonly IBlockchainService _blockchainService;
         
         public ILocalEventBus EventBus { get; set; }
 
@@ -80,14 +80,14 @@ namespace AElf.Kernel.Miner.Application
             IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
             IBlockExecutingService blockExecutingService,
-            ITransactionManager txManager)
+            IBlockchainService blockchainService)
         {
             Logger = NullLogger<MiningService>.Instance;
             _blockGenerationService = blockGenerationService;
             _systemTransactionGenerationService = systemTransactionGenerationService;
             _blockExecutingService = blockExecutingService;
             _accountService = accountService;
-            _transactionManager = txManager;
+            _blockchainService = blockchainService;
             
             EventBus = NullLocalEventBus.Instance;
         }
@@ -98,11 +98,13 @@ namespace AElf.Kernel.Miner.Application
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
             var systemTransactions = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
                                     previousBlockHeight, previousBlockHash);
+            
             foreach (var transaction in systemTransactions)
             {
                 await SignAsync(transaction);
-                await _transactionManager.AddTransactionAsync(transaction);
             }
+            
+            await _blockchainService.AddTransactionsAsync(systemTransactions);
 
             return systemTransactions;
         }
