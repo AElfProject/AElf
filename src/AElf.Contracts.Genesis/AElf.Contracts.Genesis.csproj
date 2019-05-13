@@ -5,7 +5,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
+        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -16,4 +16,8 @@
             <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractCode>
     </ItemGroup>
+    <Target Name="CopyContractDll" AfterTargets="AfterBuild">
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll $(SolutionDir)/test/AElf.Runtime.CSharp.Tests/contracts" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll $(SolutionDir)\test\AElf.Runtime.CSharp.Tests\contracts" />
+    </Target>
 </Project>
