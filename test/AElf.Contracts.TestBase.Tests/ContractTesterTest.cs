@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AElfConsensus;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
@@ -98,7 +98,7 @@ namespace AElf.Contracts.TestBase.Tests
             var tester = new ContractTester<ContractTestAElfModule>(ChainId, callerKeyPair);
             await tester.InitialChainAsync(list =>
             {
-                list.AddGenesisSmartContract<ConsensusContract>(
+                list.AddGenesisSmartContract<AEDPoSContract>(
                     ConsensusSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<TokenContract>(
                     TokenSmartContractAddressNameProvider.Name);

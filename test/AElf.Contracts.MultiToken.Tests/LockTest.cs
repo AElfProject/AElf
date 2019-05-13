@@ -1,12 +1,11 @@
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.Dividend;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AElfConsensus;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Shouldly;
@@ -32,15 +31,15 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = true,
                 TokenName = "elf token",
                 Issuer = Starter.GetCallOwnerAddress(),
-                TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
+                TotalSupply = ElectionContractConstants.LockTokenForElection * 100,
                 LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
             });
 
             tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
             {
                 Symbol = "ELF",
-                Amount = DPoSContractConsts.LockTokenForElection * 20,
-                ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
+                Amount = ElectionContractConstants.LockTokenForElection * 20,
+                ToSystemContractName = ElectionSmartContractAddressNameProvider.Name,
                 Memo = "Issue ",
             });
 
@@ -48,13 +47,13 @@ namespace AElf.Contracts.MultiToken
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = "ELF",
-                Amount = DPoSContractConsts.LockTokenForElection * 80,
+                Amount = ElectionContractConstants.LockTokenForElection * 80,
                 To = Starter.GetCallOwnerAddress(),
                 Memo = "Set dividends.",
             });
             AsyncHelper.RunSync(() => Starter.InitialChainAsync(list =>
             {
-                list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract<ElectionContract>(ElectionSmartContractAddressNameProvider.Name);
                 
                 //test extension AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts, Hash name, Action<SystemTransactionMethodCallList> action)
                 void Action(SystemContractDeploymentInput.Types.SystemTransactionMethodCallList x)

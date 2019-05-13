@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.Dividend;
+using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -14,7 +14,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
-using AElf.Kernel.Consensus.AElfConsensus;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -252,7 +252,6 @@ namespace AElf.OS
             return Address.Parser.ParseFrom(txResult.ReturnValue);
         }
 
-
         #region private methods
 
         private async Task StartNode()
@@ -263,7 +262,7 @@ namespace AElf.OS
                 ChainId = _chainOptions.ChainId
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<AEDPoSContract>(
                 ConsensusSmartContractAddressNameProvider.Name);
 
             var ownAddress = await _accountService.GetAccountAsync();
@@ -285,8 +284,8 @@ namespace AElf.OS
                 Memo = "Issue"
             });
             
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
-                DividendSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ElectionContract>(
+                ElectionSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name, callList);
 

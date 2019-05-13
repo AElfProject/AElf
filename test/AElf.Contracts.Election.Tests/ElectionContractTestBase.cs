@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AElfConsensus;
-using AElf.Contracts.Consensus.MinersCountProvider;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -13,7 +12,7 @@ using AElf.Contracts.TestKit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AElfConsensus;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
@@ -66,8 +65,7 @@ namespace AElf.Contracts.Election
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
-        internal MinersCountProviderContractContainer.MinersCountProviderContractStub MinersCountProviderContractStub { get; set; }
-        internal AElfConsensusContractContainer.AElfConsensusContractStub AElfConsensusContractStub { get; set; }
+        internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
         {
@@ -94,15 +92,10 @@ namespace AElf.Contracts.Election
             return GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, keyPair);
         }
 
-        internal MinersCountProviderContractContainer.MinersCountProviderContractStub GetMinersCountProviderContractTester(ECKeyPair keyPair)
-        {
-            return GetTester<MinersCountProviderContractContainer.MinersCountProviderContractStub>(MinersCountProviderContractAddress, keyPair);
-        }
-
-        internal AElfConsensusContractContainer.AElfConsensusContractStub GetAElfConsensusContractStub(
+        internal AEDPoSContractContainer.AEDPoSContractStub GetAEDPoSContractStub(
             ECKeyPair keyPair)
         {
-            return GetTester<AElfConsensusContractContainer.AElfConsensusContractStub>(ConsensusContractAddress, keyPair);
+            return GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress, keyPair);
         }
 
         protected void InitializeContracts()
@@ -147,18 +140,6 @@ namespace AElf.Contracts.Election
                     })).Output;
             ElectionContractStub = GetElectionContractTester(BootMinerKeyPair);
 
-            // Deploy Miners Count Provider Contract
-            MinersCountProviderContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(MinersCountProviderContract).Assembly.Location)),
-                        Name = MinersCountProviderSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
-                    })).Output;
-            MinersCountProviderContractStub = GetMinersCountProviderContractTester(BootMinerKeyPair);
-
             // Deploy Token Contract
             TokenContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
@@ -177,11 +158,11 @@ namespace AElf.Contracts.Election
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AElfConsensusContract).Assembly.Location)),
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AEDPoSContract).Assembly.Location)),
                         Name = ConsensusSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateConsensusInitializationCallList(),
                     })).Output;
-            AElfConsensusContractStub = GetAElfConsensusContractStub(BootMinerKeyPair);
+            AEDPoSContractStub = GetAEDPoSContractStub(BootMinerKeyPair);
 
             var profitIds = AsyncHelper.RunSync(() =>
                 ProfitContractStub.GetCreatedProfitItems.CallAsync(
@@ -255,7 +236,6 @@ namespace AElf.Contracts.Election
                     ElectionSmartContractAddressNameProvider.Name,
                     VoteSmartContractAddressNameProvider.Name,
                     ProfitSmartContractAddressNameProvider.Name,
-                    MinersCountProviderSmartContractAddressNameProvider.Name
                 }
             });
 
@@ -320,9 +300,9 @@ namespace AElf.Contracts.Election
                     VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
                     ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    AelfConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     MaximumLockTime = 1080,
-                    MinimumLockTime = 90
+                    MinimumLockTime = 90,
                 });
 
             return electionMethodCallList;
@@ -333,20 +313,20 @@ namespace AElf.Contracts.Election
             var consensusMethodList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             ConsensusOption = GetDefaultConsensusOptions();
             
-            consensusMethodList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract),
+            consensusMethodList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    MinersCountProviderContractSystemName = MinersCountProviderSmartContractAddressNameProvider.Name,
                     VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
+                    TimeEachTerm = ConsensusOption.TimeEachTerm
                 });
             var miners = new Miners
             {
                 PublicKeys =
                     {ConsensusOption.InitialMiners.Select(p => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p)))}
             };
-            consensusMethodList.Add(nameof(AElfConsensusContract.FirstRound),
+            consensusMethodList.Add(nameof(AEDPoSContract.FirstRound),
                 miners.GenerateFirstRoundOfNewTerm(ConsensusOption.MiningInterval,
                     ConsensusOption.StartTimestamp.ToUniversalTime()));
             return consensusMethodList;
@@ -354,7 +334,7 @@ namespace AElf.Contracts.Election
 
         internal async Task NextTerm(ECKeyPair keyPair)
         {
-            var miner = GetAElfConsensusContractStub(keyPair);
+            var miner = GetAEDPoSContractStub(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             var victories = await ElectionContractStub.GetVictories.CallAsync(new Empty());
             var miners = new Miners
@@ -372,7 +352,7 @@ namespace AElf.Contracts.Election
 
         internal async Task NextRound(ECKeyPair keyPair)
         {
-            var miner = GetAElfConsensusContractStub(keyPair);
+            var miner = GetAEDPoSContractStub(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             round.GenerateNextRoundInformation(
                 StartTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds()), StartTimestamp,
@@ -382,7 +362,7 @@ namespace AElf.Contracts.Election
 
         internal async Task NormalBlock(ECKeyPair keyPair)
         {
-            var miner = GetAElfConsensusContractStub(keyPair);
+            var miner = GetAEDPoSContractStub(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             var minerInRound = round.RealTimeMinersInformation[keyPair.PublicKey.ToHex()];
             await miner.UpdateValue.SendAsync(new UpdateValueInput
@@ -426,7 +406,8 @@ namespace AElf.Contracts.Election
             {
                 MiningInterval = 4000,
                 InitialMiners = InitialMinersKeyPairs.Select(k => k.PublicKey.ToHex()).ToList(),
-                StartTimestamp = StartTimestamp.ToDateTime()
+                StartTimestamp = StartTimestamp.ToDateTime(),
+                TimeEachTerm = 7
             };
         }
     }

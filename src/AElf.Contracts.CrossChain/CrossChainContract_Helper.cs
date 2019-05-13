@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs3;
-using AElf.Contracts.Consensus.AElfConsensus;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;

@@ -22,7 +22,7 @@ namespace AElf.Contracts.Election
 
             await NextTerm(BootMinerKeyPair);
 
-            var round = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             foreach (var initialMinersKeyPair in InitialMinersKeyPairs)
             {
@@ -37,7 +37,7 @@ namespace AElf.Contracts.Election
 
             await NextTerm(BootMinerKeyPair);
 
-            var round = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             foreach (var initialMinersKeyPair in InitialMinersKeyPairs)
             {
@@ -48,13 +48,13 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_ReleaseTreasuryProfits_ValidCandidatesNotEnough()
         {
-            var firstRound = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            var firstRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var victories = await ElectionContract_GetVictories_ValidCandidatesNotEnough();
 
             await NextTerm(BootMinerKeyPair);
 
-            var round = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             foreach (var validCandidateKeyPair in victories)
             {
@@ -69,7 +69,7 @@ namespace AElf.Contracts.Election
 
             await NextTerm(BootMinerKeyPair);
 
-            var round = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             foreach (var validCandidateKeyPair in validCandidates)
             {

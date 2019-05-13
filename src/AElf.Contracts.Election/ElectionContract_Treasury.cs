@@ -68,7 +68,7 @@ namespace AElf.Contracts.Election
 
         public override Empty ReleaseTreasuryProfits(ReleaseTreasuryProfitsInput input)
         {
-            Assert(Context.Sender == State.AElfConsensusContract.Value,
+            Assert(Context.Sender == State.AEDPoSContract.Value,
                 "Only AElf Consensus Contract can release profits from Treasury.");
 
             var totalReleasedAmount = input.MinedBlocks.Mul(ElectionContractConstants.ElfTokenPerBlock);
@@ -244,7 +244,7 @@ namespace AElf.Contracts.Election
                 ProfitId = State.BasicRewardHash.Value
             };
 
-            var previousMiners = State.AElfConsensusContract.GetPreviousRoundInformation.Call(new Empty())
+            var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
             var victories = GetVictories(previousMiners);
             var previousMinersAddresses = new List<Address>();

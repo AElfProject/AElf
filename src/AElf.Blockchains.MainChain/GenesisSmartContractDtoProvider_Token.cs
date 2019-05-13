@@ -3,7 +3,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AElfConsensus;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 
@@ -38,7 +38,6 @@ namespace AElf.Blockchains.MainChain
                     ElectionSmartContractAddressNameProvider.Name,
                     VoteSmartContractAddressNameProvider.Name,
                     ProfitSmartContractAddressNameProvider.Name,
-                    MinersCountProviderSmartContractAddressNameProvider.Name
                 }
             });
 

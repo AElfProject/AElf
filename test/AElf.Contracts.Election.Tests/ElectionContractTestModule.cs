@@ -1,4 +1,4 @@
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.TestKit;
 using AElf.Kernel.Blockchain.Application;
 using Microsoft.Extensions.DependencyInjection;

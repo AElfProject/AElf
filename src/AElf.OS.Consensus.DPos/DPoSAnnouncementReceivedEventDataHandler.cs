@@ -2,7 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.AElfConsensus.Application;
+using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -61,12 +61,12 @@ namespace AElf.OS.Consensus.DPos
         ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
-        private readonly IAElfConsensusInformationProvider _dpoSInformationProvider;
+        private readonly IAEDPoSInformationProvider _dpoSInformationProvider;
         private readonly IBlockchainService _blockchainService;
         public ILogger<DPoSLastLastIrreversibleBlockDiscoveryService> Logger { get; set; }
 
         public DPoSLastLastIrreversibleBlockDiscoveryService(IPeerPool peerPool,
-            IAElfConsensusInformationProvider dpoSInformationProvider, IBlockchainService blockchainService)
+            IAEDPoSInformationProvider dpoSInformationProvider, IBlockchainService blockchainService)
         {
             _peerPool = peerPool;
             _dpoSInformationProvider = dpoSInformationProvider;

@@ -20,7 +20,7 @@ namespace AElf.Contracts.Election
         public async Task ElectionContract_NextTerm()
         {
             await NextTerm(InitialMinersKeyPairs[0]);
-            var round = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             round.TermNumber.ShouldBe(2);
         }
 
@@ -28,7 +28,7 @@ namespace AElf.Contracts.Election
         public async Task ElectionContract_NormalBlock()
         {
             await NormalBlock(InitialMinersKeyPairs[0]);
-            var round = await AElfConsensusContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             round.GetMinedBlocks().ShouldBe(1);
             round.GetMinedMiners().Count.ShouldBe(1);
         }

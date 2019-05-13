@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Contracts.Consensus.AElfConsensus;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AElfConsensus;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
@@ -37,7 +37,7 @@ namespace AElf.Blockchains.SideChain
         {
             var l = new List<GenesisSmartContractDto>();
 
-            l.AddGenesisSmartContract<AElfConsensusContract>(
+            l.AddGenesisSmartContract<AEDPoSContract>(
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList());
 
@@ -81,12 +81,12 @@ namespace AElf.Blockchains.SideChain
                 }
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;
             var timestamp = chainInitializationContext?.CreatedTime.ToDateTime() ?? _consensusOptions.StartTimestamp;
-            consensusMethodCallList.Add(nameof(AElfConsensusContract.InitialAElfConsensusContract),
+            consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
                     IsSideChain = true
                 });
-            consensusMethodCallList.Add(nameof(AElfConsensusContract.FirstRound),
+            consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
                 miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp.ToUniversalTime()));
             return consensusMethodCallList;
         }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AElf.Contracts.Election;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AElfConsensus;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 
@@ -33,7 +33,7 @@ namespace AElf.Blockchains.MainChain
                     ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
                     
                     // Get current miners.
-                    AelfConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
+                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     MaximumLockTime = 1080,
                     MinimumLockTime = 90
                 });

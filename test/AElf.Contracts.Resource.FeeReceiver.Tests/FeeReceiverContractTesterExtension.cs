@@ -1,10 +1,10 @@
 using System.Threading.Tasks;
-using AElf.Contracts.Dividend;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AElfConsensus;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 
@@ -39,7 +39,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
-                    list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
+                    list.AddGenesisSmartContract<ElectionContract>(ElectionSmartContractAddressNameProvider.Name);
                     list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
                     list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
                 });

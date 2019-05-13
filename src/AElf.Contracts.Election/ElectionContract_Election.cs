@@ -17,7 +17,7 @@ namespace AElf.Contracts.Election
             State.VoteContractSystemName.Value = input.VoteContractSystemName;
             State.ProfitContractSystemName.Value = input.ProfitContractSystemName;
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
-            State.AElfConsensusContractSystemName.Value = input.AelfConsensusContractSystemName;
+            State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Candidates.Value = new PublicKeysList();
             State.MinimumLockTime.Value = input.MinimumLockTime;
@@ -29,9 +29,9 @@ namespace AElf.Contracts.Election
 
         public override Empty ConfigElectionContract(ConfigElectionContractInput input)
         {
-            State.AElfConsensusContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
-            Assert(State.AElfConsensusContract.Value == Context.Sender, "Only Consensus Contract can call this method.");
+            State.AEDPoSContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
+            Assert(State.AEDPoSContract.Value == Context.Sender, "Only Consensus Contract can call this method.");
             Assert(State.InitialMiners.Value == null, "Initial miners already set.");
             State.InitialMiners.Value = new PublicKeysList
                 {Value = {input.MinerList.Select(k => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))}};
@@ -53,8 +53,8 @@ namespace AElf.Contracts.Election
                 State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             State.VoteContract.Value =
                 State.BasicContractZero.GetContractAddressByName.Call(State.VoteContractSystemName.Value);
-            State.AElfConsensusContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.AElfConsensusContractSystemName.Value);
+            State.AEDPoSContract.Value =
+                State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
 
             State.TokenContract.Create.Send(new CreateInput
             {
@@ -167,7 +167,7 @@ namespace AElf.Contracts.Election
 
             Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
             Assert(
-                !State.AElfConsensusContract.GetCurrentMiners.Call(new Empty()).PublicKeys
+                !State.AEDPoSContract.GetCurrentMiners.Call(new Empty()).PublicKeys
                     .Contains(publicKeyByteString),
                 "Current miners cannot quit election.");
 
@@ -388,7 +388,7 @@ namespace AElf.Contracts.Election
 
         public override Empty UpdateMinersCount(UpdateMinersCountInput input)
         {
-            Assert(State.AElfConsensusContract.Value == Context.Sender,
+            Assert(State.AEDPoSContract.Value == Context.Sender,
                 "Only consensus contract can update miners count.");
             State.MinersCount.Value = input.MinersCount;
             return new Empty();

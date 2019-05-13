@@ -11,7 +11,7 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AElf.Contracts.Consensus.DPoS
+namespace AElf.Contracts.Consensus.AEDPoS
 {
     public class ElectionTransactionExecutor : ITransactionExecutor
     {

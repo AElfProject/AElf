@@ -21,7 +21,7 @@ namespace AElf.Contracts.Election
 
         public override PublicKeysList GetVictories(Empty input)
         {
-            var currentMiners = State.AElfConsensusContract.GetPreviousRoundInformation.Call(new Empty())
+            var currentMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
             return new PublicKeysList {Value = {GetVictories(currentMiners)}};
         }
