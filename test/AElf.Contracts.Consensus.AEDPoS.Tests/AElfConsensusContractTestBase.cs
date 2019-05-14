@@ -42,7 +42,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         protected const int SmallBlockMiningInterval = 500;
 
-        protected const long DaysEachTerm = 7 * 60 * 60 * 24;
+        protected const long TimeEachTerm = 604800;// 7 * 60 * 60 * 24
 
         protected static readonly Timestamp StartTimestamp = DateTime.UtcNow.ToTimestamp();
 
@@ -270,7 +270,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
                     VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    TimeEachTerm = (int)DaysEachTerm
+                    TimeEachTerm = TimeEachTerm
                 });
             aelfConsensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
                 new MinerList
