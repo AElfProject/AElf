@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 using AElf.Contracts.Consensus.DPoS;
+using AElf.Kernel.Consensus.AElfConsensus.Application;
 
 namespace AElf.Kernel.Consensus
 {

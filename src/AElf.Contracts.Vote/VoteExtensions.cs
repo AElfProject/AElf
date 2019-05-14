@@ -1,34 +1,21 @@
-using AElf.Kernel;
-using Vote;
-
 namespace AElf.Contracts.Vote
 {
     public static class VoteExtensions
     {
-        public static Hash GetHash(this VotingEvent votingEvent)
+        public static Hash GetHash(this VotingRegisterInput votingItemInput, Address sponsorAddress)
         {
-            return Hash.FromMessage(new VotingEvent
-            {
-                Sponsor = votingEvent.Sponsor,
-                Topic = votingEvent.Topic
-            });
+            var input = votingItemInput.Clone();
+            input.Options.Clear();
+            return Hash.FromTwoHashes(Hash.FromMessage(input), Hash.FromMessage(sponsorAddress));
         }
 
         public static Hash GetHash(this VotingResult votingResult)
         {
             return Hash.FromMessage(new VotingResult
             {
-                Sponsor = votingResult.Sponsor,
-                Topic = votingResult.Topic,
-                EpochNumber = votingResult.EpochNumber
+                VotingItemId = votingResult.VotingItemId,
+                SnapshotNumber = votingResult.SnapshotNumber
             });
-        }
-        
-        public static HashList Concat(this HashList hashList1, HashList hashList2)
-        {
-            var hashes = hashList1.Values;
-            hashes.AddRange(hashList2.Values);
-            return new HashList {Values = {hashes}};
         }
     }
 }

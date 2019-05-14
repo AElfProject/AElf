@@ -79,7 +79,6 @@ namespace AElf.Contracts.TestKit
 
             #endregion
 
-
             #region Logger
 
             ITestOutputHelperAccessor testOutputHelperAccessor = new TestOutputHelperAccessor();

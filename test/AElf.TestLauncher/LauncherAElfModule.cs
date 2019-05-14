@@ -1,13 +1,11 @@
-﻿using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.Dividend;
+﻿using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.SmartContract;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS;
@@ -33,7 +31,7 @@ namespace AElf.TestLauncher
         typeof(AbpAutofacModule),
         //typeof(AbpAspNetCoreMvcModule),
         //typeof(RuntimeSetupAElfModule),
-        typeof(DPoSConsensusAElfModule),
+        typeof(AEDPoSAElfModule),
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),
@@ -77,12 +75,12 @@ namespace AElf.TestLauncher
                 ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<AEDPoSContract>(
                 ConsensusSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
                 TokenSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<DividendContract>(
-                DividendSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<ElectionContract>(
+                ElectionSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
                 ResourceSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(

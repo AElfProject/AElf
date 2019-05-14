@@ -19,7 +19,7 @@ namespace AElf.OS
         typeof(KernelAElfModule),
         typeof(CoreOSAElfModule),
         typeof(GrpcNetworkModule),
-        typeof(DPoSConsensusOSAElfModule)
+        typeof(AElfConsensusOSAElfModule)
     )]
     public class OSAElfModule : AElfModule
     {

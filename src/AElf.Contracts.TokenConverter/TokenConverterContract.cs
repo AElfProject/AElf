@@ -132,7 +132,7 @@ namespace AElf.Contracts.TokenConverter
                     });
             }
 
-            // Transafer base token
+            // Transfer base token
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput()
                 {
@@ -142,7 +142,7 @@ namespace AElf.Contracts.TokenConverter
                     Amount = amountToPay
                 });
 
-            // Transafer bought token
+            // Transfer bought token
             State.TokenContract.Transfer.Send(
                 new TransferInput()
                 {
@@ -190,7 +190,7 @@ namespace AElf.Contracts.TokenConverter
                     });
             }
 
-            // Transafer base token
+            // Transfer base token
             State.TokenContract.Transfer.Send(
                 new TransferInput()
                 {
@@ -199,7 +199,7 @@ namespace AElf.Contracts.TokenConverter
                     Amount = amountToReceiveLessFee
                 });
 
-            // Transafer sold token
+            // Transfer sold token
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput()
                 {

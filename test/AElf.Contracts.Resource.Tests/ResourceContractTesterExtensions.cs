@@ -1,16 +1,11 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.Dividend;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.TestBase;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.SmartContract;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 
@@ -28,8 +23,7 @@ namespace AElf.Contracts.Resource.Tests
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = 1000_0000L,
-                Issuer = starter.GetCallOwnerAddress(),
-                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
+                Issuer = starter.GetCallOwnerAddress()
             });
             
             // For testing.
@@ -45,7 +39,6 @@ namespace AElf.Contracts.Resource.Tests
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
-                    list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
                     list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
                     list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
                     list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider.Name);

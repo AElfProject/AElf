@@ -14,12 +14,9 @@
     <PackageReference Include="Mono.Cecil" Version="0.10.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AElf.Contracts.AElfConsensus\AElf.Contracts.AElfConsensus.csproj" />
     <ProjectReference Include="..\..\src\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+    <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
     <ProjectReference Include="..\..\src\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
     <ProjectReference Include="..\..\src\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
     <ProjectReference Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
     <ProjectReference Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />

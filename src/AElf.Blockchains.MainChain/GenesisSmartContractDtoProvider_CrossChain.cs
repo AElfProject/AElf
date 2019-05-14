@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 

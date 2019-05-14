@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
@@ -39,7 +39,7 @@ namespace AElf.Contracts.ParliamentAuth
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
-        internal ConsensusContractContainer.ConsensusContractStub ConsensusContractStub { get; set; }
+        internal AEDPoSContractContainer.AEDPoSContractStub ConsensusContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractStub OtherParliamentAuthContractStub { get; set; }
@@ -85,7 +85,7 @@ namespace AElf.Contracts.ParliamentAuth
                 .DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ConsensusContract).Assembly.Location)),
+                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AEDPoSContract).Assembly.Location)),
                     Name = ConsensusSmartContractAddressNameProvider.Name,
                     TransactionMethodCallList = GenerateConsensusInitializationCallList()
                 })).Output;
@@ -98,9 +98,9 @@ namespace AElf.Contracts.ParliamentAuth
             return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
         }
         
-        internal ConsensusContractContainer.ConsensusContractStub GetConsensusContractTester(ECKeyPair keyPair)
+        internal AEDPoSContractContainer.AEDPoSContractStub GetConsensusContractTester(ECKeyPair keyPair)
         {
-            return GetTester<ConsensusContractContainer.ConsensusContractStub>(ConsensusContractAddress, keyPair);
+            return GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress, keyPair);
         }
 
         internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
@@ -154,7 +154,12 @@ namespace AElf.Contracts.ParliamentAuth
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList()
         {
             var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
+            consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
+                new InitialAElfConsensusContractInput
+                {
+                    IsTermStayOne = true
+                });
+            consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
                 InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(
                     MiningInterval, BlockchainStartTime));
             

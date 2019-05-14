@@ -1,14 +1,16 @@
 using System.Collections.Generic;
-using AElf.Contracts.Consensus.DPoS.SideChain;
+using System.Linq;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.CrossChain.Grpc;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -18,16 +20,16 @@ namespace AElf.Blockchains.SideChain
     public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly ChainOptions _chainOptions;
-        private readonly DPoSOptions _dposOptions;
+        private readonly ConsensusOptions _consensusOptions;
         private readonly CrossChainConfigOption _crossChainConfigOptions;
         private readonly IChainInitializationPlugin _chainInitializationPlugin;
 
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ChainOptions> chainOptions,
-            IOptionsSnapshot<DPoSOptions> dposOptions, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOptions,
+            IOptionsSnapshot<ConsensusOptions> consensusOptions, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOptions,
             IChainInitializationPlugin chainInitializationPlugin)
         {
             _chainOptions = chainOptions.Value;
-            _dposOptions = dposOptions.Value;
+            _consensusOptions = consensusOptions.Value;
             _crossChainConfigOptions = crossChainConfigOptions.Value;
             _chainInitializationPlugin = chainInitializationPlugin;
         }
@@ -47,7 +49,7 @@ namespace AElf.Blockchains.SideChain
             };
             chainInitializationContext.ExtraInformation.AddRange(sideChainInitializationResponse.ExtraInformation);
 
-            l.AddGenesisSmartContract<ConsensusContract>(
+            l.AddGenesisSmartContract<AEDPoSContract>(
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList(chainInitializationContext));
 
@@ -77,22 +79,25 @@ namespace AElf.Blockchains.SideChain
             GenerateConsensusInitializationCallList(ChainInitializationInformation chainInitializationContext)
         {
             var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//            var chainInitializationContextByteString = AsyncHelper.RunSync(async () =>
-//                await _chainInitializationPlugin.RequestChainInitializationContextAsync(_chainOptions.ChainId)).ToByteString();
-            //var chainInitializationContext = ChainInitializationContext.Parser.ParseFrom(chainInitializationContextByteString);
+
             var miners = chainInitializationContext == null
-                ? _dposOptions.InitialMiners.ToMiners()
-                : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;
-            var timestamp = chainInitializationContext?.CreationTimestamp.ToDateTime() ?? _dposOptions.StartTimestamp;
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
-                miners.GenerateFirstRoundOfNewTerm(_dposOptions.MiningInterval, timestamp.ToUniversalTime()));
-            consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
-                new DPoSStrategyInput
+                ? new Miners
                 {
-                    IsBlockchainAgeSettable = _dposOptions.IsBlockchainAgeSettable,
-                    IsTimeSlotSkippable = _dposOptions.IsTimeSlotSkippable,
-                    IsVerbose = _dposOptions.Verbose
+                    PublicKeys =
+                    {
+                        _consensusOptions.InitialMiners.Select(p =>
+                            ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p)))
+                    }
+                }
+                : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;
+            var timestamp = chainInitializationContext?.CreationTimestamp.ToDateTime() ?? _consensusOptions.StartTimestamp;
+            consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
+                new InitialAElfConsensusContractInput
+                {
+                    IsSideChain = true
                 });
+            consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
+                miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp.ToUniversalTime()));
             return consensusMethodCallList;
         }
 

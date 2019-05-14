@@ -11,8 +11,8 @@ namespace AElf.Contracts.ParliamentAuth
         {
             ValidateConsensusContract();
             var miner = State.ConsensusContract.GetCurrentMiners.Call(new Empty());
-            var representatives = miner.MinerList.PublicKeys.Select(publicKey =>
-                Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey))).ToList();
+            var representatives = miner.PublicKeys.Select(publicKey =>
+                Address.FromPublicKey(publicKey.ToByteArray())).ToList();
             return representatives;
         }
 

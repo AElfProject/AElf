@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.MainChain
