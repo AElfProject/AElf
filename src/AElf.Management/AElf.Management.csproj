@@ -6,7 +6,7 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="InfluxData.Net" Version="8.0.1"/>
-        <PackageReference Include="KubernetesClient" Version="1.2.3-g3551f03258"/>
+        <PackageReference Include="KubernetesClient" Version="1.5.19"/>
         <PackageReference Include="Newtonsoft.Json" Version="12.0.2"/>
     </ItemGroup>
     <ItemGroup>
