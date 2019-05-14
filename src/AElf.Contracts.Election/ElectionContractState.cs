@@ -34,20 +34,27 @@ namespace AElf.Contracts.Election
         public SingletonState<PublicKeysList> InitialMiners { get; set; }
 
         public SingletonState<PublicKeysList> BlackList { get; set; }
-        
+
+        /// <summary>
+        /// Vote Id -> Lock Time (seconds)
+        /// </summary>
         public MappedState<Hash, long> LockTimeMap { get; set; }
 
         public MappedState<long, TermSnapshot> Snapshots { get; set; }
 
         public SingletonState<int> MinersCount { get; set; }
 
-        public SingletonState<int> BaseTimeUnit { get; set; }
+        /// <summary>
+        /// Time unit: seconds
+        /// </summary>
+        public SingletonState<long> MinimumLockTime { get; set; }
 
-        public SingletonState<int> MinimumLockTime { get; set; }
+        /// <summary>
+        /// Time unit: seconds
+        /// </summary>
+        public SingletonState<long> MaximumLockTime { get; set; }
 
-        public SingletonState<int> MaximumLockTime { get; set; }
-
-        public SingletonState<int> TimeEachTerm { get; set; }
+        public SingletonState<long> TimeEachTerm { get; set; }
 
         public SingletonState<Hash> MinerElectionVotingItemId { get; set; }
 

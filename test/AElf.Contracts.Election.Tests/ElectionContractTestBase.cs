@@ -408,7 +408,7 @@ namespace AElf.Contracts.Election
                 MiningInterval = 4000,
                 InitialMiners = InitialMinersKeyPairs.Select(k => k.PublicKey.ToHex()).ToList(),
                 StartTimestamp = StartTimestamp.ToDateTime(),
-                TimeEachTerm = 7
+                TimeEachTerm = 604800
             };
         }
     }

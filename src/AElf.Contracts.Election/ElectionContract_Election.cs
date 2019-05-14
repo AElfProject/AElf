@@ -211,12 +211,12 @@ namespace AElf.Contracts.Election
 
             var lockDays = (input.EndTimestamp - Context.CurrentBlockTime.ToTimestamp()).ToTimeSpan().TotalDays;
             Assert(lockDays >= State.MinimumLockTime.Value,
-                $"Invalid lock time. At least {State.MinimumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
+                $"Invalid lock time. At least {State.MinimumLockTime.Value.Div(60).Div(60).Div(24)} days");
             Assert(lockDays <= State.MaximumLockTime.Value,
-                $"Invalid lock time. At most {State.MaximumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
+                $"Invalid lock time. At most {State.MaximumLockTime.Value.Div(60).Div(60).Div(24)} days");
 
             State.LockTimeMap[Context.TransactionId] =
-                GetTimeSpan(input.EndTimestamp.ToDateTime(), Context.CurrentBlockTime);
+                input.EndTimestamp.Seconds - Context.CurrentBlockTime.ToTimestamp().Seconds;
 
             // Update Voter's Votes information.
             var voterPublicKeyBytes = Context.RecoverPublicKey();
@@ -305,7 +305,7 @@ namespace AElf.Contracts.Election
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input);
 
-            var actualLockedTime = GetTimeSpan(Context.CurrentBlockTime, votingRecord.VoteTimestamp.ToDateTime());
+            var actualLockedTime = Context.CurrentBlockTime.Second - votingRecord.VoteTimestamp.Seconds;
             var claimedLockDays = State.LockTimeMap[input];
             Assert(actualLockedTime >= claimedLockDays,
                 $"Still need {claimedLockDays - actualLockedTime} days to unlock your token.");
@@ -403,17 +403,6 @@ namespace AElf.Contracts.Election
         {
             var treasury = State.ProfitContract.GetProfitItem.Call(State.TreasuryHash.Value);
             return lockTime.Div(State.TimeEachTerm.Value).Add(treasury.CurrentPeriod);
-        }
-
-        private long GetTimeSpan(DateTime endTime, DateTime startTime)
-        {
-            if ((TimeUnit) State.BaseTimeUnit.Value == TimeUnit.Minutes)
-            {
-                // For testing.
-                return (long) (endTime - startTime).TotalMinutes;
-            }
-
-            return (long) (endTime - startTime).TotalDays;
         }
     }
 }

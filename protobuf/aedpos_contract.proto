@@ -67,6 +67,9 @@ service AEDPoSContract {
     rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {
         option (aelf.is_view) = true;
     }
+    rpc GetCurrentTermNumber (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
 }
 
 // Events
@@ -81,8 +84,7 @@ message InitialAElfConsensusContractInput {
     bool is_side_chain = 3;
     Hash token_contract_system_name = 5;
     Hash vote_contract_system_name = 6;
-    sint32 time_each_term = 7;
-    sint32 base_time_unit = 8;
+    sint64 time_each_term = 7;
 }
 
 // Just used as parameter of consensus contract method.

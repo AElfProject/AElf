@@ -10,6 +10,6 @@ namespace AElf.Blockchains
         public List<string> InitialMiners { get; set; }
         public int MiningInterval { get; set; }
         public DateTime StartTimestamp { get; set; } = DateTime.MinValue;
-        public int TimeEachTerm { get; set; } = 7;
+        public long TimeEachTerm { get; set; } = 604800;// 7 * 24 * 60 * 60
     }
 }

@@ -26,9 +26,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return new Empty();
             }
 
-            // TODO: Remove
-            State.BaseTimeUnit.Value = input.BaseTimeUnit;
-
             State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
 
             State.ElectionContract.Value =
@@ -282,7 +279,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void SetBlockchainStartTimestamp(Timestamp timestamp)
         {
             Context.LogDebug(() => $"Set start timestamp to {timestamp}");
-            State.BlockchainStartTimestamp.Value = timestamp;
+            State.BlockchainStartTimestamp.Value = timestamp.Seconds;
         }
 
         private bool TryToUpdateRoundNumber(long roundNumber)

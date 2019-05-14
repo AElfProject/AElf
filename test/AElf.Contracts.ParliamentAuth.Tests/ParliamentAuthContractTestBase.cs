@@ -14,6 +14,7 @@ using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 
@@ -23,7 +24,7 @@ namespace AElf.Contracts.ParliamentAuth
     {
         protected const int MinersCount = 3;
         protected const int MiningInterval = 4000;
-        protected DateTime BlockchainStartTime => DateTime.Parse("2019-01-01 00:00:00.000").ToUniversalTime();
+        protected DateTime BlockchainStartTimestamp => DateTime.Parse("2019-01-01 00:00:00.000").ToUniversalTime();
 
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected ECKeyPair TesterKeyPair => SampleECKeyPairs.KeyPairs[MinersCount + 1];
@@ -175,7 +176,7 @@ namespace AElf.Contracts.ParliamentAuth
             consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
                 new MinerList {PublicKeys = {InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex().ToMappingKey())}}
                     .GenerateFirstRoundOfNewTerm(
-                        MiningInterval, BlockchainStartTime));
+                        MiningInterval, BlockchainStartTimestamp));
 
             return consensusMethodCallList;
         }

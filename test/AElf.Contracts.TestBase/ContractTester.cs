@@ -251,7 +251,7 @@ namespace AElf.Contracts.TestBase
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList(List<string> initialMiners,
-            int miningInterval, Timestamp startTimestamp, int timeEachTerm = 7)
+            int miningInterval, Timestamp startTimestamp, int timeEachTerm = 604800)
         {
             var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),

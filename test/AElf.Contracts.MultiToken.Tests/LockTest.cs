@@ -122,6 +122,27 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
+        public async Task Locker_Not_In_White_List()
+        {
+            const long amount = 100;
+
+            var user = GenerateUser();
+
+            var tester = Starter.CreateNewContractTester(user);
+
+            await Starter.TransferTokenAsync(user, amount);
+
+            // Try to lock.
+            var lockId = Hash.Generate();
+
+            // Lock.
+            var transactionResult = await tester.Lock(amount, lockId, Address.Generate());
+
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Not in white list");
+        }
+
+        [Fact]
         public async Task Cannot_Lock_To_Address_Not_In_White_List()
         {
             const long amount = 100;

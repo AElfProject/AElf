@@ -411,8 +411,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private long GetBlockchainAge()
         {
-            return (long) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value.ToDateTime())
-                .TotalHours;
+            return Context.CurrentBlockTime.ToTimestamp().Seconds - State.BlockchainStartTimestamp.Value;
         }
 
         private bool TryToGetVictories(out MinerList victories)
@@ -617,8 +616,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private int GetMinersCount()
         {
-            return ((int) Context.CurrentBlockTime.Subtract(State.BlockchainStartTimestamp.Value.ToDateTime())
-                .TotalDays).Div(7);
+            return (int) Context.CurrentBlockTime.ToTimestamp().Seconds.Sub(State.BlockchainStartTimestamp.Value).Div(State.TimeEachTerm.Value);
         }
     }
 }

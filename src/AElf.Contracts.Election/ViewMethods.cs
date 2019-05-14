@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -149,7 +150,76 @@ namespace AElf.Contracts.Election
 
             return votes;
         }
-        
+
+        public override SInt64Value GetVotersCount(Empty input)
+        {
+            return new SInt64Value
+            {
+                Value = State.VoteContract.GetLatestVotingResult.Call(State.MinerElectionVotingItemId.Value).VotersCount
+            };
+        }
+
+        public override SInt64Value GetVotesAmount(Empty input)
+        {
+            return new SInt64Value
+            {
+                Value = State.VoteContract.GetLatestVotingResult.Call(State.MinerElectionVotingItemId.Value).VotesAmount
+            };
+        }
+
+        public override SInt64Value GetCurrentMiningReward(Empty input)
+        {
+            return new SInt64Value
+            {
+                Value = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty()).RealTimeMinersInformation
+                    .Values.Sum(minerInRound => minerInRound.ProducedBlocks).Mul(ElectionContractConstants.ElfTokenPerBlock)
+            };
+        }
+
+        public override GetWelfareRewardAmountSampleOutput GetWelfareRewardAmountSample(GetWelfareRewardAmountSampleInput input)
+        {
+            const long amount = 10000;
+            var welfareHash = State.WelfareHash.Value;
+            var output = new GetWelfareRewardAmountSampleOutput();
+            var welfareItem = State.ProfitContract.GetProfitItem.Call(welfareHash);
+            var releasedInformation = State.ProfitContract.GetReleasedProfitsInformation.Call(
+                new GetReleasedProfitsInformationInput
+                {
+                    ProfitId = welfareHash,
+                    Period = welfareItem.CurrentPeriod.Sub(1)
+                });
+            var totalWeight = releasedInformation.TotalWeight;
+            var totalAmount = releasedInformation.ProfitsAmount;
+            foreach (var lockTime in input.Value)
+            {
+                var weight = GetVotesWeight(amount, lockTime);
+                output.Value.Add(totalAmount.Mul(weight).Div(totalWeight));
+            }
+
+            return output;
+        }
+
+        public override SInt64Value GetCurrentWelfareReward(StringInput input)
+        {
+            return State.ProfitContract.GetProfitAmount.Call(new ProfitInput {ProfitId = State.WelfareHash.Value});
+        }
+
+        public override GetPageableCandidateInformationOutput GetPageableCandidateInformation(PageInformation input)
+        {
+            var output = new GetPageableCandidateInformationOutput();
+            var candidates = State.Candidates.Value;
+            foreach (var candidate in candidates.Value.Skip(input.Start).Take(input.Length))
+            {
+                output.Value.Add(new CandidateDetail
+                {
+                    CandidateInformation = State.CandidateInformationMap[candidate.ToHex()],
+                    ObtainedVotesAmount = State.CandidateVotes[candidate.ToHex()].ObtainedActiveVotedVotesAmount
+                });
+            }
+
+            return output;
+        }
+
         public override CandidateVote GetCandidateVote(StringInput input)
         {
             return State.CandidateVotes[input.Value] ?? new CandidateVote

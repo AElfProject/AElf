@@ -94,8 +94,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Calculate the approvals and make the judgement of changing term.
             var changeTerm =
-                currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber,
-                    State.TimeEachTerm.Value, (TimeUnit) State.BaseTimeUnit.Value);
+                currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp, termNumber,
+                    State.TimeEachTerm.Value);
             return changeTerm
                 ? AElfConsensusBehaviour.NextTerm
                 : AElfConsensusBehaviour.NextRound;
@@ -197,10 +197,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             };
         }
 
-        private bool TryToGetBlockchainStartTimestamp(out Timestamp timestamp)
+        private bool TryToGetBlockchainStartTimestamp(out long timestamp)
         {
             timestamp = State.BlockchainStartTimestamp.Value;
-            return timestamp != null;
+            return timestamp != 0;
         }
 
         private bool IsJustChangedTerm(out long termNumber)
