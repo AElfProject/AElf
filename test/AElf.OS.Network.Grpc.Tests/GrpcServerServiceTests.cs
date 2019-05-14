@@ -111,7 +111,7 @@ namespace AElf.OS.Network
             
             await _service.SendTransaction(tx, BuildServerCallContext());
             
-            received?.Transactions.ShouldBeNull();
+            received.ShouldBeNull();
         }
         
         [Fact]
