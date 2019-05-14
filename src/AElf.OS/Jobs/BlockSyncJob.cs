@@ -70,10 +70,10 @@ namespace AElf.OS.Jobs
                     return;
                 }
 
-                var blockHash = chain.LastIrreversibleBlockHash;
+                var blockHash = chain.BestChainHash;
                 Logger.LogDebug($"Trigger sync blocks from peers, lib height: {chain.LastIrreversibleBlockHeight}, lib block hash: {blockHash}");
 
-                var blockHeight = chain.LastIrreversibleBlockHeight;
+                var blockHeight = chain.BestChainHeight;
                 var count = _networkOptions.BlockIdRequestCount;
                 var peerBestChainHeight = await _networkService.GetBestChainHeightAsync(args.SuggestedPeerPubKey);
                 while (true)
@@ -92,6 +92,14 @@ namespace AElf.OS.Jobs
 
                     if (blocks == null || !blocks.Any())
                     {
+                        if (args.BlockHeight > blockHeight && args.BlockHeight > chain.LongestChainHeight)
+                        {
+                            Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
+                            blockHash = chain.LastIrreversibleBlockHash;
+                            blockHeight = chain.LastIrreversibleBlockHeight;
+                            continue;
+                        }
+
                         Logger.LogDebug($"No blocks returned, current chain height: {chain.LongestChainHeight}.");
                         break;
                     }
