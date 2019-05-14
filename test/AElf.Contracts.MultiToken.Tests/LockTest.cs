@@ -1,4 +1,4 @@
-using System;
+/*using System;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Consensus.DPoS;
@@ -303,4 +303,4 @@ namespace AElf.Contracts.MultiToken
             }
         }
     }
-}
+}*/

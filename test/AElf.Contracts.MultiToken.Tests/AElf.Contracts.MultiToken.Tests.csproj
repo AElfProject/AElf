@@ -8,7 +8,7 @@
     </PropertyGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
-      <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
@@ -28,5 +28,5 @@
         </ContractStub>
     </ItemGroup>
 
-    <Import Project="..\AllContracts.props"/>
+    <Import Project="..\AllContracts.props" />
 </Project>

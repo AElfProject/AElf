@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+/*using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Kernel;
@@ -84,4 +84,4 @@ namespace AElf.Contracts.MultiToken
                 });
         }
     }
-}
+}*/

@@ -66,6 +66,10 @@ namespace AElf.Contracts.TestKit
                 Name = name,
                 TransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
             });
+            if (res.TransactionResult.Status != TransactionResultStatus.Mined)
+            {
+                throw new Exception($"DeploySystemSmartContract failed: {res.TransactionResult}");
+            }
             return res.Output;
         }
 
