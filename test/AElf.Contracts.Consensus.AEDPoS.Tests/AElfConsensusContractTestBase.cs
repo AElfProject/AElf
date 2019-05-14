@@ -255,8 +255,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     
                     // Get current miners.
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    MaximumLockTime = 1080,
-                    MinimumLockTime = 90
+                    MaximumLockTime = 1080 * 86400,
+                    MinimumLockTime = 90 * 86400
                 });
             return electionMethodCallList;
         }
