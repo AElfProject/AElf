@@ -190,7 +190,7 @@ message ElectionVotingRecord {
     sint64 amount = 3;
     sint64 term_number = 4;
     Hash vote_id = 5;
-    sint32 lock_time = 7;
+    sint64 lock_time = 7;
     google.protobuf.Timestamp unlock_timestamp = 10;
     google.protobuf.Timestamp withdraw_timestamp = 11;
     google.protobuf.Timestamp vote_timestamp = 12;

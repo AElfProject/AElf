@@ -276,7 +276,7 @@ namespace AElf.Contracts.Election
 
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
         {
-            var lockDays = State.LockTimeMap[voteId];
+            var lockSeconds = State.LockTimeMap[voteId];
             return new ElectionVotingRecord
             {
                 Voter = votingRecord.Voter,
@@ -284,10 +284,10 @@ namespace AElf.Contracts.Election
                 Amount = votingRecord.Amount,
                 TermNumber = votingRecord.SnapshotNumber,
                 VoteId = voteId,
-                LockTime = (int) lockDays,
+                LockTime = lockSeconds,
                 VoteTimestamp = votingRecord.VoteTimestamp,
                 WithdrawTimestamp = votingRecord.WithdrawTimestamp,
-                UnlockTimestamp = votingRecord.VoteTimestamp.ToDateTime().AddDays(lockDays).ToTimestamp(),
+                UnlockTimestamp = (votingRecord.VoteTimestamp + new Duration{Seconds = lockSeconds}).ToDateTime().ToTimestamp(),
                 IsWithdrawn = votingRecord.IsWithdrawn
             };
         }

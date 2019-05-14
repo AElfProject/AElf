@@ -13,7 +13,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public SingletonState<long> CurrentTermNumber { get; set; }
 
-        public SingletonState<long> BlockchainStartTimestamp { get; set; }
+        public SingletonState<Timestamp> BlockchainStartTimestamp { get; set; }
 
         public MappedState<long, Round> Rounds { get; set; }
         

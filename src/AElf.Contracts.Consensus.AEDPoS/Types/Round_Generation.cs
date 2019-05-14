@@ -36,7 +36,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKey = minerInRound.PublicKey,
                     Order = order,
-                    ExpectedMiningTime = currentBlockTimestamp.AddMilliseconds(miningInterval * order).ToTimestamp(),
+                    ExpectedMiningTime = currentBlockTimestamp +
+                                         new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
                     PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots
@@ -54,7 +55,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKey = minersNotMinedCurrentRound[i].PublicKey,
                     Order = order,
-                    ExpectedMiningTime = currentBlockTimestamp.AddMilliseconds(miningInterval * order).ToTimestamp(),
+                    ExpectedMiningTime = currentBlockTimestamp +
+                                         new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
                     PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots + 1

@@ -51,6 +51,7 @@ namespace AElf.Contracts.Profit
             {
                 profitId = Hash.FromTwoHashes(profitId, createdProfitIds.Last());
             }
+
             State.ProfitItemsMap[profitId] = new ProfitItem
             {
                 VirtualAddress = Context.ConvertVirtualAddressToContractAddress(profitId),
@@ -75,7 +76,7 @@ namespace AElf.Contracts.Profit
             }
 
             State.CreatedProfitItemsMap[Context.Sender] = createdProfitItems;
-            
+
             Context.LogDebug(() => $"Created profit item {profitId}");
             return profitId;
         }
@@ -145,7 +146,7 @@ namespace AElf.Contracts.Profit
             {
                 return new Empty();
             }
-            
+
             Assert(input.EndPeriod >= profitItem.CurrentPeriod, "Invalid end period.");
 
             profitItem.TotalWeight += input.Weight;
@@ -179,7 +180,7 @@ namespace AElf.Contracts.Profit
             {
                 currentProfitDetails.Details.Remove(detail);
             }
-            
+
             State.ProfitDetailsMap[profitId][input.Receiver] = currentProfitDetails;
 
             return new Empty();
@@ -296,14 +297,14 @@ namespace AElf.Contracts.Profit
 
             if (input.Period < 0 || profitItem.TotalWeight <= 0)
             {
+                profitItem.CurrentPeriod = input.Period > 0 ? input.Period.Add(1) : profitItem.CurrentPeriod;
+
                 // Release to an address no one can receive profits.
-                
                 if (input.Amount <= 0)
                 {
+                    State.ProfitItemsMap[input.ProfitId] = profitItem;
                     return new Empty();
                 }
-
-                profitItem.CurrentPeriod = input.Period > 0 ? input.Period.Add(1) : profitItem.CurrentPeriod;
 
                 if (input.Period >= 0)
                 {
@@ -320,7 +321,7 @@ namespace AElf.Contracts.Profit
                     Amount = input.Amount,
                     Symbol = profitItem.TokenSymbol
                 });
-                profitItem.TotalAmount -= input.Amount;
+                profitItem.TotalAmount = profitItem.TotalAmount.Sub(input.Amount);
                 State.ProfitItemsMap[input.ProfitId] = profitItem;
                 return new Empty();
             }
@@ -328,7 +329,8 @@ namespace AElf.Contracts.Profit
             // Update current_period.
             var releasingPeriod = profitItem.CurrentPeriod;
 
-            Assert(input.Period == releasingPeriod, $"Invalid period. When release profit item {input.ProfitId.ToHex()} of period {input.Period}");
+            Assert(input.Period == releasingPeriod,
+                $"Invalid period. When release profit item {input.ProfitId.ToHex()} of period {input.Period}. Current period is {releasingPeriod}");
 
             var profitsReceivingVirtualAddress =
                 GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, releasingPeriod);
@@ -353,7 +355,7 @@ namespace AElf.Contracts.Profit
             State.ReleasedProfitsMap[profitsReceivingVirtualAddress] = releasedProfitInformation;
 
             // Start releasing.
-            
+
             var remainAmount = input.Amount;
 
             foreach (var subProfitItem in profitItem.SubProfitItems)
@@ -482,7 +484,8 @@ namespace AElf.Contracts.Profit
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
-            var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod != profitItem.CurrentPeriod).ToList();
+            var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod != profitItem.CurrentPeriod)
+                .ToList();
 
             for (var i = 0; i < Math.Min(ProfitContractConsts.ProfitLimit, availableDetails.Count); i++)
             {

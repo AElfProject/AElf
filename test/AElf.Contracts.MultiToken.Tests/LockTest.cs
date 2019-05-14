@@ -14,39 +14,43 @@ using Xunit;
 
 namespace AElf.Contracts.MultiToken
 {
+    // TODO: Refactor these test cases.
     public class LockTest : MultiTokenContractTestBase
     {
-        private ContractTester<MultiTokenContractTestAElfModule> Starter { get; set; }
+        /*private ContractTester<MultiTokenContractTestAElfModule> Starter { get; set; }
+
+        private ECKeyPair StarterKeyPair { get; set; }
 
         private Address ConsensusContractAddress => Starter.GetConsensusContractAddress();
 
         public LockTest()
         {
-            Starter = new ContractTester<MultiTokenContractTestAElfModule>();
+            StarterKeyPair = CryptoHelpers.GenerateKeyPair();
+            Starter = new ContractTester<MultiTokenContractTestAElfModule>(500, StarterKeyPair);
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
             {
-                Symbol = "ELF",
+                Symbol = "TELF",
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
                 Issuer = Starter.GetCallOwnerAddress(),
                 TotalSupply = ElectionContractConstants.LockTokenForElection * 100,
-                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
+                LockWhiteList = {Address.FromPublicKey(StarterKeyPair.PublicKey), ConsensusContractAddress}
             });
 
-            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
-                Symbol = "ELF",
+                Symbol = "TELF",
                 Amount = ElectionContractConstants.LockTokenForElection * 20,
-                ToSystemContractName = ElectionSmartContractAddressNameProvider.Name,
+                To = Address.FromPublicKey(StarterKeyPair.PublicKey),
                 Memo = "Issue ",
             });
 
             // For testing.
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
-                Symbol = "ELF",
+                Symbol = "TELF",
                 Amount = ElectionContractConstants.LockTokenForElection * 80,
                 To = Starter.GetCallOwnerAddress(),
                 Memo = "Set dividends.",
@@ -85,13 +89,13 @@ namespace AElf.Contracts.MultiToken
             var lockId = Hash.Generate();
 
             // Lock.
-            await tester.ExecuteContractWithMiningAsync(tester.GetTokenContractAddress(), nameof(TokenContract.Lock),
+            await Starter.ExecuteContractWithMiningAsync(tester.GetTokenContractAddress(), nameof(TokenContract.Lock),
                 new LockInput
                 {
                     From = user,
                     To = ConsensusContractAddress,
                     Amount = amount,
-                    Symbol = "ELF",
+                    Symbol = "TELF",
                     LockId = lockId,
                     Usage = "Testing."
                 });
@@ -103,13 +107,13 @@ namespace AElf.Contracts.MultiToken
             }
 
             // Unlock.
-            await tester.ExecuteContractWithMiningAsync(tester.GetTokenContractAddress(), nameof(TokenContract.Unlock),
+            await Starter.ExecuteContractWithMiningAsync(tester.GetTokenContractAddress(), nameof(TokenContract.Unlock),
                 new UnlockInput
                 {
                     From = user,
                     To = ConsensusContractAddress,
                     Amount = amount,
-                    Symbol = "ELF",
+                    Symbol = "TELF",
                     LockId = lockId,
                     Usage = "Testing."
                 });
@@ -316,6 +320,6 @@ namespace AElf.Contracts.MultiToken
             {
                 return user.PublicKey;
             }
-        }
+        }*/
     }
 }

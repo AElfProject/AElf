@@ -302,8 +302,8 @@ namespace AElf.Contracts.Election
                     ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    MaximumLockTime = 1080,
-                    MinimumLockTime = 90,
+                    MaximumLockTime = 1080 * 60 * 60 * 24,
+                    MinimumLockTime = 90 * 60 * 60 * 24,
                 });
 
             return electionMethodCallList;

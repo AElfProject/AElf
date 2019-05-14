@@ -209,10 +209,10 @@ namespace AElf.Contracts.Election
             Assert(State.CandidateInformationMap[input.CandidatePublicKey].IsCurrentCandidate,
                 "Candidate quited election.");
 
-            var lockDays = (input.EndTimestamp - Context.CurrentBlockTime.ToTimestamp()).ToTimeSpan().TotalDays;
-            Assert(lockDays >= State.MinimumLockTime.Value,
+            var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime.ToTimestamp()).Seconds;
+            Assert(lockSeconds >= State.MinimumLockTime.Value,
                 $"Invalid lock time. At least {State.MinimumLockTime.Value.Div(60).Div(60).Div(24)} days");
-            Assert(lockDays <= State.MaximumLockTime.Value,
+            Assert(lockSeconds <= State.MaximumLockTime.Value,
                 $"Invalid lock time. At most {State.MaximumLockTime.Value.Div(60).Div(60).Div(24)} days");
 
             State.LockTimeMap[Context.TransactionId] =
@@ -294,8 +294,8 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.WelfareHash.Value,
                 Receiver = Context.Sender,
-                Weight = GetVotesWeight(input.Amount, (long)lockDays),
-                EndPeriod = GetEndPeriod((long)lockDays) + 1
+                Weight = GetVotesWeight(input.Amount, (long)lockSeconds),
+                EndPeriod = GetEndPeriod((long)lockSeconds) + 1
             });
 
             return new Empty();
@@ -305,10 +305,10 @@ namespace AElf.Contracts.Election
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input);
 
-            var actualLockedTime = Context.CurrentBlockTime.Second - votingRecord.VoteTimestamp.Seconds;
+            var actualLockedTime = (Context.CurrentBlockTime.ToTimestamp() - votingRecord.VoteTimestamp).Seconds;
             var claimedLockDays = State.LockTimeMap[input];
             Assert(actualLockedTime >= claimedLockDays,
-                $"Still need {claimedLockDays - actualLockedTime} days to unlock your token.");
+                $"Still need {claimedLockDays.Sub(actualLockedTime).Div(86400)} days to unlock your token.");
 
             // Update Voter's Votes information.
             var voterPublicKey = Context.RecoverPublicKey().ToHex();

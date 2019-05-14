@@ -279,7 +279,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void SetBlockchainStartTimestamp(Timestamp timestamp)
         {
             Context.LogDebug(() => $"Set start timestamp to {timestamp}");
-            State.BlockchainStartTimestamp.Value = timestamp.Seconds;
+            State.BlockchainStartTimestamp.Value = timestamp;
         }
 
         private bool TryToUpdateRoundNumber(long roundNumber)

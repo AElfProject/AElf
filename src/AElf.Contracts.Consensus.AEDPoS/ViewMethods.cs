@@ -411,7 +411,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private long GetBlockchainAge()
         {
-            return Context.CurrentBlockTime.ToTimestamp().Seconds - State.BlockchainStartTimestamp.Value;
+            return (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds;
         }
 
         private bool TryToGetVictories(out MinerList victories)
@@ -508,7 +508,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        private bool GenerateNextRoundInformation(Round currentRound, DateTime blockTime, out Round nextRound)
+        private bool GenerateNextRoundInformation(Round currentRound, DateTime currentBlockTime, out Round nextRound)
         {
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
             if (TryToGetPreviousRoundInformation(out var previousRound) &&
@@ -545,8 +545,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            var result = currentRound.GenerateNextRoundInformation(blockTime, blockchainStartTimestamp, out nextRound);
+            var result = currentRound.GenerateNextRoundInformation(currentBlockTime.ToTimestamp(), blockchainStartTimestamp, out nextRound);
             return result;
+        }
+
+        public override SInt64Value GetCurrentTermNumber(Empty input)
+        {
+            return new SInt64Value {Value = State.CurrentTermNumber.Value};
         }
 
         private void UpdateCandidateInformation(string candidatePublicKey, long recentlyProducedBlocks,
@@ -616,7 +621,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private int GetMinersCount()
         {
-            return (int) Context.CurrentBlockTime.ToTimestamp().Seconds.Sub(State.BlockchainStartTimestamp.Value).Div(State.TimeEachTerm.Value);
+            return (int) (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds.Div(
+                State.TimeEachTerm.Value);
         }
     }
 }
