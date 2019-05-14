@@ -71,10 +71,10 @@ namespace AElf.OS.Jobs
                 }
 
                 var blockHash = chain.BestChainHash;
-                Logger.LogDebug(
-                    $"Trigger sync blocks from peers, best chain height: {blockHash}, best chain block hash: {blockHash}");
-
                 var blockHeight = chain.BestChainHeight;
+                Logger.LogDebug(
+                    $"Trigger sync blocks from peers, best chain height: {blockHeight}, best chain block hash: {blockHash}");
+
                 var count = _networkOptions.BlockIdRequestCount;
                 while (true)
                 {
