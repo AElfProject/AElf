@@ -274,7 +274,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     BaseTimeUnit = 2 // TODO: Remove this after testing.
                 });
             aelfConsensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
-                new Miners
+                new MinerList
                     {
                         PublicKeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
                     }.GenerateFirstRoundOfNewTerm(MiningInterval, StartTimestamp.ToDateTime()));

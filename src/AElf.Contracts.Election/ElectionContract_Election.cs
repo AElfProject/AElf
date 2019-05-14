@@ -34,7 +34,7 @@ namespace AElf.Contracts.Election
             Assert(State.AEDPoSContract.Value == Context.Sender, "Only Consensus Contract can call this method.");
             Assert(State.InitialMiners.Value == null, "Initial miners already set.");
             State.InitialMiners.Value = new PublicKeysList
-                {Value = {input.MinerList.Select(k => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))}};
+                {Value = {input.MinerList.Select(k => k.ToMappingKey())}};
             foreach (var publicKey in input.MinerList)
             {
                 State.CandidateInformationMap[publicKey] = new CandidateInformation {PublicKey = publicKey};
@@ -167,7 +167,7 @@ namespace AElf.Contracts.Election
 
             Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
             Assert(
-                !State.AEDPoSContract.GetCurrentMiners.Call(new Empty()).PublicKeys
+                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).PublicKeys
                     .Contains(publicKeyByteString),
                 "Current miners cannot quit election.");
 
@@ -248,7 +248,7 @@ namespace AElf.Contracts.Election
             {
                 candidateVotes = new CandidateVote
                 {
-                    PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.CandidatePublicKey)),
+                    PublicKey = input.CandidatePublicKey.ToMappingKey(),
                     ObtainedActiveVotingRecordIds = { Context.TransactionId},
                     ObtainedActiveVotedVotesAmount = input.Amount,
                     AllObtainedVotedVotesAmount = input.Amount

@@ -313,30 +313,28 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return TryToGetRoundInformation(input.Value, out var round) ? round : new Round();
         }
 
-        public override Miners GetCurrentMiners(Empty input)
+        public override MinerList GetCurrentMinerList(Empty input)
         {
             if (TryToGetCurrentRoundInformation(out var round))
             {
-                return new Miners
+                return new MinerList
                 {
-                    TermNumber = State.CurrentTermNumber.Value,
                     PublicKeys =
                     {
-                        round.RealTimeMinersInformation.Keys.Select(k =>
-                            ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))
+                        round.RealTimeMinersInformation.Keys.Select(k => k.ToMappingKey())
                     }
                 };
             }
 
-            return new Miners();
+            return new MinerList();
         }
 
         public override MinerListWithRoundNumber GetCurrentMinerListWithRoundNumber(Empty input)
         {
-            var miners = GetCurrentMiners(new Empty());
+            var minerList = GetCurrentMinerList(new Empty());
             return new MinerListWithRoundNumber
             {
-                MinerList = miners,
+                MinerList = minerList,
                 RoundNumber = State.CurrentRoundNumber.Value
             };
         }
@@ -391,9 +389,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
             else if (TryToGetCurrentRoundInformation(out round))
             {
-                var miners = new Miners();
-                miners.PublicKeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k =>
-                    ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k))));
+                var miners = new MinerList();
+                miners.PublicKeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToMappingKey()));
                 round = miners.GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), Context.CurrentBlockTime,
                     round.RoundNumber, termNumber);
             }
@@ -418,7 +415,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 .TotalHours;
         }
 
-        private bool TryToGetVictories(out Miners victories)
+        private bool TryToGetVictories(out MinerList victories)
         {
             if (State.ElectionContractSystemName.Value == null)
             {
@@ -428,10 +425,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var victoriesPublicKeys = State.ElectionContract.GetVictories.Call(new Empty());
             Context.LogDebug(() =>
                 $"Got victories from Election Contract:\n{string.Join("\n", victoriesPublicKeys.Value.Select(s => s.ToHex().Substring(0, 10)))}");
-            victories = new Miners
+            victories = new MinerList
             {
                 PublicKeys = {victoriesPublicKeys.Value},
-                TermNumber = State.CurrentTermNumber.Value
             };
             return victories.PublicKeys.Any();
         }

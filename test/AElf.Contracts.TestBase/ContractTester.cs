@@ -25,6 +25,7 @@ using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -238,12 +239,11 @@ namespace AElf.Contracts.TestBase
                     IsTermStayOne = true
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
-                new Miners
+                new MinerList
                 {
                     PublicKeys =
                     {
-                        consensusOptions.InitialMiners.Select(k =>
-                            ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))
+                        consensusOptions.InitialMiners.Select(k => k.ToMappingKey())
                     }
                 }.GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
                     consensusOptions.StartTimestamp.ToUniversalTime()));
@@ -260,12 +260,11 @@ namespace AElf.Contracts.TestBase
                     IsTermStayOne = true
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
-                new Miners
+                new MinerList
                 {
                     PublicKeys =
                     {
-                        initialMiners.Select(k =>
-                            ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))
+                        initialMiners.Select(k => k.ToMappingKey())
                     }
                 }.GenerateFirstRoundOfNewTerm(miningInterval,
                     startTimestamp.ToDateTime()));

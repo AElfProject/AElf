@@ -49,7 +49,7 @@ service AEDPoSContract {
         option (aelf.is_view) = true;
     }
     
-    rpc GetCurrentMiners (google.protobuf.Empty) returns (Miners) {
+    rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
         option (aelf.is_view) = true;
     }
     rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber) {
@@ -102,9 +102,8 @@ message UpdateValueInput {
 }
 
 // The miners public key list for each term.
-message Miners {
-    sint64 TermNumber = 1;
-    repeated bytes PublicKeys = 2;
+message MinerList {
+    repeated bytes PublicKeys = 1;
 }
 
 // To query first round number of each term.
@@ -184,7 +183,7 @@ message TermInfo {
 }
 
 message MinerListWithRoundNumber {
-    Miners MinerList = 1;
+    MinerList MinerList = 1;
     sint64 RoundNumber = 2;
 }
 

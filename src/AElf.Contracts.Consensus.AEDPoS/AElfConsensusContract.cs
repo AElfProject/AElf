@@ -64,13 +64,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 });
             }
 
-            // TODO: -> MinerList
-            var miners = new Miners {TermNumber = 1};
-            // TODO: Imple to SDK. ToMappingKey() like ToStorageKey()
-            miners.PublicKeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k =>
-                ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k))));
-            miners.TermNumber = 1;
-            SetMiners(miners);
+            var minerList = new MinerList
+                {PublicKeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToMappingKey())}};
+            SetMinerListOfCurrentTerm(minerList);
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             return new Empty();
@@ -317,9 +313,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Context.LogDebug(() => $"Shared miner list of round {consensusInformation.Round.RoundNumber}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
-            State.MainChainCurrentMiners.Value = new Miners
+            State.MainChainCurrentMiners.Value = new MinerList
             {
-                PublicKeys = {minersKeys.Select(k => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))}
+                PublicKeys = {minersKeys.Select(k => k.ToMappingKey())}
             };
             return new Empty();
         }

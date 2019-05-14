@@ -21,13 +21,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public MappedState<long, long> FirstRoundNumberOfEachTerm { get; set; }
 
-        public MappedState<long, Miners> MinersMap { get; set; }
+        public MappedState<long, MinerList> MinerListMap { get; set; }
         
         // TODO: Remove
         public SingletonState<int> BaseTimeUnit { get; set; }
 
         public SingletonState<long> MainChainRoundNumber { get; set; }
 
-        public SingletonState<Miners> MainChainCurrentMiners { get; set; }
+        public SingletonState<MinerList> MainChainCurrentMiners { get; set; }
     }
 }

@@ -14,11 +14,11 @@ namespace AElf.OS.Consensus.DPos
     public class DPoSAnnouncementReceivedEventDataHandler : ILocalEventHandler<AnnouncementReceivedEventData>
     {
         private readonly ITaskQueueManager _taskQueueManager;
-        private readonly IDPoSLastLastIrreversibleBlockDiscoveryService _idpoSLastLastIrreversibleBlockDiscoveryService;
+        private readonly IAEDPoSLastLastIrreversibleBlockDiscoveryService _idpoSLastLastIrreversibleBlockDiscoveryService;
         private readonly IBlockchainService _blockchainService;
 
         public DPoSAnnouncementReceivedEventDataHandler(ITaskQueueManager taskQueueManager,
-            IDPoSLastLastIrreversibleBlockDiscoveryService idpoSLastLastIrreversibleBlockDiscoveryService,
+            IAEDPoSLastLastIrreversibleBlockDiscoveryService idpoSLastLastIrreversibleBlockDiscoveryService,
             IBlockchainService blockchainService)
         {
             _taskQueueManager = taskQueueManager;
@@ -52,20 +52,20 @@ namespace AElf.OS.Consensus.DPos
         }
     }
 
-    public interface IDPoSLastLastIrreversibleBlockDiscoveryService
+    public interface IAEDPoSLastLastIrreversibleBlockDiscoveryService
     {
         Task<IBlockIndex> FindLastLastIrreversibleBlockAsync(string senderPubKey);
     }
 
-    public class DPoSLastLastIrreversibleBlockDiscoveryService : IDPoSLastLastIrreversibleBlockDiscoveryService,
+    public class AEDPoSLastLastIrreversibleBlockDiscoveryService : IAEDPoSLastLastIrreversibleBlockDiscoveryService,
         ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
         private readonly IAEDPoSInformationProvider _dpoSInformationProvider;
         private readonly IBlockchainService _blockchainService;
-        public ILogger<DPoSLastLastIrreversibleBlockDiscoveryService> Logger { get; set; }
+        public ILogger<AEDPoSLastLastIrreversibleBlockDiscoveryService> Logger { get; set; }
 
-        public DPoSLastLastIrreversibleBlockDiscoveryService(IPeerPool peerPool,
+        public AEDPoSLastLastIrreversibleBlockDiscoveryService(IPeerPool peerPool,
             IAEDPoSInformationProvider dpoSInformationProvider, IBlockchainService blockchainService)
         {
             _peerPool = peerPool;
@@ -85,7 +85,7 @@ namespace AElf.OS.Consensus.DPos
 
             var chain = await _blockchainService.GetChainAsync();
             var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
-            var pubkeyList = (await _dpoSInformationProvider.GetCurrentMiners(chainContext)).ToList();
+            var pubkeyList = (await _dpoSInformationProvider.GetCurrentMinerList(chainContext)).ToList();
 
             var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.PubKey)).ToList();
 

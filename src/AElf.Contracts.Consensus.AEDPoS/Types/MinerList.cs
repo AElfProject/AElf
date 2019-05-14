@@ -6,7 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public partial class Miners
+    public partial class MinerList
     {
         public Round GenerateFirstRoundOfNewTerm(int miningInterval,
             DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)

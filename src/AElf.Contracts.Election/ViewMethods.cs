@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Vote;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -39,11 +40,10 @@ namespace AElf.Contracts.Election
             if (diff > 0)
             {
                 victories =
-                    new List<ByteString>(validCandidates.Select(vc =>
-                        ByteString.CopyFrom(ByteArrayHelpers.FromHexString(vc))));
+                    new List<ByteString>(validCandidates.Select(vc => vc.ToMappingKey()));
                 victories.AddRange(currentMiners.Where(k => !validCandidates.Contains(k)).OrderBy(p => p)
                     .Take(Math.Min(diff, currentMiners.Count))
-                    .Select(p => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p))));
+                    .Select(p => p.ToMappingKey()));
                 Context.LogDebug(() => string.Join("\n", victories.Select(v => v.ToHex().Substring(0, 10)).ToList()));
                 return victories;
             }
@@ -101,7 +101,7 @@ namespace AElf.Contracts.Election
         {
             return State.ElectorVotes[input.Value] ?? new ElectorVote
             {
-                PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Value))
+                PublicKey = input.Value.ToMappingKey()
             };
         }
 
@@ -110,7 +110,7 @@ namespace AElf.Contracts.Election
             var votes = State.ElectorVotes[input.Value];
             if (votes == null) return new ElectorVote
             {
-                PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Value))
+                PublicKey = input.Value.ToMappingKey()
             };
 
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
@@ -154,7 +154,7 @@ namespace AElf.Contracts.Election
         {
             return State.CandidateVotes[input.Value] ?? new CandidateVote
             {
-                PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Value))
+                PublicKey = input.Value.ToMappingKey()
             };
         }
 
@@ -164,7 +164,7 @@ namespace AElf.Contracts.Election
             if (votes == null)
                 return new CandidateVote
                 {
-                    PublicKey = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Value))
+                    PublicKey = input.Value.ToMappingKey()
                 };
 
             var obtainedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
