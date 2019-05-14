@@ -1,10 +1,7 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.TestKit;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Types;
 using Xunit;
@@ -15,31 +12,22 @@ namespace AElf.Contracts.MultiToken
 {
     public sealed class MultiTokenContractTest : MultiTokenContractTestBase
     {
-        private Address TokenContractAddress { get; set; }
-        internal TokenContractContainer.TokenContractStub TokenContractStub;
-
-        protected ECKeyPair User1KeyPair { get; } = SampleECKeyPairs.KeyPairs[10];
-        protected Address User1Address => Address.FromPublicKey(User1KeyPair.PublicKey);
-        protected ECKeyPair User2KeyPair { get; } = SampleECKeyPairs.KeyPairs[11];
-        protected Address User2Address => Address.FromPublicKey(User2KeyPair.PublicKey);
-
         private const string SymbolForTestingInitialLogic = "ELFTEST";
-        private const string DefaultSymbol = "ELF";
 
         private static long _totalSupply = 1_000_000L;
         private static long _balanceOfStarter = 800_000L;
 
         public MultiTokenContractTest()
         {
-            AsyncHelper.RunSync(async () => await InitializeChainAsync());
+            AsyncHelper.RunSync(async () => await InitializeAsync());
         }
 
-        private async Task InitializeChainAsync()
+        private async Task InitializeAsync()
         {
             {
                 // TokenContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
-                var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("MultiToken")).Value;
+                var code = TokenContractCode;
                 TokenContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
@@ -373,7 +361,6 @@ namespace AElf.Contracts.MultiToken
                 Amount = 10L,
                 Symbol = DefaultSymbol
             })).TransactionResult;
-            Console.WriteLine(result);
             result.Status.ShouldBe(TransactionResultStatus.Mined);
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
