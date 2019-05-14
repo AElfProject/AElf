@@ -16,7 +16,7 @@ namespace AElf.OS.Jobs
     public class BlockSyncJob
     {
         private const long InitialSyncLimit = 10;
-        private const int BlockSyncJobLimit = 200;
+        private const int BlockSyncJobLimit = 50;
 
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
@@ -71,11 +71,11 @@ namespace AElf.OS.Jobs
                 }
 
                 var blockHash = chain.BestChainHash;
-                Logger.LogDebug($"Trigger sync blocks from peers, lib height: {chain.LastIrreversibleBlockHeight}, lib block hash: {blockHash}");
+                Logger.LogDebug(
+                    $"Trigger sync blocks from peers, best chain height: {blockHash}, best chain block hash: {blockHash}");
 
                 var blockHeight = chain.BestChainHeight;
                 var count = _networkOptions.BlockIdRequestCount;
-                var peerBestChainHeight = await _networkService.GetBestChainHeightAsync(args.SuggestedPeerPubKey);
                 while (true)
                 {
                     // Limit block sync job count, control memory usage
@@ -125,7 +125,7 @@ namespace AElf.OS.Jobs
                             KernelConstants.UpdateChainQueueName);
                     }
 
-                    peerBestChainHeight = await _networkService.GetBestChainHeightAsync(args.SuggestedPeerPubKey);
+                    var peerBestChainHeight = await _networkService.GetBestChainHeightAsync(args.SuggestedPeerPubKey);
                     if (blocks.Last().Height >= peerBestChainHeight)
                     {
                         break;
