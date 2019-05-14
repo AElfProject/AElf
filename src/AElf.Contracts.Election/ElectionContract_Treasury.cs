@@ -23,7 +23,6 @@ namespace AElf.Contracts.Election
             {
                 State.ProfitContract.CreateProfitItem.Send(new CreateProfitItemInput
                 {
-                    TokenSymbol = Context.Variables.NativeSymbol,
                     ReleaseAllIfAmountIsZero = i != 0
                 });
             }
@@ -56,6 +55,7 @@ namespace AElf.Contracts.Election
             State.ProfitContract.AddProfits.Send(new AddProfitsInput
             {
                 ProfitId = State.TreasuryHash.Value,
+                TokenSymbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConstants.VotesTotalSupply
             });
 

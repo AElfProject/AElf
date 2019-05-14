@@ -33,13 +33,6 @@ namespace AElf.Contracts.Profit
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }
 
-            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
-            {
-                Symbol = input.TokenSymbol
-            });
-            Assert(input.TokenSymbol != null && input.TokenSymbol.Any() && tokenInfo.TotalSupply != 0,
-                "Invalid token symbol.");
-
             if (input.ExpiredPeriodNumber == 0)
             {
                 input.ExpiredPeriodNumber = ProfitContractConsts.DefaultExpiredPeriodNumber;
@@ -56,7 +49,6 @@ namespace AElf.Contracts.Profit
             {
                 VirtualAddress = Context.ConvertVirtualAddressToContractAddress(profitId),
                 Creator = Context.Sender,
-                TokenSymbol = input.TokenSymbol,
                 ExpiredPeriodNumber = input.ExpiredPeriodNumber,
                 CurrentPeriod = 1,
                 ReleaseAllIfAmountIsZero = input.ReleaseAllIfAmountIsZero
@@ -285,7 +277,7 @@ namespace AElf.Contracts.Profit
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Owner = profitVirtualAddress,
-                Symbol = profitItem.TokenSymbol
+                Symbol = Context.Variables.NativeSymbol
             }).Balance;
 
             Assert(input.Amount <= balance, "Insufficient profits amount.");
@@ -319,9 +311,10 @@ namespace AElf.Contracts.Profit
                     From = profitVirtualAddress,
                     To = profitsBurningVirtualAddress,
                     Amount = input.Amount,
-                    Symbol = profitItem.TokenSymbol
+                    Symbol = Context.Variables.NativeSymbol
                 });
-                profitItem.TotalAmount = profitItem.TotalAmount.Sub(input.Amount);
+                profitItem.TotalAmounts[Context.Variables.NativeSymbol] =
+                    profitItem.TotalAmounts[Context.Variables.NativeSymbol].Sub(input.Amount);
                 State.ProfitItemsMap[input.ProfitId] = profitItem;
                 return new Empty();
             }
@@ -370,14 +363,15 @@ namespace AElf.Contracts.Profit
                         From = profitVirtualAddress,
                         To = subItemVirtualAddress,
                         Amount = amount,
-                        Symbol = profitItem.TokenSymbol
+                        Symbol = Context.Variables.NativeSymbol
                     });
                 }
 
                 remainAmount -= amount;
 
                 var subItem = State.ProfitItemsMap[subProfitItem.ProfitId];
-                subItem.TotalAmount += amount;
+                subItem.TotalAmounts[Context.Variables.NativeSymbol] =
+                    subItem.TotalAmounts[Context.Variables.NativeSymbol].Add(amount);
                 State.ProfitItemsMap[subProfitItem.ProfitId] = subItem;
 
                 // Update current_period of detail of sub profit item.
@@ -398,12 +392,13 @@ namespace AElf.Contracts.Profit
                     From = profitVirtualAddress,
                     To = profitsReceivingVirtualAddress,
                     Amount = remainAmount,
-                    Symbol = profitItem.TokenSymbol
+                    Symbol = Context.Variables.NativeSymbol
                 });
             }
 
             profitItem.CurrentPeriod = input.Period + 1;
-            profitItem.TotalAmount -= input.Amount;
+            profitItem.TotalAmounts[Context.Variables.NativeSymbol] =
+                profitItem.TotalAmounts[Context.Variables.NativeSymbol].Sub(input.Amount);
             State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             return new Empty();
@@ -411,6 +406,17 @@ namespace AElf.Contracts.Profit
 
         public override Empty AddProfits(AddProfitsInput input)
         {
+            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            {
+                Symbol = input.TokenSymbol
+            });
+            Assert(input.TokenSymbol != null && input.TokenSymbol.Any() && tokenInfo.TotalSupply != 0,
+                "Invalid token symbol.");
+            if (input.TokenSymbol == null)
+            {
+                return new Empty();
+            }
+
             var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
 
@@ -426,11 +432,19 @@ namespace AElf.Contracts.Profit
                 {
                     From = Context.Sender,
                     To = virtualAddress,
-                    Symbol = profitItem.TokenSymbol,
+                    Symbol = input.TokenSymbol,
                     Amount = input.Amount,
-                    Memo = $"Add dividends for {input.ProfitId}."
+                    Memo = $"Add {input.Amount} dividends for {input.ProfitId}."
                 });
-                profitItem.TotalAmount += input.Amount;
+                if (!profitItem.TotalAmounts.ContainsKey(input.TokenSymbol))
+                {
+                    profitItem.TotalAmounts.Add(input.TokenSymbol, input.Amount);
+                }
+                else
+                {
+                    profitItem.TotalAmounts[input.TokenSymbol] =
+                        profitItem.TotalAmounts[input.TokenSymbol].Add(input.Amount);
+                }
                 State.ProfitItemsMap[input.ProfitId] = profitItem;
             }
             else
@@ -457,7 +471,7 @@ namespace AElf.Contracts.Profit
                 {
                     From = Context.Sender,
                     To = releasedProfitsVirtualAddress,
-                    Symbol = profitItem.TokenSymbol,
+                    Symbol = input.TokenSymbol,
                     Amount = input.Amount,
                     Memo = $"Add dividends for {input.ProfitId} (period {input.Period})."
                 });
@@ -511,7 +525,7 @@ namespace AElf.Contracts.Profit
                         {
                             From = releasedProfitsVirtualAddress,
                             To = Context.Sender,
-                            Symbol = profitItem.TokenSymbol,
+                            Symbol = Context.Variables.NativeSymbol,
                             Amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
                                 .Div(releasedProfitsInformation.TotalWeight)
                         });

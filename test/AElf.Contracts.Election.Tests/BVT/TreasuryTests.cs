@@ -88,7 +88,7 @@ namespace AElf.Contracts.Election
             profitItems[ProfitType.CitizenWelfare].CurrentPeriod.ShouldBe(1);
 
             var releasedAmount =
-                ElectionContractConstants.VotesTotalSupply - profitItems[ProfitType.Treasury].TotalAmount;
+                ElectionContractConstants.VotesTotalSupply - profitItems[ProfitType.Treasury].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol];
             var totalWeightsOfTreasury = ElectionContractConstants.MinerRewardWeight
                 .Add(ElectionContractConstants.BackupSubsidyWeight)
                 .Add(ElectionContractConstants.CitizenWelfareWeight);
@@ -102,7 +102,7 @@ namespace AElf.Contracts.Election
                 // Check BackupSubsidy.
                 {
                     // Already released to receiving profits address.
-                    profitItems[ProfitType.BackupSubsidy].TotalAmount.ShouldBe(0);
+                    profitItems[ProfitType.BackupSubsidy].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
 
                     // Each candidate takes 1 weight.
                     profitItems[ProfitType.BackupSubsidy].TotalWeight.ShouldBe(candidatesKeyPairs.Count);
@@ -140,7 +140,7 @@ namespace AElf.Contracts.Election
                 // Check CitizenWelfare.
                 {
                     // Already released to receiving profits address (though no one can really receive this amount of profits).
-                    profitItems[ProfitType.CitizenWelfare].TotalAmount.ShouldBe(0);
+                    profitItems[ProfitType.CitizenWelfare].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
 
                     var releasedProfitsInformation = await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(new GetReleasedProfitsInformationInput
                     {
@@ -176,7 +176,7 @@ namespace AElf.Contracts.Election
                     // Check BasicMinerReward
                     {
                         // Already burned.
-                        profitItems[ProfitType.BasicMinerReward].TotalAmount.ShouldBe(0);
+                        profitItems[ProfitType.BasicMinerReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                         // Each new miner takes 1 weight.
                         profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBeLessThan(candidatesKeyPairs.Count);
 
@@ -221,7 +221,7 @@ namespace AElf.Contracts.Election
                     // Check VotesWeightReward
                     {
                         // Already released to receiving profits address.
-                        profitItems[ProfitType.VotesWeightReward].TotalAmount.ShouldBe(0);
+                        profitItems[ProfitType.VotesWeightReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                         // The only receiver is Virtual Address of Treasury.
                         profitItems[ProfitType.VotesWeightReward].TotalWeight.ShouldBe(1);
 
@@ -264,7 +264,7 @@ namespace AElf.Contracts.Election
                     
                     // Check ReElectionReward
                     {
-                        profitItems[ProfitType.ReElectionReward].TotalAmount.ShouldBe(0);
+                        profitItems[ProfitType.ReElectionReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                         // The only receiver is Virtual Address of Treasury.
                         profitItems[ProfitType.ReElectionReward].TotalWeight.ShouldBe(1);
                         
@@ -320,7 +320,7 @@ namespace AElf.Contracts.Election
                     }
 
                     // Already released to sub profit items.
-                    profitItems[ProfitType.MinerReward].TotalAmount.ShouldBe(0);
+                    profitItems[ProfitType.MinerReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                     profitItems[ProfitType.MinerReward].TotalWeight.ShouldBe(totalWeightsOfMinerReward);
                     actualMinersRewardAmount.ShouldBe(releasedAmount
                         .Mul(ElectionContractConstants.MinerRewardWeight).Div(totalWeightsOfTreasury));
@@ -359,7 +359,7 @@ namespace AElf.Contracts.Election
             
             // Update releasedAmount
             var releasedAmount =
-                (ElectionContractConstants.VotesTotalSupply - profitItems[ProfitType.Treasury].TotalAmount) / 2;
+                (ElectionContractConstants.VotesTotalSupply - profitItems[ProfitType.Treasury].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol]) / 2;
             var totalWeightsOfTreasury = ElectionContractConstants.MinerRewardWeight
                 .Add(ElectionContractConstants.BackupSubsidyWeight)
                 .Add(ElectionContractConstants.CitizenWelfareWeight);
@@ -378,7 +378,7 @@ namespace AElf.Contracts.Election
                 // Check BackupSubsidy.
                 {
                     // Already released to receiving profits address.
-                    profitItems[ProfitType.BackupSubsidy].TotalAmount.ShouldBe(0);
+                    profitItems[ProfitType.BackupSubsidy].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
 
                     // Each candidate takes 1 weight.
                     profitItems[ProfitType.BackupSubsidy].TotalWeight.ShouldBe(candidatesKeyPairs.Count);
@@ -416,7 +416,7 @@ namespace AElf.Contracts.Election
                 // Check CitizenWelfare.
                 {
                     // Already released to receiving profits address (though no one can really receive this amount of profits).
-                    profitItems[ProfitType.CitizenWelfare].TotalAmount.ShouldBe(0);
+                    profitItems[ProfitType.CitizenWelfare].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
 
                     var releasedProfitsInformation = await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(new GetReleasedProfitsInformationInput
                     {
@@ -454,7 +454,7 @@ namespace AElf.Contracts.Election
                     // Check BasicMinerReward
                     {
                         // Already burned.
-                        profitItems[ProfitType.BasicMinerReward].TotalAmount.ShouldBe(0);
+                        profitItems[ProfitType.BasicMinerReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                         // Each new miner takes 1 weight.
                         profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBeLessThan(candidatesKeyPairs.Count);
 
@@ -503,7 +503,7 @@ namespace AElf.Contracts.Election
                     // Check VotesWeightReward
                     {
                         // Already released to receiving profits address.
-                        profitItems[ProfitType.VotesWeightReward].TotalAmount.ShouldBe(0);
+                        profitItems[ProfitType.VotesWeightReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                         // The only receiver is Virtual Address of Treasury.
                         profitItems[ProfitType.VotesWeightReward].TotalWeight.ShouldBeGreaterThan(0);
 
@@ -550,7 +550,7 @@ namespace AElf.Contracts.Election
                     
                     // Check ReElectionReward
                     {
-                        profitItems[ProfitType.ReElectionReward].TotalAmount.ShouldBe(0);
+                        profitItems[ProfitType.ReElectionReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                         // 3 miners re-elected.
                         profitItems[ProfitType.ReElectionReward].TotalWeight.ShouldBe(3);
                         
@@ -596,7 +596,7 @@ namespace AElf.Contracts.Election
                     }
 
                     // Already released to sub profit items.
-                    profitItems[ProfitType.MinerReward].TotalAmount.ShouldBe(0);
+                    profitItems[ProfitType.MinerReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                     profitItems[ProfitType.MinerReward].TotalWeight.ShouldBe(totalWeightsOfMinerReward);
                     actualMinersRewardAmount.ShouldBe(releasedAmount
                         .Mul(ElectionContractConstants.MinerRewardWeight).Div(totalWeightsOfTreasury));
@@ -624,7 +624,7 @@ namespace AElf.Contracts.Election
             
             // Update releasedAmount
             var releasedAmount = ElectionContractConstants.VotesTotalSupply -
-                                 profitItems[ProfitType.Treasury].TotalAmount - 20 * ElectionContractConstants.ElfTokenPerBlock;
+                                 profitItems[ProfitType.Treasury].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol] - 20 * ElectionContractConstants.ElfTokenPerBlock;
             var totalWeightsOfTreasury = ElectionContractConstants.MinerRewardWeight
                 .Add(ElectionContractConstants.BackupSubsidyWeight)
                 .Add(ElectionContractConstants.CitizenWelfareWeight);
@@ -643,7 +643,7 @@ namespace AElf.Contracts.Election
                 // Check BackupSubsidy.
                 {
                     // Already released to receiving profits address.
-                    profitItems[ProfitType.BackupSubsidy].TotalAmount.ShouldBe(0);
+                    profitItems[ProfitType.BackupSubsidy].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
 
                     // Each candidate takes 1 weight.
                     profitItems[ProfitType.BackupSubsidy].TotalWeight.ShouldBe(candidatesKeyPairs.Count);
@@ -681,7 +681,7 @@ namespace AElf.Contracts.Election
                 // Check CitizenWelfare.
                 {
                     // Already released to receiving profits address (though no one can really receive this amount of profits).
-                    profitItems[ProfitType.CitizenWelfare].TotalAmount.ShouldBe(0);
+                    profitItems[ProfitType.CitizenWelfare].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
 
                     var releasedProfitsInformation = await ProfitContractStub.GetReleasedProfitsInformation.CallAsync(new GetReleasedProfitsInformationInput
                     {
@@ -719,7 +719,7 @@ namespace AElf.Contracts.Election
                     // Check BasicMinerReward
                     {
                         // Already burned.
-                        profitItems[ProfitType.BasicMinerReward].TotalAmount.ShouldBe(0);
+                        profitItems[ProfitType.BasicMinerReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                         // Each new miner takes 1 weight.
                         profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBeLessThan(candidatesKeyPairs.Count);
 
@@ -768,7 +768,7 @@ namespace AElf.Contracts.Election
                     // Check VotesWeightReward
                     {
                         // Already released to receiving profits address.
-                        profitItems[ProfitType.VotesWeightReward].TotalAmount.ShouldBe(0);
+                        profitItems[ProfitType.VotesWeightReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                         // The only receiver is Virtual Address of Treasury.
                         profitItems[ProfitType.VotesWeightReward].TotalWeight.ShouldBeGreaterThan(0);
 
@@ -815,7 +815,7 @@ namespace AElf.Contracts.Election
                     
                     // Check ReElectionReward
                     {
-                        profitItems[ProfitType.ReElectionReward].TotalAmount.ShouldBe(0);
+                        profitItems[ProfitType.ReElectionReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                         // 3 miners got re-elected twice, 2 miners once.
                         profitItems[ProfitType.ReElectionReward].TotalWeight.ShouldBe(3 * 2 + 2 * 1);
                         
@@ -861,7 +861,7 @@ namespace AElf.Contracts.Election
                     }
 
                     // Already released to sub profit items.
-                    profitItems[ProfitType.MinerReward].TotalAmount.ShouldBe(0);
+                    profitItems[ProfitType.MinerReward].TotalAmounts[ElectionContractTestConstants.NativeTokenSymbol].ShouldBe(0);
                     profitItems[ProfitType.MinerReward].TotalWeight.ShouldBe(totalWeightsOfMinerReward);
                     actualMinersRewardAmount.ShouldBe(releasedAmount
                         .Mul(ElectionContractConstants.MinerRewardWeight).Div(totalWeightsOfTreasury));

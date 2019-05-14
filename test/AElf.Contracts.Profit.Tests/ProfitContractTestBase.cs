@@ -73,7 +73,6 @@ namespace AElf.Contracts.Profit
             await ProfitContractStub.CreateProfitItem.SendAsync(new CreateProfitItemInput
             {
                 ExpiredPeriodNumber = 100,
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
             });
             TreasuryHash = ProfitContractStub.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput
             {
@@ -82,6 +81,7 @@ namespace AElf.Contracts.Profit
             await ProfitContractStub.AddProfits.SendAsync(new AddProfitsInput
             {
                 ProfitId = TreasuryHash,
+                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
                 Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2),
             });
         }

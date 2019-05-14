@@ -25,8 +25,8 @@ namespace AElf.Contracts.Profit
             var treasury = await ProfitContractStub.GetProfitItem.CallAsync(TreasuryHash);
 
             treasury.Creator.ShouldBe(Address.FromPublicKey(StarterKeyPair.PublicKey));
-            treasury.TokenSymbol.ShouldBe(ProfitContractTestConsts.NativeTokenSymbol);
-            treasury.TotalAmount.ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
+            treasury.TotalAmounts[ProfitContractTestConsts.NativeTokenSymbol]
+                .ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
 
             var treasuryAddress = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(
                 new GetProfitItemVirtualAddressInput
@@ -50,7 +50,6 @@ namespace AElf.Contracts.Profit
 
             await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
             {
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
             });
 
             var createdProfitIds = (await creator.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput
@@ -64,11 +63,10 @@ namespace AElf.Contracts.Profit
             var profitItem = await creator.GetProfitItem.CallAsync(profitId);
 
             profitItem.Creator.ShouldBe(creatorAddress);
-            profitItem.TokenSymbol.ShouldBe(ProfitContractTestConsts.NativeTokenSymbol);
             profitItem.CurrentPeriod.ShouldBe(1);
             profitItem.ExpiredPeriodNumber.ShouldBe(ProfitContractConsts.DefaultExpiredPeriodNumber);
             profitItem.TotalWeight.ShouldBe(0);
-            profitItem.TotalAmount.ShouldBe(0);
+            profitItem.TotalAmounts[ProfitContractTestConsts.NativeTokenSymbol].ShouldBe(0);
 
             var itemBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -95,7 +93,6 @@ namespace AElf.Contracts.Profit
             {
                 var executionResult = await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
                 {
-                    TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
                 });
                 executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
@@ -115,7 +112,6 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
             {
-                TokenSymbol = "WTF"
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -135,13 +131,14 @@ namespace AElf.Contracts.Profit
             await creator.AddProfits.SendAsync(new AddProfitsInput
             {
                 ProfitId = profitId,
-                Amount = amount
+                Amount = amount,
+                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
             });
 
             // Check profit item and corresponding balance.
             {
                 var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                Assert.Equal(amount, profitItem.TotalAmount);
+                Assert.Equal(amount, profitItem.TotalAmounts[ProfitContractTestConsts.NativeTokenSymbol]);
 
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
@@ -157,14 +154,15 @@ namespace AElf.Contracts.Profit
             {
                 ProfitId = profitId,
                 Amount = amount,
-                Period = period
+                Period = period,
+                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
             });
 
             // Check profit item and corresponding balance.
             {
                 var profitItem = await creator.GetProfitItem.CallAsync(profitId);
                 // Total amount stay.
-                profitItem.TotalAmount.ShouldBe(amount);
+                profitItem.TotalAmounts[ProfitContractTestConsts.NativeTokenSymbol].ShouldBe(amount);
 
                 var virtualAddress = await creator.GetProfitItemVirtualAddress.CallAsync(
                     new GetProfitItemVirtualAddressInput
@@ -219,12 +217,13 @@ namespace AElf.Contracts.Profit
             {
                 ProfitId = profitId,
                 Amount = amountAddedByGoodGuy,
+                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
             });
 
             // Check profit item.
             {
                 var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                profitItem.TotalAmount.ShouldBe(amountReleasedByCreator);
+                profitItem.TotalAmounts[ProfitContractTestConsts.NativeTokenSymbol].ShouldBe(amountReleasedByCreator);
             }
             
             // Add profits to release profits virtual address of this profit item.
@@ -232,6 +231,7 @@ namespace AElf.Contracts.Profit
             {
                 ProfitId = profitId,
                 Amount = amountAddedByGoodGuy,
+                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
                 Period = 1
             });
 
@@ -239,7 +239,7 @@ namespace AElf.Contracts.Profit
             {
                 var profitItem = await creator.GetProfitItem.CallAsync(profitId);
                 // Total amount stay.
-                profitItem.TotalAmount.ShouldBe(amountReleasedByCreator);
+                profitItem.TotalAmounts[ProfitContractTestConsts.NativeTokenSymbol].ShouldBe(amountReleasedByCreator);
 
                 var releasedProfitsInformation = await creator.GetReleasedProfitsInformation.CallAsync(
                     new GetReleasedProfitsInformationInput
@@ -1228,7 +1228,6 @@ namespace AElf.Contracts.Profit
 
             await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
             {
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
                 ExpiredPeriodNumber = expiredPeriodNumber
             });
 
@@ -1245,6 +1244,7 @@ namespace AElf.Contracts.Profit
             await ProfitContractStub.AddProfits.SendAsync(new AddProfitsInput
             {
                 ProfitId = profitId,
+                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
                 Amount = amount
             });
         }

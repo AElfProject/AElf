@@ -62,7 +62,6 @@ message InitializeProfitContractInput {
 
 message CreateProfitItemInput {
     sint64 total_weight = 1;
-    string token_symbol = 2;
     sint64 expired_period_number = 3;
     bool release_all_if_amount_is_zero = 4;
 }
@@ -70,9 +69,8 @@ message CreateProfitItemInput {
 message ProfitItem {
     Address virtual_address = 1;
     sint64 total_weight = 2;
-    sint64 total_amount = 3;
+    map<string, sint64> total_amounts = 3;// token_symbol -> total_amount
     sint64 current_period = 4;
-    string token_symbol = 5;
     repeated SubProfitItem sub_profit_items = 7;
     Address creator = 8;
     sint64 expired_period_number = 9;
@@ -137,6 +135,7 @@ message AddProfitsInput {
     Hash profit_id = 1;
     sint64 amount = 2;
     sint64 period = 3;
+    string token_symbol = 4;
 }
 
 message RegisterSubProfitItemInput {
@@ -153,7 +152,7 @@ message CancelSubProfitItemInput {
 
 message ReleasedProfitsInformation {
     sint64 total_weight = 1;
-    sint64 profits_amount = 2;
+    sint64 profits_amount = 2;// Only native token amount, because other types of tokens need to convert to native tokens.
     bool is_released = 3;
 }
 
