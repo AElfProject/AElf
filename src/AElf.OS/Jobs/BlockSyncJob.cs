@@ -64,9 +64,17 @@ namespace AElf.OS.Jobs
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
                         return;
                     }
+                    
+                    // todo validate static properties of the block: null checks, merkle, etc...
+                    // await _blockValidationService.ValidateBlockBeforeAttachAsync(block)
+                    
+                    // save the data into the db
+                    await _blockchainService.AddBlockWithTransactionsAsync(peerBlock);
 
-                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachReceivedBlockAsync(peerBlock),
+                    // todo can attach only take the header ?
+                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(peerBlock.ToBlock()),
                         KernelConsts.UpdateChainQueueName);
+                    
                     return;
                 }
 
@@ -111,9 +119,15 @@ namespace AElf.OS.Jobs
                             Logger.LogWarning($"Get null block from peer, request block start: {blockHash}");
                             break;
                         }
-
+                        
+                        // todo validate static properties of the block: null checks, merkle, etc...
+                        // await _blockValidationService.ValidateBlockBeforeAttachAsync(block)
+                    
+                        // save the data into the db
+                        await _blockchainService.AddBlockWithTransactionsAsync(block);
+                        
                         Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
-                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachReceivedBlockAsync(block),
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block.ToBlock()),
                             KernelConsts.UpdateChainQueueName);
                     }
 
