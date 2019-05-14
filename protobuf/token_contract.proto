@@ -57,8 +57,8 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc IsInWhiteList (IsInWhiteListInput) returns (google.protobuf.BoolValue) {
-    option (aelf.is_view) = true;
-}
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {

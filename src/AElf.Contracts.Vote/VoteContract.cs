@@ -1,9 +1,8 @@
-﻿using System.Linq;
-using System.Net.Mime;
+﻿using System;
+using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
-using Vote;
 
 namespace AElf.Contracts.Vote
 {
@@ -16,50 +15,35 @@ namespace AElf.Contracts.Vote
         {
             Assert(Context.Sender == Context.GetZeroSmartContractAddress(),
                 "Only zero contract can initialize this contract.");
-
             Assert(!State.Initialized.Value, "Already initialized.");
-
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
-
             State.Initialized.Value = true;
-
             return new Empty();
         }
 
         public override Empty Register(VotingRegisterInput input)
         {
-            input.Topic = input.Topic.Trim();
+            var votingItemId = input.GetHash(Context.Sender);
 
-            if (input.TotalEpoch == 0)
+            if (input.TotalSnapshotNumber == 0)
             {
-                input.TotalEpoch = 1;
+                input.TotalSnapshotNumber = 1;
             }
-            
-            Assert(!string.IsNullOrEmpty(input.Topic), "Topic cannot be null or empty.");
-            Assert(input.TotalEpoch > 0, "Total epoch number must be greater than 0.");
-            Assert(input.ActiveDays > 0, "Total active days must be greater than 0.");
-            Assert(input.Options != null && input.Options.Any(), "Options cannot be null or empty.");
 
-            if (input.ActiveDays == int.MaxValue)
+            Assert(input.TotalSnapshotNumber > 0, "Total snapshot number must be greater than 0.");
+            Assert(input.EndTimestamp > input.StartTimestamp, "Invalid active time.");
+
+            if (input.EndTimestamp == DateTime.MaxValue.ToUniversalTime().ToTimestamp())
             {
-                Assert(input.TotalEpoch != 1, "Cannot created endless voting event.");
+                Assert(input.TotalSnapshotNumber != 1, "Cannot created endless voting event.");
             }
 
             InitializeDependentContracts();
 
-            if (input.StartTimestamp == null || input.StartTimestamp.ToDateTime() < Context.CurrentBlockTime)
-            {
-                input.StartTimestamp = Context.CurrentBlockTime.ToTimestamp();
-            }
+            Assert(State.VotingItems[votingItemId] == null, "Voting item already exists.");
 
-            var votingEvent = new VotingEvent
-            {
-                Sponsor = Context.Sender,
-                Topic = input.Topic
-            };
-            var votingEventHash = votingEvent.GetHash();
+            Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
 
-            Assert(State.VotingEvents[votingEventHash] == null, "Voting event already exists.");
             var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
                 Symbol = input.AcceptedCurrency,
@@ -68,46 +52,44 @@ namespace AElf.Contracts.Vote
             Assert(isInWhiteList, "Claimed accepted token is not available for voting.");
 
             // Initialize voting event.
-            votingEvent.AcceptedCurrency = input.AcceptedCurrency;
-            votingEvent.ActiveDays = input.ActiveDays;
-            votingEvent.Delegated = input.Delegated;
-            votingEvent.TotalEpoch = input.TotalEpoch;
-            votingEvent.Options.AddRange(input.Options);
-            votingEvent.CurrentEpoch = 1;
-            votingEvent.EpochStartTimestamp = input.StartTimestamp;
-            votingEvent.RegisterTimestamp = Context.CurrentBlockTime.ToTimestamp();
-            votingEvent.StartTimestamp = input.StartTimestamp;
+            var votingItem = new VotingItem
+            {
+                Sponsor = Context.Sender,
+                VotingItemId = votingItemId,
+                AcceptedCurrency = input.AcceptedCurrency,
+                IsLockToken = input.IsLockToken,
+                TotalSnapshotNumber = input.TotalSnapshotNumber,
+                CurrentSnapshotNumber = 1,
+                CurrentSnapshotStartTimestamp = input.StartTimestamp,
+                StartTimestamp = input.StartTimestamp,
+                EndTimestamp = input.EndTimestamp,
+                RegisterTimestamp = Context.CurrentBlockTime.ToTimestamp(),
+                Options = {input.Options}
+            };
 
-            State.VotingEvents[votingEventHash] = votingEvent;
+            State.VotingItems[votingItemId] = votingItem;
 
             // Initialize first voting going information of registered voting event.
-            var votingResultHash = Hash.FromMessage(new GetVotingResultInput
-            {
-                Sponsor = Context.Sender,
-                Topic = input.Topic,
-                EpochNumber = 1
-            });
+            var votingResultHash = GetVotingResultHash(votingItemId, 1);
             State.VotingResults[votingResultHash] = new VotingResult
             {
-                Topic = input.Topic,
-                Sponsor = Context.Sender,
-                EpochNumber = 1
+                VotingItemId = votingItemId,
+                SnapshotNumber = 1,
+                SnapshotStartTimestamp = input.StartTimestamp
             };
 
             return new Empty();
         }
 
-        //TODO: User cannot vote when Event CurrentEpoch >= EpochNumber + 1
         public override Empty Vote(VoteInput input)
         {
-            input.Topic = input.Topic.Trim();
-            
-            var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
-
-            Assert(votingEvent.Options.Contains(input.Option), $"Option {input.Option} not found.");
-            if (votingEvent.Delegated)
+            var votingItem = AssertVotingItem(input.VotingItemId);
+            Assert(votingItem.Options.Contains(input.Option), $"Option {input.Option} not found.");
+            Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber,
+                "Current voting item already ended.");
+            if (!votingItem.IsLockToken)
             {
-                Assert(input.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
+                Assert(votingItem.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
                 Assert(input.Voter != null, "Voter cannot be null if voting event is delegated.");
                 Assert(input.VoteId != null, "Vote Id cannot be null if voting event is delegated.");
             }
@@ -119,70 +101,72 @@ namespace AElf.Contracts.Vote
 
             var votingRecord = new VotingRecord
             {
-                Topic = input.Topic,
-                Sponsor = input.Sponsor,
+                VotingItemId = input.VotingItemId,
                 Amount = input.Amount,
-                EpochNumber = votingEvent.CurrentEpoch,
+                SnapshotNumber = votingItem.CurrentSnapshotNumber,
                 Option = input.Option,
                 IsWithdrawn = false,
                 VoteTimestamp = Context.CurrentBlockTime.ToTimestamp(),
-                Voter = input.Voter,
-                Currency = votingEvent.AcceptedCurrency
+                Voter = input.Voter
             };
 
             // Update VotingResult based on this voting behaviour.
-            var votingResultHash = Hash.FromMessage(new GetVotingResultInput
-            {
-                Sponsor = input.Sponsor,
-                Topic = input.Topic,
-                EpochNumber = votingEvent.CurrentEpoch
-            });
+            var votingResultHash = GetVotingResultHash(input.VotingItemId, votingItem.CurrentSnapshotNumber);
             var votingResult = State.VotingResults[votingResultHash];
             if (!votingResult.Results.ContainsKey(input.Option))
             {
                 votingResult.Results.Add(input.Option, 0);
             }
-            var currentVotes = votingResult.Results[input.Option];
-            votingResult.Results[input.Option] = currentVotes + input.Amount;
 
-            // Update voting history
-            var votingHistories = State.VotingHistoriesMap[votingRecord.Voter] ?? new VotingHistories
+            var currentVotes = votingResult.Results[input.Option];
+            votingResult.Results[input.Option] = currentVotes.Add(input.Amount);
+            votingResult.VotersCount = votingResult.VotersCount.Add(1);
+
+            // Update voted items information.
+            var votedItems = State.VotedItemsMap[votingRecord.Voter] ?? new VotedItems();
+            if (votedItems.VotedItemVoteIds.ContainsKey(votingItem.VotingItemId.ToHex()))
             {
-                Voter = votingRecord.Voter
-            };
-            var votingEventHash = votingEvent.GetHash().ToHex();
-            if (!votingHistories.Votes.ContainsKey(votingEventHash))
-            {
-                votingHistories.Votes[votingEventHash] = new VotingHistory
-                {
-                    ActiveVotes = {input.VoteId}
-                };
-                votingResult.VotersCount += 1;
+                votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].ActiveVotes.Add(input.VoteId);
             }
             else
             {
-                votingHistories.Votes[votingEventHash].ActiveVotes.Add(input.VoteId);
+                votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()] =
+                    new VotedIds
+                    {
+                        ActiveVotes = {input.VoteId}
+                    };
             }
 
             State.VotingRecords[input.VoteId] = votingRecord;
 
             State.VotingResults[votingResultHash] = votingResult;
 
-            State.VotingHistoriesMap[votingRecord.Voter] = votingHistories;
+            State.VotedItemsMap[votingRecord.Voter] = votedItems;
 
-            if (!votingEvent.Delegated)
+            if (votingItem.IsLockToken)
             {
                 // Lock voted token.
                 State.TokenContract.Lock.Send(new LockInput
                 {
                     From = votingRecord.Voter,
-                    Symbol = votingEvent.AcceptedCurrency,
+                    Symbol = votingItem.AcceptedCurrency,
                     LockId = input.VoteId,
                     Amount = input.Amount,
                     To = Context.Self,
-                    Usage = $"Voting for {input.Topic}"
+                    Usage = $"Voting for {input.VotingItemId}"
                 });
             }
+
+            Context.Fire(new Voted
+            {
+                VoteId = input.VoteId,
+                VotingItemId = votingRecord.VotingItemId,
+                Voter = votingRecord.Voter,
+                Amount = votingRecord.Amount,
+                Option = votingRecord.Option,
+                SnapshotNumber = votingRecord.SnapshotNumber,
+                VoteTimestamp = votingRecord.VoteTimestamp
+            });
 
             return new Empty();
         }
@@ -191,180 +175,148 @@ namespace AElf.Contracts.Vote
         {
             var votingRecord = State.VotingRecords[input.VoteId];
             Assert(votingRecord != null, "Voting record not found.");
-
-            var votingEventHash = new VotingEvent
+            if (votingRecord == null)
             {
-                Topic = votingRecord.Topic,
-                Sponsor = votingRecord.Sponsor
-            }.GetHash();
+                return new Empty();
+            }
 
-            var votingEvent = State.VotingEvents[votingEventHash];
+            var votingItem = State.VotingItems[votingRecord.VotingItemId];
 
-            Assert(votingEvent.CurrentEpoch > votingRecord.EpochNumber,
-                "Cannot withdraw votes of on-going voting event.");
+            if (votingItem.IsLockToken)
+            {
+                Assert(votingRecord.Voter == Context.Sender, "No permission to withdraw votes of others.");
+            }
+
+            Assert(votingItem.CurrentSnapshotNumber > votingRecord.SnapshotNumber,
+                "Cannot withdraw votes of on-going voting item.");
 
             // Update VotingRecord.
             votingRecord.IsWithdrawn = true;
             votingRecord.WithdrawTimestamp = Context.CurrentBlockTime.ToTimestamp();
             State.VotingRecords[input.VoteId] = votingRecord;
 
-            var votingGoingHash = new VotingResult
-            {
-                Sponsor = votingRecord.Sponsor,
-                Topic = votingRecord.Topic,
-                EpochNumber = votingRecord.EpochNumber
-            }.GetHash();
-            
-            var votingHistories = UpdateHistoryAfterWithdrawing(votingRecord.Voter, votingEventHash, input.VoteId);
+            var votingResultHash = GetVotingResultHash(votingRecord.VotingItemId, votingRecord.SnapshotNumber);
 
-            var votingResult = State.VotingResults[votingGoingHash];
-           votingResult.Results[votingRecord.Option] -= votingRecord.Amount;
-            if (!votingHistories.Votes[votingEventHash.ToHex()].ActiveVotes.Any())
+            var votedItems = State.VotedItemsMap[votingRecord.Voter];
+            votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].ActiveVotes.Remove(input.VoteId);
+            votedItems.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].WithdrawnVotes.Add(input.VoteId);
+            State.VotedItemsMap[votingRecord.Voter] = votedItems;
+
+            var votingResult = State.VotingResults[votingResultHash];
+            votingResult.Results[votingRecord.Option] -= votingRecord.Amount;
+            if (!votedItems.VotedItemVoteIds[votingRecord.VotingItemId.ToHex()].ActiveVotes.Any())
             {
                 votingResult.VotersCount -= 1;
             }
 
-            State.VotingResults[votingGoingHash] = votingResult;
+            State.VotingResults[votingResultHash] = votingResult;
 
-            if (!State.VotingEvents[votingEventHash].Delegated)
+            if (votingItem.IsLockToken)
             {
                 State.TokenContract.Unlock.Send(new UnlockInput
                 {
                     From = votingRecord.Voter,
-                    Symbol = votingRecord.Currency,
+                    Symbol = votingItem.AcceptedCurrency,
                     Amount = votingRecord.Amount,
                     LockId = input.VoteId,
                     To = Context.Self,
-                    Usage = $"Withdraw votes for {votingRecord.Topic}"
+                    Usage = $"Withdraw votes for {votingRecord.VotingItemId}"
                 });
             }
+
+            Context.Fire(new Withdrawn
+            {
+                VoteId = input.VoteId
+            });
 
             return new Empty();
         }
 
-        //TODO: EpochNumber cannot update when CurrentEpoch >= EpochNumber + 1 
-        public override Empty UpdateEpochNumber(UpdateEpochNumberInput input)
+        public override Empty TakeSnapshot(TakeSnapshotInput input)
         {
-            input.Topic = input.Topic.Trim();
-            
-            var votingEvent = AssertVotingEvent(input.Topic, Context.Sender);
+            var votingItem = AssertVotingItem(input.VotingItemId);
+
+            Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can take snapshot.");
+
+            Assert(votingItem.CurrentSnapshotNumber - 1 <= votingItem.TotalSnapshotNumber,
+                "Current voting item already ended.");
 
             // Update previous voting going information.
-            var previousVotingGoingHash = new VotingResult
-            {
-                Sponsor = Context.Sender,
-                Topic = input.Topic,
-                EpochNumber = votingEvent.CurrentEpoch
-            }.GetHash();
-            var previousVotingResult = State.VotingResults[previousVotingGoingHash];
-            previousVotingResult.EndTimestamp = Context.CurrentBlockTime.ToTimestamp();
-            State.VotingResults[previousVotingGoingHash] = previousVotingResult;
+            var previousVotingResultHash = GetVotingResultHash(input.VotingItemId, votingItem.CurrentSnapshotNumber);
+            var previousVotingResult = State.VotingResults[previousVotingResultHash];
+            previousVotingResult.SnapshotEndTimestamp = Context.CurrentBlockTime.ToTimestamp();
+            State.VotingResults[previousVotingResultHash] = previousVotingResult;
 
-            Assert(votingEvent.CurrentEpoch + 1 == input.EpochNumber, "Can only increase epoch number 1 each time.");
-            votingEvent.CurrentEpoch = input.EpochNumber;
-            State.VotingEvents[votingEvent.GetHash()] = votingEvent;
+            Assert(votingItem.CurrentSnapshotNumber == input.SnapshotNumber,
+                $"Can only take snapshot of current snapshot number: {votingItem.CurrentSnapshotNumber}, but {input.SnapshotNumber}");
+            var nextSnapshotNumber = input.SnapshotNumber.Add(1);
+            votingItem.CurrentSnapshotNumber = nextSnapshotNumber;
+            State.VotingItems[votingItem.VotingItemId] = votingItem;
 
             // Initial next voting going information.
-            var currentVotingGoingHash = new VotingResult
-            {
-                Sponsor = Context.Sender,
-                Topic = input.Topic,
-                EpochNumber = input.EpochNumber
-            }.GetHash();
+            var currentVotingGoingHash = GetVotingResultHash(input.VotingItemId, nextSnapshotNumber);
             State.VotingResults[currentVotingGoingHash] = new VotingResult
             {
-                Sponsor = Context.Sender,
-                Topic = input.Topic,
-                EpochNumber = input.EpochNumber,
-                StartTimestamp = Context.CurrentBlockTime.ToTimestamp()
+                VotingItemId = input.VotingItemId,
+                SnapshotNumber = nextSnapshotNumber,
+                SnapshotStartTimestamp = Context.CurrentBlockTime.ToTimestamp()
             };
             return new Empty();
         }
 
-        public override VotingResult GetVotingResult(GetVotingResultInput input)
-        {
-            var votingResultHash = Hash.FromMessage(input);
-            return State.VotingResults[votingResultHash];
-        }
-
         public override Empty AddOption(AddOptionInput input)
         {
-            var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
-            Assert(votingEvent.Sponsor == Context.Sender, "Only sponsor can update options.");
-            Assert(!votingEvent.Options.Contains(input.Option), "Option already exists.");
-            votingEvent.Options.Add(input.Option);
-            State.VotingEvents[votingEvent.GetHash()] = votingEvent;
+            var votingItem = AssertVotingItem(input.VotingItemId);
+            Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
+            Assert(!votingItem.Options.Contains(input.Option), "Option already exists.");
+            votingItem.Options.Add(input.Option);
+            State.VotingItems[votingItem.VotingItemId] = votingItem;
             return new Empty();
         }
 
         public override Empty RemoveOption(RemoveOptionInput input)
         {
-            var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
-            Assert(votingEvent.Sponsor == Context.Sender, "Only sponsor can update options.");
-            Assert(votingEvent.Options.Contains(input.Option), "Option doesn't exist.");
-            votingEvent.Options.Remove(input.Option);
-            State.VotingEvents[votingEvent.GetHash()] = votingEvent;
+            var votingItem = AssertVotingItem(input.VotingItemId);
+            Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
+            Assert(votingItem.Options.Contains(input.Option), "Option doesn't exist.");
+            votingItem.Options.Remove(input.Option);
+            State.VotingItems[votingItem.VotingItemId] = votingItem;
             return new Empty();
         }
 
-        public override VotingHistories GetVotingHistories(Address input)
+        public override Empty AddOptions(AddOptionsInput input)
         {
-            return State.VotingHistoriesMap[input];
-        }
-
-        public override VotingRecord GetVotingRecord(Hash input)
-        {
-            var votingRecord = State.VotingRecords[input];
-            Assert(votingRecord != null, "Voting record not found.");
-            return votingRecord;
-        }
-
-        public override VotingEvent GetVotingEvent(GetVotingEventInput input)
-        {
-            var votingEventHash = new VotingEvent
+            var votingItem = AssertVotingItem(input.VotingItemId);
+            Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
+            foreach (var option in input.Options)
             {
-                Topic = input.Topic,
-                Sponsor = input.Sponsor
-            }.GetHash();
-            var votingEvent = State.VotingEvents[votingEventHash];
-            Assert(votingEvent != null, "Voting Event not found.");
-            return votingEvent;
+                Assert(!votingItem.Options.Contains(option), "Option already exists.");
+            }
+
+            votingItem.Options.AddRange(input.Options);
+            State.VotingItems[votingItem.VotingItemId] = votingItem;
+            return new Empty();
         }
 
-        public override VotingHistory GetVotingHistory(GetVotingHistoryInput input)
+        public override Empty RemoveOptions(RemoveOptionsInput input)
         {
-            var votingEvent = AssertVotingEvent(input.Topic, input.Sponsor);
-            var allVotes = State.VotingHistoriesMap[input.Voter];
-            Assert(allVotes != null, "Voting record not found.");
-            var votes = allVotes.Votes[votingEvent.GetHash().ToHex()];
-            Assert(votes != null, "Voting record not found.");
-            var activeVotes = votes.ActiveVotes;
-            var withdrawnVotes = votes.WithdrawnVotes;
-            return new VotingHistory
+            var votingItem = AssertVotingItem(input.VotingItemId);
+            Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
+            foreach (var option in input.Options)
             {
-                ActiveVotes = {activeVotes}, WithdrawnVotes = {withdrawnVotes}
-            };
+                Assert(votingItem.Options.Contains(option), "Option doesn't exist.");
+                votingItem.Options.Remove(option);
+            }
+
+            State.VotingItems[votingItem.VotingItemId] = votingItem;
+            return new Empty();
         }
 
-        private VotingEvent AssertVotingEvent(string topic, Address sponsor)
+        private VotingItem AssertVotingItem(Hash votingItemId)
         {
-            var votingEvent = new VotingEvent
-            {
-                Topic = topic,
-                Sponsor = sponsor
-            };
-            var votingEventHash = votingEvent.GetHash();
-            Assert(State.VotingEvents[votingEventHash] != null, "Voting event not found.");
-            return State.VotingEvents[votingEventHash];
-        }
-
-        private VotingHistories UpdateHistoryAfterWithdrawing(Address voter, Hash votingEventHash, Hash voteId)
-        {
-            var votingHistories = State.VotingHistoriesMap[voter];
-            votingHistories.Votes[votingEventHash.ToHex()].ActiveVotes.Remove(voteId);
-            votingHistories.Votes[votingEventHash.ToHex()].WithdrawnVotes.Add(voteId);
-            State.VotingHistoriesMap[voter] = votingHistories;
-            return votingHistories;
+            var votingItem = State.VotingItems[votingItemId];
+            Assert(votingItem != null, $"Voting item not found. {votingItemId.ToHex()}");
+            return votingItem;
         }
 
         private void InitializeDependentContracts()
@@ -376,6 +328,15 @@ namespace AElf.Contracts.Vote
                 State.TokenContract.Value =
                     State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
             }
+        }
+
+        private Hash GetVotingResultHash(Hash votingItemId, long snapshotNumber)
+        {
+            return new VotingResult
+            {
+                VotingItemId = votingItemId,
+                SnapshotNumber = snapshotNumber
+            }.GetHash();
         }
     }
 }

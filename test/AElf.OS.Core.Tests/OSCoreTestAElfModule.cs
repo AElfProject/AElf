@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -30,7 +30,7 @@ namespace AElf.OS
                 o.NodeAccountPassword = nodeAccountPassword;
             });
 
-            Configure<DPoSOptions>(o =>
+            Configure<ConsensusOptions>(o =>
             {
                 var miners = new List<string>();
                 for (var i = 0; i < 3; i++)
@@ -40,7 +40,7 @@ namespace AElf.OS
 
                 o.InitialMiners = miners;
                 o.MiningInterval = 4000;
-                o.IsBootMiner = true;
+                o.TimeEachTerm = 7;
             });
 
             context.Services.AddTransient<IAccountService>(o =>

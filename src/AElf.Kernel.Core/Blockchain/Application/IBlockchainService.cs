@@ -410,9 +410,9 @@ namespace AElf.Kernel.Blockchain.Application
             return await _chainManager.GetAsync();
         }
 
-        private async Task RemoveBlocksAsync(List<Hash> blockHashs)
+        private async Task RemoveBlocksAsync(List<Hash> blockHashes)
         {
-            foreach (var blockHash in blockHashs)
+            foreach (var blockHash in blockHashes)
             {
                 await _chainManager.RemoveChainBlockLinkAsync(blockHash);
                 await _blockManager.RemoveBlockAsync(blockHash);

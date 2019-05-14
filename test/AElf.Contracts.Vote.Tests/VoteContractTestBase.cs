@@ -5,12 +5,10 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Volo.Abp.Threading;
-using Vote;
 
 namespace AElf.Contracts.Vote
 {
@@ -27,6 +25,8 @@ namespace AElf.Contracts.Vote
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
 
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
+
+        protected const string TestTokenSymbol = "TELF";
 
         protected void InitializeContracts()
         {
@@ -86,15 +86,15 @@ namespace AElf.Contracts.Vote
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
-            const string symbol = "ELF";
-            const long totalSupply = 100_000_000;
+            const long totalSupply = 1_000_000_000;
+            
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
-                Symbol = symbol,
+                Symbol = TestTokenSymbol,
                 Decimals = 2,
                 IsBurnable = true,
-                TokenName = "elf token",
+                TokenName = "elf token for testing",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
                 LockWhiteSystemContractNameList =
@@ -106,7 +106,7 @@ namespace AElf.Contracts.Vote
             //issue default user
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
-                Symbol = symbol,
+                Symbol = TestTokenSymbol,
                 Amount = totalSupply - 20 * 100_000L,
                 To = DefaultSender,
                 Memo = "Issue token to default user for vote.",
@@ -117,7 +117,7 @@ namespace AElf.Contracts.Vote
             {
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {
-                    Symbol = symbol,
+                    Symbol = TestTokenSymbol,
                     Amount = 100_000L,
                     To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                     Memo = "set voters few amount for voting."
@@ -125,6 +125,15 @@ namespace AElf.Contracts.Vote
             }
 
             return tokenContractCallList;
+        }
+
+        protected long GetUserBalance(Address owner)
+        {
+            return TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = owner,
+                Symbol = TestTokenSymbol
+            }).Result.Balance;
         }
     }
 }

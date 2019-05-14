@@ -1,19 +1,18 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Kernel.Consensus.AElfConsensus.Application;
 
-namespace AElf.Kernel.Consensus.DPoS
+namespace AElf.Kernel.Consensus.AElfConsensus
 {
     public class DPoSInformationGenerationServiceTests : DPoSConsensusTestBase
     {
@@ -131,7 +130,7 @@ namespace AElf.Kernel.Consensus.DPoS
                 }
             };
 
-            return new DPoSInformationGenerationService(_accountService, information, _smartContractAddressService,
+            return new AElfConsensusInformationGenerationService(_accountService, information, _smartContractAddressService,
                 _transactionReadOnlyExecutionService);
         }
     }
