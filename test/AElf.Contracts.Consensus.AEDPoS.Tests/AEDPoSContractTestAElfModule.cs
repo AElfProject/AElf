@@ -5,7 +5,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    [DependsOn(typeof(ContractTestAElfModule))]
+    [DependsOn(typeof(ContractTestModule))]
     public class AEDPoSContractTestAElfModule : ContractTestModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
