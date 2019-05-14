@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -14,6 +15,7 @@ using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
@@ -27,6 +29,7 @@ namespace AElf.OS.Network.Grpc
 
         private readonly ConcurrentDictionary<string, GrpcPeer> _authenticatedPeers;
 
+        public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcPeerPool> Logger { get; set; }
 
         public GrpcPeerPool(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService, 
@@ -109,8 +112,15 @@ namespace AElf.OS.Network.Grpc
             }
 
             peer.DisconnectionEvent += PeerOnDisconnectionEvent;
+            
+            Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
 
-            Logger.LogTrace($"Connected to {peer}.");
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(new PeerNewBlockAnnouncement
+            {
+                BlockHash = connectReply.Handshake.Header.GetHash(),
+                BlockHeight = connectReply.Handshake.Header.Height,
+                BlockTime = Timestamp.FromDateTime(DateTime.UtcNow)
+            }, pubKey));
 
             return true;
         }
