@@ -623,10 +623,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (TryToGetRoundInformation(1, out var firstRound))
             {
+                // TODO: Maybe this should according to date, like every July 1st we increase 2 miners.
                 var initialMinersCount = firstRound.RealTimeMinersInformation.Count;
                 return initialMinersCount.Add(((int) Context.CurrentBlockTime
                     .Subtract(State.BlockchainStartTimestamp.Value.ToDateTime())
-                    .TotalDays).Div(365));
+                    .TotalDays).Div(365).Mul(2));
             }
 
             return 0;
