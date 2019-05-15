@@ -205,7 +205,7 @@ namespace AElf.Contracts.Profit
             }
 
             var expiryDetails = currentDetail.Details
-                .Where(d => d.EndPeriod < profitItem.CurrentPeriod).ToList();
+                .Where(d => d.EndPeriod < profitItem.CurrentPeriod && d.LastProfitPeriod != 0).ToList();
 
             if (!expiryDetails.Any())
             {
@@ -478,6 +478,8 @@ namespace AElf.Contracts.Profit
 
         public override Empty Profit(ProfitInput input)
         {
+            Context.LogDebug(() => $"{Context.Sender} is trying to profit from {input.ProfitId.ToHex()}.");
+
             var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
 
@@ -515,7 +517,8 @@ namespace AElf.Contracts.Profit
                     var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
                     var amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
                         .Div(releasedProfitsInformation.TotalWeight);
-                    Context.LogDebug(() => $"{Context.Sender} is profiting {amount} tokens from {input.ProfitId.ToHex()} in period {profitItem.CurrentPeriod}");
+                    var period1 = period;
+                    Context.LogDebug(() => $"{Context.Sender} is profiting {amount} tokens from {input.ProfitId.ToHex()} in period {period1}");
                     if (releasedProfitsInformation.IsReleased && amount > 0)
                     {
                         State.TokenContract.TransferFrom.Send(new TransferFromInput
