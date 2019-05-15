@@ -140,6 +140,15 @@ namespace AElf.Runtime.CSharp.Tests
         }
 
         [Fact]
+        public void CheckBadContract_ForStringConstructorUsage()
+        {
+            LookFor(_findings, 
+                "InitLargeStringDynamic",
+                i => i.Namespace == "System" && i.Type == "String" && i.Member == ".ctor")
+                .ShouldNotBeNull();
+        }
+
+        [Fact]
         public void CheckBadContract_ForDeniedMemberUseInNestedClass()
         {
             LookFor(_findings, 
@@ -158,6 +167,13 @@ namespace AElf.Runtime.CSharp.Tests
         }
         
         [Fact]
+        public void CheckBadContract_ForLargeArrayInitialization()
+        {
+            _findings.FirstOrDefault(f => f.GetType() == typeof(ArrayValidationResult) && f.Info.ReferencingMethod == "InitLargeArray")
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
         public void CheckBadContract_ForFloatOperations()
         {
             _findings.FirstOrDefault(f => f.GetType() == typeof(FloatOpsValidationResult))
@@ -170,7 +186,7 @@ namespace AElf.Runtime.CSharp.Tests
 
         private Info LookFor(IEnumerable<ValidationResult>  findings, string referencingMethod, Func<Info, bool> criteria)
         {
-            return findings.Select(f => f.Info).FirstOrDefault(i => i.ReferencingMethod == referencingMethod && criteria(i));
+            return findings.Select(f => f.Info).FirstOrDefault(i => i != null && i.ReferencingMethod == referencingMethod && criteria(i));
         }
 
         private byte[] ReadCode(string path)
