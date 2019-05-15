@@ -147,8 +147,8 @@ namespace AElf.Contracts.Election
                         ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare],
                         Period = 1
                     });
-                    releasedProfitsInformation.TotalWeight.ShouldBe(0);
-                    releasedProfitsInformation.ProfitsAmount.ShouldBe(0);
+                    releasedProfitsInformation.TotalWeight.ShouldBe(-1);
+                    releasedProfitsInformation.ProfitsAmount.ShouldBe(-1);
                     releasedProfitsInformation.IsReleased.ShouldBe(false);
                     
                     // Check balance of virtual address.
@@ -190,8 +190,8 @@ namespace AElf.Contracts.Election
                                         ProfitId = ProfitItemsIds[ProfitType.BasicMinerReward],
                                         Period = 1
                                     });
-                            releasedProfitsInformation.TotalWeight.ShouldBe(0);
-                            releasedProfitsInformation.ProfitsAmount.ShouldBe(0);
+                            releasedProfitsInformation.TotalWeight.ShouldBe(-1);
+                            releasedProfitsInformation.ProfitsAmount.ShouldBe(-1);
                             releasedProfitsInformation.IsReleased.ShouldBe(false);
                         }
 
@@ -234,8 +234,8 @@ namespace AElf.Contracts.Election
                                         ProfitId = ProfitItemsIds[ProfitType.VotesWeightReward],
                                         Period = 1
                                     });
-                            releasedProfitsInformation.TotalWeight.ShouldBe(0);
-                            releasedProfitsInformation.ProfitsAmount.ShouldBe(0);
+                            releasedProfitsInformation.TotalWeight.ShouldBe(-1);
+                            releasedProfitsInformation.ProfitsAmount.ShouldBe(-1);
                             releasedProfitsInformation.IsReleased.ShouldBe(false);
                         }
 
@@ -277,8 +277,8 @@ namespace AElf.Contracts.Election
                                         ProfitId = ProfitItemsIds[ProfitType.ReElectionReward],
                                         Period = 1
                                     });
-                            releasedProfitsInformation.TotalWeight.ShouldBe(0);
-                            releasedProfitsInformation.ProfitsAmount.ShouldBe(0);
+                            releasedProfitsInformation.TotalWeight.ShouldBe(-1);
+                            releasedProfitsInformation.ProfitsAmount.ShouldBe(-1);
                             releasedProfitsInformation.IsReleased.ShouldBe(false);
                         }
                         
@@ -291,8 +291,8 @@ namespace AElf.Contracts.Election
                                         ProfitId = ProfitItemsIds[ProfitType.ReElectionReward],
                                         Period = 1
                                     });
-                            releasedProfitsInformation.TotalWeight.ShouldBe(0);
-                            releasedProfitsInformation.ProfitsAmount.ShouldBe(0);
+                            releasedProfitsInformation.TotalWeight.ShouldBe(-1);
+                            releasedProfitsInformation.ProfitsAmount.ShouldBe(-1);
                             releasedProfitsInformation.IsReleased.ShouldBe(false);
                         }
                         
