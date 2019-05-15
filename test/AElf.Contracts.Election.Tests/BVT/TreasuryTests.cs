@@ -468,7 +468,7 @@ namespace AElf.Contracts.Election
                                         ProfitId = ProfitItemsIds[ProfitType.BasicMinerReward],
                                         Period = 2
                                     });
-                            releasedProfitsInformation.TotalWeight.ShouldBe(profitItems[ProfitType.BasicMinerReward].TotalWeight);
+                            releasedProfitsInformation.TotalWeight.ShouldBeLessThan(candidatesKeyPairs.Count);
                             releasedProfitsInformation.ProfitsAmount.ShouldBe(releasedAmount
                                 .Mul(ElectionContractConstants.MinerRewardWeight)
                                 .Div(totalWeightsOfTreasury)
