@@ -50,6 +50,7 @@ namespace AElf.Contracts.Election
         public SingletonState<int> TimeEachTerm { get; set; }
 
         public SingletonState<Hash> MinerElectionVotingItemId { get; set; }
-
+        
+        public SingletonState<long> CachedWelfareWeight { get; set; }
     }
 }
