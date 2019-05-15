@@ -16,7 +16,7 @@ namespace AElf.OS.Jobs
     public class BlockSyncJob
     {
         private const long InitialSyncLimit = 10;
-        private const int BlockSyncJobLimit = 15;
+        private const int BlockSyncJobLimit = 5;
 
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
