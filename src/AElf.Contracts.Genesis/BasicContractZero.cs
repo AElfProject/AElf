@@ -61,6 +61,7 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
+            Assert(Context.Sender.Equals(Context.GetZeroSmartContractAddress()), "Unable to deploy system contract.");
             var name = input.Name;
             var category = input.Category;
             var code = input.Code.ToByteArray();
@@ -74,7 +75,6 @@ namespace AElf.Contracts.Genesis
 
             return address;
         }
-
 
         private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code)
         {
@@ -128,12 +128,8 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
-            return DeploySystemSmartContract(new SystemContractDeploymentInput()
-            {
-                Category = input.Category,
-                Code = input.Code,
-                TransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
-            });
+            var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray());
+            return address;
         }
 
         public override Address UpdateSmartContract(ContractUpdateInput input)
