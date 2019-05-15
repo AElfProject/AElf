@@ -456,7 +456,7 @@ namespace AElf.Contracts.Election
                         // Already burned.
                         profitItems[ProfitType.BasicMinerReward].TotalAmount.ShouldBe(0);
                         // Each new miner takes 1 weight.
-                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBeLessThan(candidatesKeyPairs.Count);
+                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBe(5);
 
                         // Check released profit information.
                         // We don't give initial miners rewards.
@@ -721,7 +721,7 @@ namespace AElf.Contracts.Election
                         // Already burned.
                         profitItems[ProfitType.BasicMinerReward].TotalAmount.ShouldBe(0);
                         // Each new miner takes 1 weight.
-                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBeLessThan(candidatesKeyPairs.Count);
+                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBe(5);
 
                         // Check released profit information.
                         // We don't give initial miners rewards.

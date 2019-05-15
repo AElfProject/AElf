@@ -204,15 +204,16 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
-            var expiryDetails = currentDetail.Details.Where(d => d.EndPeriod + 1 == profitItem.CurrentPeriod).ToList();
+            var expiryDetails = currentDetail.Details
+                .Where(d => d.EndPeriod < profitItem.CurrentPeriod).ToList();
+
+            if (!expiryDetails.Any())
+            {
+                return new Empty();
+            }
+
             var weights = expiryDetails.Sum(d => d.Weight);
-            profitItem.TotalWeight -= weights;
-            State.ProfitItemsMap[input.ProfitId] = profitItem;
-
-            var expiryButNotProfitedDetails = currentDetail.Details
-                .Where(d => d.EndPeriod < profitItem.CurrentPeriod && d.LastProfitPeriod < d.EndPeriod).ToList();
-
-            foreach (var profitDetail in expiryButNotProfitedDetails)
+            foreach (var profitDetail in expiryDetails)
             {
                 currentDetail.Details.Remove(profitDetail);
             }
@@ -228,6 +229,9 @@ namespace AElf.Contracts.Profit
 //            {
 //                State.ProfitDetailsMap[input.ProfitId][input.Receiver] = null;
 //            }
+
+            profitItem.TotalWeight -= weights;
+            State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             return new Empty();
         }
