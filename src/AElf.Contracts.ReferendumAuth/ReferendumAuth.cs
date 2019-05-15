@@ -41,7 +41,6 @@ namespace AElf.Contracts.ReferendumAuth
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.Initialized.Value = true;
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             return new Empty();
         }

@@ -18,9 +18,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 ? int.MaxValue
                 : input.TimeEachTerm;
 
-            // TODO: Use Context to get contract address.
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-
             if (input.IsTermStayOne || input.IsSideChain)
             {
                 return new Empty();
@@ -31,8 +28,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
 
-            State.ElectionContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(input.ElectionContractSystemName);
+            State.ElectionContract.Value = Context.GetContractAddressByName(input.ElectionContractSystemName);
 
             State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
 

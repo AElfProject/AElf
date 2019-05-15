@@ -14,8 +14,7 @@ namespace AElf.Contracts.ReferendumAuth
         {
             if (State.TokenContract.Value != null)
                 return;
-            State.TokenContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+            State.TokenContract.Value = Context.GetContractAddressByName(State.TokenContractSystemName.Value);
         }
         
         private void LockToken(LockInput lockInput)

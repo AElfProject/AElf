@@ -15,7 +15,6 @@ namespace AElf.Contracts.CrossChain
         {
             Assert(!State.Initialized.Value, "Already initialized.");
 
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.ParliamentAuthContractSystemName.Value = input.ParliamentContractSystemName;

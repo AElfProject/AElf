@@ -35,8 +35,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             if (State.ConsensusContract.Value != null)
                 return;
-            State.ConsensusContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
+            State.ConsensusContract.Value = Context.GetContractAddressByName(State.ConsensusContractSystemName.Value);
         }
 
         private bool IsValidRepresentative(IEnumerable<Address> representatives)

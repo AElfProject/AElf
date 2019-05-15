@@ -47,7 +47,6 @@ namespace AElf.Contracts.ParliamentAuth
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Initialized.Value = true;
             State.DefaultOrganizationAddress.Value =
                 CreateOrganization(new CreateOrganizationInput {ReleaseThreshold = _defaultOrganizationReleaseThreshold});

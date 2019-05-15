@@ -321,12 +321,9 @@ namespace AElf.Contracts.Vote
 
         private void InitializeDependentContracts()
         {
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-
             if (State.TokenContract.Value == null)
             {
-                State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+                State.TokenContract.Value = Context.GetContractAddressByName(State.TokenContractSystemName.Value);
             }
         }
 

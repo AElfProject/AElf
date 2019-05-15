@@ -106,7 +106,7 @@ namespace AElf.Contracts.CrossChain
         {
             if (state.Value != null)
                 return;
-            state.Value = State.BasicContractZero.GetContractAddressByName.Call(contractSystemName);
+            state.Value = Context.GetContractAddressByName(contractSystemName);
         }
 
         private void Transfer(TransferInput input)

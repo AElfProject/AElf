@@ -28,9 +28,7 @@ namespace AElf.Contracts.Profit
         {
             if (State.TokenContract.Value == null)
             {
-                State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-                State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+                State.TokenContract.Value = Context.GetContractAddressByName(State.TokenContractSystemName.Value);
             }
 
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
