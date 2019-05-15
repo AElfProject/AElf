@@ -294,8 +294,8 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.WelfareHash.Value,
                 Receiver = Context.Sender,
-                Weight = GetVotesWeight(input.Amount, (long)lockSeconds),
-                EndPeriod = GetEndPeriod((long)lockSeconds) + 1
+                Weight = GetVotesWeight(input.Amount, lockSeconds),
+                EndPeriod = GetEndPeriod(lockSeconds) + 1
             });
 
             return new Empty();
@@ -396,7 +396,7 @@ namespace AElf.Contracts.Election
 
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            return (long) (((double) lockTime / 270 + 2.0 / 3.0) * votesAmount);
+            return lockTime.Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));
         }
 
         private long GetEndPeriod(long lockTime)
