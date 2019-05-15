@@ -626,7 +626,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var initialMinersCount = firstRound.RealTimeMinersInformation.Count;
                 return initialMinersCount.Add(((int) Context.CurrentBlockTime
                     .Subtract(State.BlockchainStartTimestamp.Value.ToDateTime())
-                    .TotalDays).Div(State.TimeEachTerm.Value));
+                    .TotalDays).Div(365));
             }
 
             return 0;
