@@ -88,7 +88,7 @@ namespace AElf.OS.Jobs
 
                     Logger.LogDebug($"Request blocks start with {blockHash}");
 
-                    var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, 1, args.SuggestedPeerPubKey);
+                    var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, count, args.SuggestedPeerPubKey);
 
                     if (blocks == null || !blocks.Any())
                     {
