@@ -280,6 +280,8 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
+            var totalWeight = input.TotalWeight == 0 ? profitItem.TotalWeight : input.TotalWeight;
+
             Assert(Context.Sender == profitItem.Creator, "Only creator can release profits.");
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
@@ -297,7 +299,7 @@ namespace AElf.Contracts.Profit
                 input.Amount = balance;
             }
 
-            if (input.Period < 0 || profitItem.TotalWeight <= 0)
+            if (input.Period < 0 || totalWeight <= 0)
             {
                 profitItem.CurrentPeriod = input.Period > 0 ? input.Period.Add(1) : profitItem.CurrentPeriod;
 
@@ -342,14 +344,14 @@ namespace AElf.Contracts.Profit
             {
                 releasedProfitInformation = new ReleasedProfitsInformation
                 {
-                    TotalWeight = profitItem.TotalWeight,
+                    TotalWeight = totalWeight,
                     ProfitsAmount = input.Amount,
                     IsReleased = true
                 };
             }
             else
             {
-                releasedProfitInformation.TotalWeight = profitItem.TotalWeight;
+                releasedProfitInformation.TotalWeight = totalWeight;
                 releasedProfitInformation.ProfitsAmount += input.Amount;
                 releasedProfitInformation.IsReleased = true;
             }
@@ -368,7 +370,7 @@ namespace AElf.Contracts.Profit
             {
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItem.ProfitId);
 
-                var amount = subProfitItem.Weight.Mul(input.Amount).Div(profitItem.TotalWeight);
+                var amount = subProfitItem.Weight.Mul(input.Amount).Div(totalWeight);
                 if (amount != 0)
                 {
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
