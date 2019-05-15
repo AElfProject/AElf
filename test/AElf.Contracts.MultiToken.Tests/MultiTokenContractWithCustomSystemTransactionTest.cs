@@ -61,7 +61,7 @@ namespace AElf.Contracts.MultiToken
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }
         
-        [Fact(Skip = "Need to fix: In one block, system transaction update data,then normal transaction read it,but get data before update")]
+        [Fact]
         public async Task TokenContract_WithSystemTransaction()
         {
             var getBalanceTx = await Tester.GenerateTransactionAsync(TokenContractAddress,
