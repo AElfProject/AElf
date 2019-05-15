@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Sdk.CSharp;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -8,7 +9,7 @@ namespace AElf.Runtime.CSharp.Validators.Method
 {
     public class ArrayValidator : IValidator<MethodDefinition>
     {
-        private const long AllowedTotalSize = 20 * 1024; // Per array when limiting by total array size
+        private const long AllowedTotalSize = 40 * 1024; // Byte per array when limiting by total array size
 
         private static readonly ArrayLimitLookup AllowedTypes = new ArrayLimitLookup()
             .LimitByTotalSize(typeof(int), sizeof(int))
@@ -62,10 +63,17 @@ namespace AElf.Runtime.CSharp.Validators.Method
                         }
                         else
                         {
-                            var totalSize = arrayDimension * limit.ElementSize;
-                            
-                            if (totalSize > AllowedTotalSize)
-                                error = new ArrayValidationResult($"Array size can not be larger than {AllowedTotalSize} Mb. ({arrayDimension} x {typ})");
+                            try
+                            {
+                                var totalSize = arrayDimension.Mul(limit.ElementSize);
+
+                                if (totalSize > AllowedTotalSize)
+                                    error = new ArrayValidationResult($"Array size can not be larger than {AllowedTotalSize} bytes. ({arrayDimension} x {typ})");
+                            }
+                            catch (OverflowException)
+                            {
+                                error = new ArrayValidationResult($"Array size is too large that causes overflow when estimating memory usage.");
+                            }
                         }
                     }
                     else
