@@ -19,7 +19,7 @@
         <Exec Condition=" '$(OS)' != 'Windows_NT' " Command="cp $(TargetDir)\ChakraCore.dll $(PublishDir)\"/>
     </Target>
     <ItemGroup>
-        <PackageReference Condition="'$(OS)' == 'Windows_NT'" Include="Microsoft.ChakraCore" Version="1.11.7"/>
+        <PackageReference Condition="'$(OS)' == 'Windows_NT'" Include="Microsoft.ChakraCore" Version="1.11.9"/>
         <PackageReference Include="Alba.CsConsoleFormat" Version="1.0.0"/>
         <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0"/>
         <PackageReference Include="BouncyCastle.NetCore" Version="1.8.5"/>
