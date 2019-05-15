@@ -511,15 +511,17 @@ namespace AElf.Contracts.Profit
                     var releasedProfitsVirtualAddress =
                         GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
                     var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
-                    if (releasedProfitsInformation.IsReleased)
+                    var amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
+                        .Div(releasedProfitsInformation.TotalWeight);
+                    Context.LogDebug(() => $"{Context.Sender} is profiting {amount} tokens from {input.ProfitId.ToHex()} in period {profitItem.CurrentPeriod}");
+                    if (releasedProfitsInformation.IsReleased && amount > 0)
                     {
                         State.TokenContract.TransferFrom.Send(new TransferFromInput
                         {
                             From = releasedProfitsVirtualAddress,
                             To = Context.Sender,
                             Symbol = profitItem.TokenSymbol,
-                            Amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
-                                .Div(releasedProfitsInformation.TotalWeight)
+                            Amount = amount
                         });
                     }
 
