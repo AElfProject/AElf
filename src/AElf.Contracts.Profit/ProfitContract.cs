@@ -182,6 +182,8 @@ namespace AElf.Contracts.Profit
             }
             
             State.ProfitDetailsMap[profitId][input.Receiver] = currentProfitDetails;
+            
+            Context.LogDebug(() => $"Add {input.Weight} weights to profit item {input.ProfitId.ToHex()}");
 
             return new Empty();
         }
@@ -353,6 +355,10 @@ namespace AElf.Contracts.Profit
             }
 
             State.ReleasedProfitsMap[profitsReceivingVirtualAddress] = releasedProfitInformation;
+
+            Context.LogDebug(() =>
+                $"Released profit information of {input.ProfitId.ToHex()} in period {input.Period}, " +
+                $"total weight {releasedProfitInformation.TotalWeight}, total amount {releasedProfitInformation.ProfitsAmount}");
 
             // Start releasing.
 
@@ -527,6 +533,5 @@ namespace AElf.Contracts.Profit
 
             return new Empty();
         }
-
     }
 }
