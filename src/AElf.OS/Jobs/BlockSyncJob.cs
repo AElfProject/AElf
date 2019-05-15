@@ -16,7 +16,7 @@ namespace AElf.OS.Jobs
     public class BlockSyncJob
     {
         private const long InitialSyncLimit = 10;
-        private const int BlockSyncJobLimit = 5;
+        private const int BlockSyncJobLimit = 1;
 
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
@@ -88,7 +88,7 @@ namespace AElf.OS.Jobs
 
                     Logger.LogDebug($"Request blocks start with {blockHash}");
 
-                    var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, count, args.SuggestedPeerPubKey);
+                    var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, 2, args.SuggestedPeerPubKey);
 
                     if (blocks == null || !blocks.Any())
                     {
