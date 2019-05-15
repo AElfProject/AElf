@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController.Application;
@@ -22,14 +23,18 @@ namespace AElf.Kernel.Node.Application
     public interface IBlockchainNodeContextService
     {
         Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto);
-
         Task StopAsync(BlockchainNodeContext blockchainNodeContext);
+        
+        bool IsNodeSyncing();
+        bool SetSyncing(bool value);
     }
 
 
     //Maybe we should call it CSharpBlockchainNodeContextService, or we should spilt the logic depended on CSharp
     public class BlockchainNodeContextService : IBlockchainNodeContextService
     {
+        private volatile bool _isSyncing = false;
+        
         private readonly ITxHub _txHub;
         private readonly IBlockchainService _blockchainService;
         private readonly IChainCreationService _chainCreationService;
@@ -76,6 +81,18 @@ namespace AElf.Kernel.Node.Application
 
         public async Task StopAsync(BlockchainNodeContext blockchainNodeContext)
         {
+        }
+
+        public bool IsNodeSyncing() => _isSyncing;
+
+        public bool SetSyncing(bool value)
+        {
+            if (_isSyncing == value)
+                return false;
+            
+            _isSyncing = value;
+            
+            return true;
         }
     }
 }

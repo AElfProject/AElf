@@ -5,6 +5,7 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Node.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
@@ -30,17 +31,21 @@ namespace AElf.OS.Network.Grpc
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockChainService;
         private readonly IAccountService _accountService;
+        private readonly IBlockchainNodeContextService _nodeContextService;
 
         public ILocalEventBus EventBus { get; set; }
 
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(IOptionsSnapshot<NetworkOptions> netOpts, IPeerPool peerPool, IBlockchainService blockChainService, IAccountService accountService)
+        public GrpcServerService(IOptionsSnapshot<NetworkOptions> netOpts, IPeerPool peerPool, 
+            IBlockchainService blockChainService, IAccountService accountService, 
+            IBlockchainNodeContextService nodeContextService)
         {
             _netOpts = netOpts.Value;
             _peerPool = peerPool;
             _blockChainService = blockChainService;
             _accountService = accountService;
+            _nodeContextService = nodeContextService;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -172,7 +177,7 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null || request.PreviousBlockHash == null) 
+            if (request == null || request.PreviousBlockHash == null || _nodeContextService.IsNodeSyncing()) 
                 return new BlockList();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");
