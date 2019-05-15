@@ -23,8 +23,6 @@ namespace AElf.OS.Handlers
 
         private readonly BlockSyncJob _blockSyncJob;
         
-        private static ConcurrentDictionary<Hash,long> _announcementCache = new ConcurrentDictionary<Hash, long>();
-
         public PeerConnectedEventHandler(IServiceProvider serviceProvider, ITaskQueueManager taskQueueManager,
             IBlockchainService blockchainService)
         {
@@ -43,14 +41,6 @@ namespace AElf.OS.Handlers
         {
             var blockHeight = header.Announce.BlockHeight;
             var blockHash = header.Announce.BlockHash;
-
-            if (_announcementCache.ContainsKey(blockHash))
-            {
-                Logger.LogTrace($"Already receive header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
-                return;
-            }
-
-            _announcementCache.TryAdd(blockHash, blockHeight);
 
             Logger.LogTrace($"Receive header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
 
