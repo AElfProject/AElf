@@ -32,7 +32,7 @@ namespace AElf.OS
             {
                 Mock<IPeer> peerMock = new Mock<IPeer>();
 
-                peerMock.Setup(p => p.CurrentBlockHeight).Returns(15);
+                peerMock.Setup(p => p.CurrentBlockHeight).Returns(21);
                 peerMock.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
                     .Returns<Hash, int>((hash, cnt) => 
                     {
