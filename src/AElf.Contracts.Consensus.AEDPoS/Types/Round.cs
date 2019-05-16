@@ -331,7 +331,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             long termNumber, long timeEachTerm)
         {
             var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
-            var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
+            var minimumCount = minersCount.Mul(2).Div(3).Add(1);
             var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null)
                 .Select(m => m.ActualMiningTime)
                 .Count(actualMiningTimestamp =>

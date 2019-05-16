@@ -17,6 +17,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.TimeEachTerm.Value = input.IsSideChain || input.IsTermStayOne
                 ? int.MaxValue
                 : input.TimeEachTerm;
+            
+            Context.LogDebug(() => $"Time each term: {State.TimeEachTerm.Value} seconds.");
 
             // TODO: Use Context to get contract address.
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
