@@ -180,8 +180,8 @@ message CandidateInformation {
 }
 
 message CandidateDetail {
-    CandidateInformation CandidateInformation = 1;
-    sint64 obtained__votes_amount = 2;
+    CandidateInformation candidate_information = 1;
+    sint64 obtained_votes_amount = 2;
 }
 
 message ElectionVotingRecord {
