@@ -28,7 +28,7 @@ namespace AElf.OS.Jobs
             DisposeQueue();
                 
             var chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(15);
+            chain.BestChainHeight.ShouldBe(21);
         }
 
         [Fact]
@@ -39,7 +39,7 @@ namespace AElf.OS.Jobs
             DisposeQueue();
             
             var chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(15);
+            chain.BestChainHeight.ShouldBe(21);
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace AElf.OS.Jobs
             DisposeQueue();
             
             var chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(15);
+            chain.BestChainHeight.ShouldBe(21);
         }
 
         [Fact]
@@ -63,7 +63,7 @@ namespace AElf.OS.Jobs
             DisposeQueue();
             
             var chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(15);
+            chain.BestChainHeight.ShouldBe(21);
         }
 
         private void DisposeQueue()
