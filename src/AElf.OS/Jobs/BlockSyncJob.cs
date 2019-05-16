@@ -95,13 +95,13 @@ namespace AElf.OS.Jobs
                 KernelConstants.UpdateChainQueueName);
         }
 
-        private async Task<bool> SyncBlockAsync(Hash beginBlockHash, long beginBlockHeight, Hash targetBlockHash, long
+        private async Task<bool> SyncBlockAsync(Hash firstBlockHash, long firstBlockHeight, Hash targetBlockHash, long
             targetBlockHeight, string suggestedPeerPubKey)
         {
-            Logger.LogDebug($"Trigger sync blocks from peers, begin block height: {beginBlockHeight}, begin block hash: {beginBlockHash}");
+            Logger.LogDebug($"Trigger sync blocks from peers, first block height: {firstBlockHeight}, first block hash: {firstBlockHash}");
 
-            var blockHash = beginBlockHash;
-            var blockHeight = beginBlockHeight;
+            var blockHash = firstBlockHash;
+            var blockHeight = firstBlockHeight;
             while (true)
             {
                 // Limit block sync job count, control memory usage
