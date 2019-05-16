@@ -28,7 +28,8 @@ namespace AElf.Contracts.Profit
         {
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
             var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
-            return State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
+            return State.ReleasedProfitsMap[releasedProfitsVirtualAddress] ?? new ReleasedProfitsInformation
+                       {ProfitsAmount = -1, TotalWeight = -1};
         }
 
         public override ProfitDetails GetProfitDetails(GetProfitDetailsInput input)
