@@ -621,8 +621,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private int GetMinersCount()
         {
-            return (int) (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds.Div(
-                State.TimeEachTerm.Value);
+            if (TryToGetRoundInformation(1, out var firstRound))
+            {
+                // TODO: Maybe this should according to date, like every July 1st we increase 2 miners.
+                var initialMinersCount = firstRound.RealTimeMinersInformation.Count;
+                return initialMinersCount.Add(
+                    (int) (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds
+                        .Div(365 * 60 * 60 * 24).Mul(2));
+            }
+
+            return 0;
         }
     }
 }

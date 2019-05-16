@@ -171,7 +171,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             else
             {
                 var minersCount = GetMinersCount();
-                if (minersCount != 0)
+                if (minersCount != 0 && State.ElectionContract.Value != null)
                 {
                     State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
                     {
@@ -205,7 +205,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Context.LogDebug(() => $"LIB found, offset is {offset}");
                 Context.Fire(new IrreversibleBlockFound()
                 {
-                    Offset = offset.Mul(AElfConsensusContractConstants.TinyBlocksNumber)
+                    Offset = offset.Mul(AEDPoSContractConstants.TinyBlocksNumber)
                 });
             }
         }
