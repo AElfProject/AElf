@@ -10,9 +10,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="..\..\protobuf\acs1.proto">
+      <ContractBase Include="..\..\protobuf\acs1.proto">
         <Link>Protobuf/Proto/acs1.proto</Link>
-      </None>
+      </ContractBase>
       <ContractCode Include="..\..\protobuf\acs1_plugin_test_contract.proto">
         <Link>Protobuf/Proto/acs1_plugin_test_contract.proto</Link>
       </ContractCode>

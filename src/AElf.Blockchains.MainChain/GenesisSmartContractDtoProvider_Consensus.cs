@@ -1,14 +1,12 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
-using Acs4;
-using AElf.Contracts.Consensus.DPoS;
-using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
+using Google.Protobuf;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -19,7 +17,7 @@ namespace AElf.Blockchains.MainChain
             var l = new List<GenesisSmartContractDto>();
 
             l.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Split(",").First().Trim().EndsWith("Consensus.DPoS")).Value,
+                _codes.Single(kv=>kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value,
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList());
             return l;
@@ -28,25 +26,27 @@ namespace AElf.Blockchains.MainChain
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateConsensusInitializationCallList()
         {
-            var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContractContainer.ConsensusContractStub.InitialDPoSContract),
-                new InitialDPoSContractInput
+            var aelfConsensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            aelfConsensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
+                new InitialAElfConsensusContractInput
                 {
+                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
+                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
-                    LockTokenForElection = _tokenInitialOptions.LockForElection
+                    TimeEachTerm = _consensusOptions.TimeEachTerm,
+                    BaseTimeUnit = 2 // TODO: Remove this after testing.
                 });
-            consensusMethodCallList.Add(nameof(ConsensusContractContainer.ConsensusContractStub.InitialConsensus),
-                _dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(_dposOptions.MiningInterval,
-                    _dposOptions.StartTimestamp.ToUniversalTime()));
-            consensusMethodCallList.Add(nameof(ConsensusContractContainer.ConsensusContractStub.ConfigStrategy),
-                new DPoSStrategyInput
+            aelfConsensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
+                new Miners
                 {
-                    IsBlockchainAgeSettable = _dposOptions.IsBlockchainAgeSettable,
-                    IsTimeSlotSkippable = _dposOptions.IsTimeSlotSkippable,
-                    IsVerbose = _dposOptions.Verbose
-                });
-            return consensusMethodCallList;
+                    PublicKeys =
+                    {
+                        _consensusOptions.InitialMiners.Select(p =>
+                            ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p)))
+                    }
+                }.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval,
+                    _consensusOptions.StartTimestamp.ToUniversalTime()));
+            return aelfConsensusMethodCallList;
         }
     }
 }

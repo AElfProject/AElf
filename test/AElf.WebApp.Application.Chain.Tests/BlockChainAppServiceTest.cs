@@ -37,7 +37,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<BlockChainAppServiceTest>());
 
         public byte[] ConsensusContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.DPoS")).Value;
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
         public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;

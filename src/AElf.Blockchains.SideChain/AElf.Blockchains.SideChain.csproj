@@ -10,17 +10,14 @@
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
         <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
         <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <ContractMessage Include="..\..\protobuf\acs4.proto">
-            <Link>Protobuf\Proto\acs4.proto</Link>
-        </ContractMessage>
-        <ContractStub Include="..\..\protobuf\dpos_sidechain_contract.proto">
-            <Link>Protobuf\Proto\dpos_sidechain_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
@@ -30,7 +27,7 @@
         </ContractStub>
     </ItemGroup>
     <ItemGroup>
-        <Contract Include="..\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />
+        <Contract Include="..\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <Contract Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
         <Contract Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
     </ItemGroup>

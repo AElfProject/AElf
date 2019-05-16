@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain;
 using AElf.CrossChain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
@@ -33,7 +32,7 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
-        typeof(DPoSConsensusAElfModule),
+        typeof(AEDPoSAElfModule),
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
@@ -59,7 +58,6 @@ namespace AElf.Blockchains.BasicBaseChain
             var s = context.Services;
             s.TryAddSingleton<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, DividendSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, ElectionSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, ParliamentAuthContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, ProfitSmartContractAddressNameProvider>();
@@ -83,7 +81,7 @@ namespace AElf.Blockchains.BasicBaseChain
                     .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
             });
 
-            Configure<DPoSOptions>(option =>
+            Configure<ConsensusOptions>(option =>
             {
                 configuration.GetSection("Consensus").Bind(option);
 

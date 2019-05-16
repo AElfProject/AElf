@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.EventMessages;
 using AElf.Types;
+using AElf.Kernel.SmartContractExecution.Application;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {

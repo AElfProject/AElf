@@ -5,7 +5,7 @@ using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.Consensus.DPoS
+namespace AElf.Kernel.Consensus.AElfConsensus
 {
     public class ConsensusExtraDataProviderTests: DPoSConsensusTestBase
     {

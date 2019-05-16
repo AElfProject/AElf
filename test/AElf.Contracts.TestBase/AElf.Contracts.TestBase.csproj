@@ -3,22 +3,23 @@
         <TargetFramework>netcoreapp2.2</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
-        <Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />
-        <Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+        <!--<Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />-->
+        <!--<Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />-->
+        <Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <Contract Include="..\..\src\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
-        <Contract Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
-        <Contract Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
+        <!--<Contract Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />-->
         <Contract Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <Contract Include="..\..\src\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
         <Contract Include="..\..\src\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
+        
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
         <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
@@ -40,12 +41,12 @@
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\stub\acs4.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\dpos_contract.proto">
-            <Link>Protobuf\Proto\stub\dpos_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\stub\aedpos_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\dpos_sidechain_contract.proto">
-            <Link>Protobuf\Proto\stub\dpos_sidechain_contract.proto</Link>
-        </ContractStub>
+        <!--<ContractStub Include="..\..\protobuf\dpos_sidechain_contract.proto">-->
+            <!--<Link>Protobuf\Proto\stub\dpos_sidechain_contract.proto</Link>-->
+        <!--</ContractStub>-->
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\stub\token_contract.proto</Link>
         </ContractStub>

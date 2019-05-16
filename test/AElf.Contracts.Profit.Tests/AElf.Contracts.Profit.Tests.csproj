@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <IsPackable>false</IsPackable>
-        <RootNamespace>AElf.Contract.Profit</RootNamespace>
+        <RootNamespace>AElf.Contracts.Profit</RootNamespace>
     </PropertyGroup>
     <PropertyGroup>
         <NoWarn>0436</NoWarn>
@@ -28,9 +28,6 @@
         </Content>
         <Content Include="..\..\protobuf\aelf_options.proto">
             <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\profit.proto">
-            <Link>Protobuf/Proto/profit.proto</Link>
         </Content>
         <Content Include="..\..\protobuf\profit_contract.proto">
             <Link>Protobuf/Proto/profit_contract.proto</Link>

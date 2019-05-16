@@ -1,17 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Acs0;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Deployer;
-using AElf.Contracts.Dividend;
+using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
-using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.SmartContract;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS;
@@ -37,7 +31,7 @@ namespace AElf.TestLauncher
         typeof(AbpAutofacModule),
         //typeof(AbpAspNetCoreMvcModule),
         //typeof(RuntimeSetupAElfModule),
-        typeof(DPoSConsensusAElfModule),
+        typeof(AEDPoSAElfModule),
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),
@@ -54,9 +48,9 @@ namespace AElf.TestLauncher
         public IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<MainBlockchainAElfModule>());
         public byte[] ConsensusContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.DPoS")).Value;
-        public byte[] DividendContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Dividend")).Value;
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
+        public byte[] ElectionContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Election")).Value;
         public byte[] TokenContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
         public byte[] FeeReceiverContractCode =>
@@ -100,8 +94,8 @@ namespace AElf.TestLauncher
                 TokenContractCode,
                 TokenSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract(
-                DividendContractCode,
-                DividendSmartContractAddressNameProvider.Name);
+                ElectionContractCode,
+                ElectionSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 FeeReceiverContractCode,
                 ResourceFeeReceiverSmartContractAddressNameProvider.Name);

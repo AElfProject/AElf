@@ -19,11 +19,11 @@
         <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
-        <ContractBase Include="..\..\protobuf\acs4.proto">
-            <Link>Protobuf\Proto\reference\acs4.proto</Link>
-        </ContractBase>
-        <ContractReference Include="..\..\protobuf\dpos_sidechain_contract.proto">
-            <Link>Protobuf\Proto\reference\dpos_sidechain_contract.proto</Link>
+        <!--<ContractBase Include="..\..\protobuf\acs4.proto">-->
+            <!--<Link>Protobuf\Proto\reference\acs4.proto</Link>-->
+        <!--</ContractBase>-->
+        <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
             <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>

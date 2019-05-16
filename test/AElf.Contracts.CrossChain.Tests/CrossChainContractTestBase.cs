@@ -4,14 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -65,7 +64,7 @@ namespace AElf.Contract.CrossChain.Tests
                 });
         }
 
-        protected async Task InitializeCrossChainContract(int parentChainId = 0)
+        protected async Task InitializeCrossChainContract(long parentChainHeightOfCreation = 0, int parentChainId = 0)
         {
             var crossChainInitializationTransaction = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.Initialize), new InitializeInput
@@ -73,15 +72,15 @@ namespace AElf.Contract.CrossChain.Tests
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     ParentChainId = parentChainId == 0 ? ChainHelpers.ConvertBase58ToChainId("AELF") : parentChainId,
-                    ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name
+                    ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name,
+                    CreationHeightOnParentChain = parentChainHeightOfCreation
                 });
             await Tester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});
-
         }
 
-        protected async Task<int> InitAndCreateSideChain(int parentChainId = 0, long lockedTokenAmount = 10)
+        protected async Task<int> InitAndCreateSideChain(long parentChainHeightOfCreation = 0, int parentChainId = 0, long lockedTokenAmount = 10)
         {
-            await InitializeCrossChainContract(parentChainId);
+            await InitializeCrossChainContract(parentChainHeightOfCreation, parentChainId);
 
             await ApproveBalance(lockedTokenAmount);
             var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));

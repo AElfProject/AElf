@@ -4,13 +4,12 @@ using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Dividend;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.SmartContract;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 
@@ -24,8 +23,8 @@ namespace AElf.Contracts.Resource.FeeReceiver
         public static IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<Dummy>());
 
-        public static byte[] DividendContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Dividend")).Value;
+//        public static byte[] DividendContractCode =>
+//            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Dividend")).Value;
         public static byte[] TokenContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
         public static byte[] FeeReceiverContractCode =>
@@ -41,8 +40,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = 1000_0000L,
-                Issuer = starter.GetCallOwnerAddress(),
-                LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
+                Issuer = starter.GetCallOwnerAddress()
             });
             
             // For testing.
@@ -58,9 +56,9 @@ namespace AElf.Contracts.Resource.FeeReceiver
                 list =>
                 {
                     // Dividends contract must be deployed before token contract.
-                    list.AddGenesisSmartContract(
-                        DividendContractCode,
-                        DividendSmartContractAddressNameProvider.Name);
+//                    list.AddGenesisSmartContract(
+//                        DividendContractCode,
+//                        DividendSmartContractAddressNameProvider.Name);
                     list.AddGenesisSmartContract(
                         TokenContractCode,
                         TokenSmartContractAddressNameProvider.Name,

@@ -1,3 +1,4 @@
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -11,7 +12,7 @@ namespace AElf.Contracts.ParliamentAuth
         
         public SingletonState<Address> DefaultOrganizationAddress { get; set; }
         public SingletonState<Hash> ConsensusContractSystemName { get; set; }
-        internal Acs4.ACS4Container.ACS4ReferenceState ConsensusContract {get; set; }    
+        internal AEDPoSContractContainer.AEDPoSContractReferenceState ConsensusContract {get; set; }    
         internal Acs0.ACS0Container.ACS0ReferenceState BasicContractZero { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
     }

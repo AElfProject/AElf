@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
@@ -52,33 +53,16 @@ namespace AElf.CrossChain.Grpc
 
             services.AddTransient(o =>
             {
-                var mockService = new Mock<ICrossChainExtraDataExtractor>();
-                mockService.Setup(m => m.ExtractTransactionStatusMerkleTreeRoot(It.IsAny<BlockHeader>()))
-                    .Returns(Hash.Generate);
-                return mockService.Object;
-            });
-
-            services.AddTransient(o =>
-            {
                 var mockCrossChainDataProvider = new Mock<ICrossChainDataProvider>();
                 mockCrossChainDataProvider
                     .Setup(c => c.GetChainInitializationContextAsync(It.IsAny<int>(), It.IsAny<Hash>(),
-                        It.IsAny<long>())).Returns(async () => await Task.FromResult(new ChainInitializationContext
+                        It.IsAny<long>())).Returns(async () => await Task.FromResult(new ChainInitializationInformation
                     {
-                        ParentChainHeightOfCreation = 1,
+                        CreationHeightOnParentChain = 1,
                     }));
                 return mockCrossChainDataProvider.Object;
             });
-            services.AddTransient(o =>
-            {
-                var mockService = new Mock<IBasicCrossChainDataProvider>();
-                mockService.Setup(c => c.GetChainInitializationContextAsync(It.IsAny<int>(), It.IsAny<Hash>(),
-                    It.IsAny<long>())).Returns(async () => await Task.FromResult(new ChainInitializationContext
-                {
-                    ParentChainHeightOfCreation = 1,
-                }));
-                return mockService.Object;
-            });
+            
             services.AddTransient(o =>
             {
                 var mockService = new Mock<INewChainRegistrationService>();

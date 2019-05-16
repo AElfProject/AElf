@@ -29,9 +29,9 @@ namespace AElf.CrossChain
             return Task.FromResult(true);
         }
 
-        public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
+        public Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
-            return true;
+            return Task.FromResult(true);
         }
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
@@ -39,10 +39,10 @@ namespace AElf.CrossChain
             if (block.Height == Constants.GenesisBlockHeight)
                 return true;
             
-            var message =
-                await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Height);
             var indexedCrossChainBlockData =
-                message == null ? null : CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
+                await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Height);
+//            var indexedCrossChainBlockData =
+//                message == null ? null : CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
             var extraData = ExtractCrossChainExtraData(block.Header);
 
             try
@@ -73,10 +73,12 @@ namespace AElf.CrossChain
                 return false;
             
             // check cache identity
-            var res = await _crossChainDataProvider.ValidateSideChainBlockDataAsync(
-                       crossChainBlockData.SideChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Height - 1) &&
-                   await _crossChainDataProvider.ValidateParentChainBlockDataAsync(
-                       crossChainBlockData.ParentChainBlockData.ToList(), block.Header.PreviousBlockHash, block.Height - 1);
+            var res =
+                await _crossChainDataProvider.ValidateSideChainBlockDataAsync(
+                    crossChainBlockData.SideChainBlockData.ToList(), block.Header.PreviousBlockHash,
+                    block.Height - 1) && await _crossChainDataProvider.ValidateParentChainBlockDataAsync(
+                    crossChainBlockData.ParentChainBlockData.ToList(), block.Header.PreviousBlockHash,
+                    block.Height - 1);
             return res;
         }
 
@@ -85,6 +87,5 @@ namespace AElf.CrossChain
             var bytes = _blockExtraDataService.GetExtraDataFromBlockHeader("CrossChain", header);
             return bytes == ByteString.Empty || bytes == null ? null : CrossChainExtraData.Parser.ParseFrom(bytes);
         }
-
     }
 }

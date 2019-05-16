@@ -3,8 +3,7 @@ using System.Linq;
 using AElf.Types;
 using Google.Protobuf;
 
-// ReSharper disable once CheckNamespace
-namespace Acs4
+namespace AElf.Contracts.Consensus.AEDPoS
 {
     internal partial class Round
     {

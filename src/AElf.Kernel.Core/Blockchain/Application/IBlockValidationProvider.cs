@@ -124,7 +124,7 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             if (block.Height != Constants.GenesisBlockHeight &&
-                block.Header.Time.ToDateTime() - DateTime.UtcNow > KernelConsts.AllowedFutureBlockTimeSpan)
+                block.Header.Time.ToDateTime() - DateTime.UtcNow > KernelConstants.AllowedFutureBlockTimeSpan)
             {
                 Logger.LogWarning($"Future block received {block}, {block.Header.Time.ToDateTime()}");
                 return false;

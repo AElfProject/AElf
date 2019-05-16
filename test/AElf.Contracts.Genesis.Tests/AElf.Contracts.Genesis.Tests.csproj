@@ -10,7 +10,7 @@
 
     <ItemGroup>
         <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
-        <Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />

@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Acs4;
-using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Types;
+using AElf.Contracts.Consensus.AEDPoS;
+using Google.Protobuf;
 
 namespace AElf.Contracts.ParliamentAuth
 {
@@ -316,7 +314,7 @@ namespace AElf.Contracts.ParliamentAuth
 
             foreach (var miner in miners.PublicKeys)
             {
-                dict.Add(miner, miner[0]);
+                dict.Add(miner.ToHex(), miner[0]);
             }
 
             var sortedMiners =
@@ -392,8 +390,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             return new Miners
             {
-                PublicKeys = {minerPublicKeys},
-                Addresses = {minerPublicKeys.Select(p => Address.FromPublicKey(ByteArrayHelpers.FromHexString(p)))},
+                PublicKeys = {minerPublicKeys.Select(k => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))},
                 TermNumber = termNumber
             };
         }

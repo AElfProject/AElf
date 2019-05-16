@@ -20,6 +20,10 @@ service ProfitContract {
     }
     rpc SubWeight (SubWeightInput) returns (google.protobuf.Empty) {
     }
+    rpc AddWeights (AddWeightsInput) returns (google.protobuf.Empty) {
+    }
+    rpc SubWeights (SubWeightsInput) returns (google.protobuf.Empty) {
+    }
     rpc AddProfits (AddProfitsInput) returns (google.protobuf.Empty) {
     }
     rpc Profit (ProfitInput) returns (google.protobuf.Empty) {
@@ -47,6 +51,9 @@ service ProfitContract {
     rpc GetProfitDetails (GetProfitDetailsInput) returns (ProfitDetails) {
         option (aelf.is_view) = true;
     }
+    rpc GetProfitAmount (ProfitInput) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitializeProfitContractInput {
@@ -57,6 +64,7 @@ message CreateProfitItemInput {
     sint64 total_weight = 1;
     string token_symbol = 2;
     sint64 expired_period_number = 3;
+    bool release_all_if_amount_is_zero = 4;
 }
 
 message ProfitItem {
@@ -68,6 +76,7 @@ message ProfitItem {
     repeated SubProfitItem sub_profit_items = 7;
     aelf.Address creator = 8;
     sint64 expired_period_number = 9;
+    bool release_all_if_amount_is_zero = 10;
 }
 
 message SubProfitItem {
@@ -87,6 +96,22 @@ message SubWeightInput {
     aelf.Hash profit_id = 2;
 }
 
+message AddWeightsInput {
+    aelf.Hash profit_id = 1;
+    repeated WeightMap weights = 2;
+    sint64 end_period = 4;
+}
+
+message SubWeightsInput {
+    repeated aelf.Address receivers = 1;
+    aelf.Hash profit_id = 2;
+}
+
+message WeightMap {
+    aelf.Address receiver = 1;
+    sint64 weight = 2;
+}
+
 message ProfitInput {
     aelf.Hash profit_id = 1;
 }
@@ -95,6 +120,7 @@ message ReleaseProfitInput {
     aelf.Hash profit_id = 1;
     sint64 period = 2;
     sint64 amount = 3;
+    sint64 total_weight = 4;
 }
 
 message ProfitDetails {

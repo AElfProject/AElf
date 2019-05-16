@@ -9,11 +9,11 @@
         <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <Contract Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+        <Contract Include="..\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <Contract Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
-        <Contract Include="..\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
         <Contract Include="..\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
         <Contract Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <Contract Include="..\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
         <Contract Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <Contract Include="..\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
         <Contract Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
@@ -23,17 +23,14 @@
         <ContractMessage Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractMessage>
-        <ContractMessage Include="..\..\protobuf\acs4.proto">
-            <Link>Protobuf\Proto\acs4.proto</Link>
-        </ContractMessage>
-        <ContractStub Include="..\..\protobuf\dpos_contract.proto">
-            <Link>Protobuf\Proto\dpos_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\dividend_contract.proto">
-            <Link>Protobuf\Proto\dividend_contract.proto</Link>
+        <ContractStub Include="..\..\protobuf\profit_contract.proto">
+            <Link>Protobuf\Proto\profit_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\election_contract.proto">
             <Link>Protobuf\Proto\election_contract.proto</Link>

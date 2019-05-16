@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acs4;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -16,7 +16,7 @@ namespace AElf.Contracts.TestBase
 
             foreach (var miner in miners.PublicKeys)
             {
-                dict.Add(miner, miner[0]);
+                dict.Add(miner.ToHex(), miner[0]);
             }
 
             var sortedMiners =
@@ -51,20 +51,6 @@ namespace AElf.Contracts.TestBase
             round.TermNumber = currentTermNumber + 1;
 
             return round;
-        }
-
-        public static long GetMinedBlocks(this Round round)
-        {
-            return round.RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
-        }
-        public static Miners ToMiners(this List<string> minerPublicKeys, long termNumber = 0)
-        {
-            return new Miners
-            {
-                PublicKeys = {minerPublicKeys},
-                Addresses = {minerPublicKeys.Select(p => Address.FromPublicKey(ByteArrayHelpers.FromHexString(p)))},
-                TermNumber = termNumber
-            };
         }
 
     }

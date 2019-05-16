@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.CrossChain;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -25,6 +23,7 @@ namespace AElf.Contracts.CrossChain
             //State.AuthorizationContract.Value = authorizationContractAddress;
             State.Initialized.Value = true;
             State.ParentChainId.Value = input.ParentChainId;
+            State.CreationHeightOnParentChain.Value = input.CreationHeightOnParentChain;
             return new Empty();
         }
 
@@ -99,7 +98,8 @@ namespace AElf.Contracts.CrossChain
                 sideChainInfo.SideChainStatus == SideChainStatus.Review, "Side chain creation request not found.");
 
             sideChainInfo.SideChainStatus = SideChainStatus.Active;
-            sideChainInfo.CreatedTime = Timestamp.FromDateTime(Context.CurrentBlockTime);
+            sideChainInfo.CreationTimestamp = Timestamp.FromDateTime(Context.CurrentBlockTime);
+            sideChainInfo.CreationHeightOnParentChain = Context.CurrentHeight;
             State.SideChainInfos[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = 0;
 
@@ -107,8 +107,7 @@ namespace AElf.Contracts.CrossChain
             State.SideChainInitialConsensusInfo[chainId] = new BytesValue{Value = initialConsensusInfo.ToByteString()};
             Context.LogDebug(() => $"Initial miner list for side chain {chainId} :" +
                                    string.Join(",",
-                                       initialConsensusInfo.MinerList.PublicKeys.Select(p =>
-                                           Address.FromPublicKey(ByteArrayHelpers.FromHexString(p)).ToString())));
+                                       initialConsensusInfo.MinerList.PublicKeys));
             Context.LogDebug(() => $"RoundNumber {initialConsensusInfo.RoundNumber}");
             // Event is not used for now.
             Context.Fire(new CreationRequested()
@@ -241,19 +240,19 @@ namespace AElf.Contracts.CrossChain
         {
             // only miner can do this.
             //Api.IsMiner("Not authorized to do this.");
-            Assert(parentChainBlockData.Length <= 256,"Beyond maximal capacity for once indexing.");
+            Assert(parentChainBlockData.Length <= 256, "Beyond maximal capacity for once indexing.");
             var parentChainId = State.ParentChainId.Value;
             foreach (var blockInfo in parentChainBlockData)
             {
-                Assert(parentChainId == blockInfo.Root.ParentChainId, "Wrong parent chain id.");
-                long parentChainHeight = blockInfo.Root.ParentChainHeight;
+                Assert(parentChainId == blockInfo.ParentChainId, "Wrong parent chain id.");
+                long parentChainHeight = blockInfo.ParentChainHeight;
                 var currentHeight = State.CurrentParentChainHeight.Value;
-                var target = currentHeight != 0 ? currentHeight + 1 : Constants.GenesisBlockHeight;
+                var target = currentHeight != 0 ? currentHeight + 1 : State.CreationHeightOnParentChain.Value;
                 Assert(target == parentChainHeight,
                     $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
-                Assert(blockInfo.Root.TransactionStatusMerkleRoot != null,
+                Assert(blockInfo.TransactionStatusMerkleRoot != null,
                     "Parent chain transaction status merkle tree root needed.");
-                State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight] = blockInfo.Root.TransactionStatusMerkleRoot;
+                State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight] = blockInfo.TransactionStatusMerkleRoot;
                 foreach (var indexedBlockInfo in blockInfo.IndexedMerklePath)
                 {
                     BindParentChainHeight(indexedBlockInfo.Key, parentChainHeight);
@@ -268,9 +267,9 @@ namespace AElf.Contracts.CrossChain
 
                 State.CurrentParentChainHeight.Value = parentChainHeight;
                 
-                if (blockInfo.Root.CrossChainExtraData != null)
+                if (blockInfo.CrossChainExtraData != null)
                     State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
-                        blockInfo.Root.CrossChainExtraData.SideChainTransactionsRoot;
+                        blockInfo.CrossChainExtraData.SideChainTransactionsRoot;
             }
         }
 

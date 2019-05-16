@@ -13,13 +13,13 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\..\src\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
       <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <Contract Include="..\..\src\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
-        <Contract Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
-        <Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\token_contract.proto">

@@ -12,8 +12,8 @@
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
-        <ContractReference Include="..\..\protobuf\acs4.proto">
-            <Link>Protobuf\Proto\reference\acs4.proto</Link>
+        <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>

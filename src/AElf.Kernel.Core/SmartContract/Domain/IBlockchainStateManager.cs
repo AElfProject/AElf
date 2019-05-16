@@ -152,7 +152,7 @@ namespace AElf.Kernel.SmartContract.Domain
 
                 throw new InvalidOperationException($"cannot get block state of {blockStateHash}");
             }
-
+    
             if (chainStateInfo.BlockHash == null || chainStateInfo.BlockHash == blockState.PreviousHash)
             {
                 chainStateInfo.Status = ChainStateMergingStatus.Merging;

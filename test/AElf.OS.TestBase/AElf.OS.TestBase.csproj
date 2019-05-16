@@ -6,13 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <!--<ProjectReference Include="..\AElf.Contracts.Consensus.DPoS.Tests\AElf.Contracts.Consensus.DPoS.Tests.csproj" />-->
-      <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
+      <!--<ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />-->
       <ProjectReference Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
-      <ProjectReference Include="..\AElf.Contracts.Consensus.DPoS.Tests\AElf.Contracts.Consensus.DPoS.Tests.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Consensus.DPoS.Tests\AElf.Kernel.Consensus.DPoS.Tests.csproj" />
+      <ProjectReference Include="..\AElf.Contracts.Consensus.AEDPoS.Tests\AElf.Contracts.Consensus.AEDPoS.Tests.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
       <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
     </ItemGroup>
@@ -22,11 +20,9 @@
       <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-        <Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
-        <!--<Contract Include="..\..\src\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />-->
-        <Contract Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
-        <!--<Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />-->
+        <Contract Include="..\..\src\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\token_contract.proto">

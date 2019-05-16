@@ -12,13 +12,13 @@ namespace AElf.Blockchains.MainChain
     {
         private readonly IReadOnlyDictionary<string, byte[]> _codes =
             ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>();
-        private readonly DPoSOptions _dposOptions;
+        private readonly ConsensusOptions _consensusOptions;
         private readonly TokenInitialOptions _tokenInitialOptions;
 
-        public GenesisSmartContractDtoProvider(IOptionsSnapshot<DPoSOptions> dposOptions,
+        public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> dposOptions,
             IOptionsSnapshot<TokenInitialOptions> tokenInitialOptions)
         {
-            _dposOptions = dposOptions.Value;
+            _consensusOptions = dposOptions.Value;
             _tokenInitialOptions = tokenInitialOptions.Value;
         }
 
@@ -27,14 +27,14 @@ namespace AElf.Blockchains.MainChain
             // The order matters !!!
             return new[]
             {
-                GetGenesisSmartContractDtosForConsensus(zeroContractAddress),
-                GetGenesisSmartContractDtosForDividend(zeroContractAddress),
+                GetGenesisSmartContractDtosForVote(zeroContractAddress),
+                GetGenesisSmartContractDtosForProfit(zeroContractAddress),
+                GetGenesisSmartContractDtosForElection(zeroContractAddress),
                 GetGenesisSmartContractDtosForToken(zeroContractAddress),
 //                GetGenesisSmartContractDtosForResource(zeroContractAddress),
                 GetGenesisSmartContractDtosForCrossChain(zeroContractAddress),
-                GetGenesisSmartContractDtosForVote(zeroContractAddress),
-                GetGenesisSmartContractDtosForParliament()
-//                GetGenesisSmartContractDtosForElection(zeroContractAddress),
+                GetGenesisSmartContractDtosForParliament(),
+                GetGenesisSmartContractDtosForConsensus(zeroContractAddress),
             }.SelectMany(x => x);
         }
     }

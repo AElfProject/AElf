@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Google.Protobuf;
 
 namespace AElf
 {
@@ -27,6 +28,11 @@ namespace AElf
         public static byte[] DecodeBase58(this string value)
         {
             return Base58CheckEncoding.DecodePlain(value);
+        }
+        
+        public static byte[] GetBytes(this string value)
+        {
+            return Encoding.UTF8.GetBytes(value);
         }
     }
 }

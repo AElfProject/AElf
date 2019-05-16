@@ -211,7 +211,10 @@ namespace AElf.Kernel.Blockchain.Application
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBranchBlockHash);
             if (chainBlockLink.Height < height)
-                return null;
+            {
+                Logger.LogWarning($"Start searching height: {chainBlockLink.Height},target height: {height},cannot get block hash");
+                return null; 
+            } 
             while (true)
             {
                 if (chainBlockLink.Height == height)
@@ -363,7 +366,8 @@ namespace AElf.Kernel.Blockchain.Application
 
             if (chainBlockLink.PreviousBlockHash != firstHash)
             {
-                return new List<Hash>();
+                //TODO need to improve
+                throw new Exception("wrong branch");
             }
 
             hashes.Reverse();
@@ -407,9 +411,9 @@ namespace AElf.Kernel.Blockchain.Application
             return await _chainManager.GetAsync();
         }
 
-        private async Task RemoveBlocksAsync(List<Hash> blockHashs)
+        private async Task RemoveBlocksAsync(List<Hash> blockHashes)
         {
-            foreach (var blockHash in blockHashs)
+            foreach (var blockHash in blockHashes)
             {
                 await _chainManager.RemoveChainBlockLinkAsync(blockHash);
                 await _blockManager.RemoveBlockAsync(blockHash);

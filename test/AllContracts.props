@@ -1,11 +1,9 @@
 <?xml version="1.0"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <ItemGroup>
-        <Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj"/>
-        <Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj"/>
+        <Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj"/>
         <Contract Include="..\..\src\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj"/>
         <Contract Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj"/>
-        <Contract Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj"/>
         <Contract Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj"/>
         <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj"/>
         <Contract Include="..\..\src\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj"/>

@@ -136,7 +136,6 @@ namespace AElf.Contracts.Genesis
             });
         }
 
-
         public override Address UpdateSmartContract(ContractUpdateInput input)
         {
             var contractAddress = input.Address;

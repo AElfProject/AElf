@@ -7,15 +7,10 @@ namespace AElf.Contracts.Vote
     {
         public BoolState Initialized { get; set; }
         
-        /// <summary>
-        /// This hash is calculated by: topic & sponsor
-        /// VotingEventHash
-        /// </summary>
-        public MappedState<Hash, VotingEvent> VotingEvents { get; set; }
+        public MappedState<Hash, VotingItem> VotingItems { get; set; }
         
         /// <summary>
-        /// This hash is calculated by: topic & sponsor & epoch_number
-        /// VotingGoingHash
+        /// This hash is calculated by: voting_item_id & epoch_number
         /// </summary>
         public MappedState<Hash, VotingResult> VotingResults { get; set; }
         
@@ -26,8 +21,8 @@ namespace AElf.Contracts.Vote
         public MappedState<Hash, VotingRecord> VotingRecords { get; set; }
         
         /// <summary>
-        /// Voter's Address -> VotingHistories
+        /// Voter's Address -> VotedItems
         /// </summary>
-        public MappedState<Address, VotingHistories> VotingHistoriesMap { get; set; }
+        public MappedState<Address, VotedItems> VotedItemsMap { get; set; }
     }
 }

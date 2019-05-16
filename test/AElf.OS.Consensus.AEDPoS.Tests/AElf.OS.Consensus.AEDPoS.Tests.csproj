@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>AElf.OS.Consensus.DPos</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+        <PackageReference Include="Shouldly" Version="3.0.2" />
+        <PackageReference Include="Volo.Abp.Core" Version="0.15.0" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+      <ProjectReference Include="..\..\src\AElf.OS.Consensus.DPos\AElf.OS.Consensus.DPos.csproj" />
+      <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
+      <ProjectReference Include="..\..\src\AElf.OS\AElf.OS.csproj" />
+      <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
+    </ItemGroup>
+
+    <Import Project="..\AllContracts.props" />
+</Project>

@@ -37,17 +37,13 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Contract Include="..\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
+    <Contract Include="..\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
     <Contract Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
-    <Contract Include="..\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />
     <Contract Include="..\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
     <Contract Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
     <Contract Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
     <Contract Include="..\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
     <Contract Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
     <Contract Include="..\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Contract Include="..\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />
   </ItemGroup>
 </Project>

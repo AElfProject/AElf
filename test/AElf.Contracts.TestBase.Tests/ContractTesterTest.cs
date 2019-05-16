@@ -1,16 +1,11 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.Deployer;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
-using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
@@ -27,7 +22,7 @@ namespace AElf.Contracts.TestBase.Tests
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<ContractTesterTest>());
 
         public byte[] ConsensusContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.DPoS")).Value;
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
         public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         private int ChainId { get; } = ChainHelpers.ConvertBase58ToChainId("AELF");
         private int DefaultCategory { get; } = SmartContractTestConstants.TestRunnerCategory;

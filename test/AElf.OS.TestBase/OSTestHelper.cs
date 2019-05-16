@@ -13,7 +13,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -34,9 +34,8 @@ namespace AElf.OS
 
         public IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<OSTestHelper>());
-        public byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("Consensus.DPoS")).Value;
-        public byte[] DividendContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Dividend")).Value;
+        public byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
+        public byte[] ElectionContractCode => Codes.Single(kv => kv.Key.Contains("Election")).Value;
         public byte[] TokenContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
 
@@ -261,7 +260,6 @@ namespace AElf.OS
             return Address.Parser.ParseFrom(txResult.ReturnValue);
         }
 
-
         #region private methods
 
         private async Task StartNode()
@@ -296,12 +294,11 @@ namespace AElf.OS
             });
             
             dto.InitializationSmartContracts.AddGenesisSmartContract(
-                DividendContractCode,
-                DividendSmartContractAddressNameProvider.Name);
+                ElectionContractCode,
+                ElectionSmartContractAddressNameProvider.Name);
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 TokenContractCode,
-                TokenSmartContractAddressNameProvider.Name,
-                callList);
+                TokenSmartContractAddressNameProvider.Name, callList);
 
             _blockchainNodeCtxt = await _osBlockchainNodeContextService.StartAsync(dto);
         }

@@ -2,8 +2,10 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -28,9 +30,21 @@ namespace AElf.Kernel
 
             services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
 
-            services.AddStoreKeyPrefixProvide<BlockBody>("b");
-            services.AddStoreKeyPrefixProvide<BlockHeader>("h");
-            services.AddStoreKeyPrefixProvide<Chain>("c");
+            services.AddStoreKeyPrefixProvide<BlockBody>("bb");
+            services.AddStoreKeyPrefixProvide<BlockHeader>("bh");
+            services.AddStoreKeyPrefixProvide<BlockStateSet>("bs");
+            services.AddStoreKeyPrefixProvide<Chain>("ch");
+            services.AddStoreKeyPrefixProvide<ChainBlockLink>("cl");
+            services.AddStoreKeyPrefixProvide<ChainBlockIndex>("ci");
+            services.AddStoreKeyPrefixProvide<ChainStateInfo>("cs");
+            services.AddStoreKeyPrefixProvide<FunctionMetadata>("fm");
+            services.AddStoreKeyPrefixProvide<SerializedCallGraph>("sg");
+            services.AddStoreKeyPrefixProvide<Transaction>("tx");
+            services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("ti");
+            services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
+            services.AddStoreKeyPrefixProvide<TransactionReceipt>("tc");
+            services.AddStoreKeyPrefixProvide<VersionedState>("vs");
+            
 
             services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
             services.AddSingleton(typeof(INotModifiedCachedStateStore<>), typeof(NotModifiedCachedStateStore<>));

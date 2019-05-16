@@ -4,6 +4,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Blockchain.Helpers
 {
+    // TODO: It seems we never use this except test projects.
     public class GenesisBlockBuilder
     {
         public Block Block { get; set; }

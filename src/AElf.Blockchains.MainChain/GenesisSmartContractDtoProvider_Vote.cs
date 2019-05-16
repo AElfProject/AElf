@@ -5,6 +5,10 @@ using AElf.Contracts.Vote;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
+using AElf.Contracts.Vote;
+using AElf.Kernel;
+using AElf.Kernel.Token;
+using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -27,10 +31,10 @@ namespace AElf.Blockchains.MainChain
             voteContractMethodCallList.Add(nameof(VoteContractContainer.VoteContractStub.InitialVoteContract),
                 new InitialVoteContractInput
                 {
+                    // To Lock and Unlock tokens of voters.
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
                 });
             return voteContractMethodCallList;
         }
-
     }
 }

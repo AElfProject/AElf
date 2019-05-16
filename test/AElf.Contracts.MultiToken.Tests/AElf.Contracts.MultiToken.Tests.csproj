@@ -9,7 +9,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
       <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
     </ItemGroup>
     <ItemGroup>
         <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />

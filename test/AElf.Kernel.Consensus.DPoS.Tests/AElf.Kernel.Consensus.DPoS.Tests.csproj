@@ -14,7 +14,7 @@
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.DPoS\AElf.Kernel.Consensus.DPoS.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AElfConsensus\AElf.Kernel.Consensus.AElfConsensus.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />

@@ -10,6 +10,7 @@ namespace AElf
     {
         public ContextVariableDictionary(IDictionary<string, string> dictionary) : base(dictionary)
         {
+        
         }
 
         public string NativeSymbol => this[nameof(NativeSymbol)];

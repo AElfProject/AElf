@@ -207,9 +207,9 @@ namespace AElf.Kernel.Blockchain.Application
             result[0].GetHash().ShouldBe(_kernelTestHelper.BestBranchBlockList[9].GetHash());
             result[1].GetHash().ShouldBe(_kernelTestHelper.BestBranchBlockList[10].GetHash());
 
-            result = await _fullBlockchainService.GetBlocksInBestChainBranchAsync(
-                _kernelTestHelper.LongestBranchBlockList[0].GetHash(), 3);
-            result.Count.ShouldBe(0);
+            _fullBlockchainService.GetBlocksInBestChainBranchAsync(
+                    _kernelTestHelper.LongestBranchBlockList[0].GetHash(), 3)
+                .ShouldThrow("wrong branch", typeof(Exception));
         }
 
         [Fact]

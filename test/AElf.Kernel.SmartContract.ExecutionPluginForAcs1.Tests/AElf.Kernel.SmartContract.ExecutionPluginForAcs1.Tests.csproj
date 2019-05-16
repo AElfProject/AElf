@@ -17,12 +17,12 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <Contract Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract.csproj" />
         <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
     </ItemGroup>
     <ItemGroup>
@@ -36,5 +36,4 @@
             <Link>Protobuf/Proto/acs1_plugin_test_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
-    
 </Project>
