@@ -3,7 +3,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp
 {
-    public static class TimeStampExtensions
+    public static class TimestampExtensions
     {
         public static Timestamp AddDays(this Timestamp timestamp, long days)
         {
