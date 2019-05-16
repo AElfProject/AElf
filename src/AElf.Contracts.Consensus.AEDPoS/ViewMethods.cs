@@ -322,7 +322,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKeys =
                     {
-                        round.RealTimeMinersInformation.Keys.Select(k => k.ToMappingKey())
+                        round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())
                     }
                 };
             }
@@ -391,7 +391,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             else if (TryToGetCurrentRoundInformation(out round))
             {
                 var miners = new MinerList();
-                miners.PublicKeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToMappingKey()));
+                miners.PublicKeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
                 round = miners.GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), Context.CurrentBlockTime,
                     round.RoundNumber, termNumber);
             }

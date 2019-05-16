@@ -41,10 +41,10 @@ namespace AElf.Contracts.Election
             if (diff > 0)
             {
                 victories =
-                    new List<ByteString>(validCandidates.Select(vc => vc.ToMappingKey()));
+                    new List<ByteString>(validCandidates.Select(vc => vc.ToByteString()));
                 victories.AddRange(currentMiners.Where(k => !validCandidates.Contains(k)).OrderBy(p => p)
                     .Take(Math.Min(diff, currentMiners.Count))
-                    .Select(p => p.ToMappingKey()));
+                    .Select(p => p.ToByteString()));
                 Context.LogDebug(() => string.Join("\n", victories.Select(v => v.ToHex().Substring(0, 10)).ToList()));
                 return victories;
             }
@@ -102,7 +102,7 @@ namespace AElf.Contracts.Election
         {
             return State.ElectorVotes[input.Value] ?? new ElectorVote
             {
-                PublicKey = input.Value.ToMappingKey()
+                PublicKey = input.Value.ToByteString()
             };
         }
 
@@ -111,7 +111,7 @@ namespace AElf.Contracts.Election
             var votes = State.ElectorVotes[input.Value];
             if (votes == null) return new ElectorVote
             {
-                PublicKey = input.Value.ToMappingKey()
+                PublicKey = input.Value.ToByteString()
             };
 
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
@@ -225,7 +225,7 @@ namespace AElf.Contracts.Election
         {
             return State.CandidateVotes[input.Value] ?? new CandidateVote
             {
-                PublicKey = input.Value.ToMappingKey()
+                PublicKey = input.Value.ToByteString()
             };
         }
 
@@ -235,7 +235,7 @@ namespace AElf.Contracts.Election
             if (votes == null)
                 return new CandidateVote
                 {
-                    PublicKey = input.Value.ToMappingKey()
+                    PublicKey = input.Value.ToByteString()
                 };
 
             var obtainedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput

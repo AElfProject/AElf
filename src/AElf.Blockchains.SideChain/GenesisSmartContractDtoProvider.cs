@@ -86,7 +86,7 @@ namespace AElf.Blockchains.SideChain
                 {
                     PublicKeys =
                     {
-                        _consensusOptions.InitialMiners.Select(p => p.ToMappingKey())
+                        _consensusOptions.InitialMiners.Select(p => p.ToByteString())
                     }
                 }
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;

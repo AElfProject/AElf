@@ -261,7 +261,7 @@ namespace AElf.Contracts.Election
                 var history = State.CandidateInformationMap[publicKey];
                 history.Terms.Add(termNumber - 1);
 
-                if (victories.Contains(publicKey.ToMappingKey()))
+                if (victories.Contains(publicKey.ToByteString()))
                 {
                     history.ContinualAppointmentCount = history.ContinualAppointmentCount.Add(1);
                     reElectionProfitAddWeights.Weights.Add(new WeightMap

@@ -325,7 +325,7 @@ namespace AElf.Contracts.Election
             var miners = new MinerList
             {
                 PublicKeys =
-                    {ConsensusOption.InitialMiners.Select(p => p.ToMappingKey())}
+                    {ConsensusOption.InitialMiners.Select(p => p.ToByteString())}
             };
             consensusMethodList.Add(nameof(AEDPoSContract.FirstRound),
                 miners.GenerateFirstRoundOfNewTerm(ConsensusOption.MiningInterval,
