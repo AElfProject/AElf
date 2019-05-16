@@ -5,14 +5,14 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Jobs
 {
-    public interface IBlockSyncHistoryCacheProvider
+    public interface IAnnouncementCacheProvider
     {
         bool AddCache(Hash blockHash, long blockHeight);
 
         void ClearCache(long blockHeight);
     }
 
-    public class BlockSyncHistoryCacheProvider : IBlockSyncHistoryCacheProvider, ISingletonDependency
+    public class AnnouncementCacheProvider : IAnnouncementCacheProvider, ISingletonDependency
     {
         private HashSet<Hash> _cache = new HashSet<Hash>();
         
@@ -20,15 +20,15 @@ namespace AElf.OS.Jobs
 
         public bool AddCache(Hash blockHash, long blockHeight)
         {
-            while (_cache.Count > 10000)
+            while (_cache.Count > 1000)
             {
                 var toRemoveCache = _sortedCache.First();
-                
+                _sortedCache.Remove(toRemoveCache.Key);
+
                 foreach (var toRemoveHash in toRemoveCache.Value)
                 {
                     _cache.Remove(toRemoveHash);
                 }
-                _sortedCache.Remove(toRemoveCache.Key);
             }
 
             if (_cache.Add(blockHash))

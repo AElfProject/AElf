@@ -23,7 +23,7 @@ namespace AElf.OS.Jobs
         private readonly NetworkOptions _networkOptions;
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITaskQueueManager _taskQueueManager;
-        private readonly IBlockSyncHistoryCacheProvider _blockSyncHistoryCacheProvider;
+        private readonly IAnnouncementCacheProvider _announcementCacheProvider;
 
         public ILogger<BlockSyncJob> Logger { get; set; }
 
@@ -32,7 +32,7 @@ namespace AElf.OS.Jobs
             IBlockchainService blockchainService,
             INetworkService networkService,
             ITaskQueueManager taskQueueManager,
-            IBlockSyncHistoryCacheProvider blockSyncHistoryCacheProvider)
+            IAnnouncementCacheProvider announcementCacheProvider)
         {
             Logger = NullLogger<BlockSyncJob>.Instance;
             _networkOptions = networkOptions.Value;
@@ -41,7 +41,7 @@ namespace AElf.OS.Jobs
             _networkService = networkService;
             _blockAttachService = blockAttachService;
             _taskQueueManager = taskQueueManager;
-            _blockSyncHistoryCacheProvider = blockSyncHistoryCacheProvider;
+            _announcementCacheProvider = announcementCacheProvider;
         }
 
         public async Task ExecuteAsync(BlockSyncJobArgs args)
@@ -73,8 +73,8 @@ namespace AElf.OS.Jobs
                     return;
                 }
 
-                _blockSyncHistoryCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
-                if (!_blockSyncHistoryCacheProvider.AddCache(args.BlockHash, args.BlockHeight))
+                _announcementCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
+                if (!_announcementCacheProvider.AddCache(args.BlockHash, args.BlockHeight))
                 {
                     Logger.LogWarning($"The block have been synchronized, block hash: {args.BlockHash}");
                     return;
