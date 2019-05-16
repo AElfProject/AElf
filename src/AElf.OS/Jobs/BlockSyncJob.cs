@@ -86,6 +86,7 @@ namespace AElf.OS.Jobs
                     $"Trigger sync blocks from peers, best chain height: {blockHeight}, best chain block hash: {blockHash}");
 
                 var count = _networkOptions.BlockIdRequestCount;
+                var syncFromLib = false;
                 while (true)
                 {
                     // Limit block sync job count, control memory usage
@@ -102,9 +103,11 @@ namespace AElf.OS.Jobs
 
                     if (blocks == null || !blocks.Any())
                     {
-                        if (args.BlockHeight > blockHeight && args.BlockHeight > chain.LongestChainHeight)
+                        if (args.BlockHeight > blockHeight && args.BlockHeight > chain.LongestChainHeight && !syncFromLib)
                         {
-                            Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
+                            Logger.LogDebug(
+                                $"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
+                            syncFromLib = true;
                             blockHash = chain.LastIrreversibleBlockHash;
                             blockHeight = chain.LastIrreversibleBlockHeight;
                             continue;

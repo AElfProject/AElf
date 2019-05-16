@@ -18,4 +18,9 @@ namespace AElf.OS
     {
         
     }
+
+    public class SyncForkTestBase : AElfIntegratedTest<SyncForkTestAElfModule>
+    {
+        
+    }
 }
