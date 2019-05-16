@@ -32,7 +32,7 @@ namespace AElf.OS
             {
                 Mock<IPeer> peerMock = new Mock<IPeer>();
 
-                peerMock.Setup(p => p.CurrentBlockHeight).Returns(20);
+                peerMock.Setup(p => p.CurrentBlockHeight).Returns(15);
                 peerMock.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
                     .Returns<Hash, int>((hash, cnt) => 
                     {
@@ -70,7 +70,7 @@ namespace AElf.OS
             _blockList.AddRange(osTestHelper.ForkBranchBlockList);
             var forkBranchHeight = height;
 
-            for (var i = forkBranchHeight; i < forkBranchHeight + 10; i++)
+            for (var i = forkBranchHeight; i < forkBranchHeight + 5; i++)
             {
                 var newBlock = AsyncHelper.RunSync(() => genService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
                 {
