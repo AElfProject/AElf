@@ -204,8 +204,12 @@ namespace AElf.Contracts.Election
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.WelfareHash.Value,
-                Period = termNumber > 1 ? termNumber - 1 : -1
+                Period = termNumber > 1 ? termNumber - 1 : -1,
+                TotalWeight = State.CachedWelfareWeight.Value
             });
+
+            State.CachedWelfareWeight.Value =
+                State.ProfitContract.GetProfitItem.Call(State.WelfareHash.Value).TotalWeight;
         }
 
         private void UpdateTreasurySubItemsWeights(long termNumber)

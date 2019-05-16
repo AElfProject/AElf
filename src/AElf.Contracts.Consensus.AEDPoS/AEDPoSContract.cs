@@ -208,7 +208,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Context.LogDebug(() => $"LIB found, offset is {offset}");
                 Context.Fire(new IrreversibleBlockFound()
                 {
-                    Offset = offset.Mul(AElfConsensusContractConstants.TinyBlocksNumber)
+                    Offset = offset.Mul(AEDPoSContractConstants.TinyBlocksNumber)
                 });
             }
         }

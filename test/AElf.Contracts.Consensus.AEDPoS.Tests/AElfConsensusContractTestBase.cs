@@ -40,7 +40,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         protected const int MiningInterval = 4000;
 
-        protected const int SmallBlockMiningInterval = 500;
+        protected static int SmallBlockMiningInterval = MiningInterval.Div(AEDPoSContractConstants.TinyBlocksNumber);
 
         protected const long DaysEachTerm = 7;
 
