@@ -3,18 +3,18 @@ using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
-    internal interface IConsensusReaderFactory
+    internal interface IReaderFactory
     {
         AEDPoSContractContainer.AEDPoSContractStub Create(IChainContext chainContext);
         AEDPoSContractContainer.AEDPoSContractStub Create(Hash blockHash, long blockHeight);
     }
 
-    internal class ConsensusReaderFactory : IConsensusReaderFactory
+    internal class ReaderFactory : IReaderFactory
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public ConsensusReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+        public ReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ISmartContractAddressService smartContractAddressService)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
         {
             return new AEDPoSContractContainer.AEDPoSContractStub
             {
-                __factory = new ConsensusMethodStubFactory(_transactionReadOnlyExecutionService,
+                __factory = new MethodStubFactory(_transactionReadOnlyExecutionService,
                     _smartContractAddressService,
                     chainContext)
             };

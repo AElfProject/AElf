@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
+    internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
     {
         private readonly IAccountService _accountService;
         private readonly ConsensusControlInformation _controlInformation;
@@ -27,12 +27,12 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _controlInformation = controlInformation;
         }
 
-        public IMessage GetTriggerInformationToGetConsensusCommand()
+        public CommandInput GetTriggerInformationToGetConsensusCommand()
         {
             return new CommandInput {PublicKey = PublicKey};
         }
 
-        public IMessage GetTriggerInformationToGetExtraData()
+        public AElfConsensusTriggerInformation GetTriggerInformationToGetExtraData()
         {
             if (_controlInformation.ConsensusCommand == null)
             {
@@ -64,7 +64,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             };
         }
 
-        public IMessage GetTriggerInformationToGenerateConsensusTransactions()
+        public AElfConsensusTriggerInformation GetTriggerInformationToGenerateConsensusTransactions()
         {
             if (_controlInformation.ConsensusCommand == null)
             {

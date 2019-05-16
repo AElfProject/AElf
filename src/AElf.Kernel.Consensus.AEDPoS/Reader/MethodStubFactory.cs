@@ -8,7 +8,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
-    public class ConsensusMethodStubFactory : IMethodStubFactory, ITransientDependency
+    public class MethodStubFactory : IMethodStubFactory, ITransientDependency
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -17,7 +17,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
         private Address ConsensusContractAddress =>
             _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
 
-        public ConsensusMethodStubFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+        public MethodStubFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ISmartContractAddressService smartContractAddressService, IChainContext chainContext)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;

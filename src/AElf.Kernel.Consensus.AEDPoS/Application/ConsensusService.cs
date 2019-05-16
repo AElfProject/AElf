@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
@@ -10,22 +11,26 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    // TODO: Use xxprovider to refactor.
-    public class ConsensusService : IConsensusService
+    internal class ConsensusService : IConsensusService
     {
 
         private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
         private readonly ConsensusControlInformation _consensusControlInformation;
         private readonly IConsensusScheduler _consensusScheduler;
+        private readonly IReaderFactory _readerFactory;
+        private readonly ITriggerInformationProvider _triggerInformationProvider;
         public ILogger<ConsensusService> Logger { get; set; }
 
         private DateTime _nextMiningTime;
 
         public ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
-            IConsensusScheduler consensusScheduler, ConsensusControlInformation consensusControlInformation)
+            IConsensusScheduler consensusScheduler, ConsensusControlInformation consensusControlInformation,
+            IReaderFactory readerFactory, ITriggerInformationProvider triggerInformationProvider)
         {
             _consensusInformationGenerationService = consensusInformationGenerationService;
             _consensusControlInformation = consensusControlInformation;
+            _readerFactory = readerFactory;
+            _triggerInformationProvider = triggerInformationProvider;
             _consensusScheduler = consensusScheduler;
 
             Logger = NullLogger<ConsensusService>.Instance;
@@ -33,14 +38,14 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task TriggerConsensusAsync(ChainContext chainContext)
         {
-            var triggerInformation = _consensusInformationGenerationService.GetTriggerInformation(TriggerType.ConsensusCommand);
+            var triggerInformation = _triggerInformationProvider.GetTriggerInformationToGetConsensusCommand();
+
             // Upload the consensus command.
-            _consensusControlInformation.ConsensusCommand =
-                await _consensusInformationGenerationService.ExecuteContractAsync<ConsensusCommand>(chainContext,
-                    ConsensusConsts.GetConsensusCommand, triggerInformation, DateTime.UtcNow);
+            _consensusControlInformation.ConsensusCommand = await _readerFactory.Create(chainContext)
+                .GetConsensusCommand.CallAsync(triggerInformation);
 
             Logger.LogDebug($"Updated consensus command: {_consensusControlInformation.ConsensusCommand}");
-            
+
             // Initial consensus scheduler.
             var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
                 chainContext.BlockHeight,
@@ -62,8 +67,10 @@ namespace AElf.Kernel.Consensus.Application
         {
             var validationResult = await _consensusInformationGenerationService.ExecuteContractAsync<ValidationResult>(
                 chainContext, ConsensusConsts.ValidateConsensusBeforeExecution,
-                _consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData),
+                ,
                 DateTime.UtcNow);
+            
+            validationResult = await _readerFactory.Create(chainContext).ValidateConsensusBeforeExecution.CallAsync(_consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData))
 
             if (!validationResult.Success)
             {

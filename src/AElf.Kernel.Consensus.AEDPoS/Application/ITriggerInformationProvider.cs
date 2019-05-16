@@ -1,11 +1,11 @@
-using Google.Protobuf;
+using AElf.Contracts.Consensus.AEDPoS;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public interface ITriggerInformationProvider
+    internal interface ITriggerInformationProvider
     {
-        IMessage GetTriggerInformationToGetConsensusCommand();
-        IMessage GetTriggerInformationToGetExtraData();
-        IMessage GetTriggerInformationToGenerateConsensusTransactions();
+        CommandInput GetTriggerInformationToGetConsensusCommand();
+        AElfConsensusTriggerInformation GetTriggerInformationToGetExtraData();
+        AElfConsensusTriggerInformation GetTriggerInformationToGenerateConsensusTransactions();
     }
 }
