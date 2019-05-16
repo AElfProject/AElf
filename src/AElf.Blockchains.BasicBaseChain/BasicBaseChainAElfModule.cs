@@ -96,7 +96,6 @@ namespace AElf.Blockchains.BasicBaseChain
                     });
                 }
             });
-        
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -113,7 +112,8 @@ namespace AElf.Blockchains.BasicBaseChain
             var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
 
             dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos(zeroContractAddress).ToList();
-
+            dto.ContractZeroInitializationInput = dtoProvider.GetContractZeroInitializationInput();
+            
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });

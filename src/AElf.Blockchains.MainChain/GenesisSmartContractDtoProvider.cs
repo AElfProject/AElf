@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Kernel;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.Options;
 
@@ -32,6 +33,14 @@ namespace AElf.Blockchains.MainChain
                 GetGenesisSmartContractDtosForParliament(),
                 GetGenesisSmartContractDtosForConsensus(zeroContractAddress),
             }.SelectMany(x => x);
+        }
+
+        public ContractZeroInitializationInput GetContractZeroInitializationInput()
+        {
+            return new ContractZeroInitializationInput
+            {
+                ParliamentAuthContractName = ParliamentAuthContractAddressNameProvider.Name
+            };
         }
     }
 }

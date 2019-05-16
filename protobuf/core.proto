@@ -362,6 +362,11 @@ message ChangeContractOwnerInput {
     Address newOwner = 2;
 }
 
+message ContractZeroInitializationInput{
+    Hash parliamentAuthContractName = 1;
+    string methodNameForReadingZeroOwnerAddress = 2;
+}
+
 // Consensus
 
 message ConsensusCommand {

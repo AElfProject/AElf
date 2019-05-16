@@ -36,13 +36,14 @@ namespace AElf.Contracts.ParliamentAuth
             return result;
         }
 
-        public override Address GetDefaultOrganizationAddress(Empty input)
+        public override Address GetZeroOwnerAddress(Empty input)
         {
             Assert(State.Initialized.Value, "Not initialized.");
             return State.DefaultOrganizationAddress.Value;
         }
 
         #endregion view
+        
         public override Empty Initialize(ParliamentAuthInitializationInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -59,9 +60,9 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(input.ReleaseThreshold > 0 && input.ReleaseThreshold <= 10000, "Invalid organization.");
             var organizationHash = GenerateOrganizationVirtualHash(input);
             Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
-            if(State.Organisations[organizationAddress] == null)
+            if (State.Organisations[organizationAddress] == null)
             {
-                var organization =new Organization
+                var organization = new Organization
                 {
                     ReleaseThreshold = input.ReleaseThreshold,
                     OrganizationAddress = organizationAddress,
@@ -69,6 +70,7 @@ namespace AElf.Contracts.ParliamentAuth
                 };
                 State.Organisations[organizationAddress] = organization;
             }
+            
             return organizationAddress;
         }
         
@@ -111,6 +113,7 @@ namespace AElf.Contracts.ParliamentAuth
                 //State.Proposals[approvalInput.ProposalId] = null;
                 return new BoolValue{Value = false};
             }
+            
             // check approval not existed
             Assert(!proposalInfo.ApprovedRepresentatives.Contains(Context.Sender),
                 "Approval already existed.");
@@ -125,7 +128,8 @@ namespace AElf.Contracts.ParliamentAuth
                     proposalInfo.Params);
                 //State.Proposals[approvalInput.ProposalId] = null;
             }
-            return new BoolValue{Value = true};
+
+            return new BoolValue {Value = true};
         }
     }
 }

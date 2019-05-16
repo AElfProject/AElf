@@ -27,6 +27,7 @@ namespace AElf.OS.Node.Application
     public interface IGenesisSmartContractDtoProvider
     {
         IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress);
+        ContractZeroInitializationInput GetContractZeroInitializationInput();
     }
 
     public class OsBlockchainNodeContextStartDto
@@ -41,6 +42,8 @@ namespace AElf.OS.Node.Application
         public Type ZeroSmartContract { get; set; }
 
         public int SmartContractRunnerCategory { get; set; } = KernelConstants.DefaultRunnerCategory;
+        
+        public ContractZeroInitializationInput ContractZeroInitializationInput { get; set; }
     }
 
     public static class GenesisSmartContractDtoExtensions
@@ -62,6 +65,7 @@ namespace AElf.OS.Node.Application
         {
             genesisSmartContracts.AddGenesisSmartContract(typeof(T), name, systemTransactionMethodCallList);
         }
+        
         public static void Add(this SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList, string methodName,
             IMessage input)
         {
@@ -92,7 +96,6 @@ namespace AElf.OS.Node.Application
 
             genesisSmartContracts.AddGenesisSmartContract<T>(name, systemTransactionMethodCallList);
         }
-
     }
 
     public interface IOsBlockchainNodeContextService
@@ -126,6 +129,8 @@ namespace AElf.OS.Node.Application
             transactions.Add(GetTransactionForDeployment(dto.ChainId, dto.ZeroSmartContract, Hash.Empty,
                 dto.SmartContractRunnerCategory));
 
+            // Add transaction for initialization
+            transactions.Add(GetTransactionForInitialization(dto.ContractZeroInitializationInput));
             transactions.AddRange(dto.InitializationSmartContracts
                 .Select(p =>
                 {
@@ -180,6 +185,18 @@ namespace AElf.OS.Node.Application
                     Code = ByteString.CopyFrom(code),
                     TransactionMethodCallList = transactionMethodCallList
                 }.ToByteString()
+            };
+        }
+
+        private Transaction GetTransactionForInitialization(ContractZeroInitializationInput contractZeroInitializationInput)
+        {
+            var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
+            return new Transaction
+            {
+                From = zeroAddress,
+                To = zeroAddress,
+                MethodName = nameof(ISmartContractZero.Initialize),
+                Params = contractZeroInitializationInput.ToByteString()
             };
         }
         

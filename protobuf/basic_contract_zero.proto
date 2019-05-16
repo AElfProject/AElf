@@ -21,6 +21,8 @@ service BasicContractZero {
     }
     rpc ChangeContractOwner (ChangeContractOwnerInput) returns (google.protobuf.Empty) {
     }
+    rpc Initialize (ContractZeroInitializationInput) returns (google.protobuf.Empty) {
+    }
     // Views
     rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {
         option (aelf.is_view) = true;

@@ -165,7 +165,7 @@ namespace AElf.Contract.CrossChain.Tests
                 Value = chainId
             };
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContract.GetDefaultOrganizationAddress), new Empty())).ReturnValue);
+                nameof(ParliamentAuthContract.GetZeroOwnerAddress), new Empty())).ReturnValue);
             var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentAuthContract.CreateProposal), new CreateProposalInput
                 {

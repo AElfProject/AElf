@@ -21,6 +21,9 @@
         <None Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
         </None>
+        <None Include="..\..\protobuf\core.proto">
+            <Link>Protobuf/Proto/core.proto</Link>
+        </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh basic_contract_zero.proto" />

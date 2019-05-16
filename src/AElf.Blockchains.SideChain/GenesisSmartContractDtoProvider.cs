@@ -64,6 +64,14 @@ namespace AElf.Blockchains.SideChain
             return l;
         }
 
+        public ContractZeroInitializationInput GetContractZeroInitializationInput()
+        {
+            return new ContractZeroInitializationInput
+            {
+                ParliamentAuthContractName = ParliamentAuthContractAddressNameProvider.Name
+            };
+        }
+
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateTokenInitializationCallList()
         {

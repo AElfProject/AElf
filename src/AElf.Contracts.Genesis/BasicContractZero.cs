@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using AElf.Kernel;
 using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
@@ -186,6 +187,16 @@ namespace AElf.Contracts.Genesis
                 OldOwner = oldOwner,
                 NewOwner = newOwner
             });
+            return new Empty();
+        }
+
+
+        public override Empty Initialize(ContractZeroInitializationInput input)
+        {
+            Assert(Context.Sender.Equals(Context.Self), "Unable to set contract zero owner.");
+            var address = GetContractAddressByName(input.ParliamentAuthContractName);
+            var ownerAddress = Context.Call<Address>(address, input.MethodNameForReadingZeroOwnerAddress, new Empty());
+            State.ContractZeroOwner.Value = ownerAddress;
             return new Empty();
         }
 
