@@ -80,18 +80,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var publicKey = Context.RecoverPublicKey().ToHex();
 
-            round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
-            round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
+            var minerInRound = round.RealTimeMinersInformation[publicKey];
+            minerInRound.ActualMiningTime = input.ActualMiningTime;
+            minerInRound.ProducedBlocks = input.ProducedBlocks;
             var producedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks;
-            round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks = producedTinyBlocks.Add(1);
+            minerInRound.ProducedTinyBlocks = producedTinyBlocks.Add(1);
 
-            round.RealTimeMinersInformation[publicKey].Signature = input.Signature;
-            round.RealTimeMinersInformation[publicKey].OutValue = input.OutValue;
-            round.RealTimeMinersInformation[publicKey].PromisedTinyBlocks = input.PromiseTinyBlocks;
-            round.RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
-            round.RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
+            minerInRound.Signature = input.Signature;
+            minerInRound.OutValue = input.OutValue;
+            minerInRound.PromisedTinyBlocks = input.PromiseTinyBlocks;
+            minerInRound.SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
+            minerInRound.FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
 
-            round.RealTimeMinersInformation[publicKey].EncryptedInValues.Add(input.EncryptedInValues);
+            minerInRound.EncryptedInValues.Add(input.EncryptedInValues);
             foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
             {
                 round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
@@ -127,7 +128,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // For first round of each term, no one need to publish in value.
             if (input.PreviousInValue != Hash.Empty)
             {
-                round.RealTimeMinersInformation[publicKey].PreviousInValue = input.PreviousInValue;
+                minerInRound.PreviousInValue = input.PreviousInValue;
             }
 
             Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");

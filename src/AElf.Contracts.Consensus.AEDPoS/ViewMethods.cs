@@ -122,7 +122,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Assert(
                         GenerateNextRoundInformation(currentRound, currentBlockTime, out var nextRound),
                         "Failed to generate next round information.");
-                    nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks += 1;
+                    nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
+                        nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
                     Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
                     nextRound.ExtraBlockProducerOfPreviousRound = publicKey.ToHex();
                     return new AElfConsensusHeaderInformation

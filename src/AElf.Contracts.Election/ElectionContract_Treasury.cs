@@ -263,7 +263,7 @@ namespace AElf.Contracts.Election
 
                 if (victories.Contains(publicKey.ToMappingKey()))
                 {
-                    history.ContinualAppointmentCount += 1;
+                    history.ContinualAppointmentCount = history.ContinualAppointmentCount.Add(1);
                     reElectionProfitAddWeights.Weights.Add(new WeightMap
                     {
                         Receiver = address,

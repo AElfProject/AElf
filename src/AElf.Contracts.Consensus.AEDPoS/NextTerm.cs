@@ -105,7 +105,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     if (minerInRound.Value.OutValue == null)
                     {
-                        minerInRound.Value.MissedTimeSlots += 1;
+                        minerInRound.Value.MissedTimeSlots = minerInRound.Value.MissedTimeSlots.Add(1);
                     }
                 }
 
