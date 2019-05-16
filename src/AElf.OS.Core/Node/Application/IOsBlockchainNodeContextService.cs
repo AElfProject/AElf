@@ -130,13 +130,13 @@ namespace AElf.OS.Node.Application
                 dto.SmartContractRunnerCategory));
 
             // Add transaction for initialization
-            transactions.Add(GetTransactionForInitialization(dto.ContractZeroInitializationInput));
             transactions.AddRange(dto.InitializationSmartContracts
                 .Select(p =>
                 {
                     return GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName, dto.SmartContractRunnerCategory,
                         p.TransactionMethodCallList);
                 }));
+            transactions.Add(GetTransactionForContractZeroInitialization(dto.ContractZeroInitializationInput));
 
             if (dto.InitializationTransactions != null)
                 transactions.AddRange(dto.InitializationTransactions);
@@ -188,7 +188,7 @@ namespace AElf.OS.Node.Application
             };
         }
 
-        private Transaction GetTransactionForInitialization(ContractZeroInitializationInput contractZeroInitializationInput)
+        private Transaction GetTransactionForContractZeroInitialization(ContractZeroInitializationInput contractZeroInitializationInput)
         {
             var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             return new Transaction

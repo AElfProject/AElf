@@ -194,9 +194,14 @@ namespace AElf.Contracts.Genesis
         public override Empty Initialize(ContractZeroInitializationInput input)
         {
             Assert(Context.Sender.Equals(Context.Self), "Unable to set contract zero owner.");
-            var address = GetContractAddressByName(input.ParliamentAuthContractName);
-            var ownerAddress = Context.Call<Address>(address, input.MethodNameForReadingZeroOwnerAddress, new Empty());
-            State.ContractZeroOwner.Value = ownerAddress;
+            if (input.ParliamentAuthContractName != null)
+            {
+                var address = GetContractAddressByName(input.ParliamentAuthContractName);
+                var ownerAddress =
+                    Context.Call<Address>(address, input.MethodNameForReadingZeroOwnerAddress, new Empty());
+                State.ContractZeroOwner.Value = ownerAddress;
+            }
+            
             return new Empty();
         }
 

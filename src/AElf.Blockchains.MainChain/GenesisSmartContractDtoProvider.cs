@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.Options;
 
@@ -11,12 +12,14 @@ namespace AElf.Blockchains.MainChain
     {
         private readonly ConsensusOptions _consensusOptions;
         private readonly TokenInitialOptions _tokenInitialOptions;
+        private readonly ContractOptions _contractOptions;
 
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> dposOptions,
-            IOptionsSnapshot<TokenInitialOptions> tokenInitialOptions)
+            IOptionsSnapshot<ContractOptions> contractOptions, IOptionsSnapshot<TokenInitialOptions> tokenInitialOptions)
         {
             _consensusOptions = dposOptions.Value;
             _tokenInitialOptions = tokenInitialOptions.Value;
+            _contractOptions = contractOptions.Value;
         }
 
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
@@ -37,10 +40,14 @@ namespace AElf.Blockchains.MainChain
 
         public ContractZeroInitializationInput GetContractZeroInitializationInput()
         {
-            return new ContractZeroInitializationInput
+            var contractZeroInitializationInput = new ContractZeroInitializationInput();
+            if (!_contractOptions.IsContractDeploymentAllowed)
             {
-                ParliamentAuthContractName = ParliamentAuthContractAddressNameProvider.Name
-            };
+                contractZeroInitializationInput.ParliamentAuthContractName =
+                    ParliamentAuthContractAddressNameProvider.Name;
+            }
+            
+            return contractZeroInitializationInput;
         }
     }
 }

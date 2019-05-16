@@ -8,10 +8,12 @@ using AElf.CrossChain;
 using AElf.CrossChain.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Volo.Abp.Threading;
 
 namespace AElf.Blockchains.SideChain
@@ -20,17 +22,19 @@ namespace AElf.Blockchains.SideChain
     public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly ChainOptions _chainOptions;
+        private readonly ContractOptions _contractOptions;
         private readonly ConsensusOptions _consensusOptions;
         private readonly CrossChainConfigOption _crossChainConfigOptions;
         private readonly IChainInitializationPlugin _chainInitializationPlugin;
-
+        
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ChainOptions> chainOptions,
             IOptionsSnapshot<ConsensusOptions> consensusOptions, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOptions,
-            IChainInitializationPlugin chainInitializationPlugin)
+            IOptionsSnapshot<ContractOptions> contractOptions, IChainInitializationPlugin chainInitializationPlugin)
         {
             _chainOptions = chainOptions.Value;
             _consensusOptions = consensusOptions.Value;
             _crossChainConfigOptions = crossChainConfigOptions.Value;
+            _contractOptions = contractOptions.Value;
             _chainInitializationPlugin = chainInitializationPlugin;
         }
 
@@ -66,10 +70,14 @@ namespace AElf.Blockchains.SideChain
 
         public ContractZeroInitializationInput GetContractZeroInitializationInput()
         {
-            return new ContractZeroInitializationInput
+            var contractZeroInitializationInput = new ContractZeroInitializationInput();
+            if (!_contractOptions.IsContractDeploymentAllowed)
             {
-                ParliamentAuthContractName = ParliamentAuthContractAddressNameProvider.Name
-            };
+                contractZeroInitializationInput.ParliamentAuthContractName =
+                    ParliamentAuthContractAddressNameProvider.Name;
+            }
+            
+            return contractZeroInitializationInput;
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
