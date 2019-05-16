@@ -7,6 +7,8 @@ using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Infrastructure;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -15,13 +17,16 @@ namespace AElf.OS.Jobs
 {
     public class BlockSyncJob
     {
-        private const int BlockSyncJobLimit = 1;
+        private const int BlockSyncJobLimit = 10;
+        
+        private readonly TimeSpan BlockSyncJobWaitTime = TimeSpan.FromSeconds(0.5);
 
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
         private readonly NetworkOptions _networkOptions;
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITaskQueueManager _taskQueueManager;
+        private readonly INetworkSyncStateProvider _networkSyncStateProvider;
         private readonly IAnnouncementCacheProvider _announcementCacheProvider;
 
         public ILogger<BlockSyncJob> Logger { get; set; }
@@ -31,6 +36,7 @@ namespace AElf.OS.Jobs
             IBlockchainService blockchainService,
             INetworkService networkService,
             ITaskQueueManager taskQueueManager,
+            INetworkSyncStateProvider networkSyncStateProvider,
             IAnnouncementCacheProvider announcementCacheProvider)
         {
             Logger = NullLogger<BlockSyncJob>.Instance;
@@ -40,6 +46,7 @@ namespace AElf.OS.Jobs
             _networkService = networkService;
             _blockAttachService = blockAttachService;
             _taskQueueManager = taskQueueManager;
+            _networkSyncStateProvider = networkSyncStateProvider;
             _announcementCacheProvider = announcementCacheProvider;
         }
 
@@ -55,19 +62,19 @@ namespace AElf.OS.Jobs
             else
             {
                 _announcementCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
-                if (!_announcementCacheProvider.AddCache(args.BlockHash, args.BlockHeight))
+                if (!_announcementCacheProvider.CacheAnnouncement(args.BlockHash, args.BlockHeight))
                 {
                     Logger.LogWarning($"The block have been synchronized, block hash: {args.BlockHash}");
                     return;
                 }
-
-                var syncFromBestChainResult = await SyncBlockAsync(chain.BestChainHash, chain.BestChainHeight,
+                
+                var syncFromBestChainResult = await SyncBlocksAsync(chain.BestChainHash, chain.BestChainHeight,
                     args.BlockHash, args.BlockHeight, args.SuggestedPeerPubKey);
 
                 if (!syncFromBestChainResult)
                 {
                     Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
-                    await SyncBlockAsync(chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight, args.BlockHash,
+                    await SyncBlocksAsync(chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight, args.BlockHash,
                         args.BlockHeight, args.SuggestedPeerPubKey);
                 }
             }
@@ -95,10 +102,18 @@ namespace AElf.OS.Jobs
                 KernelConstants.UpdateChainQueueName);
         }
 
-        private async Task<bool> SyncBlockAsync(Hash firstBlockHash, long firstBlockHeight, Hash targetBlockHash, long
+        private async Task<bool> SyncBlocksAsync(Hash firstBlockHash, long firstBlockHeight, Hash targetBlockHash, long
             targetBlockHeight, string suggestedPeerPubKey)
         {
             Logger.LogDebug($"Trigger sync blocks from peers, first block height: {firstBlockHeight}, first block hash: {firstBlockHash}");
+            
+            if (_networkSyncStateProvider.TimestampForBlockSyncJobEnqueue != null
+                && DateTime.UtcNow - _networkSyncStateProvider.TimestampForBlockSyncJobEnqueue.ToDateTime() >
+                BlockSyncJobWaitTime)
+            {
+                Logger.LogWarning($"Pause sync task and wait for queue, block sync job enqueue timestamp: {_networkSyncStateProvider.TimestampForBlockSyncJobEnqueue.ToDateTime()}");
+                return true;
+            }
 
             var blockHash = firstBlockHash;
             var blockHeight = firstBlockHeight;
@@ -146,7 +161,20 @@ namespace AElf.OS.Jobs
 
                     Logger.LogDebug(
                         $"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
-                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                    
+                    var enqueueTimestamp = Timestamp.FromDateTime(DateTime.UtcNow);
+                    _taskQueueManager.Enqueue(async () =>
+                        {
+                            try
+                            {
+                                _networkSyncStateProvider.TimestampForBlockSyncJobEnqueue = enqueueTimestamp;
+                                await _blockAttachService.AttachBlockAsync(block);
+                            }
+                            finally
+                            {
+                                _networkSyncStateProvider.TimestampForBlockSyncJobEnqueue = null;
+                            }
+                        },
                         KernelConstants.UpdateChainQueueName);
                 }
 

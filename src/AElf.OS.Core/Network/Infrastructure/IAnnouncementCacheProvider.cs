@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.OS.Jobs
+namespace AElf.OS.Network.Infrastructure
 {
     public interface IAnnouncementCacheProvider
     {
-        bool AddCache(Hash blockHash, long blockHeight);
+        bool CacheAnnouncement(Hash blockHash, long blockHeight);
 
         void ClearCache(long blockHeight);
     }
@@ -16,7 +16,7 @@ namespace AElf.OS.Jobs
     {
         private SortedDictionary<long, HashSet<Hash>> _cache = new SortedDictionary<long, HashSet<Hash>>();
 
-        public bool AddCache(Hash blockHash, long blockHeight)
+        public bool CacheAnnouncement(Hash blockHash, long blockHeight)
         {
             if (!_cache.TryGetValue(blockHeight, out var blockHashes))
             {
