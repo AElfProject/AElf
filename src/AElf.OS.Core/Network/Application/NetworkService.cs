@@ -47,6 +47,8 @@ namespace AElf.OS.Network.Application
         {
             int successfulBcasts = 0;
 
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash());
+
             foreach (var peer in _peerPool.GetPeers())
             {
                 try

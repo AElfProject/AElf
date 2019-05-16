@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.OS.Network.Events;
@@ -63,14 +64,17 @@ namespace AElf.OS.Consensus.DPos
         private readonly IPeerPool _peerPool;
         private readonly IAEDPoSInformationProvider _dpoSInformationProvider;
         private readonly IBlockchainService _blockchainService;
+        private readonly IAccountService _accountService;
         public ILogger<DPoSLastLastIrreversibleBlockDiscoveryService> Logger { get; set; }
 
         public DPoSLastLastIrreversibleBlockDiscoveryService(IPeerPool peerPool,
-            IAEDPoSInformationProvider dpoSInformationProvider, IBlockchainService blockchainService)
+            IAEDPoSInformationProvider dpoSInformationProvider, IBlockchainService blockchainService,
+            IAccountService accountService)
         {
             _peerPool = peerPool;
             _dpoSInformationProvider = dpoSInformationProvider;
             _blockchainService = blockchainService;
+            _accountService = accountService;
             //LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -89,7 +93,8 @@ namespace AElf.OS.Consensus.DPos
 
             var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.PubKey)).ToList();
 
-            if (peers.Count == 0)
+            var pubKey = await _accountService.GetPublicKeyAsync();
+            if (peers.Count == 0 && !pubkeyList.Contains(pubKey.ToHex()))
                 return null;
 
             foreach (var block in orderedBlocks)
@@ -99,6 +104,10 @@ namespace AElf.OS.Consensus.DPos
                     p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
                     return hash == block.Value;
                 }).Count();
+                if (pubkeyList.Contains(pubKey.ToHex()) &&
+                    _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
+                    blockHash == block.Value)
+                    peersHadBlockAmount++;
 
                 var sureAmount = (int) (pubkeyList.Count * 2d / 3);
                 if (peersHadBlockAmount >= sureAmount)
