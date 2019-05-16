@@ -209,14 +209,14 @@ namespace AElf.Contracts.Election
             Assert(State.CandidateInformationMap[input.CandidatePublicKey].IsCurrentCandidate,
                 "Candidate quited election.");
 
-            var lockDays = (input.EndTimestamp - Context.CurrentBlockTime.ToTimestamp()).ToTimeSpan().TotalDays;
+            var lockDays = (input.EndTimestamp - Context.CurrentBlockTime.ToTimestamp()).Days();
             Assert(lockDays >= State.MinimumLockTime.Value,
                 $"Invalid lock time. At least {State.MinimumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
             Assert(lockDays <= State.MaximumLockTime.Value,
                 $"Invalid lock time. At most {State.MaximumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
 
             State.LockTimeMap[Context.TransactionId] =
-                GetTimeSpan(input.EndTimestamp.ToDateTime(), Context.CurrentBlockTime);
+                GetTimeSpan(input.EndTimestamp, Context.CurrentBlockTime.ToTimestamp());
 
             // Update Voter's Votes information.
             var voterPublicKeyBytes = Context.RecoverPublicKey();
@@ -294,8 +294,8 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.WelfareHash.Value,
                 Receiver = Context.Sender,
-                Weight = GetVotesWeight(input.Amount, (long)lockDays),
-                EndPeriod = GetEndPeriod((long)lockDays) + 1
+                Weight = GetVotesWeight(input.Amount, lockDays),
+                EndPeriod = GetEndPeriod(lockDays) + 1
             });
 
             return new Empty();
@@ -305,7 +305,7 @@ namespace AElf.Contracts.Election
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input);
 
-            var actualLockedTime = GetTimeSpan(Context.CurrentBlockTime, votingRecord.VoteTimestamp.ToDateTime());
+            var actualLockedTime = GetTimeSpan(Context.CurrentBlockTime.ToTimestamp(), votingRecord.VoteTimestamp);
             var claimedLockDays = State.LockTimeMap[input];
             Assert(actualLockedTime >= claimedLockDays,
                 $"Still need {claimedLockDays - actualLockedTime} days to unlock your token.");
@@ -396,7 +396,7 @@ namespace AElf.Contracts.Election
 
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            return (long) (((double) lockTime / 270 + 2.0 / 3.0) * votesAmount);
+            return (long) (((decimal) lockTime / 270 + (decimal) 2 / 3) * votesAmount);
         }
 
         private long GetEndPeriod(long lockTime)
@@ -405,15 +405,15 @@ namespace AElf.Contracts.Election
             return lockTime.Div(State.TimeEachTerm.Value).Add(treasury.CurrentPeriod);
         }
 
-        private long GetTimeSpan(DateTime endTime, DateTime startTime)
+        private long GetTimeSpan(Timestamp endTime, Timestamp startTime)
         {
             if ((TimeUnit) State.BaseTimeUnit.Value == TimeUnit.Minutes)
             {
                 // For testing.
-                return (long) (endTime - startTime).TotalMinutes;
+                return (endTime - startTime).Minutes();
             }
 
-            return (long) (endTime - startTime).TotalDays;
+            return (endTime - startTime).Days();
         }
     }
 }

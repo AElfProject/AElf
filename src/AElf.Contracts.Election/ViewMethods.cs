@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Sdk.CSharp;
 using AElf.Contracts.Vote;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -217,7 +218,7 @@ namespace AElf.Contracts.Election
                 LockTime = (int) lockDays,
                 VoteTimestamp = votingRecord.VoteTimestamp,
                 WithdrawTimestamp = votingRecord.WithdrawTimestamp,
-                UnlockTimestamp = votingRecord.VoteTimestamp.ToDateTime().AddDays(lockDays).ToTimestamp(),
+                UnlockTimestamp = votingRecord.VoteTimestamp.AddDays(lockDays),
                 IsWithdrawn = votingRecord.IsWithdrawn
             };
         }
