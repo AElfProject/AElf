@@ -32,6 +32,15 @@ namespace AElf.Sdk.CSharp
             }
         }
 
+        public static Timestamp AddSeconds(this Timestamp timestamp, long seconds)
+        {
+            checked
+            {
+                return Timestamp.FromDateTimeOffset(
+                    DateTimeOffset.FromUnixTimeSeconds(timestamp.Seconds + seconds));
+            }
+        }
+        
         public static long Days(this Duration duration)
         {
             return duration.Seconds / 60 / 60 / 24;

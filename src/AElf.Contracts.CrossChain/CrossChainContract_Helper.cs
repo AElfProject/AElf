@@ -6,6 +6,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -191,12 +192,12 @@ namespace AElf.Contracts.CrossChain
         
         private Hash Propose(int waitingPeriod, Address targetAddress, string invokingMethod, IMessage input)
         {
-            var expiredTime = Context.CurrentBlockTime.AddSeconds(waitingPeriod).ToUniversalTime();
+            var expiredTime = Timestamp.FromDateTime(Context.CurrentBlockTime).AddSeconds(waitingPeriod);
             var proposal = new CreateProposalInput
             {
                 ContractMethodName = invokingMethod,
                 OrganizationAddress = GetOwnerAddress(),
-                ExpiredTime = Timestamp.FromDateTime(expiredTime),
+                ExpiredTime = expiredTime,
                 Params = input.ToByteString(),
                 ToAddress = targetAddress
             };
