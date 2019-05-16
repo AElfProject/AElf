@@ -380,8 +380,8 @@ namespace AElf.Contracts.Election
                 return new Empty();
             }
 
-            candidateInformation.ProducedBlocks += input.RecentlyProducedBlocks;
-            candidateInformation.MissedTimeSlots += input.RecentlyMissedTimeSlots;
+            candidateInformation.ProducedBlocks = candidateInformation.ProducedBlocks.Add(input.RecentlyProducedBlocks);
+            candidateInformation.MissedTimeSlots = candidateInformation.MissedTimeSlots.Add(input.RecentlyMissedTimeSlots);
             State.CandidateInformationMap[input.PublicKey] = candidateInformation;
             return new Empty();
         }
