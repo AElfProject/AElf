@@ -14,7 +14,7 @@ namespace AElf.OS.Jobs
 
     public class AnnouncementCacheProvider : IAnnouncementCacheProvider, ISingletonDependency
     {
-        private SortedDictionary<long,HashSet<Hash>> _cache = new SortedDictionary<long, HashSet<Hash>>();
+        private SortedDictionary<long, HashSet<Hash>> _cache = new SortedDictionary<long, HashSet<Hash>>();
 
         public bool AddCache(Hash blockHash, long blockHeight)
         {
@@ -23,17 +23,17 @@ namespace AElf.OS.Jobs
                 _cache.Add(blockHeight, new HashSet<Hash> {blockHash});
                 return true;
             }
-            
+
             return blockHashes.Add(blockHash);
         }
 
         public void ClearCache(long blockHeight)
         {
-            while (true)
+            while (_cache.Count > 0)
             {
-                var firstCache = _cache.FirstOrDefault();
+                var firstCache = _cache.First();
 
-                if (firstCache.Key == 0 || firstCache.Key > blockHeight)
+                if (firstCache.Key > blockHeight)
                 {
                     break;
                 }

@@ -15,7 +15,6 @@ namespace AElf.OS.Jobs
 {
     public class BlockSyncJob
     {
-        private const long InitialSyncLimit = 10;
         private const int BlockSyncJobLimit = 1;
 
         private readonly IBlockchainService _blockchainService;
@@ -49,30 +48,12 @@ namespace AElf.OS.Jobs
             Logger.LogDebug($"Start block sync job, target height: {args.BlockHeight}, target block hash: {args.BlockHash}, peer: {args.SuggestedPeerPubKey}");
 
             var chain = await _blockchainService.GetChainAsync();
-            try
+            if (args.BlockHash != null && args.BlockHeight < chain.BestChainHeight + 5)
             {
-                if (args.BlockHash != null && args.BlockHeight < chain.BestChainHeight + 5)
-                {
-                    var peerBlockHash = args.BlockHash;
-                    var peerBlock = await _blockchainService.GetBlockByHashAsync(peerBlockHash);
-                    if (peerBlock != null)
-                    {
-                        Logger.LogDebug($"Block {peerBlock} already know.");
-                        return;
-                    }
-
-                    peerBlock = await _networkService.GetBlockByHashAsync(peerBlockHash, args.SuggestedPeerPubKey);
-                    if (peerBlock == null)
-                    {
-                        Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
-                        return;
-                    }
-
-                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(peerBlock),
-                        KernelConstants.UpdateChainQueueName);
-                    return;
-                }
-
+                await FetchBlockAsync(args.BlockHash, args.BlockHeight, args.SuggestedPeerPubKey);
+            }
+            else
+            {
                 _announcementCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
                 if (!_announcementCacheProvider.AddCache(args.BlockHash, args.BlockHeight))
                 {
@@ -80,83 +61,107 @@ namespace AElf.OS.Jobs
                     return;
                 }
 
-                var blockHash = chain.BestChainHash;
-                var blockHeight = chain.BestChainHeight;
-                Logger.LogDebug(
-                    $"Trigger sync blocks from peers, best chain height: {blockHeight}, best chain block hash: {blockHash}");
+                var syncFromBestChainResult = await SyncBlockAsync(chain.BestChainHash, chain.BestChainHeight,
+                    args.BlockHash, args.BlockHeight, args.SuggestedPeerPubKey);
 
-                var count = _networkOptions.BlockIdRequestCount;
-                var syncFromLib = false;
-                while (true)
+                if (!syncFromBestChainResult)
                 {
-                    // Limit block sync job count, control memory usage
-                    chain = await _blockchainService.GetChainAsync();
-                    if (chain.LongestChainHeight <= blockHeight - BlockSyncJobLimit)
-                    {
-                        Logger.LogWarning($"Pause sync task and wait for synced block to be processed, best chain height: {chain.BestChainHeight}");
-                        break;
-                    }
-
-                    Logger.LogDebug($"Request blocks start with {blockHash}");
-
-                    var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, count, args.SuggestedPeerPubKey);
-
-                    if (blocks == null || !blocks.Any())
-                    {
-                        if (args.BlockHeight > blockHeight && args.BlockHeight > chain.LongestChainHeight && !syncFromLib)
-                        {
-                            Logger.LogDebug(
-                                $"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
-                            syncFromLib = true;
-                            blockHash = chain.LastIrreversibleBlockHash;
-                            blockHeight = chain.LastIrreversibleBlockHeight;
-                            continue;
-                        }
-
-                        Logger.LogDebug($"No blocks returned, current chain height: {chain.LongestChainHeight}.");
-                        break;
-                    }
-
-                    Logger.LogDebug($"Received [{blocks.First()},...,{blocks.Last()}] ({blocks.Count})");
-
-                    if (blocks.First().Header.PreviousBlockHash != blockHash)
-                    {
-                        Logger.LogError($"Current job hash : {blockHash}");
-                        throw new InvalidOperationException($"Previous block not match previous {blockHash}, network back {blocks.First().Header.PreviousBlockHash}");
-                    }
-
-                    foreach (var block in blocks)
-                    {
-                        if (block == null)
-                        {
-                            Logger.LogWarning($"Get null block from peer, request block start: {blockHash}");
-                            break;
-                        }
-
-                        Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
-                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
-                            KernelConstants.UpdateChainQueueName);
-                    }
-
-                    var peerBestChainHeight = await _networkService.GetBestChainHeightAsync(args.SuggestedPeerPubKey);
-                    if (blocks.Last().Height >= peerBestChainHeight)
-                    {
-                        break;
-                    }
-
-                    var lastBlock = blocks.Last();
-                    blockHash = lastBlock.GetHash();
-                    blockHeight = lastBlock.Height;
+                    Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
+                    await SyncBlockAsync(chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight, args.BlockHash,
+                        args.BlockHeight, args.SuggestedPeerPubKey);
                 }
             }
-            catch (Exception e)
+
+            Logger.LogDebug($"Finishing block sync job, longest chain height: {chain.LongestChainHeight}");
+        }
+
+        private async Task FetchBlockAsync(Hash blockHash, long blockHeight, string suggestedPeerPubKey)
+        {
+            var peerBlock = await _blockchainService.GetBlockByHashAsync(blockHash);
+            if (peerBlock != null)
             {
-                Logger.LogError(e, $"Failed to finish block sync job");
+                Logger.LogDebug($"Block {peerBlock} already know.");
+                return;
             }
-            finally
+
+            peerBlock = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
+            if (peerBlock == null)
             {
-                Logger.LogDebug($"Finishing block sync job, longest chain height: {chain.LongestChainHeight}");
+                Logger.LogWarning($"Get null block from peer, request block hash: {blockHash}");
+                return;
             }
+
+            _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(peerBlock),
+                KernelConstants.UpdateChainQueueName);
+        }
+
+        private async Task<bool> SyncBlockAsync(Hash beginBlockHash, long beginBlockHeight, Hash targetBlockHash, long
+            targetBlockHeight, string suggestedPeerPubKey)
+        {
+            Logger.LogDebug($"Trigger sync blocks from peers, begin block height: {beginBlockHeight}, begin block hash: {beginBlockHash}");
+
+            var blockHash = beginBlockHash;
+            var blockHeight = beginBlockHeight;
+            while (true)
+            {
+                // Limit block sync job count, control memory usage
+                var chain = await _blockchainService.GetChainAsync();
+                if (chain.LongestChainHeight <= blockHeight - BlockSyncJobLimit)
+                {
+                    Logger.LogWarning($"Pause sync task and wait for synced block to be processed, best chain height: {chain.BestChainHeight}");
+                    break;
+                }
+
+                Logger.LogDebug($"Request blocks start with {blockHash}");
+
+                var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, _networkOptions.BlockIdRequestCount, suggestedPeerPubKey);
+
+                if (blocks == null || !blocks.Any())
+                {
+                    if (targetBlockHeight > blockHeight && targetBlockHeight > chain.LongestChainHeight)
+                    {
+                        return false;
+                    }
+
+                    Logger.LogDebug($"No blocks returned, current chain height: {chain.LongestChainHeight}.");
+                    break;
+                }
+
+                Logger.LogDebug($"Received [{blocks.First()},...,{blocks.Last()}] ({blocks.Count})");
+
+                if (blocks.First().Header.PreviousBlockHash != blockHash)
+                {
+                    Logger.LogError($"Current job hash : {blockHash}");
+                    throw new InvalidOperationException(
+                        $"Previous block not match previous {blockHash}, network back {blocks.First().Header.PreviousBlockHash}");
+                }
+
+                foreach (var block in blocks)
+                {
+                    if (block == null)
+                    {
+                        Logger.LogWarning($"Get null block from peer, request block start: {blockHash}");
+                        break;
+                    }
+
+                    Logger.LogDebug(
+                        $"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
+                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                        KernelConstants.UpdateChainQueueName);
+                }
+
+                var peerBestChainHeight = await _networkService.GetBestChainHeightAsync(suggestedPeerPubKey);
+                if (blocks.Last().Height >= peerBestChainHeight)
+                {
+                    break;
+                }
+
+                var lastBlock = blocks.Last();
+                blockHash = lastBlock.GetHash();
+                blockHeight = lastBlock.Height;
+            }
+
+            return true;
         }
     }
 }
