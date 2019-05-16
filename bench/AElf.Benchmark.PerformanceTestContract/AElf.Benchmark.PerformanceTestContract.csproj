@@ -9,9 +9,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\..\protobuf\performance_test_contract.proto">
+        <None Include="..\..\protobuf\performance_test_contract.proto">
             <Link>Protobuf/proto/performance_test_contract.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
