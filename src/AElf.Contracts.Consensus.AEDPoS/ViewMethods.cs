@@ -123,7 +123,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Assert(
                         GenerateNextRoundInformation(currentRound, currentBlockTime, out var nextRound),
                         "Failed to generate next round information.");
-                    nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks += 1;
+                    nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
+                        nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
                     Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
                     nextRound.ExtraBlockProducerOfPreviousRound = publicKey.ToHex();
                     return new BytesValue{Value = new AElfConsensusHeaderInformation
@@ -329,7 +330,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKeys =
                     {
-                        round.RealTimeMinersInformation.Keys.Select(k => k.ToMappingKey())
+                        round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())
                     }
                 };
             }
@@ -398,7 +399,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             else if (TryToGetCurrentRoundInformation(out round))
             {
                 var miners = new MinerList();
-                miners.PublicKeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToMappingKey()));
+                miners.PublicKeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
                 round = miners.GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), Context.CurrentBlockTime,
                     round.RoundNumber, termNumber);
             }

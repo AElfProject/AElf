@@ -37,7 +37,7 @@ namespace AElf.Blockchains.MainChain
                 {
                     PublicKeys =
                     {
-                        _consensusOptions.InitialMiners.Select(p => p.ToMappingKey())
+                        _consensusOptions.InitialMiners.Select(p => p.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval,
                     _consensusOptions.StartTimestamp.ToUniversalTime()));

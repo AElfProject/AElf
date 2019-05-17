@@ -243,7 +243,7 @@ namespace AElf.Contracts.TestBase
                 {
                     PublicKeys =
                     {
-                        consensusOptions.InitialMiners.Select(k => k.ToMappingKey())
+                        consensusOptions.InitialMiners.Select(k => k.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
                     consensusOptions.StartTimestamp.ToUniversalTime()));
@@ -264,7 +264,7 @@ namespace AElf.Contracts.TestBase
                 {
                     PublicKeys =
                     {
-                        initialMiners.Select(k => k.ToMappingKey())
+                        initialMiners.Select(k => k.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(miningInterval,
                     startTimestamp.ToDateTime()));

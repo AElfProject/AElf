@@ -86,8 +86,8 @@ namespace AElf.Contracts.Profit
                     var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
                     if (releasedProfitsInformation.IsReleased)
                     {
-                        amount += profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
-                            .Div(releasedProfitsInformation.TotalWeight);
+                        amount = amount.Add(profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
+                            .Div(releasedProfitsInformation.TotalWeight));
                     }
                 }
             }

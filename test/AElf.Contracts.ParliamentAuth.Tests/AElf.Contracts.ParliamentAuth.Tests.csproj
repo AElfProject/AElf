@@ -39,9 +39,9 @@
         <None Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf/Proto/aedpos_contract.proto</Link>
         </None>
-        <Content Include="..\..\protobuf\basic_contract_zero.proto">
+        <None Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Protobuf\Generated" />

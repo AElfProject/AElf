@@ -45,7 +45,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Update miners list.
             var miners = new MinerList();
-            miners.PublicKeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k => k.ToMappingKey()));
+            miners.PublicKeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
             Assert(SetMinerListOfCurrentTerm(miners), "Failed to update miners list.");
 
             // Update term number lookup. (Using term number to get first round number of related term.)
@@ -105,7 +105,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     if (minerInRound.Value.OutValue == null)
                     {
-                        minerInRound.Value.MissedTimeSlots += 1;
+                        minerInRound.Value.MissedTimeSlots = minerInRound.Value.MissedTimeSlots.Add(1);
                     }
                 }
 

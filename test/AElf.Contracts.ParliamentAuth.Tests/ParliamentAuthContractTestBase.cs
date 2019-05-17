@@ -174,7 +174,7 @@ namespace AElf.Contracts.ParliamentAuth
                     IsTermStayOne = true
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
-                new MinerList {PublicKeys = {InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex().ToMappingKey())}}
+                new MinerList {PublicKeys = {InitialMinersKeyPairs.Select(m => ByteString.CopyFrom(m.PublicKey))}}
                     .GenerateFirstRoundOfNewTerm(
                         MiningInterval, BlockchainStartTimestamp));
 
