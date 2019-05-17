@@ -19,7 +19,7 @@ namespace AElf.OS.Jobs
     {
         private const int BlockSyncJobLimit = 10;
         
-        private readonly TimeSpan BlockSyncJobWaitTime = TimeSpan.FromSeconds(0.5);
+        private readonly TimeSpan BlockSyncJobAgeLimit = TimeSpan.FromSeconds(0.5);
 
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
@@ -107,11 +107,11 @@ namespace AElf.OS.Jobs
         {
             Logger.LogDebug($"Trigger sync blocks from peers, first block height: {firstBlockHeight}, first block hash: {firstBlockHash}");
             
-            if (_networkSyncStateProvider.TimestampForBlockSyncJobEnqueue != null
-                && DateTime.UtcNow - _networkSyncStateProvider.TimestampForBlockSyncJobEnqueue.ToDateTime() >
-                BlockSyncJobWaitTime)
+            if (_networkSyncStateProvider.BlockSyncJobEnqueueTime != null
+                && DateTime.UtcNow - _networkSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime() >
+                BlockSyncJobAgeLimit)
             {
-                Logger.LogWarning($"Pause sync task and wait for queue, block sync job enqueue timestamp: {_networkSyncStateProvider.TimestampForBlockSyncJobEnqueue.ToDateTime()}");
+                Logger.LogWarning($"Queue is to busy, block sync job enqueue timestamp: {_networkSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime()}");
                 return true;
             }
 
@@ -167,12 +167,12 @@ namespace AElf.OS.Jobs
                         {
                             try
                             {
-                                _networkSyncStateProvider.TimestampForBlockSyncJobEnqueue = enqueueTimestamp;
+                                _networkSyncStateProvider.BlockSyncJobEnqueueTime = enqueueTimestamp;
                                 await _blockAttachService.AttachBlockAsync(block);
                             }
                             finally
                             {
-                                _networkSyncStateProvider.TimestampForBlockSyncJobEnqueue = null;
+                                _networkSyncStateProvider.BlockSyncJobEnqueueTime = null;
                             }
                         },
                         KernelConstants.UpdateChainQueueName);

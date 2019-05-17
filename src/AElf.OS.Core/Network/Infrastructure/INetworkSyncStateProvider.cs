@@ -5,11 +5,11 @@ namespace AElf.OS.Network.Infrastructure
 {
     public interface INetworkSyncStateProvider
     {
-        Timestamp TimestampForBlockSyncJobEnqueue { get; set; }
+        Timestamp BlockSyncJobEnqueueTime { get; set; }
     }
 
     public class NetworkSyncStateProvider : INetworkSyncStateProvider, ISingletonDependency
     {
-        public Timestamp TimestampForBlockSyncJobEnqueue { get; set; }
+        public Timestamp BlockSyncJobEnqueueTime { get; set; }
     }
 }
