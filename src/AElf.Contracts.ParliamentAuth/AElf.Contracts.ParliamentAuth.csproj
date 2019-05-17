@@ -21,8 +21,8 @@
         <None Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf/Proto/acs3.proto</Link>
         </None>
-        <None Include="..\..\protobuf\dpos_contract.proto">
-            <Link>Protobuf/Proto/dpos_contract.proto</Link>
+        <None Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
         </None>
     </ItemGroup>
     <ItemGroup>
