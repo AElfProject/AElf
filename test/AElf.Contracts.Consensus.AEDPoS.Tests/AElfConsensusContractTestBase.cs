@@ -86,7 +86,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
         
-        protected DateTime BlockchainStartTime => DateTime.Parse("2019-01-01 00:00:00.000").ToUniversalTime();
+        protected DateTime BlockchainStartTime => DateTime.UtcNow - TimeSpan.FromSeconds(10);
 
         protected void InitializeContracts()
         {
