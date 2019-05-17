@@ -18,13 +18,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override ConsensusCommand GetConsensusCommand(CommandInput input)
+        public override ConsensusCommand GetConsensusCommand(BytesValue input)
         {
             // Query state to determine whether produce tiny block.
+            Assert(input.Value.Any(), "Invalid public key.");
 
-            Assert(input.PublicKey.Any(), "Invalid public key.");
-
-            var behaviour = GetBehaviour(input.PublicKey.ToHex(), Context.CurrentBlockTime, out var currentRound);
+            var behaviour = GetBehaviour(input.Value.ToHex(), Context.CurrentBlockTime, out var currentRound);
 
             if (behaviour == AElfConsensusBehaviour.Nothing)
             {
@@ -42,19 +41,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             TryToGetPreviousRoundInformation(out var previousRound);
 
-            var command = GetConsensusCommand(behaviour, currentRound, previousRound, input.PublicKey.ToHex(),
+            var command = GetConsensusCommand(behaviour, currentRound, previousRound, input.Value.ToHex(),
                 Context.CurrentBlockTime);
 
             Context.LogDebug(() =>
-                currentRound.GetLogs(input.PublicKey.ToHex(),
+                currentRound.GetLogs(input.Value.ToHex(),
                     AElfConsensusHint.Parser.ParseFrom(command.Hint).Behaviour));
 
             return command;
         }
 
-        public override AElfConsensusHeaderInformation GetInformationToUpdateConsensus(
-            AElfConsensusTriggerInformation input)
+        public override BytesValue GetInformationToUpdateConsensus(
+            BytesValue input1)
         {
+            var input = new AElfConsensusTriggerInformation();
+            input.MergeFrom(input1.Value);
             // Some basic checks.
             Assert(input.PublicKey.Any(), "Invalid public key.");
 
@@ -99,12 +100,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ShareAndRecoverInValue(updatedRound, previousRound, inValue, publicKey.ToHex());
 
                     // To publish Out Value.
-                    return new AElfConsensusHeaderInformation
+                    return new BytesValue{Value = new AElfConsensusHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = updatedRound,
                         Behaviour = behaviour,
-                    };
+                    }.ToByteString()};
                 case AElfConsensusBehaviour.TinyBlock:
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks = currentRound
                         .RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks.Add(1);
@@ -112,12 +113,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime =
                         currentBlockTime.ToTimestamp();
-                    return new AElfConsensusHeaderInformation
+                    return new BytesValue{Value = new AElfConsensusHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = currentRound,
                         Behaviour = behaviour
-                    };
+                    }.ToByteString()};
                 case AElfConsensusBehaviour.NextRound:
                     Assert(
                         GenerateNextRoundInformation(currentRound, currentBlockTime, out var nextRound),
@@ -125,12 +126,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks += 1;
                     Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
                     nextRound.ExtraBlockProducerOfPreviousRound = publicKey.ToHex();
-                    return new AElfConsensusHeaderInformation
+                    return new BytesValue{Value = new AElfConsensusHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = nextRound,
                         Behaviour = behaviour
-                    };
+                    }.ToByteString()};
                 case AElfConsensusBehaviour.NextTerm:
                     Assert(TryToGetMiningInterval(out var miningInterval), "Failed to get mining interval.");
                     var firstRoundOfNextTerm = GenerateFirstRoundOfNextTerm(publicKey.ToHex(), miningInterval);
@@ -141,19 +142,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         Round = firstRoundOfNextTerm,
                         Behaviour = behaviour
                     };
-                    return information;
+                    return new BytesValue{Value = information.ToByteString()};
                 default:
-                    return new AElfConsensusHeaderInformation();
+                    return new BytesValue();
             }
         }
 
-        public override TransactionList GenerateConsensusTransactions(AElfConsensusTriggerInformation input)
+        public override TransactionList GenerateConsensusTransactions(BytesValue input1)
         {
+            var input = new AElfConsensusTriggerInformation();
+            input.MergeFrom(input1.Value);
             // Some basic checks.
             Assert(input.PublicKey.Any(), "Data to request consensus information should contain public key.");
 
             var publicKey = input.PublicKey;
-            var consensusInformation = GetInformationToUpdateConsensus(input);
+            var consensusInformation = new AElfConsensusHeaderInformation();
+            consensusInformation.MergeFrom(GetInformationToUpdateConsensus(input1).Value);
             var round = consensusInformation.Round;
             var behaviour = consensusInformation.Behaviour;
             switch (behaviour)
@@ -204,8 +208,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        public override ValidationResult ValidateConsensusBeforeExecution(AElfConsensusHeaderInformation input)
+        public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input1)
         {
+            var input = new AElfConsensusHeaderInformation();
+            input.MergeFrom(input1.Value);
             var publicKey = input.SenderPublicKey;
 
             // Validate the sender.
@@ -278,8 +284,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new ValidationResult {Success = true};
         }
 
-        public override ValidationResult ValidateConsensusAfterExecution(AElfConsensusHeaderInformation input)
+        public override ValidationResult ValidateConsensusAfterExecution(BytesValue input1)
         {
+            var input = new AElfConsensusHeaderInformation();
+            input.MergeFrom(input1.Value);
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
                 var isContainPreviousInValue =

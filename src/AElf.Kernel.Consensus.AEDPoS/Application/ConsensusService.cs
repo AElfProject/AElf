@@ -15,7 +15,7 @@ namespace AElf.Kernel.Consensus.Application
 {
     internal class ConsensusService : IConsensusService
     {
-        private readonly IConsensusInformationGenerationService _consensusInformationGenerationService;
+        private readonly IConsensusExtraDataParsingService _consensusExtraDataParsingService;
         private readonly ConsensusControlInformation _consensusControlInformation;
         private readonly IConsensusScheduler _consensusScheduler;
         private readonly IReaderFactory _readerFactory;
@@ -26,12 +26,12 @@ namespace AElf.Kernel.Consensus.Application
 
         private DateTime _nextMiningTime;
 
-        public ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
+        public ConsensusService(IConsensusExtraDataParsingService consensusExtraDataParsingService,
             IConsensusScheduler consensusScheduler, ConsensusControlInformation consensusControlInformation,
             IReaderFactory readerFactory, ITriggerInformationProvider triggerInformationProvider,
             IBlockTimeProvider blockTimeProvider)
         {
-            _consensusInformationGenerationService = consensusInformationGenerationService;
+            _consensusExtraDataParsingService = consensusExtraDataParsingService;
             _consensusControlInformation = consensusControlInformation;
             _readerFactory = readerFactory;
             _triggerInformationProvider = triggerInformationProvider;
@@ -81,7 +81,7 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.fff}. Validate Before.");
 
             var validationResult = await _readerFactory.Create(chainContext).ValidateConsensusBeforeExecution
-                .CallAsync(_consensusInformationGenerationService.ParseHeaderExtraData(consensusExtraData));
+                .CallAsync(_consensusExtraDataParsingService.ParseHeaderExtraData(consensusExtraData));
 
             if (!validationResult.Success)
             {
@@ -100,7 +100,7 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.fff}. Validate After.");
 
             var validationResult = await _readerFactory.Create(chainContext).ValidateConsensusAfterExecution
-                .CallAsync(_consensusInformationGenerationService.ParseHeaderExtraData(consensusExtraData));
+                .CallAsync(_consensusExtraDataParsingService.ParseHeaderExtraData(consensusExtraData));
 
             if (!validationResult.Success)
             {

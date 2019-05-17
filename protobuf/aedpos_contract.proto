@@ -33,21 +33,7 @@ service AEDPoSContract {
     }
 
     // Views
-    rpc GetConsensusCommand (CommandInput) returns (ConsensusCommand) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetInformationToUpdateConsensus (AElfConsensusTriggerInformation) returns (AElfConsensusHeaderInformation) {
-        option (aelf.is_view) = true;
-    }
-    rpc GenerateConsensusTransactions (AElfConsensusTriggerInformation) returns (TransactionList) {
-        option (aelf.is_view) = true;
-    }
-    rpc ValidateConsensusBeforeExecution (AElfConsensusHeaderInformation) returns (ValidationResult) {
-        option (aelf.is_view) = true;
-    }
-    rpc ValidateConsensusAfterExecution (AElfConsensusHeaderInformation) returns (ValidationResult) {
-        option (aelf.is_view) = true;
-    }
+
     
     rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
         option (aelf.is_view) = true;
@@ -173,10 +159,6 @@ message AElfConsensusTriggerInformation {
     Hash random_hash = 2;// To calculate In Value.
     Hash previous_random_hash = 3;// Random hash of previous round for validation.
     AElfConsensusBehaviour behaviour = 4;
-}
-
-message CommandInput {
-    bytes PublicKey = 1;
 }
 
 message TermInfo {

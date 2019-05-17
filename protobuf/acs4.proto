@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package acs4;
+
+import "aelf_options.proto";
+import "core.proto";
+import "google/protobuf/wrappers.proto";
+
+option (aelf.identity) = "acs4";
+
+service ConsensusContract {
+    rpc GetConsensusCommand (google.protobuf.BytesValue) returns (ConsensusCommand) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetInformationToUpdateConsensus (google.protobuf.BytesValue) returns (google.protobuf.BytesValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GenerateConsensusTransactions (google.protobuf.BytesValue) returns (TransactionList) {
+        option (aelf.is_view) = true;
+    }
+    rpc ValidateConsensusBeforeExecution (google.protobuf.BytesValue) returns (ValidationResult) {
+        option (aelf.is_view) = true;
+    }
+    rpc ValidateConsensusAfterExecution (google.protobuf.BytesValue) returns (ValidationResult) {
+        option (aelf.is_view) = true;
+    }
+}

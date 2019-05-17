@@ -3,6 +3,7 @@ using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
 using Volo.Abp.Threading;
 using AElf.Contracts.Consensus.AEDPoS;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
@@ -18,7 +19,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         private AElfConsensusHint Hint => AElfConsensusHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
 
-        public ILogger<AEDPoSInformationGenerationService> Logger { get; set; }
+        public ILogger<AEDPoSExtraDataParsingService> Logger { get; set; }
 
         public AEDPoSTriggerInformationProvider(IAccountService accountService,
             ConsensusControlInformation controlInformation)
@@ -27,20 +28,20 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _controlInformation = controlInformation;
         }
 
-        public CommandInput GetTriggerInformationToGetConsensusCommand()
+        public BytesValue GetTriggerInformationToGetConsensusCommand()
         {
-            return new CommandInput {PublicKey = PublicKey};
+            return new BytesValue {Value = PublicKey};
         }
 
-        public AElfConsensusTriggerInformation GetTriggerInformationToGetExtraData()
+        public BytesValue GetTriggerInformationToGetExtraData()
         {
             if (_controlInformation.ConsensusCommand == null)
             {
-                return new AElfConsensusTriggerInformation
+                return new BytesValue{Value = new AElfConsensusTriggerInformation
                 {
                     PublicKey = PublicKey,
                     Behaviour = AElfConsensusBehaviour.UpdateValue
-                };
+                }.ToByteString()};
             }
 
             if (Hint.Behaviour == AElfConsensusBehaviour.UpdateValue ||
@@ -64,7 +65,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             };
         }
 
-        public AElfConsensusTriggerInformation GetTriggerInformationToGenerateConsensusTransactions()
+        public BytesValue GetTriggerInformationToGenerateConsensusTransactions()
         {
             if (_controlInformation.ConsensusCommand == null)
             {

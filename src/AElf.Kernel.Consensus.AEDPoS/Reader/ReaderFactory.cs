@@ -6,8 +6,8 @@ namespace AElf.Kernel.Consensus.AEDPoS
 {
     internal interface IReaderFactory
     {
-        AEDPoSContractContainer.AEDPoSContractStub Create(IChainContext chainContext);
-        AEDPoSContractContainer.AEDPoSContractStub Create(Hash blockHash, long blockHeight);
+        AEDPoSContractImplContainer.AEDPoSContractImplStub Create(IChainContext chainContext);
+        AEDPoSContractImplContainer.AEDPoSContractImplStub Create(Hash blockHash, long blockHeight);
     }
 
     internal class ReaderFactory : IReaderFactory
@@ -24,9 +24,9 @@ namespace AElf.Kernel.Consensus.AEDPoS
             _blockTimeProvider = blockTimeProvider;
         }
 
-        public AEDPoSContractContainer.AEDPoSContractStub Create(IChainContext chainContext)
+        public AEDPoSContractImplContainer.AEDPoSContractImplStub Create(IChainContext chainContext)
         {
-            return new AEDPoSContractContainer.AEDPoSContractStub
+            return new AEDPoSContractImplContainer.AEDPoSContractImplStub
             {
                 __factory = new MethodStubFactory(_transactionReadOnlyExecutionService,
                     _smartContractAddressService,
@@ -35,7 +35,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
             };
         }
 
-        public AEDPoSContractContainer.AEDPoSContractStub Create(Hash blockHash, long blockHeight)
+        public AEDPoSContractImplContainer.AEDPoSContractImplStub Create(Hash blockHash, long blockHeight)
         {
             return Create(new ChainContext
             {

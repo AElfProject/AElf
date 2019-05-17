@@ -8,7 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public partial class AEDPoSContract : AEDPoSContractContainer.AEDPoSContractBase
+    public partial class AEDPoSContract : AEDPoSContractImplContainer.AEDPoSContractImplBase
     {
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
         {

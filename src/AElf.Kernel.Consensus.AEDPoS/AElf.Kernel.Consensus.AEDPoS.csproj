@@ -32,13 +32,13 @@
       <Content Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
       </Content>
-      <Content Include="..\..\protobuf\aedpos_contract.proto">
-        <Link>Protobuf/Proto/aedpos_contract.proto</Link>
+      <Content Include="..\..\protobuf\aedpos_contract_impl.proto">
+        <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>
       </Content>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh aedpos_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat aedpos_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh aedpos_contract_impl.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat aedpos_contract_impl.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
