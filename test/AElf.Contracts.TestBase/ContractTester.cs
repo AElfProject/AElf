@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.Dividend;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -18,7 +17,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -26,6 +25,7 @@ using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -61,7 +61,7 @@ namespace AElf.Contracts.TestBase
         public string PublicKey => KeyPair.PublicKey.ToHex();
 
         public long TokenTotalSupply = 1000_000L;
-        public long InitialDividendToken = 200_000L;
+        public long InitialTreasuryAmount = 200_000L;
         public long InitialBalanceOfStarter = 800_000L;
 
         public ContractTester() : this(0, null)
@@ -86,7 +86,7 @@ namespace AElf.Contracts.TestBase
                         options.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
                     }
 
-                    options.Services.Configure<DPoSOptions>(o => 
+                    options.Services.Configure<ConsensusOptions>(o => 
                     {
                         var miners = new List<string>();
 
@@ -97,7 +97,6 @@ namespace AElf.Contracts.TestBase
 
                         o.InitialMiners = miners;
                         o.MiningInterval = 4000;
-                        o.IsBootMiner = true;
                         o.StartTimestamp = DateTime.UtcNow;
                     });
                     
@@ -108,15 +107,6 @@ namespace AElf.Contracts.TestBase
                             var mockService = new Mock<IAccountService>();
                             mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
                                 Task.FromResult(CryptoHelpers.SignWithPrivateKey(KeyPair.PrivateKey, data)));
-
-                            mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(),
-                                It.IsAny<byte[]>()
-                            )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
-                            {
-                                var recoverResult =
-                                    CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
-                                return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
-                            });
 
                             mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(KeyPair.PublicKey);
 
@@ -135,13 +125,6 @@ namespace AElf.Contracts.TestBase
                 var mockService = new Mock<IAccountService>();
                 mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
                     Task.FromResult(CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, data)));
-
-                mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()
-                )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
-                {
-                    var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
-                    return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
-                });
 
                 mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(keyPair.PublicKey);
 
@@ -176,15 +159,6 @@ namespace AElf.Contracts.TestBase
                         mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
                             Task.FromResult(CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, data)));
 
-                        mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(),
-                            It.IsAny<byte[]>()
-                        )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
-                        {
-                            var recoverResult =
-                                CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
-                            return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
-                        });
-
                         mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(keyPair.PublicKey);
 
                         return mockService.Object;
@@ -207,7 +181,7 @@ namespace AElf.Contracts.TestBase
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
             var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
-            var dposOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<DPoSOptions>>().Value;
+            var consensusOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ConsensusOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainOptions.ChainId,
@@ -215,9 +189,9 @@ namespace AElf.Contracts.TestBase
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<AEDPoSContract>(
                 ConsensusSmartContractAddressNameProvider.Name,
-                GenerateConsensusInitializationCallList(dposOptions));
+                GenerateConsensusInitializationCallList(consensusOptions));
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 
             return await osBlockchainNodeContextService.StartAsync(dto);
@@ -247,7 +221,7 @@ namespace AElf.Contracts.TestBase
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ConsensusContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract<AEDPoSContract>(
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList(initialMiners, miningInterval, startTimestamp));
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
@@ -255,36 +229,45 @@ namespace AElf.Contracts.TestBase
             return await osBlockchainNodeContextService.StartAsync(dto);
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList(DPoSOptions dposOptions)
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateConsensusInitializationCallList(ConsensusOptions consensusOptions)
         {
             var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
-                new Consensus.DPoS.InitialDPoSContractInput
+            consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
+                new InitialAElfConsensusContractInput
                 {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
-                    LockTokenForElection = 100_000
+                    IsTermStayOne = true
                 });
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
-                dposOptions.InitialMiners.ToMiners().GenerateFirstRoundOfNewTerm(dposOptions.MiningInterval,
-                    dposOptions.StartTimestamp.ToUniversalTime()));
+            consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
+                new MinerList
+                {
+                    PublicKeys =
+                    {
+                        consensusOptions.InitialMiners.Select(k => k.ToByteString())
+                    }
+                }.GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
+                    consensusOptions.StartTimestamp.ToUniversalTime()));
             return consensusMethodCallList;
         }
-        
+
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList(List<string> initialMiners,
-            int miningInterval, Timestamp startTimestamp)
+            int miningInterval, Timestamp startTimestamp, int timeEachTerm = 604800)
         {
             var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialDPoSContract),
-                new Consensus.DPoS.InitialDPoSContractInput
+            consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
+                new InitialAElfConsensusContractInput
                 {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    DividendsContractSystemName = DividendSmartContractAddressNameProvider.Name,
-                    LockTokenForElection = 100_000
+                    IsTermStayOne = true
                 });
-            var firstRound = initialMiners.ToMiners()
-                .GenerateFirstRoundOfNewTerm(miningInterval, startTimestamp.ToDateTime());
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus), firstRound);
+            consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
+                new MinerList
+                {
+                    PublicKeys =
+                    {
+                        initialMiners.Select(k => k.ToByteString())
+                    }
+                }.GenerateFirstRoundOfNewTerm(miningInterval,
+                    startTimestamp.ToDateTime()));
             return consensusMethodCallList;
         }
 
@@ -300,8 +283,19 @@ namespace AElf.Contracts.TestBase
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<AElf.Contracts.Consensus.DPoS.SideChain.ConsensusContract>(
-                ConsensusSmartContractAddressNameProvider.Name);
+            dto.InitializationSmartContracts.AddGenesisSmartContract<AEDPoSContract>(
+                ConsensusSmartContractAddressNameProvider.Name,
+                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+                {
+                    Value =
+                    {
+                        new SystemContractDeploymentInput.Types.SystemTransactionMethodCall
+                        {
+                            MethodName = nameof(AEDPoSContract.InitialAElfConsensusContract),
+                            Params = new InitialAElfConsensusContractInput {IsSideChain = true}.ToByteString()
+                        },
+                    }
+                });
             configureSmartContract?.Invoke(dto.InitializationSmartContracts);
 
             await osBlockchainNodeContextService.StartAsync(dto);
@@ -615,7 +609,7 @@ namespace AElf.Contracts.TestBase
             out long dividend, out long balanceOfStarter)
         {
             totalSupply = TokenTotalSupply;
-            dividend = InitialDividendToken;
+            dividend = InitialTreasuryAmount;
             balanceOfStarter = InitialBalanceOfStarter;
 
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
@@ -632,12 +626,12 @@ namespace AElf.Contracts.TestBase
                 TokenName = "elf token",
                 TotalSupply = TokenTotalSupply
             });
-            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
-            {
-                Symbol = "ELF",
-                Amount = InitialDividendToken,
-                ToSystemContractName = DividendSmartContractAddressNameProvider.Name
-            });
+//            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+//            {
+//                Symbol = "ELF",
+//                Amount = InitialTreasuryAmount,
+//                ToSystemContractName = ElectionSmartContractAddressNameProvider.Name
+//            });
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = "ELF",
@@ -652,7 +646,6 @@ namespace AElf.Contracts.TestBase
             });
             return list =>
             {
-                list.AddGenesisSmartContract<DividendContract>(DividendSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
                 list.AddGenesisSmartContract<ResourceContract>(ResourceSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract<FeeReceiverContract>(ResourceFeeReceiverSmartContractAddressNameProvider

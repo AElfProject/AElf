@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.CrossChain.Types\AElf.CrossChain.Types.csproj" />
       <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
@@ -21,12 +20,6 @@
       <None Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
       </None>
-        <None Include="..\..\protobuf\crosschain.proto">
-            <Link>Protobuf/Proto/crosschain.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\resource.proto">
-            <Link>Protobuf/Proto/resource.proto</Link>
-        </None>
         <None Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </None>
@@ -36,16 +29,13 @@
       <None Include="..\..\protobuf\cross_chain_contract.proto">
         <Link>Protobuf/Proto/cross_chain_contract.proto</Link>
       </None>
-      <None Include="..\..\protobuf\kernel.proto">
-        <Link>Protobuf/Proto/kernel.proto</Link>
-      </None>
       <None Include="..\..\protobuf\parliament_auth_contract.proto">
           <Link>Protobuf/Proto/parliament_auth_contract.proto</Link>
       </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh acs3.proto basic_contract_zero.proto token_contract.proto dpos_sidechain_contract.proto parliament_auth_contract.proto; ../../scripts/generate_contract_code.sh resource.proto cross_chain_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat acs3.proto basic_contract_zero.proto token_contract.proto dpos_sidechain_contract.proto parliament_auth_contract.proto &amp; ..\..\scripts\generate_contract_code.bat resource.proto cross_chain_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh acs3.proto basic_contract_zero.proto token_contract.proto aedpos_contract.proto parliament_auth_contract.proto; ../../scripts/generate_contract_code.sh cross_chain_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat acs3.proto basic_contract_zero.proto token_contract.proto aedpos_contract.proto parliament_auth_contract.proto &amp; ..\..\scripts\generate_contract_code.bat cross_chain_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

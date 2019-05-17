@@ -10,9 +10,9 @@ namespace AElf.Contracts.ParliamentAuth
         private List<Address> GetRepresentatives()
         {
             ValidateConsensusContract();
-            var miner = State.ConsensusContract.GetCurrentMiners.Call(new Empty());
-            var representatives = miner.MinerList.PublicKeys.Select(publicKey =>
-                Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey))).ToList();
+            var miner = State.ConsensusContract.GetCurrentMinerList.Call(new Empty());
+            var representatives = miner.PublicKeys.Select(publicKey =>
+                Address.FromPublicKey(publicKey.ToByteArray())).ToList();
             return representatives;
         }
 

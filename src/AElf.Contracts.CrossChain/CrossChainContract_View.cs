@@ -1,5 +1,3 @@
-using AElf.CrossChain;
-using AElf.Kernel;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -38,6 +36,7 @@ namespace AElf.Contracts.CrossChain
             //Api.Assert((parentRoot??Hash.Empty).Equals(rootCalculated), "Transaction verification Failed");
             return new BoolValue {Value = merkleTreeRoot.Equals(rootCalculated)};
         }
+        
         public override SInt32Value GetChainStatus(SInt32Value input)
         {
             var info = State.SideChainInfos[input.Value];
@@ -53,8 +52,12 @@ namespace AElf.Contracts.CrossChain
         }
 
         public override SInt64Value GetParentChainHeight(Empty input)
-        {
-            return new SInt64Value() {Value = State.CurrentParentChainHeight.Value};
+        {            
+            var parentChainHeight = State.CurrentParentChainHeight.Value;
+            return new SInt64Value()
+            {
+                Value = parentChainHeight == 0 ? State.CreationHeightOnParentChain.Value - 1 : parentChainHeight
+            }; // from parent chain height of creation
         }
 
         public override SInt32Value GetParentChainId(Empty input)
@@ -97,7 +100,9 @@ namespace AElf.Contracts.CrossChain
             if (State.ParentChainId.Value == 0)
                 return dict;
             var parentChainHeight = State.CurrentParentChainHeight.Value;
-            dict.IdHeightDict.Add(State.ParentChainId.Value, parentChainHeight);
+            
+            if(parentChainHeight == 0)
+                dict.IdHeightDict.Add(State.ParentChainId.Value, State.CreationHeightOnParentChain.Value - 1); // from parent chain height of creation
             return dict;
         }
         
@@ -123,17 +128,17 @@ namespace AElf.Contracts.CrossChain
             return info.Proposer;
         }
 
-        public override ChainInitializationContext GetChainInitializationContext(SInt32Value chainId)
+        public override ChainInitializationInformation GetChainInitializationContext(SInt32Value chainId)
         {
             var sideChainInfo = State.SideChainInfos[chainId.Value];
             Assert(sideChainInfo != null, "Side chain Not Found.");
             Assert(sideChainInfo.SideChainStatus > SideChainStatus.Review, "Incorrect side chain status.");
-            var res = new ChainInitializationContext
+            var res = new ChainInitializationInformation
             {
-                ParentChainHeightOfCreation = sideChainInfo.ParentChainHeightOfCreation,
+                CreationHeightOnParentChain = sideChainInfo.CreationHeightOnParentChain,
                 ChainId = chainId.Value,
                 Creator = sideChainInfo.Proposer,
-                CreatedTime = sideChainInfo.CreatedTime
+                CreationTimestamp = sideChainInfo.CreationTimestamp
             };
             ByteString consensusInformation = State.SideChainInitialConsensusInfo[chainId.Value].Value;
             res.ExtraInformation.Add(consensusInformation);

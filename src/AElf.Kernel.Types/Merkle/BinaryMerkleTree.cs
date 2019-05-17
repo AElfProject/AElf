@@ -75,7 +75,7 @@ namespace AElf.Kernel
             {
                 var left = Nodes[i++];
                 var right = Nodes[i++];
-                Nodes.Add(CalculateRootFromMultiHash(new[] {left, right}));
+                Nodes.Add(left.ComputeParentWith(right));
                 if (++newAdded != nodeToAdd)
                     continue;
 
@@ -131,13 +131,9 @@ namespace AElf.Kernel
             res.Path.AddRange(path);
             return res;
         }
-
-        public static Hash CalculateRootFromMultiHash(IEnumerable<Hash> hashList)
+        public static Hash ComputeParent(Hash left, Hash right)
         {
-            var res = hashList.OrderBy(b => b).Select(h => h.DumpByteArray())
-                .Aggregate(new byte[0], (rawBytes, bytes) => rawBytes.Concat(bytes).ToArray());
-
-            return Hash.FromRawBytes(res);
+            return left.ComputeParentWith(right);
         }
     }
 }

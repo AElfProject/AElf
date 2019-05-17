@@ -3,6 +3,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Blockchain.Helpers
 {
+    // TODO: It seems we never use this except test projects.
     public class GenesisBlockBuilder
     {
         public Block Block { get; set; }
@@ -13,7 +14,7 @@ namespace AElf.Kernel.Blockchain.Helpers
             {
                 Header = new BlockHeader
                 {
-                    Height = KernelConstants.GenesisBlockHeight,
+                    Height = Constants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
                     ChainId = chainId,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow),

@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContract.Domain
                     if (bestChainState.BlockHeight >= blockHeight)
                     {
                         //because we may clear history state
-                        throw new InvalidOperationException("cannot read history state");
+                        throw new InvalidOperationException($"cannot read history state, best chain state hash: {bestChainState.BlockHash.ToHex()}, key: {key}, block height: {blockHeight}, block hash{blockHash.ToHex()}");
                     }
                     else
                     {
@@ -151,7 +151,7 @@ namespace AElf.Kernel.SmartContract.Domain
 
                 throw new InvalidOperationException($"cannot get block state of {blockStateHash}");
             }
-
+    
             if (chainStateInfo.BlockHash == null || chainStateInfo.BlockHash == blockState.PreviousHash)
             {
                 chainStateInfo.Status = ChainStateMergingStatus.Merging;

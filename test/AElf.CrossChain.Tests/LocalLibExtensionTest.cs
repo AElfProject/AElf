@@ -23,7 +23,7 @@ namespace AElf.CrossChain
         [Fact]
         public async Task GetLibHeight_Test()
         {
-            var lastIrreversibleBlockDto = await _blockchainService.GetLibHashAndHeight();
+            var lastIrreversibleBlockDto = await _blockchainService.GetLibHashAndHeightAsync();
             lastIrreversibleBlockDto.BlockHeight.ShouldBe(5);
         }
 

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
@@ -8,7 +9,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
+    internal class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
 
@@ -21,7 +22,7 @@ namespace AElf.CrossChain
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
         {
-            if (blockHeader.Height == KernelConstants.GenesisBlockHeight)
+            if (blockHeader.Height == Constants.GenesisBlockHeight)
                 return ByteString.Empty;
 
             //Logger.LogTrace($"Get new cross chain data with hash {blockHeader.PreviousBlockHash}, height {blockHeader.Height - 1}");

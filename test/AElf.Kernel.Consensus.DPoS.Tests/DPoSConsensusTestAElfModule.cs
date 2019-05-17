@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.Consensus.DPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
@@ -16,13 +16,13 @@ using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Kernel.Consensus.AElfConsensus.Application;
 
-namespace AElf.Kernel.Consensus.DPoS
+namespace AElf.Kernel.Consensus.AElfConsensus
 {
     [DependsOn(
         typeof(KernelCoreTestAElfModule),
-        typeof(DPoSConsensusAElfModule),
+        typeof(AElfConsensusAElfModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule)
     )]
@@ -39,13 +39,6 @@ namespace AElf.Kernel.Consensus.DPoS
                 var mockService = new Mock<IAccountService>();
                 mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
                     Task.FromResult(CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
-
-                mockService.Setup(a => a.VerifySignatureAsync(It.IsAny<byte[]>(), It.IsAny<byte[]>(), It.IsAny<byte[]>()
-                )).Returns<byte[], byte[], byte[]>((signature, data, publicKey) =>
-                {
-                    var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
-                    return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
-                });
 
                 mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(ecKeyPair.PublicKey);
 
@@ -64,7 +57,7 @@ namespace AElf.Kernel.Consensus.DPoS
                 return consensusService.Object;
             });
             context.Services.AddTransient(o => Mock.Of<ConsensusControlInformation>());
-            Configure<DPoSOptions>(o =>
+            Configure<ConsensusOptions>(o =>
             {
                 o.InitialMiners = new List<string>()
                 {
@@ -72,7 +65,6 @@ namespace AElf.Kernel.Consensus.DPoS
                 };
                 o.InitialTermNumber = 1;
                 o.MiningInterval = 2000;
-                o.IsBootMiner = true;
             });
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
             context.Services.AddTransient(o =>
@@ -100,14 +92,14 @@ namespace AElf.Kernel.Consensus.DPoS
 
                 return mockService.Object;
             });
-            context.Services.AddTransient<IConsensusInformationGenerationService, DPoSInformationGenerationService>();
+            context.Services.AddTransient<IConsensusInformationGenerationService, AElfConsensusInformationGenerationService>();
         }
     }
     
     [DependsOn(
         typeof(KernelTestAElfModule),
         typeof(KernelCoreWithChainTestAElfModule),
-        typeof(DPoSConsensusAElfModule))]
+        typeof(AElfConsensusAElfModule))]
     public class LibTestModule : AElfModule
     {
     }

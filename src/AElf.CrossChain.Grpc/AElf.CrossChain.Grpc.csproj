@@ -6,10 +6,13 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;0436</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
         <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
-        <ProjectReference Include="..\AElf.CrossChain.Types\AElf.CrossChain.Types.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -22,7 +25,7 @@
         <PackageReference Include="Grpc" Version="1.19.0" />
         <PackageReference Include="Grpc.Tools" Version="1.19.0" />
     </ItemGroup>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+    <Target Name="Gen_rpc" BeforeTargets="BeforeBuild">
         <ItemGroup>
             <Protobuf ProtoRoot="../../protobuf" Include="header_info.proto" OutputDir="./Grpc/Protobuf/Generated" />
         </ItemGroup>

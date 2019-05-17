@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs3;
-using AElf.Contracts.Consensus.DPoS.SideChain;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
@@ -35,9 +35,7 @@ namespace AElf.Contracts.CrossChain
 
         private Hash ComputeRootWithMultiHash(IEnumerable<Hash> nodes)
         {
-            var binaryMerkleTree = new BinaryMerkleTree();
-            binaryMerkleTree.AddNodes(nodes);
-            return binaryMerkleTree.ComputeRootHash();
+            return nodes.ComputeRootHash();
         }
         
         /// <summary>
@@ -133,7 +131,7 @@ namespace AElf.Contracts.CrossChain
         private MinerListWithRoundNumber GetCurrentMiners()
         {
             ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
-            var miners = State.ConsensusContract.GetCurrentMiners.Call(new Empty());
+            var miners = State.ConsensusContract.GetCurrentMinerListWithRoundNumber.Call(new Empty());
             return miners;
         }
 
@@ -141,9 +139,9 @@ namespace AElf.Contracts.CrossChain
         private void UpdateCurrentMiners(ByteString bytes)
         {
             ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
-            State.ConsensusContract.UpdateMainChainConsensus.Send(new ConsensusInformation{Bytes = bytes});
+            State.ConsensusContract.UpdateConsensusInformation.Send(new ConsensusInformation {Bytes = bytes});
         }
-        
+
         private Hash GetParentChainMerkleTreeRoot(long parentChainHeight)
         {
             return State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight];

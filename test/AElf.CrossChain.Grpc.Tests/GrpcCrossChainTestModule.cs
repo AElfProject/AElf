@@ -21,9 +21,9 @@ namespace AElf.CrossChain.Grpc
             Configure<GrpcCrossChainConfigOption>(option =>
             {
                 option.LocalServerPort = 5001;
-                option.LocalServerIP = "127.0.0.1";
-                option.RemoteParentChainNodeIp = "127.0.0.1";
-                option.RemoteParentChainNodePort = 5000;
+                option.LocalServerHost = "127.0.0.1";
+                option.RemoteParentChainServerHost = "127.0.0.1";
+                option.RemoteParentChainServerPort = 5000;
             });
             
             Configure<ChainOptions>(option =>

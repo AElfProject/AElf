@@ -71,7 +71,7 @@ namespace AElf.Contracts.MultiToken
             Assert(input.To != null, "To address not filled.");
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
-                "Sender is not allowed to issue this token.");
+                $"Sender is not allowed to issue token {input.Symbol}.");
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
@@ -162,7 +162,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         public override Empty Lock(LockInput input)
-        {
+        { 
             AssertLockAddress(input.Symbol, input.To);
             AssertValidToken(input.Symbol, input.Amount);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.LockId.Value).ToArray());
@@ -294,13 +294,13 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetFeePoolAddress(Hash dividendContractSystemName)
+        public override Empty SetFeePoolAddress(Hash feePoolContractSystemName)
         {
-            var dividendContractAddress =
-                State.BasicContractZero.GetContractAddressByName.Call(dividendContractSystemName);
+            var feePoolAddress =
+                State.BasicContractZero.GetContractAddressByName.Call(feePoolContractSystemName);
             var notSet = State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
             Assert(notSet, "Fee pool address already set.");
-            State.FeePoolAddress.Value = dividendContractAddress;
+            State.FeePoolAddress.Value = feePoolAddress;
             return new Empty();
         }
 

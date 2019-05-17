@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.DPoS.Application;
+using AElf.Kernel.Consensus.AElfConsensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.TestBase;
 using Shouldly;
 using Xunit;
 
-namespace AElf.Kernel.Consensus.DPoS
+namespace AElf.Kernel.Consensus.AElfConsensus
 {
     public class IrreversibleBlockDiscoveryServiceTests : AElfIntegratedTest<LibTestModule>
     {

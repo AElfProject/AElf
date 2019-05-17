@@ -72,6 +72,17 @@ namespace AElf.OS.Node.Application
             });
         }
 
+        public static void Add(this SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList, string methodName,
+            ByteString input)
+        {
+            systemTransactionMethodCallList.Value.Add(
+                new SystemContractDeploymentInput.Types.SystemTransactionMethodCall()
+                {
+                    MethodName = methodName,
+                    Params = input ?? ByteString.Empty
+                });
+        }
+
         public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
             Hash name, Action<SystemContractDeploymentInput.Types.SystemTransactionMethodCallList> action)
         {

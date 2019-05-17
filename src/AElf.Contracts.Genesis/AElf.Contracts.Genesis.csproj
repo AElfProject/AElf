@@ -32,7 +32,7 @@
         </ItemGroup>
     </Target>
     <Target Name="CopyContractDll" AfterTargets="AfterBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll $(SolutionDir)/test/AElf.Runtime.CSharp.Tests/contracts"/>
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll $(SolutionDir)\test\AElf.Runtime.CSharp.Tests\contracts"/>
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll ../../test/AElf.Runtime.CSharp.Tests/contracts"/>
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll ..\..\test\AElf.Runtime.CSharp.Tests\contracts"/>
     </Target>
 </Project>

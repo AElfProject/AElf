@@ -25,7 +25,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(from != to, "Can't do transfer to sender itself.");
             var balanceOfSender = State.Balances[from][symbol];
-            Assert(balanceOfSender >= amount, $"Insufficient balance.");
+            Assert(balanceOfSender >= amount, $"Insufficient balance. {symbol}: {balanceOfSender} / {amount}");
             var balanceOfReceiver = State.Balances[to][symbol];
             State.Balances[from][symbol] = balanceOfSender.Sub(amount);
             State.Balances[to][symbol] = balanceOfReceiver.Add(amount);
@@ -43,6 +43,7 @@ namespace AElf.Contracts.MultiToken
         {
             var symbolState = State.LockWhiteLists[symbol];
             Assert(symbolState != null && symbolState[address], "Not in white list.");
+            Assert(symbolState != null && symbolState[Context.Sender], "Not in white list.");
         }
 
         private void RegisterTokenInfo(TokenInfo tokenInfo)

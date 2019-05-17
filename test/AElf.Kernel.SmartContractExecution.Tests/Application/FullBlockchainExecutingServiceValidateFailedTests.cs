@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Infrastructure;
 using Shouldly;
 using Xunit;
 
@@ -27,27 +28,38 @@ namespace AElf.Kernel.SmartContractExecution.Application
         public async Task ExecuteBlocksAttachedToLongestChain_ValidateFailed()
         {
             var chain = await _blockchainService.GetChainAsync();
+            var bestChainHeight = chain.BestChainHeight;
+            var bestChainHash = chain.BestChainHash;
             
             var transactions = new List<Transaction> { _kernelTestHelper.GenerateTransaction() };
-            var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash, transactions);
+            
+            var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash,
+                transactions);
             
             var blckWithTrx = new BlockWithTransactions {Header = newBlock.Header};
             blckWithTrx.Transactions.AddRange(transactions);
             await _blockchainService.AddBlockWithTransactionsAsync(blckWithTrx);
             var status = await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
+            
+            chain = await _blockchainService.GetChainAsync();
+            chain.LongestChainHash.ShouldBe(newBlock.GetHash());
+            chain.LongestChainHeight.ShouldBe(newBlock.Height);
+            chain.Branches.ShouldContainKey(newBlock.GetHash().ToStorageKey());
+            
             var attachResult =
                 await _fullBlockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
             
-            attachResult.Count.ShouldBe(1);
-            attachResult.Last().Height.ShouldBe(16);
-            attachResult.Last().BlockHash.ShouldBe(newBlock.GetHash());
+            attachResult.ShouldBeNull();
 
             chain = await _blockchainService.GetChainAsync();
             var newBlockLink = await _chainManager.GetChainBlockLinkAsync(newBlock.GetHash());
             
             newBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionFailed);
-            chain.BestChainHash.ShouldBe(newBlock.Header.PreviousBlockHash);
-            chain.BestChainHeight.ShouldBe(15);
+            chain.BestChainHash.ShouldBe(bestChainHash);
+            chain.BestChainHeight.ShouldBe(bestChainHeight);
+            chain.LongestChainHash.ShouldBe(bestChainHash);
+            chain.LongestChainHeight.ShouldBe(bestChainHeight);
+            chain.Branches.ShouldNotContainKey(newBlock.GetHash().ToStorageKey());
         }
     }
 }

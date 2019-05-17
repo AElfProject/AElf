@@ -31,9 +31,9 @@ namespace AElf.Kernel.SmartContractExecution
             {
                 var mockService = new Mock<ITransactionExecutingService>();
                 mockService.Setup(m => m.ExecuteAsync(It.IsAny<BlockHeader>(), It.IsAny<List<Transaction>>(),
-                        It.IsAny<CancellationToken>(), It.IsAny<bool>()))
+                        It.IsAny<CancellationToken>(), It.IsAny<bool>(), It.IsAny<BlockStateSet>()))
                     .Returns<BlockHeader, List<Transaction>,
-                        CancellationToken,bool>((blockHeader, transactions, cancellationToken, throwException) =>
+                        CancellationToken,bool, BlockStateSet>((blockHeader, transactions, cancellationToken, throwException, blockStateSet) =>
                     {
                         var returnSets = new List<ExecutionReturnSet>();
 
@@ -117,7 +117,7 @@ namespace AElf.Kernel.SmartContractExecution
                     .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
                     {
                         Block result;
-                        if (blockHeader.Height == KernelConstants.GenesisBlockHeight)
+                        if (blockHeader.Height == Constants.GenesisBlockHeight)
                         {
                             result = new Block {Header = blockHeader};
                         }
@@ -151,7 +151,7 @@ namespace AElf.Kernel.SmartContractExecution
                 mockProvider.Setup(m => m.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>()))
                     .ReturnsAsync(true);
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
-                    .Returns<IBlock>((block) => Task.FromResult(block.Header.Height == KernelConstants.GenesisBlockHeight));
+                    .Returns<IBlock>((block) => Task.FromResult(block.Header.Height == Constants.GenesisBlockHeight));
 
                 return mockProvider.Object;
             });

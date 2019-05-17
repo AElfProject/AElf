@@ -1,4 +1,3 @@
-using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using Google.Protobuf.WellKnownTypes;
@@ -37,6 +36,7 @@ namespace AElf.Contracts.CrossChain
         public MappedState<long, MerklePath> TxRootMerklePathInParentChain { get; set; }
         public Int64State CurrentParentChainHeight { get; set; }
         public Int32State ParentChainId { get; set; }
+        public Int64State CreationHeightOnParentChain { get; set; }
         public MappedState<long, Hash> ParentChainTransactionStatusMerkleTreeRoot { get; set; }
         #endregion
     }
