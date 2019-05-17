@@ -36,12 +36,12 @@
         <None Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf/Proto/acs3.proto</Link>
         </None>
-        <None Include="..\..\protobuf\dpos_contract.proto">
-            <Link>Protobuf/Proto/dpos_contract.proto</Link>
+        <None Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
         </None>
-        <Content Include="..\..\protobuf\basic_contract_zero.proto">
+        <None Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Protobuf\Generated" />
