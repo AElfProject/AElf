@@ -307,7 +307,7 @@ namespace AElf.Contracts.ParliamentAuth
 //            return value >= min && value <= max;
 //        }
 
-        public static Round GenerateFirstRoundOfNewTerm(this Miners miners, int miningInterval,
+        public static Round GenerateFirstRoundOfNewTerm(this MinerList miners, int miningInterval,
             DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var dict = new Dictionary<string, int>();
@@ -386,12 +386,12 @@ namespace AElf.Contracts.ParliamentAuth
 //            return lockExpiredAge <= currentAge;
 //        }
 
-        public static Miners ToMiners(this List<string> minerPublicKeys, long termNumber = 0)
+        public static MinerList ToMiners(this List<string> minerPublicKeys, long termNumber = 0)
         {
-            return new Miners
+            return new MinerList()
             {
                 PublicKeys = {minerPublicKeys.Select(k => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(k)))},
-                TermNumber = termNumber
+//                TermNumber = termNumber
             };
         }
 //

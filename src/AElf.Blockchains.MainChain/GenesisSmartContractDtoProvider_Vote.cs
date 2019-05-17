@@ -5,10 +5,6 @@ using AElf.Contracts.Vote;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
-using AElf.Contracts.Vote;
-using AElf.Kernel;
-using AElf.Kernel.Token;
-using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.MainChain
 {

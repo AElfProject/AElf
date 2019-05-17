@@ -9,7 +9,7 @@ namespace AElf.Contracts.TestBase
 {
     internal static class BasicExtensions
     {
-        public static Round GenerateFirstRoundOfNewTerm(this Miners miners, int miningInterval,
+        public static Round GenerateFirstRoundOfNewTerm(this MinerList miners, int miningInterval,
             DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var dict = new Dictionary<string, int>();

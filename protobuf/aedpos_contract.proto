@@ -66,7 +66,7 @@ service AEDPoSContract {
     rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentTermNumber (google.protobuf.Empty) returns (SInt64Value) {
+    rpc GetCurrentTermNumber (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
 }
