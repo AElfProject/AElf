@@ -289,7 +289,7 @@ namespace AElf.Contracts.Election
                 LockTime = lockSeconds,
                 VoteTimestamp = votingRecord.VoteTimestamp,
                 WithdrawTimestamp = votingRecord.WithdrawTimestamp,
-                UnlockTimestamp = (votingRecord.VoteTimestamp + new Duration{Seconds = lockSeconds}).ToDateTime().ToTimestamp(),
+                UnlockTimestamp = votingRecord.VoteTimestamp.ToSafeDateTime().AddSeconds(lockSeconds).ToTimestamp(),
                 IsWithdrawn = votingRecord.IsWithdrawn
             };
         }
