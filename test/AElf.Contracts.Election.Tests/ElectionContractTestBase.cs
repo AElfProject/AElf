@@ -15,6 +15,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -301,8 +302,8 @@ namespace AElf.Contracts.Election
                     ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    MaximumLockTime = 1080,
-                    MinimumLockTime = 90,
+                    MaximumLockTime = 1080 * 60 * 60 * 24,
+                    MinimumLockTime = 90 * 60 * 60 * 24,
                 });
 
             return electionMethodCallList;
@@ -321,10 +322,10 @@ namespace AElf.Contracts.Election
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     TimeEachTerm = ConsensusOption.TimeEachTerm
                 });
-            var miners = new Miners
+            var miners = new MinerList
             {
                 PublicKeys =
-                    {ConsensusOption.InitialMiners.Select(p => ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p)))}
+                    {ConsensusOption.InitialMiners.Select(p => p.ToByteString())}
             };
             consensusMethodList.Add(nameof(AEDPoSContract.FirstRound),
                 miners.GenerateFirstRoundOfNewTerm(ConsensusOption.MiningInterval,
@@ -337,7 +338,7 @@ namespace AElf.Contracts.Election
             var miner = GetAEDPoSContractStub(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             var victories = await ElectionContractStub.GetVictories.CallAsync(new Empty());
-            var miners = new Miners
+            var miners = new MinerList
             {
                 PublicKeys =
                 {
@@ -406,8 +407,8 @@ namespace AElf.Contracts.Election
             {
                 MiningInterval = 4000,
                 InitialMiners = InitialMinersKeyPairs.Select(k => k.PublicKey.ToHex()).ToList(),
-                StartTimestamp = StartTimestamp,
-                TimeEachTerm = 7
+                StartTimestamp = StartTimestamp.ToDateTime(),
+                TimeEachTerm = 604800
             };
         }
     }

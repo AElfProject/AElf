@@ -322,15 +322,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
         }
 
-        public bool IsTimeToChangeTerm(Round previousRound, Timestamp blockchainStartTime,
-            long termNumber, int timeEachTerm, TimeUnit timeUnit = TimeUnit.Days)
+        public bool IsTimeToChangeTerm(Round previousRound, Timestamp blockchainStartTimestamp,
+            long termNumber, long timeEachTerm)
         {
             var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
-            var minimumCount = (int) (minersCount * ((decimal) 2 / 3)) + 1;
+            var minimumCount = minersCount.Mul(2).Div(3).Add(1);
             var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null)
                 .Select(m => m.ActualMiningTime)
-                .Count(actual =>
-                    IsTimeToChangeTerm(blockchainStartTime, actual, termNumber, timeEachTerm, timeUnit));
+                .Count(actualMiningTimestamp =>
+                    IsTimeToChangeTerm(blockchainStartTimestamp, actualMiningTimestamp, termNumber, timeEachTerm));
             return approvalsCount >= minimumCount;
         }
 
@@ -346,19 +346,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="termNumber"></param>
         /// <param name="blockProducedTimestamp"></param>
         /// <param name="timeEachTerm"></param>
-        /// <param name="timeUnit"></param>
         /// <returns></returns>
         private bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp,
-            long termNumber, int timeEachTerm, TimeUnit timeUnit = TimeUnit.Days)
+            long termNumber, long timeEachTerm)
         {
-            if (timeUnit == TimeUnit.Days)
-            {
-                return (blockProducedTimestamp.ToSafeDateTime() - blockchainStartTimestamp).TotalMilliseconds.Div(SafeTimeSpan.MsPerDay) /
-                       timeEachTerm != termNumber - 1;
-            }
-            
-            return (blockProducedTimestamp.ToSafeDateTime() - blockchainStartTimestamp).TotalMilliseconds.Div(SafeTimeSpan.MsPerMinute) /
-                   timeEachTerm != termNumber - 1;
+            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(timeEachTerm) != termNumber - 1;
         }
 
         private byte[] GetCheckableRound(bool isContainPreviousInValue = true)

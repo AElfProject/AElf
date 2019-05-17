@@ -8,7 +8,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class Round
     {
-        public bool GenerateNextRoundInformation(Timestamp dateTime, Timestamp blockchainStartTimestamp, out Round nextRound)
+        public bool GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp, out Round nextRound)
         {
             nextRound = new Round();
 
@@ -25,9 +25,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
             else
             {
-                nextRound.BlockchainAge = 
-                    (dateTime.ToSafeDateTime() - blockchainStartTimestamp).TotalMilliseconds.Div(SafeTimeSpan.MsPerMinute);
-                // TODO: Change to TotalDays after testing.
+                nextRound.BlockchainAge = (currentBlockTimestamp - blockchainStartTimestamp).Seconds;
             }
 
             // Set next round miners' information of miners who successfully mined during this round.
@@ -38,7 +36,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKey = minerInRound.PublicKey,
                     Order = order,
-                    ExpectedMiningTime = dateTime.ToSafeDateTime().AddMilliseconds(miningInterval.Mul(order)).ToTimestamp(),
+                    ExpectedMiningTime = currentBlockTimestamp +
+                                         new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
                     PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots
@@ -56,7 +55,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKey = minersNotMinedCurrentRound[i].PublicKey,
                     Order = order,
-                    ExpectedMiningTime = dateTime.ToSafeDateTime().AddMilliseconds(miningInterval.Mul(order)).ToTimestamp(),
+                    ExpectedMiningTime = currentBlockTimestamp +
+                                         new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
                     PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots + 1
