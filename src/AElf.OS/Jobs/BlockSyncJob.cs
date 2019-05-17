@@ -19,7 +19,7 @@ namespace AElf.OS.Jobs
     {
         private const int BlockSyncJobLimit = 10;
         
-        private readonly TimeSpan BlockSyncJobAgeLimit = TimeSpan.FromSeconds(0.5);
+        private readonly TimeSpan _blockSyncJobAgeLimit = TimeSpan.FromSeconds(0.5);
 
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
@@ -68,14 +68,22 @@ namespace AElf.OS.Jobs
                     return;
                 }
                 
+                if (_networkSyncStateProvider.BlockSyncJobEnqueueTime != null
+                    && DateTime.UtcNow - _networkSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime() >
+                    _blockSyncJobAgeLimit)
+                {
+                    Logger.LogWarning($"Queue is too busy, block sync job enqueue timestamp: {_networkSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime()}");
+                    return;
+                }
+                
                 var syncFromBestChainResult = await SyncBlocksAsync(chain.BestChainHash, chain.BestChainHeight,
                     args.BlockHash, args.BlockHeight, args.SuggestedPeerPubKey);
 
-                if (!syncFromBestChainResult)
+                if (syncFromBestChainResult == 0 && args.BlockHeight > chain.LongestChainHeight)
                 {
                     Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
-                    await SyncBlocksAsync(chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight, args.BlockHash,
-                        args.BlockHeight, args.SuggestedPeerPubKey);
+                    await SyncBlocksAsync(chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
+                        args.BlockHash, args.BlockHeight, args.SuggestedPeerPubKey);
                 }
             }
 
@@ -102,63 +110,43 @@ namespace AElf.OS.Jobs
                 KernelConstants.UpdateChainQueueName);
         }
 
-        private async Task<bool> SyncBlocksAsync(Hash firstBlockHash, long firstBlockHeight, Hash targetBlockHash, long
+        private async Task<int> SyncBlocksAsync(Hash previousBlockHash, long previousBlockHeight, Hash targetBlockHash, long
             targetBlockHeight, string suggestedPeerPubKey)
         {
-            Logger.LogDebug($"Trigger sync blocks from peers, first block height: {firstBlockHeight}, first block hash: {firstBlockHash}");
-            
-            if (_networkSyncStateProvider.BlockSyncJobEnqueueTime != null
-                && DateTime.UtcNow - _networkSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime() >
-                BlockSyncJobAgeLimit)
-            {
-                Logger.LogWarning($"Queue is to busy, block sync job enqueue timestamp: {_networkSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime()}");
-                return true;
-            }
+            Logger.LogDebug($"Trigger sync blocks from peers, previous block height: {previousBlockHeight}, previous block hash: {previousBlockHash}");
 
-            var blockHash = firstBlockHash;
-            var blockHeight = firstBlockHeight;
+            var syncBlockCount = 0;
+            var lastDownloadBlockHash = previousBlockHash;
+            var lastDownloadBlockHeight = previousBlockHeight;
             while (true)
             {
                 // Limit block sync job count, control memory usage
                 var chain = await _blockchainService.GetChainAsync();
-                if (chain.LongestChainHeight <= blockHeight - BlockSyncJobLimit)
+                if (chain.LongestChainHeight <= lastDownloadBlockHeight - BlockSyncJobLimit)
                 {
                     Logger.LogWarning($"Pause sync task and wait for synced block to be processed, best chain height: {chain.BestChainHeight}");
                     break;
                 }
 
-                Logger.LogDebug($"Request blocks start with {blockHash}");
+                Logger.LogDebug($"Request blocks start with {lastDownloadBlockHash}");
 
-                var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, _networkOptions.BlockIdRequestCount, suggestedPeerPubKey);
+                var blocks = await _networkService.GetBlocksAsync(lastDownloadBlockHash, lastDownloadBlockHeight, _networkOptions.BlockIdRequestCount, suggestedPeerPubKey);
 
                 if (blocks == null || !blocks.Any())
                 {
-                    if (targetBlockHeight > blockHeight && targetBlockHeight > chain.LongestChainHeight)
-                    {
-                        return false;
-                    }
-
                     Logger.LogDebug($"No blocks returned, current chain height: {chain.LongestChainHeight}.");
                     break;
                 }
 
-                Logger.LogDebug($"Received [{blocks.First()},...,{blocks.Last()}] ({blocks.Count})");
-
-                if (blocks.First().Header.PreviousBlockHash != blockHash)
+                if (blocks.First().Header.PreviousBlockHash != lastDownloadBlockHash)
                 {
-                    Logger.LogError($"Current job hash : {blockHash}");
+                    Logger.LogError($"Current job hash : {lastDownloadBlockHash}");
                     throw new InvalidOperationException(
-                        $"Previous block not match previous {blockHash}, network back {blocks.First().Header.PreviousBlockHash}");
+                        $"Previous block not match previous {lastDownloadBlockHash}, network back {blocks.First().Header.PreviousBlockHash}");
                 }
 
                 foreach (var block in blocks)
                 {
-                    if (block == null)
-                    {
-                        Logger.LogWarning($"Get null block from peer, request block start: {blockHash}");
-                        break;
-                    }
-
                     Logger.LogDebug(
                         $"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
                     
@@ -176,20 +164,16 @@ namespace AElf.OS.Jobs
                             }
                         },
                         KernelConstants.UpdateChainQueueName);
-                }
 
-                var peerBestChainHeight = await _networkService.GetBestChainHeightAsync(suggestedPeerPubKey);
-                if (blocks.Last().Height >= peerBestChainHeight)
-                {
-                    break;
+                    syncBlockCount++;
                 }
 
                 var lastBlock = blocks.Last();
-                blockHash = lastBlock.GetHash();
-                blockHeight = lastBlock.Height;
+                lastDownloadBlockHash = lastBlock.GetHash();
+                lastDownloadBlockHeight = lastBlock.Height;
             }
 
-            return true;
+            return syncBlockCount;
         }
     }
 }
