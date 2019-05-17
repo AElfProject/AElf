@@ -2,6 +2,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <ItemGroup>
         <Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj"/>
+        <Contract Include="..\..\src\AElf.Contracts.Election\AElf.Contracts.Election.csproj"/>
+        <Contract Include="..\..\src\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj"/>
+        <Contract Include="..\..\src\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj"/>
         <Contract Include="..\..\src\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj"/>
         <Contract Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj"/>
         <Contract Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj"/>
