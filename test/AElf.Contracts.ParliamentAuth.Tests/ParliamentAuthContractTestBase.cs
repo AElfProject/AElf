@@ -16,6 +16,7 @@ using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 
@@ -31,17 +32,19 @@ namespace AElf.Contracts.ParliamentAuth
         protected byte[] ParliamentAuthCode => Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
         protected byte[] DPoSConsensusCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
         
+        protected DateTime BlockchainStartTimestamp => DateTime.Parse("2019-01-01 00:00:00.000").ToUniversalTime();
+
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected ECKeyPair TesterKeyPair => SampleECKeyPairs.KeyPairs[MinersCount+1];
+        protected ECKeyPair TesterKeyPair => SampleECKeyPairs.KeyPairs[MinersCount + 1];
         protected List<ECKeyPair> InitialMinersKeyPairs => SampleECKeyPairs.KeyPairs.Take(MinersCount).ToList();
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
         protected Address Tester => Address.FromPublicKey(TesterKeyPair.PublicKey);
-        
+
         protected Address TokenContractAddress { get; set; }
         protected Address ConsensusContractAddress { get; set; }
         protected Address ParliamentAuthContractAddress { get; set; }
         protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
-        
+
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
@@ -49,8 +52,13 @@ namespace AElf.Contracts.ParliamentAuth
         internal AEDPoSContractContainer.AEDPoSContractStub ConsensusContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub { get; set; }
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub OtherParliamentAuthContractStub { get; set; }
-        
+
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub OtherParliamentAuthContractStub
+        {
+            get;
+            set;
+        }
+
         protected void InitializeContracts()
         {
 //            BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
@@ -98,7 +106,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             return GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, keyPair);
         }
-        
+
         internal AEDPoSContractContainer.AEDPoSContractStub GetConsensusContractTester(ECKeyPair keyPair)
         {
             return GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress, keyPair);
@@ -109,9 +117,11 @@ namespace AElf.Contracts.ParliamentAuth
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractTester(ECKeyPair keyPair)
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractTester(
+            ECKeyPair keyPair)
         {
-            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress, keyPair);
+            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress,
+                keyPair);
         }
 
         private async Task InitializationParliamentAuth()

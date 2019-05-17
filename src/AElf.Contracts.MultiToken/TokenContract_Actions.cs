@@ -163,7 +163,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         public override Empty Lock(LockInput input)
-        {
+        { 
             AssertLockAddress(input.Symbol, input.To);
             AssertValidToken(input.Symbol, input.Amount);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.LockId.Value).ToArray());

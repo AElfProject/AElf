@@ -54,7 +54,7 @@ namespace AElf.Contracts.Election
             {
                 CandidatePublicKey = candidatePublicKey,
                 Amount = amount,
-                EndTimestamp = DateTime.UtcNow.ToUniversalTime().AddDays(lockTime).ToTimestamp()
+                EndTimestamp = DateTime.UtcNow.ToUniversalTime().AddSeconds(lockTime).ToTimestamp()
             })).TransactionResult;
         }
         

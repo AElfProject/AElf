@@ -24,21 +24,21 @@
       <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <Content Include="..\..\protobuf\acs3.proto">
+        <None Include="..\..\protobuf\acs3.proto">
           <Link>Protobuf/Proto/acs3.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\association_auth_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\association_auth_contract.proto">
           <Link>Protobuf/Proto/association_auth_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\common.proto">
+        </None>
+        <None Include="..\..\protobuf\common.proto">
             <Link>Protobuf/Proto/common.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\aelf_options.proto">
+        </None>
+        <None Include="..\..\protobuf\aelf_options.proto">
             <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\basic_contract_zero.proto">
+        </None>
+        <None Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Protobuf\Generated" />

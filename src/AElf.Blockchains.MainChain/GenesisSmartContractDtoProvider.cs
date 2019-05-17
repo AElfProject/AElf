@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Deployer;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Microsoft.Extensions.Options;

@@ -44,6 +44,7 @@ namespace AElf.Contracts.MultiToken
         {
             var symbolState = State.LockWhiteLists[symbol];
             Assert(symbolState != null && symbolState[address], "Not in white list.");
+            Assert(symbolState != null && symbolState[Context.Sender], "Not in white list.");
         }
 
         private void RegisterTokenInfo(TokenInfo tokenInfo)

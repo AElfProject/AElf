@@ -43,44 +43,4 @@
             <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
-    <!--<ItemGroup>-->
-        <!--<ContractBase Include="..\..\protobuf\acs3.proto">-->
-            <!--<Link>Protobuf\Proto\acs3.proto</Link>-->
-        <!--</ContractBase>-->
-        <!--<ContractCode Include="..\..\protobuf\parliament_auth_contract.proto">-->
-            <!--<Link>Protobuf\Proto\parliament_auth_contract.proto</Link>-->
-        <!--</ContractCode>-->
-    <!--</ItemGroup>-->
-    <!--<ItemGroup>-->
-        <!--<None Include="..\..\protobuf\aelf_options.proto">-->
-            <!--<Link>Protobuf/Proto/aelf_options.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\common.proto">-->
-            <!--<Link>Protobuf/Proto/common.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\parliament_auth_contract.proto">-->
-            <!--<Link>Protobuf/Proto/parliament_auth_contract.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\acs3.proto">-->
-            <!--<Link>Protobuf/Proto/acs3.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\dpos_contract.proto">-->
-            <!--<Link>Protobuf/Proto/dpos_contract.proto</Link>-->
-        <!--</None>-->
-        <!--<Content Include="..\..\protobuf\basic_contract_zero.proto">-->
-            <!--<Link>Protobuf/Proto/basic_contract_zero.proto</Link>-->
-        <!--</Content>-->
-    <!--</ItemGroup>-->
-    <!--<ItemGroup>-->
-        <!--<Folder Include="Protobuf\Generated" />-->
-    <!--</ItemGroup>-->
-    <!--<Target Name="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh aedpos_contract.proto basic_contract_zero.proto token_contract.proto parliament_auth_contract.proto" />-->
-        <!--<Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat aedpos_contract.proto basic_contract_zero.proto token_contract.proto parliament_auth_contract.proto" />-->
-    <!--</Target>-->
-    <!--<Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<ItemGroup>-->
-            <!--<Compile Include="./Protobuf/Generated/*.cs" />-->
-        <!--</ItemGroup>-->
-    <!--</Target>-->
 </Project>
