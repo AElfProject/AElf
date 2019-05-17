@@ -1,22 +1,22 @@
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.AEDPoS.Application;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
-    internal interface IReaderFactory
+    internal interface IAEDPoSReaderFactory
     {
         AEDPoSContractImplContainer.AEDPoSContractImplStub Create(IChainContext chainContext);
-        AEDPoSContractImplContainer.AEDPoSContractImplStub Create(Hash blockHash, long blockHeight);
     }
 
-    internal class ReaderFactory : IReaderFactory
+    internal class AEDPoSReaderFactory : IAEDPoSReaderFactory
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IBlockTimeProvider _blockTimeProvider;
 
-        public ReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+        public AEDPoSReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ISmartContractAddressService smartContractAddressService, IBlockTimeProvider blockTimeProvider)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
@@ -33,15 +33,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
                     chainContext,
                     _blockTimeProvider)
             };
-        }
-
-        public AEDPoSContractImplContainer.AEDPoSContractImplStub Create(Hash blockHash, long blockHeight)
-        {
-            return Create(new ChainContext
-            {
-                BlockHash = blockHash,
-                BlockHeight = blockHeight
-            });
         }
     }
 }

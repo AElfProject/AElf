@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AElf.Contracts.Election;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;

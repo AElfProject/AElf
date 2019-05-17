@@ -3,6 +3,7 @@ using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
 using Volo.Abp.Threading;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Kernel.Consensus.Application;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 
@@ -19,7 +20,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         private AElfConsensusHint Hint => AElfConsensusHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
 
-        public ILogger<AEDPoSExtraDataParsingService> Logger { get; set; }
+        public ILogger<AEDPoSTriggerInformationProvider> Logger { get; set; }
 
         public AEDPoSTriggerInformationProvider(IAccountService accountService,
             ConsensusControlInformation controlInformation)
@@ -28,12 +29,12 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _controlInformation = controlInformation;
         }
 
-        public BytesValue GetTriggerInformationToGetConsensusCommand()
+        public BytesValue GetTriggerInformationForConsensusCommand()
         {
             return new BytesValue {Value = PublicKey};
         }
 
-        public BytesValue GetTriggerInformationToGetExtraData()
+        public BytesValue GetTriggerInformationForBlockHeaderExtraData()
         {
             if (_controlInformation.ConsensusCommand == null)
             {
@@ -63,7 +64,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }.ToBytesValue();
         }
 
-        public BytesValue GetTriggerInformationToGenerateConsensusTransactions()
+        public BytesValue GetTriggerInformationForConsensusTransactions()
         {
             if (_controlInformation.ConsensusCommand == null)
             {
@@ -99,6 +100,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }.ToBytesValue();
         }
 
+        /// <summary>
+        /// For generating in_value.
+        /// </summary>
+        /// <returns></returns>
         private Hash GetRandomHash()
         {
             var data = Hash.FromRawBytes(_controlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds

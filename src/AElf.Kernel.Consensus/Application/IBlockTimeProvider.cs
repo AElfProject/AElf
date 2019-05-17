@@ -1,6 +1,6 @@
 using System;
 
-namespace AElf.Kernel.Consensus.AEDPoS.Application
+namespace AElf.Kernel.Consensus.Application
 {
     public interface IBlockTimeProvider
     {
@@ -13,7 +13,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private DateTime _blockTime;
         public DateTime GetBlockTime()
         {
-
             return _blockTime == default ? DateTime.UtcNow : _blockTime;
         }
 

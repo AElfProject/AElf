@@ -51,17 +51,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return command;
         }
 
-        public override BytesValue GetInformationToUpdateConsensus(
-            BytesValue input1)
+        public override BytesValue GetInformationToUpdateConsensus(BytesValue input)
         {
-            var input = new AElfConsensusTriggerInformation();
-            input.MergeFrom(input1.Value);
+            var triggerInformation = new AElfConsensusTriggerInformation();
+            triggerInformation.MergeFrom(input.Value);
             // Some basic checks.
-            Assert(input.PublicKey.Any(), "Invalid public key.");
+            Assert(triggerInformation.PublicKey.Any(), "Invalid public key.");
 
-            var publicKey = input.PublicKey;
+            var publicKey = triggerInformation.PublicKey;
             var currentBlockTime = Context.CurrentBlockTime;
-            var behaviour = input.Behaviour;
+            var behaviour = triggerInformation.Behaviour;
 
             Assert(TryToGetCurrentRoundInformation(out var currentRound),
                 "Failed to get current round information.");
@@ -76,21 +75,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime =
                         currentBlockTime.ToTimestamp();
-                    
-                    Assert(input.RandomHash != null, "Random hash should not be null.");
 
-                    var inValue = currentRound.CalculateInValue(input.RandomHash);
+                    Assert(triggerInformation.RandomHash != null, "Random hash should not be null.");
+
+                    var inValue = currentRound.CalculateInValue(triggerInformation.RandomHash);
                     var outValue = Hash.FromMessage(inValue);
-                    var signature = Hash.FromTwoHashes(outValue, input.RandomHash); // Just initial signature value.
+                    var signature =
+                        Hash.FromTwoHashes(outValue, triggerInformation.RandomHash); // Just initial signature value.
                     var previousInValue = Hash.Empty; // Just initial previous in value.
 
                     if (TryToGetPreviousRoundInformation(out var previousRound) && !IsJustChangedTerm(out _))
                     {
                         signature = previousRound.CalculateSignature(inValue);
-                        if (input.PreviousRandomHash != Hash.Empty)
+                        if (triggerInformation.PreviousRandomHash != Hash.Empty)
                         {
                             // If PreviousRandomHash is Hash.Empty, it means the sender unable or unwilling to publish his previous in value.
-                            previousInValue = previousRound.CalculateInValue(input.PreviousRandomHash);
+                            previousInValue = previousRound.CalculateInValue(triggerInformation.PreviousRandomHash);
                         }
                     }
 
@@ -149,16 +149,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        public override TransactionList GenerateConsensusTransactions(BytesValue input1)
+        public override TransactionList GenerateConsensusTransactions(BytesValue input)
         {
-            var input = new AElfConsensusTriggerInformation();
-            input.MergeFrom(input1.Value);
+            var triggerInformation = new AElfConsensusTriggerInformation();
+            triggerInformation.MergeFrom(input.Value);
             // Some basic checks.
-            Assert(input.PublicKey.Any(), "Data to request consensus information should contain public key.");
+            Assert(triggerInformation.PublicKey.Any(),
+                "Data to request consensus information should contain public key.");
 
-            var publicKey = input.PublicKey;
+            var publicKey = triggerInformation.PublicKey;
             var consensusInformation = new AElfConsensusHeaderInformation();
-            consensusInformation.MergeFrom(GetInformationToUpdateConsensus(input1).Value);
+            consensusInformation.MergeFrom(GetInformationToUpdateConsensus(input).Value);
             var round = consensusInformation.Round;
             var behaviour = consensusInformation.Behaviour;
             switch (behaviour)
@@ -209,27 +210,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input1)
+        public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input)
         {
-            var input = new AElfConsensusHeaderInformation();
-            input.MergeFrom(input1.Value);
-            var publicKey = input.SenderPublicKey;
+            var extraData = new AElfConsensusHeaderInformation();
+            extraData.MergeFrom(input.Value);
+            var publicKey = extraData.SenderPublicKey;
 
             // Validate the sender.
             if (TryToGetCurrentRoundInformation(out var currentRound) &&
                 !currentRound.RealTimeMinersInformation.ContainsKey(publicKey.ToHex()))
             {
-                return new ValidationResult {Success = false, Message = "Sender is not a miner."};
+                return new ValidationResult {Success = false, Message = $"Sender {publicKey.ToHex()} is not a miner."};
             }
 
             // Validate the time slots.
-            var timeSlotsCheckResult = input.Round.CheckTimeSlots();
+            var timeSlotsCheckResult = extraData.Round.CheckTimeSlots();
             if (!timeSlotsCheckResult.Success)
             {
                 return timeSlotsCheckResult;
             }
 
-            var behaviour = input.Behaviour;
+            var behaviour = extraData.Behaviour;
 
             // Try to get current round information (for further validation).
             if (currentRound == null)
@@ -238,9 +239,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     {Success = false, Message = "Failed to get current round information."};
             }
 
-            if (input.Round.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound > 0).Distinct()
+            if (extraData.Round.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound > 0).Distinct()
                     .Count() !=
-                input.Round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null))
+                extraData.Round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null))
             {
                 return new ValidationResult
                     {Success = false, Message = "Invalid FinalOrderOfNextRound."};
@@ -252,13 +253,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 case AElfConsensusBehaviour.UpdateValue:
                     // Need to check round id when updating current round information.
                     // This can tell the miner current block 
-                    if (!RoundIdMatched(input.Round))
+                    if (!RoundIdMatched(extraData.Round))
                     {
                         return new ValidationResult {Success = false, Message = "Round Id not match."};
                     }
 
                     // Only one Out Value should be filled.
-                    if (!NewOutValueFilled(input.Round.RealTimeMinersInformation.Values))
+                    if (!NewOutValueFilled(extraData.Round.RealTimeMinersInformation.Values))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
                     }
@@ -266,7 +267,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     break;
                 case AElfConsensusBehaviour.NextRound:
                     // None of in values should be filled.
-                    if (input.Round.RealTimeMinersInformation.Values.Any(m => m.InValue != null))
+                    if (extraData.Round.RealTimeMinersInformation.Values.Any(m => m.InValue != null))
                     {
                         return new ValidationResult {Success = false, Message = "Incorrect in values."};
                     }
@@ -430,6 +431,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 victories = null;
                 return false;
             }
+
             var victoriesPublicKeys = State.ElectionContract.GetVictories.Call(new Empty());
             Context.LogDebug(() =>
                 $"Got victories from Election Contract:\n{string.Join("\n", victoriesPublicKeys.Value.Select(s => s.ToHex().Substring(0, 10)))}");
@@ -554,7 +556,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            var result = currentRound.GenerateNextRoundInformation(currentBlockTime.ToTimestamp(), blockchainStartTimestamp, out nextRound);
+            var result = currentRound.GenerateNextRoundInformation(currentBlockTime.ToTimestamp(),
+                blockchainStartTimestamp, out nextRound);
             return result;
         }
 
@@ -570,6 +573,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 return;
             }
+
             State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
             {
                 PublicKey = candidatePublicKey,
@@ -597,6 +601,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 snapshot = null;
                 return false;
             }
+
             snapshot = State.ElectionContract.GetTermSnapshot.Call(new GetTermSnapshotInput
             {
                 TermNumber = termNumber
@@ -636,7 +641,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var initialMinersCount = firstRound.RealTimeMinersInformation.Count;
                 return initialMinersCount.Add(
                     (int) (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds
-                        .Div(365 * 60 * 60 * 24).Mul(2));
+                    .Div(365 * 60 * 60 * 24).Mul(2));
             }
 
             return 0;

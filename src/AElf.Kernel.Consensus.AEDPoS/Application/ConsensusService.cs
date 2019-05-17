@@ -3,22 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.Consensus.AEDPoS.Application;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 [assembly: InternalsVisibleTo("AElf.Kernel.Consensus")]
-namespace AElf.Kernel.Consensus.Application
+
+namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     internal class ConsensusService : IConsensusService
     {
-        private readonly IConsensusExtraDataParsingService _consensusExtraDataParsingService;
         private readonly ConsensusControlInformation _consensusControlInformation;
         private readonly IConsensusScheduler _consensusScheduler;
-        private readonly IReaderFactory _readerFactory;
+        private readonly IAEDPoSReaderFactory _readerFactory;
         private readonly ITriggerInformationProvider _triggerInformationProvider;
         private readonly IBlockTimeProvider _blockTimeProvider;
 
@@ -26,12 +26,11 @@ namespace AElf.Kernel.Consensus.Application
 
         private DateTime _nextMiningTime;
 
-        public ConsensusService(IConsensusExtraDataParsingService consensusExtraDataParsingService,
-            IConsensusScheduler consensusScheduler, ConsensusControlInformation consensusControlInformation,
-            IReaderFactory readerFactory, ITriggerInformationProvider triggerInformationProvider,
+        public ConsensusService(IConsensusScheduler consensusScheduler,
+            ConsensusControlInformation consensusControlInformation, IAEDPoSReaderFactory readerFactory,
+            ITriggerInformationProvider triggerInformationProvider,
             IBlockTimeProvider blockTimeProvider)
         {
-            _consensusExtraDataParsingService = consensusExtraDataParsingService;
             _consensusControlInformation = consensusControlInformation;
             _readerFactory = readerFactory;
             _triggerInformationProvider = triggerInformationProvider;
@@ -48,7 +47,7 @@ namespace AElf.Kernel.Consensus.Application
 
             Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.fff}. Trigger.");
 
-            var triggerInformation = _triggerInformationProvider.GetTriggerInformationToGetConsensusCommand();
+            var triggerInformation = _triggerInformationProvider.GetTriggerInformationForConsensusCommand();
 
             // Upload the consensus command.
             _consensusControlInformation.ConsensusCommand = await _readerFactory.Create(chainContext)
@@ -81,7 +80,7 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.fff}. Validate Before.");
 
             var validationResult = await _readerFactory.Create(chainContext).ValidateConsensusBeforeExecution
-                .CallAsync(_consensusExtraDataParsingService.ParseHeaderExtraData(consensusExtraData));
+                .CallAsync(new BytesValue {Value = ByteString.CopyFrom(consensusExtraData)});
 
             if (!validationResult.Success)
             {
@@ -100,7 +99,7 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.fff}. Validate After.");
 
             var validationResult = await _readerFactory.Create(chainContext).ValidateConsensusAfterExecution
-                .CallAsync(_consensusExtraDataParsingService.ParseHeaderExtraData(consensusExtraData));
+                .CallAsync(new BytesValue {Value = ByteString.CopyFrom(consensusExtraData)});
 
             if (!validationResult.Success)
             {
@@ -123,7 +122,7 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogTrace($"Set block time to next mining time: {_nextMiningTime:hh:mm:ss.fff}. Extra Data.");
 
             return (await _readerFactory.Create(chainContext).GetInformationToUpdateConsensus
-                .CallAsync(_triggerInformationProvider.GetTriggerInformationToGetExtraData())).ToByteArray();
+                .CallAsync(_triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData())).ToByteArray();
         }
 
         public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)
@@ -134,7 +133,7 @@ namespace AElf.Kernel.Consensus.Application
 
             var generatedTransactions =
                 (await _readerFactory.Create(chainContext).GenerateConsensusTransactions
-                    .CallAsync(_triggerInformationProvider.GetTriggerInformationToGenerateConsensusTransactions()))
+                    .CallAsync(_triggerInformationProvider.GetTriggerInformationForConsensusTransactions()))
                 .Transactions
                 .ToList();
 

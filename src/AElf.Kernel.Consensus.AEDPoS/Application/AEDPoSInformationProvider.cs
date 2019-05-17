@@ -9,9 +9,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     internal class AEDPoSInformationProvider : IAEDPoSInformationProvider
     {
-        private readonly IReaderFactory _readerFactory;
+        private readonly IAEDPoSReaderFactory _readerFactory;
 
-        public AEDPoSInformationProvider(IReaderFactory readerFactory)
+        public AEDPoSInformationProvider(IAEDPoSReaderFactory readerFactory)
         {
             _readerFactory = readerFactory;
         }

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
 using AElf.Kernel.Consensus.AEDPoS.Application;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;

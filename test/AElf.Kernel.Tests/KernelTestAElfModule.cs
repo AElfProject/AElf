@@ -44,13 +44,13 @@ namespace AElf.Kernel
                 return acc.Object;
             });
 
-            var transactionList = new List<Transaction>()
+            var transactionList = new List<Transaction>
             {
                 new Transaction
                 {
                     From = Address.Generate(),
                     To = Address.Generate(),
-                    MethodName = ConsensusConsts.GenerateConsensusTransactions
+                    MethodName = "GenerateConsensusTransactions"
                 }
             };
             services.AddTransient(o =>
