@@ -1,6 +1,7 @@
 using System;
 using AElf.Sdk.CSharp;
 using System.Reflection;
+using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
 using AElf.Runtime.CSharp.Validators;
 using Mono.Cecil;
@@ -22,6 +23,7 @@ namespace AElf.Runtime.CSharp.Policies
                 .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
                 .Assembly(typeof(Address).Assembly, Trust.Full)             // AElf.Types
                 .Assembly(typeof(IMethod).Assembly, Trust.Full)             // AElf.CSharp.Core
+                .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Full) // AElf.Cryptography
                     
                 // Allowed namespaces
                 //.Namespace("Aelf", Permission.Allowed) // For protobuf generated code
@@ -39,11 +41,13 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type("Func`1", Permission.Allowed) // Required for protobuf generated code
                     .Type("Func`2", Permission.Allowed) // Required for protobuf generated code
                     .Type("Func`3", Permission.Allowed) // Required for protobuf generated code
+                    .Type("Nullable`1", Permission.Allowed) // Required for protobuf generated code
                     // Required to support yield keyword in protobuf generated code
                     .Type(typeof(Environment), Permission.Denied, member => member
                         .Member(nameof(Environment.CurrentManagedThreadId), Permission.Allowed))
                     .Type(typeof(NotImplementedException), Permission.Allowed) // Required for protobuf generated code
                     .Type(typeof(NotSupportedException), Permission.Allowed)   // Required for protobuf generated code
+                    .Type(typeof(ArgumentOutOfRangeException), Permission.Allowed) // From AEDPoS
                     .Type(nameof(DateTime), Permission.Allowed, member => member
                         .Member(nameof(DateTime.Now), Permission.Denied)
                         .Member(nameof(DateTime.UtcNow), Permission.Denied)
@@ -63,6 +67,7 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(typeof(uint).Name, Permission.Allowed)
                     .Type(typeof(long).Name, Permission.Allowed)
                     .Type(typeof(ulong).Name, Permission.Allowed)
+                    .Type(typeof(decimal).Name, Permission.Allowed)
                     .Type(typeof(string).Name, Permission.Allowed)
                     .Type(typeof(Byte[]).Name, Permission.Allowed))
                 .Namespace("System.Linq", Permission.Allowed)
@@ -73,7 +78,11 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(nameof(AssemblyFileVersionAttribute), Permission.Allowed)
                     .Type(nameof(AssemblyInformationalVersionAttribute), Permission.Allowed)
                     .Type(nameof(AssemblyProductAttribute), Permission.Allowed)
-                    .Type(nameof(AssemblyTitleAttribute), Permission.Allowed));
+                    .Type(nameof(AssemblyTitleAttribute), Permission.Allowed))
+                #if DEBUG
+                .Namespace("System.Text", Permission.Allowed)
+                #endif
+                ;
             
             MethodValidators.AddRange(new IValidator<MethodDefinition>[]{
                 new FloatOpsValidator(),
