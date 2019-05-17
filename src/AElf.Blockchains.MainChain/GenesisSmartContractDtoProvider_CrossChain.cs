@@ -25,7 +25,7 @@ namespace AElf.Blockchains.MainChain
         {
             var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
-                new AElf.Contracts.CrossChain.InitializeInput
+                new InitializeInput
                 {
                     ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,

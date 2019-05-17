@@ -6,6 +6,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
+using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
@@ -15,11 +16,11 @@ namespace AElf.OS.Consensus.DPos
     public class DPoSAnnouncementReceivedEventDataHandler : ILocalEventHandler<AnnouncementReceivedEventData>
     {
         private readonly ITaskQueueManager _taskQueueManager;
-        private readonly IDPoSLastLastIrreversibleBlockDiscoveryService _idpoSLastLastIrreversibleBlockDiscoveryService;
+        private readonly IAEDPoSLastLastIrreversibleBlockDiscoveryService _idpoSLastLastIrreversibleBlockDiscoveryService;
         private readonly IBlockchainService _blockchainService;
 
         public DPoSAnnouncementReceivedEventDataHandler(ITaskQueueManager taskQueueManager,
-            IDPoSLastLastIrreversibleBlockDiscoveryService idpoSLastLastIrreversibleBlockDiscoveryService,
+            IAEDPoSLastLastIrreversibleBlockDiscoveryService idpoSLastLastIrreversibleBlockDiscoveryService,
             IBlockchainService blockchainService)
         {
             _taskQueueManager = taskQueueManager;
@@ -53,19 +54,19 @@ namespace AElf.OS.Consensus.DPos
         }
     }
 
-    public interface IDPoSLastLastIrreversibleBlockDiscoveryService
+    public interface IAEDPoSLastLastIrreversibleBlockDiscoveryService
     {
         Task<IBlockIndex> FindLastLastIrreversibleBlockAsync(string senderPubKey);
     }
 
-    public class DPoSLastLastIrreversibleBlockDiscoveryService : IDPoSLastLastIrreversibleBlockDiscoveryService,
+    public class AEDPoSLastLastIrreversibleBlockDiscoveryService : IAEDPoSLastLastIrreversibleBlockDiscoveryService,
         ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
         private readonly IAEDPoSInformationProvider _dpoSInformationProvider;
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
-        public ILogger<DPoSLastLastIrreversibleBlockDiscoveryService> Logger { get; set; }
+        public ILogger<AEDPoSLastLastIrreversibleBlockDiscoveryService> Logger { get; set; }
 
         public DPoSLastLastIrreversibleBlockDiscoveryService(IPeerPool peerPool,
             IAEDPoSInformationProvider dpoSInformationProvider, IBlockchainService blockchainService,
@@ -89,7 +90,7 @@ namespace AElf.OS.Consensus.DPos
 
             var chain = await _blockchainService.GetChainAsync();
             var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
-            var pubkeyList = (await _dpoSInformationProvider.GetCurrentMiners(chainContext)).ToList();
+            var pubkeyList = (await _dpoSInformationProvider.GetCurrentMinerList(chainContext)).ToList();
 
             var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.PubKey)).ToList();
 
@@ -109,7 +110,7 @@ namespace AElf.OS.Consensus.DPos
                     blockHash == block.Value)
                     peersHadBlockAmount++;
 
-                var sureAmount = (int) (pubkeyList.Count * 2d / 3);
+                var sureAmount = pubkeyList.Count.Mul(2).Div(3);
                 if (peersHadBlockAmount >= sureAmount)
                 {
                     Logger.LogDebug($"LIB found in network layer: height {block.Key}");
