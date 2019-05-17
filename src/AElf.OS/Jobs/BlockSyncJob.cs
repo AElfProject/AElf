@@ -67,16 +67,16 @@ namespace AElf.OS.Jobs
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
                         return;
                     }
-                    
-                    await _blockchainService.AddBlockWithTransactionsAsync(blockWithTransactions);
-                    
-                    var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions.ToBlock());
+                                       
+                    var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
 
                     if (!valid)
                     {
                         Logger.LogError($"The block was invalid, sync from {args.SuggestedPeerPubKey} failed.");
                         return;
                     }
+                    
+                    await _blockchainService.AddBlockWithTransactionsAsync(blockWithTransactions);
 
                     _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(blockWithTransactions.ToBlock()),
                         KernelConstants.UpdateChainQueueName);
