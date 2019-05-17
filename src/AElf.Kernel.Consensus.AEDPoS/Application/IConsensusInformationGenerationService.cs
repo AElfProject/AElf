@@ -1,15 +1,15 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.AEDPoS;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    // TODO: Refactor.
-    public interface IConsensusInformationGenerationService
+    internal interface IConsensusInformationGenerationService
     {
-        IMessage GetTriggerInformation(TriggerType triggerType);
 
-        IMessage ParseConsensusTriggerInformation(byte[] consensusTriggerInformation);
+        AElfConsensusTriggerInformation ParseConsensusTriggerInformation(byte[] consensusTriggerInformation);
+        AElfConsensusHeaderInformation ParseHeaderExtraData(byte[] consensusTriggerInformation);
 
         Task<T> ExecuteContractAsync<T>(IChainContext chainContext, string consensusMethodName,
             IMessage input, DateTime dateTime) where T : class, IMessage<T>, new();

@@ -1,4 +1,5 @@
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS
@@ -13,12 +14,14 @@ namespace AElf.Kernel.Consensus.AEDPoS
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IBlockTimeProvider _blockTimeProvider;
 
         public ReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            ISmartContractAddressService smartContractAddressService)
+            ISmartContractAddressService smartContractAddressService, IBlockTimeProvider blockTimeProvider)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _smartContractAddressService = smartContractAddressService;
+            _blockTimeProvider = blockTimeProvider;
         }
 
         public AEDPoSContractContainer.AEDPoSContractStub Create(IChainContext chainContext)
@@ -27,7 +30,8 @@ namespace AElf.Kernel.Consensus.AEDPoS
             {
                 __factory = new MethodStubFactory(_transactionReadOnlyExecutionService,
                     _smartContractAddressService,
-                    chainContext)
+                    chainContext,
+                    _blockTimeProvider)
             };
         }
 

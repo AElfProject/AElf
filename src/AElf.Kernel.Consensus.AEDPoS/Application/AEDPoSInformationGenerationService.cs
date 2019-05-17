@@ -13,7 +13,7 @@ using Volo.Abp.Threading;
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     // ReSharper disable once InconsistentNaming
-    public class AEDPoSInformationGenerationService : IConsensusInformationGenerationService
+    internal class AEDPoSInformationGenerationService : IConsensusInformationGenerationService
     {
         private readonly IAccountService _accountService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -62,7 +62,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 return new CommandInput {PublicKey = PublicKey};
             }
 
-            if(_firstTriggerType == default)
+            if (_firstTriggerType == default)
             {
                 _firstTriggerType = triggerType;
             }
@@ -103,9 +103,14 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             };
         }
 
-        public IMessage ParseConsensusTriggerInformation(byte[] consensusTriggerInformation)
+        public AElfConsensusTriggerInformation ParseConsensusTriggerInformation(byte[] consensusTriggerInformation)
         {
             return AElfConsensusTriggerInformation.Parser.ParseFrom(consensusTriggerInformation);
+        }
+
+        public AElfConsensusHeaderInformation ParseHeaderExtraData(byte[] extraData)
+        {
+            return AElfConsensusHeaderInformation.Parser.ParseFrom(extraData);
         }
 
         public async Task<T> ExecuteContractAsync<T>(IChainContext chainContext, string consensusMethodName,

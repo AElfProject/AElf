@@ -36,6 +36,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
             context.Services.AddSingleton<IAEDPoSInformationProvider, AEDPoSInformationProvider>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
+            context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();
 
             var configuration = context.Services.GetConfiguration();

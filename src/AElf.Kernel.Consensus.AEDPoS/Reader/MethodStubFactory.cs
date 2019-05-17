@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
+using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
@@ -13,16 +14,18 @@ namespace AElf.Kernel.Consensus.AEDPoS
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IChainContext _chainContext;
+        private readonly IBlockTimeProvider _blockTimeProvider;
 
         private Address ConsensusContractAddress =>
             _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
 
         public MethodStubFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            ISmartContractAddressService smartContractAddressService, IChainContext chainContext)
+            ISmartContractAddressService smartContractAddressService, IChainContext chainContext, IBlockTimeProvider blockTimeProvider)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _smartContractAddressService = smartContractAddressService;
             _chainContext = chainContext;
+            _blockTimeProvider = blockTimeProvider;
         }
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]
@@ -46,7 +49,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
                 };
 
                 var trace =
-                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, DateTime.UtcNow);
+                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, _blockTimeProvider.GetBlockTime());
 
                 return trace.IsSuccessful()
                     ? method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray())
