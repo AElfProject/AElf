@@ -10,7 +10,6 @@ namespace AElf.Kernel.Consensus
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<ConsensusControlInformation>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
         }
     }

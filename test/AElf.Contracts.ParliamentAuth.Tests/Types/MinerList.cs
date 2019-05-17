@@ -34,7 +34,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInRound.Order = i + 1;
                 minerInRound.ExpectedMiningTime =
                     currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval).ToTimestamp();
-                minerInRound.PromisedTinyBlocks = 1;
                 // Should be careful during validation.
                 minerInRound.PreviousInValue = Hash.Empty;
 

@@ -191,7 +191,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var currentRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
             var expectedStartTime = StartTimestamp.ToDateTime()
                 .AddMilliseconds(((long) currentRound.TotalMilliseconds(MiningInterval)).Mul(nextRoundNumber.Sub(1)));
-            currentRound.GenerateNextRoundInformation(expectedStartTime, StartTimestamp, out var nextRound);
+            currentRound.GenerateNextRoundInformation(expectedStartTime.ToTimestamp(), StartTimestamp, out var nextRound);
             await BootMiner.NextRound.SendAsync(nextRound);
         }
         

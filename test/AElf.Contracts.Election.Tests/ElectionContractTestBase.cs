@@ -357,7 +357,7 @@ namespace AElf.Contracts.Election
             var miner = GetAEDPoSContractStub(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             round.GenerateNextRoundInformation(
-                StartTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds()), StartTimestamp,
+                StartTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds()).ToTimestamp(), StartTimestamp,
                 out var nextRound);
             await miner.NextRound.SendAsync(nextRound);
         }
@@ -373,7 +373,6 @@ namespace AElf.Contracts.Election
                 Signature = Hash.Generate(),
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = round.RoundId,
-                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
                 ProducedBlocks = minerInRound.ProducedBlocks + 1,
                 ActualMiningTime = minerInRound.ExpectedMiningTime,
                 SupposedOrderOfNextRound = 1

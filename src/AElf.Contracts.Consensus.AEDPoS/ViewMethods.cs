@@ -73,8 +73,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         .RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks.Add(1);
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
                         currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
-                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime =
-                        currentBlockTime.ToTimestamp();
+                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTimes.Add(currentBlockTime.ToTimestamp());
 
                     Assert(triggerInformation.RandomHash != null, "Random hash should not be null.");
 
@@ -111,8 +110,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         .RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks.Add(1);
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
                         currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
-                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime =
-                        currentBlockTime.ToTimestamp();
+                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTimes.Add(currentBlockTime.ToTimestamp());
+
                     return new AElfConsensusHeaderInformation
                     {
                         SenderPublicKey = publicKey,
@@ -183,7 +182,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                             GenerateTransaction(nameof(UpdateTinyBlockInformation),
                                 new TinyBlockInput
                                 {
-                                    ActualMiningTime = minerInRound.ActualMiningTime,
+                                    ActualMiningTime = minerInRound.ActualMiningTimes.Last(),
                                     ProducedBlocks = minerInRound.ProducedBlocks,
                                     RoundId = round.RoundId
                                 })
@@ -212,8 +211,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input)
         {
-            var extraData = new AElfConsensusHeaderInformation();
-            extraData.MergeFrom(input.Value);
+            var extraData = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value.ToByteArray());
             var publicKey = extraData.SenderPublicKey;
 
             // Validate the sender.

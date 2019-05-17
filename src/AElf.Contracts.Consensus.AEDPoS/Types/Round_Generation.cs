@@ -38,7 +38,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Order = order,
                     ExpectedMiningTime = currentBlockTimestamp +
                                          new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
-                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots
                 };
@@ -57,7 +56,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Order = order,
                     ExpectedMiningTime = currentBlockTimestamp +
                                          new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
-                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots + 1
                 };

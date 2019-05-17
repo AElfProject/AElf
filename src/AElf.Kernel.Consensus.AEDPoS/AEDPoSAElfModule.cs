@@ -3,6 +3,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
 using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
@@ -24,6 +25,8 @@ namespace AElf.Kernel.Consensus.AEDPoS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<AEDPoSAElfModule>();
+
+            context.Services.AddSingleton<ConsensusControlInformation>();
 
             context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();

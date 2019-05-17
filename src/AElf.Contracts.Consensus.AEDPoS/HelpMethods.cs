@@ -47,7 +47,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     // Failed to get previous round information or just changed term.
                     return AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue;
                 }
-                
+
                 if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
                     dateTime < currentRound.GetStartTime() &&
                     minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
@@ -109,11 +109,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="currentRound"></param>
         /// <param name="previousRound"></param>
         /// <param name="publicKey"></param>
-        /// <param name="dateTime"></param>
+        /// <param name="blockTime"></param>
         /// <returns></returns>
         private ConsensusCommand GetConsensusCommand(AElfConsensusBehaviour behaviour, Round currentRound,
-            Round previousRound, string publicKey,
-            DateTime dateTime)
+            Round previousRound, string publicKey, DateTime blockTime)
         {
             var minerInRound = currentRound.RealTimeMinersInformation[publicKey];
             var miningInterval = currentRound.GetMiningInterval();
@@ -125,17 +124,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var producedTinyBlocks = minerInRound.ProducedTinyBlocks;
 
+            var duration = expectedMiningTime - blockTime.ToTimestamp();
+
+            Context.LogDebug(() => $"Current behaviour: {behaviour.ToString()}");
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
-
                     nextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval;
                     break;
-
                 case AElfConsensusBehaviour.UpdateValue:
-                    expectedMiningTime = expectedMiningTime.ToDateTime().ToTimestamp();
-                    nextBlockMiningLeftMilliseconds =
-                        (int) (expectedMiningTime.ToDateTime() - dateTime).TotalMilliseconds;
+                    nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
                     break;
                 case AElfConsensusBehaviour.TinyBlock:
                     if (minerInRound.OutValue != null)
@@ -161,19 +159,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                             .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber)).ToTimestamp();
                     }
 
-                    nextBlockMiningLeftMilliseconds =
-                        (int) (expectedMiningTime.ToDateTime() - dateTime).TotalMilliseconds;
+                    nextBlockMiningLeftMilliseconds = currentRound.RoundNumber != 1
+                        ? ConvertDurationToMilliseconds(duration)
+                        : GetNextBlockMiningLeftMillisecondsForFirstRound(minerInRound, blockTime);
                     break;
                 case AElfConsensusBehaviour.NextRound:
+                    duration = currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, blockTime) -
+                               blockTime.ToTimestamp();
                     nextBlockMiningLeftMilliseconds = currentRound.RoundNumber == 1
-                        ? currentRound.RealTimeMinersInformation.Count * miningInterval + myOrder * miningInterval
-                        : (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
-                                 dateTime).TotalMilliseconds;
+                        ? currentRound.RealTimeMinersInformation.Count.Mul(miningInterval)
+                            .Add(myOrder.Mul(miningInterval))
+                        : ConvertDurationToMilliseconds(duration);
                     break;
                 case AElfConsensusBehaviour.NextTerm:
-                    nextBlockMiningLeftMilliseconds =
-                        (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
-                               dateTime).TotalMilliseconds;
+                    nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(
+                        currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, blockTime) -
+                        blockTime.ToTimestamp());
                     break;
                 default:
                     return new ConsensusCommand
@@ -188,11 +189,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     };
             }
 
+            Context.LogDebug(() => $"NextBlockMiningLeftMilliseconds: {nextBlockMiningLeftMilliseconds}");
+
             return new ConsensusCommand
             {
                 ExpectedMiningTime = expectedMiningTime,
                 NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
-                LimitMillisecondsOfMiningBlock = miningInterval / AEDPoSContractConstants.TinyBlocksNumber,
+                LimitMillisecondsOfMiningBlock = miningInterval.Div(AEDPoSContractConstants.TinyBlocksNumber),
                 Hint = hint
             };
         }
@@ -272,6 +275,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
             };
 
             return tx;
+        }
+
+        private int ConvertDurationToMilliseconds(Duration duration)
+        {
+            return (int) duration.Seconds.Mul(1000).Add(duration.Nanos.Div(1000000));
+        }
+
+        private int GetNextBlockMiningLeftMillisecondsForFirstRound(MinerInRound minerInRound, DateTime blockTime)
+        {
+            var actualMiningTime = minerInRound.ActualMiningTimes.First();
+            var producedTinyBlocks = minerInRound.ProducedTinyBlocks;
+            var timeForEachBlock = State.MiningInterval.Value.Div(AEDPoSContractConstants.TinyBlocksNumber);
+            var expectedMiningTime = actualMiningTime.ToDateTime()
+                .AddMilliseconds(timeForEachBlock.Mul(producedTinyBlocks.Add(1))).ToTimestamp();
+            var leftMilliseconds = ConvertDurationToMilliseconds(expectedMiningTime - blockTime.ToTimestamp());
+            return leftMilliseconds;
         }
     }
 }

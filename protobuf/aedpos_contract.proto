@@ -117,22 +117,21 @@ message Round {
 // The information of a miner in a specific round.
 message MinerInRound {
     sint32 order = 1;
-    bool IsExtraBlockProducer = 2;
-    Hash InValue = 3;
-    Hash OutValue = 4;
-    Hash Signature = 5;
-    google.protobuf.Timestamp ExpectedMiningTime = 6;
-    sint64 ProducedBlocks = 7;
-    sint64 MissedTimeSlots = 8;
-    string PublicKey = 9;
-    sint32 PromisedTinyBlocks = 10;
-    Hash PreviousInValue = 12;
-    sint32 SupposedOrderOfNextRound = 13;
-    sint32 FinalOrderOfNextRound = 14;
-    google.protobuf.Timestamp ActualMiningTime = 15;// Miners must fill actual mining time when they do the mining.
-    map<string, bytes> EncryptedInValues = 16;
-    map<string, bytes> DecryptedPreviousInValues = 17;
-    sint32 ProducedTinyBlocks = 18;
+    bool is_extra_block_producer = 2;
+    Hash in_value = 3;
+    Hash out_value = 4;
+    Hash signature = 5;
+    google.protobuf.Timestamp expected_mining_time = 6;
+    sint64 produced_blocks = 7;
+    sint64 missed_time_slots = 8;
+    string public_key = 9;
+    Hash previous_in_value = 12;
+    sint32 supposed_order_of_next_round = 13;
+    sint32 final_order_of_next_round = 14;
+    repeated google.protobuf.Timestamp actual_mining_times = 15;// Miners must fill actual mining time when they do the mining.
+    map<string, bytes> encrypted_in_values = 16;
+    map<string, bytes> decrypted_previous_inValues = 17;
+    sint32 produced_tiny_blocks = 18;
 }
 
 message AElfConsensusHeaderInformation {

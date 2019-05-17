@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
@@ -45,7 +46,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var now = DateTime.UtcNow;
             _blockTimeProvider.SetBlockTime(now);
 
-            Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.fff}. Trigger.");
+            Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.ffffff}. Trigger.");
 
             var triggerInformation = _triggerInformationProvider.GetTriggerInformationForConsensusCommand();
 
@@ -69,6 +70,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _nextMiningTime =
                 DateTime.UtcNow.AddMilliseconds(_consensusControlInformation.ConsensusCommand
                     .NextBlockMiningLeftMilliseconds);
+            
+            Logger.LogTrace($"Set next mining time to: {_nextMiningTime:hh:mm:ss.ffffff}");
         }
 
         public async Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,
@@ -77,10 +80,13 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var now = DateTime.UtcNow;
             _blockTimeProvider.SetBlockTime(now);
 
-            Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.fff}. Validate Before.");
+            Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.ffffff}. Validate Before.");
 
             var validationResult = await _readerFactory.Create(chainContext).ValidateConsensusBeforeExecution
                 .CallAsync(new BytesValue {Value = ByteString.CopyFrom(consensusExtraData)});
+
+            var extraData = new AElfConsensusHeaderInformation();
+            extraData.MergeFrom(consensusExtraData);
 
             if (!validationResult.Success)
             {
@@ -96,7 +102,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var now = DateTime.UtcNow;
             _blockTimeProvider.SetBlockTime(now);
 
-            Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.fff}. Validate After.");
+            Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.ffffff}. Validate After.");
 
             var validationResult = await _readerFactory.Create(chainContext).ValidateConsensusAfterExecution
                 .CallAsync(new BytesValue {Value = ByteString.CopyFrom(consensusExtraData)});
@@ -119,17 +125,17 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
-            Logger.LogTrace($"Set block time to next mining time: {_nextMiningTime:hh:mm:ss.fff}. Extra Data.");
+            Logger.LogTrace($"Set block time to next mining time: {_nextMiningTime:hh:mm:ss.ffffff}. Extra Data.");
 
             return (await _readerFactory.Create(chainContext).GetInformationToUpdateConsensus
-                .CallAsync(_triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData())).ToByteArray();
+                .CallAsync(_triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData())).Value.ToByteArray();
         }
 
         public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)
         {
             _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
-            Logger.LogTrace($"Set block time to next mining time: {_nextMiningTime:hh:mm:ss.fff}. Txs.");
+            Logger.LogTrace($"Set block time to next mining time: {_nextMiningTime:hh:mm:ss.ffffff}. Txs.");
 
             var generatedTransactions =
                 (await _readerFactory.Create(chainContext).GenerateConsensusTransactions

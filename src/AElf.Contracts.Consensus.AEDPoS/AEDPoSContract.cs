@@ -81,14 +81,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var publicKey = Context.RecoverPublicKey().ToHex();
 
             var minerInRound = round.RealTimeMinersInformation[publicKey];
-            minerInRound.ActualMiningTime = input.ActualMiningTime;
+            minerInRound.ActualMiningTimes.Add(input.ActualMiningTime);
             minerInRound.ProducedBlocks = input.ProducedBlocks;
             var producedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks;
             minerInRound.ProducedTinyBlocks = producedTinyBlocks.Add(1);
 
             minerInRound.Signature = input.Signature;
             minerInRound.OutValue = input.OutValue;
-            minerInRound.PromisedTinyBlocks = input.PromiseTinyBlocks;
             minerInRound.SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             minerInRound.FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
 
@@ -147,7 +146,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var publicKey = Context.RecoverPublicKey().ToHex();
 
-            round.RealTimeMinersInformation[publicKey].ActualMiningTime = input.ActualMiningTime;
+            round.RealTimeMinersInformation[publicKey].ActualMiningTimes.Add(input.ActualMiningTime);
             round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
             var producedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks;
             round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks = producedTinyBlocks.Add(1);
