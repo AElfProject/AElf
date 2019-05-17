@@ -68,7 +68,7 @@ namespace AElf.OS.Consensus.DPos
         private readonly IAccountService _accountService;
         public ILogger<AEDPoSLastLastIrreversibleBlockDiscoveryService> Logger { get; set; }
 
-        public DPoSLastLastIrreversibleBlockDiscoveryService(IPeerPool peerPool,
+        public AEDPoSLastLastIrreversibleBlockDiscoveryService(IPeerPool peerPool,
             IAEDPoSInformationProvider dpoSInformationProvider, IBlockchainService blockchainService,
             IAccountService accountService)
         {
