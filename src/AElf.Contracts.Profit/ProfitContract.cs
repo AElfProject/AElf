@@ -13,9 +13,6 @@ namespace AElf.Contracts.Profit
     {
         public override Empty InitializeProfitContract(InitializeProfitContractInput input)
         {
-            Assert(Context.Sender == Context.GetZeroSmartContractAddress(),
-                "Only zero contract can initialize this contract.");
-
             Assert(!State.Initialized.Value, "Already initialized.");
 
             State.TokenContractSystemName.Value = input.TokenContractSystemName;
