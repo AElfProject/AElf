@@ -46,28 +46,31 @@ namespace AElf.OS.Network.Application
         public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader)
         {
             int successfulBcasts = 0;
+            
+            var announce = new PeerNewBlockAnnouncement
+            {
+                BlockHash = blockHeader.GetHash(),
+                BlockHeight = blockHeader.Height,
+                BlockTime = blockHeader.Time
+            };
+            
+            var peers = _peerPool.GetPeers().ToList();
 
-            foreach (var peer in _peerPool.GetPeers())
+            await Task.WhenAll(peers.Select(async peer =>
             {
                 try
                 {
-                    var announcement = new PeerNewBlockAnnouncement
-                    {
-                        BlockHash = blockHeader.GetHash(),
-                        BlockHeight = blockHeader.Height,
-                        BlockTime = blockHeader.Time
-                    };
-                    Logger.LogDebug($"PeerNewBlockAnnouncement: {announcement}");
-                    await peer.AnnounceAsync(announcement);
-
+                    Logger.LogDebug($"Block announced: {announce}");
+                    await peer.AnnounceAsync(announce);
+                    
                     successfulBcasts++;
                 }
                 catch (NetworkException e)
                 {
                     Logger.LogError(e, "Error while sending block.");
                 }
-            }
-
+            }));
+            
             return successfulBcasts;
         }
 
