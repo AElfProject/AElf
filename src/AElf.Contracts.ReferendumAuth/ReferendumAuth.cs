@@ -37,11 +37,10 @@ namespace AElf.Contracts.ReferendumAuth
 
         #endregion
         
-        public override Empty Initialize(ReferendumAuthContractInitializationInput input)
+        public override Empty Initialize(Empty input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.Initialized.Value = true;
-            State.TokenContractSystemName.Value = input.TokenContractSystemName;
             return new Empty();
         }
         

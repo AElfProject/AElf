@@ -11,7 +11,6 @@ namespace AElf.Contracts.ReferendumAuth
         public MappedState<Hash, long> ApprovedTokenAmount { get; set; }
         public MappedState<Address, Organization> Organisations { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
-        public SingletonState<Hash> TokenContractSystemName { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
     }
 }
