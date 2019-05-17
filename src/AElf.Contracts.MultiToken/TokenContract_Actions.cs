@@ -34,12 +34,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty InitializeTokenContract(IntializeTokenContractInput input)
-        {
-            State.CrossChainContractSystemName.Value = input.CrossChainContractSystemName;
-            return new Empty();
-        }
-
         public override Empty CreateNativeToken(CreateNativeTokenInput input)
         {
             Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already created.");
@@ -133,7 +127,7 @@ namespace AElf.Contracts.MultiToken
                 "Unable to receive cross chain token.");
             if (State.CrossChainContractReferenceState.Value == null)
                 State.CrossChainContractReferenceState.Value =
-                    Context.GetContractAddressByName(State.CrossChainContractSystemName.Value);
+                    Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
             var verificationInput = new VerifyTransactionInput
             {
                 TransactionId = transferTransactionHash,
@@ -143,7 +137,7 @@ namespace AElf.Contracts.MultiToken
             verificationInput.Path.AddRange(input.MerklePath);
             if (State.CrossChainContractReferenceState.Value == null)
                 State.CrossChainContractReferenceState.Value =
-                    Context.GetContractAddressByName(State.CrossChainContractSystemName.Value);
+                    Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
             var verificationResult =
                 State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Verification failed.");

@@ -12,7 +12,7 @@ service ProfitContract {
     option (aelf.csharp_state) = "AElf.Contracts.Profit.ProfitContractState";
 
     // Actions
-    rpc InitializeProfitContract (InitializeProfitContractInput) returns (google.protobuf.Empty) {
+    rpc InitializeProfitContract (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc CreateProfitItem (CreateProfitItemInput) returns (Hash) {
     }
@@ -54,10 +54,6 @@ service ProfitContract {
     rpc GetProfitAmount (ProfitInput) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-}
-
-message InitializeProfitContractInput {
-    Hash token_contract_system_name = 1;
 }
 
 message CreateProfitItemInput {

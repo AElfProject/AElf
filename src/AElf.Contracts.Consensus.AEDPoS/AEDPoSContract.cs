@@ -20,15 +20,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (input.IsTermStayOne || input.IsSideChain)
             {
+                State.IsMainChain.Value = false;
                 return new Empty();
             }
+
+            State.IsMainChain.Value = true;
 
             // TODO: Remove
             State.BaseTimeUnit.Value = input.BaseTimeUnit;
 
-            State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
-
-            State.ElectionContract.Value = Context.GetContractAddressByName(input.ElectionContractSystemName);
+            State.ElectionContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
 
             State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
 

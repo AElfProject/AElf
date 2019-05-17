@@ -22,6 +22,5 @@ namespace AElf.Contracts.MultiToken
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContractReferenceState { get; set; }
-        public SingletonState<Hash> CrossChainContractSystemName { get; set; }
     }
 }

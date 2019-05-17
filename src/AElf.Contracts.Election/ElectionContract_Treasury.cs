@@ -14,7 +14,7 @@ namespace AElf.Contracts.Election
         {
             Assert(!State.TreasuryCreated.Value, "Already created.");
 
-            State.ProfitContract.Value = Context.GetContractAddressByName(State.ProfitContractSystemName.Value);
+            State.ProfitContract.Value = Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
 
             // Create profit items: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
             // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectedMinerReward`

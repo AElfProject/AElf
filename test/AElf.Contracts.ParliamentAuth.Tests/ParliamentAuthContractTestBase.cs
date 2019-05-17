@@ -13,6 +13,7 @@ using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 
@@ -116,12 +117,7 @@ namespace AElf.Contracts.ParliamentAuth
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateParliamentAuthInitializationCallList()
         {
             var parliamentMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentMethodCallList.Add(nameof(ParliamentAuthContract.Initialize),
-                new ParliamentAuthInitializationInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
-                });
-
+            parliamentMethodCallList.Add(nameof(ParliamentAuthContract.Initialize), new Empty());
             return parliamentMethodCallList;
         }
 

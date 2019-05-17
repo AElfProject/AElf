@@ -84,12 +84,8 @@ service ElectionContract {
 }
 
 message InitialElectionContractInput {
-    Hash vote_contract_system_name = 1;
-    Hash profit_contract_system_name = 2;
-    Hash token_contract_system_name = 3;
-    Hash consensus_contract_system_name = 4;
-    sint32 minimum_lock_time = 5;
-    sint32 maximum_lock_time = 6;
+    sint32 minimum_lock_time = 1;
+    sint32 maximum_lock_time = 2;
 }
 
 message ConfigElectionContractInput {
