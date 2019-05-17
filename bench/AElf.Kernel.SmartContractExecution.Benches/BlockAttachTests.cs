@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using AElf.BenchBase;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
 using NBench;
@@ -20,7 +21,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         
         private Counter _counter;
         
-        private BlockWithTransactions _block;
+        private Block _block;
         
         public BlockAttachTests(ITestOutputHelper output)
         {
@@ -40,12 +41,11 @@ namespace AElf.Kernel.SmartContractExecution.Benches
             AsyncHelper.RunSync(async () =>
             {
                 var chain = await _blockchainService.GetChainAsync();
-
                 var transactions = await _osTestHelper.GenerateTransferTransactions(1000);
 
-                var block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
-                _block = new BlockWithTransactions { Header = block.Header };
-                _block.Transactions.AddRange(transactions);
+                _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+                await _blockchainService.AddTransactionsAsync(transactions);
+                await _blockchainService.AddBlockAsync(_block);
             });
         }
         
@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
         [CounterThroughputAssertion("TestCounter", MustBe.GreaterThan, .0d)]
         public void AttachBlockTest()
         {
-            AsyncHelper.RunSync(() => _blockAttachService.AttachReceivedBlockAsync(_block));
+            AsyncHelper.RunSync(() => _blockAttachService.AttachBlockAsync(_block));
             _counter.Increment();
         }
     }

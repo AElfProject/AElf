@@ -11,7 +11,6 @@ namespace AElf.Kernel.Blockchain.Application
     {
         Task<bool> ValidateBlockBeforeAttachAsync(IBlock block);
         Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block);
-
         Task<bool> ValidateBlockAfterExecuteAsync(IBlock block);
     }
 

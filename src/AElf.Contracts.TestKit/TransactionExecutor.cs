@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -26,14 +27,13 @@ namespace AElf.Contracts.TestKit
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var miningService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
+            
             var block = await miningService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 new List<Transaction> {transaction},
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
 
-            var blckWithTrx = new BlockWithTransactions {Header = block.Header};
-            blckWithTrx.Transactions.AddRange(new List<Transaction> {transaction});
-            
-            await blockAttachService.AttachReceivedBlockAsync(blckWithTrx);
+            await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
+            await blockAttachService.AttachBlockAsync(block);
         }
 
         public async Task<ByteString> ReadAsync(Transaction transaction)
