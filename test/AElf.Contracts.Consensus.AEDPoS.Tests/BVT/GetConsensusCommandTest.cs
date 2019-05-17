@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -82,8 +83,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // Set current time as the start time of 2rd round.
                 BlockTimeProvider.SetBlockTime(secondRoundStartTime);
                 
-
-                var leftMilliseconds = (int) (expectedMiningTime - secondRoundStartTime).TotalMilliseconds;
+                var leftMilliseconds = (int) (expectedMiningTime.ToSafeDateTime() - secondRoundStartTime).TotalMilliseconds;
 
                 var command = await miner.GetConsensusCommand.CallAsync(new CommandInput
                     {PublicKey = ByteString.CopyFrom(minerKeyPair.PublicKey)});
