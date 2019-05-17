@@ -410,7 +410,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private long GetBlockchainAge()
         {
-            return (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds;
+            return (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds;
         }
 
         private bool TryToGetVictories(out MinerList victories)
@@ -507,7 +507,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        private bool GenerateNextRoundInformation(Round currentRound, DateTime currentBlockTime, out Round nextRound)
+        private bool GenerateNextRoundInformation(Round currentRound, Timestamp currentBlockTime, out Round nextRound)
         {
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
             if (TryToGetPreviousRoundInformation(out var previousRound) &&
@@ -544,7 +544,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            var result = currentRound.GenerateNextRoundInformation(currentBlockTime.ToTimestamp(), blockchainStartTimestamp, out nextRound);
+            var result = currentRound.GenerateNextRoundInformation(currentBlockTime, blockchainStartTimestamp, out nextRound);
             return result;
         }
 
@@ -625,7 +625,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // TODO: Maybe this should according to date, like every July 1st we increase 2 miners.
                 var initialMinersCount = firstRound.RealTimeMinersInformation.Count;
                 return initialMinersCount.Add(
-                    (int) (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds
+                    (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
                         .Div(365 * 60 * 60 * 24).Mul(2));
             }
 

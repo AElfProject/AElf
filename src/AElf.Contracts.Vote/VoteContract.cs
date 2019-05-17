@@ -262,7 +262,7 @@ namespace AElf.Contracts.Vote
             {
                 VotingItemId = input.VotingItemId,
                 SnapshotNumber = nextSnapshotNumber,
-                SnapshotStartTimestamp = Context.CurrentBlockTime.ToTimestamp(),
+                SnapshotStartTimestamp = Context.CurrentBlockTime,
                 VotersCount = previousVotingResult.VotersCount,
                 VotesAmount = previousVotingResult.VotesAmount
             };

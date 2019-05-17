@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS
@@ -46,7 +47,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
                 };
 
                 var trace =
-                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, DateTime.UtcNow);
+                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, DateTime.UtcNow.ToTimestamp());
 
                 return trace.IsSuccessful()
                     ? method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray())
