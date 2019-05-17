@@ -50,10 +50,10 @@ namespace AElf.Kernel.SmartContractExecution.Benches
 
                 _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
                 
-                BlockWithTransactions blck = new BlockWithTransactions { Header = _block.Header };
-                blck.Transactions.AddRange(transactions);
+                BlockWithTransactions block = new BlockWithTransactions { Header = _block.Header };
+                block.Transactions.AddRange(transactions);
                 
-                await _blockchainService.AddBlockWithTransactionsAsync(blck);
+                await _blockchainService.AddBlockWithTransactionsAsync(block);
                 chain = await _blockchainService.GetChainAsync();
                 await _blockchainService.AttachBlockToChainAsync(chain, _block);
             });
