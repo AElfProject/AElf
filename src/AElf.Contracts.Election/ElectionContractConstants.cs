@@ -7,7 +7,7 @@ namespace AElf.Contracts.Election
         public const string VoteSymbol = "VOTE";
         public const long VotesTotalSupply = 200_000_000;
 
-        public const long ElfTokenPerBlock = 100;
+        public const long ElfTokenPerBlock = 1;
 
         public const int CitizenWelfareWeight = 1;
         public const int BackupSubsidyWeight = 1;
