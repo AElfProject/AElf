@@ -37,32 +37,30 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             if (_controlInformation.ConsensusCommand == null)
             {
-                return new BytesValue{Value = new AElfConsensusTriggerInformation
+                return new AElfConsensusTriggerInformation
                 {
                     PublicKey = PublicKey,
                     Behaviour = AElfConsensusBehaviour.UpdateValue
-                }.ToByteString()};
+                }.ToBytesValue();
             }
 
             if (Hint.Behaviour == AElfConsensusBehaviour.UpdateValue ||
                 Hint.Behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
             {
-                var trigger = new AElfConsensusTriggerInformation
+                return new AElfConsensusTriggerInformation
                 {
                     PublicKey = PublicKey,
                     RandomHash = GetRandomHash(),
                     PreviousRandomHash = _latestRandomHash,
                     Behaviour = Hint.Behaviour
-                };
-
-                return trigger;
+                }.ToBytesValue();
             }
 
             return new AElfConsensusTriggerInformation
             {
                 PublicKey = PublicKey,
                 Behaviour = Hint.Behaviour
-            };
+            }.ToBytesValue();
         }
 
         public BytesValue GetTriggerInformationToGenerateConsensusTransactions()
@@ -73,7 +71,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 {
                     PublicKey = PublicKey,
                     Behaviour = AElfConsensusBehaviour.UpdateValue
-                };
+                }.ToBytesValue();
             }
 
             if (Hint.Behaviour == AElfConsensusBehaviour.UpdateValue ||
@@ -91,14 +89,14 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 Logger.LogTrace($"Update lasted random hash to {newRandomHash.ToHex()}");
                 _latestRandomHash = newRandomHash;
 
-                return trigger;
+                return trigger.ToBytesValue();
             }
 
             return new AElfConsensusTriggerInformation
             {
                 PublicKey = PublicKey,
                 Behaviour = Hint.Behaviour
-            };
+            }.ToBytesValue();
         }
 
         private Hash GetRandomHash()

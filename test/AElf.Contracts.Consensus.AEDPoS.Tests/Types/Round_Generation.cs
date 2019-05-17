@@ -5,7 +5,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    internal partial class Round
+    public partial class Round
     {
         public bool GenerateNextRoundInformation(DateTime dateTime, Timestamp blockchainStartTimestamp, out Round nextRound)
         {

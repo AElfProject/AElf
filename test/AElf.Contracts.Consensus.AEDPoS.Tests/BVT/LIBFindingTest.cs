@@ -8,9 +8,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public class LIBFindingTest : AElfConsensusContractTestBase
     {
-        private AEDPoSContractContainer.AEDPoSContractStub Starter { get; }
+        private AEDPoSContractImplContainer.AEDPoSContractImplStub Starter { get; }
         
-        private List<AEDPoSContractContainer.AEDPoSContractStub> Miners { get; }
+        private List<AEDPoSContractImplContainer.AEDPoSContractImplStub> Miners { get; }
 
         private const int MinersCount = 17;
 

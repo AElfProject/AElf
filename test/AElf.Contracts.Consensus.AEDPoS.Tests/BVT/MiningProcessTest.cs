@@ -10,7 +10,7 @@ using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
 using Xunit.Abstractions;
-
+/*
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public class MiningProcessTest : AElfConsensusContractTestBase
@@ -249,4 +249,4 @@ namespace AElf.Contracts.Consensus.AEDPoS
             firstRound.RealTimeMinersInformation.Keys.ToList().ShouldContain(newMiner);
         }
     }
-}
+}*/

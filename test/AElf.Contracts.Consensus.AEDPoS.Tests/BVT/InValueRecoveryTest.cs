@@ -41,8 +41,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
 
                 var tester = GetAElfConsensusContractTester(currentKeyPair);
-                var headerInformation =
-                    await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]);
+                var headerInformation = new AElfConsensusHeaderInformation();
+                headerInformation.MergeFrom(
+                    (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey].ToBytesValue())).Value);
                 var encryptedInValues = headerInformation.Round.RealTimeMinersInformation[minerInRound.PublicKey]
                     .EncryptedInValues;
 
@@ -142,9 +143,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
 
                 var tester = GetAElfConsensusContractTester(currentKeyPair);
-                var headerInformation =
-                    await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]);
-
+                var headerInformation = new AElfConsensusHeaderInformation();
+                headerInformation.MergeFrom(
+                    (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]
+                        .ToBytesValue())).Value);
                 // Update consensus information.
                 var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.PublicKey);
                 await tester.UpdateValue.SendAsync(toUpdate);

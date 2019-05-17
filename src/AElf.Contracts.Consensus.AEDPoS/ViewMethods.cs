@@ -100,12 +100,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ShareAndRecoverInValue(updatedRound, previousRound, inValue, publicKey.ToHex());
 
                     // To publish Out Value.
-                    return new BytesValue{Value = new AElfConsensusHeaderInformation
+                    return new AElfConsensusHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = updatedRound,
                         Behaviour = behaviour,
-                    }.ToByteString()};
+                    }.ToBytesValue();
                 case AElfConsensusBehaviour.TinyBlock:
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks = currentRound
                         .RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks.Add(1);
@@ -113,12 +113,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime =
                         currentBlockTime.ToTimestamp();
-                    return new BytesValue{Value = new AElfConsensusHeaderInformation
+                    return new AElfConsensusHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = currentRound,
                         Behaviour = behaviour
-                    }.ToByteString()};
+                    }.ToBytesValue();
                 case AElfConsensusBehaviour.NextRound:
                     Assert(
                         GenerateNextRoundInformation(currentRound, currentBlockTime, out var nextRound),
@@ -127,12 +127,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
                     Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
                     nextRound.ExtraBlockProducerOfPreviousRound = publicKey.ToHex();
-                    return new BytesValue{Value = new AElfConsensusHeaderInformation
+                    return new AElfConsensusHeaderInformation
                     {
                         SenderPublicKey = publicKey,
                         Round = nextRound,
                         Behaviour = behaviour
-                    }.ToByteString()};
+                    }.ToBytesValue();
                 case AElfConsensusBehaviour.NextTerm:
                     Assert(TryToGetMiningInterval(out var miningInterval), "Failed to get mining interval.");
                     var firstRoundOfNextTerm = GenerateFirstRoundOfNextTerm(publicKey.ToHex(), miningInterval);
@@ -143,7 +143,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         Round = firstRoundOfNextTerm,
                         Behaviour = behaviour
                     };
-                    return new BytesValue{Value = information.ToByteString()};
+                    return information.ToBytesValue();
                 default:
                     return new BytesValue();
             }

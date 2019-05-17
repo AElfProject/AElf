@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package aedposimpl;
+
+import "aelf_options.proto";
+import "acs4.proto";
+import "aedpos_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS";
+
+service AEDPoSContractImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.AEDPoS.AEDPoSContractState";
+    option (aelf.base) = "acs4.proto";
+    option (aelf.base) = "aedpos_contract.proto";
+}

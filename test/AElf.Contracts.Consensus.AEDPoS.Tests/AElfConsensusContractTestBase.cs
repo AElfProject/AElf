@@ -54,16 +54,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
         protected Address ProfitContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
 
-        internal List<AEDPoSContractContainer.AEDPoSContractStub> InitialMiners => InitialMinersKeyPairs
+        internal List<AEDPoSContractImplContainer.AEDPoSContractImplStub> InitialMiners => InitialMinersKeyPairs
             .Select(p =>
-                GetTester<AEDPoSContractContainer.AEDPoSContractStub>(AElfConsensusContractAddress, p))
+                GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(AElfConsensusContractAddress, p))
             .ToList();
 
-        internal AEDPoSContractContainer.AEDPoSContractStub BootMiner => InitialMiners[0];
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub BootMiner => InitialMiners[0];
 
-        internal List<AEDPoSContractContainer.AEDPoSContractStub> BackupNodes => BackupNodesKeyPair
+        internal List<AEDPoSContractImplContainer.AEDPoSContractImplStub> BackupNodes => BackupNodesKeyPair
             .Select(p =>
-                GetTester<AEDPoSContractContainer.AEDPoSContractStub>(AElfConsensusContractAddress, p))
+                GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(AElfConsensusContractAddress, p))
             .ToList();
 
         protected List<ECKeyPair> InitialMinersKeyPairs => SampleECKeyPairs.KeyPairs.Take(InitialMinersCount).ToList();
@@ -80,7 +80,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
 
-        internal AEDPoSContractContainer.AEDPoSContractStub AElfConsensusContractStub { get; set; }
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub AElfConsensusContractStub { get; set; }
         
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         
@@ -164,10 +164,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, keyPair);
         }
 
-        internal AEDPoSContractContainer.AEDPoSContractStub GetAElfConsensusContractTester(
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetAElfConsensusContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<AEDPoSContractContainer.AEDPoSContractStub>(AElfConsensusContractAddress,
+            return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(AElfConsensusContractAddress,
                 keyPair);
         }
 

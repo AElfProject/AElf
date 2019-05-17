@@ -33,8 +33,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             // In first round, boot node will get a consensus command of UpdateValueWithoutPreviousInValue behaviour
             {
-                var command = await BootMiner.GetConsensusCommand.CallAsync(new CommandInput
-                    {PublicKey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)});
+                var command = await BootMiner.GetConsensusCommand.CallAsync(new BytesValue
+                    {Value = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)});
                 command.NextBlockMiningLeftMilliseconds.ShouldBe(MiningInterval);
                 command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval / AEDPoSContractConstants.TinyBlocksNumber);
                 command.Hint.ShouldBe(new AElfConsensusHint
@@ -48,8 +48,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var otherMiner = GetAElfConsensusContractTester(otherMinerKeyPair);
                 var round = await otherMiner.GetCurrentRoundInformation.CallAsync(new Empty());
                 var order = round.RealTimeMinersInformation[otherMinerKeyPair.PublicKey.ToHex()].Order;
-                var command = await otherMiner.GetConsensusCommand.CallAsync(new CommandInput
-                    {PublicKey = ByteString.CopyFrom(otherMinerKeyPair.PublicKey)});
+                var command = await otherMiner.GetConsensusCommand.CallAsync(new BytesValue
+                    {Value = ByteString.CopyFrom(otherMinerKeyPair.PublicKey)});
                 command.NextBlockMiningLeftMilliseconds.ShouldBe(
                     MiningInterval * InitialMinersCount + MiningInterval * order);
                 command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval / AEDPoSContractConstants.TinyBlocksNumber);
@@ -86,8 +86,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var leftMilliseconds = (int) (expectedMiningTime - secondRoundStartTime).TotalMilliseconds;
 
-                var command = await miner.GetConsensusCommand.CallAsync(new CommandInput
-                    {PublicKey = ByteString.CopyFrom(minerKeyPair.PublicKey)});
+                var command = await miner.GetConsensusCommand.CallAsync(new BytesValue
+                    {Value = ByteString.CopyFrom(minerKeyPair.PublicKey)});
                 command.NextBlockMiningLeftMilliseconds.ShouldBe(leftMilliseconds);
                 command.LimitMillisecondsOfMiningBlock.ShouldBe(MiningInterval / AEDPoSContractConstants.TinyBlocksNumber);
                 command.Hint.ShouldBe(new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValue}
@@ -104,8 +104,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     secondRound.GetExpectedEndTime().ToDateTime().AddMilliseconds(MiningInterval);
                 var leftMilliseconds = (int) (extraBlockMiningTime - fakeTime).TotalMilliseconds;
 
-                var command = await miner.GetConsensusCommand.CallAsync(new CommandInput
-                    {PublicKey = ByteString.CopyFrom(minerKeyPair.PublicKey)});
+                var command = await miner.GetConsensusCommand.CallAsync(new BytesValue
+                    {Value = ByteString.CopyFrom(minerKeyPair.PublicKey)});
                 if (secondRound.GetExtraBlockProducerInformation().PublicKey == minerKeyPair.PublicKey.ToHex())
                 {
                     // If this node is EBP
