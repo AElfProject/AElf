@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Miner.Application;
+using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
 namespace AElf.Kernel
@@ -25,7 +26,7 @@ namespace AElf.Kernel
             var hash = chain.BestChainHash;
             var height = chain.BestChainHeight;
             var eventData =
-                new ConsensusRequestMiningEventData(hash, height, DateTime.UtcNow,
+                new ConsensusRequestMiningEventData(hash, height, DateTime.UtcNow.ToTimestamp(),
                     TimeSpan.FromMilliseconds(60 * 1000));
 
             await _miningEventHandler.HandleEventAsync(eventData);

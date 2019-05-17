@@ -1,4 +1,5 @@
 ﻿using System;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {
@@ -9,7 +10,7 @@ namespace AElf.Kernel.SmartContract.Sdk
         Hash PreviousBlockHash { get; set; }
         long BlockHeight { get; set;}
         
-        DateTime CurrentBlockTime { get; set; }
+        Timestamp CurrentBlockTime { get; set; }
         
         int CallDepth { get; set; }
         int MaxCallDepth { get; set; }

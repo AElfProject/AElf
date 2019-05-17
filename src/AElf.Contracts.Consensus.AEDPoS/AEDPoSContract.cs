@@ -52,7 +52,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.CurrentTermNumber.Value = 1;
             State.CurrentRoundNumber.Value = 1;
             State.FirstRoundNumberOfEachTerm[1] = 1L;
-            SetBlockchainStartTimestamp(input.GetStartTime().ToTimestamp());
+            SetBlockchainStartTimestamp(input.GetStartTime());
             State.MiningInterval.Value = input.GetMiningInterval();
 
             if (State.ElectionContract.Value != null)
@@ -172,7 +172,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (currentRoundNumber == 1)
             {
-                var actualBlockchainStartTimestamp = input.GetStartTime().ToTimestamp();
+                var actualBlockchainStartTimestamp = input.GetStartTime();
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
             }
             else
@@ -227,7 +227,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var minersCount = currentRoundMiners.Count;
 
-                var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
+                var minimumCount = (int) (minersCount * ((decimal) 2 / 3)) + 1;
 
                 if (minersCount == 1)
                 {

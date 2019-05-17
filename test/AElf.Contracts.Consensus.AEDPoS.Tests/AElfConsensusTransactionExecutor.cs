@@ -9,6 +9,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -35,7 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
+                DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMilliseconds(int.MaxValue));
 
             await blockAttachService.AttachBlockAsync(block);
         }
@@ -54,7 +55,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     BlockHeight = preBlock.Height
                 },
                 transaction,
-                blockTimeProvider.GetBlockTime());
+                blockTimeProvider.GetBlockTime().ToTimestamp());
 
             return transactionTrace.ReturnValue;
         }

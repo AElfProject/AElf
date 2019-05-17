@@ -67,7 +67,7 @@ namespace AElf.Benchmark
                     BlockHeight = _chain.BestChainHeight
                 },
                 _transaction,
-                DateTime.UtcNow);
+                DateTime.UtcNow.ToTimestamp());
         }
 
         [IterationCleanup]

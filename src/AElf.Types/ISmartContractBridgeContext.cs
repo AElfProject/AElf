@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using AElf.Kernel;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf
 {
@@ -36,7 +37,7 @@ namespace AElf
         
         long CurrentHeight { get; }
 
-        DateTime CurrentBlockTime { get; }
+        Timestamp CurrentBlockTime { get; }
         Hash PreviousBlockHash { get; }
 
         byte[] RecoverPublicKey();

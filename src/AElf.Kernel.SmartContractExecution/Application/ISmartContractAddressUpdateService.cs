@@ -5,6 +5,7 @@ using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
@@ -53,7 +54,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var transactionResult =
                 (await _transactionExecutingService.ExecuteAsync(
                     new ChainContext() {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height}, t,
-                    DateTime.UtcNow));
+                    DateTime.UtcNow.ToTimestamp()));
 
             if (!transactionResult.IsSuccessful())
                 throw new InvalidOperationException();

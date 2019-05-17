@@ -10,6 +10,7 @@ using AElf.Modularity;
 using AElf.OS.Jobs;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
@@ -74,7 +75,7 @@ namespace AElf.OS
                 {
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = height,
-                    BlockTime = DateTime.UtcNow
+                    BlockTime = DateTime.UtcNow.ToTimestamp()
                 }));
 
                 // no choice need to execute the block to finalize it.

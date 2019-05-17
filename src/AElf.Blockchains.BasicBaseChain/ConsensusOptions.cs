@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains
 {
@@ -9,7 +10,7 @@ namespace AElf.Blockchains
         // ReSharper disable once CollectionNeverUpdated.Global
         public List<string> InitialMiners { get; set; }
         public int MiningInterval { get; set; }
-        public DateTime StartTimestamp { get; set; } = DateTime.MinValue;
+        public Timestamp StartTimestamp { get; set; } = DateTime.MinValue.ToUniversalTime().ToTimestamp();
         public int TimeEachTerm { get; set; } = 7;
     }
 }

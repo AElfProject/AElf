@@ -4,6 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -24,8 +25,8 @@ namespace AElf.CrossChain
             {
                 var mockTransactionReadOnlyExecutionService = new Mock<ITransactionReadOnlyExecutionService>();
                 mockTransactionReadOnlyExecutionService
-                    .Setup(m => m.ExecuteAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>(), It.IsAny<DateTime>()))
-                    .Returns<IChainContext, Transaction, DateTime>((chainContext, transaction, dateTime) =>
+                    .Setup(m => m.ExecuteAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>(), It.IsAny<Timestamp>()))
+                    .Returns<IChainContext, Transaction, Timestamp>((chainContext, transaction, dateTime) =>
                     {
                         var crossChainTestHelper = context.Services.GetRequiredServiceLazy<CrossChainTestHelper>().Value;                   
                         return Task.FromResult(crossChainTestHelper.CreateFakeTransactionTrace(transaction));
@@ -74,8 +75,8 @@ namespace AElf.CrossChain
             {
                 var mockTransactionReadOnlyExecutionService = new Mock<ITransactionReadOnlyExecutionService>();
                 mockTransactionReadOnlyExecutionService
-                    .Setup(m => m.ExecuteAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>(), It.IsAny<DateTime>()))
-                    .Returns<IChainContext, Transaction, DateTime>((chainContext, transaction, dateTime) =>
+                    .Setup(m => m.ExecuteAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>(), It.IsAny<Timestamp>()))
+                    .Returns<IChainContext, Transaction, Timestamp>((chainContext, transaction, dateTime) =>
                     {
                         var crossChainTestHelper = context.Services.GetRequiredServiceLazy<CrossChainTestHelper>().Value;                   
                         return Task.FromResult(crossChainTestHelper.CreateFakeTransactionTrace(transaction));

@@ -13,6 +13,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using BenchmarkDotNet.Attributes;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 
 namespace AElf.Benchmark
@@ -61,7 +62,7 @@ namespace AElf.Benchmark
         public async Task MineBlockTest()
         {
             _block = await _minerService.MineAsync(_chain.BestChainHash, _chain.BestChainHeight,
-                DateTime.UtcNow, TimeSpan.FromMilliseconds(4000));
+                DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMilliseconds(4000));
         }
 
         [IterationCleanup]

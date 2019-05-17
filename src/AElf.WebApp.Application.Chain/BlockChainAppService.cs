@@ -11,6 +11,7 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
@@ -631,7 +632,7 @@ namespace AElf.WebApp.Application.Chain
         {
             var chainContext = await GetChainContextAsync();
 
-            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
+            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow.ToTimestamp());
 
             if (!string.IsNullOrEmpty(trace.StdErr))
                 throw new Exception(trace.StdErr);

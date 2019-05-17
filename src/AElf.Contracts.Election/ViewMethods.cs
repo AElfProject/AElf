@@ -218,7 +218,7 @@ namespace AElf.Contracts.Election
                 LockTime = (int) lockDays,
                 VoteTimestamp = votingRecord.VoteTimestamp,
                 WithdrawTimestamp = votingRecord.WithdrawTimestamp,
-                UnlockTimestamp = votingRecord.VoteTimestamp.AddDays(lockDays),
+                UnlockTimestamp = votingRecord.VoteTimestamp.ToSafeDateTime().AddDays(lockDays).ToTimestamp(),
                 IsWithdrawn = votingRecord.IsWithdrawn
             };
         }

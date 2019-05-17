@@ -1,4 +1,5 @@
 using System;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestKit
 {
@@ -10,6 +11,7 @@ namespace AElf.Contracts.TestKit
     {
         DateTime GetBlockTime();
         void SetBlockTime(DateTime blockTime);
+        void SetBlockTime(Timestamp blockTime);
     }
 
     public class BlockTimeProvider : IBlockTimeProvider
@@ -24,6 +26,11 @@ namespace AElf.Contracts.TestKit
         public void SetBlockTime(DateTime blockTime)
         {
             _blockTime = blockTime;
+        }
+
+        public void SetBlockTime(Timestamp blockTime)
+        {
+            _blockTime = blockTime.ToDateTime();
         }
     }
 }

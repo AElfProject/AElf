@@ -6,6 +6,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
@@ -19,7 +20,7 @@ namespace AElf.Kernel.Miner.Application
         /// This method mines a block.
         /// </summary>
         /// <returns>The block that has been produced.</returns>
-        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime, TimeSpan timeSpan);
+        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime, TimeSpan timeSpan);
     }
     public class MinerService : IMinerService
     {
@@ -43,7 +44,7 @@ namespace AElf.Kernel.Miner.Application
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime dateTime,
+        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp dateTime,
             TimeSpan timeSpan)
         {
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
@@ -110,7 +111,7 @@ namespace AElf.Kernel.Miner.Application
         /// Generate block
         /// </summary>
         /// <returns></returns>
-        private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight, DateTime expectedMiningTime)
+        private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight, Timestamp expectedMiningTime)
         {
             var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
             {
@@ -129,7 +130,7 @@ namespace AElf.Kernel.Miner.Application
         }
 
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight,
-            List<Transaction> transactions, DateTime blockTime, TimeSpan timeSpan)
+            List<Transaction> transactions, Timestamp blockTime, TimeSpan timeSpan)
         {
             var block = await GenerateBlock(previousBlockHash, previousBlockHeight, blockTime);
             var systemTransactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);

@@ -7,6 +7,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.TestKit
@@ -28,7 +29,7 @@ namespace AElf.Contracts.TestKit
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
             var block = await miningService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 new List<Transaction> {transaction},
-                DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
+                DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMilliseconds(int.MaxValue));
 
             await blockAttachService.AttachBlockAsync(block);
         }
@@ -47,7 +48,7 @@ namespace AElf.Contracts.TestKit
                     BlockHeight = preBlock.Height
                 },
                 transaction,
-                blockTimeProvider.GetBlockTime());
+                blockTimeProvider.GetBlockTime().ToTimestamp());
 
             return transactionTrace.ReturnValue;
         }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Miner.Application
 {
@@ -11,6 +12,6 @@ namespace AElf.Kernel.Miner.Application
         /// </summary>
         /// <returns>The block that has been produced.</returns>
         Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, List<Transaction> transactions,
-            DateTime blockTime, TimeSpan blockExecutionTime);
+            Timestamp blockTime, TimeSpan blockExecutionTime);
     }
 }

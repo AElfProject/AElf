@@ -6,6 +6,7 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.Threading;
@@ -109,7 +110,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         }
 
         public async Task<T> ExecuteContractAsync<T>(IChainContext chainContext, string consensusMethodName,
-            IMessage input, DateTime dateTime) where T : class, IMessage<T>, new()
+            IMessage input, Timestamp dateTime) where T : class, IMessage<T>, new()
         {
             var tx = new Transaction
             {
@@ -124,7 +125,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         }
 
         public async Task<byte[]> GetInformationToUpdateConsensusAsync(ChainContext chainContext,
-            DateTime nextMiningTime)
+            Timestamp nextMiningTime)
         {
             return (await ExecuteContractAsync<AElfConsensusHeaderInformation>(chainContext,
                 ConsensusConsts.GetInformationToUpdateConsensus,

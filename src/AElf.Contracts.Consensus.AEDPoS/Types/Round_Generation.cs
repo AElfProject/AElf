@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class Round
     {
-        public bool GenerateNextRoundInformation(DateTime dateTime, Timestamp blockchainStartTimestamp, out Round nextRound)
+        public bool GenerateNextRoundInformation(Timestamp dateTime, Timestamp blockchainStartTimestamp, out Round nextRound)
         {
             nextRound = new Round();
 
@@ -24,9 +25,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
             else
             {
-                nextRound.BlockchainAge =
-                    (long) (dateTime - blockchainStartTimestamp.ToDateTime())
-                    .TotalMinutes; // TODO: Change to TotalDays after testing.
+                nextRound.BlockchainAge = 
+                    (dateTime.ToSafeDateTime() - blockchainStartTimestamp).TotalMilliseconds.Div(SafeTimeSpan.MsPerMinute);
+                // TODO: Change to TotalDays after testing.
             }
 
             // Set next round miners' information of miners who successfully mined during this round.
@@ -37,7 +38,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKey = minerInRound.PublicKey,
                     Order = order,
-                    ExpectedMiningTime = dateTime.AddMilliseconds(miningInterval * order).ToTimestamp(),
+                    ExpectedMiningTime = dateTime.ToSafeDateTime().AddMilliseconds(miningInterval.Mul(order)).ToTimestamp(),
                     PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots
@@ -55,7 +56,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKey = minersNotMinedCurrentRound[i].PublicKey,
                     Order = order,
-                    ExpectedMiningTime = dateTime.AddMilliseconds(miningInterval * order).ToTimestamp(),
+                    ExpectedMiningTime = dateTime.ToSafeDateTime().AddMilliseconds(miningInterval.Mul(order)).ToTimestamp(),
                     PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots + 1
@@ -89,8 +90,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var signature = firstPlaceInfo.Signature;
-            var sigNum = BitConverter.ToInt64(
-                BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(), 0);
+            var sigNum = signature.ToInt64();
             var blockProducerCount = RealTimeMinersInformation.Count;
             var order = GetAbsModulus(sigNum, blockProducerCount) + 1;
             return order;

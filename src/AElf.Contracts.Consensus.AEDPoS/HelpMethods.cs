@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="dateTime"></param>
         /// <param name="currentRound">Return current round information to avoid unnecessary database access.</param>
         /// <returns></returns>
-        private AElfConsensusBehaviour GetBehaviour(string publicKey, DateTime dateTime, out Round currentRound)
+        private AElfConsensusBehaviour GetBehaviour(string publicKey, Timestamp dateTime, out Round currentRound)
         {
             currentRound = null;
 
@@ -94,7 +94,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Calculate the approvals and make the judgement of changing term.
             var changeTerm =
-                currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber,
+                currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp, termNumber,
                     State.TimeEachTerm.Value, (TimeUnit) State.BaseTimeUnit.Value);
             return changeTerm
                 ? AElfConsensusBehaviour.NextTerm
@@ -113,7 +113,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private ConsensusCommand GetConsensusCommand(AElfConsensusBehaviour behaviour, Round currentRound,
             Round previousRound, string publicKey,
-            DateTime dateTime)
+            Timestamp dateTime)
         {
             var minerInRound = currentRound.RealTimeMinersInformation[publicKey];
             var miningInterval = currentRound.GetMiningInterval();
@@ -135,21 +135,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 case AElfConsensusBehaviour.UpdateValue:
                     expectedMiningTime = expectedMiningTime.ToDateTime().ToTimestamp();
                     nextBlockMiningLeftMilliseconds =
-                        (int) (expectedMiningTime.ToDateTime() - dateTime).TotalMilliseconds;
+                        (int) (expectedMiningTime.ToSafeDateTime() - dateTime).TotalMilliseconds;
                     break;
                 case AElfConsensusBehaviour.TinyBlock:
                     if (minerInRound.OutValue != null)
                     {
                         if (currentRound.ExtraBlockProducerOfPreviousRound != publicKey)
                         {
-                            expectedMiningTime = expectedMiningTime.ToDateTime().AddMilliseconds(producedTinyBlocks
+                            expectedMiningTime = expectedMiningTime.ToSafeDateTime().AddMilliseconds(producedTinyBlocks
                                     .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber))
                                 .ToTimestamp();
                         }
                         else
                         {
                             // EBP of previous round will produce double tiny blocks. This is for normal time slot of current round.
-                            expectedMiningTime = expectedMiningTime.ToDateTime().AddMilliseconds(producedTinyBlocks
+                            expectedMiningTime = expectedMiningTime.ToSafeDateTime().AddMilliseconds(producedTinyBlocks
                                 .Sub(AEDPoSContractConstants.TinyBlocksNumber)
                                 .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber)).ToTimestamp();
                         }
@@ -157,22 +157,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     else if (previousRound != null)
                     {
                         // EBP of previous round will produce double tiny blocks. This is for extra time slot of previous round.
-                        expectedMiningTime = previousRound.GetExtraBlockMiningTime().AddMilliseconds(producedTinyBlocks
+                        expectedMiningTime = previousRound.GetExtraBlockMiningTime().ToSafeDateTime().AddMilliseconds(producedTinyBlocks
                             .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber)).ToTimestamp();
                     }
 
                     nextBlockMiningLeftMilliseconds =
-                        (int) (expectedMiningTime.ToDateTime() - dateTime).TotalMilliseconds;
+                        (int) (expectedMiningTime.ToSafeDateTime() - dateTime).TotalMilliseconds;
                     break;
                 case AElfConsensusBehaviour.NextRound:
                     nextBlockMiningLeftMilliseconds = currentRound.RoundNumber == 1
                         ? currentRound.RealTimeMinersInformation.Count * miningInterval + myOrder * miningInterval
-                        : (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
+                        : (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToSafeDateTime() -
                                  dateTime).TotalMilliseconds;
                     break;
                 case AElfConsensusBehaviour.NextTerm:
                     nextBlockMiningLeftMilliseconds =
-                        (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToDateTime() -
+                        (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToSafeDateTime() -
                                dateTime).TotalMilliseconds;
                     break;
                 default:

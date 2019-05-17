@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Infrastructure;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -19,7 +21,7 @@ namespace AElf.Kernel.Consensus.Application
         private readonly IConsensusScheduler _consensusScheduler;
         public ILogger<ConsensusService> Logger { get; set; }
 
-        private DateTime _nextMiningTime;
+        private Timestamp _nextMiningTime;
 
         public ConsensusService(IConsensusInformationGenerationService consensusInformationGenerationService,
             IConsensusScheduler consensusScheduler, ConsensusControlInformation consensusControlInformation)
@@ -37,24 +39,24 @@ namespace AElf.Kernel.Consensus.Application
             // Upload the consensus command.
             _consensusControlInformation.ConsensusCommand =
                 await _consensusInformationGenerationService.ExecuteContractAsync<ConsensusCommand>(chainContext,
-                    ConsensusConsts.GetConsensusCommand, triggerInformation, DateTime.UtcNow);
+                    ConsensusConsts.GetConsensusCommand, triggerInformation, DateTime.UtcNow.ToTimestamp());
 
             Logger.LogDebug($"Updated consensus command: {_consensusControlInformation.ConsensusCommand}");
             
             // Initial consensus scheduler.
             var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
                 chainContext.BlockHeight,
-                _consensusControlInformation.ConsensusCommand.ExpectedMiningTime.ToDateTime(),
-                TimeSpan.FromMilliseconds(_consensusControlInformation.ConsensusCommand
-                    .LimitMillisecondsOfMiningBlock));
+                _consensusControlInformation.ConsensusCommand.ExpectedMiningTime,
+                TimeSpan.FromTicks(TimeSpan.TicksPerMillisecond.Mul(_consensusControlInformation.ConsensusCommand
+                    .LimitMillisecondsOfMiningBlock)));
             _consensusScheduler.CancelCurrentEvent();
             _consensusScheduler.NewEvent(_consensusControlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds,
                 blockMiningEventData);
 
             // Update next mining time, also block time of both getting consensus extra data and txs.
             _nextMiningTime =
-                DateTime.UtcNow.AddMilliseconds(_consensusControlInformation.ConsensusCommand
-                    .NextBlockMiningLeftMilliseconds);
+                DateTime.UtcNow.ToSafeDateTime().AddMilliseconds(_consensusControlInformation.ConsensusCommand
+                    .NextBlockMiningLeftMilliseconds).ToTimestamp();
         }
 
         public async Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,
@@ -63,7 +65,7 @@ namespace AElf.Kernel.Consensus.Application
             var validationResult = await _consensusInformationGenerationService.ExecuteContractAsync<ValidationResult>(
                 chainContext, ConsensusConsts.ValidateConsensusBeforeExecution,
                 _consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData),
-                DateTime.UtcNow);
+                DateTime.UtcNow.ToTimestamp());
 
             if (!validationResult.Success)
             {
@@ -79,7 +81,7 @@ namespace AElf.Kernel.Consensus.Application
             var validationResult = await _consensusInformationGenerationService.ExecuteContractAsync<ValidationResult>(
                 chainContext, ConsensusConsts.ValidateConsensusAfterExecution,
                 _consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData),
-                DateTime.UtcNow);
+                DateTime.UtcNow.ToTimestamp());
 
             if (!validationResult.Success)
             {
@@ -96,8 +98,7 @@ namespace AElf.Kernel.Consensus.Application
         /// <returns></returns>
         public async Task<byte[]> GetInformationToUpdateConsensusAsync(ChainContext chainContext)
         {
-            return await _consensusInformationGenerationService.GetInformationToUpdateConsensusAsync(chainContext,
-                _nextMiningTime);
+            return await _consensusInformationGenerationService.GetInformationToUpdateConsensusAsync(chainContext, _nextMiningTime);
         }
 
         public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)

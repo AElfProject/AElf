@@ -19,7 +19,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public async Task<IEnumerable<string>> GetCurrentMiners(ChainContext chainContext)
         {
             var minersWithRoundNumber = await _consensusInformationGenerationService.ExecuteContractAsync<MinerListWithRoundNumber>(chainContext,
-                "GetCurrentMiners", new Empty(), DateTime.UtcNow);
+                "GetCurrentMiners", new Empty(), DateTime.UtcNow.ToTimestamp());
             return minersWithRoundNumber.MinerList.PublicKeys.Select(k => k.ToHex());
         }
     }

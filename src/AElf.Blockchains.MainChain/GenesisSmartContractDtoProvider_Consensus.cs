@@ -40,8 +40,7 @@ namespace AElf.Blockchains.MainChain
                         _consensusOptions.InitialMiners.Select(p =>
                             ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p)))
                     }
-                }.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval,
-                    _consensusOptions.StartTimestamp.ToUniversalTime()));
+                }.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, _consensusOptions.StartTimestamp));
             return aelfConsensusMethodCallList;
         }
     }

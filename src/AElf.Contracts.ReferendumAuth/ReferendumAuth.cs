@@ -73,8 +73,7 @@ namespace AElf.Contracts.ReferendumAuth
                 && proposal.ExpiredTime != null, "Invalid proposal.");
             var organization = State.Organisations[proposal.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
-            DateTime timestamp = proposal.ExpiredTime.ToDateTime();
-            Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
+            Assert(Context.CurrentBlockTime < proposal.ExpiredTime, "Expired proposal.");
             Hash hash = Hash.FromMessage(proposal);
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = new ProposalInfo
@@ -93,8 +92,7 @@ namespace AElf.Contracts.ReferendumAuth
         {
             var proposalInfo = State.Proposals[approval.ProposalId];
             Assert(proposalInfo != null, "Proposal not found.");
-            DateTime timestamp = proposalInfo.ExpiredTime.ToDateTime();
-            if (Context.CurrentBlockTime > timestamp)
+            if (Context.CurrentBlockTime > proposalInfo.ExpiredTime)
             {
                 // expired proposal
                 //State.Proposals[approval.ProposalId] = null;
@@ -139,7 +137,7 @@ namespace AElf.Contracts.ReferendumAuth
             Assert(voteToken != null, "Nothing to reclaim.");
             var proposal = State.Proposals[proposalId];
             Assert(proposal == null ||
-                Context.CurrentBlockTime > proposal.ExpiredTime.ToDateTime(), "Unable to reclaim at this time.");
+                Context.CurrentBlockTime > proposal.ExpiredTime, "Unable to reclaim at this time.");
             // State.LockedTokenAmount[Context.Sender][proposalId] = null;
             UnlockToken(new UnlockInput
             {

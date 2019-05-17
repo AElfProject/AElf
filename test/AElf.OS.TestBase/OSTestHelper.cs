@@ -200,7 +200,7 @@ namespace AElf.OS
             }
 
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
-                DateTime.UtcNow, TimeSpan.FromMilliseconds(4000));
+                DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMilliseconds(4000));
 
             await _blockAttachService.AttachBlockAsync(block);
                 

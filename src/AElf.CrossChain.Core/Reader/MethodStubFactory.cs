@@ -8,6 +8,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
 
@@ -51,7 +52,7 @@ namespace AElf.CrossChain
                 };
 
                 var trace =
-                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, DateTime.UtcNow);
+                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, DateTime.UtcNow.ToTimestamp());
 
                 if (trace.IsSuccessful())
                 {

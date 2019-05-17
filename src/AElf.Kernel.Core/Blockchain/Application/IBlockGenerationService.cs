@@ -16,7 +16,7 @@ namespace AElf.Kernel.Blockchain.Application
         public Hash PreviousBlockHash { get; set; }
         public long PreviousBlockHeight { get; set; }
 
-        public DateTime BlockTime { get; set; } = DateTime.UtcNow;
+        public Timestamp BlockTime { get; set; } = DateTime.UtcNow.ToTimestamp();
     }
 
     public interface IBlockGenerationService
@@ -50,7 +50,7 @@ namespace AElf.Kernel.Blockchain.Application
                     ChainId = _staticChainInformationProvider.ChainId,
                     Height = generateBlockDto.PreviousBlockHeight + 1,
                     PreviousBlockHash = generateBlockDto.PreviousBlockHash,
-                    Time = Timestamp.FromDateTime(generateBlockDto.BlockTime)
+                    Time = generateBlockDto.BlockTime
                 },
                 Body = new BlockBody()
             };

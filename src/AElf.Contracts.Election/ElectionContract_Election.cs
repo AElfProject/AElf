@@ -209,14 +209,13 @@ namespace AElf.Contracts.Election
             Assert(State.CandidateInformationMap[input.CandidatePublicKey].IsCurrentCandidate,
                 "Candidate quited election.");
 
-            var lockDays = (input.EndTimestamp - Context.CurrentBlockTime.ToTimestamp()).Days();
+            var lockDays = (input.EndTimestamp.ToSafeDateTime() - Context.CurrentBlockTime).TotalMilliseconds.Div(SafeTimeSpan.MsPerDay);
             Assert(lockDays >= State.MinimumLockTime.Value,
                 $"Invalid lock time. At least {State.MinimumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
             Assert(lockDays <= State.MaximumLockTime.Value,
                 $"Invalid lock time. At most {State.MaximumLockTime.Value} {(TimeUnit) State.BaseTimeUnit.Value}");
 
-            State.LockTimeMap[Context.TransactionId] =
-                GetTimeSpan(input.EndTimestamp, Context.CurrentBlockTime.ToTimestamp());
+            State.LockTimeMap[Context.TransactionId] = GetTimeSpan(input.EndTimestamp, Context.CurrentBlockTime);
 
             // Update Voter's Votes information.
             var voterPublicKeyBytes = Context.RecoverPublicKey();
@@ -305,7 +304,7 @@ namespace AElf.Contracts.Election
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input);
 
-            var actualLockedTime = GetTimeSpan(Context.CurrentBlockTime.ToTimestamp(), votingRecord.VoteTimestamp);
+            var actualLockedTime = GetTimeSpan(Context.CurrentBlockTime, votingRecord.VoteTimestamp);
             var claimedLockDays = State.LockTimeMap[input];
             Assert(actualLockedTime >= claimedLockDays,
                 $"Still need {claimedLockDays - actualLockedTime} days to unlock your token.");
@@ -410,10 +409,10 @@ namespace AElf.Contracts.Election
             if ((TimeUnit) State.BaseTimeUnit.Value == TimeUnit.Minutes)
             {
                 // For testing.
-                return (endTime - startTime).Minutes();
+                return (endTime.ToSafeDateTime() - startTime).TotalMilliseconds.Div(SafeTimeSpan.MsPerMinute);
             }
 
-            return (endTime - startTime).Days();
+            return (endTime.ToSafeDateTime() - startTime).TotalMilliseconds.Div(SafeTimeSpan.MsPerDay);
         }
     }
 }

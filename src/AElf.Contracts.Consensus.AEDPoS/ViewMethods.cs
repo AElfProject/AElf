@@ -73,8 +73,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         .RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks.Add(1);
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
                         currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
-                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime =
-                        currentBlockTime.ToTimestamp();
+                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime = currentBlockTime;
                     
                     Assert(input.RandomHash != null, "Random hash should not be null.");
 
@@ -110,8 +109,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         .RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks.Add(1);
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
                         currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
-                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime =
-                        currentBlockTime.ToTimestamp();
+                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime = currentBlockTime;
                     return new AElfConsensusHeaderInformation
                     {
                         SenderPublicKey = publicKey,
@@ -414,8 +412,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private long GetBlockchainAge()
         {
-            return (long) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value.ToDateTime())
-                .TotalHours;
+            return (Context.CurrentBlockTime.ToSafeDateTime() - State.BlockchainStartTimestamp.Value).TotalMilliseconds.Div(SafeTimeSpan.MsPerHour);
         }
 
         private bool TryToGetVictories(out Miners victories)
@@ -439,7 +436,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void ShareAndRecoverInValue(Round round, Round previousRound, Hash inValue, string publicKey)
         {
             var minersCount = round.RealTimeMinersInformation.Count;
-            var minimumCount = (int) (minersCount * 2d / 3);
+            var minimumCount = (int) (minersCount * ((decimal) 2 / 3));
             minimumCount = minimumCount == 0 ? 1 : minimumCount;
 
             var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToHex(), minimumCount, minersCount);
@@ -513,7 +510,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        private bool GenerateNextRoundInformation(Round currentRound, DateTime blockTime, out Round nextRound)
+        private bool GenerateNextRoundInformation(Round currentRound, Timestamp blockTime, out Round nextRound)
         {
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
             if (TryToGetPreviousRoundInformation(out var previousRound) &&
@@ -625,9 +622,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 // TODO: Maybe this should according to date, like every July 1st we increase 2 miners.
                 var initialMinersCount = firstRound.RealTimeMinersInformation.Count;
-                return initialMinersCount.Add(((int) Context.CurrentBlockTime
-                    .Subtract(State.BlockchainStartTimestamp.Value.ToDateTime())
-                    .TotalDays).Div(365).Mul(2));
+                return initialMinersCount.Add(((int) (Context.CurrentBlockTime.ToSafeDateTime() - 
+                                                      State.BlockchainStartTimestamp.Value).TotalMilliseconds.Div(SafeTimeSpan.MsPerDay)).Div(365).Mul(2));
             }
 
             return 0;

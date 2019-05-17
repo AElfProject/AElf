@@ -9,8 +9,10 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Anemonis.AspNetCore.JsonRpc;
 using Anemonis.JsonRpc;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using Type = System.Type;
 
 namespace AElf.OS.Rpc.ChainController
 {
@@ -242,7 +244,7 @@ namespace AElf.OS.Rpc.ChainController
         {
             var chainContext = await s.GetChainContextAsync();
 
-            var trace = await s.TransactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.Now);
+            var trace = await s.TransactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow.ToTimestamp());
 
             if (!string.IsNullOrEmpty(trace.StdErr))
                 throw new Exception(trace.StdErr);
