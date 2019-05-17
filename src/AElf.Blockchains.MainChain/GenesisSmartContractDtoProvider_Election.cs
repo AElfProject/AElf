@@ -27,8 +27,8 @@ namespace AElf.Blockchains.MainChain
             electionContractMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {
-                    MaximumLockTime = 1080,
-                    MinimumLockTime = 90
+                    MaximumLockTime = 1080 * 86400,
+                    MinimumLockTime = 90 * 86400
                 });
             return electionContractMethodCallList;
         }

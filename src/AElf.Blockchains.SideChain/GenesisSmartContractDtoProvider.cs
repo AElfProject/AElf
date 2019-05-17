@@ -10,6 +10,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
@@ -77,12 +78,11 @@ namespace AElf.Blockchains.SideChain
             var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
 
             var miners = chainInitializationContext == null
-                ? new Miners
+                ? new MinerList
                 {
                     PublicKeys =
                     {
-                        _consensusOptions.InitialMiners.Select(p =>
-                            ByteString.CopyFrom(ByteArrayHelpers.FromHexString(p)))
+                        _consensusOptions.InitialMiners.Select(p => p.ToByteString())
                     }
                 }
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;

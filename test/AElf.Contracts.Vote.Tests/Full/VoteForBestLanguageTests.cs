@@ -92,7 +92,7 @@ namespace AElf.Contracts.Vote
                 transactionResult3.Status.ShouldBe(TransactionResultStatus.Mined);
                 
                 var votingResult = await GetVotingResult(registerItem.VotingItemId, 2);
-                votingResult.VotersCount.ShouldBe(4);
+                votingResult.VotersCount.ShouldBe(7);
                 votingResult.Results.Count.ShouldBe(3);
                 votingResult.Results[options[0]].ShouldBe(100);
                 votingResult.Results[options[1]].ShouldBe(100);

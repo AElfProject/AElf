@@ -75,7 +75,22 @@ service ElectionContract {
     rpc GetCandidateVoteWithAllRecords (StringInput) returns (CandidateVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotesCount (google.protobuf.Empty) returns (SInt64Value) {
+    rpc GetVotersCount (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotesAmount (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentMiningReward (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentWelfareReward (StringInput) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPageableCandidateInformation (PageInformation) returns (GetPageableCandidateInformationOutput) {
         option (aelf.is_view) = true;
     }
     rpc GetMinerElectionVotingItemId (google.protobuf.Empty) returns (Hash) {
@@ -84,13 +99,13 @@ service ElectionContract {
 }
 
 message InitialElectionContractInput {
-    sint32 minimum_lock_time = 1;
-    sint32 maximum_lock_time = 2;
+    sint64 minimum_lock_time = 1;
+    sint64 maximum_lock_time = 2;
 }
 
 message ConfigElectionContractInput {
     repeated string miner_list = 1;
-    sint32 time_each_term = 2;
+    sint64 time_each_term = 2;
 }
 
 message GetTermSnapshotInput {
@@ -152,12 +167,17 @@ message CandidateVote {
 
 message CandidateInformation {
     string public_key = 1;
-    repeated int64 terms = 2;
+    repeated sint64 terms = 2;
     sint64 produced_blocks = 3;
     sint64 missed_time_slots = 4;
     sint64 continual_appointment_count = 5;
     Hash announcement_transaction_id = 6;
     bool is_current_candidate = 7;
+}
+
+message CandidateDetail {
+    CandidateInformation candidate_information = 1;
+    sint64 obtained_votes_amount = 2;
 }
 
 message ElectionVotingRecord {
@@ -166,16 +186,16 @@ message ElectionVotingRecord {
     sint64 amount = 3;
     sint64 term_number = 4;
     Hash vote_id = 5;
-    sint32 lock_time = 7;
+    sint64 lock_time = 7;
     google.protobuf.Timestamp unlock_timestamp = 10;
     google.protobuf.Timestamp withdraw_timestamp = 11;
     google.protobuf.Timestamp vote_timestamp = 12;
     bool is_withdrawn = 13;
 }
 
-message PageInfo {
-    sint64 start = 1;
-    sint64 length = 2;
+message PageInformation {
+    sint32 start = 1;
+    sint32 length = 2;
 }
 
 message StringInput {
@@ -198,4 +218,16 @@ message TermSnapshot {
 
 message UpdateMinersCountInput {
      sint32 miners_count = 1;
- }
+}
+
+message GetWelfareRewardAmountSampleInput {
+    repeated sint64 value = 1;
+}
+
+message GetWelfareRewardAmountSampleOutput {
+    repeated sint64 value = 1;
+}
+
+message GetPageableCandidateInformationOutput {
+    repeated CandidateDetail value = 1;
+}
