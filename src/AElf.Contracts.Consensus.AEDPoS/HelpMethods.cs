@@ -133,7 +133,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     break;
 
                 case AElfConsensusBehaviour.UpdateValue:
-                    expectedMiningTime = expectedMiningTime.ToDateTime().ToTimestamp();
                     nextBlockMiningLeftMilliseconds =
                         (int) (expectedMiningTime.ToSafeDateTime() - dateTime).TotalMilliseconds;
                     break;
