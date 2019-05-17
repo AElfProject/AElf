@@ -26,19 +26,19 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\protobuf\aelf_options.proto">
+      <None Include="..\..\protobuf\aelf_options.proto">
         <Link>Protobuf/Proto/aelf_options.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\common.proto">
+      </None>
+      <None Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\aedpos_contract.proto">
+      </None>
+      <None Include="..\..\protobuf\aedpos_contract.proto">
         <Link>Protobuf/Proto/aedpos_contract.proto</Link>
-      </Content>
+      </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_event_only.sh aedpos_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_event_only.bat aedpos_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh aedpos_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat aedpos_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>

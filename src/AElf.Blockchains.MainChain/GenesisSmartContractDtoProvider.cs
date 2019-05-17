@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.Options;
 

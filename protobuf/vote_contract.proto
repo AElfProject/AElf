@@ -125,6 +125,7 @@ message VotingResult {
     sint64 voters_count = 4;
     google.protobuf.Timestamp snapshot_start_timestamp = 5;
     google.protobuf.Timestamp snapshot_end_timestamp = 6;
+    sint64 votes_amount = 7;
 }
 
 message TakeSnapshotInput {
