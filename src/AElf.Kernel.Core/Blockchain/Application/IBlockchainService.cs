@@ -16,17 +16,16 @@ namespace AElf.Kernel.Blockchain.Application
     {
         int GetChainId();
         
-        Task<Chain> CreateChainAsync(BlockWithTransactions block);
+        Task<Chain> CreateChainAsync(Block block, IEnumerable<Transaction> transactions);
         Task AddTransactionsAsync(IEnumerable<Transaction> transactions);
+        Task<Transaction> GetTransactionsAsync(IEnumerable<Hash> transactionHashes);
         Task AddBlockAsync(Block block);
-        Task AddBlockWithTransactionsAsync(BlockWithTransactions blockWithTxs);
         Task<bool> HasBlockAsync(Hash blockId);
-
         Task<Block> GetBlockByHashAsync(Hash blockId);
 
         Task<BlockHeader> GetBlockHeaderByHashAsync(Hash blockId);
 
-        Task<BlockWithTransactions> GetBlockWithTransactionsByHashAsync(Hash blockId);
+        Task<BlockWithTransactions> GetBlockWithTransactionsByHashAsync(Hash blockId); // todo net layer
 
         Task<Chain> GetChainAsync();
 
@@ -100,6 +99,7 @@ namespace AElf.Kernel.Blockchain.Application
             return (await Task.WhenAll(list)).ToList();
         }
         
+        // todo re-implement in network
         public static async Task<List<BlockWithTransactions>> GetBlocksWithTxsInChainBranchAsync(this IBlockchainService blockchainService,
             Chain chain,
             Hash firstHash,
@@ -175,11 +175,12 @@ namespace AElf.Kernel.Blockchain.Application
             return _chainManager.GetChainId();
         }
 
-        public async Task<Chain> CreateChainAsync(BlockWithTransactions block)
+        public async Task<Chain> CreateChainAsync(Block block, IEnumerable<Transaction> transactions)
         {
-            await AddBlockWithTransactionsAsync(block);
-            var chain = await _chainManager.CreateAsync(block.GetHash());
-            return chain;
+            await AddTransactionsAsync(transactions);
+            await AddBlockAsync(block);
+            
+            return await _chainManager.CreateAsync(block.GetHash());;
         }
 
         public async Task AddBlockAsync(Block block)
@@ -192,12 +193,6 @@ namespace AElf.Kernel.Blockchain.Application
         {
             foreach (var transaction in transactions)
                 await _transactionManager.AddTransactionAsync(transaction);
-        }
-
-        public async Task AddBlockWithTransactionsAsync(BlockWithTransactions blockWithTxs)
-        {
-            await AddBlockAsync(blockWithTxs.ToBlock());
-            await AddTransactionsAsync(blockWithTxs.FullTransactionList);
         }
 
         public async Task<bool> HasBlockAsync(Hash blockId)

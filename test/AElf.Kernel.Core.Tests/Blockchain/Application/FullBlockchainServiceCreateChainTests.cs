@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -18,14 +19,15 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Create_Chain_Success()
         {
-            var block = new BlockWithTransactions
+            var block = new Block
             {
                 Header = new BlockHeader
                 {
                     Height = Constants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
                     Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                }
+                },
+                Body = new BlockBody()
             };
 
             var chain = await _fullBlockchainService.GetChainAsync();
@@ -34,7 +36,7 @@ namespace AElf.Kernel.Blockchain.Application
             var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.ShouldBeNull();
 
-            var createChainResult = await _fullBlockchainService.CreateChainAsync(block);
+            var createChainResult = await _fullBlockchainService.CreateChainAsync(block, new List<Transaction>());
 
             chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldNotBeNull();

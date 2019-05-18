@@ -74,7 +74,7 @@ namespace AElf.Kernel.Blockchain.Application
         private (Block, List<TransactionResult>) GetNextBlockWithTransactionAndResults(BlockHeader previous,
             IEnumerable<Transaction> transactions, ByteString uniqueData = null)
         {
-            var block = new Block()
+            var block = new Block
             {
                 Header = new BlockHeader()
                 {

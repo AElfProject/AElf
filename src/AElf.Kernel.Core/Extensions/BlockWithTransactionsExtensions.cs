@@ -4,7 +4,7 @@ namespace AElf.Kernel
 {
     public static class BlockWithTransactionsExtensions
     {
-        public static Block ToBlock(this BlockWithTransactions block)
+        public static Block ToBlock(this BlockWithTransactions block) // todo move to OS
         {
             return new Block
             {

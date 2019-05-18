@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -51,13 +50,9 @@ namespace AElf.Kernel.ChainController.Application
                     ChainId = _blockchainService.GetChainId()
                 };
 
-                var transactionsToInclude = genesisTransactions.ToList();
-                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, transactionsToInclude);
-
-                var blockWithTx = new BlockWithTransactions { Header = block.Header };
-                blockWithTx.Transactions.AddRange(transactionsToInclude);
+                var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, genesisTransactions);
+                var chain = await _blockchainService.CreateChainAsync(block, genesisTransactions);
                 
-                var chain = await _blockchainService.CreateChainAsync(blockWithTx);
                 await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, BlockAttachOperationStatus.LongestChainFound);
 
                 return await _blockchainService.GetChainAsync();

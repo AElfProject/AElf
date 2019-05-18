@@ -26,7 +26,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Add_Block_Success()
         {
-            var block = new Block()
+            var block = new Block
             {
                 Height = 2,
                 Header = new BlockHeader(),

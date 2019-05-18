@@ -177,11 +177,6 @@ message Block {
     BlockBody Body = 2;
 }
 
-message BlockWithTransactions {
-    BlockHeader Header = 1;
-    repeated Transaction Transactions = 2;
-}
-
 //message SmartContractRegistration {
 //    int32 Category = 1;
 //    bytes Code = 2;

@@ -80,6 +80,7 @@ namespace AElf.CrossChain.Grpc
         private void PublishCrossChainRequestReceivedEvent(string peer, int port, int chainId)
         {
             var host = new UriBuilder(peer).Host;
+            
             LocalEventBus.PublishAsync(new GrpcCrossChainRequestReceivedEvent
             {
                 RemoteServerHost = host,

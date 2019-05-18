@@ -79,7 +79,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 foreach (var blockLink in blockLinks)
                 {
-                    var linkedBlock = await _blockchainService.GetBlockWithTransactionsByHashAsync(blockLink.BlockHash);
+                    var linkedBlock = await _blockchainService.GetBlockWithTransactionsByHashAsync(blockLink.BlockHash); // todo remove
                     
                     // Set the other blocks as bad block if found the first bad block
                     if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(linkedBlock))

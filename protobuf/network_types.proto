@@ -6,9 +6,11 @@ import "google/protobuf/timestamp.proto";
 import "kernel.proto";
 import "common.proto";
 
+// todo loawer_next_word
+
 message Handshake {
     HandshakeData HskData = 1;
-    bytes Sig = 2;
+    bytes Sig = 2; // todo
     bool Success = 3;
     BlockHeader Header = 4;
 }
@@ -24,4 +26,9 @@ message PeerNewBlockAnnouncement {
     Hash BlockHash = 1;
     int64 BlockHeight = 2;
     google.protobuf.Timestamp BlockTime = 3;
+}
+
+message BlockWithTransactions {
+    BlockHeader Header = 1;
+    repeated Transaction Transactions = 2;
 }
