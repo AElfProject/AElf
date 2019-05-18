@@ -169,14 +169,14 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public void CheckBadContract_ForLargeArrayInitialization()
         {
-            _findings.FirstOrDefault(f => f.GetType() == typeof(ArrayValidationResult) && f.Info.ReferencingMethod == "InitLargeArray")
+            _findings.FirstOrDefault(f => f is ArrayValidationResult && f.Info.ReferencingMethod == "InitLargeArray")
                 .ShouldNotBeNull();
         }
         
         [Fact]
         public void CheckBadContract_ForFloatOperations()
         {
-            _findings.FirstOrDefault(f => f.GetType() == typeof(FloatOpsValidationResult))
+            _findings.FirstOrDefault(f => f is FloatOpsValidationResult)
                 .ShouldNotBeNull();
         }
         
