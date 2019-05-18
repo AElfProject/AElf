@@ -94,7 +94,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 collection.TryAdd(receipt.Transaction.RefBlockNumber, receipts);
             }
 
-            if (receipts.ContainsKey(receipt.TransactionId)) return;
             receipts.TryAdd(receipt.TransactionId, receipt);
         }
 
