@@ -88,14 +88,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private static void AddToCollection(ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> collection,
             TransactionReceipt receipt)
         {
-            if (!collection.TryGetValue(receipt.Transaction.RefBlockNumber, out var receipts))
-            {
+            if (collection.TryGetValue(receipt.Transaction.RefBlockNumber, out var receipts))
+                if (receipts.ContainsKey(receipt.TransactionId)) return;
+            else
                 receipts = new ConcurrentDictionary<Hash, TransactionReceipt>();
-                collection.TryAdd(receipt.Transaction.RefBlockNumber, receipts);
-            }
-
-            if (receipts.ContainsKey(receipt.TransactionId)) return;
-            receipts.TryAdd(receipt.TransactionId, receipt);
+            
+            collection.TryAdd(receipt.Transaction.RefBlockNumber, receipts);
         }
 
         private static void CheckPrefixForOne(TransactionReceipt receipt, ByteString prefix, long bestChainHeight)
