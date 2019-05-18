@@ -34,7 +34,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
             context.Services.AddSingleton<IConsensusInformationGenerationService, AEDPoSInformationGenerationService>();
             context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
-            context.Services.AddSingleton<IAEDPoSInformationProvider, IaedpoSInformationProvider>();
+            context.Services.AddSingleton<IAEDPoSInformationProvider, AEDPoSInformationProvider>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();
 

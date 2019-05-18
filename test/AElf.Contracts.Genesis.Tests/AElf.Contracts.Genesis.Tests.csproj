@@ -37,17 +37,8 @@
         <None Include="..\..\protobuf\common.proto">
             <Link>Protobuf/Proto/common.proto</Link>
         </None>
-        <None Include="..\..\protobuf\consensus.proto">
-            <Link>Protobuf/Proto/consensus.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\consensus_dpos.proto">
-            <Link>Protobuf/Proto/consensus_dpos.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\dividend_contract.proto">
-            <Link>Protobuf/Proto/dividend_contract.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\dpos_contract.proto">
-            <Link>Protobuf/Proto/dpos_contract.proto</Link>
+        <None Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
         </None>
         <None Include="..\..\protobuf\kernel.proto">
             <Link>Protobuf/Proto/kernel.proto</Link>

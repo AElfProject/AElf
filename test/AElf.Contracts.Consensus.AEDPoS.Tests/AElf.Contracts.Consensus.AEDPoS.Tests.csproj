@@ -28,27 +28,27 @@
         <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <Content Include="..\..\protobuf\common.proto">
+        <None Include="..\..\protobuf\common.proto">
             <Link>Protobuf/Proto/common.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\aelf_options.proto">
+        </None>
+        <None Include="..\..\protobuf\aelf_options.proto">
             <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\token_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\vote_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf/Proto/vote_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\aedpos_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf/Proto/aedpos_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\election_contract.proto">
+        </None>
+        <None Include="..\..\protobuf\election_contract.proto">
             <Link>Protobuf/Proto/election_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\basic_contract_zero.proto">
+        </None>
+        <None Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </Content>
+        </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto election_contract.proto aedpos_contract.proto vote_contract.proto token_contract.proto" />

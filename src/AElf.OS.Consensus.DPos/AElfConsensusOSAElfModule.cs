@@ -13,8 +13,8 @@ namespace AElf.OS.Consensus.DPos
         {
             context.Services.AddSingleton<DPoSAnnouncementReceivedEventDataHandler>();
             context.Services
-                .AddSingleton<IDPoSLastLastIrreversibleBlockDiscoveryService,
-                    DPoSLastLastIrreversibleBlockDiscoveryService>();
+                .AddSingleton<IAEDPoSLastLastIrreversibleBlockDiscoveryService,
+                    AEDPoSLastLastIrreversibleBlockDiscoveryService>();
         }
     }
 }
