@@ -77,6 +77,7 @@ namespace AElf.OS.Jobs
                     }
                     
                     await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
+                    await _blockchainService.AddBlockAsync(blockWithTransactions.ToBlock());
 
                     _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(blockWithTransactions.ToBlock()),
                         KernelConstants.UpdateChainQueueName);
@@ -136,6 +137,7 @@ namespace AElf.OS.Jobs
                         }
 
                         await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
+                        await _blockchainService.AddBlockAsync(blockWithTransactions.ToBlock());
                         
                         Logger.LogDebug($"Processing block {blockWithTransactions},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
                         

@@ -33,6 +33,7 @@ namespace AElf.Contracts.TestKit
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
 
             await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
+            await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
         }
 
