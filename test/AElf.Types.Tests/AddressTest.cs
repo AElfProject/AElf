@@ -89,7 +89,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void Verify_Address()
         {
-            var address = Address.Generate();
+            var address = Address.FromString("Test");
             var formattedAddress = address.GetFormatted();
             AddressHelpers.VerifyFormattedAddress(formattedAddress).ShouldBeTrue();
 
