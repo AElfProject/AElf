@@ -24,13 +24,7 @@ namespace AElf.Blockchains.MainChain
             GenerateCrossChainInitializationCallList()
         {
             var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
-                new InitializeInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name
-                });
+            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize), new InitializeInput());
             return crossChainMethodCallList;
         }
     }

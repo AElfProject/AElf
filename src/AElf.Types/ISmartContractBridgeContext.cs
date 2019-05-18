@@ -64,6 +64,8 @@ namespace AElf
 
         Address GetZeroSmartContractAddress();
 
+        Address GetContractAddressByName(Hash hash);
+
         IStateProvider StateProvider { get; }
 
         byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage);

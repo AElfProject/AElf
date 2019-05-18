@@ -29,9 +29,6 @@
         <None Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </None>
-        <None Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </None>
         <None Include="..\..\protobuf\election_contract.proto">
             <Link>Protobuf/Proto/election_contract.proto</Link>
         </None>
@@ -41,8 +38,8 @@
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto vote_contract.proto token_contract.proto profit_contract.proto aedpos_contract.proto; ../../scripts/generate_contract_code.sh election_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto vote_contract.proto token_contract.proto profit_contract.proto aedpos_contract.proto &amp; ..\..\scripts\generate_contract_code.bat election_contract.proto" />
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh vote_contract.proto token_contract.proto profit_contract.proto aedpos_contract.proto; ../../scripts/generate_contract_code.sh election_contract.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat vote_contract.proto token_contract.proto profit_contract.proto aedpos_contract.proto &amp; ..\..\scripts\generate_contract_code.bat election_contract.proto" />
     </Target>
     <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
