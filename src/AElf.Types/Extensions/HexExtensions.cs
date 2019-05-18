@@ -8,5 +8,10 @@ namespace AElf
         {
             return BitConverter.GetBytes(n);
         }
+        
+        public static byte[] DumpByteArray(this long n)
+        {
+            return BitConverter.GetBytes(n);
+        }
     }
 }

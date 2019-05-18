@@ -11,4 +11,9 @@ option csharp_namespace = "AElf.Contracts.Consensus.PoW";
 service PoWContract {
     option (aelf.csharp_state) = "AElf.Contracts.Consensus.PoW.PoWContractState";
     
+    // Actions
+    rpc InitialPoWContract (SInt32Value) returns (google.protobuf.Empty) {
+    }
+    rpc SetNonce (SInt64Value) returns (google.protobuf.Empty) {
+    }
 }

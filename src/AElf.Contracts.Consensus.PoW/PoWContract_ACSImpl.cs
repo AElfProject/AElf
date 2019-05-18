@@ -1,4 +1,7 @@
+using System.Linq;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.PoW
@@ -17,22 +20,51 @@ namespace AElf.Contracts.Consensus.PoW
 
         public override BytesValue GetInformationToUpdateConsensus(BytesValue input)
         {
-            return base.GetInformationToUpdateConsensus(input);
+            var nonce = 0L;
+            while (!IsHashValid(Hash.FromRawBytes(input.Value.Concat(nonce.DumpByteArray()).ToArray())))
+            {
+                nonce = nonce.Add(1);
+            }
+
+            Context.LogDebug(() => $"Find nonce {nonce}");
+
+            return new BytesValue {Value = ByteString.CopyFrom(new SInt64Value {Value = nonce}.ToByteArray())};
         }
 
         public override TransactionList GenerateConsensusTransactions(BytesValue input)
         {
-            return base.GenerateConsensusTransactions(input);
+            var nonceBytes = new SInt64Value();
+            nonceBytes.MergeFrom(ByteString.CopyFrom(input.Value.ToByteArray()));
+            return new TransactionList {Transactions = {GenerateSetNonceTransaction(nonceBytes)}};
         }
 
         public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input)
         {
-            return base.ValidateConsensusBeforeExecution(input);
+            return new ValidationResult {Success = true};
         }
 
         public override ValidationResult ValidateConsensusAfterExecution(BytesValue input)
         {
-            return base.ValidateConsensusAfterExecution(input);
+            return new ValidationResult {Success = true};
+        }
+
+        private bool IsHashValid(Hash hash)
+        {
+            var currentDifficulty = State.Difficulty.Value;
+            return hash.ToHex().Take(currentDifficulty).All(c => c == '0');
+        }
+
+        private Transaction GenerateSetNonceTransaction(IMessage parameter)
+        {
+            var tx = new Transaction
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                MethodName = nameof(SetNonce),
+                Params = parameter.ToByteString()
+            };
+
+            return tx;
         }
     }
 }

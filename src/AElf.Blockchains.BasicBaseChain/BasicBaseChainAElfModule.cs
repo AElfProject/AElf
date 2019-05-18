@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Consensus.PoW;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
@@ -33,7 +34,8 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
-        typeof(AEDPoSAElfModule),
+        typeof(PoWAElfModule),
+        //typeof(AEDPoSAElfModule),
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
