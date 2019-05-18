@@ -59,8 +59,8 @@ namespace AElf.OS.Network
         [Fact]
         public void IsAuthenticatePeer_Success()
         {
-            var result = _pool.IsAuthenticatePeer(GrpcTestConstants.FakePubKey);
-            result.ShouldBeTrue();
+            var result = _pool.FindPeerByAddress(GrpcTestConstants.FakePubKey);
+            result.ShouldBeNull();
         }
 
         [Fact]
