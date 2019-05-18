@@ -80,14 +80,15 @@ namespace AElf.OS.Network.Grpc
             
             var pubKey = handshake.HskData.PublicKey.ToHex();
             
-            var old = _peerPool.FindPeerByPublicKey(pubKey);
+            var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
 
-            if (old != null)
+            if (oldPeer != null)
             {
-                Logger.LogDebug($"Cleaning up {old} before connecting.");
+                Logger.LogDebug($"Cleaning up {oldPeer} before connecting.");
                 await _peerPool.RemovePeerAsync(pubKey, false);
             }
 
+            // TODO: find a URI type to use
             var peerAddress = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
             Logger.LogDebug($"Attempting to create channel to {peerAddress}");
 
