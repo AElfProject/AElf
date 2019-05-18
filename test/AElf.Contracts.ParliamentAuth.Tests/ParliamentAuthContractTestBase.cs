@@ -129,12 +129,7 @@ namespace AElf.Contracts.ParliamentAuth
             GenerateParliamentAuthInitializationCallList()
         {
             var parliamentMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentMethodCallList.Add(nameof(ParliamentAuthContract.Initialize),
-                new ParliamentAuthInitializationInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
-                });
-
+            parliamentMethodCallList.Add(nameof(ParliamentAuthContract.Initialize), new Empty());
             return parliamentMethodCallList;
         }
 

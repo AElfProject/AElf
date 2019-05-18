@@ -78,11 +78,8 @@ service CrossChainContract {
 }
 
 message InitializeInput {
-    Hash tokenContractSystemName = 1;
-    Hash consensusContractSystemName = 2;
-    Hash parliamentContractSystemName = 3;
-    int32 parentChainId = 4;
-    int64 creationHeightOnParentChain = 5;
+    int32 parentChainId = 1;
+    int64 creationHeightOnParentChain = 2;
 }
 
 message RechargeInput {

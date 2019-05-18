@@ -20,17 +20,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"Time each term: {State.TimeEachTerm.Value} seconds.");
 
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-
             if (input.IsTermStayOne || input.IsSideChain)
             {
+                State.IsMainChain.Value = false;
                 return new Empty();
             }
 
-            State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
+            State.IsMainChain.Value = true;
 
             State.ElectionContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(input.ElectionContractSystemName);
+                Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
 
             State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
 
@@ -205,7 +204,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
         {
-            Assert(State.ElectionContract.Value == null, "Only side chain can update consensus information.");
+            Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
             // For now we just extract the miner list from main chain consensus information, then update miners list.
             if (input == null || input.Bytes.IsEmpty)
                 return new Empty();
