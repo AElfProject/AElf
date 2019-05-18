@@ -19,8 +19,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInformation.AppendLine($"Order:\t {minerInRound.Order}");
                 minerInformation.AppendLine(
                     $"Expect:\t {minerInRound.ExpectedMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,ffffff}");
+                var roundStartTime = GetStartTime();
                 var actualMiningTimes = minerInRound.ActualMiningTimes.Select(t =>
-                    t.ToDateTime().ToUniversalTime().ToString("yyyy-MM-dd HH.mm.ss,ffffff"));
+                {
+                    if (t.ToDateTime() < roundStartTime)
+                    {
+                        return $"{t.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,ffffff} (For Extra Block Slot Of Previous Round)";
+                    }
+
+                    return t.ToDateTime().ToUniversalTime().ToString("yyyy-MM-dd HH.mm.ss,ffffff");
+                });
                 var actualMiningTimesStr = minerInRound.ActualMiningTimes.Any() ? string.Join("\n\t ", actualMiningTimes) : "";
                 minerInformation.AppendLine($"Actual:\t {actualMiningTimesStr}");
                 minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");

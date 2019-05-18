@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -230,7 +229,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// This method for now is able to handle the situation of a miner keeping offline so many rounds,
         /// by using missedRoundsCount.
         /// </summary>
-        /// <param name="round"></param>
         /// <param name="miningInterval"></param>
         /// <param name="missedRoundsCount"></param>
         /// <returns></returns>

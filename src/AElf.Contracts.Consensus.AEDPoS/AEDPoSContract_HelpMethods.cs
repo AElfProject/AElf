@@ -164,7 +164,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         nextBlockMiningLeftMilliseconds =
                             GetNextBlockMiningLeftMillisecondsForFirstRound(minerInRound, blockTime);
                     }
-                    else if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey && producedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
+                    else if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
+                             producedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
                     {
                         var previousExtraBlockMiningTime =
                             currentRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).ExpectedMiningTime
@@ -175,7 +176,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     }
                     else
                     {
-                        nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(expectedMiningTime - blockTime.ToTimestamp());
+                        nextBlockMiningLeftMilliseconds =
+                            ConvertDurationToMilliseconds(expectedMiningTime - blockTime.ToTimestamp());
                     }
 
                     break;
@@ -318,7 +320,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var leftMilliseconds = ConvertDurationToMilliseconds(expectedMiningTime - blockTime.ToTimestamp());
             return leftMilliseconds;
         }
-        
+
         private void SetBlockchainStartTimestamp(Timestamp timestamp)
         {
             Context.LogDebug(() => $"Set start timestamp to {timestamp}");
@@ -336,7 +338,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.CurrentRoundNumber.Value = roundNumber;
             return true;
         }
-        
+
         private bool TryToAddRoundInformation(Round round)
         {
             var ri = State.Rounds[round.RoundNumber];

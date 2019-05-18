@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using AElf.Contracts.Election;
 using AElf.Cryptography.SecretSharing;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -13,8 +12,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSContract
     {
-        
-
         public override SInt64Value GetCurrentRoundNumber(Empty input)
         {
             return new SInt64Value {Value = State.CurrentRoundNumber.Value};

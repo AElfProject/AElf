@@ -1,16 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using AElf.Contracts.Election;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSContract : AEDPoSContractImplContainer.AEDPoSContractImplBase
     {
-        
         #region Initial
 
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
@@ -20,7 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.TimeEachTerm.Value = input.IsSideChain || input.IsTermStayOne
                 ? int.MaxValue
                 : input.TimeEachTerm;
-            
+
             Context.LogDebug(() => $"Time each term: {State.TimeEachTerm.Value} seconds.");
 
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
@@ -78,7 +75,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         #endregion
-        
+
         #region UpdateValue
 
         public override Empty UpdateValue(UpdateValueInput input)
@@ -203,17 +200,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         #endregion
-        
+
+        #region UpdateConsensusInformation
+
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
         {
             Assert(State.ElectionContract.Value == null, "Only side chain can update consensus information.");
             // For now we just extract the miner list from main chain consensus information, then update miners list.
-            if(input == null || input.Bytes.IsEmpty)
+            if (input == null || input.Bytes.IsEmpty)
                 return new Empty();
             var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Bytes);
-            
+
             // check round number of shared consensus, not term number
-            if(consensusInformation.Round.RoundNumber <= State.MainChainRoundNumber.Value)
+            if (consensusInformation.Round.RoundNumber <= State.MainChainRoundNumber.Value)
                 return new Empty();
             Context.LogDebug(() => $"Shared miner list of round {consensusInformation.Round.RoundNumber}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
@@ -225,6 +224,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Empty();
         }
 
-
+        #endregion
     }
 }
