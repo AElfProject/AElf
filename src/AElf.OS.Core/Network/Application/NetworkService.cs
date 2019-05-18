@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
@@ -63,7 +64,7 @@ namespace AElf.OS.Network.Application
                     Logger.LogDebug($"Block announced: {announce}");
                     await peer.AnnounceAsync(announce);
                     
-                    successfulBcasts++;
+                    Interlocked.Increment(ref successfulBcasts);
                 }
                 catch (NetworkException e)
                 {
