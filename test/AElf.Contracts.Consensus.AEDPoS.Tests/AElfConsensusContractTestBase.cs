@@ -233,12 +233,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
             var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
-                new InitialVoteContractInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                });
-
+            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),new Empty());
             return voteMethodCallList;
         }
 
@@ -248,13 +243,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {
-                    // Create Treasury profit item and register sub items.
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
-                    
-                    // Get current miners.
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     MaximumLockTime = 1080 * 86400,
                     MinimumLockTime = 90 * 86400
                 });
@@ -267,9 +255,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             aelfConsensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     TimeEachTerm = TimeEachTerm
                 });
             aelfConsensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
@@ -338,12 +323,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
         var profitContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-        profitContractMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),
-        new InitializeProfitContractInput
-        {
-        // To handle tokens when release profit, add profits and receive profits.
-        TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-        });
+        profitContractMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),new Empty());
         return profitContractMethodCallList;
         } 
     }
