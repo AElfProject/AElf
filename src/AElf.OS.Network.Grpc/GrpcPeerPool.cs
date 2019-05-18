@@ -51,6 +51,7 @@ namespace AElf.OS.Network.Grpc
 
             return await DialAsync(address);
         }
+        
         private async Task<bool> DialAsync(string ipAddress)
         {
             Logger.LogTrace($"Attempting to reach {ipAddress}.");
@@ -153,19 +154,15 @@ namespace AElf.OS.Network.Grpc
             return p;
         }
 
-        public bool IsAuthenticatePeer(string remotePubKey)
-        {
-            string localPubKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
-            if (remotePubKey == localPubKey)
-                return false;
-
-            return FindPeerByPublicKey(remotePubKey) == null;
-        }
-
         public bool AddPeer(IPeer peer)
         {
             if (!(peer is GrpcPeer p))
                 return false;
+            
+            string localPubKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
+
+            if (peer.PubKey == localPubKey)
+                throw new InvalidOperationException($"Connection to self detected {peer.PubKey} ({peer.PeerIpAddress})");
 
             if (!_authenticatedPeers.TryAdd(p.PubKey, p))
             {
