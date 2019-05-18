@@ -68,7 +68,7 @@ namespace AElf.OS.Jobs
                         return;
                     }
                                        
-                    var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+                    var valid = await _validationService.ValidateBlockAsync(blockWithTransactions);
 
                     if (!valid)
                     {
@@ -127,7 +127,7 @@ namespace AElf.OS.Jobs
                             break;
                         }
 
-                        var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+                        var valid = await _validationService.ValidateBlockAsync(blockWithTransactions);
 
                         if (!valid)
                         {
