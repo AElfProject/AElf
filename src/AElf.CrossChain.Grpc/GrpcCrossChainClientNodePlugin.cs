@@ -43,7 +43,7 @@ namespace AElf.CrossChain.Grpc
                 || _grpcCrossChainConfigOption.LocalServerPort == 0) 
                 return;
             
-            await _grpcClientProvider.CreateOrUpdateClient(new GrpcCrossChainCommunicationDto
+            await _grpcClientProvider.CreateOrUpdateClientAsync(new GrpcCrossChainCommunicationDto
             {
                 RemoteChainId = _crossChainConfigOption.ParentChainId,
                 RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
@@ -68,7 +68,7 @@ namespace AElf.CrossChain.Grpc
                 LocalChainId = _localChainId
             };
 
-            await _grpcClientProvider.CreateOrUpdateClient(grpcCrossChainCommunicationDto,
+            await _grpcClientProvider.CreateOrUpdateClientAsync(grpcCrossChainCommunicationDto,
                 requestReceivedEventData.RemoteChainId == _crossChainConfigOption.ParentChainId);
         }
         

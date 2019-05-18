@@ -26,6 +26,7 @@ using AElf.Runtime.CSharp;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Volo.Abp;
 using Volo.Abp.EventBus;
@@ -111,14 +112,18 @@ namespace AElf.Contracts.TestKit
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            
             context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>().SetKeyPair(CryptoHelpers.GenerateKeyPair());
-            
+
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
+                ContractZeroInitializationInput = new ContractZeroInitializationInput
+                {
+                    ContractDeploymentAuthorityRequired = context.ServiceProvider
+                        .GetService<IOptionsSnapshot<ContractOptions>>().Value.ContractDeploymentAuthorityRequired
+                }
             };
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;

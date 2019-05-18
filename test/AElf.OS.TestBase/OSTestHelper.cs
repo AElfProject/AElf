@@ -72,7 +72,6 @@ namespace AElf.OS
             IOptionsSnapshot<ChainOptions> chainOptions)
         {
             _chainOptions = chainOptions.Value;
-
             _osBlockchainNodeContextService = osBlockchainNodeContextService;
             _accountService = accountService;
             _minerService = minerService;
@@ -259,7 +258,8 @@ namespace AElf.OS
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ZeroSmartContract = typeof(BasicContractZero),
-                ChainId = _chainOptions.ChainId
+                ChainId = _chainOptions.ChainId,
+                ContractZeroInitializationInput = new ContractZeroInitializationInput()
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<AEDPoSContract>(

@@ -108,24 +108,7 @@ namespace AElf.Contract.TestContract
                 DefaultSender)).Int64Value;
             (winData + loseData).ShouldBe(100);
         }
-
-        [Fact]
-        public async Task UpdateContract_Without_Permission_Failed()
-        {
-            var otherUser = SampleECKeyPairs.KeyPairs[2];
-            var otherZeroStub = GetContractZeroTester(otherUser);
-            var transactionResult = (await otherZeroStub.UpdateSmartContract.SendAsync(
-                new ContractUpdateInput
-                {
-                    Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicUpdateContract).Assembly.Location)) 
-                }
-            )).TransactionResult;
-            
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Only owner is allowed to update code").ShouldBeTrue();
-        }
-
+        
         [Fact]
         public async Task ChangeOwner_Without_Permission_Failed()
         {

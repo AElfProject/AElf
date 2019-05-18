@@ -185,7 +185,8 @@ namespace AElf.Contracts.TestBase
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
+                ContractZeroInitializationInput = new ContractZeroInitializationInput()
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<AEDPoSContract>(
@@ -217,7 +218,8 @@ namespace AElf.Contracts.TestBase
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
+                ContractZeroInitializationInput = new ContractZeroInitializationInput()
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract<AEDPoSContract>(

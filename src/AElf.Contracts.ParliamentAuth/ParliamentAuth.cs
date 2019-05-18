@@ -39,7 +39,7 @@ namespace AElf.Contracts.ParliamentAuth
         public override Address GetZeroOwnerAddress(Empty input)
         {
             Assert(State.Initialized.Value, "Not initialized.");
-            return State.DefaultOrganizationAddress.Value;
+            return State.ZeroOwnerAddress.Value;
         }
 
         #endregion view
@@ -50,7 +50,7 @@ namespace AElf.Contracts.ParliamentAuth
             State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Initialized.Value = true;
-            State.DefaultOrganizationAddress.Value =
+            State.ZeroOwnerAddress.Value =
                 CreateOrganization(new CreateOrganizationInput {ReleaseThreshold = _defaultOrganizationReleaseThreshold});
             return new Empty();
         }

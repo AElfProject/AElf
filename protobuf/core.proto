@@ -364,7 +364,8 @@ message ChangeContractOwnerInput {
 
 message ContractZeroInitializationInput{
     Hash parliamentAuthContractName = 1;
-    string methodNameForReadingZeroOwnerAddress = 2;
+    string requiringZeroOwnerAddressMethodName = 2;
+    bool contractDeploymentAuthorityRequired = 3;
 }
 
 // Consensus

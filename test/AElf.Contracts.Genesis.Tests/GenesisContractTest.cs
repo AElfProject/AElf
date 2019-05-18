@@ -92,19 +92,20 @@ namespace AElf.Contracts.Genesis
             resultHash.ShouldBe(contractHash);
         }
 
-        [Fact]
-        public async Task Update_SmartContract_Without_Owner()
-        {
-            var contractAddress = await Deploy_SmartContracts();
-            var result = await AnotherTester.UpdateSmartContract.SendAsync(
-                new ContractUpdateInput()
-                {
-                    Address = contractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ResourceContract).Assembly.Location))
-                });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("Only owner is allowed to update code.").ShouldBeTrue();
-        }
+        //TODO: Add test cases for permission 
+//        [Fact]
+//        public async Task Update_SmartContract_Without_Owner()
+//        {
+//            var contractAddress = await Deploy_SmartContracts();
+//            var result = await AnotherTester.UpdateSmartContract.SendAsync(
+//                new ContractUpdateInput()
+//                {
+//                    Address = contractAddress,
+//                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ResourceContract).Assembly.Location))
+//                });
+//            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+//            result.TransactionResult.Error.Contains("Only owner is allowed to update code.").ShouldBeTrue();
+//        }
 
         [Fact]
         public async Task Update_SmartContract_With_Same_Code()

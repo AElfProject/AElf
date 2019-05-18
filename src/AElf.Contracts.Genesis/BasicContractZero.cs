@@ -62,7 +62,7 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
-            Assert(Context.Sender.Equals(Context.GetZeroSmartContractAddress()), "Unable to deploy system contract.");
+            CheckAuthority();
             var name = input.Name;
             var category = input.Category;
             var code = input.Code.ToByteArray();
@@ -122,25 +122,24 @@ namespace AElf.Contracts.Genesis
 
             if (name != null)
                 State.NameAddressMapping[name] = contractAddress;
-
-
             return contractAddress;
         }
 
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
+            CheckAuthority();
             var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray());
             return address;
         }
 
         public override Address UpdateSmartContract(ContractUpdateInput input)
         {
+            CheckAuthority();
             var contractAddress = input.Address;
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
 
             Assert(info != null, "Contract does not exist.");
-            Assert(info.Owner.Equals(Context.Sender), "Only owner is allowed to update code.");
 
             var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
@@ -174,13 +173,13 @@ namespace AElf.Contracts.Genesis
         public override Empty ChangeContractOwner(ChangeContractOwnerInput input)
         {
             var contractAddress = input.ContractAddress;
-            var newOwner = input.NewOwner;
             var info = State.ContractInfos[contractAddress];
             Assert(info != null && info.Owner.Equals(Context.Sender), "no permission.");
 
             var oldOwner = info.Owner;
             info.Owner = input.NewOwner;
             State.ContractInfos[contractAddress] = info;
+            var newOwner = input.NewOwner;
             Context.Fire(new OwnerChanged
             {
                 Address = contractAddress,
@@ -193,16 +192,32 @@ namespace AElf.Contracts.Genesis
 
         public override Empty Initialize(ContractZeroInitializationInput input)
         {
-            Assert(Context.Sender.Equals(Context.Self), "Unable to set contract zero owner.");
-            if (input.ParliamentAuthContractName != null)
-            {
-                var address = GetContractAddressByName(input.ParliamentAuthContractName);
-                var ownerAddress =
-                    Context.Call<Address>(address, input.MethodNameForReadingZeroOwnerAddress, new Empty());
-                State.ContractZeroOwner.Value = ownerAddress;
-            }
-            
+            Assert(!State.Initialized.Value, "Contract zero already initialized");
+            State.Initialized.Value = true;
+            Assert(Context.Sender.Equals(Context.Self), "Unauthorized to initialize contract zero.");
+            State.ContractDeploymentAuthorityRequired.Value = input.ContractDeploymentAuthorityRequired;
+            if (input.ParliamentAuthContractName == null || string.IsNullOrEmpty(input.RequiringZeroOwnerAddressMethodName))
+                return new Empty();
+            var address = GetContractAddressByName(input.ParliamentAuthContractName);
+            var ownerAddress =
+                Context.Call<Address>(address, input.RequiringZeroOwnerAddressMethodName, new Empty());
+            State.ContractZeroOwner.Value = ownerAddress;
             return new Empty();
+        }
+
+        private void CheckAuthority()
+        {
+            var sender = Context.Sender;
+            var self = Context.Self;
+            if (State.Initialized.Value)
+            {
+                // check authority if already initialized.
+                var contractDeploymentAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
+                Assert(!contractDeploymentAuthorityRequired || sender.Equals(State.ContractZeroOwner.Value),
+                    "Unauthorized to do this.");
+            }
+            else
+                Assert(sender.Equals(self), "Unauthorized to do this."); // only contract zero deploys system contracts before initialized
         }
 
         #endregion Actions

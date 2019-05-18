@@ -26,7 +26,7 @@ namespace AElf.CrossChain.Grpc
 
         #region Create client
         
-        public async Task CreateOrUpdateClient(GrpcCrossChainCommunicationDto crossChainCommunicationDto, bool isClientToParentChain)
+        public async Task CreateOrUpdateClientAsync(GrpcCrossChainCommunicationDto crossChainCommunicationDto, bool isClientToParentChain)
         {
             var chainId = crossChainCommunicationDto.RemoteChainId;
             var uriStr = crossChainCommunicationDto.ToUriStr();

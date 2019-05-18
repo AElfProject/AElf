@@ -10,7 +10,7 @@ namespace AElf.Contracts.ParliamentAuth
 
         public BoolState Initialized { get; set; }
         
-        public SingletonState<Address> DefaultOrganizationAddress { get; set; }
+        public SingletonState<Address> ZeroOwnerAddress { get; set; }
         public SingletonState<Hash> ConsensusContractSystemName { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractReferenceState ConsensusContract {get; set; }    
         internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }

@@ -4,6 +4,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.ParliamentAuth;
 using AElf.CrossChain;
 using AElf.CrossChain.Grpc;
 using AElf.Kernel;
@@ -70,12 +71,12 @@ namespace AElf.Blockchains.SideChain
 
         public ContractZeroInitializationInput GetContractZeroInitializationInput()
         {
-            var contractZeroInitializationInput = new ContractZeroInitializationInput();
-            if (!_contractOptions.IsContractDeploymentAllowed)
+            var contractZeroInitializationInput = new ContractZeroInitializationInput
             {
-                contractZeroInitializationInput.ParliamentAuthContractName =
-                    ParliamentAuthContractAddressNameProvider.Name;
-            }
+                ParliamentAuthContractName = ParliamentAuthContractAddressNameProvider.Name,
+                RequiringZeroOwnerAddressMethodName = nameof(ParliamentAuthContract.GetZeroOwnerAddress),
+                ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
+            };
             
             return contractZeroInitializationInput;
         }

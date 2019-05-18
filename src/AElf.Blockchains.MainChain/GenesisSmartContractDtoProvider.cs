@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.OS.Node.Application;
@@ -40,12 +41,12 @@ namespace AElf.Blockchains.MainChain
 
         public ContractZeroInitializationInput GetContractZeroInitializationInput()
         {
-            var contractZeroInitializationInput = new ContractZeroInitializationInput();
-            if (!_contractOptions.IsContractDeploymentAllowed)
+            var contractZeroInitializationInput = new ContractZeroInitializationInput
             {
-                contractZeroInitializationInput.ParliamentAuthContractName =
-                    ParliamentAuthContractAddressNameProvider.Name;
-            }
+                ParliamentAuthContractName = ParliamentAuthContractAddressNameProvider.Name,
+                RequiringZeroOwnerAddressMethodName = nameof(ParliamentAuthContract.GetZeroOwnerAddress),
+                ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
+            };
             
             return contractZeroInitializationInput;
         }
