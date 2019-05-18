@@ -10,6 +10,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSContract : AEDPoSContractImplContainer.AEDPoSContractImplBase
     {
+        
+        #region Initial
+
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -20,7 +23,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             
             Context.LogDebug(() => $"Time each term: {State.TimeEachTerm.Value} seconds.");
 
-            // TODO: Use Context to get contract address.
             State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
 
             if (input.IsTermStayOne || input.IsSideChain)
@@ -41,6 +43,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new Empty();
         }
+
+        #endregion
+
+        #region FirstRound
 
         public override Empty FirstRound(Round input)
         {
@@ -71,6 +77,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Empty();
         }
 
+        #endregion
+        
         #region UpdateValue
 
         public override Empty UpdateValue(UpdateValueInput input)
@@ -139,6 +147,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         #endregion
 
+        #region UpdateTinyBlockInformation
+
         public override Empty UpdateTinyBlockInformation(TinyBlockInput input)
         {
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
@@ -155,6 +165,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new Empty();
         }
+
+        #endregion
 
         #region NextRound
 
@@ -190,112 +202,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Empty();
         }
 
-        /// <summary>
-        /// Basically this method only used for testing LIB finding logic.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public override SInt64Value GetLIBOffset(Empty input)
-        {
-            return new SInt64Value {Value = CalculateLastIrreversibleBlock(out var offset) ? offset : 0};
-        }
-
-        private void TryToFindLastIrreversibleBlock()
-        {
-            if (CalculateLastIrreversibleBlock(out var offset))
-            {
-                Context.LogDebug(() => $"LIB found, offset is {offset}");
-                Context.Fire(new IrreversibleBlockFound()
-                {
-                    Offset = offset.Mul(AEDPoSContractConstants.TinyBlocksNumber)
-                });
-            }
-        }
-
-        private bool CalculateLastIrreversibleBlock(out long offset)
-        {
-            offset = 0;
-
-            if (TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                var currentRoundMiners = currentRound.RealTimeMinersInformation;
-
-                var minersCount = currentRoundMiners.Count;
-
-                var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
-
-                if (minersCount == 1)
-                {
-                    // Single node will set every previous block as LIB.
-                    offset = 1;
-                    return true;
-                }
-
-                var validMinersOfCurrentRound = currentRoundMiners.Values.Where(m => m.OutValue != null).ToList();
-                var validMinersCountOfCurrentRound = validMinersOfCurrentRound.Count;
-
-                if (validMinersCountOfCurrentRound >= minimumCount)
-                {
-                    offset = minimumCount;
-                    return true;
-                }
-
-                // Current round is not enough to find LIB.
-
-                var publicKeys = new HashSet<string>(validMinersOfCurrentRound.Select(m => m.PublicKey));
-
-                if (TryToGetPreviousRoundInformation(out var previousRound))
-                {
-                    var preRoundMiners = previousRound.RealTimeMinersInformation.Values.OrderByDescending(m => m.Order)
-                        .Select(m => m.PublicKey).ToList();
-
-                    var traversalBlocksCount = publicKeys.Count;
-
-                    for (var i = 0; i < minersCount; i++)
-                    {
-                        if (++traversalBlocksCount > minersCount)
-                        {
-                            return false;
-                        }
-
-                        var miner = preRoundMiners[i];
-
-                        if (previousRound.RealTimeMinersInformation[miner].OutValue != null)
-                        {
-                            if (!publicKeys.Contains(miner))
-                                publicKeys.Add(miner);
-                        }
-
-                        if (publicKeys.Count >= minimumCount)
-                        {
-                            offset = minimumCount;
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private void SetBlockchainStartTimestamp(Timestamp timestamp)
-        {
-            Context.LogDebug(() => $"Set start timestamp to {timestamp}");
-            State.BlockchainStartTimestamp.Value = timestamp;
-        }
-
-        private bool TryToUpdateRoundNumber(long roundNumber)
-        {
-            var oldRoundNumber = State.CurrentRoundNumber.Value;
-            if (roundNumber != 1 && oldRoundNumber + 1 != roundNumber)
-            {
-                return false;
-            }
-
-            State.CurrentRoundNumber.Value = roundNumber;
-            return true;
-        }
-
         #endregion
         
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
@@ -319,28 +225,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Empty();
         }
 
-        private bool TryToAddRoundInformation(Round round)
-        {
-            var ri = State.Rounds[round.RoundNumber];
-            if (ri != null)
-            {
-                return false;
-            }
 
-            State.Rounds[round.RoundNumber] = round;
-            return true;
-        }
-
-        private bool TryToUpdateRoundInformation(Round round)
-        {
-            var ri = State.Rounds[round.RoundNumber];
-            if (ri == null)
-            {
-                return false;
-            }
-
-            State.Rounds[round.RoundNumber] = round;
-            return true;
-        }
     }
 }

@@ -318,5 +318,47 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var leftMilliseconds = ConvertDurationToMilliseconds(expectedMiningTime - blockTime.ToTimestamp());
             return leftMilliseconds;
         }
+        
+        private void SetBlockchainStartTimestamp(Timestamp timestamp)
+        {
+            Context.LogDebug(() => $"Set start timestamp to {timestamp}");
+            State.BlockchainStartTimestamp.Value = timestamp;
+        }
+
+        private bool TryToUpdateRoundNumber(long roundNumber)
+        {
+            var oldRoundNumber = State.CurrentRoundNumber.Value;
+            if (roundNumber != 1 && oldRoundNumber + 1 != roundNumber)
+            {
+                return false;
+            }
+
+            State.CurrentRoundNumber.Value = roundNumber;
+            return true;
+        }
+        
+        private bool TryToAddRoundInformation(Round round)
+        {
+            var ri = State.Rounds[round.RoundNumber];
+            if (ri != null)
+            {
+                return false;
+            }
+
+            State.Rounds[round.RoundNumber] = round;
+            return true;
+        }
+
+        private bool TryToUpdateRoundInformation(Round round)
+        {
+            var ri = State.Rounds[round.RoundNumber];
+            if (ri == null)
+            {
+                return false;
+            }
+
+            State.Rounds[round.RoundNumber] = round;
+            return true;
+        }
     }
 }

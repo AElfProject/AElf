@@ -46,7 +46,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Update miners list.
             var miners = new MinerList();
             miners.PublicKeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
-            Assert(SetMinerListOfCurrentTerm(miners), "Failed to update miners list.");
+            Assert(SetMinerListOfCurrentTerm(miners), "Failed to update miner list.");
 
             // Update term number lookup. (Using term number to get first round number of related term.)
             State.FirstRoundNumberOfEachTerm[input.TermNumber] = input.RoundNumber;
