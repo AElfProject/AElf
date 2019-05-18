@@ -69,10 +69,6 @@ namespace AElf.Blockchains.SideChain
             GenerateTokenInitializationCallList()
         {
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
-            {
-                CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
-            });
             return tokenContractCallList;
         }
 
@@ -108,10 +104,7 @@ namespace AElf.Blockchains.SideChain
             crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
                 new InitializeInput
                 {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     ParentChainId = _crossChainConfigOptions.ParentChainId,
-                    ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name,
                     CreationHeightOnParentChain = chainInitializationContext.CreationHeightOnParentChain
                 });
             return crossChainMethodCallList;

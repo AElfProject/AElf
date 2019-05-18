@@ -1,5 +1,4 @@
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 
@@ -9,7 +8,6 @@ namespace AElf.Contracts.CrossChain
     {
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractReferenceState ConsensusContract { get; set; }
-        internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
         
         internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set;}
     }

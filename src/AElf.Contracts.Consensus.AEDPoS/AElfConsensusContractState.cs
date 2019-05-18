@@ -26,5 +26,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public SingletonState<long> MainChainRoundNumber { get; set; }
 
         public SingletonState<MinerList> MainChainCurrentMiners { get; set; }
+
+        public SingletonState<bool> IsMainChain { get; set; }
     }
 }

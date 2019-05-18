@@ -10,14 +10,12 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitContract : ProfitContractContainer.ProfitContractBase
     {
-        public override Empty InitializeProfitContract(InitializeProfitContractInput input)
+        public override Empty InitializeProfitContract(Empty input)
         {
             Assert(Context.Sender == Context.GetZeroSmartContractAddress(),
                 "Only zero contract can initialize this contract.");
 
             Assert(!State.Initialized.Value, "Already initialized.");
-
-            State.TokenContractSystemName.Value = input.TokenContractSystemName;
 
             State.Initialized.Value = true;
 
@@ -28,9 +26,7 @@ namespace AElf.Contracts.Profit
         {
             if (State.TokenContract.Value == null)
             {
-                State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-                State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+                State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
