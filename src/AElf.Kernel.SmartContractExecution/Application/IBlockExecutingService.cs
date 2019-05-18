@@ -82,6 +82,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 {
                     var linkedBlock = await _blockchainService.GetBlockByHashAsync(blockLink.BlockHash);
 
+                    // Set the other blocks as bad block if found the first bad block
+                    if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(linkedBlock))
+                    {
+                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                            ChainBlockLinkExecutionStatus.ExecutionFailed);
+                        await _chainManager.RemoveLongestBranchAsync(chain);
+                        Logger.LogWarning($"Block validate fails before execution. block hash : {blockLink.BlockHash}");
+                        return null;
+                    }
+
                     if (!await ExecuteBlock(blockLink, linkedBlock))
                     {
                         await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,

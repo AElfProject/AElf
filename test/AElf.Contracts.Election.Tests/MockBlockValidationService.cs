@@ -6,7 +6,7 @@ namespace AElf.Contracts.Election
 {
     public class MockBlockValidationService : IBlockValidationService
     {
-        public Task<bool> ValidateBlockAsync(IBlock block)
+        public Task<bool> ValidateBlockBeforeAttachAsync(IBlock block)
         {
             return Task.FromResult(true);
         }

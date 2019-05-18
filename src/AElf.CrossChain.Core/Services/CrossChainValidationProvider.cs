@@ -21,8 +21,14 @@ namespace AElf.CrossChain
             _blockExtraDataService = blockExtraDataService;
             LocalEventBus = NullLocalEventBus.Instance;
         }
-        
-        public Task<bool> ValidateBlockAsync(IBlock block)
+
+        public Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
+        {
+            // nothing to validate before execution for cross chain
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
             return Task.FromResult(true);
         }

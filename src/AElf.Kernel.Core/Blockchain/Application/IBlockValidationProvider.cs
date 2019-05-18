@@ -8,9 +8,11 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public interface IBlockValidationProvider
     {
-        Task<bool> ValidateBlockAsync(IBlock block);
+        Task<bool> ValidateBeforeAttachAsync(IBlock block);
+        Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block);
         Task<bool> ValidateBlockAfterExecuteAsync(IBlock block);
     }
+
 
     [Serializable]
     public class BlockValidationException : Exception
@@ -88,7 +90,7 @@ namespace AElf.Kernel.Blockchain.Application
             _blockchainServce = blockchainService;
         }
 
-        public async Task<bool> ValidateBlockAsync(IBlock block)
+        public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
             if (block?.Header == null || block.Body == null)
             {
@@ -126,6 +128,17 @@ namespace AElf.Kernel.Blockchain.Application
                 Logger.LogWarning($"Future block received {block}, {block.Header.Time.ToDateTime()}");
                 return false;
             }
+
+            return true;
+        }
+        
+        public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
+        {
+            if (block?.Header == null || block.Body == null)
+                return false;
+
+            if (block.Body.TransactionsCount == 0)
+                return false;
 
             return true;
         }
