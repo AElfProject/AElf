@@ -69,10 +69,7 @@ namespace AElf.Contract.CrossChain.Tests
             var crossChainInitializationTransaction = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContract.Initialize), new InitializeInput
                 {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     ParentChainId = parentChainId == 0 ? ChainHelpers.ConvertBase58ToChainId("AELF") : parentChainId,
-                    ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name,
                     CreationHeightOnParentChain = parentChainHeightOfCreation
                 });
             await Tester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});

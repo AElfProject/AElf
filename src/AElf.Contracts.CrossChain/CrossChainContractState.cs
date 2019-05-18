@@ -8,10 +8,7 @@ namespace AElf.Contracts.CrossChain
     {
         public BoolState Initialized { get; set; }
         //public AuthorizationContractReferenceState AuthorizationContract { get; set; }
-        public SingletonState<Hash> ConsensusContractSystemName { get; set; }
-        public SingletonState<Hash> TokenContractSystemName { get; set; }
         
-        public SingletonState<Hash> ParliamentAuthContractSystemName { get; set; }
 
         public Int64State SideChainSerialNumber { get; set; }
         

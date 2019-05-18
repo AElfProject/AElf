@@ -3,6 +3,7 @@ using AElf.Contracts.Vote;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -21,12 +22,7 @@ namespace AElf.Blockchains.MainChain
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
             var voteContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteContractMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
-                new InitialVoteContractInput
-                {
-                    // To Lock and Unlock tokens of voters.
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
-                });
+            voteContractMethodCallList.Add(nameof(VoteContract.InitialVoteContract),new Empty());
             return voteContractMethodCallList;
         }
     }
