@@ -11,7 +11,7 @@ service ReferendumAuthContract {
     option (aelf.csharp_state) = "AElf.Contracts.ReferendumAuth.ReferendumAuthState";
     option (aelf.base) = "acs3.proto";
     // Actions
-    rpc Initialize (ReferendumAuthContractInitializationInput) returns (google.protobuf.Empty) {
+    rpc Initialize (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc ReclaimVoteToken (Hash) returns (google.protobuf.Empty) {
     }
@@ -20,10 +20,6 @@ service ReferendumAuthContract {
     rpc GetOrganization (Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
-}
-
-message ReferendumAuthContractInitializationInput{
-    Hash tokenContractSystemName = 1;
 }
 
 message CreateOrganizationInput{
