@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "common.proto";
+import "aelf_options.proto";
+import "core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.PoW";
+
+service PoWContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.PoW.PoWContractState";
+    
+}
