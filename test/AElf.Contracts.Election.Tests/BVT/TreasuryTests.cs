@@ -147,8 +147,8 @@ namespace AElf.Contracts.Election
                         ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare],
                         Period = 1
                     });
-                    releasedProfitsInformation.TotalWeight.ShouldBe(0);
-                    releasedProfitsInformation.ProfitsAmount.ShouldBe(0);
+                    releasedProfitsInformation.TotalWeight.ShouldBe(-1);
+                    releasedProfitsInformation.ProfitsAmount.ShouldBe(-1);
                     releasedProfitsInformation.IsReleased.ShouldBe(false);
                     
                     // Check balance of virtual address.
@@ -190,8 +190,8 @@ namespace AElf.Contracts.Election
                                         ProfitId = ProfitItemsIds[ProfitType.BasicMinerReward],
                                         Period = 1
                                     });
-                            releasedProfitsInformation.TotalWeight.ShouldBe(0);
-                            releasedProfitsInformation.ProfitsAmount.ShouldBe(0);
+                            releasedProfitsInformation.TotalWeight.ShouldBe(-1);
+                            releasedProfitsInformation.ProfitsAmount.ShouldBe(-1);
                             releasedProfitsInformation.IsReleased.ShouldBe(false);
                         }
 
@@ -234,8 +234,8 @@ namespace AElf.Contracts.Election
                                         ProfitId = ProfitItemsIds[ProfitType.VotesWeightReward],
                                         Period = 1
                                     });
-                            releasedProfitsInformation.TotalWeight.ShouldBe(0);
-                            releasedProfitsInformation.ProfitsAmount.ShouldBe(0);
+                            releasedProfitsInformation.TotalWeight.ShouldBe(-1);
+                            releasedProfitsInformation.ProfitsAmount.ShouldBe(-1);
                             releasedProfitsInformation.IsReleased.ShouldBe(false);
                         }
 
@@ -277,8 +277,8 @@ namespace AElf.Contracts.Election
                                         ProfitId = ProfitItemsIds[ProfitType.ReElectionReward],
                                         Period = 1
                                     });
-                            releasedProfitsInformation.TotalWeight.ShouldBe(0);
-                            releasedProfitsInformation.ProfitsAmount.ShouldBe(0);
+                            releasedProfitsInformation.TotalWeight.ShouldBe(-1);
+                            releasedProfitsInformation.ProfitsAmount.ShouldBe(-1);
                             releasedProfitsInformation.IsReleased.ShouldBe(false);
                         }
                         
@@ -291,8 +291,8 @@ namespace AElf.Contracts.Election
                                         ProfitId = ProfitItemsIds[ProfitType.ReElectionReward],
                                         Period = 1
                                     });
-                            releasedProfitsInformation.TotalWeight.ShouldBe(0);
-                            releasedProfitsInformation.ProfitsAmount.ShouldBe(0);
+                            releasedProfitsInformation.TotalWeight.ShouldBe(-1);
+                            releasedProfitsInformation.ProfitsAmount.ShouldBe(-1);
                             releasedProfitsInformation.IsReleased.ShouldBe(false);
                         }
                         
@@ -340,7 +340,7 @@ namespace AElf.Contracts.Election
             var candidatesKeyPairs = await ElectionContract_ReleaseTreasuryProfits_ReleaseFirstTerm();
 
             const long amount = 1000;
-            const int lockTime = 100;
+            const int lockTime = 100 * 60 * 60 * 24;
 
             await VoteToCandidates(VotersKeyPairs.Take(1).ToList(),
                 candidatesKeyPairs.Select(kp => kp.PublicKey.ToHex()).Skip(2).ToList(), lockTime, amount);
@@ -456,7 +456,7 @@ namespace AElf.Contracts.Election
                         // Already burned.
                         profitItems[ProfitType.BasicMinerReward].TotalAmount.ShouldBe(0);
                         // Each new miner takes 1 weight.
-                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBeLessThan(candidatesKeyPairs.Count);
+                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBe(5);
 
                         // Check released profit information.
                         // We don't give initial miners rewards.
@@ -468,7 +468,7 @@ namespace AElf.Contracts.Election
                                         ProfitId = ProfitItemsIds[ProfitType.BasicMinerReward],
                                         Period = 2
                                     });
-                            releasedProfitsInformation.TotalWeight.ShouldBe(profitItems[ProfitType.BasicMinerReward].TotalWeight);
+                            releasedProfitsInformation.TotalWeight.ShouldBeLessThan(candidatesKeyPairs.Count);
                             releasedProfitsInformation.ProfitsAmount.ShouldBe(releasedAmount
                                 .Mul(ElectionContractConstants.MinerRewardWeight)
                                 .Div(totalWeightsOfTreasury)
@@ -624,7 +624,7 @@ namespace AElf.Contracts.Election
             
             // Update releasedAmount
             var releasedAmount = ElectionContractConstants.VotesTotalSupply -
-                                 profitItems[ProfitType.Treasury].TotalAmount - 2000;
+                                 profitItems[ProfitType.Treasury].TotalAmount - 20 * ElectionContractConstants.ElfTokenPerBlock;
             var totalWeightsOfTreasury = ElectionContractConstants.MinerRewardWeight
                 .Add(ElectionContractConstants.BackupSubsidyWeight)
                 .Add(ElectionContractConstants.CitizenWelfareWeight);
@@ -721,7 +721,7 @@ namespace AElf.Contracts.Election
                         // Already burned.
                         profitItems[ProfitType.BasicMinerReward].TotalAmount.ShouldBe(0);
                         // Each new miner takes 1 weight.
-                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBeLessThan(candidatesKeyPairs.Count);
+                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBe(5);
 
                         // Check released profit information.
                         // We don't give initial miners rewards.

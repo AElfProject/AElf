@@ -43,7 +43,7 @@ namespace AElf.OS.Consensus.DPos
             services.AddTransient(o =>
             {
                 var mockService = new Mock<IAEDPoSInformationProvider>();
-                mockService.Setup(m=>m.GetCurrentMiners(It.IsAny<ChainContext>()))
+                mockService.Setup(m=>m.GetCurrentMinerList(It.IsAny<ChainContext>()))
                     .Returns(async ()=>
                         await Task.FromResult(new []{
                             "bp1-pubkey",

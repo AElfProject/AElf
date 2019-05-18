@@ -1,5 +1,4 @@
 using Acs1;
-using AElf.Contracts.Genesis;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp.State;
@@ -20,10 +19,8 @@ namespace AElf.Contracts.MultiToken
         /// symbol -> address -> is in white list.
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
-        internal BasicContractZeroContainer.BasicContractZeroReferenceState BasicContractZero { get; set; }
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContractReferenceState { get; set; }
-        public SingletonState<Hash> CrossChainContractSystemName { get; set; }
     }
 }

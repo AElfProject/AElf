@@ -11,12 +11,11 @@ namespace AElf.Contracts.Vote
     /// </summary>
     public partial class VoteContract : VoteContractContainer.VoteContractBase
     {
-        public override Empty InitialVoteContract(InitialVoteContractInput input)
+        public override Empty InitialVoteContract(Empty input)
         {
             Assert(Context.Sender == Context.GetZeroSmartContractAddress(),
                 "Only zero contract can initialize this contract.");
             Assert(!State.Initialized.Value, "Already initialized.");
-            State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -121,6 +120,7 @@ namespace AElf.Contracts.Vote
             var currentVotes = votingResult.Results[input.Option];
             votingResult.Results[input.Option] = currentVotes.Add(input.Amount);
             votingResult.VotersCount = votingResult.VotersCount.Add(1);
+            votingResult.VotesAmount = votingResult.VotesAmount.Add(input.Amount);
 
             // Update voted items information.
             var votedItems = State.VotedItemsMap[votingRecord.Voter] ?? new VotedItems();
@@ -206,8 +206,10 @@ namespace AElf.Contracts.Vote
             votingResult.Results[votingRecord.Option] -= votingRecord.Amount;
             if (!votedItems.VotedItemVoteIds[votingRecord.VotingItemId.ToHex()].ActiveVotes.Any())
             {
-                votingResult.VotersCount -= 1;
+                votingResult.VotersCount = votingResult.VotersCount.Sub(1);
             }
+
+            votingResult.VotesAmount = votingResult.VotesAmount.Sub(votingRecord.Amount);
 
             State.VotingResults[votingResultHash] = votingResult;
 
@@ -259,7 +261,9 @@ namespace AElf.Contracts.Vote
             {
                 VotingItemId = input.VotingItemId,
                 SnapshotNumber = nextSnapshotNumber,
-                SnapshotStartTimestamp = Context.CurrentBlockTime.ToTimestamp()
+                SnapshotStartTimestamp = Context.CurrentBlockTime.ToTimestamp(),
+                VotersCount = previousVotingResult.VotersCount,
+                VotesAmount = previousVotingResult.VotesAmount
             };
             return new Empty();
         }
@@ -321,12 +325,9 @@ namespace AElf.Contracts.Vote
 
         private void InitializeDependentContracts()
         {
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-
             if (State.TokenContract.Value == null)
             {
-                State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+                State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
         }
 

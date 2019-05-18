@@ -8,8 +8,6 @@ namespace AElf.Kernel.SmartContract
     {
         ITransactionContext TransactionContext { get; set; }
 
-        Address GetContractAddressByName(Hash hash);
-
         void Initialize(ITransactionContext transactionContext);
         
         Task<ByteString> GetStateAsync(string key);

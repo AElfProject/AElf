@@ -50,7 +50,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 
                 if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
                     dateTime < currentRound.GetStartTime() &&
-                    minerInRound.ProducedTinyBlocks < AElfConsensusContractConstants.TinyBlocksNumber)
+                    minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
                 {
                     return AElfConsensusBehaviour.TinyBlock;
                 }
@@ -61,12 +61,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     return AElfConsensusBehaviour.UpdateValue;
                 }
             }
-            else if (minerInRound.ProducedTinyBlocks < AElfConsensusContractConstants.TinyBlocksNumber)
+            else if (minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
             {
                 return AElfConsensusBehaviour.TinyBlock;
             }
             else if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
-                     minerInRound.ProducedTinyBlocks < AElfConsensusContractConstants.TinyBlocksNumber.Mul(2))
+                     minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber.Mul(2))
             {
                 return AElfConsensusBehaviour.TinyBlock;
             }
@@ -94,8 +94,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Calculate the approvals and make the judgement of changing term.
             var changeTerm =
-                currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp.ToDateTime(), termNumber,
-                    State.TimeEachTerm.Value, (TimeUnit) State.BaseTimeUnit.Value);
+                currentRound.IsTimeToChangeTerm(previousRound, blockchainStartTimestamp, termNumber,
+                    State.TimeEachTerm.Value);
             return changeTerm
                 ? AElfConsensusBehaviour.NextTerm
                 : AElfConsensusBehaviour.NextRound;
@@ -143,22 +143,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         if (currentRound.ExtraBlockProducerOfPreviousRound != publicKey)
                         {
                             expectedMiningTime = expectedMiningTime.ToDateTime().AddMilliseconds(producedTinyBlocks
-                                    .Mul(miningInterval).Div(AElfConsensusContractConstants.TinyBlocksNumber))
+                                    .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber))
                                 .ToTimestamp();
                         }
                         else
                         {
                             // EBP of previous round will produce double tiny blocks. This is for normal time slot of current round.
                             expectedMiningTime = expectedMiningTime.ToDateTime().AddMilliseconds(producedTinyBlocks
-                                .Sub(AElfConsensusContractConstants.TinyBlocksNumber)
-                                .Mul(miningInterval).Div(AElfConsensusContractConstants.TinyBlocksNumber)).ToTimestamp();
+                                .Sub(AEDPoSContractConstants.TinyBlocksNumber)
+                                .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber)).ToTimestamp();
                         }
                     }
                     else if (previousRound != null)
                     {
                         // EBP of previous round will produce double tiny blocks. This is for extra time slot of previous round.
                         expectedMiningTime = previousRound.GetExtraBlockMiningTime().AddMilliseconds(producedTinyBlocks
-                            .Mul(miningInterval).Div(AElfConsensusContractConstants.TinyBlocksNumber)).ToTimestamp();
+                            .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber)).ToTimestamp();
                     }
 
                     nextBlockMiningLeftMilliseconds =
@@ -192,15 +192,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 ExpectedMiningTime = expectedMiningTime,
                 NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
-                LimitMillisecondsOfMiningBlock = miningInterval / AElfConsensusContractConstants.TinyBlocksNumber,
+                LimitMillisecondsOfMiningBlock = miningInterval / AEDPoSContractConstants.TinyBlocksNumber,
                 Hint = hint
             };
         }
 
-        private bool TryToGetBlockchainStartTimestamp(out Timestamp timestamp)
+        private bool TryToGetBlockchainStartTimestamp(out Timestamp startTimestamp)
         {
-            timestamp = State.BlockchainStartTimestamp.Value;
-            return timestamp != null;
+            startTimestamp = State.BlockchainStartTimestamp.Value;
+            return startTimestamp != null;
         }
 
         private bool IsJustChangedTerm(out long termNumber)

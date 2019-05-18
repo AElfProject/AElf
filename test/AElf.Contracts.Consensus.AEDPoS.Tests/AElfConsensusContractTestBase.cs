@@ -40,9 +40,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         protected const int MiningInterval = 4000;
 
-        protected const int SmallBlockMiningInterval = 500;
+        protected static int SmallBlockMiningInterval = MiningInterval.Div(AEDPoSContractConstants.TinyBlocksNumber);
 
-        protected const long DaysEachTerm = 7;
+        protected const long TimeEachTerm = 604800;// 7 * 60 * 60 * 24
 
         protected static readonly Timestamp StartTimestamp = DateTime.UtcNow.ToTimestamp();
 
@@ -233,12 +233,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
             var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
-                new InitialVoteContractInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                });
-
+            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),new Empty());
             return voteMethodCallList;
         }
 
@@ -248,15 +243,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {
-                    // Create Treasury profit item and register sub items.
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
-                    
-                    // Get current miners.
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    MaximumLockTime = 1080,
-                    MinimumLockTime = 90
+                    MaximumLockTime = 1080 * 86400,
+                    MinimumLockTime = 90 * 86400
                 });
             return electionMethodCallList;
         }
@@ -267,14 +255,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             aelfConsensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    TimeEachTerm = (int)DaysEachTerm,
-                    BaseTimeUnit = 2 // TODO: Remove this after testing.
+                    TimeEachTerm = TimeEachTerm
                 });
             aelfConsensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
-                new Miners
+                new MinerList
                     {
                         PublicKeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
                     }.GenerateFirstRoundOfNewTerm(MiningInterval, StartTimestamp.ToDateTime()));
@@ -339,12 +323,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
         var profitContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-        profitContractMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),
-        new InitializeProfitContractInput
-        {
-        // To handle tokens when release profit, add profits and receive profits.
-        TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-        });
+        profitContractMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),new Empty());
         return profitContractMethodCallList;
         } 
     }
