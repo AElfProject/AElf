@@ -128,16 +128,16 @@ namespace AElf.OS.Jobs
                             break;
                         }
 
+                        var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+
+                        if (!valid)
+                        {
+                            Logger.LogError($"The block was invalid, sync from {args.SuggestedPeerPubKey} failed.");
+                            break;
+                        }
+                        
                         await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
                         await _blockchainService.AddBlockAsync(blockWithTransactions.ToBlock());
-                        
-//                        var valid = await _validationService.ValidateBlockAsync(blockWithTransactions);
-//
-//                        if (!valid)
-//                        {
-//                            Logger.LogError($"The block was invalid, sync from {args.SuggestedPeerPubKey} failed.");
-//                            break;
-//                        }
                         
                         Logger.LogDebug($"Processing block {blockWithTransactions},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
                         
