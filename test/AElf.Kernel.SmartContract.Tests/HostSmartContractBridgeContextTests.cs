@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
@@ -74,26 +75,31 @@ namespace AElf.Kernel.SmartContract
             inlineTransaction[0].Params.ShouldBe(argBytes);
         }
 
-        // todo recover
-//        [Fact]
-//        public void Get_GetPreviousBlock_Success()
-//        {
-//            var newBlock = new Block
-//            {
-//                Height = 2,
-//                Header = new BlockHeader
-//                {
-//                    PreviousBlockHash = Hash.Empty
-//                },
-//                Body = new BlockBody()
-//            };
-//            _blockchainService.AddBlockAsync(newBlock);
-//
-//            _bridgeContext.TransactionContext.PreviousBlockHash = newBlock.GetHash();
-//
-//            var previousBlock = _bridgeContext.GetPreviousBlock();
-//            previousBlock.GetHash().ShouldBe(newBlock.GetHash());
-//        }
+        [Fact]
+        public void Get_GetPreviousTransactions_Success()
+        {
+            var transaction = GetNewTransaction();
+            
+            var newBlock = new Block
+            {
+                Height = 2,
+                Header = new BlockHeader
+                {
+                    PreviousBlockHash = Hash.Empty
+                },
+                Body = new BlockBody { Transactions = { transaction.GetHash() }}
+            };
+
+            _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
+            _blockchainService.AddBlockAsync(newBlock);
+
+            _bridgeContext.TransactionContext.PreviousBlockHash = newBlock.GetHash();
+
+            var previousBlockTransactions = _bridgeContext.GetPreviousBlockTransactions();
+            
+            previousBlockTransactions.ShouldNotBeNull();
+            previousBlockTransactions.ShouldContain(transaction);
+        }
 
         [Fact]
         public void Verify_Signature_NoSignature_ReturnFalse()
