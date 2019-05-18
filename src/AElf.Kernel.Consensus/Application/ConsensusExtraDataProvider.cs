@@ -1,10 +1,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.Application;
 using Google.Protobuf;
 
-namespace AElf.Kernel.Consensus.AEDPoS.Application
+namespace AElf.Kernel.Consensus.Application
 {
     // ReSharper disable once InconsistentNaming
     public class ConsensusExtraDataProvider : IBlockExtraDataProvider

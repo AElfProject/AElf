@@ -1,6 +1,5 @@
 using AElf.Kernel.SmartContract.Application;
 using Acs4;
-using AElf.Kernel.Consensus.AEDPoS;
 
 namespace AElf.Kernel.Consensus.Application
 {

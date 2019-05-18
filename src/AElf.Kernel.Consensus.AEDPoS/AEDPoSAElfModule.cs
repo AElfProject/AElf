@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
-using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

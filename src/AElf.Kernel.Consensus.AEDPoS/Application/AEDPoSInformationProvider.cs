@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application

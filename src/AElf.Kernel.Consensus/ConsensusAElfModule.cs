@@ -1,5 +1,4 @@
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.Miner.Application;

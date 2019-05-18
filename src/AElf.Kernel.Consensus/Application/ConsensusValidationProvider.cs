@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.Application;
 using Microsoft.Extensions.Logging;
 
-namespace AElf.Kernel.Consensus.AEDPoS.Application
+namespace AElf.Kernel.Consensus.Application
 {
     public class ConsensusValidationProvider : IBlockValidationProvider
     {
