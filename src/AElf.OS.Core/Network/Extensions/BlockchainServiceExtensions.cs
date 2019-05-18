@@ -16,21 +16,20 @@ namespace AElf.OS.Network.Extensions
             
             var transactions = await blockchainService.GetTransactionsAsync(block.TransactionHashList);
             
-            return new BlockWithTransactions
-            {
-                Header = block.Header, 
-                Transactions = { transactions }
-            };
+            return new BlockWithTransactions { Header = block.Header, Transactions = { transactions }};
         }
         
         public static async Task<List<BlockWithTransactions>> GetBlocksWithTransactions(this IBlockchainService blockchainService,
             Hash firstHash, int count)
         {
-            var chain = await blockchainService.GetChainAsync();
-            var blockHashes = await blockchainService.GetBlockHashesAsync(chain, firstHash, count, chain.BestChainHash);
+            var blocks = await blockchainService.GetBlocksInBestChainBranchAsync(firstHash, count);
             
-            var list = blockHashes
-                .Select(async blockHash => await blockchainService.GetBlockWithTransactionsByHash(blockHash));
+            var list = blocks
+                .Select(async block =>
+                {
+                    var transactions = await blockchainService.GetTransactionsAsync(block.TransactionHashList);
+                    return new BlockWithTransactions { Header = block.Header, Transactions = { transactions } };
+                });
 
             return (await Task.WhenAll(list)).ToList();
         }
