@@ -12,7 +12,7 @@ service ParliamentAuthContract {
     option (aelf.csharp_state) = "AElf.Contracts.ParliamentAuth.ParliamentAuthState";
     option (aelf.base) = "acs3.proto";
     // Actions
-    rpc Initialize(ParliamentAuthInitializationInput) returns (google.protobuf.Empty){
+    rpc Initialize(google.protobuf.Empty) returns (google.protobuf.Empty){
     }
     rpc CreateOrganization (CreateOrganizationInput) returns (Address) {
     }
@@ -22,10 +22,6 @@ service ParliamentAuthContract {
     rpc GetDefaultOrganizationAddress (google.protobuf.Empty) returns (Address){
         option (aelf.is_view) = true;
     }
-}
-
-message ParliamentAuthInitializationInput{
-    Hash consensusContractSystemName = 1;
 }
 
 message CreateOrganizationInput{

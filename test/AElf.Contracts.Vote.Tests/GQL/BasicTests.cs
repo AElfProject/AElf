@@ -14,10 +14,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_Initialize_NotByContractZero()
         {
-            var transactionResult = (await VoteContractStub.InitialVoteContract.SendAsync(new InitialVoteContractInput
-            {
-                TokenContractSystemName = Hash.Generate(),
-            })).TransactionResult;
+            var transactionResult = (await VoteContractStub.InitialVoteContract.SendAsync(new Empty())).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Only zero contract can");
         }
