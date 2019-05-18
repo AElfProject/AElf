@@ -17,7 +17,6 @@ namespace AElf.OS.Jobs
     {
         private const long InitialSyncLimit = 10;
         private const int BlockSyncJobLimit = 200;
-        private const int BlockSyncWaitTime = 5000;
 
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
@@ -84,8 +83,7 @@ namespace AElf.OS.Jobs
                     if (chain.LongestChainHeight < blockHeight - BlockSyncJobLimit)
                     {
                         Logger.LogWarning($"Pause sync task and wait for synced block to be processed, best chain height: {chain.BestChainHeight}");
-                        await Task.Delay(BlockSyncWaitTime);
-                        continue;
+                        break;
                     }
 
                     Logger.LogDebug($"Request blocks start with {blockHash}");

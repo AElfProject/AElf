@@ -243,7 +243,7 @@ namespace AElf.Contracts.TestBase
                 {
                     PublicKeys =
                     {
-                        consensusOptions.InitialMiners.Select(k => k.ToMappingKey())
+                        consensusOptions.InitialMiners.Select(k => k.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
                     consensusOptions.StartTimestamp.ToUniversalTime()));
@@ -264,7 +264,7 @@ namespace AElf.Contracts.TestBase
                 {
                     PublicKeys =
                     {
-                        initialMiners.Select(k => k.ToMappingKey())
+                        initialMiners.Select(k => k.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(miningInterval,
                     startTimestamp.ToDateTime()));
@@ -613,10 +613,6 @@ namespace AElf.Contracts.TestBase
             balanceOfStarter = InitialBalanceOfStarter;
 
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
-            {
-                CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
-            });
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",
@@ -640,10 +636,7 @@ namespace AElf.Contracts.TestBase
             });
 
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuthInitializationInput
-            {
-                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
-            });
+            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new Empty());
             return list =>
             {
                 list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);

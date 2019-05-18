@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.ParliamentAuth
@@ -35,8 +35,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             if (State.ConsensusContract.Value != null)
                 return;
-            State.ConsensusContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
+            State.ConsensusContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
         }
 
         private bool IsValidRepresentative(IEnumerable<Address> representatives)

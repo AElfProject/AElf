@@ -10,14 +10,12 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitContract : ProfitContractContainer.ProfitContractBase
     {
-        public override Empty InitializeProfitContract(InitializeProfitContractInput input)
+        public override Empty InitializeProfitContract(Empty input)
         {
             Assert(Context.Sender == Context.GetZeroSmartContractAddress(),
                 "Only zero contract can initialize this contract.");
 
             Assert(!State.Initialized.Value, "Already initialized.");
-
-            State.TokenContractSystemName.Value = input.TokenContractSystemName;
 
             State.Initialized.Value = true;
 
@@ -28,9 +26,7 @@ namespace AElf.Contracts.Profit
         {
             if (State.TokenContract.Value == null)
             {
-                State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-                State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+                State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
             if (input.ExpiredPeriodNumber == 0)
@@ -111,7 +107,7 @@ namespace AElf.Contracts.Profit
                 ProfitId = input.SubProfitId,
                 Weight = input.SubItemWeight
             });
-            profitItem.TotalWeight += input.SubItemWeight;
+            profitItem.TotalWeight = profitItem.TotalWeight.Add(input.SubItemWeight);
             State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             return new Empty();
@@ -141,7 +137,7 @@ namespace AElf.Contracts.Profit
 
             Assert(input.EndPeriod >= profitItem.CurrentPeriod, "Invalid end period.");
 
-            profitItem.TotalWeight += input.Weight;
+            profitItem.TotalWeight = profitItem.TotalWeight.Add(input.Weight);
 
             State.ProfitItemsMap[profitId] = profitItem;
 
@@ -174,6 +170,8 @@ namespace AElf.Contracts.Profit
             }
 
             State.ProfitDetailsMap[profitId][input.Receiver] = currentProfitDetails;
+            
+            Context.LogDebug(() => $"Add {input.Weight} weights to profit item {input.ProfitId.ToHex()}");
 
             return new Empty();
         }
@@ -270,6 +268,8 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
+            var totalWeight = input.TotalWeight == 0 ? profitItem.TotalWeight : input.TotalWeight;
+
             Assert(Context.Sender == profitItem.Creator, "Only creator can release profits.");
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
@@ -287,7 +287,7 @@ namespace AElf.Contracts.Profit
                 input.Amount = balance;
             }
 
-            if (input.Period < 0 || profitItem.TotalWeight <= 0)
+            if (input.Period < 0 || totalWeight <= 0)
             {
                 profitItem.CurrentPeriod = input.Period > 0 ? input.Period.Add(1) : profitItem.CurrentPeriod;
 
@@ -333,19 +333,23 @@ namespace AElf.Contracts.Profit
             {
                 releasedProfitInformation = new ReleasedProfitsInformation
                 {
-                    TotalWeight = profitItem.TotalWeight,
+                    TotalWeight = totalWeight,
                     ProfitsAmount = input.Amount,
                     IsReleased = true
                 };
             }
             else
             {
-                releasedProfitInformation.TotalWeight = profitItem.TotalWeight;
-                releasedProfitInformation.ProfitsAmount += input.Amount;
+                releasedProfitInformation.TotalWeight = totalWeight;
+                releasedProfitInformation.ProfitsAmount = releasedProfitInformation.ProfitsAmount.Add(input.Amount);
                 releasedProfitInformation.IsReleased = true;
             }
 
             State.ReleasedProfitsMap[profitsReceivingVirtualAddress] = releasedProfitInformation;
+
+            Context.LogDebug(() =>
+                $"Released profit information of {input.ProfitId.ToHex()} in period {input.Period}, " +
+                $"total weight {releasedProfitInformation.TotalWeight}, total amount {releasedProfitInformation.ProfitsAmount}");
 
             // Start releasing.
 
@@ -355,7 +359,7 @@ namespace AElf.Contracts.Profit
             {
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItem.ProfitId);
 
-                var amount = subProfitItem.Weight.Mul(input.Amount).Div(profitItem.TotalWeight);
+                var amount = subProfitItem.Weight.Mul(input.Amount).Div(totalWeight);
                 if (amount != 0)
                 {
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -464,7 +468,7 @@ namespace AElf.Contracts.Profit
                 {
                     Assert(!releasedProfitsInformation.IsReleased,
                         $"Profit item of period {input.Period} already released.");
-                    releasedProfitsInformation.ProfitsAmount += input.Amount;
+                    releasedProfitsInformation.ProfitsAmount = releasedProfitsInformation.ProfitsAmount.Add(input.Amount);
                 }
 
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -484,6 +488,8 @@ namespace AElf.Contracts.Profit
 
         public override Empty Profit(ProfitInput input)
         {
+            Context.LogDebug(() => $"{Context.Sender} is trying to profit from {input.ProfitId.ToHex()}.");
+
             var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
 
@@ -519,15 +525,18 @@ namespace AElf.Contracts.Profit
                     var releasedProfitsVirtualAddress =
                         GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
                     var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
-                    if (releasedProfitsInformation.IsReleased)
+                    var amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
+                        .Div(releasedProfitsInformation.TotalWeight);
+                    var period1 = period;
+                    Context.LogDebug(() => $"{Context.Sender} is profiting {amount} tokens from {input.ProfitId.ToHex()} in period {period1}");
+                    if (releasedProfitsInformation.IsReleased && amount > 0)
                     {
                         State.TokenContract.TransferFrom.Send(new TransferFromInput
                         {
                             From = releasedProfitsVirtualAddress,
                             To = Context.Sender,
                             Symbol = Context.Variables.NativeSymbol,
-                            Amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
-                                .Div(releasedProfitsInformation.TotalWeight)
+                            Amount = amount
                         });
                     }
 
@@ -541,6 +550,5 @@ namespace AElf.Contracts.Profit
 
             return new Empty();
         }
-
     }
 }

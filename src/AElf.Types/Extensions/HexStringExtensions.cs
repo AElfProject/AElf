@@ -1,10 +1,10 @@
 using Google.Protobuf;
 
-namespace AElf.Sdk.CSharp
+namespace AElf
 {
-    public static class MappingKeyExtensions
+    public static class HexStringExtensions
     {
-        public static ByteString ToMappingKey(this string hexString)
+        public static ByteString ToByteString(this string hexString)
         {
             return ByteString.CopyFrom(ByteArrayHelpers.FromHexString(hexString));
         }

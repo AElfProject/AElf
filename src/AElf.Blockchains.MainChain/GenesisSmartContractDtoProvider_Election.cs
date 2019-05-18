@@ -27,15 +27,8 @@ namespace AElf.Blockchains.MainChain
             electionContractMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {
-                    // Create Treasury profit item and register sub items.
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
-                    
-                    // For getting current miners.
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    MaximumLockTime = 1080 * 60 * 24,
-                    MinimumLockTime = 90 * 60 * 24
+                    MaximumLockTime = 1080 * 86400,
+                    MinimumLockTime = 90 * 86400
                 });
             return electionContractMethodCallList;
         }

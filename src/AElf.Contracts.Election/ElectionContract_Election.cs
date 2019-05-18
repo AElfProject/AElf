@@ -14,11 +14,6 @@ namespace AElf.Contracts.Election
         public override Empty InitialElectionContract(InitialElectionContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            State.VoteContractSystemName.Value = input.VoteContractSystemName;
-            State.ProfitContractSystemName.Value = input.ProfitContractSystemName;
-            State.TokenContractSystemName.Value = input.TokenContractSystemName;
-            State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Candidates.Value = new PublicKeysList();
             State.MinimumLockTime.Value = input.MinimumLockTime;
             State.MaximumLockTime.Value = input.MaximumLockTime;
@@ -29,12 +24,11 @@ namespace AElf.Contracts.Election
 
         public override Empty ConfigElectionContract(ConfigElectionContractInput input)
         {
-            State.AEDPoSContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
+            State.AEDPoSContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             Assert(State.AEDPoSContract.Value == Context.Sender, "Only Consensus Contract can call this method.");
             Assert(State.InitialMiners.Value == null, "Initial miners already set.");
             State.InitialMiners.Value = new PublicKeysList
-                {Value = {input.MinerList.Select(k => k.ToMappingKey())}};
+                {Value = {input.MinerList.Select(k => k.ToByteString())}};
             foreach (var publicKey in input.MinerList)
             {
                 State.CandidateInformationMap[publicKey] = new CandidateInformation {PublicKey = publicKey};
@@ -47,14 +41,10 @@ namespace AElf.Contracts.Election
         public override Empty RegisterElectionVotingEvent(Empty input)
         {
             Assert(!State.VotingEventRegistered.Value, "Already registered.");
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
 
-            State.TokenContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
-            State.VoteContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.VoteContractSystemName.Value);
-            State.AEDPoSContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
+            State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.VoteContract.Value = Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
+            State.AEDPoSContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
 
             State.TokenContract.Create.Send(new CreateInput
             {
@@ -248,7 +238,7 @@ namespace AElf.Contracts.Election
             {
                 candidateVotes = new CandidateVote
                 {
-                    PublicKey = input.CandidatePublicKey.ToMappingKey(),
+                    PublicKey = input.CandidatePublicKey.ToByteString(),
                     ObtainedActiveVotingRecordIds = { Context.TransactionId},
                     ObtainedActiveVotedVotesAmount = input.Amount,
                     AllObtainedVotedVotesAmount = input.Amount
@@ -294,8 +284,8 @@ namespace AElf.Contracts.Election
             {
                 ProfitId = State.WelfareHash.Value,
                 Receiver = Context.Sender,
-                Weight = GetVotesWeight(input.Amount, (long)lockSeconds),
-                EndPeriod = GetEndPeriod((long)lockSeconds) + 1
+                Weight = GetVotesWeight(input.Amount, lockSeconds),
+                EndPeriod = GetEndPeriod(lockSeconds) + 1
             });
 
             return new Empty();
@@ -380,8 +370,8 @@ namespace AElf.Contracts.Election
                 return new Empty();
             }
 
-            candidateInformation.ProducedBlocks += input.RecentlyProducedBlocks;
-            candidateInformation.MissedTimeSlots += input.RecentlyMissedTimeSlots;
+            candidateInformation.ProducedBlocks = candidateInformation.ProducedBlocks.Add(input.RecentlyProducedBlocks);
+            candidateInformation.MissedTimeSlots = candidateInformation.MissedTimeSlots.Add(input.RecentlyMissedTimeSlots);
             State.CandidateInformationMap[input.PublicKey] = candidateInformation;
             return new Empty();
         }
@@ -396,7 +386,7 @@ namespace AElf.Contracts.Election
 
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            return (long) (((double) lockTime / 270 + 2.0 / 3.0) * votesAmount);
+            return lockTime.Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));
         }
 
         private long GetEndPeriod(long lockTime)

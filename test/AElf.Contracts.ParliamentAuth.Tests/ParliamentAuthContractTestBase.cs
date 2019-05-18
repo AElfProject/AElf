@@ -128,12 +128,7 @@ namespace AElf.Contracts.ParliamentAuth
             GenerateParliamentAuthInitializationCallList()
         {
             var parliamentMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentMethodCallList.Add(nameof(ParliamentAuthContract.Initialize),
-                new ParliamentAuthInitializationInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
-                });
-
+            parliamentMethodCallList.Add(nameof(ParliamentAuthContract.Initialize), new Empty());
             return parliamentMethodCallList;
         }
 
@@ -174,7 +169,7 @@ namespace AElf.Contracts.ParliamentAuth
                     IsTermStayOne = true
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
-                new MinerList {PublicKeys = {InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex().ToMappingKey())}}
+                new MinerList {PublicKeys = {InitialMinersKeyPairs.Select(m => ByteString.CopyFrom(m.PublicKey))}}
                     .GenerateFirstRoundOfNewTerm(
                         MiningInterval, BlockchainStartTimestamp));
 

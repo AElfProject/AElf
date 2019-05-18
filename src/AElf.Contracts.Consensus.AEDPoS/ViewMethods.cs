@@ -122,7 +122,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Assert(
                         GenerateNextRoundInformation(currentRound, currentBlockTime, out var nextRound),
                         "Failed to generate next round information.");
-                    nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks += 1;
+                    nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
+                        nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
                     Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
                     nextRound.ExtraBlockProducerOfPreviousRound = publicKey.ToHex();
                     return new AElfConsensusHeaderInformation
@@ -321,7 +322,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKeys =
                     {
-                        round.RealTimeMinersInformation.Keys.Select(k => k.ToMappingKey())
+                        round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())
                     }
                 };
             }
@@ -390,7 +391,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             else if (TryToGetCurrentRoundInformation(out round))
             {
                 var miners = new MinerList();
-                miners.PublicKeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToMappingKey()));
+                miners.PublicKeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
                 round = miners.GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), Context.CurrentBlockTime,
                     round.RoundNumber, termNumber);
             }
@@ -416,7 +417,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool TryToGetVictories(out MinerList victories)
         {
-            if (State.ElectionContractSystemName.Value == null)
+            if (!State.IsMainChain.Value)
             {
                 victories = null;
                 return false;
@@ -557,7 +558,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void UpdateCandidateInformation(string candidatePublicKey, long recentlyProducedBlocks,
             long recentlyMissedTimeSlots, bool isEvilNode = false)
         {
-            if (State.ElectionContractSystemName.Value == null)
+            if (!State.IsMainChain.Value)
             {
                 return;
             }
@@ -583,7 +584,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
         {
-            if (State.ElectionContractSystemName.Value == null)
+            if (!State.IsMainChain.Value)
             {
                 snapshot = null;
                 return false;
@@ -621,8 +622,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private int GetMinersCount()
         {
-            return (int) (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds.Div(
-                State.TimeEachTerm.Value);
+            if (TryToGetRoundInformation(1, out var firstRound))
+            {
+                // TODO: Maybe this should according to date, like every July 1st we increase 2 miners.
+                var initialMinersCount = firstRound.RealTimeMinersInformation.Count;
+                return initialMinersCount.Add(
+                    (int) (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds
+                        .Div(365 * 60 * 60 * 24).Mul(2));
+            }
+
+            return 0;
         }
     }
 }

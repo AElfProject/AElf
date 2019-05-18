@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
+using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
@@ -100,7 +101,7 @@ namespace AElf.OS.Consensus.DPos
                     return hash == block.Value;
                 }).Count();
 
-                var sureAmount = (int) (pubkeyList.Count * 2d / 3);
+                var sureAmount = pubkeyList.Count.Mul(2).Div(3);
                 if (peersHadBlockAmount >= sureAmount)
                 {
                     Logger.LogDebug($"LIB found in network layer: height {block.Key}");

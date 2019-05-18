@@ -32,7 +32,8 @@ namespace AElf.Contracts.Profit
         {
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
             var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
-            return State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
+            return State.ReleasedProfitsMap[releasedProfitsVirtualAddress] ?? new ReleasedProfitsInformation
+                       {ProfitsAmount = -1, TotalWeight = -1};
         }
 
         public override ProfitDetails GetProfitDetails(GetProfitDetailsInput input)
@@ -85,8 +86,8 @@ namespace AElf.Contracts.Profit
                     var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
                     if (releasedProfitsInformation.IsReleased)
                     {
-                        amount += profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
-                            .Div(releasedProfitsInformation.TotalWeight);
+                        amount = amount.Add(profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
+                            .Div(releasedProfitsInformation.TotalWeight));
                     }
                 }
             }
