@@ -374,8 +374,15 @@ namespace AElf.Contracts.Profit
                 remainAmount -= amount;
 
                 var subItem = State.ProfitItemsMap[subProfitItem.ProfitId];
-                subItem.TotalAmounts[Context.Variables.NativeSymbol] =
-                    subItem.TotalAmounts[Context.Variables.NativeSymbol].Add(amount);
+                if (subItem.TotalAmounts.ContainsKey(Context.Variables.NativeSymbol))
+                {
+                    subItem.TotalAmounts[Context.Variables.NativeSymbol] =
+                        subItem.TotalAmounts[Context.Variables.NativeSymbol].Add(amount);
+                }
+                else
+                {
+                    subItem.TotalAmounts.Add(Context.Variables.NativeSymbol, amount);
+                }
                 State.ProfitItemsMap[subProfitItem.ProfitId] = subItem;
 
                 // Update current_period of detail of sub profit item.

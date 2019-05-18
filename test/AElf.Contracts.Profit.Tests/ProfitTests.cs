@@ -66,7 +66,7 @@ namespace AElf.Contracts.Profit
             profitItem.CurrentPeriod.ShouldBe(1);
             profitItem.ExpiredPeriodNumber.ShouldBe(ProfitContractConsts.DefaultExpiredPeriodNumber);
             profitItem.TotalWeight.ShouldBe(0);
-            profitItem.TotalAmounts[ProfitContractTestConsts.NativeTokenSymbol].ShouldBe(0);
+            profitItem.TotalAmounts.Count.ShouldBe(0);
 
             var itemBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -103,19 +103,6 @@ namespace AElf.Contracts.Profit
             });
 
             createdProfitIds.ProfitIds.Count.ShouldBe(createTimes);
-        }
-
-        [Fact]
-        public async Task ProfitContract_CreateProfitItemWithInvalidTokenSymbol()
-        {
-            var creator = Creators[0];
-
-            var executionResult = await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
-            {
-            });
-
-            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Invalid token symbol.");
         }
 
         [Fact]
