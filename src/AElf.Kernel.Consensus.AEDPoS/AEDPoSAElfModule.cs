@@ -26,12 +26,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
         {
             context.Services.AddAssemblyOf<AEDPoSAElfModule>();
 
-            context.Services.AddSingleton<ConsensusControlInformation>();
-            context.Services.AddSingleton<IConsensusService, ConsensusService>();
-            context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
-            context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
-            context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
-            context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
             context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
             context.Services.AddSingleton<IAEDPoSInformationProvider, AEDPoSInformationProvider>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();

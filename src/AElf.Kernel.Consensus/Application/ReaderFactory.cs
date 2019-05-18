@@ -1,22 +1,21 @@
-using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Kernel.Consensus.AEDPoS.Application;
-using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
+using Acs4;
+using AElf.Kernel.Consensus.AEDPoS;
 
-namespace AElf.Kernel.Consensus.AEDPoS
+namespace AElf.Kernel.Consensus.Application
 {
-    internal interface IAEDPoSReaderFactory
+    internal interface IConsensusReaderFactory
     {
-        AEDPoSContractContainer.AEDPoSContractStub Create(IChainContext chainContext);
+        ConsensusContractContainer.ConsensusContractStub Create(IChainContext chainContext);
     }
 
-    internal class AEDPoSReaderFactory : IAEDPoSReaderFactory
+    internal class ConsensusReaderFactory : IConsensusReaderFactory
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IBlockTimeProvider _blockTimeProvider;
 
-        public AEDPoSReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+        public ConsensusReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ISmartContractAddressService smartContractAddressService, IBlockTimeProvider blockTimeProvider)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
@@ -24,9 +23,9 @@ namespace AElf.Kernel.Consensus.AEDPoS
             _blockTimeProvider = blockTimeProvider;
         }
 
-        public AEDPoSContractContainer.AEDPoSContractStub Create(IChainContext chainContext)
+        public ConsensusContractContainer.ConsensusContractStub Create(IChainContext chainContext)
         {
-            return new AEDPoSContractContainer.AEDPoSContractStub
+            return new ConsensusContractContainer.ConsensusContractStub
             {
                 __factory = new MethodStubFactory(_transactionReadOnlyExecutionService,
                     _smartContractAddressService,

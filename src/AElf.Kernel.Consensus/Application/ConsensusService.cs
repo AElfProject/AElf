@@ -1,25 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-[assembly: InternalsVisibleTo("AElf.Kernel.Consensus")]
-
-namespace AElf.Kernel.Consensus.AEDPoS.Application
+namespace AElf.Kernel.Consensus.Application
 {
     internal class ConsensusService : IConsensusService
     {
         private readonly ConsensusControlInformation _consensusControlInformation;
         private readonly IConsensusScheduler _consensusScheduler;
-        private readonly IAEDPoSReaderFactory _readerFactory;
+        private readonly IConsensusReaderFactory _readerFactory;
         private readonly ITriggerInformationProvider _triggerInformationProvider;
         private readonly IBlockTimeProvider _blockTimeProvider;
 
@@ -28,7 +23,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private DateTime _nextMiningTime;
 
         public ConsensusService(IConsensusScheduler consensusScheduler,
-            ConsensusControlInformation consensusControlInformation, IAEDPoSReaderFactory readerFactory,
+            ConsensusControlInformation consensusControlInformation, IConsensusReaderFactory readerFactory,
             ITriggerInformationProvider triggerInformationProvider,
             IBlockTimeProvider blockTimeProvider)
         {
@@ -84,9 +79,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             var validationResult = await _readerFactory.Create(chainContext).ValidateConsensusBeforeExecution
                 .CallAsync(new BytesValue {Value = ByteString.CopyFrom(consensusExtraData)});
-
-            var extraData = new AElfConsensusHeaderInformation();
-            extraData.MergeFrom(consensusExtraData);
 
             if (!validationResult.Success)
             {

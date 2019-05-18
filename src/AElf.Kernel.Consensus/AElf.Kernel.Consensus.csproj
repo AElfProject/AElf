@@ -13,6 +13,23 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Domain" />
+        <None Include="..\..\protobuf\aelf_options.proto">
+            <Link>Protobuf/Proto/aelf_options.proto</Link>
+        </None>
+        <None Include="..\..\protobuf\common.proto">
+            <Link>Protobuf/Proto/common.proto</Link>
+        </None>
+        <None Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>
+        </None>
     </ItemGroup>
+    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh acs4.proto" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat acs4.proto" />
+    </Target>
+    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
+        <ItemGroup>
+            <Compile Include="./Protobuf/Generated/*.cs" />
+        </ItemGroup>
+    </Target>
 </Project>
