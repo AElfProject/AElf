@@ -77,13 +77,13 @@ namespace AElf.OS.Jobs
                 }
                 
                 var syncFromBestChainResult = await SyncBlocksAsync(chain.BestChainHash, chain.BestChainHeight,
-                    args.BlockHash, args.BlockHeight, args.SuggestedPeerPubKey);
+                    args.SuggestedPeerPubKey);
 
                 if (syncFromBestChainResult == 0 && args.BlockHeight > chain.LongestChainHeight)
                 {
                     Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
                     await SyncBlocksAsync(chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
-                        args.BlockHash, args.BlockHeight, args.SuggestedPeerPubKey);
+                        args.SuggestedPeerPubKey);
                 }
             }
 
@@ -110,8 +110,7 @@ namespace AElf.OS.Jobs
                 KernelConstants.UpdateChainQueueName);
         }
 
-        private async Task<int> SyncBlocksAsync(Hash previousBlockHash, long previousBlockHeight, Hash targetBlockHash, long
-            targetBlockHeight, string suggestedPeerPubKey)
+        private async Task<int> SyncBlocksAsync(Hash previousBlockHash, long previousBlockHeight, string suggestedPeerPubKey)
         {
             Logger.LogDebug($"Trigger sync blocks from peers, previous block height: {previousBlockHeight}, previous block hash: {previousBlockHash}");
 
