@@ -188,7 +188,7 @@ namespace AElf.OS.Network.Grpc
             var hsk = new Handshake
             {
                 HskData = nd,
-                Sig = ByteString.CopyFrom(sig),
+                Signature = ByteString.CopyFrom(sig),
                 Header = await _blockchainService.GetBestChainLastBlockHeaderAsync()
             };
 

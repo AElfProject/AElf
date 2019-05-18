@@ -9,7 +9,7 @@ import "core.proto";
 
 message Handshake {
     HandshakeData HskData = 1;
-    bytes Sig = 2; 
+    bytes Signature = 2; 
     bool Success = 3;
     BlockHeader Header = 4;
 }

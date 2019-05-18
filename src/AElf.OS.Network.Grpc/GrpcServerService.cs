@@ -69,7 +69,7 @@ namespace AElf.OS.Network.Grpc
                 return new ConnectReply { Err = AuthError.ProtocolMismatch };
 
             // verify signature
-            var validData = CryptoHelpers.VerifySignature(handshake.Sig.ToByteArray(),
+            var validData = CryptoHelpers.VerifySignature(handshake.Signature.ToByteArray(),
                 Hash.FromMessage(handshake.HskData).ToByteArray(), handshake.HskData.PublicKey.ToByteArray());
             if (!validData)
                 return new ConnectReply { Err = AuthError.WrongSig };
