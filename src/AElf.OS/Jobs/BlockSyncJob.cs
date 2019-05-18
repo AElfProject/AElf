@@ -3,10 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -76,7 +76,7 @@ namespace AElf.OS.Jobs
                         return;
                     }
                     
-                    await _blockchainService.AddBlockWithTransactionsAsync(blockWithTransactions);
+                    await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
 
                     _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(blockWithTransactions.ToBlock()),
                         KernelConstants.UpdateChainQueueName);
@@ -119,15 +119,15 @@ namespace AElf.OS.Jobs
                         throw new InvalidOperationException($"Previous block not match previous {blockHash}, network back {blocksWithTransactions.First().Header.PreviousBlockHash}");
                     }
 
-                    foreach (var blockWithTransaction in blocksWithTransactions)
+                    foreach (var blockWithTransactions in blocksWithTransactions)
                     {
-                        if (blockWithTransaction == null)
+                        if (blockWithTransactions == null)
                         {
                             Logger.LogWarning($"Get null block from peer, request block start: {blockHash}");
                             break;
                         }
 
-                        var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransaction);
+                        var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
 
                         if (!valid)
                         {
@@ -135,11 +135,11 @@ namespace AElf.OS.Jobs
                             break;
                         }
 
-                        await _blockchainService.AddBlockWithTransactionsAsync(blockWithTransaction);
+                        await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
                         
-                        Logger.LogDebug($"Processing block {blockWithTransaction},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
+                        Logger.LogDebug($"Processing block {blockWithTransactions},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
                         
-                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(blockWithTransaction.ToBlock()),
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(blockWithTransactions.ToBlock()),
                             KernelConstants.UpdateChainQueueName);
                     }
 

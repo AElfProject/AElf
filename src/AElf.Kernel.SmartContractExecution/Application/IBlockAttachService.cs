@@ -27,6 +27,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public async Task AttachBlockAsync(Block block)
         {
+            await _blockchainService.AddBlockAsync(block);
+
             var chain = await _blockchainService.GetChainAsync();
             var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
             await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);

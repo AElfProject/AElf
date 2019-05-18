@@ -148,6 +148,7 @@ namespace AElf.Kernel
                 },
                 Body = new BlockBody()
             };
+            
             foreach (var transaction in transactions)
             {
                 newBlock.AddTransaction(transaction);
@@ -203,7 +204,8 @@ namespace AElf.Kernel
                 await _transactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
             }
 
-            await _blockchainService.AddBlockWithTransactionsAsync(blockWithTransactions);
+            await _blockchainService.AddBlockAsync(newBlock);
+            await _blockchainService.AddTransactionsAsync(transactions);
             var chain = await _blockchainService.GetChainAsync();
             await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
 

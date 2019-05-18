@@ -1,10 +1,11 @@
 using System.Linq;
+using AElf.Kernel;
 
-namespace AElf.Kernel
+namespace AElf.OS.Network.Extensions
 {
     public static class BlockWithTransactionsExtensions
     {
-        public static Block ToBlock(this BlockWithTransactions block) // todo move to OS
+        public static Block ToBlock(this BlockWithTransactions block)
         {
             return new Block
             {

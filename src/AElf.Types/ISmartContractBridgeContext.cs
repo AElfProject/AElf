@@ -41,7 +41,7 @@ namespace AElf
 
         byte[] RecoverPublicKey();
         
-        IBlockWithTransactionBase GetPreviousBlock();
+        List<Transaction> GetPreviousBlockTransactions();
 
         bool VerifySignature(Transaction tx);
 

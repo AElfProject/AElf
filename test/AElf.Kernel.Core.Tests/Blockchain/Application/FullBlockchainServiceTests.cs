@@ -33,40 +33,29 @@ namespace AElf.Kernel.Blockchain.Application
                 Body = new BlockBody()
             };
             
+            var transactions = new List<Transaction>();
             for (var i = 0; i < 3; i++)
             {
-                block.Body.AddTransaction(_kernelTestHelper.GenerateTransaction());
+                var transaction = _kernelTestHelper.GenerateTransaction();
+                block.Body.AddTransaction(transaction);
+                transactions.Add(transaction);
             }
 
             var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.ShouldBeNull();
 
             await _fullBlockchainService.AddBlockAsync(block);
+            await _fullBlockchainService.AddTransactionsAsync(transactions);
 
             existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.GetHash().ShouldBe(block.GetHash());
             existBlock.Body.TransactionsCount.ShouldBe(3);
-        }
-        
-        [Fact]
-        public async Task Add_BlockWithTransactions_Success()
-        {
-            var block = new BlockWithTransactions { Header = new BlockHeader() };
-            
-            for (var i = 0; i < 3; i++)
+
+            foreach (var tx in transactions)
             {
-                block.Transactions.Add(_kernelTestHelper.GenerateTransaction());
+                var existTransaction = await _transactionManager.GetTransaction(tx.GetHash());
+                existTransaction.ShouldBe(tx);
             }
-
-            var existBlock = await _fullBlockchainService.GetBlockWithTransactionsByHashAsync(block.GetHash());
-            existBlock.ShouldBeNull();
-
-            await _fullBlockchainService.AddBlockWithTransactionsAsync(block);
-
-            existBlock = await _fullBlockchainService.GetBlockWithTransactionsByHashAsync(block.GetHash());
-            existBlock.GetHash().ShouldBe(block.GetHash());
-            existBlock.Body.TransactionsCount.ShouldBe(3);
-            existBlock.Transactions.Count.ShouldBe(3);
         }
 
         [Fact]

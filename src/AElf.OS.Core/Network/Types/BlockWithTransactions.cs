@@ -2,9 +2,10 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Net;
+using AElf.Kernel;
 using Google.Protobuf;
 
-namespace AElf.Kernel
+namespace AElf.OS.Network
 {
     public partial class BlockWithTransactions : IBlock, IBlockWithTransactionBase, ICustomDiagnosticMessage
     {

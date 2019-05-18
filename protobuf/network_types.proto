@@ -5,12 +5,11 @@ option csharp_namespace = "AElf.OS.Network";
 import "google/protobuf/timestamp.proto";
 import "kernel.proto";
 import "common.proto";
-
-// todo loawer_next_word
+import "core.proto";
 
 message Handshake {
     HandshakeData HskData = 1;
-    bytes Sig = 2; // todo
+    bytes Sig = 2; 
     bool Success = 3;
     BlockHeader Header = 4;
 }

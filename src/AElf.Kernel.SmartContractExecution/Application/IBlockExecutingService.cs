@@ -50,15 +50,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public ILogger<FullBlockchainExecutingService> Logger { get; set; }
 
-        private async Task<bool> ExecuteBlock(ChainBlockLink blockLink, BlockWithTransactions block)
+        private async Task<bool> ExecuteBlock(ChainBlockLink blockLink, Block block)
         {
-            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockHash = block.GetHash();
+            
+            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHash);
             if (blockState != null)
                 return true;
-
-            var blockHash = block.GetHash();
-            var executedBlock =
-                await _blockExecutingService.ExecuteBlockAsync(block.Header, block.Transactions);
+            
+            var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionHashList);
+            var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
 
             return executedBlock.GetHash().Equals(blockHash);
         }
@@ -79,8 +80,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 foreach (var blockLink in blockLinks)
                 {
-                    var linkedBlock = await _blockchainService.GetBlockWithTransactionsByHashAsync(blockLink.BlockHash); // todo remove
-                    
+                    var linkedBlock = await _blockchainService.GetBlockByHashAsync(blockLink.BlockHash);
+
                     // Set the other blocks as bad block if found the first bad block
                     if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(linkedBlock))
                     {

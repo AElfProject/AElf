@@ -18,14 +18,12 @@ namespace AElf.Kernel.Blockchain.Application
         
         Task<Chain> CreateChainAsync(Block block, IEnumerable<Transaction> transactions);
         Task AddTransactionsAsync(IEnumerable<Transaction> transactions);
-        Task<Transaction> GetTransactionsAsync(IEnumerable<Hash> transactionHashes);
+        Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Hash> transactionHashes);
         Task AddBlockAsync(Block block);
         Task<bool> HasBlockAsync(Hash blockId);
         Task<Block> GetBlockByHashAsync(Hash blockId);
 
         Task<BlockHeader> GetBlockHeaderByHashAsync(Hash blockId);
-
-        Task<BlockWithTransactions> GetBlockWithTransactionsByHashAsync(Hash blockId); // todo net layer
 
         Task<Chain> GetChainAsync();
 
@@ -68,12 +66,12 @@ namespace AElf.Kernel.Blockchain.Application
             return await blockchainService.GetBlockByHashAsync(hash);
         }
 
-        public static async Task<List<BlockWithTransactions>> GetBlocksInBestChainBranchAsync(this IBlockchainService blockchainService,
+        public static async Task<List<Block>> GetBlocksInBestChainBranchAsync(this IBlockchainService blockchainService,
             Hash firstHash,
             int count)
         {
             var chain = await blockchainService.GetChainAsync();
-            return await blockchainService.GetBlocksWithTxsInChainBranchAsync(chain, firstHash, count, chain.BestChainHash);
+            return await blockchainService.GetBlocksInChainBranchAsync(chain, firstHash, count, chain.BestChainHash);
         }
 
         public static async Task<List<Block>> GetBlocksInLongestChainBranchAsync(
@@ -95,21 +93,6 @@ namespace AElf.Kernel.Blockchain.Application
                 chain, firstHash, count, chainBranch);
             var list = blockHashes
                 .Select(async blockHash => await blockchainService.GetBlockByHashAsync(blockHash));
-
-            return (await Task.WhenAll(list)).ToList();
-        }
-        
-        // todo re-implement in network
-        public static async Task<List<BlockWithTransactions>> GetBlocksWithTxsInChainBranchAsync(this IBlockchainService blockchainService,
-            Chain chain,
-            Hash firstHash,
-            int count,
-            Hash chainBranch)
-        {
-            var blockHashes = await blockchainService.GetBlockHashesAsync(
-                chain, firstHash, count, chainBranch);
-            var list = blockHashes
-                .Select(async blockHash => await blockchainService.GetBlockWithTransactionsByHashAsync(blockHash));
 
             return (await Task.WhenAll(list)).ToList();
         }
@@ -181,6 +164,19 @@ namespace AElf.Kernel.Blockchain.Application
             await AddBlockAsync(block);
             
             return await _chainManager.CreateAsync(block.GetHash());;
+        }
+
+        public async Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Hash> transactionHashes)
+        {
+            List<Transaction> transactions = new List<Transaction>();
+            
+            foreach (var transactionHash in transactionHashes)
+            {
+                var transaction = await _transactionManager.GetTransaction(transactionHash);
+                transactions.Add(transaction);
+            }
+
+            return transactions;
         }
 
         public async Task AddBlockAsync(Block block)
@@ -390,25 +386,6 @@ namespace AElf.Kernel.Blockchain.Application
             hashes.Reverse();
 
             return hashes;
-        }
-
-        public async Task<BlockWithTransactions> GetBlockWithTransactionsByHashAsync(Hash blockId)
-        {
-            var block = await _blockManager.GetBlockAsync(blockId);
-            
-            if (block?.Body?.Transactions == null) 
-                return null;
-            
-            var blockWithTxs = new BlockWithTransactions();
-            blockWithTxs.Header = block.Header;
-            
-            foreach (var txId in block.Body.Transactions)
-            {
-                var tx = await _transactionManager.GetTransaction(txId);
-                blockWithTxs.Transactions.Add(tx);
-            }
-
-            return blockWithTxs;
         }
 
         public async Task<Block> GetBlockByHashAsync(Hash blockId)
