@@ -14,8 +14,6 @@ namespace AElf.OS.Network.Infrastructure
         IPeer FindPeerByAddress(string peerIpAddress);
         IPeer FindPeerByPublicKey(string remotePubKey);
 
-        bool IsAuthenticatePeer(string remotePubKey);
-
         bool AddPeer(IPeer peer);
 
         Task<IPeer> RemovePeerAsync(string remotePubKey, bool sendDisconnect);
