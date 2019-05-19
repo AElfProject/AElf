@@ -57,6 +57,7 @@ namespace AElf.OS.Network.Application
             
             var peers = _peerPool.GetPeers().ToList();
 
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash());
             await Task.WhenAll(peers.Select(async peer =>
             {
                 try
