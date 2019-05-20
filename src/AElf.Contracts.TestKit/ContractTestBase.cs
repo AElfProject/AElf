@@ -59,7 +59,6 @@ namespace AElf.Contracts.TestKit
             return res.Output;
         }
 
-//        private ECKeyPair Mock
         public T GetTester<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
         {
             var factory = Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();

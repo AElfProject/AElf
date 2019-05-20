@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Blockchains.BasicBaseChain;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.CrossChain;
 using AElf.CrossChain.Grpc;
@@ -12,10 +12,6 @@ using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
-using AElf.Sdk.CSharp;
-using Google.Protobuf;
-using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Asn1.Ocsp;
 using Volo.Abp.Threading;
 
 namespace AElf.Blockchains.SideChain
@@ -29,14 +25,12 @@ namespace AElf.Blockchains.SideChain
         private readonly CrossChainConfigOption _crossChainConfigOptions;
         private readonly IChainInitializationPlugin _chainInitializationPlugin;
         
-        public GenesisSmartContractDtoProvider(IOptionsSnapshot<ChainOptions> chainOptions,
-            IOptionsSnapshot<ConsensusOptions> consensusOptions, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOptions,
-            IOptionsSnapshot<ContractOptions> contractOptions, IChainInitializationPlugin chainInitializationPlugin)
+        public GenesisSmartContractDtoProvider(IOptionsProvider optionsProvider, IChainInitializationPlugin chainInitializationPlugin)
         {
-            _chainOptions = chainOptions.Value;
-            _consensusOptions = consensusOptions.Value;
-            _crossChainConfigOptions = crossChainConfigOptions.Value;
-            _contractOptions = contractOptions.Value;
+            _chainOptions = optionsProvider.ChainOptions;
+            _consensusOptions = optionsProvider.ConsensusOptions;
+            _crossChainConfigOptions = optionsProvider.CrossChainConfigOption;
+            _contractOptions = optionsProvider.ContractOptions;
             _chainInitializationPlugin = chainInitializationPlugin;
         }
 

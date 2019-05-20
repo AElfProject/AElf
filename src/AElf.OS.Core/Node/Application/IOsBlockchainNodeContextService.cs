@@ -129,13 +129,13 @@ namespace AElf.OS.Node.Application
             transactions.Add(GetTransactionForDeployment(dto.ChainId, dto.ZeroSmartContract, Hash.Empty,
                 dto.SmartContractRunnerCategory));
 
-            // Add transaction for initialization
             transactions.AddRange(dto.InitializationSmartContracts
                 .Select(p =>
                 {
                     return GetTransactionForDeployment(dto.ChainId, p.SmartContractType, p.SystemSmartContractName, dto.SmartContractRunnerCategory,
                         p.TransactionMethodCallList);
                 }));
+            // Add transaction for initialization
             transactions.Add(GetTransactionForContractZeroInitialization(dto.ContractZeroInitializationInput));
 
             if (dto.InitializationTransactions != null)
