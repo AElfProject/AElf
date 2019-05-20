@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Node.Domain;
+using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -25,6 +26,9 @@ namespace AElf.Kernel.Node.Application
         Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto);
 
         Task StopAsync(BlockchainNodeContext blockchainNodeContext);
+
+        bool SetSyncing(bool value);
+        bool IsNodeSyncing();
     }
 
 
@@ -37,11 +41,13 @@ namespace AElf.Kernel.Node.Application
         private readonly ISmartContractAddressUpdateService _smartContractAddressUpdateService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly IConsensusService _consensusService;
+        private readonly INodeSyncStateProvider _nodeSyncStateProvider;
 
         public BlockchainNodeContextService(
             IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
             ISmartContractAddressUpdateService smartContractAddressUpdateService,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IConsensusService consensusService)
+            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IConsensusService consensusService,
+            INodeSyncStateProvider nodeSyncStateProvider)
         {
             _blockchainService = blockchainService;
             _chainCreationService = chainCreationService;
@@ -49,7 +55,11 @@ namespace AElf.Kernel.Node.Application
             _smartContractAddressUpdateService = smartContractAddressUpdateService;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _consensusService = consensusService;
+            _nodeSyncStateProvider = nodeSyncStateProvider;
         }
+        
+        public bool IsNodeSyncing() => _nodeSyncStateProvider.IsNodeSyncing();
+        public bool SetSyncing(bool value) => _nodeSyncStateProvider.IsNodeSyncing();
 
         public async Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto)
         {

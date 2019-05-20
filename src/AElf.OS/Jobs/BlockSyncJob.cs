@@ -3,8 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Node.Application;
-using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
@@ -25,7 +23,6 @@ namespace AElf.OS.Jobs
         private readonly NetworkOptions _networkOptions;
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITaskQueueManager _taskQueueManager;
-        private readonly INodeSyncStateProvider _nodeSyncStateProvider;
 
         public ILogger<BlockSyncJob> Logger { get; set; }
 
@@ -33,8 +30,7 @@ namespace AElf.OS.Jobs
             IOptionsSnapshot<NetworkOptions> networkOptions,
             IBlockchainService blockchainService,
             INetworkService networkService,
-            ITaskQueueManager taskQueueManager,
-            INodeSyncStateProvider nodeSyncStateProvider)
+            ITaskQueueManager taskQueueManager)
         {
             Logger = NullLogger<BlockSyncJob>.Instance;
             _networkOptions = networkOptions.Value;
@@ -43,7 +39,6 @@ namespace AElf.OS.Jobs
             _networkService = networkService;
             _blockAttachService = blockAttachService;
             _taskQueueManager = taskQueueManager;
-            _nodeSyncStateProvider = nodeSyncStateProvider;
         }
 
         public async Task ExecuteAsync(BlockSyncJobArgs args)
@@ -72,7 +67,6 @@ namespace AElf.OS.Jobs
 
                     _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(peerBlock),
                         KernelConstants.UpdateChainQueueName);
-                    
                     return;
                 }
 
@@ -84,22 +78,8 @@ namespace AElf.OS.Jobs
                 var peerBestChainHeight = await _networkService.GetBestChainHeightAsync(args.SuggestedPeerPubKey);
                 while (true)
                 {
-                    
-                    chain = await _blockchainService.GetChainAsync();
-
-                    // every iteration will check if we are still many blocks behind the peer.
-                    if (chain.BestChainHeight < peerBestChainHeight - NetworkConsts.DefaultMinBlockGapBeforeSync)
-                    {
-                        if (_nodeSyncStateProvider.SetSyncing(true))
-                            Logger.LogDebug($"Starting a sync phase, best chain height: {chain.BestChainHeight}, peer at {peerBestChainHeight}");
-                    }
-                    else
-                    {
-                        if (_nodeSyncStateProvider.SetSyncing(false))
-                            Logger.LogDebug($"Finished a sync phase, best chain height: {chain.BestChainHeight}, peer at {peerBestChainHeight}");
-                    }
-                    
                     // Limit block sync job count, control memory usage
+                    chain = await _blockchainService.GetChainAsync();
                     if (chain.LongestChainHeight < blockHeight - BlockSyncJobLimit)
                     {
                         Logger.LogWarning($"Pause sync task and wait for synced block to be processed, best chain height: {chain.BestChainHeight}");
@@ -155,7 +135,6 @@ namespace AElf.OS.Jobs
             finally
             {
                 Logger.LogDebug($"Finishing block sync job, longest chain height: {chain.LongestChainHeight}");
-                _nodeSyncStateProvider.SetSyncing(false);
             }
         }
     }

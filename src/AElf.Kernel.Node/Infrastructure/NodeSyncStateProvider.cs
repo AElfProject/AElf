@@ -1,8 +1,10 @@
+using Volo.Abp.DependencyInjection;
+
 namespace AElf.Kernel.Node.Infrastructure
 {
-    public class NodeSyncStateProvider : INodeSyncStateProvider
+    public class NodeSyncStateProvider : INodeSyncStateProvider, ISingletonDependency
     {
-        private volatile bool _isSyncing = false;
+        private volatile bool _isSyncing = true;
         
         public bool IsNodeSyncing() => _isSyncing;
 
