@@ -175,3 +175,7 @@ message GetProfitDetailsInput {
     Hash profit_id = 1;
     Address receiver = 2;
 }
+
+message ProfitRule {
+    
+}

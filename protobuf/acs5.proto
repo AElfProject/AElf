@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package acs5;
+import "common.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+
+option (aelf.identity) = "acs5";
+
+service ProfitSharingContract {
+    rpc SetProfitReceiver (ProfitReceiverInformation) returns (google.protobuf.Empty) {
+    }
+    rpc ReceiveProfits (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc GetProfitReceiver (google.protobuf.Empty) google.protobuf.Empty (GetProfitReceiverOutput) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message ProfitReceiverInformation {
+    Address address = 1;
+    sint32 weight = 2;
+    string remark = 3;
+}
+
+message GetProfitReceiverOutput {
+    repeated ProfitReceiverInformation Value = 1;
+}

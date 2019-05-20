@@ -21,6 +21,9 @@
         <None Include="..\..\protobuf\token_converter_contract.proto">
             <Link>Protobuf/Proto/token_converter_contract.proto</Link>
         </None>
+        <None Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf/Proto/acs5.proto</Link>
+        </None>
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
