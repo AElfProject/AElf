@@ -4,13 +4,11 @@ package acs2;
 
 import "aelf_options.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/any.proto";
 
 option (aelf.identity) = "acs2";
 
 service MetadataProvidingContract {
-    // Actions
-    rpc SetMetadata (SetMetadataInput) returns (google.protobuf.Empty) {
-    }
     // Views
     rpc GetMetadata (GetMetadataInput) returns (GetMetadataOutput) {
         option (aelf.is_view) = true;
@@ -20,16 +18,11 @@ service MetadataProvidingContract {
 
 message GetMetadataInput {
     string method = 1;
+    google.protobuf.Any parameter = 2;
 }
 
 message GetMetadataOutput {
-    string method = 1;
-    string metadata = 2;
-}
-
-message SetMetadataInput {
-    string method = 1;
-    string metadata = 2;
+    repeated bytes resources = 2;
 }
 
 // Events
