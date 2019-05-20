@@ -38,5 +38,7 @@ namespace AElf.OS.Network
         /// Indicates if this node will compress blocks when a peer requests blocks.
         /// </summary>
         public bool CompressBlocksOnRequest { get; set; } = NetworkConsts.DefaultCompressBlocks;
+
+        public int MinBlockGapBeforeSync { get; set; } = NetworkConsts.DefaultMinBlockGapBeforeSync;
     }
 }

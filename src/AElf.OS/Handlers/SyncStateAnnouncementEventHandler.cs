@@ -9,6 +9,7 @@ using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
@@ -19,15 +20,19 @@ namespace AElf.OS.Handlers
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
         private readonly IBlockchainService _blockchainService;
         
+        private readonly NetworkOptions _networkOptions;
+        
         public ILogger<SyncStateAnnouncementEventHandler> Logger { get; set; }
 
-        public SyncStateAnnouncementEventHandler(IPeerPool peerPool, 
+        public SyncStateAnnouncementEventHandler(IOptionsSnapshot<NetworkOptions> networkOptions, IPeerPool peerPool, 
             IBlockchainNodeContextService blockchainNodeContextService,
             IBlockchainService blockchainService)
         {
             _peerPool = peerPool;
             _blockchainNodeContextService = blockchainNodeContextService;
             _blockchainService = blockchainService;
+
+            _networkOptions = networkOptions.Value;
         }
         
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
@@ -61,11 +66,10 @@ namespace AElf.OS.Handlers
             {
                 var chain = await _blockchainService.GetChainAsync();
 
-                if (blockHeight > chain.BestChainHeight + NetworkConsts.DefaultMinBlockGapBeforeSync)
+                if (blockHeight > chain.BestChainHeight + _networkOptions.MinBlockGapBeforeSync)
                 {
                     if (_blockchainNodeContextService.SetSyncing(true))
                         Logger.LogDebug($"Starting a sync phase, best chain height: {chain.BestChainHeight}.");
-
                 }
                 else
                 {
