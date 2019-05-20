@@ -68,9 +68,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var firstMinerInSecondRound =
                 secondRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).PublicKey;
 
-            var secondRoundStartTime =
-                GetRoundExpectedStartTime(BlockchainStartTime, secondRound.TotalMilliseconds(MiningInterval), 2);
-            
             var minerKeyPair = InitialMinersKeyPairs.First(k => k.PublicKey.ToHex() == firstMinerInSecondRound);
             var miner = GetAElfConsensusContractTester(minerKeyPair);
 
@@ -80,10 +77,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Normal block
             {
                 // Set current time as the start time of 2rd round.
-                BlockTimeProvider.SetBlockTime(secondRoundStartTime);
-                
+                BlockTimeProvider.SetBlockTime(secondRound.GetStartTime());
 
-                var leftMilliseconds = (int) (expectedMiningTime - secondRoundStartTime).TotalMilliseconds;
+                var leftMilliseconds = (int) (expectedMiningTime - secondRound.GetStartTime()).TotalMilliseconds;
 
                 var command = await miner.GetConsensusCommand.CallAsync(new BytesValue
                     {Value = ByteString.CopyFrom(minerKeyPair.PublicKey)});
