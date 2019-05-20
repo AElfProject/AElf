@@ -132,6 +132,9 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
+            if (_blockchainNodeContextService.IsNodeSyncing()) 
+                return Task.FromResult(new VoidReply());
+            
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
 
             return Task.FromResult(new VoidReply());
