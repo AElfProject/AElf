@@ -1,29 +1,29 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContractExecution;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Jobs
+namespace AElf.OS.BlockSync.Application
 {
-    public sealed class BlockSyncJobTest : NetWorkTestBase
+    // TODO: Need more test for block sync
+    public sealed class BlockSyncServiceNotForkedTests : SyncNotForkedTestBase
     {
         private readonly IBlockchainService _blockChainService;
-        private readonly BlockSyncJob _job;
+        private readonly IBlockSyncService _blockSyncService;
         private readonly ITaskQueueManager _taskQueueManager;
 
-        public BlockSyncJobTest()
+        public BlockSyncServiceNotForkedTests()
         {
             _blockChainService = GetRequiredService<IBlockchainService>();
-            _job = GetRequiredService<BlockSyncJob>();
+            _blockSyncService = GetRequiredService<IBlockSyncService>();
             _taskQueueManager = GetRequiredService<ITaskQueueManager>();
         }
 
         [Fact]
-        public async Task ExecSyncJob_ShouldSyncChain()
+        public async Task SyncBlock_ShouldSyncChain()
         {
-            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 12});
+            await _blockSyncService.SyncBlockAsync(null, 12, 10, null);
 
             DisposeQueue();
                 
@@ -32,9 +32,9 @@ namespace AElf.OS.Jobs
         }
 
         [Fact]
-        public async Task ExecSyncJob_QueryTooMuch_ShouldSyncChain()
+        public async Task SyncBlock_SyncTooMuch_ShouldSyncChain()
         {
-            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 25});
+            await _blockSyncService.SyncBlockAsync(null, 25, 10, null);
             
             DisposeQueue();
             
@@ -43,10 +43,10 @@ namespace AElf.OS.Jobs
         }
 
         [Fact]
-        public async Task ExecSyncJob_RexecutionOfJob_ShouldNotChangeHeight()
+        public async Task SyncBlock_ReSync_ShouldNotChangeHeight()
         {
-            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 3});
-            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 3});
+            await _blockSyncService.SyncBlockAsync(null, 3, 10, null);
+            await _blockSyncService.SyncBlockAsync(null, 3, 10, null);
             
             DisposeQueue();
             
@@ -55,10 +55,10 @@ namespace AElf.OS.Jobs
         }
 
         [Fact]
-        public async Task ExecSyncJob_Overlapping_ShouldSyncAllBlocks()
+        public async Task SyncBlock_Overlapping_ShouldSyncAllBlocks()
         {
-            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 12});
-            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 15});
+            await _blockSyncService.SyncBlockAsync(null, 12, 10, null);
+            await _blockSyncService.SyncBlockAsync(null, 15, 10, null);
             
             DisposeQueue();
             

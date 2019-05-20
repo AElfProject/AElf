@@ -9,7 +9,7 @@ namespace AElf.OS
         
     }
     
-    public class NetWorkTestBase : AElfIntegratedTest<NetTestAElfModule>
+    public class SyncNotForkedTestBase : AElfIntegratedTest<SyncNotForkedTestAElfModule>
     {
         
     }
@@ -19,7 +19,7 @@ namespace AElf.OS
         
     }
 
-    public class SyncForkTestBase : AElfIntegratedTest<SyncForkTestAElfModule>
+    public class SyncForkedTestBase : AElfIntegratedTest<SyncForkedTestAElfModule>
     {
         
     }

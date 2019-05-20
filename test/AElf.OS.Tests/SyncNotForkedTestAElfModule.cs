@@ -7,7 +7,6 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
-using AElf.OS.Jobs;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,13 +18,12 @@ using Volo.Abp.Threading;
 namespace AElf.OS
 {
     [DependsOn(typeof(OSTestAElfModule))]
-    public class NetTestAElfModule : AElfModule
+    public class SyncNotForkedTestAElfModule : AElfModule
     {
         private readonly List<Block> _blockList = new List<Block>();
         
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<BlockSyncJob>();
             context.Services.AddSingleton<INetworkService, NetworkService>();
 
             context.Services.AddSingleton<IPeerPool>(o =>

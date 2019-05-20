@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.OS.Network.Infrastructure
+namespace AElf.OS.BlockSync.Infrastructure
 {
-    public interface IAnnouncementCacheProvider
+    public interface IBlockDownloadHistoryCacheProvider
     {
-        bool CacheAnnouncement(Hash blockHash, long blockHeight);
+        bool CacheHistory(Hash blockHash, long blockHeight);
 
         void ClearCache(long blockHeight);
     }
 
-    public class AnnouncementCacheProvider : IAnnouncementCacheProvider, ISingletonDependency
+    public class BlockDownloadHistoryCacheProvider : IBlockDownloadHistoryCacheProvider, ISingletonDependency
     {
         private SortedDictionary<long, HashSet<Hash>> _cache = new SortedDictionary<long, HashSet<Hash>>();
 
-        public bool CacheAnnouncement(Hash blockHash, long blockHeight)
+        public bool CacheHistory(Hash blockHash, long blockHeight)
         {
             if (!_cache.TryGetValue(blockHeight, out var blockHashes))
             {

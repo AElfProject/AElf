@@ -3,12 +3,13 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.OS.Jobs;
+using AElf.OS.BlockSync.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
@@ -21,14 +22,19 @@ namespace AElf.OS.Handlers
 
         private readonly ITaskQueueManager _taskQueueManager;
 
-        private readonly BlockSyncJob _blockSyncJob;
-        
-        public PeerConnectedEventHandler(IServiceProvider serviceProvider, ITaskQueueManager taskQueueManager,
-            IBlockchainService blockchainService)
+        private readonly IBlockSyncService _blockSyncService;
+
+        private readonly NetworkOptions _networkOptions;
+
+        public PeerConnectedEventHandler(ITaskQueueManager taskQueueManager,
+            IBlockchainService blockchainService,
+            IBlockSyncService blockSyncService,
+            IOptionsSnapshot<NetworkOptions> networkOptions)
         {
             _taskQueueManager = taskQueueManager;
-            _blockSyncJob = serviceProvider.GetRequiredService<BlockSyncJob>();
             _blockchainService = blockchainService;
+            _blockSyncService = blockSyncService;
+            _networkOptions = networkOptions.Value;
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
 
@@ -59,12 +65,8 @@ namespace AElf.OS.Handlers
 
             _taskQueueManager.Enqueue(async () =>
             {
-                await _blockSyncJob.ExecuteAsync(new BlockSyncJobArgs
-                {
-                    SuggestedPeerPubKey = senderPubKey,
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight
-                });
+                await _blockSyncService.SyncBlockAsync(blockHash, blockHeight, _networkOptions.BlockIdRequestCount,
+                    senderPubKey);
             }, OSConsts.BlockSyncQueueName);
         }
 

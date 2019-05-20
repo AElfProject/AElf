@@ -6,7 +6,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS.Consensus.DPos;
 using AElf.OS.Handlers;
-using AElf.OS.Jobs;
 using AElf.OS.Network.Grpc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +29,6 @@ namespace AElf.OS
             context.Services.AddAssemblyOf<OSAElfModule>();
 
             context.Services.AddSingleton<PeerConnectedEventHandler>();
-            context.Services.AddTransient<BlockSyncJob>();
 
             //TODO: make ApplicationHelper as a provider, inject it into key store
             var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);

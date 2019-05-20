@@ -1,14 +1,14 @@
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.OS.Network.Infrastructure
+namespace AElf.OS.BlockSync.Infrastructure
 {
-    public interface INetworkSyncStateProvider
+    public interface IBlockSyncStateProvider
     {
         Timestamp BlockSyncJobEnqueueTime { get; set; }
     }
 
-    public class NetworkSyncStateProvider : INetworkSyncStateProvider, ISingletonDependency
+    public class BlockSyncStateProvider : IBlockSyncStateProvider, ISingletonDependency
     {
         public Timestamp BlockSyncJobEnqueueTime { get; set; }
     }

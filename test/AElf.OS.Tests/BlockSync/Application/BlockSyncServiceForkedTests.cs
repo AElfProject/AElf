@@ -1,29 +1,28 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContractExecution;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Jobs
+namespace AElf.OS.BlockSync.Application
 {
-    public sealed class BlockSyncJobForkTests : SyncForkTestBase
+    public sealed class BlockSyncServiceForkedTests : SyncForkedTestBase
     {
         private readonly IBlockchainService _blockChainService;
-        private readonly BlockSyncJob _job;
+        private readonly IBlockSyncService _blockSyncService;
         private readonly ITaskQueueManager _taskQueueManager;
 
-        public BlockSyncJobForkTests()
+        public BlockSyncServiceForkedTests()
         {
             _blockChainService = GetRequiredService<IBlockchainService>();
-            _job = GetRequiredService<BlockSyncJob>();
+            _blockSyncService = GetRequiredService<IBlockSyncService>();
             _taskQueueManager = GetRequiredService<ITaskQueueManager>();
         }
 
         [Fact]
-        public async Task ExecSyncJob_ShouldSyncChain()
+        public async Task SyncBlock_ShouldSyncChain()
         {
-            await _job.ExecuteAsync(new BlockSyncJobArgs {BlockHeight = 12});
+            await _blockSyncService.SyncBlockAsync(null, 12, 10, null);
 
             DisposeQueue();
                 
