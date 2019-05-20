@@ -4,7 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.OS.Node.Application;
 
-namespace AElf.Blockchains.MainChain
+namespace AElf.Blockchains.PoWChain
 {
     public partial class GenesisSmartContractDtoProvider
     {

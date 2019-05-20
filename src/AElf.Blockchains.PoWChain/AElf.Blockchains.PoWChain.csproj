@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
+      <ProjectReference Include="..\AElf.Blockchains.MainChain\AElf.Blockchains.MainChain.csproj" />
+      <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Volo.Abp.Core" Version="0.15.0" />
+    </ItemGroup>
+
+</Project>

@@ -5,7 +5,7 @@ using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.Options;
 
-namespace AElf.Blockchains.MainChain
+namespace AElf.Blockchains.PoWChain
 {
     public partial class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
@@ -24,14 +24,8 @@ namespace AElf.Blockchains.MainChain
             // The order matters !!!
             return new[]
             {
-                GetGenesisSmartContractDtosForVote(zeroContractAddress),
-                GetGenesisSmartContractDtosForProfit(zeroContractAddress),
-                GetGenesisSmartContractDtosForElection(zeroContractAddress),
                 GetGenesisSmartContractDtosForToken(zeroContractAddress),
-                GetGenesisSmartContractDtosForResource(zeroContractAddress),
-                GetGenesisSmartContractDtosForCrossChain(zeroContractAddress),
-                GetGenesisSmartContractDtosForParliament(),
-                GetGenesisSmartContractDtosForConsensus(zeroContractAddress),
+                GetGenesisSmartContractDtosForPow(zeroContractAddress)
             }.SelectMany(x => x);
         }
     }
