@@ -62,9 +62,16 @@ namespace AElf.OS.Handlers
                 var chain = await _blockchainService.GetChainAsync();
 
                 if (blockHeight > chain.BestChainHeight + NetworkConsts.DefaultMinBlockGapBeforeSync)
-                    _blockchainNodeContextService.SetSyncing(true);
+                {
+                    if (_blockchainNodeContextService.SetSyncing(true))
+                        Logger.LogDebug($"Starting a sync phase, best chain height: {chain.BestChainHeight}.");
+
+                }
                 else
-                    _blockchainNodeContextService.SetSyncing(false);
+                {
+                    if (_blockchainNodeContextService.SetSyncing(false))
+                        Logger.LogDebug($"Finished a sync phase, best chain height: {chain.BestChainHeight}.");
+                }
             }
         }
     }

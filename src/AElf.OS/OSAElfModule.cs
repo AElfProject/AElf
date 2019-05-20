@@ -30,6 +30,7 @@ namespace AElf.OS
             context.Services.AddAssemblyOf<OSAElfModule>();
 
             context.Services.AddSingleton<PeerConnectedEventHandler>();
+            context.Services.AddSingleton<SyncStateAnnouncementEventHandler>();
             context.Services.AddTransient<BlockSyncJob>();
 
             //TODO: make ApplicationHelper as a provider, inject it into key store
