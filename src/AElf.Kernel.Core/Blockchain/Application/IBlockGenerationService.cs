@@ -85,7 +85,18 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);
-            var merkleTreeRootOfWorldState = ComputeHash(GetDeterministicByteArrays(blockStateSet));
+            Hash merkleTreeRootOfWorldState;
+            var byteArrays = GetDeterministicByteArrays(blockStateSet);
+            using (var hashAlgorithm = SHA256.Create())
+            {
+                foreach (var bytes in byteArrays)
+                {
+                    hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
+                }
+
+                hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
+                merkleTreeRootOfWorldState = Hash.LoadByteArray(hashAlgorithm.Hash);
+            }
             blockHeader.MerkleTreeRootOfWorldState = merkleTreeRootOfWorldState;
             
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
@@ -122,20 +133,6 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 yield return Encoding.UTF8.GetBytes(k);
                 yield return blockStateSet.Changes[k].ToByteArray();
-            }
-        }
-
-        private Hash ComputeHash(IEnumerable<byte[]> byteArrays)
-        {
-            using (var hashAlgorithm = SHA256.Create())
-            {
-                foreach (var bytes in byteArrays)
-                {
-                    hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
-                }
-
-                hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
-                return Hash.LoadByteArray(hashAlgorithm.Hash);
             }
         }
     }
