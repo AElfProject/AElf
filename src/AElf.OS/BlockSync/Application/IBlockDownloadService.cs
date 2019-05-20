@@ -14,7 +14,7 @@ namespace AElf.OS.BlockSync.Application
 {
     public interface IBlockDownloadService
     {
-        Task<int> DownloadBlocksAsync(Hash previousBlockHash, long previousBlockHeight, int blockRequestCount,
+        Task<int> DownloadBlocksAsync(Hash previousBlockHash, long previousBlockHeight, int batchRequestBlockCount,
             string suggestedPeerPubKey);
     }
 

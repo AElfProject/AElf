@@ -9,7 +9,7 @@ namespace AElf.OS.BlockSync.Application
 {
     public interface IBlockSyncService
     {
-        Task SyncBlockAsync(Hash blockHash, long blockHeight, int blockRequestCount, string suggestedPeerPubKey);
+        Task SyncBlockAsync(Hash blockHash, long blockHeight, int batchRequestBlockCount, string suggestedPeerPubKey);
     }
 
     public class BlockSyncService : IBlockSyncService
