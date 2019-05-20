@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController.Application;
@@ -59,7 +58,7 @@ namespace AElf.Kernel.Node.Application
         }
         
         public bool IsNodeSyncing() => _nodeSyncStateProvider.IsNodeSyncing();
-        public bool SetSyncing(bool value) => _nodeSyncStateProvider.IsNodeSyncing();
+        public bool SetSyncing(bool value) => _nodeSyncStateProvider.SetSyncing(value);
 
         public async Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto)
         {
