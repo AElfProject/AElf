@@ -34,6 +34,9 @@
         <None Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf/Proto/aedpos_contract.proto</Link>
         </None>
+        <None Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf/Proto/acs6.proto</Link>
+        </None>
     </ItemGroup>
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh election_contract.proto; ../../scripts/generate_contract_code.sh aedpos_contract.proto" />

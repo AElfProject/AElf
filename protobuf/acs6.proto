@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package acs6;
+import "common.proto";
+import "aelf_options.proto";
+import "google/protobuf/empty.proto";
+
+option (aelf.identity) = "acs6";
+
+service RandomNumberGeneratorContract {
+    rpc GetRandomNumber (google.protobuf.Empty) returns (RandomNumberCoupon) {
+    }
+    rpc GetRandomNumberCoupon (Hash) returns (Hash) {
+    }
+}
+
+message RandomNumberCoupon {
+    sint64 block_height = 1;
+    repeated sint32 orders = 2;
+}

@@ -12,7 +12,7 @@ service ProfitSharingContract {
     }
     rpc ReceiveProfits (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc GetProfitReceiver (google.protobuf.Empty) google.protobuf.Empty (GetProfitReceiverOutput) {
+    rpc GetProfitReceivers (google.protobuf.Empty) google.protobuf.Empty (ProfitReceivers) {
         option (aelf.is_view) = true;
     }
 }
@@ -23,6 +23,6 @@ message ProfitReceiverInformation {
     string remark = 3;
 }
 
-message GetProfitReceiverOutput {
+message ProfitReceivers {
     repeated ProfitReceiverInformation Value = 1;
 }
