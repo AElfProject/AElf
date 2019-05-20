@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Node.Application;
+using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
@@ -60,7 +61,7 @@ namespace AElf.OS.Handlers
             {
                 var chain = await _blockchainService.GetChainAsync();
 
-                if (blockHeight > chain.BestChainHeight)
+                if (blockHeight > chain.BestChainHeight + NetworkConsts.DefaultMinBlockGapBeforeSync)
                     _blockchainNodeContextService.SetSyncing(true);
                 else
                     _blockchainNodeContextService.SetSyncing(false);
