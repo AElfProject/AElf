@@ -8,13 +8,21 @@ import "google/protobuf/empty.proto";
 option (aelf.identity) = "acs5";
 
 service ProfitSharingContract {
+    rpc CreateProfitItem (CreateProfitItemInput) returns (google.protobuf.Empty) {
+    }
     rpc SetProfitReceiver (ProfitReceiverInformation) returns (google.protobuf.Empty) {
+    }
+    rpc SetProfitReceivers (ProfitReceivers) returns (google.protobuf.Empty) {
     }
     rpc ReceiveProfits (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc GetProfitReceivers (google.protobuf.Empty) google.protobuf.Empty (ProfitReceivers) {
         option (aelf.is_view) = true;
     }
+}
+
+message CreateProfitItemInput {
+    
 }
 
 message ProfitReceiverInformation {
