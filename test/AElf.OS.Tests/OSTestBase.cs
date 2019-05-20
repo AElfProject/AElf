@@ -1,5 +1,4 @@
 using AElf.TestBase;
-using Volo.Abp.Modularity;
 
 namespace AElf.OS
 {
@@ -15,6 +14,11 @@ namespace AElf.OS
     }
     
     public class SyncTestBase : AElfIntegratedTest<SyncTestModule>
+    {
+        
+    }
+
+    public class SyncStateTestBase : AElfIntegratedTest<SyncStateTestModule>
     {
         
     }

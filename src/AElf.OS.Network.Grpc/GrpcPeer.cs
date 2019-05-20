@@ -38,7 +38,7 @@ namespace AElf.OS.Network.Grpc
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
-
+        
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string pubKey, string peerIpAddress,
             int protocolVersion, long connectionTime, long startHeight, bool inbound = true)
         {
