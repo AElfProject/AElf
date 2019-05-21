@@ -16,10 +16,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
     public class ElectionTransactionExecutor : ITransactionExecutor
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly IBlockchainService _blockchainService;
 
-        public ElectionTransactionExecutor(IServiceProvider serviceProvider)
+        public ElectionTransactionExecutor(IServiceProvider serviceProvider, IBlockchainService blockchainService)
         {
             _serviceProvider = serviceProvider;
+            _blockchainService = blockchainService;
         }
 
         public async Task ExecuteAsync(Transaction transaction)
@@ -38,6 +40,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 blockTimeProvider.GetBlockTime(), TimeSpan.FromMilliseconds(int.MaxValue));
 
+            await _blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
         }
 
