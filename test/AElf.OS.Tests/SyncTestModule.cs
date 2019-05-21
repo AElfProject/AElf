@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using AElf.Database.RedisProtocol;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -9,11 +9,8 @@ using AElf.Modularity;
 using AElf.OS.Handlers;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Grpc;
-using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Volo.Abp;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Modularity;
 
@@ -21,7 +18,7 @@ namespace AElf.OS
 {
     [DependsOn(typeof(OSAElfModule), typeof(KernelTestAElfModule))]
     public class SyncTestModule : AElfModule
-    {        
+    {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             Configure<NetworkOptions>(o =>
@@ -75,8 +72,10 @@ namespace AElf.OS
 
             context.Services.AddSingleton<IAccountService>(p =>
             {
+                var ecKeyPair = CryptoHelpers.GenerateKeyPair();
+                
                 Mock<IAccountService> mockAccountService = new Mock<IAccountService>();
-                mockAccountService.Setup(ac => ac.GetPublicKeyAsync()).Returns(Task.FromResult("Mock".ToUtf8Bytes()));
+                mockAccountService.Setup(ac => ac.GetPublicKeyAsync()).Returns(Task.FromResult(ecKeyPair.PublicKey));
 
                 return mockAccountService.Object;
             });
