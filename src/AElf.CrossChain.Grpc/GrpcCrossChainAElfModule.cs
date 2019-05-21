@@ -1,4 +1,5 @@
 using System.Linq;
+using AElf.CrossChain.Plugin;
 using AElf.Kernel.Node.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;

@@ -14,6 +14,7 @@ namespace AElf.CrossChain.Grpc
         protected readonly int DialTimeout;
         private readonly int _localChainId;
         public string Target => Channel.Target;
+        public int ChainId => _localChainId;
         private readonly CrossChainRpc.CrossChainRpcClient _grpcClient;
 
         protected CrossChainGrpcClient(string uri, int localChainId, int dialTimeout)
@@ -47,14 +48,12 @@ namespace AElf.CrossChain.Grpc
             await Channel.ShutdownAsync();
         }
         
-        public async Task StartIndexingRequest(int chainId, long targetHeight,
-            IBlockCacheEntityProducer blockCacheEntityProducer, int localListeningPort)
+        public async Task RequestCrossChainDataAsync(long targetHeight, IBlockCacheEntityProducer blockCacheEntityProducer)
         {
             var requestData = new CrossChainRequest
             {
                 FromChainId = _localChainId,
-                NextHeight = targetHeight,
-                ListeningPort = localListeningPort
+                NextHeight = targetHeight
             };
 
             using (var serverStream = RequestIndexing(requestData))
@@ -75,7 +74,7 @@ namespace AElf.CrossChain.Grpc
             }
         }
     
-        public Task<HandShakeReply> HandShakeAsync(int chainId, int localListeningPort)
+        public Task<HandShakeReply> HandShakeAsync(int localListeningPort)
         {
             var handShakeReply = _grpcClient.CrossChainIndexingShakeAsync(new HandShake
             {
