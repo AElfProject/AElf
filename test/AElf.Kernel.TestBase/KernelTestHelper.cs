@@ -7,6 +7,7 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 

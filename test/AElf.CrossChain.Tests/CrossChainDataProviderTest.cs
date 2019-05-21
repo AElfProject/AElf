@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Xunit;
 

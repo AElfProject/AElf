@@ -7,7 +7,7 @@ namespace AElf.Types.Tests
 {
     public class ProtobufTests
     {
-        [Fact]
+        [Fact(Skip = "Seems experiment code.")]
         public void TestDescriptor()
         {
             var descriptorBytes = Hash.Descriptor.File.SerializedData;

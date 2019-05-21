@@ -2,8 +2,8 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.CrossChain";
 
-import "common.proto";
-import "core.proto";
+import "aelf/core.proto";
+import "kernel.proto";
 import "google/protobuf/timestamp.proto";
 
 message CrossChainRequest {
@@ -32,7 +32,7 @@ message SideChainInitializationRequest{
 
 message SideChainInitializationInformation{
     int32 chainId =1;
-    Address creator = 2;
+    aelf.Address creator = 2;
     google.protobuf.Timestamp creationTimestamp = 3;
     repeated bytes extraInformation = 4;
     int64 creationHeightOnParentChain = 5; 

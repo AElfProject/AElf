@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package acs2;
 
-import "core.proto";
-import "aelf_options.proto";
+import "aelf/core.proto";
+import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/any.proto";
 
@@ -11,11 +11,11 @@ option (aelf.identity) = "acs2";
 
 service StatePathsProvidingContract {
     // Views
-    rpc GetStatePaths (Transaction) returns (StatePathsInfo) {
+    rpc GetStatePaths (aelf.Transaction) returns (StatePathsInfo) {
         option (aelf.is_view) = true;
     }
 }
 
 message StatePathsInfo {
-    repeated ScopedStatePath paths = 2;
+    repeated aelf.ScopedStatePath paths = 2;
 }

@@ -5,6 +5,7 @@ using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;

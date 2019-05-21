@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Kernel;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 

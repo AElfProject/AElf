@@ -1,7 +1,7 @@
 ﻿using Acs2;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 
 namespace AElf.Contracts.MultiToken
 {

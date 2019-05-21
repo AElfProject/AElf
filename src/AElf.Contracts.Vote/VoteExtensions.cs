@@ -1,3 +1,5 @@
+using AElf.Types;
+
 namespace AElf.Contracts.Vote
 {
     public static class VoteExtensions

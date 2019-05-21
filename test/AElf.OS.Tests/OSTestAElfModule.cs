@@ -4,6 +4,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Account;
+using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
