@@ -36,5 +36,7 @@ namespace AElf.WebApp.Application.Chain.Dto
         public string ChainId { get; set; }
         
         public string Bloom { get; set; }
+        
+        public string SignerPubkey { get; set; }
     }
 }
