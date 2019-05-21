@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Infrastructure;
+using AElf.Types;
 using Shouldly;
 using Shouldly.ShouldlyExtensionMethods;
 using Xunit;

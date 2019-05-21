@@ -7,6 +7,7 @@ using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Types;
 
 namespace AElf.Kernel.Node.Application
 {

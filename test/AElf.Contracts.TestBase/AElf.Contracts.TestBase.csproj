@@ -1,30 +1,69 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />
-    <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
-    <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
-    <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+        <!--<Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />-->
+        <!--<Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />-->
+        <Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
+        <!--<Contract Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />-->
+        <Contract Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
+        
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
+        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\stub\acs3.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf\Proto\stub\acs4.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\stub\aedpos_contract.proto</Link>
+        </ContractStub>
+        <!--<ContractStub Include="..\..\protobuf\dpos_sidechain_contract.proto">-->
+            <!--<Link>Protobuf\Proto\stub\dpos_sidechain_contract.proto</Link>-->
+        <!--</ContractStub>-->
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\stub\token_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\stub\parliament_auth_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\dividend_contract.proto">
+            <Link>Protobuf\Proto\stub\dividend_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\resource_contract.proto">
+            <Link>Protobuf\Proto\stub\resource_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\fee_receiver_contract.proto">
+            <Link>Protobuf\Proto\stub\fee_receiver_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
+            <Link>Protobuf\Proto\stub\cross_chain_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
 </Project>

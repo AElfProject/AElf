@@ -51,6 +51,8 @@ namespace AElf.Benchmark
         {
             var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
             _block = _osTestHelper.GenerateBlock(_chain.BestChainHash, _chain.BestChainHeight, transactions);
+            
+            await _blockchainService.AddBlockAsync(_block);
         }
 
         [Benchmark]

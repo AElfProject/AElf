@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContractExecution

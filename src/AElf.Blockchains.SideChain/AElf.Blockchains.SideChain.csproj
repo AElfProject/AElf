@@ -8,14 +8,28 @@
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
-        <ProjectReference Include="..\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
-        <ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
-        <ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
-        <ProjectReference Include="..\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
         <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
         <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
+            <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+    <ItemGroup>
+        <Contract Include="..\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
+        <Contract Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
+        <Contract Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
+        <Contract Include="..\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
     </ItemGroup>
 </Project>

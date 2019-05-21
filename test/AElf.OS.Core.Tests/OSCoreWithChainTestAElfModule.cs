@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
@@ -53,11 +54,11 @@ namespace AElf.OS
             {
                 var mockService = new Mock<IBlockValidationService>();
                 mockService.Setup(s =>
-                    s.ValidateBlockBeforeAttachAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
+                    s.ValidateBlockBeforeAttachAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
                 mockService.Setup(s =>
-                    s.ValidateBlockBeforeExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
+                    s.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
                 mockService.Setup(s =>
-                    s.ValidateBlockAfterExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
+                    s.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
                 return mockService.Object;
             });
 

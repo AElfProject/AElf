@@ -1,7 +1,9 @@
+using Acs0;
 using Acs1;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 
 namespace AElf.Contracts.MultiToken
 {

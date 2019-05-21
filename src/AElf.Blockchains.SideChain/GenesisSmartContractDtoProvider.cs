@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs0;
 using AElf.Blockchains.BasicBaseChain;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Deployer;
 using AElf.CrossChain;
 using AElf.CrossChain.Grpc;
 using AElf.Kernel;
@@ -12,6 +12,10 @@ using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
+using AElf.Sdk.CSharp;
+using Google.Protobuf;
+using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
 namespace AElf.Blockchains.SideChain
@@ -19,6 +23,8 @@ namespace AElf.Blockchains.SideChain
     // TODO: Split different contract and change this to plugin
     public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
+        private readonly IReadOnlyDictionary<string, byte[]> _codes =
+            ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>();
         private readonly ChainOptions _chainOptions;
         private readonly ContractOptions _contractOptions;
         private readonly ConsensusOptions _consensusOptions;
@@ -49,15 +55,18 @@ namespace AElf.Blockchains.SideChain
             };
             chainInitializationContext.ExtraInformation.AddRange(sideChainInitializationResponse.ExtraInformation);
 
-            l.AddGenesisSmartContract<AEDPoSContract>(
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("Consensus.AEDPoS")).Value,
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList(chainInitializationContext));
 
-            l.AddGenesisSmartContract<TokenContract>(
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("MultiToken")).Value,
                 TokenSmartContractAddressNameProvider.Name,
                 GenerateTokenInitializationCallList());
 
-            l.AddGenesisSmartContract<CrossChainContract>(
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("CrossChain")).Value,
                 CrossChainSmartContractAddressNameProvider.Name,
                 GenerateCrossChainInitializationCallList(chainInitializationContext));
 
@@ -98,12 +107,12 @@ namespace AElf.Blockchains.SideChain
                 }
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;
             var timestamp = chainInitializationContext?.CreationTimestamp.ToDateTime() ?? _consensusOptions.StartTimestamp;
-            consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
+            consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
                     IsSideChain = true
                 });
-            consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
+            consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
                 miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp.ToUniversalTime()));
             return consensusMethodCallList;
         }
@@ -112,8 +121,8 @@ namespace AElf.Blockchains.SideChain
             GenerateCrossChainInitializationCallList(ChainInitializationInformation chainInitializationContext)
         {
             var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
-                new InitializeInput
+            crossChainMethodCallList.Add(nameof(CrossChainContractContainer.CrossChainContractStub.Initialize),
+                new AElf.Contracts.CrossChain.InitializeInput
                 {
                     ParentChainId = _crossChainConfigOptions.ParentChainId,
                     CreationHeightOnParentChain = chainInitializationContext.CreationHeightOnParentChain

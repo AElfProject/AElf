@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.Collections;
+﻿using AElf.Types;
+using Google.Protobuf.Collections;
 
 namespace AElf.Kernel
 {

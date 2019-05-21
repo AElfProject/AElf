@@ -2,6 +2,7 @@ using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Blockchain.Application
@@ -94,7 +95,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             if (block?.Header == null || block.Body == null)
             {
-                Logger.LogWarning($"Block header or body is null {block}");
+                Logger.LogWarning($"Block header or body is null.");
                 return false;
             }
 
@@ -110,7 +111,7 @@ namespace AElf.Kernel.Blockchain.Application
                 return false;
             }
 
-            if (block.Height != Constants.GenesisBlockHeight && !block.VerifySignature())
+            if (block.Header.Height != Constants.GenesisBlockHeight && !block.VerifySignature())
             {
                 Logger.LogWarning($"Block verify signature failed. {block}");
                 return false;
@@ -122,7 +123,7 @@ namespace AElf.Kernel.Blockchain.Application
                 return false;
             }
 
-            if (block.Height != Constants.GenesisBlockHeight &&
+            if (block.Header.Height != Constants.GenesisBlockHeight &&
                 block.Header.Time.ToDateTime() - DateTime.UtcNow > KernelConstants.AllowedFutureBlockTimeSpan)
             {
                 Logger.LogWarning($"Future block received {block}, {block.Header.Time.ToDateTime()}");
@@ -131,7 +132,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             return true;
         }
-
+        
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
             if (block?.Header == null || block.Body == null)

@@ -1,5 +1,6 @@
 using System;
 using Acs3;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using CreateProposalInput = Acs3.CreateProposalInput;
 

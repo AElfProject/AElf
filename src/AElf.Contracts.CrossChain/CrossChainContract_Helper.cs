@@ -6,6 +6,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
+using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

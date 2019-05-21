@@ -1,10 +1,12 @@
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicUpdate;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -23,7 +25,7 @@ namespace AElf.Contract.TestContract
         public async Task Initialize_MultiTimesContract()
         {
             var transactionResult = (await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendAsync(
-                new InitialBasicContractInput
+                new AElf.Contracts.TestContract.BasicFunction.InitialBasicContractInput
                 {
                     ContractName = "Test initialize again",
                     MinValue = 1000,
@@ -39,10 +41,10 @@ namespace AElf.Contract.TestContract
         public async Task UpdateContract_WithOwner_Success()
         {
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
-                new ContractUpdateInput
+                new Acs0.ContractUpdateInput
                 {
                     Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicUpdateContract).Assembly.Location)) 
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("BasicUpdate")).Value) 
                 }
             )).TransactionResult;
             
@@ -64,10 +66,10 @@ namespace AElf.Contract.TestContract
         public async Task UpdateContract_WithSameCode_Failed()
         {
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
-                new ContractUpdateInput
+                new Acs0.ContractUpdateInput
                 {
                     Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicFunctionContract).Assembly.Location)) 
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("BasicFunction")).Value) 
                 }
             )).TransactionResult;
             
@@ -79,10 +81,10 @@ namespace AElf.Contract.TestContract
         public async Task UpdateContract_And_Call_Old_Method()
         {
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
-                new ContractUpdateInput
+                new Acs0.ContractUpdateInput
                 {
                     Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(BasicUpdateContract).Assembly.Location)) 
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("BasicUpdate")).Value) 
                 }
             )).TransactionResult;
             
@@ -90,7 +92,7 @@ namespace AElf.Contract.TestContract
 
             //execute new action method
             transactionResult = (await TestBasicFunctionContractStub.UserPlayBet.SendAsync(
-                new BetInput
+                new AElf.Contracts.TestContract.BasicFunction.BetInput
                 {
                     Int64Value = 100
                 })).TransactionResult;
@@ -115,7 +117,7 @@ namespace AElf.Contract.TestContract
             var otherUser = SampleECKeyPairs.KeyPairs[2];
             var otherZeroStub = GetContractZeroTester(otherUser);
             var transactionResult = (await otherZeroStub.ChangeContractOwner.SendAsync(
-                new ChangeContractOwnerInput
+                new Acs0.ChangeContractOwnerInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     NewOwner = Address.Generate()
@@ -131,7 +133,7 @@ namespace AElf.Contract.TestContract
         {
             var otherUser = Address.Generate();
             var transactionResult = (await BasicContractZeroStub.ChangeContractOwner.SendAsync(
-                new ChangeContractOwnerInput
+                new Acs0.ChangeContractOwnerInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
                     NewOwner = otherUser
