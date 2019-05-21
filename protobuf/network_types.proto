@@ -27,6 +27,6 @@ message PeerNewBlockAnnouncement {
 }
 
 message BlockWithTransactions {
-    BlockHeader Header = 1;
-    repeated Transaction Transactions = 2;
+    aelf.BlockHeader Header = 1;
+    repeated aelf.Transaction Transactions = 2;
 }
