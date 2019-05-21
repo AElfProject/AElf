@@ -4,15 +4,14 @@ option csharp_namespace = "AElf.OS.Network.Grpc";
 
 import "kernel.proto";
 import "network_types.proto";
-import "common.proto";
-import "core.proto";
+import "aelf/core.proto";
 
 service PeerService {
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
     
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
-    rpc SendTransaction (Transaction) returns (VoidReply) {}
+    rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
 
     rpc Connect (Handshake) returns (ConnectReply) {}
     
@@ -42,7 +41,7 @@ enum AuthError {
 // **** Blocks *****
 
 message BlocksRequest {
-    Hash PreviousBlockHash = 1;
+    aelf.Hash PreviousBlockHash = 1;
     int32 Count = 2;
 }
 
@@ -58,11 +57,11 @@ message DisconnectReason {
 }
 
 message Announcement {
-    BlockHeader Header = 1;
+    aelf.BlockHeader Header = 1;
 }
 
 message BlockRequest {
-    Hash Hash = 1;
+    aelf.Hash Hash = 1;
 }
 
 message BlockReply {

@@ -1,3 +1,5 @@
+using AElf.Types;
+
 namespace AElf.Kernel
 {
     public partial class TransactionReceipt

@@ -1,4 +1,3 @@
-using AElf.Contracts.TestBase;
 using AElf.Contracts.TestKit;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;

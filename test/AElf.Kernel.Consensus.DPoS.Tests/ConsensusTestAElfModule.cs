@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -8,6 +9,7 @@ using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;

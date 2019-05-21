@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AElf.Types;
 using System.Linq;
 using Google.Protobuf;
 

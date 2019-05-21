@@ -8,6 +8,7 @@ using AElf.Kernel.SmartContract.Sdk;
 using Xunit;
 using Shouldly;
 using AElf.Sdk.CSharp.Tests.TestContract;
+using AElf.Types;
 
 namespace AElf.Sdk.CSharp.Tests
 {

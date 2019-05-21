@@ -1,99 +1,83 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.TestBase;
-using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.Kernel.Token;
-using AElf.OS.Node.Application;
-using Newtonsoft.Json.Linq;
+using AElf.Types;
+using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.Contracts.MultiToken
 {
-    public class MultiTokenContractWithCustomSystemTransactionTest : ContractTestBase<MultiTokenContractWithCustomSystemTransactionTestAElfModule>
+    public class MultiTokenContractWithCustomSystemTransactionTest : MultiTokenContractTestBase
     {
-        private Address TokenContractAddress { get; set; }
+        private static long _totalSupply = 1_000_000L;
 
-        private const string SymbolForTestingInitialLogic = "ELFTEST";
-        
         public MultiTokenContractWithCustomSystemTransactionTest()
         {
-            var keyPair =
-                CryptoHelpers.FromPrivateKey(ByteArrayHelpers.FromHexString(TestTokenBalanceContractTestConstants.PrivateKeyHex));
-            Tester = new ContractTester<MultiTokenContractWithCustomSystemTransactionTestAElfModule>(1, keyPair);
-            var minersKeyPairs = Enumerable.Range(0, 2).Select(_ => CryptoHelpers.GenerateKeyPair())
-                .ToList();
-            minersKeyPairs.Add(Tester.KeyPair);
-            AsyncHelper.RunSync(async () =>
+            AsyncHelper.RunSync(async () => await InitializeAsync());
+        }
+
+        private async Task InitializeAsync()
+        {
             {
-                var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-                tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
+                // TokenContract
+                var category = KernelConstants.CodeCoverageRunnerCategory;
+                var code = TokenContractCode;
+                TokenContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
+                TokenContractStub =
+                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+
+                await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput()
                 {
-                    Symbol = SymbolForTestingInitialLogic,
+                    Symbol = DefaultSymbol,
                     Decimals = 2,
                     IsBurnable = true,
-                    Issuer = Tester.GetCallOwnerAddress(),
                     TokenName = "elf token",
-                    TotalSupply = Tester.TokenTotalSupply
+                    TotalSupply = _totalSupply,
+                    Issuer = DefaultSender
                 });
-
-                // For testing.
-                tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
-                    Symbol = SymbolForTestingInitialLogic,
-                    Amount = Tester.TokenTotalSupply,
-                    To = Tester.GetCallOwnerAddress(),
-                    Memo = "Issue token to starter himself."
+                    Symbol = DefaultSymbol,
+                    Amount = _totalSupply,
+                    To = DefaultSender,
+                    Memo = "Set for token converter."
                 });
-
-                await Tester.InitialCustomizedChainAsync(minersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList(),
-                    4000, null,
-                    list =>
-                    {
-                        list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name,
-                            tokenContractCallList);
-                    });
-            });
-            TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
+            }
         }
-        
+
         [Fact]
         public async Task TokenContract_WithSystemTransaction()
         {
-            var getBalanceTx = await Tester.GenerateTransactionAsync(TokenContractAddress,
-                nameof(TokenContract.GetBalance),
-                new GetBalanceInput
+            var transferAmountInSystemTxn = 1000L;
+            // Set the address so that a transfer
+            var generator = Application.ServiceProvider.GetRequiredService<TestTokenBalanceTransactionGenerator>();
+            generator.GenerateTransactionFunc = (_, preBlockHeight, preBlockHash) =>
+                new Transaction
                 {
-                    Symbol = SymbolForTestingInitialLogic,
-                    Owner = Tester.GetCallOwnerAddress()
-                });
-            var block = await Tester.MineAsync(new List<Transaction> {getBalanceTx});
-            var transactionResults = new List<TransactionResult>();
-            foreach (var transactionHash in block.Body.Transactions)
-            {
-                var transactionResult =  await Tester.GetTransactionResultAsync(transactionHash);
-                transactionResults.Add(transactionResult);
-            }
-            
-            var ownerBalance = GetBalanceOutput.Parser.ParseFrom(
-                await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContract.GetBalance),
-                    new GetBalanceInput
+                    From = DefaultSender,
+                    To = TokenContractAddress,
+                    MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                    Params = new TransferInput
                     {
-                        Symbol = SymbolForTestingInitialLogic,
-                        Owner = Tester.GetCallOwnerAddress()
-                    })).Balance;
-            
-            ownerBalance.ShouldBe(Tester.TokenTotalSupply - 1000L);
-
-            foreach (var transactionResult in transactionResults)
+                        Amount = transferAmountInSystemTxn,
+                        Memo = "transfer test",
+                        Symbol = DefaultSymbol,
+                        To = Address.Zero
+                    }.ToByteString(),
+                    RefBlockNumber = preBlockHeight,
+                    RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray())
+                };
+            var result = await TokenContractStub.GetBalance.SendAsync(new GetBalanceInput
             {
-                var returnValue = JObject.Parse(transactionResult.ReadableReturnValue);
-                returnValue["balance"]?.Value<long>().ShouldBe(Tester.TokenTotalSupply - 1000L);
-            }
+                Symbol = DefaultSymbol,
+                Owner = DefaultSender
+            });
+            generator.GenerateTransactionFunc = null;
+            result.Output.Balance.ShouldBe(_totalSupply - transferAmountInSystemTxn);
         }
     }
 }

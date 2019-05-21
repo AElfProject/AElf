@@ -1,11 +1,13 @@
 using System;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Volo.Abp.Threading;
@@ -121,7 +123,7 @@ namespace AElf.Kernel.Consensus.AElfConsensus
         {
             var information = new ConsensusControlInformation()
             {
-                ConsensusCommand = new ConsensusCommand
+                ConsensusCommand = new Acs4.ConsensusCommand
                 {
                     Hint = ByteString.CopyFrom(new DPoSHint
                     {

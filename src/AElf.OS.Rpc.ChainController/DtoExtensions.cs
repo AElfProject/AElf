@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using AElf.Kernel;
+using AElf.Types;
 using Newtonsoft.Json.Linq;
 
 [assembly: InternalsVisibleTo("AElf.OS.Rpc.ChainController.Tests")]

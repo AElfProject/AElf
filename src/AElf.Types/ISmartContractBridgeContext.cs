@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf

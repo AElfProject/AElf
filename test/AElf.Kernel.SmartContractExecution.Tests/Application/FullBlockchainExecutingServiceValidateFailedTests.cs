@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Types;
 using AElf.Kernel.Infrastructure;
 using Shouldly;
 using Xunit;
