@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
@@ -135,13 +136,13 @@ namespace AElf.Kernel.Types.Tests
             return block;
         }
 
-        private (List<Kernel.Transaction>, List<Hash>) GenerateFakeTransactions(int count)
+        private (List<Transaction>, List<Hash>) GenerateFakeTransactions(int count)
         {
-            var transactions = new List<Kernel.Transaction>();
+            var transactions = new List<Transaction>();
             var transactionHashes = new List<Hash>();
             for (int i = 0; i < count; i++)
             {
-               var transaction = new Kernel.Transaction()
+               var transaction = new Transaction()
                {
                    From = Address.Generate(),
                    To = Address.Generate(),

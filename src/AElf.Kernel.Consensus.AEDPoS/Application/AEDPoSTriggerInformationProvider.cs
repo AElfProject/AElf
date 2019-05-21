@@ -1,3 +1,4 @@
+using System;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
@@ -5,6 +6,8 @@ using Volo.Abp.Threading;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
@@ -23,6 +26,12 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ILogger<AEDPoSTriggerInformationProvider> Logger { get; set; }
 
         public AEDPoSTriggerInformationProvider(IAccountService accountService,
+            IServiceProvider serviceProvider) : this(accountService,
+            serviceProvider.GetRequiredService<ConsensusControlInformation>())
+        {
+        }
+
+        internal AEDPoSTriggerInformationProvider(IAccountService accountService,
             ConsensusControlInformation controlInformation)
         {
             _accountService = accountService;

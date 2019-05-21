@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS;
+using AElf.Types;
 using BenchmarkDotNet.Attributes;
 
 namespace AElf.Benchmark

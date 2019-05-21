@@ -1,6 +1,7 @@
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 
 namespace AElf.CrossChain
 {

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.MultiToken;
+using Acs0;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -10,6 +10,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Xunit;
 
@@ -17,6 +18,14 @@ namespace AElf.Contracts.TestBase.Tests
 {
     public class ContractTesterTest
     {
+        private IReadOnlyDictionary<string, byte[]> _codes;
+
+        public IReadOnlyDictionary<string, byte[]> Codes =>
+            _codes ?? (_codes = ContractsDeployer.GetContractCodes<ContractTesterTest>());
+
+        public byte[] ConsensusContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
+        public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         private int ChainId { get; } = ChainHelpers.ConvertBase58ToChainId("AELF");
         private int DefaultCategory { get; } = SmartContractTestConstants.TestRunnerCategory;
 
@@ -45,7 +54,7 @@ namespace AElf.Contracts.TestBase.Tests
                 new ContractDeploymentInput()
                 {
                     Category = SmartContractTestConstants.TestRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 });
 
             var chain = await tester.GetChainAsync();
@@ -78,7 +87,7 @@ namespace AElf.Contracts.TestBase.Tests
                 new ContractDeploymentInput()
                 {
                     Category = SmartContractTestConstants.TestRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 });
 
             await tester1.MineAsync(new List<Transaction> {tx});
@@ -99,15 +108,18 @@ namespace AElf.Contracts.TestBase.Tests
             var tester = new ContractTester<ContractTestAElfModule>(ChainId, callerKeyPair);
             await tester.InitialChainAsync(list =>
             {
-                list.AddGenesisSmartContract<AEDPoSContract>(
+                list.AddGenesisSmartContract(
+                    ConsensusContractCode,
                     ConsensusSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract<TokenContract>(
+                list.AddGenesisSmartContract(
+                    TokenContractCode,
                     TokenSmartContractAddressNameProvider.Name);
             });
 
             var tokenContractAddress = tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
 
-            var bytes = await tester.CallContractMethodAsync(tokenContractAddress, nameof(TokenContract.GetBalance),
+            var bytes = await tester.CallContractMethodAsync(tokenContractAddress, 
+                nameof(TokenContractContainer.TokenContractStub.GetBalance),
                 new GetBalanceInput
                 {
                     Symbol = "ELF",
@@ -130,7 +142,7 @@ namespace AElf.Contracts.TestBase.Tests
                 new ContractDeploymentInput
                 {
                     Category = DefaultCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 }
             );
 
@@ -152,7 +164,7 @@ namespace AElf.Contracts.TestBase.Tests
                 new ContractDeploymentInput()
                 {
                     Category = SmartContractTestConstants.TestRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 });
 
             await tester.MineAsync(new List<Transaction> {tx});

@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using System.Linq;
+using Acs0;
 using AElf.Contracts.Election;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -14,7 +17,8 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
 
-            l.AddGenesisSmartContract<ElectionContract>(
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("Election")).Value,
                ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
 
             return l;
@@ -25,7 +29,7 @@ namespace AElf.Blockchains.MainChain
         {
             var electionContractMethodCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            electionContractMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
+            electionContractMethodCallList.Add(nameof(ElectionContractContainer.ElectionContractStub.InitialElectionContract),
                 new InitialElectionContractInput
                 {
                     MaximumLockTime = 1080 * 86400,

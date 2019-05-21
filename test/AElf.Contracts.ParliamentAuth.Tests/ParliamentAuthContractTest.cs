@@ -1,9 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
-using AElf.Kernel;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -71,7 +70,7 @@ namespace AElf.Contracts.ParliamentAuth
             var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId);
             
             getProposal.Output.Proposer.ShouldBe(DefaultSender);
-            getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContract.Transfer));
+            getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContractStub.Transfer));
             getProposal.Output.ProposalId.ShouldBe(proposalId);
             getProposal.Output.OrganizationAddress.ShouldBe(_defaultOrganizationAddress);
             getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
@@ -321,7 +320,7 @@ namespace AElf.Contracts.ParliamentAuth
             };
             _createProposalInput = new CreateProposalInput
             {
-                ContractMethodName = nameof(TokenContract.Transfer),
+                ContractMethodName = nameof(TokenContractStub.Transfer),
                 ToAddress = TokenContractAddress,
                 Params = _transferInput.ToByteString(),
                 ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2).ToTimestamp(),

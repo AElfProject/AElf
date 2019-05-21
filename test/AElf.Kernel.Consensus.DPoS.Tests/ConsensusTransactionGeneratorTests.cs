@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 

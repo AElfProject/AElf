@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-import "aelf_options.proto";
-import "common.proto";
+import "aelf/options.proto";
+import "aelf/core.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -10,7 +10,7 @@ option csharp_namespace = "AElf.Contracts.TestContract.BasicSecurity";
 service BasicSecurityContract {
     option (aelf.csharp_state) = "AElf.Contracts.TestContract.BasicSecurity.BasicSecurityContractState";
     //Actions
-    rpc InitialBasicSecurityContract(Address) returns (google.protobuf.Empty) {
+    rpc InitialBasicSecurityContract(aelf.Address) returns (google.protobuf.Empty) {
     }
     rpc TestBoolState(BoolInput) returns (google.protobuf.Empty) {
     }
@@ -64,9 +64,9 @@ service BasicSecurityContract {
     }
     rpc QueryMappedState2(Complex3Input) returns (TradeMessage) {
     }
-    rpc QueryExternalMethod1(Address) returns (Int64Output) {
+    rpc QueryExternalMethod1(aelf.Address) returns (Int64Output) {
     }
-    rpc QueryExternalMethod2(Address) returns (Int64Output) {
+    rpc QueryExternalMethod2(aelf.Address) returns (Int64Output) {
     }
 }
 

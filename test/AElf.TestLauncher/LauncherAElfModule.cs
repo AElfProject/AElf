@@ -1,8 +1,8 @@
-﻿using AElf.Contracts.Consensus.AEDPoS;
+﻿using System.Collections.Generic;
+using System.Linq;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
-using AElf.Contracts.Resource;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
@@ -44,6 +44,18 @@ namespace AElf.TestLauncher
     )]
     public class MainBlockchainAElfModule : AElfModule
     {
+        private IReadOnlyDictionary<string, byte[]> _codes;
+
+        public IReadOnlyDictionary<string, byte[]> Codes =>
+            _codes ?? (_codes = ContractsDeployer.GetContractCodes<MainBlockchainAElfModule>());
+        public byte[] ConsensusContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
+        public byte[] ElectionContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Election")).Value;
+        public byte[] TokenContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
+        public byte[] FeeReceiverContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("FeeReceiver")).Value;
         public ILogger<MainBlockchainAElfModule> Logger { get; set; }
 
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
@@ -76,15 +88,17 @@ namespace AElf.TestLauncher
                 ZeroSmartContract = typeof(BasicContractZero)
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<AEDPoSContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                TokenContractCode,
                 TokenSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ElectionContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                ElectionContractCode,
                 ElectionSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ResourceContract>(
-                ResourceSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<FeeReceiverContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                FeeReceiverContractCode,
                 ResourceFeeReceiverSmartContractAddressNameProvider.Name);
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();

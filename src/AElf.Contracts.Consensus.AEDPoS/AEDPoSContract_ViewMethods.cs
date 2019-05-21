@@ -5,6 +5,7 @@ using System.Text;
 using AElf.Contracts.Election;
 using AElf.Cryptography.SecretSharing;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 

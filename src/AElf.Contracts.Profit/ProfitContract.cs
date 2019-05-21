@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -12,9 +13,6 @@ namespace AElf.Contracts.Profit
     {
         public override Empty InitializeProfitContract(Empty input)
         {
-            Assert(Context.Sender == Context.GetZeroSmartContractAddress(),
-                "Only zero contract can initialize this contract.");
-
             Assert(!State.Initialized.Value, "Already initialized.");
 
             State.Initialized.Value = true;

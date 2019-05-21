@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs0;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 
@@ -16,7 +18,10 @@ namespace AElf.Blockchains.MainChain
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForConsensus(Address zeroContractAddress)
         {
             var l = new List<GenesisSmartContractDto>();
-            l.AddGenesisSmartContract<AEDPoSContract>(ConsensusSmartContractAddressNameProvider.Name,
+
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value,
+                ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList());
             return l;
         }
@@ -25,12 +30,12 @@ namespace AElf.Blockchains.MainChain
             GenerateConsensusInitializationCallList()
         {
             var aelfConsensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            aelfConsensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
+            aelfConsensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
                     TimeEachTerm = _consensusOptions.TimeEachTerm
                 });
-            aelfConsensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
+            aelfConsensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub..FirstRound),
                 new MinerList
                 {
                     PublicKeys =
