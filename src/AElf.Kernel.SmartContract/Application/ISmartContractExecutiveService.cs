@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application
 {
