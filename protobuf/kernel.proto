@@ -170,7 +170,6 @@ message BlockHeader {
 message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
-    repeated Transaction TransactionList = 3;
 }
 
 message Block {

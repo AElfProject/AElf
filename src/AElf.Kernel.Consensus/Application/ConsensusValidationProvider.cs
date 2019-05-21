@@ -18,7 +18,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
-            if (block.Height == Constants.GenesisBlockHeight)
+            if (block.Header.Height == Constants.GenesisBlockHeight)
                 return true;
 
             if (block.Header.BlockExtraDatas.Count == 0)
@@ -39,7 +39,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
-            if (block.Height == Constants.GenesisBlockHeight)
+            if (block.Header.Height == Constants.GenesisBlockHeight)
                 return true;
 
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
@@ -52,7 +52,7 @@ namespace AElf.Kernel.Consensus.Application
             var isValid = await _consensusService.ValidateConsensusBeforeExecutionAsync(new ChainContext
             {
                 BlockHash = block.Header.PreviousBlockHash,
-                BlockHeight = block.Height - 1
+                BlockHeight = block.Header.Height - 1
             }, consensusExtraData.ToByteArray());
 
             return isValid;
@@ -60,7 +60,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            if (block.Height == Constants.GenesisBlockHeight)
+            if (block.Header.Height == Constants.GenesisBlockHeight)
                 return true;
 
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
@@ -69,7 +69,7 @@ namespace AElf.Kernel.Consensus.Application
             var isValid = await _consensusService.ValidateConsensusAfterExecutionAsync(new ChainContext
             {
                 BlockHash = block.GetHash(),
-                BlockHeight = block.Height
+                BlockHeight = block.Header.Height
             }, consensusExtraData.ToByteArray());
 
             return isValid;
