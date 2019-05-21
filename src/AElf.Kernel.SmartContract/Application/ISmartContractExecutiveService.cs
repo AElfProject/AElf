@@ -104,6 +104,9 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (_executivePools.TryGetValue(address, out var pool))
             {
+#if DEBUG
+                pool.Add(executive);    
+#else
                 if (_addressSmartContractRegistrationMappingCache.TryGetValue(address, out var reg))
                 {
                     if (reg.CodeHash == executive.ContractHash)
@@ -111,6 +114,8 @@ namespace AElf.Kernel.SmartContract.Application
                         pool.Add(executive);
                     }
                 }
+#endif
+
             }
 
             await Task.CompletedTask;
