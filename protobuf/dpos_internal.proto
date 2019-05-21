@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+import "acs4.proto";
+
+message DPoSHint {
+    acs4.DPoSBehaviour Behaviour = 1;
+}

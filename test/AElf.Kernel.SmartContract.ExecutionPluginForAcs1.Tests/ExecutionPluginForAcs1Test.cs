@@ -11,6 +11,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -22,7 +23,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
     {
         private TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         private Address TestContractAddress { get; set; }
-        private Address TokenContractAddress { get; set; }
+        private AElf.Types.Address TokenContractAddress { get; set; }
         private TestContract.ContractContainer.ContractStub DefaultTester { get; set; }
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         private Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
@@ -32,7 +33,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 // TokenContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
-                var code = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
+                var code = Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
                 TokenContractAddress = await DeploySystemSmartContract(category, code,
                     TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 TokenContractStub =
@@ -40,7 +41,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             }
             {
                 var category = KernelConstants.CodeCoverageRunnerCategory;
-                var code = File.ReadAllBytes(typeof(TestContract.Contract).Assembly.Location);
+                var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
                 TestContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
                 DefaultTester =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);

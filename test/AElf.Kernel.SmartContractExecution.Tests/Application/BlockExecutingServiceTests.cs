@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -46,7 +47,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
 
             block.Body.Transactions.ShouldBe(allTxIds);
-            block.Body.TransactionList.ShouldBe(txs);
         }
 
         [Fact]
@@ -85,7 +85,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
 
             block.Body.Transactions.ShouldBe(allTxIds);
-            block.Body.TransactionList.ShouldBe(allTxs);
         }
 
         private List<Transaction> BuildTransactions(int txCount)

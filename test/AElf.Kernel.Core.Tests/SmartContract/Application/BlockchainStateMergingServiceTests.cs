@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Types;
 using AElf.Kernel.Infrastructure;
 using Shouldly;
 using Xunit;
@@ -31,10 +32,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var bestChainHeight = chain.BestChainHeight;
             var bestChainHash = chain.BestChainHash;
 
-            var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash,
-                new List<Transaction>{_kernelTestHelper.GenerateTransaction()});
+            var transactions = new List<Transaction> { _kernelTestHelper.GenerateTransaction() };
+            var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash, transactions);
 
             await _blockchainService.AddBlockAsync(newBlock);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            
             var status = await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
             
             chain = await _blockchainService.GetChainAsync();

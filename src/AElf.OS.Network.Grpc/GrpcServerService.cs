@@ -9,7 +9,9 @@ using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
+using AElf.OS.Network.Extensions;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -17,6 +19,7 @@ using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Secp256k1Net;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
@@ -73,7 +76,7 @@ namespace AElf.OS.Network.Grpc
                 return new ConnectReply { Err = AuthError.ProtocolMismatch };
 
             // verify signature
-            var validData = CryptoHelpers.VerifySignature(handshake.Sig.ToByteArray(),
+            var validData = CryptoHelpers.VerifySignature(handshake.Signature.ToByteArray(),
                 Hash.FromMessage(handshake.HskData).ToByteArray(), handshake.HskData.PublicKey.ToByteArray());
             
             if (!validData)
@@ -172,9 +175,9 @@ namespace AElf.OS.Network.Grpc
                 return new BlockReply();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested block {request.Hash}.");
-            
-            var block = await _blockChainService.GetBlockByHashAsync(request.Hash);
 
+            var block = await _blockChainService.GetBlockWithTransactionsByHash(request.Hash);
+            
             if (block == null)
                 Logger.LogDebug($"Could not find block {request.Hash} for {context.GetPeerInfo()}.");
 
@@ -190,11 +193,11 @@ namespace AElf.OS.Network.Grpc
 
             var blockList = new BlockList();
             
-            var blocks = await _blockChainService.GetBlocksInBestChainBranchAsync(request.PreviousBlockHash, request.Count);
+            var blocks = await _blockChainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
 
             if (blocks == null)
                 return blockList;
-
+            
             blockList.Blocks.AddRange(blocks);
 
             if (blockList.Blocks.Count != request.Count)

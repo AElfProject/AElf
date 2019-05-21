@@ -8,6 +8,7 @@ using AElf.OS.Consensus.DPos;
 using AElf.OS.Handlers;
 using AElf.OS.Jobs;
 using AElf.OS.Network.Grpc;
+using AElf.Types;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;

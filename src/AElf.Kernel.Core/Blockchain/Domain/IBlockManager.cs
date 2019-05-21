@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -36,7 +37,6 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task AddBlockBodyAsync(Hash blockHash, BlockBody blockBody)
         {
-            blockBody.TransactionList.Clear();
             await _blockBodyStore.SetAsync(blockHash.Clone().ToStorageKey(), blockBody);
         }
         

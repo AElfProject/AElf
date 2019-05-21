@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract;
+using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicSecurity;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

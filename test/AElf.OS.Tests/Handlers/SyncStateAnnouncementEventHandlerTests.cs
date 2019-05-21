@@ -4,6 +4,7 @@ using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 using Grpc.Core;
 using Shouldly;
 using Xunit;

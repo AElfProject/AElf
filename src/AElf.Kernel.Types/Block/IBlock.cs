@@ -2,10 +2,8 @@
 {
     public interface IBlock : IBlockBase
     {
-        BlockHeader Header { get; set; }
-        BlockBody Body { get; set; }
-        long Height { get; set; }
+        BlockHeader Header { get; }
+        BlockBody Body { get; }
         byte[] GetHashBytes();
-        Block Clone();
     }
 }

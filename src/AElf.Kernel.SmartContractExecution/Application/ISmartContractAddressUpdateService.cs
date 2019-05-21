@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.KernelAccount;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContractExecution.Application
@@ -46,7 +45,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 From = _smartContractAddressService.GetZeroSmartContractAddress(),
                 To = _smartContractAddressService.GetZeroSmartContractAddress(),
-                MethodName = nameof(ISmartContractZero.GetContractAddressByName),
+                MethodName = nameof(Acs0.ACS0Container.ACS0Stub.GetContractAddressByName), 
                 Params = smartContractAddressNameProvider.ContractName.ToByteString()
             };
 
