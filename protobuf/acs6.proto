@@ -8,9 +8,9 @@ import "google/protobuf/empty.proto";
 option (aelf.identity) = "acs6";
 
 service RandomNumberGeneratorContract {
-    rpc GetRandomNumber (google.protobuf.Empty) returns (RandomNumberCoupon) {
+    rpc GetRandomNumber (google.protobuf.Empty) returns (Hash) {
     }
-    rpc GetRandomNumberCoupon (Hash) returns (Hash) {
+    rpc GetRandomNumberCoupon (Hash) returns (RandomNumberCoupon) {
     }
 }
 

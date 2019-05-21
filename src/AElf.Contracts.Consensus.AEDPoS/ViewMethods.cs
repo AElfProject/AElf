@@ -20,8 +20,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override ConsensusCommand GetConsensusCommand(CommandInput input)
         {
-            // Query state to determine whether produce tiny block.
-
             Assert(input.PublicKey.Any(), "Invalid public key.");
 
             var behaviour = GetBehaviour(input.PublicKey.ToHex(), Context.CurrentBlockTime, out var currentRound);
@@ -75,7 +73,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
                     currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTime =
                         currentBlockTime.ToTimestamp();
-                    
+
                     Assert(input.RandomHash != null, "Random hash should not be null.");
 
                     var inValue = currentRound.CalculateInValue(input.RandomHash);
@@ -422,6 +420,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 victories = null;
                 return false;
             }
+
             var victoriesPublicKeys = State.ElectionContract.GetVictories.Call(new Empty());
             Context.LogDebug(() =>
                 $"Got victories from Election Contract:\n{string.Join("\n", victoriesPublicKeys.Value.Select(s => s.ToHex().Substring(0, 10)))}");
@@ -546,7 +545,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            var result = currentRound.GenerateNextRoundInformation(currentBlockTime.ToTimestamp(), blockchainStartTimestamp, out nextRound);
+            var result = currentRound.GenerateNextRoundInformation(currentBlockTime.ToTimestamp(),
+                blockchainStartTimestamp, out nextRound);
             return result;
         }
 
@@ -562,6 +562,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 return;
             }
+
             State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
             {
                 PublicKey = candidatePublicKey,
@@ -589,6 +590,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 snapshot = null;
                 return false;
             }
+
             snapshot = State.ElectionContract.GetTermSnapshot.Call(new GetTermSnapshotInput
             {
                 TermNumber = termNumber
@@ -628,7 +630,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var initialMinersCount = firstRound.RealTimeMinersInformation.Count;
                 return initialMinersCount.Add(
                     (int) (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds
-                        .Div(365 * 60 * 60 * 24).Mul(2));
+                    .Div(365 * 60 * 60 * 24).Mul(2));
             }
 
             return 0;

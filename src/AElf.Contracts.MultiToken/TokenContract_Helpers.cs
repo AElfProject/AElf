@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
@@ -19,6 +20,18 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = State.TokenInfos[symbol];
             Assert(tokenInfo != null && tokenInfo != new TokenInfo(), "Token is not found.");
             return tokenInfo;
+        }
+        
+        private void AssertValidTokens(IEnumerable<string> symbols, long amount)
+        {
+            foreach (var symbol in symbols)
+            {
+                Assert(!string.IsNullOrEmpty(symbol) & symbol.All(IsValidSymbolChar),
+                    $"Invalid symbol {symbol}.");
+                var tokenInfo = State.TokenInfos[symbol];
+                Assert(tokenInfo != null && tokenInfo != new TokenInfo(), $"Token {symbol} is not found.");
+            }
+            Assert(amount > 0, "Invalid amount.");
         }
 
         private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)

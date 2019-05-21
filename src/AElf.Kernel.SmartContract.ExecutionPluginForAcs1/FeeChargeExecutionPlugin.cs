@@ -59,10 +59,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 return new List<Transaction>();
             }
             
-            var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput()
+            var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
             {
-                Amount = fee.Amount,
-                Symbol = fee.Symbol
+                Amount = fee.BaseAmount,
+                Symbol = fee.BaseSymbol
             })).Transaction;
             return new List<Transaction>()
             {

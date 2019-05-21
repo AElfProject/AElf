@@ -13,10 +13,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract
 
         public override Empty SetMethodFee(SetMethodFeeInput input)
         {
-            State.MethodFees[input.Method] = new TokenAmount()
+            State.MethodFees[input.Method] = new TokenAmount
             {
-                Symbol = input.Symbol,
-                Amount = input.Amount
+                BaseSymbol = input.BaseSymbol,
+                BaseAmount = input.BaseAmount,
+                AvailableSymbols = { input.AvailableSymbols}
             };
             return new Empty();
         }

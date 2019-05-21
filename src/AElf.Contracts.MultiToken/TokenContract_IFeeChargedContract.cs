@@ -1,3 +1,4 @@
+using System.Linq;
 using Acs1;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -14,11 +15,12 @@ namespace AElf.Contracts.MultiToken
         
         public override Empty SetMethodFee(SetMethodFeeInput input)
         {
-            AssertValidToken(input.Symbol, input.Amount);
-            State.MethodFees[input.Method] = new TokenAmount()
+            AssertValidTokens(input.AvailableSymbols.Append(input.BaseSymbol), input.BaseAmount);
+            State.MethodFees[input.Method] = new TokenAmount
             {
-                Symbol = input.Symbol,
-                Amount = input.Amount
+                BaseSymbol = input.BaseSymbol,
+                AvailableSymbols = { input.AvailableSymbols},
+                BaseAmount = input.BaseAmount
             };
             return new Empty();
         }
