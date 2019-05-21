@@ -204,7 +204,7 @@ namespace AElf.OS.Network
             var hsk = new Handshake
             {
                 HskData = nd,
-                Sig = ByteString.CopyFrom(sig),
+                Signature = ByteString.CopyFrom(sig),
                 Header = new BlockHeader()
             };
 

@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.OS.Handlers;
+using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -22,8 +23,8 @@ namespace AElf.OS
         {
             context.Services.Configure<BackgroundJobOptions>(options => { options.IsJobExecutionEnabled = false; });
             
-            var block = new Block { Header = new BlockHeader { Height = 1 } };
-            var block2 = new Block { Header = new BlockHeader { Height = 2 } };
+            var block = new BlockWithTransactions { Header = new BlockHeader { Height = 1 } };
+            var block2 = new BlockWithTransactions { Header = new BlockHeader { Height = 2 } };
             
             context.Services.AddTransient<PeerConnectedEventHandler>();
 

@@ -466,6 +466,7 @@ namespace AElf.Contracts.TestBase
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
             
+            await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
     
             return block;

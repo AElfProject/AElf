@@ -8,7 +8,7 @@ import "kernel.proto";
 
 message Handshake {
     HandshakeData HskData = 1;
-    bytes Sig = 2;
+    bytes Signature = 2;
     bool Success = 3;
     aelf.BlockHeader Header = 4;
 }
@@ -24,4 +24,9 @@ message PeerNewBlockAnnouncement {
     aelf.Hash BlockHash = 1;
     int64 BlockHeight = 2;
     google.protobuf.Timestamp BlockTime = 3;
+}
+
+message BlockWithTransactions {
+    BlockHeader Header = 1;
+    repeated Transaction Transactions = 2;
 }

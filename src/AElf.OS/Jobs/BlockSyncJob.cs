@@ -3,10 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -23,6 +23,7 @@ namespace AElf.OS.Jobs
         private readonly NetworkOptions _networkOptions;
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITaskQueueManager _taskQueueManager;
+        private readonly IBlockValidationService _validationService;
 
         public ILogger<BlockSyncJob> Logger { get; set; }
 
@@ -30,7 +31,8 @@ namespace AElf.OS.Jobs
             IOptionsSnapshot<NetworkOptions> networkOptions,
             IBlockchainService blockchainService,
             INetworkService networkService,
-            ITaskQueueManager taskQueueManager)
+            ITaskQueueManager taskQueueManager,
+            IBlockValidationService validationService)
         {
             Logger = NullLogger<BlockSyncJob>.Instance;
             _networkOptions = networkOptions.Value;
@@ -39,6 +41,7 @@ namespace AElf.OS.Jobs
             _networkService = networkService;
             _blockAttachService = blockAttachService;
             _taskQueueManager = taskQueueManager;
+            _validationService = validationService;
         }
 
         public async Task ExecuteAsync(BlockSyncJobArgs args)
@@ -51,22 +54,34 @@ namespace AElf.OS.Jobs
                 if (args.BlockHash != null && args.BlockHeight < chain.BestChainHeight + 5)
                 {
                     var peerBlockHash = args.BlockHash;
-                    var peerBlock = await _blockchainService.GetBlockByHashAsync(peerBlockHash);
-                    if (peerBlock != null)
+                    var localBlock = await _blockchainService.GetBlockByHashAsync(peerBlockHash);
+                    if (localBlock != null)
                     {
-                        Logger.LogDebug($"Block {peerBlock} already know.");
+                        Logger.LogDebug($"Block {localBlock} already know.");
                         return;
                     }
 
-                    peerBlock = await _networkService.GetBlockByHashAsync(peerBlockHash, args.SuggestedPeerPubKey);
-                    if (peerBlock == null)
+                    var blockWithTransactions = await _networkService.GetBlockByHashAsync(peerBlockHash, args.SuggestedPeerPubKey);
+                    if (blockWithTransactions == null)
                     {
                         Logger.LogWarning($"Get null block from peer, request block hash: {peerBlockHash}");
                         return;
                     }
+                    
+                    var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
 
-                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(peerBlock),
+                    if (!valid)
+                    {
+                        Logger.LogError($"The block was invalid, sync from {args.SuggestedPeerPubKey} failed.");
+                        return;
+                    }
+                                        
+                    await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
+                    await _blockchainService.AddBlockAsync(blockWithTransactions.ToBlock());
+                    
+                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(blockWithTransactions.ToBlock()),
                         KernelConstants.UpdateChainQueueName);
+                    
                     return;
                 }
 
@@ -76,6 +91,7 @@ namespace AElf.OS.Jobs
                 var blockHeight = chain.LastIrreversibleBlockHeight;
                 var count = _networkOptions.BlockIdRequestCount;
                 var peerBestChainHeight = await _networkService.GetBestChainHeightAsync(args.SuggestedPeerPubKey);
+                
                 while (true)
                 {
                     // Limit block sync job count, control memory usage
@@ -88,42 +104,54 @@ namespace AElf.OS.Jobs
 
                     Logger.LogDebug($"Request blocks start with {blockHash}");
 
-                    var blocks = await _networkService.GetBlocksAsync(blockHash, blockHeight, count, args.SuggestedPeerPubKey);
+                    var blocksWithTransactions = await _networkService.GetBlocksAsync(blockHash, blockHeight, count, args.SuggestedPeerPubKey);
 
-                    if (blocks == null || !blocks.Any())
+                    if (blocksWithTransactions == null || !blocksWithTransactions.Any())
                     {
                         Logger.LogDebug($"No blocks returned, current chain height: {chain.LongestChainHeight}.");
                         break;
                     }
 
-                    Logger.LogDebug($"Received [{blocks.First()},...,{blocks.Last()}] ({blocks.Count})");
+                    Logger.LogDebug($"Received [{blocksWithTransactions.First()},...,{blocksWithTransactions.Last()}] ({blocksWithTransactions.Count})");
 
-                    if (blocks.First().Header.PreviousBlockHash != blockHash)
+                    if (blocksWithTransactions.First().Header.PreviousBlockHash != blockHash)
                     {
                         Logger.LogError($"Current job hash : {blockHash}");
-                        throw new InvalidOperationException($"Previous block not match previous {blockHash}, network back {blocks.First().Header.PreviousBlockHash}");
+                        throw new InvalidOperationException($"Previous block not match previous {blockHash}, network back {blocksWithTransactions.First().Header.PreviousBlockHash}");
                     }
 
-                    foreach (var block in blocks)
+                    foreach (var blockWithTransactions in blocksWithTransactions)
                     {
-                        if (block == null)
+                        if (blockWithTransactions == null)
                         {
                             Logger.LogWarning($"Get null block from peer, request block start: {blockHash}");
                             break;
                         }
 
-                        Logger.LogDebug($"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
-                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                        var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+
+                        if (!valid)
+                        {
+                            Logger.LogError($"The block was invalid, sync from {args.SuggestedPeerPubKey} failed.");
+                            break;
+                        }
+                        
+                        await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
+                        await _blockchainService.AddBlockAsync(blockWithTransactions.ToBlock());
+                        
+                        Logger.LogDebug($"Processing block {blockWithTransactions},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
+                        
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(blockWithTransactions.ToBlock()),
                             KernelConstants.UpdateChainQueueName);
                     }
 
                     peerBestChainHeight = await _networkService.GetBestChainHeightAsync(args.SuggestedPeerPubKey);
-                    if (blocks.Last().Height >= peerBestChainHeight)
+                    if (blocksWithTransactions.Last().Height >= peerBestChainHeight)
                     {
                         break;
                     }
 
-                    var lastBlock = blocks.Last();
+                    var lastBlock = blocksWithTransactions.Last();
                     blockHash = lastBlock.GetHash();
                     blockHeight = lastBlock.Height;
                 }

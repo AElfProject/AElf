@@ -101,8 +101,6 @@ namespace AElf.Kernel.SmartContractExecution
             services.AddTransient<IBlockValidationService>(p =>
             {
                 var mockProvider = new Mock<IBlockValidationService>();
-                mockProvider.Setup(m => m.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>()))
-                    .ReturnsAsync(true);
 
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
                     .ReturnsAsync(true);
@@ -149,10 +147,8 @@ namespace AElf.Kernel.SmartContractExecution
             services.AddTransient<IBlockValidationService>(p =>
             {
                 var mockProvider = new Mock<IBlockValidationService>();
-                mockProvider.Setup(m => m.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>()))
-                    .ReturnsAsync(true);
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
-                    .Returns<IBlock>((block) => Task.FromResult(block.Height == Constants.GenesisBlockHeight));
+                    .Returns<IBlock>((block) => Task.FromResult(block.Header.Height == Constants.GenesisBlockHeight));
 
                 return mockProvider.Object;
             });

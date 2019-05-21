@@ -57,7 +57,6 @@ namespace AElf.Kernel.Consensus.AElfConsensus.Tests
             var body = new BlockBody
             {
                 BlockHeader = header.GetHash(),
-                TransactionList = { new Transaction() },
                 Transactions = { Hash.Generate() }
             };
             

@@ -40,7 +40,6 @@ namespace AElf.Kernel.Types.Tests
             var blockBody = new BlockBody()
             {
                 BlockHeader = blockHeader.GetHash(),
-                TransactionList = { transactionItems.Item1},
                 Transactions = { transactionItems.Item2},
                 BinaryMerkleTree = {
                     Nodes = { Hash.Generate(), Hash.Generate() },
@@ -132,7 +131,6 @@ namespace AElf.Kernel.Types.Tests
             block.Body.BlockHeader = block.Header.GetHash();
             block.Body.BinaryMerkleTree.Root = Hash.Empty;
             var transactionItems = GenerateFakeTransactions(3);
-            block.Body.TransactionList.AddRange(transactionItems.Item1);
             block.Body.Transactions.AddRange(transactionItems.Item2);
 
             return block;

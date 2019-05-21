@@ -122,8 +122,7 @@ namespace AElf.Sdk.CSharp.Tests
             var body = new BlockBody
             {
                 BlockHeader = header.GetHash(),
-                Transactions = { transaction.GetHash() },
-                TransactionList = { transaction }
+                Transactions = { transaction.GetHash() }
             };
             var bodyArray = SerializationHelper.Serialize(body);
             var body1 = SerializationHelper.Deserialize<BlockBody>(bodyArray);

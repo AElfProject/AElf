@@ -75,7 +75,7 @@ namespace AElf.Kernel.Blockchain.Application
         private (Block, List<TransactionResult>) GetNextBlockWithTransactionAndResults(BlockHeader previous,
             IEnumerable<Transaction> transactions, ByteString uniqueData = null)
         {
-            var block = new Block()
+            var block = new Block
             {
                 Header = new BlockHeader()
                 {
@@ -95,7 +95,6 @@ namespace AElf.Kernel.Blockchain.Application
             foreach (var transaction in transactions)
             {
                 block.Body.Transactions.Add(transaction.GetHash());
-                block.Body.TransactionList.Add(transaction);
                 results.Add(new TransactionResult()
                 {
                     TransactionId = transaction.GetHash(),

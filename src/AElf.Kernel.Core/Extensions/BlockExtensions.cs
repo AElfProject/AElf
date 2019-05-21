@@ -13,9 +13,6 @@ namespace AElf.Kernel
         /// <param name="tx">the transactions hash</param>
         public static void AddTransaction(this IBlock block, Transaction tx)
         {
-            if (block.Body == null)
-                block.Body = new BlockBody();
-
             block.Body.AddTransaction(tx);
         }
 

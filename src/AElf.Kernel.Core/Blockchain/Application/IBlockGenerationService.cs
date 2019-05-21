@@ -100,7 +100,6 @@ namespace AElf.Kernel.Blockchain.Application
             
             var blockBody = new BlockBody();
             blockBody.Transactions.AddRange(allExecutedTransactionIds);
-            blockBody.TransactionList.AddRange(transactions);
             
             var block = new Block
             {

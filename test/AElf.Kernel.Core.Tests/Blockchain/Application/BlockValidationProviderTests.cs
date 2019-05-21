@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Types;
+using AElf.Kernel.Account.Application;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;

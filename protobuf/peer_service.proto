@@ -46,7 +46,7 @@ message BlocksRequest {
 }
 
 message BlockList {
-    repeated aelf.Block Blocks = 1;
+    repeated BlockWithTransactions Blocks = 1;
 }
 
 message DisconnectReason {
@@ -66,7 +66,7 @@ message BlockRequest {
 
 message BlockReply {
     string Error = 1;
-    aelf.Block Block = 2;
+    BlockWithTransactions Block = 2;
 }
 
 // **** No reply *****

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
@@ -49,9 +50,9 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.RecoverPublicKey();
         }
 
-        public IBlockBase GetPreviousBlock()
+        public List<Transaction> GetPreviousBlockTransactions()
         {
-            return _smartContractBridgeContextImplementation.GetPreviousBlock();
+            return _smartContractBridgeContextImplementation.GetPreviousBlockTransactions();
         }
 
         public bool VerifySignature(Transaction tx)

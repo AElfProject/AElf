@@ -26,7 +26,6 @@ namespace AElf.Kernel
         public static bool AddTransaction(this BlockBody blockBody, Transaction tx)
         {
             blockBody.Transactions.Add(tx.GetHash());
-            blockBody.TransactionList.Add(tx);
             return true;
         }
 
