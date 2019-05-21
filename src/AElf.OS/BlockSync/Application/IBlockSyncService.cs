@@ -52,13 +52,6 @@ namespace AElf.OS.BlockSync.Application
             }
             else
             {
-                _blockDownloadHistoryCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
-                if (!_blockDownloadHistoryCacheProvider.CacheHistory(blockHash, blockHeight))
-                {
-                    Logger.LogWarning($"The block have been synchronized, block hash: {blockHash}");
-                    return;
-                }
-                            
                 if (_blockSyncStateProvider.BlockSyncJobEnqueueTime != null
                     && DateTime.UtcNow - _blockSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime() >
                     _blockSyncJobAgeLimit)
@@ -67,11 +60,18 @@ namespace AElf.OS.BlockSync.Application
                         $"Queue is too busy, block sync job enqueue timestamp: {_blockSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime()}");
                     return;
                 }
+                
+                _blockDownloadHistoryCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
+                if (!_blockDownloadHistoryCacheProvider.CacheHistory(blockHash, blockHeight))
+                {
+                    Logger.LogWarning($"The block have been synchronized, block hash: {blockHash}");
+                    return;
+                }
 
-                var downloadFromBestChainResult = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
+                var syncFromBestChainBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
                     chain.BestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
 
-                if (downloadFromBestChainResult == 0 && blockHeight > chain.LongestChainHeight)
+                if (syncFromBestChainBlockCount == 0 && blockHeight > chain.LongestChainHeight)
                 {
                     Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
                     await _blockDownloadService.DownloadBlocksAsync(chain.LastIrreversibleBlockHash,

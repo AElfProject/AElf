@@ -51,7 +51,7 @@ namespace AElf.OS.BlockSync.Application
             Logger.LogDebug(
                 $"Trigger download blocks from peers, previous block height: {previousBlockHeight}, previous block hash: {previousBlockHash}");
 
-            var syncBlockCount = 0;
+            var downloadBlockCount = 0;
             var lastDownloadBlockHash = previousBlockHash;
             var lastDownloadBlockHeight = previousBlockHeight;
             
@@ -104,7 +104,7 @@ namespace AElf.OS.BlockSync.Application
                         },
                         KernelConstants.UpdateChainQueueName);
 
-                    syncBlockCount++;
+                    downloadBlockCount++;
                 }
 
                 var lastBlock = blocks.Last();
@@ -112,7 +112,7 @@ namespace AElf.OS.BlockSync.Application
                 lastDownloadBlockHeight = lastBlock.Height;
             }
 
-            return syncBlockCount;
+            return downloadBlockCount;
         }
     }
 }

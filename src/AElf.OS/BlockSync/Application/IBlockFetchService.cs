@@ -1,8 +1,11 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network.Application;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -19,20 +22,23 @@ namespace AElf.OS.BlockSync.Application
         private readonly INetworkService _networkService;
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITaskQueueManager _taskQueueManager;
-        
+        private readonly IBlockSyncStateProvider _blockSyncStateProvider;
+
         public ILogger<BlockFetchService> Logger { get; set; }
-        
+
         public BlockFetchService(IBlockAttachService blockAttachService,
             IBlockchainService blockchainService,
             INetworkService networkService,
-            ITaskQueueManager taskQueueManager)
+            ITaskQueueManager taskQueueManager,
+            IBlockSyncStateProvider blockSyncStateProvider)
         {
             Logger = NullLogger<BlockFetchService>.Instance;
-            
+
             _blockchainService = blockchainService;
             _networkService = networkService;
             _blockAttachService = blockAttachService;
             _taskQueueManager = taskQueueManager;
+            _blockSyncStateProvider = blockSyncStateProvider;
         }
 
         public async Task FetchBlockAsync(Hash blockHash, long blockHeight, string suggestedPeerPubKey)
@@ -51,7 +57,19 @@ namespace AElf.OS.BlockSync.Application
                 return;
             }
 
-            _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(peerBlock),
+            var enqueueTimestamp = Timestamp.FromDateTime(DateTime.UtcNow);
+            _taskQueueManager.Enqueue(async () =>
+                {
+                    try
+                    {
+                        _blockSyncStateProvider.BlockSyncJobEnqueueTime = enqueueTimestamp;
+                        await _blockAttachService.AttachBlockAsync(peerBlock);
+                    }
+                    finally
+                    {
+                        _blockSyncStateProvider.BlockSyncJobEnqueueTime = null;
+                    }
+                },
                 KernelConstants.UpdateChainQueueName);
         }
     }
