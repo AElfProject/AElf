@@ -27,10 +27,10 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IStateProviderFactory _stateProviderFactory;
         private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
 
-        private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools =
+        protected readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
 
-        private readonly ConcurrentDictionary<Address, SmartContractRegistration>
+        protected readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
 
@@ -100,13 +100,10 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
 
-        public async Task PutExecutiveAsync(Address address, IExecutive executive)
+        public virtual async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
             if (_executivePools.TryGetValue(address, out var pool))
             {
-#if DEBUG
-                pool.Add(executive);    
-#else
                 if (_addressSmartContractRegistrationMappingCache.TryGetValue(address, out var reg))
                 {
                     if (reg.CodeHash == executive.ContractHash)
@@ -114,8 +111,6 @@ namespace AElf.Kernel.SmartContract.Application
                         pool.Add(executive);
                     }
                 }
-#endif
-
             }
 
             await Task.CompletedTask;
