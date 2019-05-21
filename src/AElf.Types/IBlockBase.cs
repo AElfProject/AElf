@@ -3,8 +3,8 @@ using AElf.Kernel;
 
 namespace AElf
 {
-    public interface IBlockBase: IHashProvider
+    public interface IBlockBase : IHashProvider
     {
-        IEnumerable<Transaction> TransactionList { get; }
+        IEnumerable<Hash> TransactionHashList { get; }
     }
 }

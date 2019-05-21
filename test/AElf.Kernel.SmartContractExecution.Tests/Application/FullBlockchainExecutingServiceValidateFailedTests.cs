@@ -30,10 +30,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var chain = await _blockchainService.GetChainAsync();
             var bestChainHeight = chain.BestChainHeight;
             var bestChainHash = chain.BestChainHash;
+            
+            var transactions = new List<Transaction> { _kernelTestHelper.GenerateTransaction() };
+            
             var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash,
-                new List<Transaction>{_kernelTestHelper.GenerateTransaction()});
+                transactions);
             
             await _blockchainService.AddBlockAsync(newBlock);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            
             var status = await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
             
             chain = await _blockchainService.GetChainAsync();

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
@@ -80,7 +81,7 @@ namespace AElf.Kernel
                     {
                         Body = new BlockBody()
                         {
-                            TransactionList = { transactionList }
+                            Transactions = { transactionList.Select(tx => tx.GetHash()) } 
                         },
                         Header = new BlockHeader(),
                         Height = 10

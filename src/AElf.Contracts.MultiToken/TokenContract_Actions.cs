@@ -272,8 +272,9 @@ namespace AElf.Contracts.MultiToken
             var feePoolAddressNotSet =
                 State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
             Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
-            var blk = Context.GetPreviousBlock();
-            var senders = blk.TransactionList.Select(t => t.From).ToList();
+            
+            var transactions = Context.GetPreviousBlockTransactions();
+            var senders = transactions.Select(t => t.From).ToList();
             var feePool = State.FeePoolAddress.Value;
             foreach (var sender in senders)
             {

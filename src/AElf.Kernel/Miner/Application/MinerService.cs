@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -71,18 +72,23 @@ namespace AElf.Kernel.Miner.Application
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IAccountService _accountService;
         private readonly IBlockExecutingService _blockExecutingService;
+        private readonly IBlockchainService _blockchainService;
+        
         public ILocalEventBus EventBus { get; set; }
 
         public MiningService(IAccountService accountService,
             IBlockGenerationService blockGenerationService,
             ISystemTransactionGenerationService systemTransactionGenerationService,
-            IBlockExecutingService blockExecutingService)
+            IBlockExecutingService blockExecutingService,
+            IBlockchainService blockchainService)
         {
             Logger = NullLogger<MiningService>.Instance;
             _blockGenerationService = blockGenerationService;
             _systemTransactionGenerationService = systemTransactionGenerationService;
             _blockExecutingService = blockExecutingService;
             _accountService = accountService;
+            _blockchainService = blockchainService;
+            
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -92,10 +98,13 @@ namespace AElf.Kernel.Miner.Application
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
             var systemTransactions = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
                                     previousBlockHeight, previousBlockHash);
+            
             foreach (var transaction in systemTransactions)
             {
                 await SignAsync(transaction);
             }
+            
+            await _blockchainService.AddTransactionsAsync(systemTransactions);
 
             return systemTransactions;
         }
