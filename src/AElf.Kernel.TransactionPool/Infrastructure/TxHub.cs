@@ -29,14 +29,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private ConcurrentDictionary<Hash, TransactionReceipt> _validated = new ConcurrentDictionary<Hash, TransactionReceipt>();
 
-        private ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
-            new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+        private ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
+            new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
 
-        private ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> _expiredByExpiryBlock =
-            new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+        private ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> _expiredByExpiryBlock =
+            new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
 
-        private ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> _futureByBlock =
-            new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+        private ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> _futureByBlock =
+            new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
 
         private long _bestChainHeight = Constants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
@@ -86,16 +86,16 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #region Private Static Methods
 
-        private static void AddToCollection(ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> collection,
+        private static void AddToCollection(ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> collection,
             TransactionReceipt receipt)
         {
             if (!collection.TryGetValue(receipt.Transaction.RefBlockNumber, out var receipts))
             {
-                receipts = new Dictionary<Hash, TransactionReceipt>();
+                receipts = new ConcurrentDictionary<Hash, TransactionReceipt>();
                 collection.TryAdd(receipt.Transaction.RefBlockNumber, receipts);
             }
 
-            receipts.Add(receipt.TransactionId, receipt);
+            receipts.TryAdd(receipt.TransactionId, receipt);
         }
 
         private static void CheckPrefixForOne(TransactionReceipt receipt, ByteString prefix, long bestChainHeight)
@@ -150,9 +150,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private void ResetCurrentCollections()
         {
-            _expiredByExpiryBlock = new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
-            _invalidatedByBlock = new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
-            _futureByBlock = new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+            _expiredByExpiryBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
+            _invalidatedByBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
+            _futureByBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
             _validated = new ConcurrentDictionary<Hash, TransactionReceipt>();
         }
 

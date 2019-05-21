@@ -11,9 +11,7 @@ namespace AElf.Contracts.ParliamentAuth
         public BoolState Initialized { get; set; }
         
         public SingletonState<Address> DefaultOrganizationAddress { get; set; }
-        public SingletonState<Hash> ConsensusContractSystemName { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractReferenceState ConsensusContract {get; set; }    
-        internal Acs0.ACS0Container.ACS0ReferenceState BasicContractZero { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
     }
 }

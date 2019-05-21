@@ -1,5 +1,6 @@
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Types;
+using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.ReferendumAuth
 {
@@ -15,8 +16,7 @@ namespace AElf.Contracts.ReferendumAuth
         {
             if (State.TokenContract.Value != null)
                 return;
-            State.TokenContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+            State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
         }
         
         private void LockToken(LockInput lockInput)

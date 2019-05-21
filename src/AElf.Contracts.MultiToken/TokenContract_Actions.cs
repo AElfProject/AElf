@@ -35,22 +35,14 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty InitializeTokenContract(IntializeTokenContractInput input)
-        {
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-            State.CrossChainContractSystemName.Value = input.CrossChainContractSystemName;
-            return new Empty();
-        }
-
         public override Empty CreateNativeToken(CreateNativeTokenInput input)
         {
             Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already created.");
             State.NativeTokenSymbol.Value = input.Symbol;
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             var whiteList = new List<Address>();
             foreach (var systemContractName in input.LockWhiteSystemContractNameList)
             {
-                var address = State.BasicContractZero.GetContractAddressByName.Call(systemContractName);
+                var address = Context.GetContractAddressByName(systemContractName);
                 whiteList.Add(address);
             }
 
@@ -89,7 +81,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = input.Memo,
-                To = State.BasicContractZero.GetContractAddressByName.Call(input.ToSystemContractName)
+                To = Context.GetContractAddressByName(input.ToSystemContractName)
             };
             return Issue(issueInput);
         }
@@ -136,7 +128,7 @@ namespace AElf.Contracts.MultiToken
                 "Unable to receive cross chain token.");
             if (State.CrossChainContractReferenceState.Value == null)
                 State.CrossChainContractReferenceState.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.CrossChainContractSystemName.Value);
+                    Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
             var verificationInput = new VerifyTransactionInput
             {
                 TransactionId = transferTransactionHash,
@@ -146,7 +138,7 @@ namespace AElf.Contracts.MultiToken
             verificationInput.Path.AddRange(input.MerklePath);
             if (State.CrossChainContractReferenceState.Value == null)
                 State.CrossChainContractReferenceState.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.CrossChainContractSystemName.Value);
+                    Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
             var verificationResult =
                 State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Verification failed.");
@@ -296,8 +288,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty SetFeePoolAddress(Hash feePoolContractSystemName)
         {
-            var feePoolAddress =
-                State.BasicContractZero.GetContractAddressByName.Call(feePoolContractSystemName);
+            var feePoolAddress = Context.GetContractAddressByName(feePoolContractSystemName);
             var notSet = State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
             Assert(notSet, "Fee pool address already set.");
             State.FeePoolAddress.Value = feePoolAddress;

@@ -202,24 +202,14 @@ namespace AElf.Contracts.Election
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
             var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
-                new InitialVoteContractInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                });
-
+            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),new Empty());
             return voteMethodCallList;
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
             var profitMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            profitMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),
-                new InitializeProfitContractInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
-                });
-
+            profitMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),new Empty());
             return profitMethodCallList;
         }
 
@@ -300,12 +290,8 @@ namespace AElf.Contracts.Election
             electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
                 new InitialElectionContractInput
                 {
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
                     MaximumLockTime = 1080 * 60 * 60 * 24,
-                    MinimumLockTime = 90 * 60 * 60 * 24,
+                    MinimumLockTime = 90 * 60 * 60 * 24
                 });
 
             return electionMethodCallList;
@@ -319,9 +305,6 @@ namespace AElf.Contracts.Election
             consensusMethodList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     TimeEachTerm = ConsensusOption.TimeEachTerm
                 });
             var miners = new MinerList

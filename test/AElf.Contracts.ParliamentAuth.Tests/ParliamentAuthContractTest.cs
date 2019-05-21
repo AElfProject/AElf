@@ -36,10 +36,7 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task ParliamentAuthContract_InitializeMultiTimes()
         {
-            var transactionResult = (await ParliamentAuthContractStub.Initialize.SendAsync(new ParliamentAuthInitializationInput()
-            {
-                ConsensusContractSystemName = Hash.Generate(),
-            })).TransactionResult;
+            var transactionResult = (await ParliamentAuthContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }

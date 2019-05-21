@@ -31,9 +31,6 @@ namespace AElf.Blockchains.MainChain
             aelfConsensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    ElectionContractSystemName = ElectionSmartContractAddressNameProvider.Name,
-                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
                     TimeEachTerm = _consensusOptions.TimeEachTerm
                 });
             aelfConsensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),

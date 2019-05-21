@@ -126,10 +126,7 @@ namespace AElf.Contracts.ParliamentAuth
 
         private async Task InitializationParliamentAuth()
         {
-            await ParliamentAuthContractStub.Initialize.SendAsync(new ParliamentAuthInitializationInput
-            {
-                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
-            });
+            await ParliamentAuthContractStub.Initialize.SendAsync(new Empty());
         }
 //        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateParliamentAuthInitializationCallList()
 //        {

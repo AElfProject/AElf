@@ -78,7 +78,7 @@ namespace AElf.OS.Network
 
             var blocks = await _grpcPeer.GetBlocksAsync(genesisHash, 5);
             blocks.Count.ShouldBe(5);
-            blocks.Select(o =>o.Height).ShouldBe(new long[]{2, 3, 4, 5, 6});
+            blocks.Select(o => o.Height).ShouldBe(new long[]{2, 3, 4, 5, 6});
         }
 
         [Fact]
@@ -135,18 +135,19 @@ namespace AElf.OS.Network
         private GrpcPeer CreateNewPeer(string ipAddress = "127.0.0.1:2000", bool isValid = true)
         {
             var channel = new Channel(ipAddress, ChannelCredentials.Insecure);
-            var publicKey = AsyncHelper.RunSync(() => _acc.GetPublicKeyAsync()).ToHex();
-            PeerService.PeerServiceClient client = null; 
+            
+            PeerService.PeerServiceClient client;
+            
             if(isValid)
                 client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
                 {
-                    metadata.Add(GrpcConsts.PubkeyMetadataKey, publicKey);
+                    metadata.Add(GrpcConsts.PubkeyMetadataKey, GrpcTestConstants.FakePubKey);
                     return metadata;
                 }));
             else
                 client = new PeerService.PeerServiceClient(channel);
 
-            return new GrpcPeer(channel, client, publicKey, ipAddress, KernelConstants.ProtocolVersion,
+            return new GrpcPeer(channel, client, GrpcTestConstants.FakePubKey, ipAddress, KernelConstants.ProtocolVersion,
                 DateTime.UtcNow.ToTimestamp().Seconds, 1);
         }
 

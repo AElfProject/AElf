@@ -10,6 +10,7 @@ using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 
 namespace AElf.Contracts.Vote
@@ -77,12 +78,7 @@ namespace AElf.Contracts.Vote
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
             var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
-                new InitialVoteContractInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                });
-
+            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),new Empty());
             return voteMethodCallList;
         }
 

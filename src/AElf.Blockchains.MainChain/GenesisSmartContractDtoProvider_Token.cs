@@ -68,11 +68,6 @@ namespace AElf.Blockchains.MainChain
             // Set fee pool address to election contract address.
             tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.SetFeePoolAddress),
                 ElectionSmartContractAddressNameProvider.Name);
-
-            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.InitializeTokenContract), new IntializeTokenContractInput
-            {
-                CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
-            });
             return tokenContractCallList;
         }
 

@@ -77,11 +77,8 @@ service CrossChainContract {
 }
 
 message InitializeInput {
-    aelf.Hash tokenContractSystemName = 1;
-    aelf.Hash consensusContractSystemName = 2;
-    aelf.Hash parliamentContractSystemName = 3;
-    int32 parentChainId = 4;
-    int64 creationHeightOnParentChain = 5;
+    int32 parentChainId = 1;
+    int64 creationHeightOnParentChain = 2;
 }
 
 message RechargeInput {

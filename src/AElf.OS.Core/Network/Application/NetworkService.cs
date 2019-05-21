@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
@@ -47,28 +48,32 @@ namespace AElf.OS.Network.Application
         public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader)
         {
             int successfulBcasts = 0;
+            
+            var announce = new PeerNewBlockAnnouncement
+            {
+                BlockHash = blockHeader.GetHash(),
+                BlockHeight = blockHeader.Height,
+                BlockTime = blockHeader.Time
+            };
+            
+            var peers = _peerPool.GetPeers().ToList();
 
-            foreach (var peer in _peerPool.GetPeers())
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash());
+            await Task.WhenAll(peers.Select(async peer =>
             {
                 try
                 {
-                    var announcement = new PeerNewBlockAnnouncement
-                    {
-                        BlockHash = blockHeader.GetHash(),
-                        BlockHeight = blockHeader.Height,
-                        BlockTime = blockHeader.Time
-                    };
-                    Logger.LogDebug($"PeerNewBlockAnnouncement: {announcement}");
-                    await peer.AnnounceAsync(announcement);
-
-                    successfulBcasts++;
+                    Logger.LogDebug($"Block announced: {announce}");
+                    await peer.AnnounceAsync(announce);
+                    
+                    Interlocked.Increment(ref successfulBcasts);
                 }
                 catch (NetworkException e)
                 {
                     Logger.LogError(e, "Error while sending block.");
                 }
-            }
-
+            }));
+            
             return successfulBcasts;
         }
 

@@ -12,10 +12,9 @@ namespace AElf.Contracts.Vote
     /// </summary>
     public partial class VoteContract : VoteContractContainer.VoteContractBase
     {
-        public override Empty InitialVoteContract(InitialVoteContractInput input)
+        public override Empty InitialVoteContract(Empty input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            State.TokenContractSystemName.Value = input.TokenContractSystemName;
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -325,12 +324,9 @@ namespace AElf.Contracts.Vote
 
         private void InitializeDependentContracts()
         {
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-
             if (State.TokenContract.Value == null)
             {
-                State.TokenContract.Value =
-                    State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
+                State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
         }
 

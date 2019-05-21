@@ -21,10 +21,8 @@ namespace AElf.Contracts.MultiToken
         /// symbol -> address -> is in white list.
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
-        internal ACS0Container.ACS0ReferenceState BasicContractZero { get; set; }
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContractReferenceState { get; set; }
-        public SingletonState<Hash> CrossChainContractSystemName { get; set; }
     }
 }

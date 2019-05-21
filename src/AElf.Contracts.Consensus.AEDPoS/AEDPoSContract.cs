@@ -21,18 +21,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
             
             Context.LogDebug(() => $"Time each term: {State.TimeEachTerm.Value} seconds.");
 
-            // TODO: Use Context to get contract address.
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
-
             if (input.IsTermStayOne || input.IsSideChain)
             {
+                State.IsMainChain.Value = false;
                 return new Empty();
             }
 
-            State.ElectionContractSystemName.Value = input.ElectionContractSystemName;
+            State.IsMainChain.Value = true;
 
             State.ElectionContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(input.ElectionContractSystemName);
+                Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
 
             State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
 

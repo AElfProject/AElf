@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Acs3;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -44,11 +43,9 @@ namespace AElf.Contracts.ParliamentAuth
         }
 
         #endregion view
-        public override Empty Initialize(ParliamentAuthInitializationInput input)
+        public override Empty Initialize(Empty input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Initialized.Value = true;
             State.DefaultOrganizationAddress.Value =
                 CreateOrganization(new CreateOrganizationInput {ReleaseThreshold = _defaultOrganizationReleaseThreshold});

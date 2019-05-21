@@ -12,12 +12,6 @@ namespace AElf.Contracts.Election
         internal VoteContractContainer.VoteContractReferenceState VoteContract { get; set; }
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal Acs0.ACS0Container.ACS0ReferenceState BasicContractZero { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractReferenceState AEDPoSContract { get; set; }
-
-        public SingletonState<Hash> VoteContractSystemName { get; set; }
-        public SingletonState<Hash> ProfitContractSystemName { get; set; }
-        public SingletonState<Hash> TokenContractSystemName { get; set; }
-        public SingletonState<Hash> ConsensusContractSystemName { get; set; }
     }
 }

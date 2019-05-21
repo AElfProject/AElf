@@ -15,11 +15,6 @@ namespace AElf.Contracts.Election
         public override Empty InitialElectionContract(InitialElectionContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            State.VoteContractSystemName.Value = input.VoteContractSystemName;
-            State.ProfitContractSystemName.Value = input.ProfitContractSystemName;
-            State.TokenContractSystemName.Value = input.TokenContractSystemName;
-            State.ConsensusContractSystemName.Value = input.ConsensusContractSystemName;
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
             State.Candidates.Value = new PublicKeysList();
             State.MinimumLockTime.Value = input.MinimumLockTime;
             State.MaximumLockTime.Value = input.MaximumLockTime;
@@ -30,8 +25,7 @@ namespace AElf.Contracts.Election
 
         public override Empty ConfigElectionContract(ConfigElectionContractInput input)
         {
-            State.AEDPoSContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
+            State.AEDPoSContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             Assert(State.AEDPoSContract.Value == Context.Sender, "Only Consensus Contract can call this method.");
             Assert(State.InitialMiners.Value == null, "Initial miners already set.");
             State.InitialMiners.Value = new PublicKeysList
@@ -48,14 +42,10 @@ namespace AElf.Contracts.Election
         public override Empty RegisterElectionVotingEvent(Empty input)
         {
             Assert(!State.VotingEventRegistered.Value, "Already registered.");
-            State.BasicContractZero.Value = Context.GetZeroSmartContractAddress();
 
-            State.TokenContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.TokenContractSystemName.Value);
-            State.VoteContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.VoteContractSystemName.Value);
-            State.AEDPoSContract.Value =
-                State.BasicContractZero.GetContractAddressByName.Call(State.ConsensusContractSystemName.Value);
+            State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            State.VoteContract.Value = Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
+            State.AEDPoSContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
 
             State.TokenContract.Create.Send(new CreateInput
             {

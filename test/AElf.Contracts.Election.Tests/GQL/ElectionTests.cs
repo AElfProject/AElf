@@ -19,11 +19,7 @@ namespace AElf.Contracts.Election
         public async Task ElectionContract_InitializeTwice()
         {
             var transactionResult = (await ElectionContractStub.InitialElectionContract.SendAsync(
-                new InitialElectionContractInput
-                {
-                    TokenContractSystemName = Hash.Generate(),
-                    VoteContractSystemName = Hash.Generate()
-                })).TransactionResult;
+                new InitialElectionContractInput())).TransactionResult;
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();

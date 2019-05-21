@@ -70,15 +70,27 @@ namespace AElf.OS.Network.Grpc
             // verify signature
             var validData = CryptoHelpers.VerifySignature(handshake.Sig.ToByteArray(),
                 Hash.FromMessage(handshake.HskData).ToByteArray(), handshake.HskData.PublicKey.ToByteArray());
+            
             if (!validData)
                 return new ConnectReply { Err = AuthError.WrongSig };
             
             var peer = GrpcUrl.Parse(context.Peer);
-            if(peer == null)
+            
+            if (peer == null)
                 return new ConnectReply { Err = AuthError.InvalidPeer };
             
-            var peerAddress = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
+            var pubKey = handshake.HskData.PublicKey.ToHex();
+            
+            var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
 
+            if (oldPeer != null)
+            {
+                Logger.LogDebug($"Cleaning up {oldPeer} before connecting.");
+                await _peerPool.RemovePeerAsync(pubKey, false);
+            }
+
+            // TODO: find a URI type to use
+            var peerAddress = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
             Logger.LogDebug($"Attempting to create channel to {peerAddress}");
 
             Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure, new List<ChannelOption>
@@ -86,6 +98,7 @@ namespace AElf.OS.Network.Grpc
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConsts.DefaultMaxSendMessageLength),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConsts.DefaultMaxReceiveMessageLength)
             });
+            
             var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
             {
                 metadata.Add(GrpcConsts.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
@@ -96,20 +109,9 @@ namespace AElf.OS.Network.Grpc
             {
                 var c = channel.WaitForStateChangedAsync(channel.State);
             }
-
-            var pubKey = handshake.HskData.PublicKey.ToHex();
+            
             var grpcPeer = new GrpcPeer(channel, client, pubKey, peerAddress, handshake.HskData.Version,
                 DateTime.UtcNow.ToTimestamp().Seconds, handshake.Header.Height);
-
-            // Verify auth
-            bool valid = _peerPool.IsAuthenticatePeer(pubKey);
-
-            if (!valid)
-            {
-                await channel.ShutdownAsync();
-                Logger.LogDebug($"Failed to reach {grpcPeer}");
-                return new ConnectReply {Err = AuthError.WrongAuth};
-            }
 
             // send our credentials
             var hsk = await _peerPool.GetHandshakeAsync();

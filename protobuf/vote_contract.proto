@@ -13,7 +13,7 @@ service VoteContract {
     option (aelf.csharp_state) = "AElf.Contracts.Vote.VoteContractState";
 
     // Action
-    rpc InitialVoteContract (InitialVoteContractInput) returns (google.protobuf.Empty) {
+    rpc InitialVoteContract (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc Register (VotingRegisterInput) returns (google.protobuf.Empty) {
     }
@@ -74,10 +74,6 @@ message Withdrawn {
 }
 
 // Messages
-message InitialVoteContractInput {
-    aelf.Hash token_contract_system_name = 1;
-}
-
 message VotingRegisterInput {
     google.protobuf.Timestamp start_timestamp = 1;
     google.protobuf.Timestamp end_timestamp = 2;

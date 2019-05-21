@@ -9,10 +9,10 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> RemovePeerByAddressAsync(string address);
         List<IPeer> GetPeers(bool includeFailing = false);
         
+        IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+        
         IPeer FindPeerByAddress(string peerIpAddress);
         IPeer FindPeerByPublicKey(string remotePubKey);
-
-        bool IsAuthenticatePeer(string remotePubKey);
 
         bool AddPeer(IPeer peer);
 
@@ -20,5 +20,6 @@ namespace AElf.OS.Network.Infrastructure
 
         Task<Handshake> GetHandshakeAsync();
 
+        void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash);
     }
 }

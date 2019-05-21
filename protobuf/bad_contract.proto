@@ -19,6 +19,10 @@ service BadContract {
     
     rpc WriteFileToNode (FileInfoInput) returns (google.protobuf.Empty) { }
     
+    rpc InitLargeArray (google.protobuf.Empty) returns (google.protobuf.Empty) { }
+    
+    rpc InitLargeStringDynamic (InitLargeStringDynamicInput) returns (google.protobuf.Empty) { }
+    
     rpc TestCallToNestedClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
     
     rpc TestCallToSeparateClass (google.protobuf.Empty) returns (google.protobuf.Empty) { }
@@ -43,4 +47,8 @@ message DateTimeOutput {
 message FileInfoInput {
     string FilePath = 1;
     string FileContent = 2;
+}
+
+message InitLargeStringDynamicInput {
+    int32 StringSizeValue = 1;
 }

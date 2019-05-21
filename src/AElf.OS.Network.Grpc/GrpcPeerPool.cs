@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -28,6 +29,10 @@ namespace AElf.OS.Network.Grpc
 
         private readonly ConcurrentDictionary<string, GrpcPeer> _authenticatedPeers;
 
+        public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+
+        private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
+
         public ILogger<GrpcPeerPool> Logger { get; set; }
 
         public GrpcPeerPool(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService, 
@@ -38,6 +43,8 @@ namespace AElf.OS.Network.Grpc
             _blockchainService = blockChainService;
 
             _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
+            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
+            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
 
             Logger = NullLogger<GrpcPeerPool>.Instance;
         }
@@ -49,6 +56,7 @@ namespace AElf.OS.Network.Grpc
 
             return await DialAsync(address);
         }
+        
         private async Task<bool> DialAsync(string ipAddress)
         {
             Logger.LogTrace($"Attempting to reach {ipAddress}.");
@@ -144,19 +152,15 @@ namespace AElf.OS.Network.Grpc
             return p;
         }
 
-        public bool IsAuthenticatePeer(string remotePubKey)
-        {
-            string localPubKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
-            if (remotePubKey == localPubKey)
-                return false;
-
-            return FindPeerByPublicKey(remotePubKey) == null;
-        }
-
         public bool AddPeer(IPeer peer)
         {
             if (!(peer is GrpcPeer p))
                 return false;
+            
+            string localPubKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
+
+            if (peer.PubKey == localPubKey)
+                throw new InvalidOperationException($"Connection to self detected {peer.PubKey} ({peer.PeerIpAddress})");
 
             if (!_authenticatedPeers.TryAdd(p.PubKey, p))
             {
@@ -242,6 +246,15 @@ namespace AElf.OS.Network.Grpc
             }
 
             return removed;
+        }
+        
+        public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash)
+        {
+            _recentBlockHeightAndHashMappings[blockHeight] = blockHash;
+            while (_recentBlockHeightAndHashMappings.Count > 10)
+            {
+                _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
+            }
         }
     }
 }

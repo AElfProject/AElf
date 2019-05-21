@@ -6,6 +6,7 @@ using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -25,12 +26,9 @@ namespace AElf.Blockchains.MainChain
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
             var profitContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            profitContractMethodCallList.Add(nameof(ProfitContractContainer.ProfitContractStub.InitializeProfitContract),
-                new InitializeProfitContractInput
-                {
-                    // To handle tokens when release profit, add profits and receive profits.
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                });
+
+            profitContractMethodCallList.Add(nameof(ProfitContractContainer.ProfitContractStub.InitializeProfitContract),new Empty());
+
             return profitContractMethodCallList;
         }
     }

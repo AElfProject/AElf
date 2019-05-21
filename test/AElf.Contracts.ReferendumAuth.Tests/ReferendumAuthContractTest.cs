@@ -31,10 +31,7 @@ namespace AElf.Contracts.ReferendumAuth
         public async Task ReferendumAuthContract_InitializeMultiTimes()
         {
             var transactionResult =
-                await ReferendumAuthContractStub.Initialize.SendAsync(new ReferendumAuthContractInitializationInput
-                {
-                    TokenContractSystemName = Hash.FromString("Test")
-                });
+                await ReferendumAuthContractStub.Initialize.SendAsync(new Empty());
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }

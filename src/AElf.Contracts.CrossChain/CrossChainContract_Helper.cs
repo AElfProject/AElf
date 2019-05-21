@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
 using AElf.Types;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -107,31 +108,31 @@ namespace AElf.Contracts.CrossChain
         {
             if (state.Value != null)
                 return;
-            state.Value = State.BasicContractZero.GetContractAddressByName.Call(contractSystemName);
+            state.Value = Context.GetContractAddressByName(contractSystemName);
         }
 
         private void Transfer(TransferInput input)
         {
-            ValidateContractState(State.TokenContract, State.TokenContractSystemName.Value);
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.Transfer.Send(input);
         }
 
         private void TransferFrom(TransferFromInput input)
         {
-            ValidateContractState(State.TokenContract, State.TokenContractSystemName.Value);
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.TransferFrom.Send(input);
         }
 
         private long GetBalance(GetBalanceInput input)
         {
-            ValidateContractState(State.TokenContract, State.TokenContractSystemName.Value);
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             var output = State.TokenContract.GetBalance.Call(input);
             return output.Balance;
         }
 
         private MinerListWithRoundNumber GetCurrentMiners()
         {
-            ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
+            ValidateContractState(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
             var miners = State.ConsensusContract.GetCurrentMinerListWithRoundNumber.Call(new Empty());
             return miners;
         }
@@ -139,7 +140,7 @@ namespace AElf.Contracts.CrossChain
         // only for side chain
         private void UpdateCurrentMiners(ByteString bytes)
         {
-            ValidateContractState(State.ConsensusContract, State.ConsensusContractSystemName.Value);
+            ValidateContractState(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
             State.ConsensusContract.UpdateConsensusInformation.Send(new ConsensusInformation {Bytes = bytes});
         }
 
@@ -177,7 +178,7 @@ namespace AElf.Contracts.CrossChain
         {
             if (State.Owner.Value != null) 
                 return State.Owner.Value;
-            ValidateContractState(State.ParliamentAuthContract, State.ParliamentAuthContractSystemName.Value);
+            ValidateContractState(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
             Address organizationAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
             State.Owner.Value = organizationAddress;
 
@@ -201,7 +202,7 @@ namespace AElf.Contracts.CrossChain
                 Params = input.ToByteString(),
                 ToAddress = targetAddress
             };
-            ValidateContractState(State.ParliamentAuthContract, State.ParliamentAuthContractSystemName.Value);
+            ValidateContractState(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
             State.ParliamentAuthContract.CreateProposal.Send(proposal);
             return Hash.FromMessage(proposal);
         }

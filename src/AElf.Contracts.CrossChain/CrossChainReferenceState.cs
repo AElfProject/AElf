@@ -9,7 +9,6 @@ namespace AElf.Contracts.CrossChain
     {
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractReferenceState ConsensusContract { get; set; }
-        internal ACS0Container.ACS0ReferenceState BasicContractZero { get; set; }
         
         internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set;}
     }

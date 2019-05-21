@@ -5,6 +5,7 @@ using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -26,11 +27,7 @@ namespace AElf.Blockchains.MainChain
             GenerateParliamentInitializationCallList()
         {
             var parliamentInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentInitializationCallList.Add(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize),
-                new ParliamentAuthInitializationInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
-                });
+            parliamentInitializationCallList.Add(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize), new Empty());
             return parliamentInitializationCallList;
         }
     }
