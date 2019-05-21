@@ -24,7 +24,7 @@ namespace AElf.Contracts.MultiToken
         private async Task InitializeAsync()
         {
             {
-                // this is needed, STUPID DESIGN, it doesn't matter what code we deploy, all we need is an address
+                // this is needed, NOT GOOD DESIGN, it doesn't matter what code we deploy, all we need is an address
                 await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, TokenContractCode,
                     ConsensusSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, TokenContractCode,

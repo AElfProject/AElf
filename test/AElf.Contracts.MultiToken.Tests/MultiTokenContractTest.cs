@@ -428,7 +428,7 @@ namespace AElf.Contracts.MultiToken
         {
             await Initialize_TokenContract();
 
-            // this is needed, STUPID DESIGN, it doesn't matter what code we deploy, all we need is an address
+            // this is needed, NOT GOOD DESIGN, it doesn't matter what code we deploy, all we need is an address
             await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, TokenContractCode, DividendSmartContractAddressNameProvider.Name,
                 DefaultSenderKeyPair);
 
