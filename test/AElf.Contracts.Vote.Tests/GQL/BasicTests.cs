@@ -12,13 +12,6 @@ namespace AElf.Contracts.Vote
 {
     public partial class VoteTests : VoteContractTestBase
     {
-        [Fact]
-        public async Task VoteContract_Initialize_NotByContractZero()
-        {
-            var transactionResult = (await VoteContractStub.InitialVoteContract.SendAsync(new Empty())).TransactionResult;
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Only zero contract can");
-        }
 
         [Fact]
         public async Task VoteContract_Register_Again()
