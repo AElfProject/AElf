@@ -290,3 +290,7 @@ scripts/contract_csharp_plugin.exe
 
 Contracts.manifest
 
+# coverage result
+coverage*.json
+coverage*.xml
+
