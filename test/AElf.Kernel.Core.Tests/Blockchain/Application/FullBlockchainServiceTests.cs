@@ -724,6 +724,29 @@ namespace AElf.Kernel.Blockchain.Application
             }
         }
 
+        [Fact]
+        public async Task Attach_New_Block_To_Chain_Test()
+        {
+            var chain = await _fullBlockchainService.GetChainAsync();
+            var newUnlinkedBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, chain.BestChainHash,
+                new List<Transaction> {_kernelTestHelper.GenerateTransaction()});
+            await _fullBlockchainService.AddBlockAsync(newUnlinkedBlock);
+            var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, newUnlinkedBlock);
+            status.ShouldBe(BlockAttachOperationStatus.NewBlockLinked);
+        }
+        
+        [Fact]
+        public async Task Attach_Linked_Block_To_Chain_Test()
+        {
+            var chain = await _fullBlockchainService.GetChainAsync();
+            await _fullBlockchainService.SetIrreversibleBlockAsync(chain, _kernelTestHelper.BestBranchBlockList[7]
+                .Height, _kernelTestHelper.BestBranchBlockList[7].GetHash());
+            var linkedBlock = _kernelTestHelper.BestBranchBlockList[8];
+            await _fullBlockchainService.AddBlockAsync(linkedBlock);
+            var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, linkedBlock);
+            status.ShouldBe(BlockAttachOperationStatus.NewBlockLinked);
+        }
+
         private void BlocksShouldNotExist(List<Hash> blockHashes)
         {
             foreach (var hash in blockHashes)
