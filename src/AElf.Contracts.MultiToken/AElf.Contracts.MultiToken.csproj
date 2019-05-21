@@ -11,6 +11,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Include="..\..\protobuf\core.proto">
+            <Link>Protobuf/Proto/core.proto</Link>
+        </None>
       <None Include="..\..\protobuf\common.proto">
         <Link>Protobuf/Proto/common.proto</Link>
       </None>
