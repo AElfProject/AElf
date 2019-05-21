@@ -63,7 +63,8 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(typeof(uint).Name, Permission.Allowed)
                     .Type(typeof(long).Name, Permission.Allowed)
                     .Type(typeof(ulong).Name, Permission.Allowed)
-                    .Type(typeof(string).Name, Permission.Allowed)
+                    .Type(typeof(string).Name, Permission.Allowed, member => member
+                        .Constructor(Permission.Denied))
                     .Type(typeof(Byte[]).Name, Permission.Allowed))
                 .Namespace("System.Linq", Permission.Allowed)
                 .Namespace("System.Collections", Permission.Allowed)
@@ -77,7 +78,8 @@ namespace AElf.Runtime.CSharp.Policies
             
             MethodValidators.AddRange(new IValidator<MethodDefinition>[]{
                 new FloatOpsValidator(),
-                new MultiDimArrayValidator(), // Should we keep this?
+                new ArrayValidator(), 
+                new MultiDimArrayValidator(),
                 // new UnsafeMathValidator(), // Google protobuf generated code contains unsafe opcodes, 
                 // new NewObjValidator(),     // Define a blacklist of objects types
             });

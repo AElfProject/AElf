@@ -28,7 +28,7 @@ namespace AElf.OS.Network
             
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
             var channel = new Channel(GrpcTestConstants.FakeListeningPort, ChannelCredentials.Insecure);
-            pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), GrpcTestConstants.FakePubKey,
+            pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), GrpcTestConstants.FakePubKey2,
                 GrpcTestConstants.FakeListeningPort, KernelConstants.ProtocolVersion,
                 DateTime.UtcNow.ToTimestamp().Seconds, 1));
         }
