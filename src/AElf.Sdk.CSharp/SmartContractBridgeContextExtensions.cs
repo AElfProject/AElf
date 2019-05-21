@@ -1,5 +1,6 @@
 using AElf.Kernel;
 using AElf.CSharp.Core;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp

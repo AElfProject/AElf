@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.CSharp.Core

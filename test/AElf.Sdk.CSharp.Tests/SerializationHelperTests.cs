@@ -1,6 +1,7 @@
 using System;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
@@ -121,8 +122,7 @@ namespace AElf.Sdk.CSharp.Tests
             var body = new BlockBody
             {
                 BlockHeader = header.GetHash(),
-                Transactions = { transaction.GetHash() },
-                TransactionList = { transaction }
+                Transactions = { transaction.GetHash() }
             };
             var bodyArray = SerializationHelper.Serialize(body);
             var body1 = SerializationHelper.Deserialize<BlockBody>(bodyArray);

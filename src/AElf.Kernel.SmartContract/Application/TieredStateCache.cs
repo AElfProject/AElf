@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application
 {

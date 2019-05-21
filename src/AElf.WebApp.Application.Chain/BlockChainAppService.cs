@@ -8,6 +8,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;

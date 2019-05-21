@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using AElf.Types;
 using Xunit;
 
 namespace AElf.Kernel.Blockchain.Domain

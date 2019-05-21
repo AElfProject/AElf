@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
@@ -74,7 +75,7 @@ namespace AElf.Kernel.Blockchain.Application
         private (Block, List<TransactionResult>) GetNextBlockWithTransactionAndResults(BlockHeader previous,
             IEnumerable<Transaction> transactions, ByteString uniqueData = null)
         {
-            var block = new Block()
+            var block = new Block
             {
                 Header = new BlockHeader()
                 {
@@ -94,7 +95,6 @@ namespace AElf.Kernel.Blockchain.Application
             foreach (var transaction in transactions)
             {
                 block.Body.Transactions.Add(transaction.GetHash());
-                block.Body.TransactionList.Add(transaction);
                 results.Add(new TransactionResult()
                 {
                     TransactionId = transaction.GetHash(),

@@ -2,6 +2,7 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 using Xunit;
 using CustomContract = AElf.Runtime.CSharp.Tests.TestContract;
 

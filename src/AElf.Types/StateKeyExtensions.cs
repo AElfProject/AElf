@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.Kernel;
+using AElf.Types;
 
 namespace AElf
 {

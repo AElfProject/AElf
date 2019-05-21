@@ -5,6 +5,7 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
