@@ -1,3 +1,5 @@
+using AElf.Types;
+
 namespace AElf.Sdk.CSharp
 {
     public static class SmartContractConstants

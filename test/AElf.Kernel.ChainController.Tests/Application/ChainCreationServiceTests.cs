@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 

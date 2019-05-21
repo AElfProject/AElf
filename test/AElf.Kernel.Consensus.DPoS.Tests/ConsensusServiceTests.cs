@@ -1,11 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
-using AElf.Contracts.Consensus.DPoS;
+using AElf.Types;
 
 namespace AElf.Kernel.Consensus
 {

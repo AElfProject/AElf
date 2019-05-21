@@ -1,6 +1,7 @@
 using System;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AElf.Kernel.Miner.Application;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 

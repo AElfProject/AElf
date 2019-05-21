@@ -1,3 +1,5 @@
+using AElf.Types;
+
 namespace AElf.Kernel.SmartContract.Application
 {
     public class StateCacheFromPartialBlockStateSet : IStateCache

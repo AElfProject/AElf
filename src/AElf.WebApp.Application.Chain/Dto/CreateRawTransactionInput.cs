@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using AElf.Types;
 
 namespace AElf.WebApp.Application.Chain.Dto
 {

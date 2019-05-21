@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using AElf.Kernel.SmartContract;
+using AElf.Types;
 
 namespace AElf.Kernel.SmartContractExecution
 {

@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA.Exceptions;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Consensus.Application;
+using AElf.Types;
 using Xunit;
 
 namespace AElf.Kernel.Consensus

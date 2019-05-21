@@ -1,4 +1,5 @@
-using AElf.Contracts.Consensus.AEDPoS;
+//using AElf.Contracts.Consensus.DPoS;
+
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;

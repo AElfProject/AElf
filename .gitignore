@@ -288,3 +288,9 @@ scripts/contract_csharp_plugin.exe
 
 **/BenchmarkDotNet.Artifacts/*
 
+Contracts.manifest
+
+# coverage result
+coverage*.json
+coverage*.xml
+

@@ -1,10 +1,12 @@
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Types;
 
 namespace AElf.Contracts.TokenConverter
 {
@@ -31,7 +33,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 // TokenContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
-                var code = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
+                var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("MultiToken")).Value;
                 TokenContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
@@ -56,7 +58,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 // TokenConverterContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
-                var code = File.ReadAllBytes(typeof(TokenConverterContract).Assembly.Location);
+                var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("TokenConverter")).Value;
                 TokenConverterContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
                 DefaultStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, DefaultSenderKeyPair);

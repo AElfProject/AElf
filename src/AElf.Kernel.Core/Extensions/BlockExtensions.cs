@@ -1,4 +1,5 @@
 using AElf.Cryptography;
+using AElf.Types;
 
 namespace AElf.Kernel
 {
