@@ -99,6 +99,11 @@ namespace AElf.Sdk.CSharp
         {
             return _smartContractBridgeContextImplementation.GetZeroSmartContractAddress();
         }
+
+        public Address GetContractAddressByName(Hash hash)
+        {
+            return _smartContractBridgeContextImplementation.GetContractAddressByName(hash);
+        }
         
         public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
         {

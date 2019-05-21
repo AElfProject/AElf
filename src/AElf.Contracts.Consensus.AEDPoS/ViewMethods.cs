@@ -415,7 +415,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool TryToGetVictories(out MinerList victories)
         {
-            if (State.ElectionContractSystemName.Value == null)
+            if (!State.IsMainChain.Value)
             {
                 victories = null;
                 return false;
@@ -556,7 +556,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void UpdateCandidateInformation(string candidatePublicKey, long recentlyProducedBlocks,
             long recentlyMissedTimeSlots, bool isEvilNode = false)
         {
-            if (State.ElectionContractSystemName.Value == null)
+            if (!State.IsMainChain.Value)
             {
                 return;
             }
@@ -582,7 +582,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
         {
-            if (State.ElectionContractSystemName.Value == null)
+            if (!State.IsMainChain.Value)
             {
                 snapshot = null;
                 return false;

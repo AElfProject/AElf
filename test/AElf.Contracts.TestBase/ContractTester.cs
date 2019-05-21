@@ -612,10 +612,6 @@ namespace AElf.Contracts.TestBase
             balanceOfStarter = InitialBalanceOfStarter;
 
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
-            {
-                CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
-            });
             tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = "ELF",
@@ -639,10 +635,7 @@ namespace AElf.Contracts.TestBase
             });
 
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuthInitializationInput
-            {
-                ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
-            });
+            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new Empty());
             return list =>
             {
                 list.AddGenesisSmartContract<TokenContract>(TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
