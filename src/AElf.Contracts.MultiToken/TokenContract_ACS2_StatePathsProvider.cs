@@ -18,8 +18,8 @@ namespace AElf.Contracts.MultiToken
                     {
                         Paths =
                         {
-                            GetPath(nameof(TokenContractState.Balances), txn.From.ToString()),
-                            GetPath(nameof(TokenContractState.Balances), args.To.ToString())
+                            GetPath(nameof(TokenContractState.Balances), txn.From.ToString(), args.Symbol),
+                            GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol)
                         }
                     };
                 }
@@ -31,10 +31,10 @@ namespace AElf.Contracts.MultiToken
                     {
                         Paths =
                         {
-                            GetPath(nameof(TokenContractState.Allowances), args.From.ToString(),
-                                txn.From.ToString()),
-                            GetPath(nameof(TokenContractState.Balances), args.From.ToString()),
-                            GetPath(nameof(TokenContractState.Balances), args.To.ToString())
+                            GetPath(nameof(TokenContractState.Allowances), args.From.ToString(), txn.From.ToString(),
+                                args.Symbol),
+                            GetPath(nameof(TokenContractState.Balances), args.From.ToString(), args.Symbol),
+                            GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol)
                         }
                     };
                 }
