@@ -56,18 +56,6 @@ namespace AElf.Kernel.Blockchain.Application
             blockHeader.MerkleTreeRootOfTransactionStatus = new BinaryMerkleTree().AddNodes(nodes).ComputeRootHash();
         }
 
-        /// <summary>
-        /// Extract merkle tree root from header extra data.
-        /// </summary>
-        /// <param name="blockHeader"></param>
-        /// <returns></returns>
-        /// <exception cref="IndexOutOfRangeException">The size of header extra data is incorrect.</exception>
-        public ByteString GetMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader)
-        {
-            var index = blockHeader.Height == Constants.GenesisBlockHeight ? 0 : _blockExtraDataProviders.Count;
-            return blockHeader.BlockExtraDatas[index];
-        }
-
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,
             TransactionResultStatus executionReturnStatus)
         {

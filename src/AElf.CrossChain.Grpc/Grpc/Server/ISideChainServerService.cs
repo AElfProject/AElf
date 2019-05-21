@@ -22,7 +22,6 @@ namespace AElf.CrossChain.Grpc
 
         public CrossChainResponse GenerateResponse(Block block)
         {
-            var transactionStatusMerkleRoot = ExtractTransactionStatusMerkleTreeRoot(block.Header); 
             return new CrossChainResponse
             {
                 BlockData = new BlockData
@@ -33,16 +32,11 @@ namespace AElf.CrossChain.Grpc
                     {
                         SideChainHeight = block.Height,
                         BlockHeaderHash = block.GetHash(),
-                        TransactionMerkleTreeRoot = transactionStatusMerkleRoot,
+                        TransactionMerkleTreeRoot = block.Header.MerkleTreeRootOfTransactionStatus,
                         SideChainId = block.Header.ChainId
                     }.ToByteString()
                 }
             };
-        }
-        
-        private Hash ExtractTransactionStatusMerkleTreeRoot(BlockHeader header)
-        {
-            return Hash.Parser.ParseFrom(_blockExtraDataService.GetMerkleTreeRootExtraDataForTransactionStatus(header));
         }
     }
 }
