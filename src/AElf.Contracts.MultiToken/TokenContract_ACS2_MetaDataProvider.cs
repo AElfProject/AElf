@@ -1,39 +1,48 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-using Acs2;
+﻿using Acs2;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Crypto.Engines;
 
 namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract
     {
-        public override GetMetadataOutput GetMetadata(GetMetadataInput input)
+        public override StatePathsInfo GetStatePaths(Transaction txn)
         {
-            switch (input.Method)
+            switch (txn.MethodName)
             {
                 case nameof(Transfer):
                 {
-                    var p = input.Parameter.Unpack<TransferInput>();
-                    return new GetMetadataOutput()
+                    var xferInput = TransferInput.Parser.ParseFrom(txn.Params);
+                    return new StatePathsInfo
                     {
-                        Resources = {Context.Self.ToByteString(), p.To.ToByteString()}
+                        Paths =
+                        {
+                            GetPath(nameof(TokenContractState.Balances), txn.From.ToString()),
+                            GetPath(nameof(TokenContractState.Balances), xferInput.To.ToString())
+                        }
                     };
                 }
-                case nameof(Lock):
-                {
-                    var p = input.Parameter.Unpack<LockInput>();
-                    return new GetMetadataOutput()
-                    {
-                        Resources = {Context.Self.ToByteString(), p.To.ToByteString()}
-                    };
-                }
+
+                // TODO: Support more methods
                 default:
-                    throw new AssertionException($"invalid method: {input.Method}");
+                    throw new AssertionException($"invalid method: {txn.MethodName}");
             }
+        }
+
+        private ScopedStatePath GetPath(params string[] parts)
+        {
+            return new ScopedStatePath
+            {
+                Address = Context.Self,
+                Path = new StatePath
+                {
+                    Parts =
+                    {
+                        parts
+                    }
+                }
+            };
         }
     }
 }
