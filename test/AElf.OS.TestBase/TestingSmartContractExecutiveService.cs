@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 
 namespace AElf.OS
 {
@@ -16,14 +17,5 @@ namespace AElf.OS
         {
         }
 
-        public override Task PutExecutiveAsync(Address address, IExecutive executive)
-        {
-            if (_executivePools.TryGetValue(address, out var pool))
-            {
-                pool.Add(executive);
-            }
-
-            return Task.CompletedTask;
-        }
     }
 }

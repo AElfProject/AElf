@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
@@ -15,10 +16,10 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IStateProviderFactory _stateProviderFactory;
         private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
 
-        protected readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools =
+        private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools =
             new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
 
-        protected readonly ConcurrentDictionary<Address, SmartContractRegistration>
+        private readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
 
