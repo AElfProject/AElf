@@ -108,9 +108,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                         if (chain.LastIrreversibleBlockHeight >= libHeight)
                             return null;
 
-                        var libBlock = await _blockchainService.GetBlockHashByHeightAsync(chain,
-                            libHeight,
-                            blockId);
+                        var libBlock = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, blockId);
 
                         return new BlockIndex(libBlock, libHeight);
                     }

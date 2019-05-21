@@ -65,7 +65,7 @@ namespace AElf.Kernel.Consensus.Application
             _nextMiningTime =
                 DateTime.UtcNow.AddMilliseconds(_consensusControlInformation.ConsensusCommand
                     .NextBlockMiningLeftMilliseconds);
-            
+
             Logger.LogTrace($"Set next mining time to: {_nextMiningTime:hh:mm:ss.ffffff}");
         }
 
@@ -120,7 +120,8 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogTrace($"Set block time to next mining time: {_nextMiningTime:hh:mm:ss.ffffff}. Extra Data.");
 
             return (await _readerFactory.Create(chainContext).GetInformationToUpdateConsensus
-                .CallAsync(_triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData())).Value.ToByteArray();
+                    .CallAsync(_triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData())).Value
+                .ToByteArray();
         }
 
         public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)

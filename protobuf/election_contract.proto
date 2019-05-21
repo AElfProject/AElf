@@ -13,17 +13,12 @@ service ElectionContract {
     option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
 
     // Action
+    // -> Election
     rpc InitialElectionContract (InitialElectionContractInput) returns (google.protobuf.Empty) {
     }
     rpc ConfigElectionContract (ConfigElectionContractInput) returns (google.protobuf.Empty) {
     }
     rpc RegisterElectionVotingEvent (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc CreateTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc RegisterToTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc ReleaseTreasuryProfits (ReleaseTreasuryProfitsInput) returns (google.protobuf.Empty) {
     }
     rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
@@ -36,6 +31,14 @@ service ElectionContract {
     rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
     }
     rpc UpdateMinersCount (UpdateMinersCountInput) returns (google.protobuf.Empty) {
+    }
+
+    // -> Treasury
+    rpc CreateTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc RegisterToTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc ReleaseTreasuryProfits (ReleaseTreasuryProfitsInput) returns (google.protobuf.Empty) {
     }
 
     // View
@@ -84,16 +87,17 @@ service ElectionContract {
     rpc GetCurrentMiningReward (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetCurrentWelfareReward (StringInput) returns (SInt64Value) {
-        option (aelf.is_view) = true;
-    }
     rpc GetPageableCandidateInformation (PageInformation) returns (GetPageableCandidateInformationOutput) {
         option (aelf.is_view) = true;
     }
     rpc GetMinerElectionVotingItemId (google.protobuf.Empty) returns (Hash) {
+        option (aelf.is_view) = true;
+    }
+    
+    rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentWelfareReward (StringInput) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
 }

@@ -98,18 +98,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         private void CountMissedTimeSlots()
         {
-            if (TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                foreach (var minerInRound in currentRound.RealTimeMinersInformation)
-                {
-                    if (minerInRound.Value.OutValue == null)
-                    {
-                        minerInRound.Value.MissedTimeSlots = minerInRound.Value.MissedTimeSlots.Add(1);
-                    }
-                }
+            if (!TryToGetCurrentRoundInformation(out var currentRound)) return;
 
-                TryToUpdateRoundInformation(currentRound);
+            foreach (var minerInRound in currentRound.RealTimeMinersInformation)
+            {
+                if (minerInRound.Value.OutValue == null)
+                {
+                    minerInRound.Value.MissedTimeSlots = minerInRound.Value.MissedTimeSlots.Add(1);
+                }
             }
+
+            TryToUpdateRoundInformation(currentRound);
         }
 
         private bool TryToUpdateTermNumber(long termNumber)

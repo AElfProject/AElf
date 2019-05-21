@@ -4,6 +4,9 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Consensus.Application
 {
+    /// <summary>
+    /// Trigger consensus to update mining scheduler.
+    /// </summary>
     public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>
     {
         private readonly IConsensusService _consensusService;
