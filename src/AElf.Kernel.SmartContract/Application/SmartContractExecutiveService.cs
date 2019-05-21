@@ -65,7 +65,7 @@ namespace AElf.Kernel.SmartContract.Application
                     if (chainContext.BlockHeight > Constants.GenesisBlockHeight)
                     {
                         
-                        //if Height > zero, maybe there is a new zero contract, the current executive is from code,
+                        //if Height > GenesisBlockHeight, maybe there is a new zero contract, the current executive is from code,
                         //not from zero contract, so we need to load new zero contract from the old executive,
                         //and replace it
                         reg = await GetSmartContractRegistrationFromZeroAsync(executive, chainContext, address);
