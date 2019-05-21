@@ -57,7 +57,7 @@ namespace AElf.OS.BlockSync.Application
                 return;
             }
 
-            var enqueueTimestamp = Timestamp.FromDateTime(DateTime.UtcNow);
+            var enqueueTimestamp = TimestampHelper.GetUtcNow();
             _taskQueueManager.Enqueue(async () =>
                 {
                     try

@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Infrastructure;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -21,8 +22,8 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
 
         public ILogger<BlockSyncService> Logger { get; set; }
-        
-        private readonly TimeSpan _blockSyncJobAgeLimit = TimeSpan.FromSeconds(0.5);
+
+        private readonly Duration _blockSyncJobAgeLimit = new Duration {Nanos = 500_000_000};
 
         public BlockSyncService(IBlockchainService blockchainService,
             IBlockFetchService blockFetchService,
@@ -53,14 +54,14 @@ namespace AElf.OS.BlockSync.Application
             else
             {
                 if (_blockSyncStateProvider.BlockSyncJobEnqueueTime != null
-                    && DateTime.UtcNow - _blockSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime() >
-                    _blockSyncJobAgeLimit)
+                    && TimestampHelper.GetUtcNow() >
+                    _blockSyncStateProvider.BlockSyncJobEnqueueTime + _blockSyncJobAgeLimit)
                 {
                     Logger.LogWarning(
                         $"Queue is too busy, block sync job enqueue timestamp: {_blockSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime()}");
                     return;
                 }
-                
+
                 _blockDownloadHistoryCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
                 if (!_blockDownloadHistoryCacheProvider.CacheHistory(blockHash, blockHeight))
                 {
