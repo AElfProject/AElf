@@ -27,7 +27,7 @@ namespace AElf.Contracts.Election
 
         public MappedState<string, CandidateInformation> CandidateInformationMap { get; set; }
 
-        public SingletonState<int> CurrentTermNumber { get; set; }
+        public SingletonState<long> CurrentTermNumber { get; set; }
 
         public SingletonState<PublicKeysList> Candidates { get; set; }
 
@@ -58,6 +58,5 @@ namespace AElf.Contracts.Election
 
         public SingletonState<Hash> MinerElectionVotingItemId { get; set; }
         
-        public SingletonState<long> CachedWelfareWeight { get; set; }
     }
 }

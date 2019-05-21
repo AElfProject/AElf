@@ -19,11 +19,7 @@ service ElectionContract {
     }
     rpc RegisterElectionVotingEvent (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc CreateTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc RegisterToTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc ReleaseTreasuryProfits (ReleaseTreasuryProfitsInput) returns (google.protobuf.Empty) {
+    rpc TakeSnapshot (TakeElectionSnapshotInput) returns (google.protobuf.Empty) {
     }
     rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
@@ -37,7 +33,7 @@ service ElectionContract {
     }
     rpc UpdateMinersCount (UpdateMinersCountInput) returns (google.protobuf.Empty) {
     }
-
+    
     // View
     rpc GetCandidates (google.protobuf.Empty) returns (PublicKeysList) {
         option (aelf.is_view) = true;
@@ -81,19 +77,13 @@ service ElectionContract {
     rpc GetVotesAmount (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentMiningReward (google.protobuf.Empty) returns (SInt64Value) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetCurrentWelfareReward (StringInput) returns (SInt64Value) {
-        option (aelf.is_view) = true;
-    }
     rpc GetPageableCandidateInformation (PageInformation) returns (GetPageableCandidateInformationOutput) {
         option (aelf.is_view) = true;
     }
     rpc GetMinerElectionVotingItemId (google.protobuf.Empty) returns (Hash) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentMiningReward (google.protobuf.Empty) returns (SInt64Value) {
         option (aelf.is_view) = true;
     }
 }
@@ -119,7 +109,7 @@ message UpdateCandidateInformationInput {
     bool is_evil_node = 4;
 }
 
-message ReleaseTreasuryProfitsInput {
+message TakeElectionSnapshotInput {
     sint64 term_number = 1;
     sint64 mined_blocks = 2;
     sint64 round_number = 3;

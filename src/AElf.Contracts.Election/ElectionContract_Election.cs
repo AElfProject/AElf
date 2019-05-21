@@ -19,6 +19,7 @@ namespace AElf.Contracts.Election
             State.MaximumLockTime.Value = input.MaximumLockTime;
             State.Initialized.Value = true;
             State.BlackList.Value = new PublicKeysList();
+            State.CurrentTermNumber.Value = 1;
             return new Empty();
         }
 
@@ -79,6 +80,38 @@ namespace AElf.Contracts.Election
                 Hash.FromMessage(Context.Self));
 
             State.VotingEventRegistered.Value = true;
+            return new Empty();
+        }
+
+        public override Empty TakeSnapshot(TakeElectionSnapshotInput input)
+        {
+            var snapshot = new TermSnapshot
+            {
+                MinedBlocks = input.MinedBlocks,
+                EndRoundNumber = input.RoundNumber
+            };
+            foreach (var publicKey in State.Candidates.Value.Value)
+            {
+                var votes = State.CandidateVotes[publicKey.ToHex()];
+                var validObtainedVotesAmount = 0L;
+                if (votes != null)
+                {
+                    validObtainedVotesAmount = votes.ObtainedActiveVotedVotesAmount;
+                }
+
+                snapshot.ElectionResult.Add(publicKey.ToHex(), validObtainedVotesAmount);
+            }
+
+            // Update snapshot of corresponding voting record by the way.
+            State.VoteContract.TakeSnapshot.Send(new TakeSnapshotInput
+            {
+                SnapshotNumber = input.TermNumber - 1,
+                VotingItemId = State.MinerElectionVotingItemId.Value
+            });
+
+            State.Snapshots[input.TermNumber - 1] = snapshot;
+            State.CurrentTermNumber.Value = input.TermNumber;
+
             return new Empty();
         }
 

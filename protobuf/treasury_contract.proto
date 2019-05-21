@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package treasury;
+
+import "aelf_options.proto";
+import "common.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.treasury";
+
+service TreasuryContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Treasury.TreasuryContractState";
+
+    // Action
+    rpc InitialTreasuryContract (InitialTreasuryContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc Donate (DonateInput) returns (google.protobuf.Empty) {
+    }
+    rpc Release (ReleaseInput) returns (google.protobuf.Empty) {
+    }
+
+    // View
+    rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message InitialTreasuryContractInput {
+    sint64 minimum_lock_time = 1;
+    sint64 maximum_lock_time = 2;
+}
+
+message DonateInput {
+    string symbol = 1;
+    sint64 amount = 2;
+}
+
+message ReleaseInput {
+    sint64 term_number = 1;
+}
+
+message GetWelfareRewardAmountSampleInput {
+    repeated sint64 value = 1;
+}
+
+message GetWelfareRewardAmountSampleOutput {
+    repeated sint64 value = 1;
+}

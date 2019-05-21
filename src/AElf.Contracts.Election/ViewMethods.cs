@@ -176,34 +176,6 @@ namespace AElf.Contracts.Election
             };
         }
 
-        public override GetWelfareRewardAmountSampleOutput GetWelfareRewardAmountSample(GetWelfareRewardAmountSampleInput input)
-        {
-            const long amount = 10000;
-            var welfareHash = State.WelfareHash.Value;
-            var output = new GetWelfareRewardAmountSampleOutput();
-            var welfareItem = State.ProfitContract.GetProfitItem.Call(welfareHash);
-            var releasedInformation = State.ProfitContract.GetReleasedProfitsInformation.Call(
-                new GetReleasedProfitsInformationInput
-                {
-                    ProfitId = welfareHash,
-                    Period = welfareItem.CurrentPeriod.Sub(1)
-                });
-            var totalWeight = releasedInformation.TotalWeight;
-            var totalAmount = releasedInformation.ProfitsAmount;
-            foreach (var lockTime in input.Value)
-            {
-                var weight = GetVotesWeight(amount, lockTime);
-                output.Value.Add(totalAmount.Mul(weight).Div(totalWeight));
-            }
-
-            return output;
-        }
-
-        public override SInt64Value GetCurrentWelfareReward(StringInput input)
-        {
-            return State.ProfitContract.GetProfitAmount.Call(new ProfitInput {ProfitId = State.WelfareHash.Value});
-        }
-
         public override GetPageableCandidateInformationOutput GetPageableCandidateInformation(PageInformation input)
         {
             var output = new GetPageableCandidateInformationOutput();
