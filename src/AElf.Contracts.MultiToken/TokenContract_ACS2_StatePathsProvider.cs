@@ -13,13 +13,28 @@ namespace AElf.Contracts.MultiToken
             {
                 case nameof(Transfer):
                 {
-                    var xferInput = TransferInput.Parser.ParseFrom(txn.Params);
+                    var args = TransferInput.Parser.ParseFrom(txn.Params);
                     return new StatePathsInfo
                     {
                         Paths =
                         {
                             GetPath(nameof(TokenContractState.Balances), txn.From.ToString()),
-                            GetPath(nameof(TokenContractState.Balances), xferInput.To.ToString())
+                            GetPath(nameof(TokenContractState.Balances), args.To.ToString())
+                        }
+                    };
+                }
+
+                case nameof(TransferFrom):
+                {
+                    var args = TransferFromInput.Parser.ParseFrom(txn.Params);
+                    return new StatePathsInfo()
+                    {
+                        Paths =
+                        {
+                            GetPath(nameof(TokenContractState.Allowances), args.From.ToString(),
+                                txn.From.ToString()),
+                            GetPath(nameof(TokenContractState.Balances), args.From.ToString()),
+                            GetPath(nameof(TokenContractState.Balances), args.To.ToString())
                         }
                     };
                 }
