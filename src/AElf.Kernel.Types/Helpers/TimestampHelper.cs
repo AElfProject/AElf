@@ -1,7 +1,7 @@
 using System;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf
+namespace AElf.Kernel
 {
     public static class TimestampHelper
     {
