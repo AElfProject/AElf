@@ -93,14 +93,14 @@ namespace AElf.Blockchains.SideChain
                     }
                 }
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;
-            var timestamp = chainInitializationContext?.CreationTimestamp.ToDateTime() ?? _consensusOptions.StartTimestamp;
+            var timestamp = chainInitializationContext?.CreationTimestamp ?? _consensusOptions.StartTimestamp;
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
                     IsSideChain = true
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
-                miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp.ToUniversalTime()));
+                miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp));
             return consensusMethodCallList;
         }
 

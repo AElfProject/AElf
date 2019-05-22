@@ -5,6 +5,7 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -179,7 +180,7 @@ namespace AElf.Kernel.SmartContract.Application
             var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
-                CurrentBlockTime = DateTime.UtcNow,
+                CurrentBlockTime = DateTime.UtcNow.ToTimestamp(),
                 Transaction = transaction,
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,
