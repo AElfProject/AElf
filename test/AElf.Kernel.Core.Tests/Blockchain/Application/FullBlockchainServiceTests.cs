@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 
@@ -32,21 +33,26 @@ namespace AElf.Kernel.Blockchain.Application
                 Header = new BlockHeader(),
                 Body = new BlockBody()
             };
+            
+            var transactions = new List<Transaction>();
             for (var i = 0; i < 3; i++)
             {
-                block.Body.AddTransaction(_kernelTestHelper.GenerateTransaction());
+                var transaction = _kernelTestHelper.GenerateTransaction();
+                block.Body.AddTransaction(transaction);
+                transactions.Add(transaction);
             }
 
             var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.ShouldBeNull();
 
             await _fullBlockchainService.AddBlockAsync(block);
+            await _fullBlockchainService.AddTransactionsAsync(transactions);
 
             existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.GetHash().ShouldBe(block.GetHash());
             existBlock.Body.TransactionsCount.ShouldBe(3);
 
-            foreach (var tx in block.Body.TransactionList)
+            foreach (var tx in transactions)
             {
                 var existTransaction = await _transactionManager.GetTransaction(tx.GetHash());
                 existTransaction.ShouldBe(tx);
@@ -320,7 +326,6 @@ namespace AElf.Kernel.Blockchain.Application
             await _fullBlockchainService.AddBlockAsync(block);
             var result = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             result.GetHash().ShouldBe(block.GetHash());
-            result.Body.TransactionList.Count.ShouldBe(block.Body.TransactionsCount);
             result.Body.Transactions[0].ShouldBe(block.Body.Transactions[0]);
             result.Body.Transactions[1].ShouldBe(block.Body.Transactions[1]);
             result.Body.Transactions[2].ShouldBe(block.Body.Transactions[2]);

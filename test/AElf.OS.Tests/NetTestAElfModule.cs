@@ -8,9 +8,11 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.OS.Jobs;
+using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
@@ -42,7 +44,8 @@ namespace AElf.OS
                         if (requested == null)
                             return null;
                         
-                        var selection = _blockList.Where(b => b.Height > requested.Height).OrderBy(b => b.Height).Take(cnt).ToList();
+                        var selection = _blockList.Where(b => b.Height > requested.Height).Select(b => new BlockWithTransactions {Header = b.Header}).OrderBy(b => b.Height).Take(cnt).ToList();
+                        
                         return Task.FromResult(selection);
                     });
 

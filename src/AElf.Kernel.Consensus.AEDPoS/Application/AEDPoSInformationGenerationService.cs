@@ -5,8 +5,10 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.Threading;
@@ -45,6 +47,14 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ILogger<AEDPoSInformationGenerationService> Logger { get; set; }
 
         public AEDPoSInformationGenerationService(IAccountService accountService,
+            IServiceProvider serviceProvider, ISmartContractAddressService smartContractAddressService,
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService) : this(accountService,
+            serviceProvider.GetRequiredService<ConsensusControlInformation>(), smartContractAddressService,
+            transactionReadOnlyExecutionService)
+        {
+        }
+
+        internal AEDPoSInformationGenerationService(IAccountService accountService,
             ConsensusControlInformation controlInformation, ISmartContractAddressService smartContractAddressService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {

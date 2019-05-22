@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Sdk.CSharp;
+using Acs4;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

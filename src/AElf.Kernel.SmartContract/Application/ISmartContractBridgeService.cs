@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -18,7 +20,7 @@ namespace AElf.Kernel.SmartContract.Application
         Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
             bool isPrivileged, Hash name);
 
-        Task<Block> GetBlockByHashAsync(Hash blockId);
+        Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
         int GetChainId();
 
         Address GetAddressByContractName(Hash contractName);
@@ -68,9 +70,10 @@ namespace AElf.Kernel.SmartContract.Application
             await _smartContractService.UpdateContractAsync(contractAddress, registration, isPrivileged, name);
         }
 
-        public async Task<Block> GetBlockByHashAsync(Hash blockId)
+        public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)
         {
-            return await _blockchainService.GetBlockByHashAsync(blockId);
+            var block = await _blockchainService.GetBlockByHashAsync(blockHash);
+            return await _blockchainService.GetTransactionsAsync(block.Body.Transactions);
         }
 
         public int GetChainId()

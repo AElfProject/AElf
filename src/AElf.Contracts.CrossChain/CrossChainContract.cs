@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 

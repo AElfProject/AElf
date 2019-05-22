@@ -1,6 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Types;
+using System;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -13,8 +14,6 @@ namespace AElf.Contracts.Vote
     {
         public override Empty InitialVoteContract(Empty input)
         {
-            Assert(Context.Sender == Context.GetZeroSmartContractAddress(),
-                "Only zero contract can initialize this contract.");
             Assert(!State.Initialized.Value, "Already initialized.");
             State.Initialized.Value = true;
             return new Empty();

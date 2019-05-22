@@ -8,6 +8,7 @@ using Mono.Cecil;
 
 using AElf.Runtime.CSharp.Validators.Method;
 using AElf.Runtime.CSharp.Validators.Whitelist;
+using AElf.Types;
 
 
 namespace AElf.Runtime.CSharp.Policies

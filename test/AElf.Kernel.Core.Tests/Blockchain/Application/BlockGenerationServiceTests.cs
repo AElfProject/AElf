@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;

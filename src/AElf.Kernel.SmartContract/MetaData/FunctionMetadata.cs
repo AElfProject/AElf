@@ -4,6 +4,7 @@ using System.Linq;
 using QuickGraph;
 using QuickGraph.Algorithms;
 using AElf.Kernel.SmartContract.MetaData;
+using AElf.Types;
 
 // ReSharper disable once CheckNamespace
 namespace AElf.Kernel.SmartContract

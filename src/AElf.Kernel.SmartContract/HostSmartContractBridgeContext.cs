@@ -7,6 +7,7 @@ using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
@@ -199,10 +200,9 @@ namespace AElf.Kernel.SmartContract
             return _smartContractBridgeService.GetZeroSmartContractAddress();
         }
 
-
-        public IBlockBase GetPreviousBlock()
+        public List<Transaction> GetPreviousBlockTransactions()
         {
-            return AsyncHelper.RunSync(() => _smartContractBridgeService.GetBlockByHashAsync(
+            return AsyncHelper.RunSync(() => _smartContractBridgeService.GetBlockTransactions(
                 TransactionContext.PreviousBlockHash));
         }
 

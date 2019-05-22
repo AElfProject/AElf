@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -41,8 +41,8 @@ namespace AElf
         Hash PreviousBlockHash { get; }
 
         byte[] RecoverPublicKey();
-
-        IBlockBase GetPreviousBlock();
+        
+        List<Transaction> GetPreviousBlockTransactions();
 
         bool VerifySignature(Transaction tx);
 

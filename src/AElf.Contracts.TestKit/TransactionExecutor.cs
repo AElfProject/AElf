@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,10 +29,13 @@ namespace AElf.Contracts.TestKit
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var miningService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
+            
             var block = await miningService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 new List<Transaction> {transaction},
                 DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMilliseconds(int.MaxValue));
 
+            await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
+            await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
         }
 

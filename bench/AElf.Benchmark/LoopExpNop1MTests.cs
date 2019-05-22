@@ -1,20 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
 using AElf.Benchmark.PerformanceTestContract;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Infrastructure;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
+using AElf.Types;
 using BenchmarkDotNet.Attributes;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Benchmark

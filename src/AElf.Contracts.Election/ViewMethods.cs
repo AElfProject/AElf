@@ -1,9 +1,10 @@
+using AElf.Contracts.Vote;
+using AElf.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Contracts.Profit;
-using AElf.Contracts.Vote;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

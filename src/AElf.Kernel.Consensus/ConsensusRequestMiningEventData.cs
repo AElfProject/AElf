@@ -1,5 +1,6 @@
 using System;
 using Google.Protobuf.WellKnownTypes;
+using AElf.Types;
 
 namespace AElf.Kernel.Consensus
 {
