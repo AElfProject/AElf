@@ -1,13 +1,11 @@
-using System;
+using Acs4;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
 using Volo.Abp.Threading;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
@@ -15,31 +13,26 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
     {
         private readonly IAccountService _accountService;
-        private readonly ConsensusControlInformation _controlInformation;
 
         private Hash _latestRandomHash = Hash.Empty;
 
         private ByteString PublicKey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
 
-        private AElfConsensusHint Hint => AElfConsensusHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
-
         public ILogger<AEDPoSTriggerInformationProvider> Logger { get; set; }
 
-        public AEDPoSTriggerInformationProvider(IAccountService accountService,
-            ConsensusControlInformation controlInformation)
+        public AEDPoSTriggerInformationProvider(IAccountService accountService)
         {
             _accountService = accountService;
-            _controlInformation = controlInformation;
         }
 
-        public BytesValue GetTriggerInformationForConsensusCommand()
+        public BytesValue GetTriggerInformationForConsensusCommand(BytesValue consensusCommandBytes)
         {
             return new BytesValue {Value = PublicKey};
         }
 
-        public BytesValue GetTriggerInformationForBlockHeaderExtraData()
+        public BytesValue GetTriggerInformationForBlockHeaderExtraData(BytesValue consensusCommandBytes)
         {
-            if (_controlInformation.ConsensusCommand == null)
+            if (consensusCommandBytes == null)
             {
                 return new AElfConsensusTriggerInformation
                 {
@@ -48,28 +41,30 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 }.ToBytesValue();
             }
 
-            if (Hint.Behaviour == AElfConsensusBehaviour.UpdateValue ||
-                Hint.Behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
+            var command = consensusCommandBytes.ToConsensusCommand();
+            var behaviour = command.Hint.ToAElfConsensusHint().Behaviour;
+            if (behaviour == AElfConsensusBehaviour.UpdateValue ||
+                behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
             {
                 return new AElfConsensusTriggerInformation
                 {
                     PublicKey = PublicKey,
-                    RandomHash = GetRandomHash(),
+                    RandomHash = GetRandomHash(command),
                     PreviousRandomHash = _latestRandomHash,
-                    Behaviour = Hint.Behaviour
+                    Behaviour = behaviour
                 }.ToBytesValue();
             }
 
             return new AElfConsensusTriggerInformation
             {
                 PublicKey = PublicKey,
-                Behaviour = Hint.Behaviour
+                Behaviour = behaviour
             }.ToBytesValue();
         }
 
-        public BytesValue GetTriggerInformationForConsensusTransactions()
+        public BytesValue GetTriggerInformationForConsensusTransactions(BytesValue consensusCommandBytes)
         {
-            if (_controlInformation.ConsensusCommand == null)
+            if (consensusCommandBytes == null)
             {
                 return new AElfConsensusTriggerInformation
                 {
@@ -78,18 +73,20 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 }.ToBytesValue();
             }
 
-            if (Hint.Behaviour == AElfConsensusBehaviour.UpdateValue ||
-                Hint.Behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
+            var command = consensusCommandBytes.ToConsensusCommand();
+            var behaviour = command.Hint.ToAElfConsensusHint().Behaviour;
+            if (behaviour == AElfConsensusBehaviour.UpdateValue ||
+                behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
             {
                 var trigger = new AElfConsensusTriggerInformation
                 {
                     PublicKey = PublicKey,
-                    RandomHash = GetRandomHash(),
+                    RandomHash = GetRandomHash(command),
                     PreviousRandomHash = _latestRandomHash,
-                    Behaviour = Hint.Behaviour
+                    Behaviour = behaviour
                 };
 
-                var newRandomHash = GetRandomHash();
+                var newRandomHash = GetRandomHash(command);
                 Logger.LogTrace($"Update lasted random hash to {newRandomHash.ToHex()}");
                 _latestRandomHash = newRandomHash;
 
@@ -99,7 +96,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             return new AElfConsensusTriggerInformation
             {
                 PublicKey = PublicKey,
-                Behaviour = Hint.Behaviour
+                Behaviour = behaviour
             }.ToBytesValue();
         }
 
@@ -107,9 +104,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         /// For generating in_value.
         /// </summary>
         /// <returns></returns>
-        private Hash GetRandomHash()
+        private Hash GetRandomHash(ConsensusCommand consensusCommand)
         {
-            var data = Hash.FromRawBytes(_controlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds
+            var data = Hash.FromRawBytes(consensusCommand.NextBlockMiningLeftMilliseconds
                 .DumpByteArray());
             var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.DumpByteArray()));
             return Hash.FromRawBytes(bytes);

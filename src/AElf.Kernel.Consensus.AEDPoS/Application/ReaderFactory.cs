@@ -1,8 +1,6 @@
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {

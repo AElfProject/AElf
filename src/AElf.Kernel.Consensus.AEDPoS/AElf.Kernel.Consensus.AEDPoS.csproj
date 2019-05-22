@@ -13,6 +13,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />

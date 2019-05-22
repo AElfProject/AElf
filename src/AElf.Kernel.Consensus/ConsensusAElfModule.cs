@@ -1,6 +1,5 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,7 +12,6 @@ namespace AElf.Kernel.Consensus
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IConsensusService, ConsensusService>();
-            context.Services.AddSingleton<ConsensusControlInformation>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
             context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
             context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
