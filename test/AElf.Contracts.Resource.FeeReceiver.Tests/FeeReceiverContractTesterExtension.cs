@@ -3,13 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
-using AElf.Contracts.Dividend;
-using AElf.Contracts.Election;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
-using AElf.Kernel;
-using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 
@@ -23,8 +18,6 @@ namespace AElf.Contracts.Resource.FeeReceiver
         public static IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<Dummy>());
 
-//        public static byte[] DividendContractCode =>
-//            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Dividend")).Value;
         public static byte[] TokenContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
         public static byte[] FeeReceiverContractCode =>

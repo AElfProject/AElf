@@ -7,7 +7,6 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
-
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
@@ -20,8 +19,11 @@
         <ContractBase Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractBase>
+    </ItemGroup>
+    <ItemGroup>
         <ContractCode Include="..\..\protobuf\referendum_auth_contract.proto">
             <Link>Protobuf\Proto\referendum_auth_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
+
 </Project>

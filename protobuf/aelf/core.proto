@@ -197,24 +197,10 @@ message SmartContractRegistration {
 //    int32 LeafCount = 3;
 //}
 
-//message MerklePath {
-//    repeated Hash Path = 1;
-//}
-
-//message StringList {
-//    repeated string Values = 1;
-//    string Remark = 2;
-//}
-
 message HashList {
     repeated Hash Values = 1;
 }
 
-//message LongList {
-//    repeated int64 Values = 1;
-//    string Remark = 2;
-//}
-//
 //message BlockAbstract {
 //    string MinerPublicKey = 1;
 //    google.protobuf.Timestamp Time = 2;
@@ -379,11 +365,4 @@ message SInt32Value
 message SInt64Value
 {
     sint64 Value = 1;
-}
-
-enum TimeUnit {
-    Days = 0;
-    Months = 1;
-    Minutes = 2;
-    Hours = 3;
 }
