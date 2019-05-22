@@ -17,5 +17,5 @@ service StatePathsProvidingContract {
 }
 
 message ResourceInfo {
-    repeated int32 reources = 2;
+    repeated int32 reources = 1;
 }
