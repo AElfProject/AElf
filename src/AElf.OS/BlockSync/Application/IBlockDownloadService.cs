@@ -24,30 +24,21 @@ namespace AElf.OS.BlockSync.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
-        private readonly IBlockAttachService _blockAttachService;
-        private readonly ITaskQueueManager _taskQueueManager;
-        private readonly IBlockSyncStateProvider _blockSyncStateProvider;
-        private readonly IBlockValidationService _validationService;
+        private readonly IBlockSyncAttachService _blockSyncAttachService;
 
         public ILogger<BlockDownloadService> Logger { get; set; }
 
         private const int BlockSyncJobLimit = 10;
 
-        public BlockDownloadService(IBlockAttachService blockAttachService,
-            IBlockchainService blockchainService,
+        public BlockDownloadService(IBlockchainService blockchainService,
             INetworkService networkService,
-            ITaskQueueManager taskQueueManager,
-            IBlockSyncStateProvider blockSyncStateProvider,
-            IBlockValidationService validationService)
+            IBlockSyncAttachService blockSyncAttachService)
         {
             Logger = NullLogger<BlockDownloadService>.Instance;
 
             _blockchainService = blockchainService;
             _networkService = networkService;
-            _blockAttachService = blockAttachService;
-            _taskQueueManager = taskQueueManager;
-            _blockSyncStateProvider = blockSyncStateProvider;
-            _validationService = validationService;
+            _blockSyncAttachService = blockSyncAttachService;
         }
 
         public async Task<int> DownloadBlocksAsync(Hash previousBlockHash, long previousBlockHeight,
@@ -84,7 +75,6 @@ namespace AElf.OS.BlockSync.Application
 
                 if (blocksWithTransactions.First().Header.PreviousBlockHash != lastDownloadBlockHash)
                 {
-                    Logger.LogError($"Current job hash : {lastDownloadBlockHash}");
                     throw new InvalidOperationException(
                         $"Previous block not match previous {lastDownloadBlockHash}, network back {blocksWithTransactions.First().Header.PreviousBlockHash}");
                 }
@@ -94,31 +84,7 @@ namespace AElf.OS.BlockSync.Application
                     Logger.LogDebug(
                         $"Processing block {blockWithTransactions},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
 
-                    var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
-                    if (!valid)
-                    {
-                        throw new InvalidOperationException(
-                            $"The block was invalid, block hash: {blockWithTransactions} , sync from {suggestedPeerPubKey} failed.");
-                    }
-                    
-                    await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
-                    var block = blockWithTransactions.ToBlock();
-                    await _blockchainService.AddBlockAsync(block);
-                    
-                    var enqueueTimestamp = TimestampHelper.GetUtcNow();
-                    _taskQueueManager.Enqueue(async () =>
-                        {
-                            try
-                            {
-                                _blockSyncStateProvider.BlockSyncJobEnqueueTime = enqueueTimestamp;
-                                await _blockAttachService.AttachBlockAsync(block);
-                            }
-                            finally
-                            {
-                                _blockSyncStateProvider.BlockSyncJobEnqueueTime = null;
-                            }
-                        },
-                        KernelConstants.UpdateChainQueueName);
+                    await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions);
 
                     downloadBlockCount++;
                 }
