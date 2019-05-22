@@ -17,10 +17,6 @@ namespace AElf.Kernel.SmartContract
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
 
             context.Services.AddSingleton<IDefaultContractZeroCodeProvider, DefaultContractZeroCodeProvider>();
-            
-            var configuration = context.Services.GetConfiguration();
-
-            Configure<ContractOptions>(configuration.GetSection("Contract"));
         }
     }
 }

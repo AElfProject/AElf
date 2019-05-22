@@ -5,6 +5,7 @@ using AElf.Blockchains.BasicBaseChain;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Deployer;
+using AElf.Contracts.ParliamentAuth;
 using AElf.CrossChain;
 using AElf.CrossChain.Grpc;
 using AElf.Kernel;
@@ -78,7 +79,7 @@ namespace AElf.Blockchains.SideChain
             var contractZeroInitializationInput = new ContractZeroInitializationInput
             {
                 ZeroOwnerAddressGenerationContractHashName = ParliamentAuthContractAddressNameProvider.Name,
-                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContract.GetZeroOwnerAddress),
+                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetZeroOwnerAddress),
                 ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
             };
             

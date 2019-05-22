@@ -35,6 +35,9 @@
     <Content Include="appsettings.MainChain.CustomNet.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+    <Content Include="appsettings.SideChain.CustomNet.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Contract Include="..\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />

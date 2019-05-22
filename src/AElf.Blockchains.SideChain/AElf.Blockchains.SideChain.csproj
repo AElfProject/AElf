@@ -25,11 +25,20 @@
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
+        <ContractMessage Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
     <ItemGroup>
         <Contract Include="..\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <Contract Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
         <Contract Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <Contract Include="..\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 </Project>

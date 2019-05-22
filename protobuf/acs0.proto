@@ -19,6 +19,8 @@ service ACS0 {
     }
     rpc Initialize (ContractZeroInitializationInput) returns (google.protobuf.Empty) {
     }
+    rpc ChangeContractZeroOwner (aelf.Address) returns (google.protobuf.Empty) {
+    }
     // Views
     rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {
         option (aelf.is_view) = true;
@@ -77,6 +79,12 @@ message ContractUpdateInput {
 message ChangeContractOwnerInput {
     aelf.Address contractAddress = 1;
     aelf.Address newOwner = 2;
+}
+
+message ContractZeroInitializationInput{
+    aelf.Hash zeroOwnerAddressGenerationContractHashName = 1;
+    string zeroOwnerAddressGenerationMethodName = 2;
+    bool contractDeploymentAuthorityRequired = 3;
 }
 
 // Events

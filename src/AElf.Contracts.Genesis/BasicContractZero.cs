@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using AElf.Kernel;
-using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -191,7 +188,6 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
-
         public override Empty Initialize(ContractZeroInitializationInput input)
         {
             Assert(!State.Initialized.Value, "Contract zero already initialized");
@@ -204,6 +200,14 @@ namespace AElf.Contracts.Genesis
             var ownerAddress =
                 Context.Call<Address>(address, input.ZeroOwnerAddressGenerationMethodName, new Empty());
             State.ContractZeroOwner.Value = ownerAddress;
+            return new Empty();
+        }
+
+        public override Empty ChangeContractZeroOwner(Address newOwnerAddress)
+        {
+            Assert(State.Initialized.Value, "Contract zero not initialized");
+            CheckAuthority();
+            State.ContractZeroOwner.Value = newOwnerAddress;
             return new Empty();
         }
 

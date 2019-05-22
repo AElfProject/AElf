@@ -232,7 +232,7 @@ namespace AElf.OS.Node.Application
             {
                 From = zeroAddress,
                 To = zeroAddress,
-                MethodName = nameof(ISmartContractZero.Initialize),
+                MethodName = nameof(BasicContractZero.Initialize),
                 Params = contractZeroInitializationInput.ToByteString()
             };
         }
