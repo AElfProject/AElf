@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Types;
 using Anemonis.AspNetCore.JsonRpc;
 using Anemonis.JsonRpc;
 using Microsoft.Extensions.Logging;

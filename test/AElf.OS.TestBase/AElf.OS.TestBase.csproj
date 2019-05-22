@@ -6,10 +6,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
+      <!--<ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />-->
       <ProjectReference Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
       <ProjectReference Include="..\AElf.Contracts.Consensus.AEDPoS.Tests\AElf.Contracts.Consensus.AEDPoS.Tests.csproj" />
@@ -21,5 +19,14 @@
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
       <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
-
+    <ItemGroup>
+        <Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
+        <Contract Include="..\..\src\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf/Proto/token_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
 </Project>

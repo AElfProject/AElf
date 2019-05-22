@@ -1,5 +1,6 @@
 using AElf.Contracts.Election;
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {

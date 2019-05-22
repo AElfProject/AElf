@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.EventBus.Local;
 

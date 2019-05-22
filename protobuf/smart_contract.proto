@@ -6,7 +6,7 @@ import "kernel.proto";
 
 message Resource {
     string Name = 1;
-    DataAccessMode DataAccessMode  = 2;
+    aelf.DataAccessMode DataAccessMode  = 2;
 }
 
 // The function meta data describes the data members of contract object.
