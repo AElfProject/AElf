@@ -11,11 +11,11 @@ option (aelf.identity) = "acs2";
 
 service StatePathsProvidingContract {
     // Views
-    rpc GetStatePaths (aelf.Transaction) returns (StatePathsInfo) {
+    rpc GetResourceInfo (aelf.Transaction) returns (ResourceInfo) {
         option (aelf.is_view) = true;
     }
 }
 
-message StatePathsInfo {
-    repeated aelf.ScopedStatePath paths = 2;
+message ResourceInfo {
+    repeated int32 reources = 2;
 }

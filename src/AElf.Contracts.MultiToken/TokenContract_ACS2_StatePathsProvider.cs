@@ -7,19 +7,19 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract
     {
-        public override StatePathsInfo GetStatePaths(Transaction txn)
+        public override ResourceInfo GetResourceInfo(Transaction txn)
         {
             switch (txn.MethodName)
             {
                 case nameof(Transfer):
                 {
                     var args = TransferInput.Parser.ParseFrom(txn.Params);
-                    return new StatePathsInfo
+                    return new ResourceInfo
                     {
-                        Paths =
+                        Reources =
                         {
-                            GetPath(nameof(TokenContractState.Balances), txn.From.ToString(), args.Symbol),
-                            GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol)
+                            GetPathHashCode(nameof(TokenContractState.Balances), txn.From.ToString(), args.Symbol),
+                            GetPathHashCode(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol)
                         }
                     };
                 }
@@ -27,14 +27,14 @@ namespace AElf.Contracts.MultiToken
                 case nameof(TransferFrom):
                 {
                     var args = TransferFromInput.Parser.ParseFrom(txn.Params);
-                    return new StatePathsInfo()
+                    return new ResourceInfo
                     {
-                        Paths =
+                        Reources =
                         {
-                            GetPath(nameof(TokenContractState.Allowances), args.From.ToString(), txn.From.ToString(),
+                            GetPathHashCode(nameof(TokenContractState.Allowances), args.From.ToString(), txn.From.ToString(),
                                 args.Symbol),
-                            GetPath(nameof(TokenContractState.Balances), args.From.ToString(), args.Symbol),
-                            GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol)
+                            GetPathHashCode(nameof(TokenContractState.Balances), args.From.ToString(), args.Symbol),
+                            GetPathHashCode(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol)
                         }
                     };
                 }
@@ -45,8 +45,9 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
-        private ScopedStatePath GetPath(params string[] parts)
+        private int GetPathHashCode(params string[] parts)
         {
+            // TODO: Use more sophisticated algorithm than GetHashCode
             return new ScopedStatePath
             {
                 Address = Context.Self,
@@ -57,7 +58,7 @@ namespace AElf.Contracts.MultiToken
                         parts
                     }
                 }
-            };
+            }.GetHashCode();
         }
     }
 }
