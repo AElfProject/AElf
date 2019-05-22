@@ -8,6 +8,7 @@ using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
+using AElf.Types;
 using BenchmarkDotNet.Attributes;
 
 namespace AElf.Benchmark

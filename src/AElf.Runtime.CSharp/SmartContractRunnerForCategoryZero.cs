@@ -11,6 +11,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.MetaData;
 using AElf.CSharp.Core.MetadataAttribute;
+using AElf.Types;
 using Type = System.Type;
 
 namespace AElf.Runtime.CSharp

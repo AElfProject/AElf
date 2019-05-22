@@ -22,6 +22,7 @@
         <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
     </ItemGroup>
     <ItemGroup>
       <None Include="..\..\protobuf\aelf_options.proto">

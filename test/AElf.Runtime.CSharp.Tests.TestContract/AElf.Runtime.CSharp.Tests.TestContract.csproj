@@ -11,25 +11,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="..\..\protobuf\aelf_options.proto">
-        <Link>Protobuf/proto/aelf_options.proto</Link>
-      </None>
-      <None Include="..\..\protobuf\common.proto">
-        <Link>Protobuf/proto/common.proto</Link>
-      </None>
-      <None Include="..\..\protobuf\test_contract.proto">
+      <ContractCode Include="..\..\protobuf\test_contract.proto">
         <Link>Protobuf/proto/test_contract.proto</Link>
-      </None>
+      </ContractCode>
     </ItemGroup>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh test_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_code.bat test_contract.proto" />
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs" />
-        </ItemGroup>
-    </Target>
     <Target Name="CopyContractDll" AfterTargets="AfterBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll ../../test/AElf.Runtime.CSharp.Tests/contracts"/>
         <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll ..\..\test\AElf.Runtime.CSharp.Tests\contracts"/>

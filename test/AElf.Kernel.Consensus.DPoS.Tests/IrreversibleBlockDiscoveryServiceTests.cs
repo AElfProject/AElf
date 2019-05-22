@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Acs4;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AElfConsensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.TestBase;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 
@@ -83,7 +85,7 @@ namespace AElf.Kernel.Consensus.AElfConsensus
                 var currentLibHash = chain.LastIrreversibleBlockHash;
 
                 var transaction = _kernelTestHelper.GenerateTransaction();
-                var logEvent = new AElf.Contracts.Consensus.DPoS.IrreversibleBlockFound()
+                var logEvent = new IrreversibleBlockFound()
                 {
                     Offset = 6
                 }.ToLogEvent(Address.FromString("TokenContract"));
@@ -142,7 +144,7 @@ namespace AElf.Kernel.Consensus.AElfConsensus
 
                 var transaction = _kernelTestHelper.GenerateTransaction();
                 var offset = 5;
-                var logEvent = new AElf.Contracts.Consensus.DPoS.IrreversibleBlockFound()
+                var logEvent = new IrreversibleBlockFound()
                 {
                     Offset = offset
                 }.ToLogEvent(_consensusAddress);

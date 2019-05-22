@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Types;
 
 namespace AElf.OS.Network.Infrastructure
 {
@@ -23,7 +24,7 @@ namespace AElf.OS.Network.Infrastructure
 
         Task AnnounceAsync(PeerNewBlockAnnouncement an);
         Task SendTransactionAsync(Transaction tx);
-        Task<Block> RequestBlockAsync(Hash hash);
-        Task<List<Block>> GetBlocksAsync(Hash previousHash, int count);
+        Task<BlockWithTransactions> RequestBlockAsync(Hash hash);
+        Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
     }
 }

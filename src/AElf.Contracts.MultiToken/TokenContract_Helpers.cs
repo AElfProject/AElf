@@ -1,6 +1,7 @@
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -43,7 +44,8 @@ namespace AElf.Contracts.MultiToken
         {
             var symbolState = State.LockWhiteLists[symbol];
             Assert(symbolState != null && symbolState[address], "Not in white list.");
-            Assert(symbolState != null && symbolState[Context.Sender], "Not in white list.");
+            // TODO: Why is this added in a big commit: https://github.com/AElfProject/AElf/commit/b8d67cc78bf0ffae623585cf8e52f966fdf00d09#r33581502
+            // Assert(symbolState != null && symbolState[Context.Sender], "Not in white list.");
         }
 
         private void RegisterTokenInfo(TokenInfo tokenInfo)

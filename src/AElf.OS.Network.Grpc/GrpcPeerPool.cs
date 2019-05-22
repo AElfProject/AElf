@@ -9,6 +9,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -202,7 +203,7 @@ namespace AElf.OS.Network.Grpc
             var hsk = new Handshake
             {
                 HskData = nd,
-                Sig = ByteString.CopyFrom(sig),
+                Signature = ByteString.CopyFrom(sig),
                 Header = await _blockchainService.GetBestChainLastBlockHeaderAsync()
             };
 

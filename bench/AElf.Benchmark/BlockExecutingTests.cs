@@ -8,6 +8,7 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
+using AElf.Types;
 using BenchmarkDotNet.Attributes;
 using Google.Protobuf.WellKnownTypes;
 

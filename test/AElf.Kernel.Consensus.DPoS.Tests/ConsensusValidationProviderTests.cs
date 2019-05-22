@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
@@ -56,7 +57,6 @@ namespace AElf.Kernel.Consensus.AElfConsensus.Tests
             var body = new BlockBody
             {
                 BlockHeader = header.GetHash(),
-                TransactionList = { new Transaction() },
                 Transactions = { Hash.Generate() }
             };
             

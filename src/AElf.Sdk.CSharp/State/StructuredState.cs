@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State

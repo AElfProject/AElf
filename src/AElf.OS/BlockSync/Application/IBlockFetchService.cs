@@ -5,7 +5,8 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network.Application;
-using Google.Protobuf.WellKnownTypes;
+using AElf.OS.Network.Extensions;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -23,6 +24,7 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
+        private readonly IBlockValidationService _validationService;
 
         public ILogger<BlockFetchService> Logger { get; set; }
 
@@ -30,7 +32,8 @@ namespace AElf.OS.BlockSync.Application
             IBlockchainService blockchainService,
             INetworkService networkService,
             ITaskQueueManager taskQueueManager,
-            IBlockSyncStateProvider blockSyncStateProvider)
+            IBlockSyncStateProvider blockSyncStateProvider,
+            IBlockValidationService validationService)
         {
             Logger = NullLogger<BlockFetchService>.Instance;
 
@@ -39,23 +42,30 @@ namespace AElf.OS.BlockSync.Application
             _blockAttachService = blockAttachService;
             _taskQueueManager = taskQueueManager;
             _blockSyncStateProvider = blockSyncStateProvider;
+            _validationService = validationService;
         }
 
         public async Task FetchBlockAsync(Hash blockHash, long blockHeight, string suggestedPeerPubKey)
         {
-            var peerBlock = await _blockchainService.GetBlockByHashAsync(blockHash);
-            if (peerBlock != null)
+            var localBlock = await _blockchainService.GetBlockByHashAsync(blockHash);
+            if (localBlock != null)
             {
-                Logger.LogDebug($"Block {peerBlock} already know.");
+                Logger.LogDebug($"Block {localBlock} already know.");
                 return;
             }
 
-            peerBlock = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
-            if (peerBlock == null)
+            var blockWithTransactions = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
+            
+            var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+            if (!valid)
             {
-                Logger.LogWarning($"Get null block from peer, request block hash: {blockHash}");
-                return;
+                throw new InvalidOperationException(
+                    $"The block was invalid, block hash: {blockWithTransactions} , sync from {suggestedPeerPubKey} failed.");
             }
+            
+            await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
+            var block = blockWithTransactions.ToBlock();
+            await _blockchainService.AddBlockAsync(block);
 
             var enqueueTimestamp = TimestampHelper.GetUtcNow();
             _taskQueueManager.Enqueue(async () =>
@@ -63,7 +73,7 @@ namespace AElf.OS.BlockSync.Application
                     try
                     {
                         _blockSyncStateProvider.BlockSyncJobEnqueueTime = enqueueTimestamp;
-                        await _blockAttachService.AttachBlockAsync(peerBlock);
+                        await _blockAttachService.AttachBlockAsync(block);
                     }
                     finally
                     {

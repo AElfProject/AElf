@@ -8,6 +8,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,10 +17,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
     public class AElfConsensusTransactionExecutor : ITransactionExecutor
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly IBlockchainService _blockchainService;
 
-        public AElfConsensusTransactionExecutor(IServiceProvider serviceProvider)
+        public AElfConsensusTransactionExecutor(IServiceProvider serviceProvider, IBlockchainService blockchainService)
         {
             _serviceProvider = serviceProvider;
+            _blockchainService = blockchainService;
         }
 
         public async Task ExecuteAsync(Transaction transaction)
@@ -37,6 +40,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
 
+            await _blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
         }
 

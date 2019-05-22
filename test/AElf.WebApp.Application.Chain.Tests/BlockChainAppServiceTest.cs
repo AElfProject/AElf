@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Acs0;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -17,6 +19,7 @@ using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using AElf.Runtime.CSharp;
+using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -28,6 +31,14 @@ namespace AElf.WebApp.Application.Chain.Tests
 {
     public sealed class BlockChainAppServiceTest : WebAppTestBase
     {
+        private IReadOnlyDictionary<string, byte[]> _codes;
+
+        public IReadOnlyDictionary<string, byte[]> Codes =>
+            _codes ?? (_codes = ContractsDeployer.GetContractCodes<BlockChainAppServiceTest>());
+
+        public byte[] ConsensusContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
+        public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
@@ -60,7 +71,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 Params = ByteString.CopyFrom(new ContractDeploymentInput
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
@@ -104,7 +115,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         public async Task Call_Success()
         {
             // Generate a transaction
-            var transaction = await GenerateViewTransaction(nameof(TokenContract.GetTokenInfo), 
+            var transaction = await GenerateViewTransaction(nameof(TokenContractContainer.TokenContractStub.GetTokenInfo), 
                 new GetTokenInfoInput
                 {
                     Symbol = "ELF"
@@ -1032,7 +1043,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             {
                 var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
-                    nameof(TokenContract.Create), new CreateInput
+                    nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
                     {
                         Symbol = "ELF",
                         TokenName= $"elf token {i}",

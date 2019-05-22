@@ -1,6 +1,6 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.BlockSync.Infrastructure

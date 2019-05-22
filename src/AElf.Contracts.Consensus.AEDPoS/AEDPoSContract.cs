@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Contracts.Election;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -42,7 +43,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty FirstRound(Round input)
         {
-            Assert(Context.Sender == Context.GetZeroSmartContractAddress(), "Sender must be contract zero.");
+            Assert(State.CurrentRoundNumber.Value == 0, "Not first round.");
             Assert(input.RoundNumber == 1, "Invalid round number.");
             Assert(input.RealTimeMinersInformation.Any(), "No miner in input data.");
 

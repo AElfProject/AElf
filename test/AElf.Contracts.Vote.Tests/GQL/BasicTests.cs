@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -11,13 +12,6 @@ namespace AElf.Contracts.Vote
 {
     public partial class VoteTests : VoteContractTestBase
     {
-        [Fact]
-        public async Task VoteContract_Initialize_NotByContractZero()
-        {
-            var transactionResult = (await VoteContractStub.InitialVoteContract.SendAsync(new Empty())).TransactionResult;
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Only zero contract can");
-        }
 
         [Fact]
         public async Task VoteContract_Register_Again()

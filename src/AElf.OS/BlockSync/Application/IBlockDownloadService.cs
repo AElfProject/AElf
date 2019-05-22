@@ -6,6 +6,8 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Extensions;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -25,6 +27,7 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
+        private readonly IBlockValidationService _validationService;
 
         public ILogger<BlockDownloadService> Logger { get; set; }
 
@@ -34,7 +37,8 @@ namespace AElf.OS.BlockSync.Application
             IBlockchainService blockchainService,
             INetworkService networkService,
             ITaskQueueManager taskQueueManager,
-            IBlockSyncStateProvider blockSyncStateProvider)
+            IBlockSyncStateProvider blockSyncStateProvider,
+            IBlockValidationService validationService)
         {
             Logger = NullLogger<BlockDownloadService>.Instance;
 
@@ -43,6 +47,7 @@ namespace AElf.OS.BlockSync.Application
             _blockAttachService = blockAttachService;
             _taskQueueManager = taskQueueManager;
             _blockSyncStateProvider = blockSyncStateProvider;
+            _validationService = validationService;
         }
 
         public async Task<int> DownloadBlocksAsync(Hash previousBlockHash, long previousBlockHeight,
@@ -68,27 +73,38 @@ namespace AElf.OS.BlockSync.Application
 
                 Logger.LogDebug($"Request blocks start with {lastDownloadBlockHash}");
 
-                var blocks = await _networkService.GetBlocksAsync(lastDownloadBlockHash, lastDownloadBlockHeight,
+                var blocksWithTransactions = await _networkService.GetBlocksAsync(lastDownloadBlockHash, lastDownloadBlockHeight,
                     batchRequestBlockCount, suggestedPeerPubKey);
 
-                if (blocks == null || !blocks.Any())
+                if (blocksWithTransactions == null || !blocksWithTransactions.Any())
                 {
                     Logger.LogDebug($"No blocks returned, current chain height: {chain.LongestChainHeight}.");
                     break;
                 }
 
-                if (blocks.First().Header.PreviousBlockHash != lastDownloadBlockHash)
+                if (blocksWithTransactions.First().Header.PreviousBlockHash != lastDownloadBlockHash)
                 {
                     Logger.LogError($"Current job hash : {lastDownloadBlockHash}");
                     throw new InvalidOperationException(
-                        $"Previous block not match previous {lastDownloadBlockHash}, network back {blocks.First().Header.PreviousBlockHash}");
+                        $"Previous block not match previous {lastDownloadBlockHash}, network back {blocksWithTransactions.First().Header.PreviousBlockHash}");
                 }
 
-                foreach (var block in blocks)
+                foreach (var blockWithTransactions in blocksWithTransactions)
                 {
                     Logger.LogDebug(
-                        $"Processing block {block},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
+                        $"Processing block {blockWithTransactions},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
 
+                    var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+                    if (!valid)
+                    {
+                        throw new InvalidOperationException(
+                            $"The block was invalid, block hash: {blockWithTransactions} , sync from {suggestedPeerPubKey} failed.");
+                    }
+                    
+                    await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
+                    var block = blockWithTransactions.ToBlock();
+                    await _blockchainService.AddBlockAsync(block);
+                    
                     var enqueueTimestamp = TimestampHelper.GetUtcNow();
                     _taskQueueManager.Enqueue(async () =>
                         {
@@ -107,7 +123,7 @@ namespace AElf.OS.BlockSync.Application
                     downloadBlockCount++;
                 }
 
-                var lastBlock = blocks.Last();
+                var lastBlock = blocksWithTransactions.Last();
                 lastDownloadBlockHash = lastBlock.GetHash();
                 lastDownloadBlockHeight = lastBlock.Height;
             }

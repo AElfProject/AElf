@@ -1,6 +1,6 @@
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp.State;
-using Google.Protobuf.WellKnownTypes;
+using AElf.Types;
 
 namespace AElf.Contracts.ReferendumAuth
 {

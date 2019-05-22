@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -96,7 +97,7 @@ namespace AElf.OS.Network.Application
             return successfulBcasts;
         }
 
-        public async Task<List<Block>> GetBlocksAsync(Hash previousBlock, long previousHeight, int count, string peerPubKey = null, bool tryOthersIfFail = false)
+        public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, long previousHeight, int count, string peerPubKey = null, bool tryOthersIfFail = false)
         {
             // try get the block from the specified peer. 
             if (!string.IsNullOrWhiteSpace(peerPubKey))
@@ -139,13 +140,13 @@ namespace AElf.OS.Network.Application
             return null;
         }
 
-        public async Task<Block> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
+        public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
         {
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
             return await GetBlockAsync(hash, peer, tryOthersIfSpecifiedFails);
         }
 
-        private async Task<Block> GetBlockAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
+        private async Task<BlockWithTransactions> GetBlockAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
         {
             if (tryOthersIfSpecifiedFails && string.IsNullOrWhiteSpace(peer))
                 throw new InvalidOperationException($"Parameter {nameof(tryOthersIfSpecifiedFails)} cannot be true, " +
@@ -178,7 +179,7 @@ namespace AElf.OS.Network.Application
 
             foreach (var p in _peerPool.GetPeers())
             {
-                Block block = await RequestBlockToAsync(hash, p);
+                BlockWithTransactions block = await RequestBlockToAsync(hash, p);
 
                 if (block != null)
                     return block;
@@ -187,7 +188,7 @@ namespace AElf.OS.Network.Application
             return null;
         }
 
-        private async Task<Block> RequestBlockToAsync(Hash hash, IPeer peer)
+        private async Task<BlockWithTransactions> RequestBlockToAsync(Hash hash, IPeer peer)
         {
             return await RequestAsync(peer, p => p.RequestBlockAsync(hash));
         }

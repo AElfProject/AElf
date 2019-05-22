@@ -5,11 +5,17 @@ bash "${scriptdir}/download_binary.sh"
 
 plugin="${scriptdir}/contract_csharp_plugin"
 
-protoc --proto_path=../../protobuf \
---csharp_out=internal_access:./Protobuf/Generated \
+destdir=./Protobuf/Generated
+
+[ -d ${destdir} ] || mkdir -p ${destdir}
+
+solutiondir=`dirname ${scriptdir}`
+
+protoc --proto_path=${solutiondir}/protobuf \
+--csharp_out=internal_access:${destdir} \
 --csharp_opt=file_extension=.g.cs \
 --contract_opt=stub \
 --contract_opt=internal_access \
---contract_out=./Protobuf/Generated \
+--contract_out=${destdir} \
 --plugin=protoc-gen-contract="${plugin}" \
 $@
