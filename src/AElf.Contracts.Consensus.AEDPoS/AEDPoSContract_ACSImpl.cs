@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 using Acs4;
-using AElf.Sdk.CSharp;
-using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -49,96 +47,31 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             var triggerInformation = new AElfConsensusTriggerInformation();
             triggerInformation.MergeFrom(input.Value);
-            // Some basic checks.
+
             Assert(triggerInformation.PublicKey.Any(), "Invalid public key.");
 
+            if (!TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                Assert(false, "Failed to get current round information.");
+            }
+
             var publicKey = triggerInformation.PublicKey;
-            var currentBlockTime = Context.CurrentBlockTime;
-            var behaviour = triggerInformation.Behaviour;
 
-            Assert(TryToGetCurrentRoundInformation(out var currentRound),
-                "Failed to get current round information.");
-
-            switch (behaviour)
+            switch (triggerInformation.Behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
-                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks = currentRound
-                        .RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks.Add(1);
-                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
-                        currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
-                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTimes
-                        .Add(currentBlockTime.ToTimestamp());
-
-                    Assert(triggerInformation.RandomHash != null, "Random hash should not be null.");
-
-                    var inValue = currentRound.CalculateInValue(triggerInformation.RandomHash);
-                    var outValue = Hash.FromMessage(inValue);
-                    var signature =
-                        Hash.FromTwoHashes(outValue, triggerInformation.RandomHash); // Just initial signature value.
-                    var previousInValue = Hash.Empty; // Just initial previous in value.
-
-                    if (TryToGetPreviousRoundInformation(out var previousRound) && !IsJustChangedTerm(out _))
-                    {
-                        signature = previousRound.CalculateSignature(inValue);
-                        if (triggerInformation.PreviousRandomHash != Hash.Empty)
-                        {
-                            // If PreviousRandomHash is Hash.Empty, it means the sender unable or unwilling to publish his previous in value.
-                            previousInValue = previousRound.CalculateInValue(triggerInformation.PreviousRandomHash);
-                        }
-                    }
-
-                    var updatedRound = currentRound.ApplyNormalConsensusData(publicKey.ToHex(), previousInValue,
-                        outValue, signature);
-
-                    ShareAndRecoverInValue(updatedRound, previousRound, inValue, publicKey.ToHex());
-
-                    // To publish Out Value.
-                    return new AElfConsensusHeaderInformation
-                    {
-                        SenderPublicKey = publicKey,
-                        Round = updatedRound,
-                        Behaviour = behaviour,
-                    }.ToBytesValue();
+                    return GetInformationToUpdateConsensusToPublishOutValue(currentRound, publicKey.ToHex(),
+                        triggerInformation).ToBytesValue();
                 case AElfConsensusBehaviour.TinyBlock:
-                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks = currentRound
-                        .RealTimeMinersInformation[publicKey.ToHex()].ProducedTinyBlocks.Add(1);
-                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
-                        currentRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
-                    currentRound.RealTimeMinersInformation[publicKey.ToHex()].ActualMiningTimes
-                        .Add(currentBlockTime.ToTimestamp());
-
-                    return new AElfConsensusHeaderInformation
-                    {
-                        SenderPublicKey = publicKey,
-                        Round = currentRound,
-                        Behaviour = behaviour
-                    }.ToBytesValue();
+                    return GetInformationToUpdateConsensusForTinyBlock(currentRound, publicKey.ToHex(),
+                        triggerInformation).ToBytesValue();
                 case AElfConsensusBehaviour.NextRound:
-                    Assert(
-                        GenerateNextRoundInformation(currentRound, currentBlockTime, out var nextRound),
-                        "Failed to generate next round information.");
-                    nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks =
-                        nextRound.RealTimeMinersInformation[publicKey.ToHex()].ProducedBlocks.Add(1);
-                    Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
-                    nextRound.ExtraBlockProducerOfPreviousRound = publicKey.ToHex();
-                    return new AElfConsensusHeaderInformation
-                    {
-                        SenderPublicKey = publicKey,
-                        Round = nextRound,
-                        Behaviour = behaviour
-                    }.ToBytesValue();
+                    return GetInformationToUpdateConsensusForNextRound(currentRound, publicKey.ToHex(),
+                        triggerInformation).ToBytesValue();
                 case AElfConsensusBehaviour.NextTerm:
-                    Assert(TryToGetMiningInterval(out var miningInterval), "Failed to get mining interval.");
-                    var firstRoundOfNextTerm = GenerateFirstRoundOfNextTerm(publicKey.ToHex(), miningInterval);
-                    Assert(firstRoundOfNextTerm.RoundId != 0, "Failed to generate new round information.");
-                    var information = new AElfConsensusHeaderInformation
-                    {
-                        SenderPublicKey = publicKey,
-                        Round = firstRoundOfNextTerm,
-                        Behaviour = behaviour
-                    };
-                    return information.ToBytesValue();
+                    return GetInformationToUpdateConsensusForNextTerm(publicKey.ToHex(), triggerInformation)
+                        .ToBytesValue();
                 default:
                     return new BytesValue();
             }
