@@ -20,8 +20,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             TryToGetCurrentRoundInformation(out var currentRound);
 
-            Assert(currentRound != null && currentRound.RoundId != 0, "Consensus not initialized.");
-            if (currentRound == null) return new ConsensusCommand();
+            if (currentRound == null || currentRound.RoundId == 0)
+            {
+                return new ConsensusCommand
+                {
+                    ExpectedMiningTime = DateTime.MaxValue.ToUniversalTime().ToTimestamp(),
+                    LimitMillisecondsOfMiningBlock = int.MaxValue, NextBlockMiningLeftMilliseconds = int.MaxValue
+                };
+            }
 
             var behaviour = GetBehaviour(currentRound, input.Value.ToHex());
 
