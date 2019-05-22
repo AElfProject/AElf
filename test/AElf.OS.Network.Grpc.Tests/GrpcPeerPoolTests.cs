@@ -34,6 +34,20 @@ namespace AElf.OS.Network
             Assert.NotNull(_pool.FindPeerByAddress(TestIp));
             Assert.NotNull(_pool.FindPeerByPublicKey(_testPubKey));
         }
+        
+        [Fact]
+        public void AddPeer_MaxConnectionsAlreadyReached_ShouldReturnFalse()
+        {
+            _pool.AddPeer(
+                new GrpcPeer(null, null, _testPubKey, TestIp, KernelConstants.ProtocolVersion,
+                    DateTime.UtcNow.ToTimestamp().Seconds, 1));
+            
+            bool added = _pool.AddPeer(
+                new GrpcPeer(null, null, _testPubKey, TestIp, KernelConstants.ProtocolVersion,
+                    DateTime.UtcNow.ToTimestamp().Seconds, 1));
+
+            added.ShouldBeFalse();
+        }
 
         [Fact]
         public async Task AddPeerAsync_PeerAlreadyConnected_ShouldReturnFalse()

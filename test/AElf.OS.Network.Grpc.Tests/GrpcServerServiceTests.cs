@@ -172,6 +172,19 @@ namespace AElf.OS.Network
         #region Other tests
 
         [Fact]
+        public async Task Connect_MaxPeersReached()
+        {
+            _peerPool.AddPeer(new GrpcPeer(null, null, GrpcTestConstants.FakePubKey,
+                GrpcTestConstants.FakeListeningPort, 
+                KernelConstants.ProtocolVersion,
+                DateTime.UtcNow.ToTimestamp().Seconds, 1));
+            
+            ConnectReply connectReply = await _service.Connect(new Handshake(), BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
+            
+            connectReply.Err.ShouldBe(AuthError.ConnectionRefused);
+        }
+        
+        [Fact]
         public async Task Connect_Cleanup_Test()
         {
             // Generate peer identity

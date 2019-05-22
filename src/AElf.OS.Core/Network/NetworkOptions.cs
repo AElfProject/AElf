@@ -25,6 +25,11 @@ namespace AElf.OS.Network
         public List<string> NetWhitelist { get; set; }
 
         /// <summary>
+        /// The maximum number of peers accepted by this node (0 for no limit).
+        /// </summary>
+        public int MaxPeers { get; set; } = NetworkConsts.DefaultMaxPeers;
+
+        /// <summary>
         /// Timeout used when trying to connect to another peer.
         /// </summary>
         public int PeerDialTimeout { get; set; } = NetworkConsts.DefaultPeerDialTimeout;

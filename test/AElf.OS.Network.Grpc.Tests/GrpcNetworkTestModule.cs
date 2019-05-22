@@ -19,6 +19,7 @@ namespace AElf.OS.Network
             Configure<NetworkOptions>(o=>
             {
                 o.ListeningPort = 2000;
+                o.MaxPeers = 2;
             });
         }
 

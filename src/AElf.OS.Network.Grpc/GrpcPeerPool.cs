@@ -59,6 +59,16 @@ namespace AElf.OS.Network.Grpc
         
         private async Task<bool> DialAsync(string ipAddress)
         {
+            if (_networkOptions.MaxPeers != 0)
+            {
+                int peerCount = GetPeers(true).Count;
+                if (peerCount >= _networkOptions.MaxPeers)
+                {
+                    Logger.LogWarning($"Cannot dial, there's currently {peerCount} peers (max. {_networkOptions.MaxPeers}).");
+                    return false;
+                }
+            }
+                
             Logger.LogTrace($"Attempting to reach {ipAddress}.");
 
             Channel channel = new Channel(ipAddress, ChannelCredentials.Insecure, new List<ChannelOption>

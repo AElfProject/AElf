@@ -29,7 +29,7 @@ namespace AElf.OS.Network.Grpc
     /// </summary>
     public class GrpcServerService : PeerService.PeerServiceBase
     {
-        private readonly NetworkOptions _netOpts;
+        private readonly NetworkOptions _networkOptions;
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockChainService;
         private readonly IAccountService _accountService;
@@ -40,7 +40,7 @@ namespace AElf.OS.Network.Grpc
 
         public GrpcServerService(IOptionsSnapshot<NetworkOptions> netOpts, IPeerPool peerPool, IBlockchainService blockChainService, IAccountService accountService)
         {
-            _netOpts = netOpts.Value;
+            _networkOptions = netOpts.Value;
             _peerPool = peerPool;
             _blockChainService = blockChainService;
             _accountService = accountService;
@@ -57,6 +57,16 @@ namespace AElf.OS.Network.Grpc
         public override async Task<ConnectReply> Connect(Handshake handshake, ServerCallContext context)
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection request.");
+
+            if (_networkOptions.MaxPeers != 0)
+            {
+                int peerCount = _peerPool.GetPeers(true).Count;
+                if (peerCount >= _networkOptions.MaxPeers)
+                {
+                    Logger.LogWarning($"Cannot dial, there's currently {peerCount} peers (max. {_networkOptions.MaxPeers}).");
+                    return new ConnectReply { Err = AuthError.ConnectionRefused };
+                }
+            }
 
             if (handshake?.HskData == null)
                 return new ConnectReply { Err = AuthError.InvalidHandshake };
@@ -194,7 +204,7 @@ namespace AElf.OS.Network.Grpc
             if (blockList.Blocks.Count != request.Count)
                 Logger.LogTrace($"Replied with {blockList.Blocks.Count} blocks for request {request}");
 
-            if (_netOpts.CompressBlocksOnRequest)
+            if (_networkOptions.CompressBlocksOnRequest)
             {
                 var headers = new Metadata{new Metadata.Entry(GrpcConsts.GrpcRequestCompressKey, GrpcConsts.GrpcGzipConst)};
                 await context.WriteResponseHeadersAsync(headers);
