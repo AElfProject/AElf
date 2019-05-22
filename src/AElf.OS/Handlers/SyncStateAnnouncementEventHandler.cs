@@ -1,12 +1,9 @@
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Node.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,7 +11,8 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class SyncStateAnnouncementEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>
+    public class SyncStateAnnouncementEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>, 
+        ILocalEventHandler<IsolatedNodeEventData>
     {
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
@@ -33,6 +31,17 @@ namespace AElf.OS.Handlers
             _blockchainService = blockchainService;
 
             _networkOptions = networkOptions.Value;
+        }
+        
+        public Task HandleEventAsync(IsolatedNodeEventData eventData)
+        {
+            if (_peerPool.GetPeers().Count == 0)
+            {
+                if (_blockchainNodeContextService.SetSyncing(false))
+                    Logger.LogDebug($"Finished a sync phase, no peers available.");
+            }
+
+            return Task.CompletedTask;
         }
         
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)

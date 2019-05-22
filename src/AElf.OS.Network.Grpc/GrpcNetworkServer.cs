@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
 using Grpc.Core;
@@ -73,6 +74,9 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogWarning("Boot nodes list is empty.");
             }
+            
+            if (_peerPool.GetPeers().Count == 0)
+                _ = EventBus.PublishAsync(new IsolatedNodeEventData());
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)
