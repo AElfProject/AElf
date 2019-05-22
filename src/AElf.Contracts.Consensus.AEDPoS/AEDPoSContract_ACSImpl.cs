@@ -36,10 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (currentRound == null) return new ConsensusCommand();
 
-            TryToGetPreviousRoundInformation(out var previousRound);
-
-            var command = GetConsensusCommand(behaviour, currentRound, previousRound, input.Value.ToHex(),
-                Context.CurrentBlockTime);
+            var command = GetConsensusCommand(behaviour, currentRound, input.Value.ToHex());
 
             Context.LogDebug(() =>
                 currentRound.GetLogs(input.Value.ToHex(),
