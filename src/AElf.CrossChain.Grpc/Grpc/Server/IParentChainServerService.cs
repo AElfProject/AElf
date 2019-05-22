@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
@@ -101,7 +102,7 @@ namespace AElf.CrossChain.Grpc
                 .Select(m => SideChainBlockData.Parser.ParseFrom(m.ToByteString())).ToList();
         }
         
-        private IEnumerable<(long, MerklePath)> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 
+        private IEnumerable<(long, Contracts.CrossChain.MerklePath)> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 
             int sideChainId)
         {
             var binaryMerkleTree = new BinaryMerkleTree();
@@ -113,14 +114,15 @@ namespace AElf.CrossChain.Grpc
             binaryMerkleTree.ComputeRootHash();
             // This is to tell side chain the merkle path for one side chain block,
             // which could be removed with subsequent improvement.
-            var merklepathList = new List<(long, MerklePath)>();
+            var merklepathList = new List<(long, Contracts.CrossChain.MerklePath)>();
             for (var i = 0; i < indexedSideChainBlockDataResult.Count; i++)
             {
                 var info = indexedSideChainBlockDataResult[i];
                 if (!info.SideChainId.Equals(sideChainId))
                     continue;
                 var merklePath = binaryMerkleTree.GenerateMerklePath(i);
-                merklepathList.Add((info.SideChainHeight, merklePath));
+                merklepathList.Add((info.SideChainHeight,
+                    Contracts.CrossChain.MerklePath.Parser.ParseFrom(merklePath.ToByteString())));
             }
             
             return merklepathList;
@@ -145,4 +147,3 @@ namespace AElf.CrossChain.Grpc
         }
     }
 }
-

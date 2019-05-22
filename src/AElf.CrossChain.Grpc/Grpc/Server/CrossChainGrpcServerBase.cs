@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -80,6 +81,7 @@ namespace AElf.CrossChain.Grpc
         private void PublishCrossChainRequestReceivedEvent(string peer, int port, int chainId)
         {
             var host = new UriBuilder(peer).Host;
+            
             LocalEventBus.PublishAsync(new GrpcCrossChainRequestReceivedEvent
             {
                 RemoteServerHost = host,

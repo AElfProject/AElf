@@ -13,8 +13,6 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.DPoS\AElf.Contracts.Consensus.DPoS.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
       <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AElfConsensus\AElf.Kernel.Consensus.AElfConsensus.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
@@ -30,4 +28,9 @@
       <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
+    <!--<ItemGroup>-->
+        <!--<ContractMessage Include="..\..\protobuf\acs4.proto">-->
+            <!--<Link>Protobuf\Proto\acs4.proto</Link>-->
+        <!--</ContractMessage>-->
+    <!--</ItemGroup>-->
 </Project>

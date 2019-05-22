@@ -6,6 +6,7 @@ using System.Reflection;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 
 namespace AElf.Runtime.CSharp
 {

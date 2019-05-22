@@ -1,6 +1,10 @@
+//using Acs4;
+
+using AElf.Contracts.Consensus.AEDPoS;
+
 namespace AElf.Kernel.Consensus.Infrastructure
 {
-    public class ConsensusControlInformation
+    internal class ConsensusControlInformation
     {
         public ConsensusCommand ConsensusCommand { get; set; }
     }

@@ -1,10 +1,11 @@
 syntax = "proto3";
 
+package aelf;
+
 option csharp_namespace = "AElf.Kernel";
 
 import "google/protobuf/timestamp.proto";
-import "common.proto";
-import "core.proto";
+import "aelf/core.proto";
 
 //message Transaction {
 //    Address From = 1;
@@ -171,7 +172,6 @@ message BlockHeader {
 message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
-    repeated Transaction TransactionList = 3;
 }
 
 message Block {
@@ -197,9 +197,9 @@ message BinaryMerkleTree {
     int32 LeafCount = 3;
 }
 
-//message MerklePath {
-//    repeated Hash Path = 1;
-//}
+message MerklePath {
+    repeated Hash Path = 1;
+}
 //
 //message StringList {
 //    repeated string Values = 1;

@@ -1,4 +1,6 @@
-﻿namespace AElf.Kernel
+﻿using AElf.Types;
+
+namespace AElf.Kernel
 {
     public interface IBlockHeader : IHashProvider
     {

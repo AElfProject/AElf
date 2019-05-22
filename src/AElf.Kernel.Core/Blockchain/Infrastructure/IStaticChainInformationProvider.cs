@@ -1,3 +1,4 @@
+using AElf.Types;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 

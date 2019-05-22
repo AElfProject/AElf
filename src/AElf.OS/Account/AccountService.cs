@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Application;
+using AElf.Types;
 using Microsoft.Extensions.Options;
 
 namespace AElf.OS.Account

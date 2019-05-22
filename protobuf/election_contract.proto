@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package election;
 
-import "aelf_options.proto";
-import "common.proto";
+import "aelf/options.proto";
+import "aelf/core.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -31,7 +31,7 @@ service ElectionContract {
     }
     rpc Vote (VoteMinerInput) returns (google.protobuf.Empty) {
     }
-    rpc Withdraw (Hash) returns (google.protobuf.Empty) {
+    rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty) {
     }
     rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
     }
@@ -51,7 +51,7 @@ service ElectionContract {
     rpc GetTermSnapshot (GetTermSnapshotInput) returns (TermSnapshot) {
         option (aelf.is_view) = true;
     }
-    rpc GetMinersCount (google.protobuf.Empty) returns (SInt32Value) {
+    rpc GetMinersCount (google.protobuf.Empty) returns (aelf.SInt32Value) {
         option (aelf.is_view) = true;
     }
     rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
@@ -75,25 +75,25 @@ service ElectionContract {
     rpc GetCandidateVoteWithAllRecords (StringInput) returns (CandidateVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotersCount (google.protobuf.Empty) returns (SInt64Value) {
+    rpc GetVotersCount (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotesAmount (google.protobuf.Empty) returns (SInt64Value) {
+    rpc GetVotesAmount (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentMiningReward (google.protobuf.Empty) returns (SInt64Value) {
+    rpc GetCurrentMiningReward (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentWelfareReward (StringInput) returns (SInt64Value) {
+    rpc GetCurrentWelfareReward (StringInput) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
     rpc GetPageableCandidateInformation (PageInformation) returns (GetPageableCandidateInformationOutput) {
         option (aelf.is_view) = true;
     }
-    rpc GetMinerElectionVotingItemId (google.protobuf.Empty) returns (Hash) {
+    rpc GetMinerElectionVotingItemId (google.protobuf.Empty) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
 }
@@ -146,8 +146,8 @@ message ElectionResult {
 }
 
 message ElectorVote {
-    repeated Hash active_voting_record_ids = 1;
-    repeated Hash withdrawn_voting_record_ids = 2;
+    repeated aelf.Hash active_voting_record_ids = 1;
+    repeated aelf.Hash withdrawn_voting_record_ids = 2;
     sint64 active_voted_votes_amount = 3;
     sint64 all_voted_votes_amount = 4;
     repeated ElectionVotingRecord active_voting_records = 5;
@@ -156,8 +156,8 @@ message ElectorVote {
 }
 
 message CandidateVote {
-    repeated Hash obtained_active_voting_record_ids = 1;
-    repeated Hash obtained_withdrawn_voting_record_ids = 2;
+    repeated aelf.Hash obtained_active_voting_record_ids = 1;
+    repeated aelf.Hash obtained_withdrawn_voting_record_ids = 2;
     sint64 obtained_active_voted_votes_amount = 3;
     sint64 all_obtained_voted_votes_amount = 4;
     repeated ElectionVotingRecord obtained_active_voting_records = 5;
@@ -171,7 +171,7 @@ message CandidateInformation {
     sint64 produced_blocks = 3;
     sint64 missed_time_slots = 4;
     sint64 continual_appointment_count = 5;
-    Hash announcement_transaction_id = 6;
+    aelf.Hash announcement_transaction_id = 6;
     bool is_current_candidate = 7;
 }
 
@@ -181,11 +181,11 @@ message CandidateDetail {
 }
 
 message ElectionVotingRecord {
-    Address voter = 1;
+    aelf.Address voter = 1;
     string candidate = 2;
     sint64 amount = 3;
     sint64 term_number = 4;
-    Hash vote_id = 5;
+    aelf.Hash vote_id = 5;
     sint64 lock_time = 7;
     google.protobuf.Timestamp unlock_timestamp = 10;
     google.protobuf.Timestamp withdraw_timestamp = 11;

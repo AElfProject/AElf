@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
