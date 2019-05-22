@@ -1,27 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Types;
+using System.Runtime.CompilerServices;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Blockchains.MainChain
+namespace AElf.Contracts.Consensus.AEDPoS
 {
-    internal static class BasicExtensions
+    internal partial class MinerList
     {
-        public static Round GenerateFirstRoundOfNewTerm(this MinerList miners, int miningInterval,
+        public Round GenerateFirstRoundOfNewTerm(int miningInterval,
             DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
-            var dict = new Dictionary<string, int>();
-
-            foreach (var miner in miners.PublicKeys)
-            {
-                dict.Add(miner.ToHex(), miner[0]);
-            }
-
             var sortedMiners =
-                (from obj in dict
+                (from obj in PublicKeys.Distinct()
+                        .ToDictionary<ByteString, string, int>(miner => miner.ToHex(), miner => miner[0])
                     orderby obj.Value descending
                     select obj.Key).ToList();
 
@@ -41,7 +35,6 @@ namespace AElf.Blockchains.MainChain
                 minerInRound.Order = i + 1;
                 minerInRound.ExpectedMiningTime =
                     currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval).ToTimestamp();
-                minerInRound.PromisedTinyBlocks = 1;
                 // Should be careful during validation.
                 minerInRound.PreviousInValue = Hash.Empty;
 
@@ -52,6 +45,12 @@ namespace AElf.Blockchains.MainChain
             round.TermNumber = currentTermNumber + 1;
 
             return round;
+        }
+
+        public Hash GetMinersHash()
+        {
+            var orderedMiners = PublicKeys.OrderBy(p => p);
+            return Hash.FromString(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
         }
     }
 }

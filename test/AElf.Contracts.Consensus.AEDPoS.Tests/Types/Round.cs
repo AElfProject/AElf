@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acs4;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -8,7 +9,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public partial class Round
+    internal partial class Round
     {
         public long RoundId =>
             RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();

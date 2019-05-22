@@ -2,34 +2,18 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <LangVersion>latest</LangVersion>
         <PackageId>AElf.Kernel.Consensus</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
     </ItemGroup>
-
     <ItemGroup>
-        <None Include="..\..\protobuf\aelf_options.proto">
-            <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\common.proto">
-            <Link>Protobuf/Proto/common.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\acs4.proto">
-            <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>
-        </None>
+        <ContractStub Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf/Proto/acs4.proto</Link>
+        </ContractStub>
     </ItemGroup>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh acs4.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat acs4.proto" />
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs" />
-        </ItemGroup>
-    </Target>
 </Project>

@@ -99,13 +99,6 @@ service ElectionContract {
     rpc GetMinerElectionVotingItemId (google.protobuf.Empty) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
-    
-    rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetCurrentWelfareReward (StringInput) returns (SInt64Value) {
-        option (aelf.is_view) = true;
-    }
 }
 
 message InitialElectionContractInput {

@@ -7,6 +7,7 @@ using Xunit;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    /*
     public class ConsensusCommonMethodsTests : AElfConsensusContractTestBase
     {
         public ConsensusCommonMethodsTests()
@@ -122,5 +123,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .ToByteArray());
             }
         }
-    }
+    }*/
 }

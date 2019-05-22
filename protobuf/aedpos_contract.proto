@@ -171,3 +171,7 @@ message VoteMinersCountInput {
     sint32 miners_count = 1;
     sint64 amount = 2;
 }
+
+message ConsensusInformation {
+    bytes Bytes = 1;
+}

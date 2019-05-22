@@ -18,8 +18,18 @@
         <ContractReference Include="$(ProtoBaseDir)\election_contract.proto">
             <Link>Protobuf/Proto/election_contract.proto</Link>
         </ContractReference>
+        <ContractBase Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractBase>
         <ContractCode Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>
         </ContractCode>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 </Project>

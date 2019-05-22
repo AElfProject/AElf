@@ -17,6 +17,7 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
@@ -35,6 +36,12 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf/Proto/vote_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf/Proto/acs4.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>

@@ -26,12 +26,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ILogger<AEDPoSTriggerInformationProvider> Logger { get; set; }
 
         public AEDPoSTriggerInformationProvider(IAccountService accountService,
-            IServiceProvider serviceProvider) : this(accountService,
-            serviceProvider.GetRequiredService<ConsensusControlInformation>())
-        {
-        }
-
-        internal AEDPoSTriggerInformationProvider(IAccountService accountService,
             ConsensusControlInformation controlInformation)
         {
             _accountService = accountService;

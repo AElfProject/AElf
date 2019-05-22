@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package aedposimpl;
 
-import "aelf_options.proto";
+import "aelf/options.proto";
 import "acs4.proto";
 import "aedpos_contract.proto";
 

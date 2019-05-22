@@ -1,7 +1,7 @@
-//using Acs4;
+using System.Runtime.CompilerServices;
+using Acs4;
 
-using AElf.Contracts.Consensus.AEDPoS;
-
+[assembly: InternalsVisibleTo("AElf.Kernel.Consensus.AEDPoS")]
 namespace AElf.Kernel.Consensus.Infrastructure
 {
     internal class ConsensusControlInformation
