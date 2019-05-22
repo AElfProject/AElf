@@ -20,7 +20,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Query state to determine whether produce tiny block.
             Assert(input.Value.Any(), "Invalid public key.");
 
-            var behaviour = GetBehaviour(input.Value.ToHex(), Context.CurrentBlockTime, out var currentRound);
+            TryToGetCurrentRoundInformation(out var currentRound);
+
+            Assert(currentRound != null && currentRound.RoundId != 0, "Consensus not initialized.");
+            if (currentRound == null) return new ConsensusCommand();
+
+            var behaviour = GetBehaviour(currentRound, input.Value.ToHex());
 
             if (behaviour == AElfConsensusBehaviour.Nothing)
             {
@@ -32,15 +37,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 };
             }
 
-            Assert(currentRound != null && currentRound.RoundId != 0, "Consensus not initialized.");
-
-            if (currentRound == null) return new ConsensusCommand();
-
             var command = GetConsensusCommand(behaviour, currentRound, input.Value.ToHex());
 
             Context.LogDebug(() =>
-                currentRound.GetLogs(input.Value.ToHex(),
-                    AElfConsensusHint.Parser.ParseFrom(command.Hint).Behaviour));
+                currentRound.GetLogs(input.Value.ToHex(), AElfConsensusHint.Parser.ParseFrom(command.Hint).Behaviour));
 
             return command;
         }
