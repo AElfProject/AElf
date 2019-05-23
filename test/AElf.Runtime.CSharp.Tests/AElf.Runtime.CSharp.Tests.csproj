@@ -24,6 +24,7 @@
     <ProjectReference Include="..\..\src\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
     <ProjectReference Include="..\..\src\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj" />
     <ProjectReference Include="..\..\src\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
+    <ProjectReference Include="..\..\src\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj" />
     <ProjectReference Include="..\..\src\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
     <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
     <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />

@@ -19,4 +19,8 @@
             <Link>Protobuf\Proto\token_converter_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
+    <Target Name="CopyContractDll" AfterTargets="AfterBuild">
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll ../../test/AElf.Runtime.CSharp.Tests/contracts" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll ..\..\test\AElf.Runtime.CSharp.Tests\contracts" />
+    </Target>
 </Project>

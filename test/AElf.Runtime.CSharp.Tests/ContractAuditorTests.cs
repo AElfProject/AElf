@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.Contracts.AssociationAuth;
+using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.CrossChain;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -10,11 +12,13 @@ using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.ReferendumAuth;
 using AElf.Contracts.Resource.FeeReceiver;
+using AElf.Contracts.TokenConverter;
 using AElf.Runtime.CSharp.Validators;
 using AElf.Runtime.CSharp.Validators.Method;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
+using ValidationResult = AElf.Runtime.CSharp.Validators.ValidationResult;
 
 namespace AElf.Runtime.CSharp.Tests
 {
@@ -51,14 +55,17 @@ namespace AElf.Runtime.CSharp.Tests
             // TODO: Add other contracts in contract security test once contract dependencies are simplified.
             var contracts = new[]
             {
-                //typeof(AssociationAuthContract).Module.ToString(),
-                //typeof(ElectionContract).Module.ToString(), // Failing due to TimeSpan / FloatOps
+                typeof(AssociationAuthContract).Module.ToString(),
+                typeof(AEDPoSContract).Module.ToString(),
+                typeof(CrossChainContract).Module.ToString(),
+                typeof(ElectionContract).Module.ToString(),
                 typeof(BasicContractZero).Module.ToString(),
                 typeof(TokenContract).Module.ToString(),
-                //typeof(ParliamentAuthContract).Module.ToString(),
-                //typeof(ProfitContract).Module.ToString(),
-                //typeof(ReferendumAuthContract).Module.ToString(),
-                //typeof(FeeReceiverContract).Module.ToString(),
+                typeof(ParliamentAuthContract).Module.ToString(),
+                typeof(ProfitContract).Module.ToString(),
+                typeof(ReferendumAuthContract).Module.ToString(),
+                typeof(FeeReceiverContract).Module.ToString(),
+                typeof(TokenConverterContract).Module.ToString(),
                 typeof(TestContract.TestContract).Module.ToString(),
             };
 
