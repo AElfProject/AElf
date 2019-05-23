@@ -572,13 +572,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
-            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
-                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey) &&
-                      minerInCurrentRound.PreviousInValue != null
-                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue
-                where previousOutValue != null &&
-                      Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
-                select minerInCurrentRound.PublicKey).ToList();
+            var evilMinerList = new List<string>();
+            foreach (var minerInCurrentRound in currentRound.RealTimeMinersInformation.Values)
+            {
+                if (!previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey) ||
+                    minerInCurrentRound.PreviousInValue == null)
+                    continue;
+                
+                var previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue;
+                
+                if (previousOutValue !=null && Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue)
+                    evilMinerList.Add(minerInCurrentRound.PublicKey);
+            }
+
+            return evilMinerList;
         }
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
