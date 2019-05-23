@@ -24,7 +24,8 @@ namespace AElf.Contracts.Profit
         {
             if (State.TokenContract.Value == null)
             {
-                State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
             if (input.ExpiredPeriodNumber == 0)
@@ -67,6 +68,31 @@ namespace AElf.Contracts.Profit
             return profitId;
         }
 
+        public override Hash CreateTreasuryProfitItem(CreateProfitItemInput input)
+        {
+            var profitId = CreateProfitItem(input);
+
+            var profitItem = State.ProfitItemsMap[profitId];
+            profitItem.IsTreasuryProfitItem = true;
+            State.ProfitItemsMap[profitId] = profitItem;
+
+            RegisterSubProfitItem(new RegisterSubProfitItemInput
+            {
+                ProfitId = profitId,
+                SubProfitId = State.TreasuryProfitId.Value,
+                SubItemWeight = ProfitContractConsts.TreasuryProfitItemTreasuryWeight
+            });
+
+            return profitId;
+        }
+
+        public override Empty SetTreasuryProfitId(Hash input)
+        {
+            Assert(State.TreasuryProfitId.Value == null, "Treasury profit id already set.");
+            State.TreasuryProfitId.Value = input;
+            return new Empty();
+        }
+
         public override Empty RegisterSubProfitItem(RegisterSubProfitItemInput input)
         {
             Assert(input.ProfitId != input.SubProfitId, "Two profit items cannot be same.");
@@ -78,6 +104,14 @@ namespace AElf.Contracts.Profit
             if (profitItem == null)
             {
                 return new Empty();
+            }
+
+            if (profitItem.IsTreasuryProfitItem)
+            {
+                Assert(
+                    profitItem.TotalWeight.Add(input.SubItemWeight) <
+                    ProfitContractConsts.TreasuryProfitItemMaximumWeight,
+                    $"Treasury profit item weight cannot greater than {ProfitContractConsts.TreasuryProfitItemMaximumWeight}.");
             }
 
             Assert(Context.Sender == profitItem.Creator, "Only creator can do the registration.");
@@ -132,6 +166,14 @@ namespace AElf.Contracts.Profit
             {
                 return new Empty();
             }
+            
+            if (profitItem.IsTreasuryProfitItem)
+            {
+                Assert(
+                    profitItem.TotalWeight.Add(input.Weight) <
+                    ProfitContractConsts.TreasuryProfitItemMaximumWeight,
+                    $"Treasury profit item weight cannot greater than {ProfitContractConsts.TreasuryProfitItemMaximumWeight}.");
+            }
 
             Assert(input.EndPeriod >= profitItem.CurrentPeriod, "Invalid end period.");
 
@@ -168,7 +210,7 @@ namespace AElf.Contracts.Profit
             }
 
             State.ProfitDetailsMap[profitId][input.Receiver] = currentProfitDetails;
-            
+
             Context.LogDebug(() => $"Add {input.Weight} weights to profit item {input.ProfitId.ToHex()}");
 
             return new Empty();
@@ -381,6 +423,7 @@ namespace AElf.Contracts.Profit
                 {
                     subItem.TotalAmounts.Add(Context.Variables.NativeSymbol, amount);
                 }
+
                 State.ProfitItemsMap[subProfitItem.ProfitId] = subItem;
 
                 // Update current_period of detail of sub profit item.
@@ -454,6 +497,7 @@ namespace AElf.Contracts.Profit
                     profitItem.TotalAmounts[input.TokenSymbol] =
                         profitItem.TotalAmounts[input.TokenSymbol].Add(input.Amount);
                 }
+
                 State.ProfitItemsMap[input.ProfitId] = profitItem;
             }
             else
@@ -473,7 +517,8 @@ namespace AElf.Contracts.Profit
                 {
                     Assert(!releasedProfitsInformation.IsReleased,
                         $"Profit item of period {input.Period} already released.");
-                    releasedProfitsInformation.ProfitsAmount = releasedProfitsInformation.ProfitsAmount.Add(input.Amount);
+                    releasedProfitsInformation.ProfitsAmount =
+                        releasedProfitsInformation.ProfitsAmount.Add(input.Amount);
                 }
 
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -533,7 +578,8 @@ namespace AElf.Contracts.Profit
                     var amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
                         .Div(releasedProfitsInformation.TotalWeight);
                     var period1 = period;
-                    Context.LogDebug(() => $"{Context.Sender} is profiting {amount} tokens from {input.ProfitId.ToHex()} in period {period1}");
+                    Context.LogDebug(() =>
+                        $"{Context.Sender} is profiting {amount} tokens from {input.ProfitId.ToHex()} in period {period1}");
                     if (releasedProfitsInformation.IsReleased && amount > 0)
                     {
                         State.TokenContract.TransferFrom.Send(new TransferFromInput

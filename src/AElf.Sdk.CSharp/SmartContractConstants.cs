@@ -5,6 +5,7 @@ namespace AElf.Sdk.CSharp
     public static class SmartContractConstants
     {
         public static readonly Hash ElectionContractSystemName = Hash.FromString("AElf.ContractNames.Election");
+        public static readonly Hash TreasuryContractSystemName = Hash.FromString("AElf.ContractNames.Treasury");
         public static readonly Hash ConsensusContractSystemName = Hash.FromString("AElf.ContractNames.Consensus");
         public static readonly Hash TokenContractSystemName = Hash.FromString("AElf.ContractNames.Token");
         public static readonly Hash ParliamentAuthContractSystemName = Hash.FromString("AElf.ContractsName.Parliament");

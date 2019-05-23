@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.Contracts.Election;
+using AElf.Contracts.treasury;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -67,7 +68,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 });
             }
 
-            State.ElectionContract.ReleaseTreasuryProfits.Send(new ReleaseTreasuryProfitsInput
+            State.TreasuryContract.Donate.Send(new DonateInput
+            {
+                Symbol = Context.Variables.NativeSymbol,
+                Amount = previousRound.GetMinedBlocks().Mul(GetTokenAmountPerBlock())
+            });
+
+            State.TreasuryContract.Release.Send(new ReleaseInput
+            {
+                TermNumber = termNumber + 1
+            });
+
+            State.ElectionContract.TakeSnapshot.Send(new TakeElectionSnapshotInput
             {
                 MinedBlocks = previousRound.GetMinedBlocks(),
                 TermNumber = termNumber + 1,
@@ -78,6 +90,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             TryToFindLastIrreversibleBlock();
 
             return new Empty();
+        }
+
+        private int GetTokenAmountPerBlock()
+        {
+            return 1;
         }
 
         private bool SetMinerListOfCurrentTerm(MinerList minerList, bool gonnaReplaceSomeone = false)

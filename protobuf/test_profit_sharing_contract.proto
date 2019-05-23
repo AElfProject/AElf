@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "acs5.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.ProfitSharing";
+
+service ProfitSharingContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.ProfitSharing.ProfitSharingContractState";
+    option (aelf.base) = "acs5.proto";
+    
+    rpc InitializeProfitSharingContract (InitializeProfitSharingContractInput) returns (google.protobuf.Empty) {
+    }
+}
+
+message InitializeProfitSharingContractInput {
+    string symbol = 1;
+}

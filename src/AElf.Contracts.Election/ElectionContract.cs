@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
@@ -112,6 +113,47 @@ namespace AElf.Contracts.Election
 
             State.Snapshots[input.TermNumber - 1] = snapshot;
             State.CurrentTermNumber.Value = input.TermNumber;
+            
+            var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
+                .RealTimeMinersInformation.Keys.ToList();
+
+            var victories = GetVictories(previousMiners);
+            var previousMinersAddresses = new List<Address>();
+            foreach (var publicKey in previousMiners)
+            {
+                var address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey));
+
+                previousMinersAddresses.Add(address);
+
+/*                var history = State.CandidateInformationMap[publicKey];
+                history.Terms.Add(input.TermNumber - 1);
+
+                if (victories.Contains(publicKey.ToByteString()))
+                {
+                    history.ContinualAppointmentCount = history.ContinualAppointmentCount.Add(1);
+                    reElectionProfitAddWeights.Weights.Add(new WeightMap
+                    {
+                        Receiver = address,
+                        Weight = history.ContinualAppointmentCount
+                    });
+                }
+                else
+                {
+                    history.ContinualAppointmentCount = 0;
+                }
+
+                var votes = State.CandidateVotes[publicKey];
+                if (votes != null)
+                {
+                    votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
+                    {
+                        Receiver = address,
+                        Weight = votes.ObtainedActiveVotedVotesAmount
+                    });
+                }
+
+                State.CandidateInformationMap[publicKey] = history;*/
+            }
 
             return new Empty();
         }

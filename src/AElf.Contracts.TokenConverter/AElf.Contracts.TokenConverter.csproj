@@ -15,6 +15,11 @@
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf\Proto\reference\acs5.proto</Link>
+        </ContractBase>
+    </ItemGroup>
+    <ItemGroup>
         <ContractCode Include="..\..\protobuf\token_converter_contract.proto">
             <Link>Protobuf\Proto\token_converter_contract.proto</Link>
         </ContractCode>

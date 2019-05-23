@@ -102,14 +102,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             await DefaultTester.SetMethodFee.SendAsync(new SetMethodFeeInput()
             {
                 Method = nameof(DefaultTester.DummyMethod),
-                Symbol = "ELF",
-                Amount = feeAmount
+                BaseSymbol = "ELF",
+                BaseAmount = feeAmount
             });
             var fee = await DefaultTester.GetMethodFee.CallAsync(new MethodName()
             {
                 Name = nameof(DefaultTester.DummyMethod)
             });
-            fee.Amount.ShouldBe(feeAmount);
+            fee.BaseAmount.ShouldBe(feeAmount);
         }
 
         [Fact]

@@ -1,8 +1,9 @@
 syntax = "proto3";
 
 package acs5;
-import "common.proto";
-import "aelf_options.proto";
+
+import "aelf/core.proto";
+import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 
 option (aelf.identity) = "acs5";
@@ -10,23 +11,20 @@ option (aelf.identity) = "acs5";
 service ProfitSharingContract {
     rpc CreateProfitItem (CreateProfitItemInput) returns (google.protobuf.Empty) {
     }
-    rpc SetProfitReceiver (ProfitReceiverInformation) returns (google.protobuf.Empty) {
-    }
     rpc SetProfitReceivers (ProfitReceivers) returns (google.protobuf.Empty) {
     }
     rpc ReceiveProfits (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc GetProfitReceivers (google.protobuf.Empty) google.protobuf.Empty (ProfitReceivers) {
+    rpc GetProfitReceivers (google.protobuf.Empty) returns (ProfitReceivers) {
         option (aelf.is_view) = true;
     }
 }
 
 message CreateProfitItemInput {
-    
 }
 
 message ProfitReceiverInformation {
-    Address address = 1;
+    aelf.Address address = 1;
     sint32 weight = 2;
     string remark = 3;
 }

@@ -16,6 +16,10 @@ service ProfitContract {
     }
     rpc CreateProfitItem (CreateProfitItemInput) returns (aelf.Hash) {
     }
+    rpc CreateTreasuryProfitItem (CreateProfitItemInput) returns (aelf.Hash) {
+    }
+    rpc SetTreasuryProfitId (aelf.Hash) returns (google.protobuf.Empty) {
+    }
     rpc AddWeight (AddWeightInput) returns (google.protobuf.Empty) {
     }
     rpc SubWeight (SubWeightInput) returns (google.protobuf.Empty) {
@@ -71,6 +75,7 @@ message ProfitItem {
     aelf.Address creator = 8;
     sint64 expired_period_number = 9;
     bool release_all_if_amount_is_zero = 10;
+    bool is_treasury_profit_item = 11;
 }
 
 message SubProfitItem {

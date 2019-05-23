@@ -3,17 +3,40 @@ using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.treasury;
+using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;
+using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Treasury
 {
-    public partial class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
+    public class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
     {
         public override Empty InitialTreasuryContract(InitialTreasuryContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
 
+            State.ProfitContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+
+            // Create profit items: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
+            // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectedMinerReward`
+            for (var i = 0; i < 7; i++)
+            {
+                State.ProfitContract.CreateProfitItem.Send(new CreateProfitItemInput
+                {
+                    ReleaseAllIfAmountIsZero = true
+                });
+            }
+
+            State.Initialized.Value = true;
+
+            return new Empty();
+        }
+
+        public override Empty InitialMiningRewardProfitItem(InitialMiningRewardProfitItemInput profitItemInput)
+        {
             var createdProfitIds = State.ProfitContract.GetCreatedProfitItems.Call(new GetCreatedProfitItemsInput
             {
                 Creator = Context.Self
@@ -28,10 +51,10 @@ namespace AElf.Contracts.Treasury
             State.BasicRewardHash.Value = createdProfitIds[4];
             State.VotesWeightRewardHash.Value = createdProfitIds[5];
             State.ReElectionRewardHash.Value = createdProfitIds[6];
+            
+            State.ProfitContract.SetTreasuryProfitId.Send(createdProfitIds[0]);
 
             BuildTreasury();
-
-            State.Initialized.Value = true;
 
             return new Empty();
         }
@@ -60,7 +83,30 @@ namespace AElf.Contracts.Treasury
 
             return new Empty();
         }
-        
+
+        public override Empty Donate(DonateInput input)
+        {
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = "Donate to treasury."
+            });
+
+            if (input.Symbol != Context.Variables.NativeSymbol)
+            {
+                State.TokenConverterContract.Sell.Send(new SellInput
+                {
+                    Symbol = input.Symbol,
+                    Amount = input.Amount
+                });
+            }
+
+            return new Empty();
+        }
+
         #region Private methods
 
         private void BuildTreasury()
@@ -196,45 +242,14 @@ namespace AElf.Contracts.Treasury
 
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
-            var victories = GetVictories(previousMiners);
-            var previousMinersAddresses = new List<Address>();
-            foreach (var publicKey in previousMiners)
-            {
-                var address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey));
 
-                previousMinersAddresses.Add(address);
-
-                var history = State.CandidateInformationMap[publicKey];
-                history.Terms.Add(termNumber - 1);
-
-                if (victories.Contains(publicKey.ToByteString()))
-                {
-                    history.ContinualAppointmentCount = history.ContinualAppointmentCount.Add(1);
-                    reElectionProfitAddWeights.Weights.Add(new WeightMap
-                    {
-                        Receiver = address,
-                        Weight = history.ContinualAppointmentCount
-                    });
-                }
-                else
-                {
-                    history.ContinualAppointmentCount = 0;
-                }
-
-                var votes = State.CandidateVotes[publicKey];
-                if (votes != null)
-                {
-                    votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
-                    {
-                        Receiver = address,
-                        Weight = votes.ObtainedActiveVotedVotesAmount
-                    });
-                }
-
-                State.CandidateInformationMap[publicKey] = history;
-            }
+            var previousMinersAddresses =
+                previousMiners.Select(k => Address.FromPublicKey(ByteArrayHelpers.FromHexString(k)));
 
             var treasuryVirtualAddress = Context.ConvertVirtualAddressToContractAddress(State.TreasuryHash.Value);
+
+            // TODO: Get this from ElectionContract.
+            var victories = new List<ByteString>();
 
             // Manage weights of `MinerBasicReward`
             basicRewardProfitSubWeights.Receivers.AddRange(previousMinersAddresses);
@@ -277,8 +292,9 @@ namespace AElf.Contracts.Treasury
         }
 
         #endregion
-        
-        public override GetWelfareRewardAmountSampleOutput GetWelfareRewardAmountSample(GetWelfareRewardAmountSampleInput input)
+
+        public override GetWelfareRewardAmountSampleOutput GetWelfareRewardAmountSample(
+            GetWelfareRewardAmountSampleInput input)
         {
             const long amount = 10000;
             var welfareHash = State.WelfareHash.Value;
