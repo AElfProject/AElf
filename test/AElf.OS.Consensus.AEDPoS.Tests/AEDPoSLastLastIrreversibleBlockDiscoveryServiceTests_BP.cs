@@ -54,22 +54,18 @@ namespace AElf.OS.Consensus.DPos
             
             var blockIndex = await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
                 OSConsensusDPosTestConstants.Bp2PublicKey);
-            blockIndex.Height.ShouldBe(blocks[5].Height);
-            blockIndex.Hash.ShouldBe(blocks[5].GetHash());
+            blockIndex.Height.ShouldBe(blocks[4].Height);
+            blockIndex.Hash.ShouldBe(blocks[4].GetHash());
             
         }
-        
-        [Fact]
-        public async Task Find_LIB_With_One_BP_Peer_Return_Block_Index()
+
+        [Fact] public async Task Find_LIB_With_One_BP_Peer_Return_Null()
         {
-            var blocks = _osTestHelper.BestBranchBlockList;
             AddPeer(OSConsensusDPosTestConstants.Bp1PublicKey, 5);
             
             var blockIndex = await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
                 OSConsensusDPosTestConstants.Bp1PublicKey);
-            blockIndex.Height.ShouldBe(blocks[4].Height);
-            blockIndex.Hash.ShouldBe(blocks[4].GetHash());
-            
+            blockIndex.ShouldBeNull();
         }
 
         private void AddPeer(string publicKey,int blockHeight)
