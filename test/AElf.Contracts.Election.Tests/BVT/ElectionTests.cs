@@ -72,6 +72,24 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
+        public async Task ElectionContract_AnnounceElectionAgain()
+        {
+            await ElectionContract_QuiteElection();
+            
+            var candidatesKeyPair = FullNodesKeyPairs.First();
+
+            var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
+            balanceBeforeAnnouncing.ShouldBeGreaterThan(ElectionContractConstants.LockTokenForElection);
+
+            await AnnounceElectionAsync(candidatesKeyPair);
+
+            var balanceAfterAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
+
+            // Check balance after announcing election.
+            balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
+        }
+        
+        [Fact]
         public async Task ElectionContract_QuiteElection()
         {
             const int quitCount = 2;
@@ -311,6 +329,31 @@ namespace AElf.Contracts.Election
             });
 
             information.PublicKey.ShouldBe(minerKeyPair.PublicKey.ToHex());
+        }
+
+        [Fact]
+        public async Task ElectionContract_MarkCandidateAsEvilNode()
+        {
+            await ElectionContract_AnnounceElection();
+
+            var publicKey = FullNodesKeyPairs.First().PublicKey.ToHex();
+            var transactionResult = (await ElectionContractStub.UpdateCandidateInformation.SendAsync(new UpdateCandidateInformationInput
+            {
+                IsEvilNode = true,
+                PublicKey = publicKey,
+                RecentlyProducedBlocks = 10,
+                RecentlyMissedTimeSlots = 100
+            })).TransactionResult;
+            
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            //get candidate information
+            var candidateInformation = await ElectionContractStub.GetCandidateInformation.CallAsync(new StringInput
+            {
+                Value = publicKey
+            });
+            
+            candidateInformation.ShouldBe(new CandidateInformation());
         }
     }
 }
