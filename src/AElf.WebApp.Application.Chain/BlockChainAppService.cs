@@ -51,7 +51,7 @@ namespace AElf.WebApp.Application.Chain
 
         Task<BlockStateDto> GetBlockState(string blockHash);
 
-        List<TaskQueueStateInfoDto> GetTaskQueueStatus();
+        List<TaskQueueStatusInfoDto> GetTaskQueueStatus();
     }
     
     public class BlockChainAppService : IBlockChainAppService
@@ -523,10 +523,10 @@ namespace AElf.WebApp.Application.Chain
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
         }
         
-        public List<TaskQueueStateInfoDto> GetTaskQueueStatus()
+        public List<TaskQueueStatusInfoDto> GetTaskQueueStatus()
         {
             var taskQueueStateInfos = _taskQueueManager.GetQueueStateInfos();
-            return taskQueueStateInfos.Select(taskQueueStateInfo=>new TaskQueueStateInfoDto
+            return taskQueueStateInfos.Select(taskQueueStateInfo=>new TaskQueueStatusInfoDto
             {
                 Name = taskQueueStateInfo.Name,
                 Size = taskQueueStateInfo.Size
