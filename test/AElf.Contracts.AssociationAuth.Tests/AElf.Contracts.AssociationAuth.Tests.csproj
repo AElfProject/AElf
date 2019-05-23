@@ -31,10 +31,7 @@
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
+            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
         </ContractStub>
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 </Project>

@@ -23,6 +23,9 @@
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf/Proto/acs3.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\referendum_auth_contract.proto">
             <Link>Protobuf/Proto/referendum_auth_contract.proto.proto</Link>
         </ContractStub>
