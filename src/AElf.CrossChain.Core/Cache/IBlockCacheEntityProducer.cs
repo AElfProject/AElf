@@ -6,7 +6,7 @@ namespace AElf.CrossChain.Cache
 {
     public interface IBlockCacheEntityProducer
     {
-        bool TryAddBlockCacheEntity(BlockCacheEntity blockCacheEntity);
+        bool TryAddBlockCacheEntity(IBlockCacheEntity blockCacheEntity);
         ILogger<BlockCacheEntityProducer> Logger { get; set; }
     }
     
@@ -21,7 +21,7 @@ namespace AElf.CrossChain.Cache
             _chainCacheEntityProvider = chainCacheEntityProvider;
         }
 
-        public bool TryAddBlockCacheEntity(BlockCacheEntity blockCacheEntity)
+        public bool TryAddBlockCacheEntity(IBlockCacheEntity blockCacheEntity)
         {
             if (blockCacheEntity == null)
                 throw new ArgumentNullException(nameof(blockCacheEntity));

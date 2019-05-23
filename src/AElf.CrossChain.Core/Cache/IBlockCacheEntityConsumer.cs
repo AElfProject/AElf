@@ -23,7 +23,7 @@ namespace AElf.CrossChain.Cache
             if (chainCacheCollection == null || !chainCacheCollection.TryTake(height, out var blockCacheEntity, isCacheSizeLimited))
                 return default(T);
             var t = new T();
-            t.MergeFrom(blockCacheEntity.Payload);
+            t.MergeFrom(blockCacheEntity.ToByteString());
             return t;
         }
     }

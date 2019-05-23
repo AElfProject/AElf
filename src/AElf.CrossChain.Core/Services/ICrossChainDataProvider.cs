@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Acs7;
 using AElf.Contracts.CrossChain;
 using AElf.Types;
 using AElf.Kernel;
@@ -7,11 +8,11 @@ using Google.Protobuf;
 
 namespace AElf.CrossChain
 {
-    internal interface ICrossChainDataProvider
+    public interface ICrossChainDataProvider
     {
         Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
-        Task<ChainInitializationInformation> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight);
+        Task<ChainInitializationData> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight);
 
         Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 

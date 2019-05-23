@@ -7,10 +7,10 @@ namespace AElf.CrossChain.Cache
 {
     public class ChainCacheEntity
     {
-        private BlockingCollection<BlockCacheEntity> BlockCacheEntities { get; } =
-            new BlockingCollection<BlockCacheEntity>(new ConcurrentQueue<BlockCacheEntity>());
+        private BlockingCollection<IBlockCacheEntity> BlockCacheEntities { get; } =
+            new BlockingCollection<IBlockCacheEntity>(new ConcurrentQueue<IBlockCacheEntity>());
 
-        private BlockingCollection<BlockCacheEntity> DequeuedBlockCacheEntities { get; } = new BlockingCollection<BlockCacheEntity>();
+        private BlockingCollection<IBlockCacheEntity> DequeuedBlockCacheEntities { get; } = new BlockingCollection<IBlockCacheEntity>();
 
         private readonly int _cachedBoundedCapacity =
             Math.Max(CrossChainConstants.MaximalCountForIndexingSideChainBlock,
@@ -35,7 +35,7 @@ namespace AElf.CrossChain.Cache
             return _initTargetHeight;
         }
         
-        public bool TryAdd(BlockCacheEntity blockCacheEntity)
+        public bool TryAdd(IBlockCacheEntity blockCacheEntity)
         {
             if (BlockCacheEntities.Count >= _cachedBoundedCapacity)
                 return false;
@@ -53,7 +53,7 @@ namespace AElf.CrossChain.Cache
         /// <param name="blockCacheEntity"></param>
         /// <param name="isCacheSizeLimited">Use <see cref="_cachedBoundedCapacity"/> as cache count threshold if true.</param>
         /// <returns></returns>
-        public bool TryTake(long height, out BlockCacheEntity blockCacheEntity, bool isCacheSizeLimited)
+        public bool TryTake(long height, out IBlockCacheEntity blockCacheEntity, bool isCacheSizeLimited)
         {
             // clear outdated data
             var cachedInQueue = DequeueBlockCacheEntitiesBeforeHeight(height);
@@ -77,7 +77,7 @@ namespace AElf.CrossChain.Cache
         /// Return first element in cached queue.
         /// </summary>
         /// <returns></returns>
-        private BlockCacheEntity GetLastDequeuedBlockCacheEntity(long height)
+        private IBlockCacheEntity GetLastDequeuedBlockCacheEntity(long height)
         {
             return DequeuedBlockCacheEntities.LastOrDefault(c => c.Height == height);
         }
@@ -104,7 +104,7 @@ namespace AElf.CrossChain.Cache
         /// Dequeue one element if the cached count reaches <see cref="_cachedBoundedCapacity"/>
         /// </summary>
         /// <param name="blockCacheEntity"></param>
-        private bool TryDequeue(out BlockCacheEntity blockCacheEntity)
+        private bool TryDequeue(out IBlockCacheEntity blockCacheEntity)
         {
             var res = BlockCacheEntities.TryTake(out blockCacheEntity,
                 CrossChainConstants.WaitingIntervalInMillisecond);
