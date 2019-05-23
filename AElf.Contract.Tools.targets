@@ -35,11 +35,16 @@
             <LocalProtobufDir>$(ProjectDir)/Protobuf</LocalProtobufDir>
             <GenerateContractInternalCommand>protoc --proto_path=../../protobuf --csharp_out=internal_access:$(LocalProtobufDir)/Generated --csharp_opt=file_extension=.g.cs</GenerateContractInternalCommand>
         </PropertyGroup>
+        <PropertyGroup>
+            <LocalProtobufDir>$(ProjectDir)/Protobuf</LocalProtobufDir>
+            <GenerateCommonMessageCommand>protoc --proto_path=../../protobuf --csharp_out=$(LocalProtobufDir)/Generated --csharp_opt=file_extension=.g.cs</GenerateCommonMessageCommand>
+        </PropertyGroup>
 
         <RemoveDir Directories="Protobuf\Generated" />
         
-        <MakeDir Condition="@(ContractInternal) != '' Or @(ContractBase) != '' Or @(ContractCode) != '' Or @(ContractReference) != '' Or @(ContractStub) != '' Or @(ContractMessage) != ''" Directories="$(LocalProtobufDir)/Generated"/>
+        <MakeDir Condition="@(ContractInternal) != '' Or @(CommonMessage) != '' Or @(ContractBase) != '' Or @(ContractCode) != '' Or @(ContractReference) != '' Or @(ContractStub) != '' Or @(ContractMessage) != ''" Directories="$(LocalProtobufDir)/Generated"/>
         <Exec Condition="@(ContractInternal) != ''" Command="$(GenerateContractInternalCommand) %(Identity)"/>
+        <Exec Condition="@(CommonMessage) != ''" Command="$(GenerateCommonMessageCommand) %(Identity)"/>
         <Exec Condition="@(ContractBase) != ''" Command="$(GenerateContractBaseCommand) %(Identity)"/>
         <Exec Condition="@(ContractCode) != ''" Command="$(GenerateContractCodeCommand) %(Identity)"/>
         <Exec Condition="@(ContractReference) != ''" Command="$(GenerateContractReferenceCommand)  %(Identity)"/>
