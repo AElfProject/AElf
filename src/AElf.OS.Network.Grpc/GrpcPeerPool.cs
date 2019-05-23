@@ -94,7 +94,7 @@ namespace AElf.OS.Network.Grpc
                 connectReply = await client.ConnectAsync(hsk,
                     new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout)));
             }
-            catch (RpcException e)
+            catch (AggregateException e)
             {
                 await channel.ShutdownAsync();
                 Logger.LogError(e, $"Could not connect to {ipAddress}.");
