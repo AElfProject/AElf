@@ -5,29 +5,40 @@ using Acs2;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
+using Google.Protobuf;
 
 namespace AElf.Kernel.SmartContractExecution.Parallel
 {
     internal static class ExecutiveExtensions
     {
         public static async Task<TransactionResourceInfo> GetTransactionResourceInfoAsync(this IExecutive executive,
-            IChainContext chainContext, Transaction transaction)
+            IChainContext chainContext, Transaction input)
         {
+            var generatedTxn = new Transaction
+            {
+                From = Address.Zero,
+                To = input.To,
+                MethodName =
+                    nameof(StatePathsProvidingContractContainer.StatePathsProvidingContractStub.GetResourceInfo),
+                Params = input.ToByteString(),
+                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+            };
+            var txId = input.GetHash();
             if (!IsParallelizable(executive))
             {
-                return NotParallelizable(transaction.GetHash());
+                return NotParallelizable(txId);
             }
 
             var trace = new TransactionTrace
             {
-                TransactionId = transaction.GetHash()
+                TransactionId = generatedTxn.GetHash()
             };
 
             var transactionContext = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
                 CurrentBlockTime = DateTime.UtcNow,
-                Transaction = transaction,
+                Transaction = generatedTxn,
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,
                 CallDepth = 0,
@@ -37,13 +48,13 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
             await executive.ApplyAsync(transactionContext);
             if (!trace.IsSuccessful())
             {
-                return NotParallelizable(trace.TransactionId);
+                return NotParallelizable(txId);
             }
 
             var resourceInfo = ResourceInfo.Parser.ParseFrom(trace.ReturnValue);
             return new TransactionResourceInfo
             {
-                TransactionId = trace.TransactionId,
+                TransactionId = txId,
                 Resources =
                 {
                     resourceInfo.Reources

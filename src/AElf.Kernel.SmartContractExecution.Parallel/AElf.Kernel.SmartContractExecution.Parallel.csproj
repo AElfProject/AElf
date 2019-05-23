@@ -12,9 +12,9 @@
         <CommonMessage Include="..\..\protobuf\parallel_execution.proto">
             <Link>Protobuf\Proto\parallel_execution.proto</Link>
         </CommonMessage>
-        <ContractMessage Include="..\..\protobuf\acs2.proto">
+        <ContractStub Include="..\..\protobuf\acs2.proto">
             <Link>Protobuf\Proto\acs2.proto</Link>
-        </ContractMessage>
+        </ContractStub>
     </ItemGroup>
 
     <ItemGroup>
