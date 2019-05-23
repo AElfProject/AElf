@@ -1,6 +1,7 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
@@ -19,6 +20,11 @@ namespace AElf.OS
             context.Services.AddSingleton<INetworkService, NetworkService>();
             
             Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
+
+
+            peerPoolMock.SetupGet(p => p.RecentBlockHeightAndHashMappings)
+                .Returns(new ReadOnlyDictionary<long, Hash>(new ConcurrentDictionary<long, Hash>()));
+            peerPoolMock.Setup(p => p.AddRecentBlockHeightAndHash(It.IsAny<long>(), It.IsAny<Hash>()));
                 
             peerPoolMock.Setup(p => p.FindPeerByPublicKey(It.Is<string>(adr => adr == "p1")))
                 .Returns<string>(adr =>
