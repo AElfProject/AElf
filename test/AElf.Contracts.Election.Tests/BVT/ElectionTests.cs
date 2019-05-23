@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
@@ -16,6 +17,8 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContractTests : ElectionContractTestBase
     {
+        public const int CandidatesCount = 7;
+        
         [Fact]
         public async Task ElectionContract_RegisterElectionVotingEvent()
         {
@@ -44,8 +47,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task<List<ECKeyPair>> ElectionContract_AnnounceElection()
         {
-            const int candidatesCount = 7;
-            var candidatesKeyPairs = FullNodesKeyPairs.Take(candidatesCount).ToList();
+            var candidatesKeyPairs = FullNodesKeyPairs.Take(CandidatesCount).ToList();
 
             var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPairs[0].PublicKey);
             balanceBeforeAnnouncing.ShouldBeGreaterThan(ElectionContractConstants.LockTokenForElection);
@@ -62,7 +64,7 @@ namespace AElf.Contracts.Election
             {
                 VotingItemId = MinerElectionVotingItemId
             });
-            votingItem.Options.Count.ShouldBe(candidatesCount);
+            votingItem.Options.Count.ShouldBe(CandidatesCount);
             foreach (var candidateKeyPair in candidatesKeyPairs)
             {
                 votingItem.Options.ShouldContain(candidateKeyPair.PublicKey.ToHex());
