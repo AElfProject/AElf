@@ -19,7 +19,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
                 From = Address.Zero,
                 To = input.To,
                 MethodName =
-                    nameof(StatePathsProvidingContractContainer.StatePathsProvidingContractStub.GetResourceInfo),
+                    nameof(ACS2BaseContainer.ACS2BaseStub.GetResourceInfo),
                 Params = input.ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };

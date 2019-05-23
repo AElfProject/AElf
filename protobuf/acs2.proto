@@ -9,7 +9,7 @@ import "google/protobuf/any.proto";
 
 option (aelf.identity) = "acs2";
 
-service StatePathsProvidingContract {
+service ACS2Base {
     // Views
     rpc GetResourceInfo (aelf.Transaction) returns (ResourceInfo) {
         option (aelf.is_view) = true;
