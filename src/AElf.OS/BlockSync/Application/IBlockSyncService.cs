@@ -49,11 +49,20 @@ namespace AElf.OS.BlockSync.Application
                 $"Start block sync job, target height: {blockHash}, target block hash: {blockHeight}, peer: {suggestedPeerPubKey}");
 
             var chain = await _blockchainService.GetChainAsync();
-            
+
             _announcementCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
             if (_announcementCacheProvider.ContainsAnnouncement(blockHash, blockHeight))
             {
                 Logger.LogWarning($"The block have been synchronized, block hash: {blockHash}");
+                return;
+            }
+
+            if (_blockSyncStateProvider.BlockSyncJobEnqueueTime != null
+                && TimestampHelper.GetUtcNow() >
+                _blockSyncStateProvider.BlockSyncJobEnqueueTime + _blockSyncJobAgeLimit)
+            {
+                Logger.LogWarning(
+                    $"Queue is too busy, block sync job enqueue timestamp: {_blockSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime()}");
                 return;
             }
 
@@ -64,15 +73,6 @@ namespace AElf.OS.BlockSync.Application
             }
             else
             {
-                if (_blockSyncStateProvider.BlockSyncJobEnqueueTime != null
-                    && TimestampHelper.GetUtcNow() >
-                    _blockSyncStateProvider.BlockSyncJobEnqueueTime + _blockSyncJobAgeLimit)
-                {
-                    Logger.LogWarning(
-                        $"Queue is too busy, block sync job enqueue timestamp: {_blockSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime()}");
-                    return;
-                }
-
                 var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
                     chain.BestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
 
@@ -85,7 +85,7 @@ namespace AElf.OS.BlockSync.Application
 
                 syncResult = syncBlockCount > 0;
             }
-            
+
             if (syncResult)
             {
                 _announcementCacheProvider.CacheAnnouncement(blockHash, blockHeight);
