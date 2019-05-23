@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Acs7;
 using AElf.Contracts.CrossChain;
 using AElf.Types;
 

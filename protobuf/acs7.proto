@@ -1,0 +1,137 @@
+syntax = "proto3";
+
+package acs7;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option (aelf.identity) = "acs7";
+
+service ACS7{
+    rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
+    }
+    rpc RequestChainCreation (SideChainCreationRequest) returns (RequestChainCreationOutput) {
+    }
+    rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetIndexedCrossChainBlockDataByHeight (aelf.SInt64Value) returns (CrossChainBlockData) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetBoundParentChainHeightAndMerklePathByHeight (aelf.SInt64Value) returns (CrossChainMerkleProofContext) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetChainInitializationContext (aelf.SInt32Value) returns (ChainInitializationData) {
+        option (aelf.is_view) = true;
+    }
+}
+
+
+message SideChainBlockData {
+    int64 height = 1;
+    aelf.Hash blockHeaderHash = 2;
+    aelf.Hash transactionMerkleTreeRoot = 3;
+    int32 chainId = 4;
+}
+
+message IndexedSideChainBlockDataResult {
+    int64 height = 1;
+    aelf.Address miner = 2;
+    repeated SideChainBlockData sideChainBlockData = 3;
+}
+
+message ParentChainBlockData {
+    int64 height = 1;
+    CrossChainExtraData crossChainExtraData = 2;
+    int32 chainId = 3;
+    aelf.Hash transactionStatusMerkleRoot = 4;
+
+    // Indexed block height from side chain and merkle path for this side chain block
+    map<int64, MerklePath> indexedMerklePath = 5;
+    map<string, bytes> extraData = 6;
+}
+
+message CrossChainExtraData{
+    // Merkle tree root of side chain block headers
+    aelf.Hash sideChainBlockHeadersRoot = 1;
+
+    // Merkle tree root of side chain block transaction roots
+    aelf.Hash sideChainTransactionsRoot = 2;
+}
+
+enum SideChainStatus
+{
+    Apply = 0;
+    Review = 1;
+    Active = 2;
+    InsufficientBalance = 3;
+    Terminated = 4;
+}
+
+message SideChainIdAndHeightDict {
+    map<int32, int64> idHeightDict = 1;
+}
+
+message CrossChainBlockData {
+    repeated SideChainBlockData sideChainBlockData = 1;
+    repeated ParentChainBlockData parentChainBlockData = 2;
+    int64 previousBlockHeight = 3;
+}
+
+message MerklePath {
+    repeated aelf.Hash Path = 1;
+}
+
+message CrossChainMerkleProofContext {
+    int64 boundParentChainHeight = 1;
+    MerklePath merklePathForParentChainRoot = 2;
+}
+
+message ChainInitializationData {
+    int32 chainId =1;
+    aelf.Address creator = 2;
+    google.protobuf.Timestamp CreationTimestamp = 3;
+    repeated bytes extraInformation = 4;
+    int64 creationHeightOnParentChain = 5;
+}
+
+// from resource.proto
+
+enum ResourceType
+{
+    UndefinedResourceType = 0;
+    Ram = 1;
+    Cpu = 2;
+    Net = 3;
+}
+
+message ResourceTypeBalancePair {
+    ResourceType type = 1;
+    uint64 amount = 2;
+}
+
+message SideChainInfo {
+    SideChainCreationRequest sideChainCreationRequest = 1;
+    aelf.Address proposer = 2;
+    SideChainStatus sideChainStatus = 3;
+    int32 sideChainId = 4;
+    aelf.Hash proposalHash = 5;
+    google.protobuf.Timestamp creationTimestamp = 6;
+    int64 creationHeightOnParentChain = 7;
+}
+
+message SideChainCreationRequest {
+    int64 indexingPrice = 1;
+    int64 lockedTokenAmount = 2;
+    bytes contractCode = 3;
+}
+
+message RequestChainCreationOutput {
+    int32 chainId =1;
+    aelf.Hash proposalId = 2;
+}

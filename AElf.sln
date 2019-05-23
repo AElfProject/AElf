@@ -140,7 +140,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common.Tests", "test\A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Sdk.Abstracts", "src\AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj", "{35636A23-C51F-4B05-8F1B-AFA435332C46}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Grpc", "src\AElf.CrossChain.Grpc\AElf.CrossChain.Grpc.csproj", "{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Communication.Grpc", "src\AElf.CrossChain.Communication.Grpc\AElf.CrossChain.Communication.Grpc.csproj", "{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Tests", "test\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj", "{DE4395E2-AFC4-415E-A51D-526E472337BF}"
 EndProject
@@ -284,7 +284,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests.BadContract", "test\AElf.Runtime.CSharp.Tests.BadContract\AElf.Runtime.CSharp.Tests.BadContract.csproj", "{E770800E-64BC-46A3-A3BA-C9910BB5771C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Plugin", "src\AElf.CrossChain.Plugin\AElf.CrossChain.Plugin.csproj", "{A7829691-3FEF-4621-8339-2415AC4AC24C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Communication", "src\AElf.CrossChain.Communication\AElf.CrossChain.Communication.csproj", "{A7829691-3FEF-4621-8339-2415AC4AC24C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

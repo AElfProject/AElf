@@ -1,3 +1,4 @@
+using Acs7;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -129,12 +130,12 @@ namespace AElf.Contracts.CrossChain
             return info.Proposer;
         }
 
-        public override ChainInitializationInformation GetChainInitializationContext(SInt32Value chainId)
+        public override ChainInitializationData GetChainInitializationContext(SInt32Value chainId)
         {
             var sideChainInfo = State.SideChainInfos[chainId.Value];
             Assert(sideChainInfo != null, "Side chain Not Found.");
             Assert(sideChainInfo.SideChainStatus > SideChainStatus.Review, "Incorrect side chain status.");
-            var res = new ChainInitializationInformation
+            var res = new ChainInitializationData
             {
                 CreationHeightOnParentChain = sideChainInfo.CreationHeightOnParentChain,
                 ChainId = chainId.Value,

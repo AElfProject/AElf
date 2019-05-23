@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Acs7;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -240,8 +241,8 @@ namespace AElf.Contracts.CrossChain
             var parentChainId = State.ParentChainId.Value;
             foreach (var blockInfo in parentChainBlockData)
             {
-                Assert(parentChainId == blockInfo.ParentChainId, "Wrong parent chain id.");
-                long parentChainHeight = blockInfo.ParentChainHeight;
+                Assert(parentChainId == blockInfo.ChainId, "Wrong parent chain id.");
+                long parentChainHeight = blockInfo.ChainId;
                 var currentHeight = State.CurrentParentChainHeight.Value;
                 var target = currentHeight != 0 ? currentHeight + 1 : State.CreationHeightOnParentChain.Value;
                 Assert(target == parentChainHeight,
@@ -282,7 +283,7 @@ namespace AElf.Contracts.CrossChain
             var indexedSideChainBlockData = new List<SideChainBlockData>();
             foreach (var blockInfo in sideChainBlockData)
             {
-                var chainId = blockInfo.SideChainId;
+                var chainId = blockInfo.ChainId;
                 var info = State.SideChainInfos[chainId];
                 if (info == null || info.SideChainStatus != SideChainStatus.Active)
                     continue;
@@ -291,7 +292,7 @@ namespace AElf.Contracts.CrossChain
                 var target = currentSideChainHeight != 0
                     ? currentSideChainHeight + 1
                     : Constants.GenesisBlockHeight;
-                long sideChainHeight = blockInfo.SideChainHeight;
+                long sideChainHeight = blockInfo.Height;
                 if (target != sideChainHeight)
                     continue;
 
