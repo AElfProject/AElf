@@ -1,0 +1,68 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Acs2;
+using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
+
+namespace AElf.Kernel.SmartContractExecution.Parallel
+{
+    internal static class ExecutiveExtensions
+    {
+        public static async Task<TransactionResourceInfo> GetTransactionResourceInfoAsync(this IExecutive executive,
+            IChainContext chainContext, Transaction transaction)
+        {
+            if (!IsParallelizable(executive))
+            {
+                return NotParallelizable(transaction.GetHash());
+            }
+
+            var trace = new TransactionTrace
+            {
+                TransactionId = transaction.GetHash()
+            };
+
+            var transactionContext = new TransactionContext
+            {
+                PreviousBlockHash = chainContext.BlockHash,
+                CurrentBlockTime = DateTime.UtcNow,
+                Transaction = transaction,
+                BlockHeight = chainContext.BlockHeight + 1,
+                Trace = trace,
+                CallDepth = 0,
+                StateCache = chainContext.StateCache
+            };
+
+            await executive.ApplyAsync(transactionContext);
+            if (!trace.IsSuccessful())
+            {
+                return NotParallelizable(trace.TransactionId);
+            }
+
+            var resourceInfo = ResourceInfo.Parser.ParseFrom(trace.ReturnValue);
+            return new TransactionResourceInfo
+            {
+                TransactionId = trace.TransactionId,
+                Resources =
+                {
+                    resourceInfo.Reources
+                }
+            };
+        }
+
+        private static bool IsParallelizable(this IExecutive executive)
+        {
+            return executive.Descriptors.Any(service => service.File.GetIndentity() == "acs2");
+        }
+
+        private static TransactionResourceInfo NotParallelizable(Hash transactionId)
+        {
+            return new TransactionResourceInfo
+            {
+                TransactionId = transactionId,
+                NonParallelizable = true
+            };
+        }
+    }
+}
