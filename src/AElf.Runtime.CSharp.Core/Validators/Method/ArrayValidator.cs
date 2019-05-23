@@ -12,14 +12,19 @@ namespace AElf.Runtime.CSharp.Validators.Method
         private const long AllowedTotalSize = 40 * 1024; // Byte per array when limiting by total array size
 
         private static readonly ArrayLimitLookup AllowedTypes = new ArrayLimitLookup()
-            .LimitByTotalSize(typeof(int), sizeof(int))
-            .LimitByTotalSize(typeof(uint), sizeof(uint))
+            .LimitByTotalSize(typeof(Int16), sizeof(Int16))
+            .LimitByTotalSize(typeof(Int32), sizeof(Int32))
+            .LimitByTotalSize(typeof(Int64), sizeof(Int64))
+            .LimitByTotalSize(typeof(UInt16), sizeof(UInt16))
+            .LimitByTotalSize(typeof(UInt32), sizeof(UInt32))
+            .LimitByTotalSize(typeof(UInt64), sizeof(UInt64))
             .LimitByTotalSize(typeof(decimal), sizeof(decimal))
             .LimitByTotalSize(typeof(char), sizeof(char))
             .LimitByTotalSize(typeof(String), 128) // Need to limit the size of strings by disallowing String.Concat
             
             // It isn't possible to estimate runtime sizes for below, so limit by count
             .LimitByCount(typeof(Type), 5)
+            .LimitByCount(typeof(Object), 5) // Support object in Linq queries
             .LimitByCount("Google.Protobuf.Reflection.FileDescriptor", 10)
             .LimitByCount("Google.Protobuf.Reflection.GeneratedClrTypeInfo", 100);
 

@@ -5,14 +5,13 @@ using Mono.Cecil.Cil;
 
 namespace AElf.Runtime.CSharp.Validators.Method
 {
-    public class UnsafeMathValidator : IValidator<MethodDefinition>
+    public class UncheckedMathValidator : IValidator<MethodDefinition>
     {
         private readonly HashSet<OpCode> unsafeOpCodes = new HashSet<OpCode>
         {
             OpCodes.Add,
             OpCodes.Sub,
-            OpCodes.Mul,
-            OpCodes.Div
+            OpCodes.Mul
         };
         
         public IEnumerable<ValidationResult> Validate(MethodDefinition method)
