@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Acs4;
 using AElf.Cryptography;
 using AElf.Cryptography.SecretSharing;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -15,7 +16,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSTest
     {
-        private static int MinimumCount => (int) (AEDPoSContractConstants.InitialMinersCount * 2d / 3);
+        private static int MinimumCount => AEDPoSContractConstants.InitialMinersCount.Mul(2).Div(3);
 
         [Fact]
         internal async Task<Dictionary<string, AElfConsensusTriggerInformation>> GenerateEncryptedMessagesTest()

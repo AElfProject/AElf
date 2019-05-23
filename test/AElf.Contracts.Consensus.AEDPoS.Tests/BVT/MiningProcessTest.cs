@@ -227,11 +227,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var thirdRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractConstants.TimeEachTerm + 2);
             BlockTimeProvider.SetBlockTime(thirdRoundStartTime);
-            var thirdRound = ((await oneCandidate.GetInformationToUpdateConsensus.CallAsync(new AElfConsensusTriggerInformation
+            var thirdRound = (await oneCandidate.GetInformationToUpdateConsensus.CallAsync(new AElfConsensusTriggerInformation
             {
                 Behaviour = AElfConsensusBehaviour.NextRound,
                 PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
-            }.ToBytesValue()))).ToConsensusHeaderInformation().Round;
+            }.ToBytesValue())).ToConsensusHeaderInformation().Round;
 
             await oneCandidate.NextRound.SendAsync(thirdRound);
 

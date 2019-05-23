@@ -257,7 +257,66 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner();
             
+            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            {
+                Seconds = AEDPoSContractConstants.MiningInterval.Mul(AEDPoSContractConstants.InitialMinersCount).Div(1000)
+            }).ToDateTime());
+
+            var triggerForCommand =
+                TriggerInformationProvider
+                    .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
             
+            var extraDataBytes = await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggerForCommand);
+
+            var extraData = extraDataBytes.ToConsensusHeaderInformation();
+
+            extraData.Round.RoundId.ShouldBeGreaterThan(1);
+            extraData.Round.RoundNumber.ShouldBe(2);
+        }
+
+        [Fact]
+        internal async Task<TransactionList> AEDPoSContract_GenerateConsensusTransactions_FirstRound_ExtraBlockMiner()
+        {
+            var usingKeyPair = BootMinerKeyPair;
+            KeyPairProvider.SetKeyPair(usingKeyPair);
+
+            var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner();
+
+            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            {
+                Seconds = AEDPoSContractConstants.MiningInterval.Mul(AEDPoSContractConstants.InitialMinersCount).Div(1000)
+            }).ToDateTime());
+
+            var triggerForCommand =
+                TriggerInformationProvider
+                    .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
+
+            var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
+
+            transactionList.Transactions.Count.ShouldBe(1);
+            transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContract.NextRound));
+
+            return transactionList;
+        }
+        
+        [Fact]
+        public async Task AEDPoSContract_FirstRound_Terminate()
+        {
+            var transaction =
+                (await AEDPoSContract_GenerateConsensusTransactions_FirstRound_ExtraBlockMiner()).Transactions.First();
+
+            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            {
+                Seconds = AEDPoSContractConstants.MiningInterval.Mul(AEDPoSContractConstants.InitialMinersCount).Div(1000)
+            }).ToDateTime());
+
+            var nextRound = new Round();
+            nextRound.MergeFrom(transaction.Params);
+
+            await AEDPoSContractStub.NextRound.SendAsync(nextRound);
+
+            var currentRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            currentRound.RoundNumber.ShouldBe(2);
         }
     }
 }
