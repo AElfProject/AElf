@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContractExecution.Execution;
+using AElf.Types;
 using Akka.Actor;
 using AkkaAssembly = Akka;
 using Akka.Routing;

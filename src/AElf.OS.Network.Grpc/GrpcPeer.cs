@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 using Grpc.Core;
 
 namespace AElf.OS.Network.Grpc
@@ -61,7 +62,7 @@ namespace AElf.OS.Network.Grpc
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
         }
 
-        public async Task<Block> RequestBlockAsync(Hash hash)
+        public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)
         {
             var blockRequest = new BlockRequest {Hash = hash};
 
@@ -71,7 +72,7 @@ namespace AElf.OS.Network.Grpc
             return blockReply?.Block;
         }
 
-        public async Task<List<Block>> GetBlocksAsync(Hash firstHash, int count)
+        public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash firstHash, int count)
         {
             var blockRequest = new BlocksRequest {PreviousBlockHash = firstHash, Count = count};
 
@@ -79,7 +80,7 @@ namespace AElf.OS.Network.Grpc
                 $"Get blocks for {{ first: {firstHash}, count: {count} }} failed.");
 
             if (list == null)
-                return new List<Block>();
+                return new List<BlockWithTransactions>();
 
             return list.Blocks.ToList();
         }

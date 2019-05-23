@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;

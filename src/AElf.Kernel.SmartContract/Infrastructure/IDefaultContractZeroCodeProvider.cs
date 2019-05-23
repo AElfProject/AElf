@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 

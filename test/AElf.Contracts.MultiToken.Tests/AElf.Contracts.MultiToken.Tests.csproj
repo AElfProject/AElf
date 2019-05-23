@@ -7,8 +7,13 @@
         <RootNamespace>AElf.Contracts.MultiToken</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
-      <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
@@ -18,4 +23,14 @@
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
+
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\acs1.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+
 </Project>

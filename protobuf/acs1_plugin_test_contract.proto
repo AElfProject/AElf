@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "aelf_options.proto";
+import "aelf/options.proto";
 import "acs1.proto";
 import "google/protobuf/empty.proto";
 

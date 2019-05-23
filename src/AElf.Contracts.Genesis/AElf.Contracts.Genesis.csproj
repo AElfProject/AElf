@@ -5,32 +5,17 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\..\protobuf\aelf_options.proto">
-            <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\common.proto">
-            <Link>Protobuf/Proto/common.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\kernel.proto">
-            <Link>Protobuf/Proto/kernel.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </None>
+        <ContractBase Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </ContractBase>
+        <ContractCode Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        </ContractCode>
     </ItemGroup>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh basic_contract_zero.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_code.bat basic_contract_zero.proto" />
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs" />
-        </ItemGroup>
-    </Target>
     <Target Name="CopyContractDll" AfterTargets="AfterBuild">
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll ../../test/AElf.Runtime.CSharp.Tests/contracts"/>
         <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll ..\..\test\AElf.Runtime.CSharp.Tests\contracts"/>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;

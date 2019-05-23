@@ -22,20 +22,15 @@
         <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
     </ItemGroup>
     <ItemGroup>
-      <None Include="..\..\protobuf\aelf_options.proto">
-        <Link>Protobuf/Proto/aelf_options.proto</Link>
-      </None>
-      <None Include="..\..\protobuf\common.proto">
-        <Link>Protobuf/Proto/common.proto</Link>
-      </None>
       <None Include="..\..\protobuf\kernel.proto">
         <Link>Protobuf/Proto/kernel.proto</Link>
       </None>
-      <None Include="..\..\protobuf\basic_contract_zero.proto">
+      <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
         <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-      </None>
+      </ContractStub>
     </ItemGroup>
     <ItemGroup>
       <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0" />
@@ -43,13 +38,4 @@
       <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
       <PackageReference Include="Volo.Abp.TestBase" Version="0.15.0" />
     </ItemGroup>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto" />
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs" />
-        </ItemGroup>
-    </Target>
 </Project>

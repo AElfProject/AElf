@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using AElf.BenchBase;
 using AElf.OS;
+using AElf.Types;
 using NBench;
 using Pro.NBench.xUnit.XunitExtensions;
 using Volo.Abp.Threading;

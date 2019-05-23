@@ -6,27 +6,20 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj"/>
-        <ProjectReference Include="..\AElf.Common\AElf.Common.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj"/>
+        <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
+        <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.BackgroundJobs" Version="0.15.0"/>
+        <PackageReference Include="Volo.Abp.BackgroundJobs" Version="0.15.0" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.15.0"/>
+        <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.15.0" />
     </ItemGroup>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec LogStandardErrorAsError="true" Command="protoc --proto_path=../../protobuf --csharp_out=./Network/Generated --csharp_opt=file_extension=.g.cs network_types.proto"/>
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Network/Generated/*.g.cs"/>
-        </ItemGroup>
-    </Target>
     <ItemGroup>
-        <None Include="..\..\protobuf\network_types.proto">
-            <Link>Network/Proto/network_types.proto</Link>
-        </None>
+        <CommonMessage Include="..\..\protobuf\network_types.proto">
+            <Link>Protobuf/Proto/network_types.proto</Link>
+        </CommonMessage>
     </ItemGroup>
 </Project>

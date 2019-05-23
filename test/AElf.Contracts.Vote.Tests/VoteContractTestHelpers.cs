@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 

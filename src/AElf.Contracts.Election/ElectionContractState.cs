@@ -1,5 +1,6 @@
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 
 namespace AElf.Contracts.Election
 {

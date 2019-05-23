@@ -1,13 +1,13 @@
 using System;
-using AElf.Kernel;
-using AElf.Kernel.KernelAccount;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Acs0;
 
 namespace AElf.Contracts.Genesis
 {
-    public class BasicContractZero : BasicContractZeroContainer.BasicContractZeroBase, ISmartContractZero
+    public class BasicContractZero : BasicContractZeroContainer.BasicContractZeroBase
     {
         #region Views
 
@@ -16,12 +16,12 @@ namespace AElf.Contracts.Genesis
             return new UInt64Value() {Value = State.ContractSerialNumber.Value};
         }
 
-        public override Kernel.ContractInfo GetContractInfo(Address input)
+        public override ContractInfo GetContractInfo(Address input)
         {
             var info = State.ContractInfos[input];
             if (info == null)
             {
-                return new Kernel.ContractInfo();
+                return new ContractInfo();
             }
 
             return info;
