@@ -7,10 +7,8 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract
     {
         public override ResourceInfo GetResourceInfo(Transaction input)
         {
-            return new ResourceInfo
-            {
-                Reources = {input.GetHashCode()}
-            };
+            // Just echo input params
+            return ResourceInfo.Parser.ParseFrom(input.Params);
         }
     }
 }

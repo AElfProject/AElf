@@ -58,7 +58,8 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
                 Resources =
                 {
                     resourceInfo.Reources
-                }
+                },
+                NonParallelizable = resourceInfo.NonParallelizable
             };
         }
 

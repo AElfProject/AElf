@@ -18,4 +18,5 @@ service ACS2Base {
 
 message ResourceInfo {
     repeated int32 reources = 1;
+    bool non_parallelizable = 2;
 }
