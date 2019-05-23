@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -17,6 +18,7 @@ namespace AElf
         void Enqueue(Func<Task> task);
         Task StartAsync();
         Task StopAsync();
+        int Count();
     }
 
     public class TaskQueue : ITaskQueue, ITransientDependency
@@ -85,12 +87,18 @@ namespace AElf
         {
             _cancellationTokenSource.Cancel();
         }
+
+        public int Count()
+        {
+            return _queue.Count;
+        }
     }
 
 
     public interface ITaskQueueManager : IDisposable
     {
         ITaskQueue GetQueue(string name = null);
+        List<TaskQueueStateInfo> GetQueueStateInfos();
     }
 
     public static class TaskQueueManagerExtensions
@@ -146,5 +154,27 @@ namespace AElf
                 return q;
             });
         }
+
+        public List<TaskQueueStateInfo> GetQueueStateInfos()
+        {
+            var result = new List<TaskQueueStateInfo>();
+            foreach (var taskQueueName in _taskQueues.Keys)
+            {
+                _taskQueues.TryGetValue(taskQueueName, out var queue);
+                result.Add(new TaskQueueStateInfo
+                {
+                    Name = taskQueueName,
+                    Size = queue?.Count()??0
+                });
+            }
+            return result;
+        }
+    }
+
+    public class TaskQueueStateInfo
+    {
+        public string Name { get; set; }
+        
+        public int Size { get; set; }
     }
 }
