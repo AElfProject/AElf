@@ -248,5 +248,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return consensusCommand;
         }
+
+        [Fact]
+        public async Task AEDPoSContract_GetInformationToUpdateConsensus_FirstRound_ExtraBlockMiner()
+        {
+            var usingKeyPair = BootMinerKeyPair;
+            KeyPairProvider.SetKeyPair(usingKeyPair);
+
+            var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner();
+            
+            
+        }
     }
 }

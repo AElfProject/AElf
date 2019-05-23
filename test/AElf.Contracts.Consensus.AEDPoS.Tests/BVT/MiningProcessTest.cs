@@ -19,6 +19,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public async Task EvilNodeDetectionTest()
         {
+            await InitializeVoters();
+            await InitializeCandidates(AEDPoSContractConstants.InitialMinersCount);
+            
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var randomHashes = Enumerable.Range(0, AEDPoSContractConstants.InitialMinersCount).Select(_ => Hash.Generate()).ToList();
@@ -152,6 +155,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public async Task CandidatesNotEnough()
         {
+            await InitializeVoters();
+            await InitializeCandidates(AEDPoSContractConstants.InitialMinersCount);
+
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var randomHashes = Enumerable.Range(0, AEDPoSContractConstants.InitialMinersCount).Select(_ => Hash.Generate()).ToList();
@@ -243,12 +249,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // The other miner generate information of next round.
             var fourthRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractConstants.TimeEachTerm + 3);
             BlockTimeProvider.SetBlockTime(fourthRoundStartTime);
-            var fourthRound = ((await anotherCandidate.GetInformationToUpdateConsensus.CallAsync(
+            var fourthRound = (await anotherCandidate.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextRound,
                     PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[1].PublicKey)
-                }.ToBytesValue()))).ToConsensusHeaderInformation().Round;
+                }.ToBytesValue())).ToConsensusHeaderInformation().Round;
 
             fourthRound.RealTimeMinersInformation.Keys.ShouldNotContain(CandidatesKeyPairs[0].PublicKey.ToHex());
             var newMiner = fourthRound.RealTimeMinersInformation.Keys.Where(k => !thirdRound.RealTimeMinersInformation.ContainsKey(k))
