@@ -5,8 +5,8 @@ namespace AElf.Kernel.Consensus.Application
 {
     public interface ITriggerInformationProvider
     {
-        BytesValue GetTriggerInformationForConsensusCommand(BytesValue consensusCommand);
-        BytesValue GetTriggerInformationForBlockHeaderExtraData(BytesValue consensusCommand);
+        BytesValue GetTriggerInformationForConsensusCommand(BytesValue consensusCommandBytes);
+        BytesValue GetTriggerInformationForBlockHeaderExtraData(BytesValue consensusCommandBytes);
         BytesValue GetTriggerInformationForConsensusTransactions(BytesValue consensusCommandBytes);
     }
 }

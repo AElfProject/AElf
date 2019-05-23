@@ -36,11 +36,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     return behaviour;
                 }
             }
-            else if (minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
+            else if ((!isTimeSlotPassed || currentRound.RoundNumber == 1) &&
+                     minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
             {
                 return AElfConsensusBehaviour.TinyBlock;
             }
-            else if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
+            else if ((!isTimeSlotPassed || currentRound.RoundNumber == 1) &&
+                     currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
                      minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber.Mul(2))
             {
                 return AElfConsensusBehaviour.TinyBlock;
@@ -49,12 +51,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Side chain will go next round directly.
             return State.TimeEachTerm.Value == int.MaxValue
                 ? AElfConsensusBehaviour.NextRound
-                : GetBehaviourForMainChain(currentRound, previousRound, termNumber);
+                : GetBehaviourForChainAbleToChangeTerm(currentRound, previousRound, termNumber);
         }
 
         private AElfConsensusBehaviour GetBehaviourIfMinerDoesNotProduceBlockInCurrentRound(Round currentRound,
-            MinerInRound minerInRound,
-            bool isPreviousRoundExists, bool isTermJustChanged, bool isTimeSlotPassed)
+            MinerInRound minerInRound, bool isPreviousRoundExists, bool isTermJustChanged, bool isTimeSlotPassed)
         {
             if (!isPreviousRoundExists && minerInRound.Order != 1 &&
                 currentRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).OutValue == null)
@@ -80,7 +81,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return !isTimeSlotPassed ? AElfConsensusBehaviour.UpdateValue : AElfConsensusBehaviour.Nothing;
         }
 
-        private AElfConsensusBehaviour GetBehaviourForMainChain(Round currentRound, Round previousRound,
+        private AElfConsensusBehaviour GetBehaviourForChainAbleToChangeTerm(Round currentRound, Round previousRound,
             long termNumber)
         {
             // In first round, the blockchain start timestamp is incorrect.
@@ -123,7 +124,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
-                    nextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval;
+                    if (currentRound.RoundNumber == 1 &&
+                        currentRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).OutValue == null)
+                    {
+                        // To avoid the initial miners fork so fast at the very beginning.
+                        nextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval;
+                    }
+                    else
+                    {
+                        nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+                    }
+
                     break;
                 case AElfConsensusBehaviour.UpdateValue:
                     nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
@@ -133,17 +144,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         out nextBlockMiningLeftMilliseconds);
                     break;
                 case AElfConsensusBehaviour.NextRound:
-                    duration = currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, currentBlockTime) -
-                               currentBlockTime.ToTimestamp();
-                    nextBlockMiningLeftMilliseconds = currentRound.RoundNumber == 1
-                        ? currentRound.RealTimeMinersInformation.Count.Mul(miningInterval)
-                            .Add(myOrder.Mul(miningInterval))
-                        : ConvertDurationToMilliseconds(duration);
+                    expectedMiningTime =
+                        currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, currentBlockTime);
+                    duration = expectedMiningTime - currentBlockTime.ToTimestamp();
+                    nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+//                        currentRound.RoundNumber == 1
+//                        ? currentRound.RealTimeMinersInformation.Count.Mul(miningInterval)
+//                            .Add(myOrder.Mul(miningInterval))
+//                        : 
+//                        ConvertDurationToMilliseconds(duration);
                     break;
                 case AElfConsensusBehaviour.NextTerm:
-                    nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(
-                        currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, currentBlockTime) -
-                        currentBlockTime.ToTimestamp());
+                    expectedMiningTime =
+                        currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, currentBlockTime);
+                    nextBlockMiningLeftMilliseconds =
+                        ConvertDurationToMilliseconds(expectedMiningTime - currentBlockTime.ToTimestamp());
                     break;
                 default:
                     return new ConsensusCommand

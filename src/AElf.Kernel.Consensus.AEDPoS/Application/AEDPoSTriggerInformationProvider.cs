@@ -87,7 +87,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 };
 
                 var newRandomHash = GetRandomHash(command);
-                Logger.LogTrace($"Update lasted random hash to {newRandomHash.ToHex()}");
                 _latestRandomHash = newRandomHash;
 
                 return trigger.ToBytesValue();

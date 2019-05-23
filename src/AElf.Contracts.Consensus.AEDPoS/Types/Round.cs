@@ -311,7 +311,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = RoundId,
                 ProducedBlocks = minerInRound.ProducedBlocks,
-                ActualMiningTime = minerInRound.ActualMiningTimes.First(),
+                ActualMiningTime = minerInRound.ActualMiningTimes.Last(),
                 SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,
                 TuneOrderInformation = {tuneOrderInformation},
                 EncryptedInValues = {minerInRound.EncryptedInValues},

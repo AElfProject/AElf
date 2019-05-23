@@ -8,13 +8,8 @@ using Xunit;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public class GetConsensusCommandTest : AElfConsensusContractTestBase
+    public partial class AEDPoSTest
     {
-        public GetConsensusCommandTest()
-        {
-            InitializeContracts();
-        }
-        
         /// <summary>
         /// For now the information of first round will be filled in first block,
         /// which means this information should exist before mining process starting.
@@ -25,8 +20,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
             firstRound.RoundNumber.ShouldBe(1);
-            firstRound.RealTimeMinersInformation.Count.ShouldBe(InitialMinersCount);
-            firstRound.GetMiningInterval().ShouldBe(MiningInterval);
+            firstRound.RealTimeMinersInformation.Count.ShouldBe(AEDPoSContractConstants.InitialMinersCount);
+            firstRound.GetMiningInterval().ShouldBe(AEDPoSContractConstants.MiningInterval);
         }
 
         [Fact]
@@ -36,23 +31,26 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var command = await BootMiner.GetConsensusCommand.CallAsync(new BytesValue
                     {Value = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)});
-                command.NextBlockMiningLeftMilliseconds.ShouldBe(MiningInterval);
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(SmallBlockMiningInterval);
-                command.Hint.ShouldBe(new AElfConsensusHint { Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue }
+                command.NextBlockMiningLeftMilliseconds.ShouldBe(AEDPoSContractConstants.MiningInterval);
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractConstants.SmallBlockMiningInterval);
+                command.Hint.ShouldBe(new AElfConsensusHint
+                        {Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue}
                     .ToByteArray());
             }
 
             // Other miners will get a consensus command of NextRound behaviour
             {
                 var otherMinerKeyPair = InitialMinersKeyPairs[1];
-                var otherMiner = GetAElfConsensusContractTester(otherMinerKeyPair);
+                var otherMiner = GetAEDPoSContractStub(otherMinerKeyPair);
                 var round = await otherMiner.GetCurrentRoundInformation.CallAsync(new Empty());
                 var order = round.RealTimeMinersInformation[otherMinerKeyPair.PublicKey.ToHex()].Order;
                 var command = await otherMiner.GetConsensusCommand.CallAsync(new BytesValue
                     {Value = ByteString.CopyFrom(otherMinerKeyPair.PublicKey)});
-                command.NextBlockMiningLeftMilliseconds.ShouldBe(MiningInterval * InitialMinersCount + MiningInterval * order);
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(SmallBlockMiningInterval);
-                command.Hint.ShouldBe(new AElfConsensusHint { Behaviour = AElfConsensusBehaviour.NextRound }
+                command.NextBlockMiningLeftMilliseconds.ShouldBe(
+                    AEDPoSContractConstants.MiningInterval * AEDPoSContractConstants.InitialMinersCount +
+                    AEDPoSContractConstants.MiningInterval * order);
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractConstants.SmallBlockMiningInterval);
+                command.Hint.ShouldBe(new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextRound}
                     .ToByteArray());
             }
         }
@@ -70,11 +68,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 secondRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).PublicKey;
 
             var minerKeyPair = InitialMinersKeyPairs.First(k => k.PublicKey.ToHex() == firstMinerInSecondRound);
-            var miner = GetAElfConsensusContractTester(minerKeyPair);
+            var miner = GetAEDPoSContractStub(minerKeyPair);
 
             var expectedMiningTime = secondRound.RealTimeMinersInformation[minerKeyPair.PublicKey.ToHex()]
                 .ExpectedMiningTime.ToDateTime();
-            
+
             // Normal block
             {
                 // Set current time as the start time of 2rd round.
@@ -85,20 +83,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var command = await miner.GetConsensusCommand.CallAsync(new BytesValue
                     {Value = ByteString.CopyFrom(minerKeyPair.PublicKey)});
                 command.NextBlockMiningLeftMilliseconds.ShouldBe(leftMilliseconds);
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(SmallBlockMiningInterval);
-                command.Hint.ShouldBe(new AElfConsensusHint { Behaviour = AElfConsensusBehaviour.UpdateValue }
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractConstants.SmallBlockMiningInterval);
+                command.Hint.ShouldBe(new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValue}
                     .ToByteArray());
             }
 
             // Extra block
             {
                 // Pretend the miner passed his time slot.
-                var fakeTime = expectedMiningTime.AddMilliseconds(MiningInterval);
+                var fakeTime = expectedMiningTime.AddMilliseconds(AEDPoSContractConstants.MiningInterval);
                 BlockTimeProvider.SetBlockTime(fakeTime);
-                
-                var extraBlockMiningTime = secondRound.GetExpectedEndTime().ToDateTime().AddMilliseconds(MiningInterval);
+
+                var extraBlockMiningTime = secondRound.GetExpectedEndTime().ToDateTime()
+                    .AddMilliseconds(AEDPoSContractConstants.MiningInterval);
                 var leftMilliseconds = (int) (extraBlockMiningTime - fakeTime).TotalMilliseconds;
-                
+
                 var command = await miner.GetConsensusCommand.CallAsync(new BytesValue
                     {Value = ByteString.CopyFrom(minerKeyPair.PublicKey)});
                 if (secondRound.GetExtraBlockProducerInformation().PublicKey == minerKeyPair.PublicKey.ToHex())
@@ -111,8 +110,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     command.NextBlockMiningLeftMilliseconds.ShouldBe(leftMilliseconds);
                 }
-                command.LimitMillisecondsOfMiningBlock.ShouldBe(SmallBlockMiningInterval);
-                command.Hint.ShouldBe(new AElfConsensusHint { Behaviour = AElfConsensusBehaviour.NextRound }
+
+                command.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractConstants.SmallBlockMiningInterval);
+                command.Hint.ShouldBe(new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextRound}
                     .ToByteArray());
             }
         }

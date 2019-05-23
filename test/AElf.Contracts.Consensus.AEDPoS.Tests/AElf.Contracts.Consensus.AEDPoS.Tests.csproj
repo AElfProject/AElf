@@ -56,4 +56,7 @@
             <Link>Protobuf/Proto/acs0.proto</Link>
         </ContractStub>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Full" />
+    </ItemGroup>
 </Project>

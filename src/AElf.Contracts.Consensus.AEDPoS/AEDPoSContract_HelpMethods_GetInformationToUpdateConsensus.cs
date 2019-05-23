@@ -76,6 +76,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 nextRound.RealTimeMinersInformation[publicKey].ProducedBlocks.Add(1);
             Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
             nextRound.ExtraBlockProducerOfPreviousRound = publicKey;
+
+            nextRound.RealTimeMinersInformation[publicKey].ProducedTinyBlocks = 1;
+            nextRound.RealTimeMinersInformation[publicKey].ActualMiningTimes
+                .Add(Context.CurrentBlockTime.ToTimestamp());
+
             return new AElfConsensusHeaderInformation
             {
                 SenderPublicKey = publicKey.ToByteString(),
