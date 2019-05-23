@@ -5,18 +5,20 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.BlockSync.Infrastructure
 {
-    public interface IBlockDownloadHistoryCacheProvider
+    public interface IAnnouncementCacheProvider
     {
-        bool CacheHistory(Hash blockHash, long blockHeight);
+        bool CacheAnnouncement(Hash blockHash, long blockHeight);
+
+        bool ContainsAnnouncement(Hash blockHash, long blockHeight);
 
         void ClearCache(long blockHeight);
     }
 
-    public class BlockDownloadHistoryCacheProvider : IBlockDownloadHistoryCacheProvider, ISingletonDependency
+    public class AnnouncementCacheProvider : IAnnouncementCacheProvider, ISingletonDependency
     {
         private SortedDictionary<long, HashSet<Hash>> _cache = new SortedDictionary<long, HashSet<Hash>>();
 
-        public bool CacheHistory(Hash blockHash, long blockHeight)
+        public bool CacheAnnouncement(Hash blockHash, long blockHeight)
         {
             if (!_cache.TryGetValue(blockHeight, out var blockHashes))
             {
@@ -25,6 +27,16 @@ namespace AElf.OS.BlockSync.Infrastructure
             }
 
             return blockHashes.Add(blockHash);
+        }
+
+        public bool ContainsAnnouncement(Hash blockHash, long blockHeight)
+        {
+            if (_cache.TryGetValue(blockHeight, out var blockHashes))
+            {
+                return blockHashes.Contains(blockHash);
+            }
+
+            return false;
         }
 
         public void ClearCache(long blockHeight)

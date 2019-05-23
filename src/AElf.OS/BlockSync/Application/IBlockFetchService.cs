@@ -14,7 +14,7 @@ namespace AElf.OS.BlockSync.Application
 {
     public interface IBlockFetchService
     {
-        Task FetchBlockAsync(Hash blockHash, long blockHeight, string suggestedPeerPubKey);
+        Task<bool> FetchBlockAsync(Hash blockHash, long blockHeight, string suggestedPeerPubKey);
     }
 
     public class BlockFetchService : IBlockFetchService
@@ -39,19 +39,21 @@ namespace AElf.OS.BlockSync.Application
             _taskQueueManager = taskQueueManager;
         }
 
-        public async Task FetchBlockAsync(Hash blockHash, long blockHeight, string suggestedPeerPubKey)
+        public async Task<bool> FetchBlockAsync(Hash blockHash, long blockHeight, string suggestedPeerPubKey)
         {
             var localBlock = await _blockchainService.GetBlockByHashAsync(blockHash);
             if (localBlock != null)
             {
                 Logger.LogDebug($"Block {localBlock} already know.");
-                return;
+                return true;
             }
 
             var blockWithTransactions = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
 
             _taskQueueManager.Enqueue(async () => await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions),
                 OSConsts.BlockSyncAttachQueueName);
+
+            return blockWithTransactions != null;
         }
     }
 }

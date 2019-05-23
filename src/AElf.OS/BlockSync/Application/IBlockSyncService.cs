@@ -20,7 +20,7 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockFetchService _blockFetchService;
         private readonly IBlockDownloadService _blockDownloadService;
-        private readonly IBlockDownloadHistoryCacheProvider _blockDownloadHistoryCacheProvider;
+        private readonly IAnnouncementCacheProvider _announcementCacheProvider;
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
 
         public ILogger<BlockSyncService> Logger { get; set; }
@@ -30,7 +30,7 @@ namespace AElf.OS.BlockSync.Application
         public BlockSyncService(IBlockchainService blockchainService,
             IBlockFetchService blockFetchService,
             IBlockDownloadService blockDownloadService,
-            IBlockDownloadHistoryCacheProvider blockDownloadHistoryCacheProvider,
+            IAnnouncementCacheProvider announcementCacheProvider,
             IBlockSyncStateProvider blockSyncStateProvider)
         {
             Logger = NullLogger<BlockSyncService>.Instance;
@@ -38,7 +38,7 @@ namespace AElf.OS.BlockSync.Application
             _blockchainService = blockchainService;
             _blockFetchService = blockFetchService;
             _blockDownloadService = blockDownloadService;
-            _blockDownloadHistoryCacheProvider = blockDownloadHistoryCacheProvider;
+            _announcementCacheProvider = announcementCacheProvider;
             _blockSyncStateProvider = blockSyncStateProvider;
         }
 
@@ -49,9 +49,18 @@ namespace AElf.OS.BlockSync.Application
                 $"Start block sync job, target height: {blockHash}, target block hash: {blockHeight}, peer: {suggestedPeerPubKey}");
 
             var chain = await _blockchainService.GetChainAsync();
+            
+            _announcementCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
+            if (_announcementCacheProvider.ContainsAnnouncement(blockHash, blockHeight))
+            {
+                Logger.LogWarning($"The block have been synchronized, block hash: {blockHash}");
+                return;
+            }
+
+            bool syncResult;
             if (blockHash != null && blockHeight < chain.BestChainHeight + 5)
             {
-                await _blockFetchService.FetchBlockAsync(blockHash, blockHeight, suggestedPeerPubKey);
+                syncResult = await _blockFetchService.FetchBlockAsync(blockHash, blockHeight, suggestedPeerPubKey);
             }
             else
             {
@@ -64,22 +73,22 @@ namespace AElf.OS.BlockSync.Application
                     return;
                 }
 
-                _blockDownloadHistoryCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
-                if (!_blockDownloadHistoryCacheProvider.CacheHistory(blockHash, blockHeight))
-                {
-                    Logger.LogWarning($"The block have been synchronized, block hash: {blockHash}");
-                    return;
-                }
-
-                var syncFromBestChainBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
+                var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
                     chain.BestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
 
-                if (syncFromBestChainBlockCount == 0 && blockHeight > chain.LongestChainHeight)
+                if (syncBlockCount == 0 && blockHeight > chain.LongestChainHeight)
                 {
                     Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
-                    await _blockDownloadService.DownloadBlocksAsync(chain.LastIrreversibleBlockHash,
+                    syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LastIrreversibleBlockHash,
                         chain.LastIrreversibleBlockHeight, batchRequestBlockCount, suggestedPeerPubKey);
                 }
+
+                syncResult = syncBlockCount > 0;
+            }
+            
+            if (syncResult)
+            {
+                _announcementCacheProvider.CacheAnnouncement(blockHash, blockHeight);
             }
 
             Logger.LogDebug($"Finishing block sync job, longest chain height: {chain.LongestChainHeight}");
