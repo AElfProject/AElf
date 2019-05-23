@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using Nito.AsyncEx;
 using Volo.Abp.Threading;
 
 namespace AElf
@@ -18,7 +17,7 @@ namespace AElf
         void Enqueue(Func<Task> task);
         Task StartAsync();
         Task StopAsync();
-        int Count();
+        int Size { get; }
     }
 
     public class TaskQueue : ITaskQueue, ITransientDependency
@@ -28,6 +27,8 @@ namespace AElf
         private CancellationTokenSource _cancellationTokenSource;
 
         public ILogger<TaskQueue> Logger { get; set; }
+
+        public int Size => _queue.Count;
 
         public TaskQueue()
         {
@@ -86,11 +87,6 @@ namespace AElf
         public async Task StopAsync()
         {
             _cancellationTokenSource.Cancel();
-        }
-
-        public int Count()
-        {
-            return _queue.Count;
         }
     }
 
@@ -164,9 +160,10 @@ namespace AElf
                 result.Add(new TaskQueueStateInfo
                 {
                     Name = taskQueueName,
-                    Size = queue?.Count()??0
+                    Size = queue?.Size ?? 0
                 });
             }
+
             return result;
         }
     }
@@ -174,7 +171,7 @@ namespace AElf
     public class TaskQueueStateInfo
     {
         public string Name { get; set; }
-        
+
         public int Size { get; set; }
     }
 }

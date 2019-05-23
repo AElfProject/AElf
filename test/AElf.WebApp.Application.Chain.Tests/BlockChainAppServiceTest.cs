@@ -1044,17 +1044,21 @@ namespace AElf.WebApp.Application.Chain.Tests
             const string testQueueOneName = "testQueueOneName";
             const string testQueueTwoName = "testQueueTwoName";
             
-            _taskQueueManager.Enqueue(() => Task.CompletedTask, testQueueOneName);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
+
             response = await GetResponseAsObjectAsync<List<TaskQueueStateInfoDto>>("/api/blockChain/taskQueueStatus");
             response.Count.ShouldBe(2);
             response.Any(info=>info.Name == testQueueOneName).ShouldBeTrue();
             response.First(info=>info.Name == testQueueOneName).Size.ShouldBe(1);
-            
-            _taskQueueManager.Enqueue(() => Task.CompletedTask, testQueueTwoName);
-            _taskQueueManager.Enqueue(() => Task.CompletedTask, testQueueTwoName);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
+
+            response = await GetResponseAsObjectAsync<List<TaskQueueStateInfoDto>>("/api/blockChain/taskQueueStatus");
             response.Count.ShouldBe(3);
-            response.Any(info=>info.Name == testQueueTwoName).ShouldBeTrue();
             response.First(info=>info.Name == testQueueTwoName).Size.ShouldBe(2);
+            response.Any(info=>info.Name == testQueueTwoName).ShouldBeTrue();
         }
         
         private Task<List<Transaction>> GenerateTwoInitializeTransaction()
