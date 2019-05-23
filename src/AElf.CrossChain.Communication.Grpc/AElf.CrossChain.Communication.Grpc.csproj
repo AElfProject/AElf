@@ -2,12 +2,20 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.CrossChain.Grpc</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <NoWarn>1701;1702;0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
+        <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+        <ProjectReference Include="..\AElf.CrossChain.Communication\AElf.CrossChain.Communication.csproj" />
+        <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
     </ItemGroup>
-
+    
     <ItemGroup>
         <None Include="..\..\protobuf\header_info.proto">
             <Link>./Protobuf/header_info.proto</Link>
