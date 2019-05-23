@@ -36,13 +36,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     return behaviour;
                 }
             }
-            else if ((!isTimeSlotPassed || currentRound.RoundNumber == 1) &&
+            else if (!isTimeSlotPassed &&
                      minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
             {
                 return AElfConsensusBehaviour.TinyBlock;
             }
-            else if ((!isTimeSlotPassed || currentRound.RoundNumber == 1) &&
+            else if (!isTimeSlotPassed &&
                      currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
+                     !isTermJustChanged &&
                      minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber.Mul(2))
             {
                 return AElfConsensusBehaviour.TinyBlock;
@@ -148,11 +149,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, currentBlockTime);
                     duration = expectedMiningTime - currentBlockTime.ToTimestamp();
                     nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
-//                        currentRound.RoundNumber == 1
-//                        ? currentRound.RealTimeMinersInformation.Count.Mul(miningInterval)
-//                            .Add(myOrder.Mul(miningInterval))
-//                        : 
-//                        ConvertDurationToMilliseconds(duration);
                     break;
                 case AElfConsensusBehaviour.NextTerm:
                     expectedMiningTime =

@@ -84,14 +84,29 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return distance > 0 ? distance : -distance;
         }
 
-        public bool IsTimeSlotPassed(string publicKey, DateTime dateTime,
+        public bool IsTimeSlotPassed(string publicKey, DateTime currentBlockTime,
             out MinerInRound minerInRound)
         {
             minerInRound = null;
             var miningInterval = GetMiningInterval();
             if (!RealTimeMinersInformation.ContainsKey(publicKey)) return false;
             minerInRound = RealTimeMinersInformation[publicKey];
-            return minerInRound.ExpectedMiningTime.ToDateTime().AddMilliseconds(miningInterval) <= dateTime;
+            if (RoundNumber == 1)
+            {
+                var actualStartTimes =
+                    RealTimeMinersInformation.Values.First(m => m.Order == 1).ActualMiningTimes;
+                if (actualStartTimes.Count == 0)
+                {
+                    return false;
+                }
+
+                var actualStartTime = actualStartTimes.First();
+                var runningTime = currentBlockTime.ToTimestamp() - actualStartTime;
+                var expectedOrder = runningTime.Seconds.Div(miningInterval.Div(1000)).Add(1);
+                return minerInRound.Order < expectedOrder;
+            }
+            return minerInRound.ExpectedMiningTime + new Duration {Seconds = miningInterval.Div(1000)} <
+                   currentBlockTime.ToTimestamp();
         }
 
         /// <summary>
