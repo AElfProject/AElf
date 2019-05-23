@@ -19,7 +19,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
         public async Task<IEnumerable<TransactionResourceInfo>> GetResourcesAsync(IChainContext chainContext,
             IEnumerable<Transaction> transactions)
         {
-            // TODO: Set timeout, maybe assume not parallelizable it timed out
+            // TODO: Set timeout, maybe assume not parallelizable if timed out
             var tasks = transactions.Select(t => GetResourcesForOneAsync(chainContext, t));
             return await Task.WhenAll(tasks);
         }
