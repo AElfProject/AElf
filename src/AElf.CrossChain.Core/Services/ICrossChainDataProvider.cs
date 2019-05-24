@@ -12,7 +12,7 @@ namespace AElf.CrossChain
     {
         Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
-        Task<ChainInitializationData> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight);
+        Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId, Hash blockHash, long blockHeight);
 
         Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 

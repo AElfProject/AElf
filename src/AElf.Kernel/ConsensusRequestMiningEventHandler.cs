@@ -34,6 +34,7 @@ namespace AElf.Kernel
         {
             try
             {
+                Logger.LogTrace("Start mining..");
                 var block = await _minerService.MineAsync(eventData.PreviousBlockHash, eventData.PreviousBlockHeight,
                     eventData.BlockTime, eventData.BlockExecutionTime);
                 

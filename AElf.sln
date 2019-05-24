@@ -168,7 +168,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Blockchains", "AElf.Bl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.TestBase", "test\AElf.OS.TestBase\AElf.OS.TestBase.csproj", "{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Grpc.Tests", "test\AElf.CrossChain.Grpc.Tests\AElf.CrossChain.Grpc.Tests.csproj", "{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Communication.Grpc.Tests", "test\AElf.CrossChain.Communication.Grpc.Tests\AElf.CrossChain.Communication.Grpc.Tests.csproj", "{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc.Tests", "test\AElf.OS.Network.Grpc.Tests\AElf.OS.Network.Grpc.Tests.csproj", "{F3B93EF4-C324-44B1-BA33-8F4899131664}"
 EndProject

@@ -7,16 +7,17 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain
 {
-    internal class CrossChainValidationProvider : IBlockValidationProvider
+    public class CrossChainValidationProvider : IBlockValidationProvider
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IBlockExtraDataService _blockExtraDataService;
         public ILocalEventBus LocalEventBus { get; set; }
-
+        
         public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataService blockExtraDataService)
         {
             _crossChainDataProvider = crossChainDataProvider;
