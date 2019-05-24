@@ -69,7 +69,7 @@ namespace AElf.Runtime.CSharp.Policies
                         .Constructor(Permission.Denied))
                     .Type(typeof(Byte[]).Name, Permission.Allowed)
                     #if DEBUG
-                    // Allow codecov injected codes
+                    // Allow coverlet injected codes
                     .Type(typeof(AppDomain), Permission.Allowed)
                     .Type(typeof(EventHandler), Permission.Allowed)
                     #endif
@@ -100,10 +100,11 @@ namespace AElf.Runtime.CSharp.Policies
                 // Allow printing logs
                 .Namespace("System.Text", Permission.Allowed)
                 
-                // Allow codecov injected codes
+                // Allow coverlet injected codes
                 .Namespace("System.IO.MemoryMappedFiles", Permission.Allowed)
                 .Namespace("System.Threading", Permission.Allowed)
                 .Namespace("System.Runtime.InteropServices", Permission.Allowed)
+                .Namespace("Microsoft.Win32.SafeHandles", Permission.Allowed)
                 #endif
                 ;
             
