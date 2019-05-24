@@ -4,19 +4,29 @@ using System.IO;
 using System.Linq;
 using AElf.Runtime.CSharp.Policies;
 using AElf.Runtime.CSharp.Validators;
+using AElf.Runtime.CSharp.Validators.Whitelist;
 using Mono.Cecil;
 
 namespace AElf.Runtime.CSharp
 {
     public class ContractAuditor
     {
-        AbstractPolicy policy = new DefaultPolicy();
+        readonly AbstractPolicy _defaultPolicy = new DefaultPolicy();
+        readonly AbstractPolicy _priviligePolicy = new PrivilegePolicy();
+
+        public ContractAuditor(IEnumerable<string> blackList, IEnumerable<string> whiteList)
+        {
+            // Allow custom whitelisting / blacklisting namespaces, only for privilege policy
+            whiteList?.ToList().ForEach(nm => _priviligePolicy.Whitelist.Namespace(nm, Permission.Allowed));
+            blackList?.ToList().ForEach(nm => _priviligePolicy.Whitelist.Namespace(nm, Permission.Denied));
+        }
 
         public void Audit(byte[] code, bool priority)
         {
             var findings = new List<ValidationResult>();
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
-            
+            var policy = priority ? _priviligePolicy : _defaultPolicy;
+
             // Check against whitelist
             findings.AddRange(policy.Whitelist.Validate(modDef));
             

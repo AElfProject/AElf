@@ -30,7 +30,7 @@ namespace AElf.Runtime.CSharp.Tests
 
         public ContractAuditorTests(ITestOutputHelper testOutputHelper)
         {
-            _auditor = new ContractAuditor();
+            _auditor = new ContractAuditor(null, null);
             
             Should.Throw<InvalidCodeException>(() =>
             {
