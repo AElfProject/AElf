@@ -86,7 +86,6 @@ namespace AElf.Runtime.CSharp
         /// <exception cref="InvalidCodeException">Thrown when issues are found in the code.</exception>
         public void CodeCheck(byte[] code, bool isPrivileged)
         {
-            return;
             _contractAuditor.Audit(code, isPrivileged);
         }
 
