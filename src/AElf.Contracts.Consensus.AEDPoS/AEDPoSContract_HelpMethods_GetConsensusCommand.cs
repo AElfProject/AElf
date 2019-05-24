@@ -231,6 +231,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 nextBlockMiningLeftMilliseconds =
                     ConvertDurationToMilliseconds(expectedMiningTime - currentBlockTime.ToTimestamp());
             }
+
+            if (minerInRound.Order >= currentRound.RealTimeMinersInformation.Count) return;
+
+            var nextMinerInRound =
+                currentRound.RealTimeMinersInformation.Values.First(m => m.Order == minerInRound.Order.Add(1));
+            if (nextMinerInRound.ActualMiningTimes.Any(t => t > nextMinerInRound.ExpectedMiningTime))
+            {
+                nextBlockMiningLeftMilliseconds = int.MaxValue;
+            }
         }
     }
 }
