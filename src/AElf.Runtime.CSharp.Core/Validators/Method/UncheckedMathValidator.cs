@@ -26,7 +26,9 @@ namespace AElf.Runtime.CSharp.Validators.Method
                 if (!unsafeOpCodes.Contains(instruction.OpCode))
                     continue;
                 
-                errors.Add(new UnsafeMathValidationResult( $"{method.Name} contains unsafe OpCode " + instruction.OpCode));
+                errors.Add(
+                    new UnsafeMathValidationResult( $"{method.Name} contains unsafe OpCode " + instruction.OpCode)
+                            .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null));
             }
             
             return errors;

@@ -92,7 +92,7 @@ namespace AElf.Runtime.CSharp.Validators.Method
                 }
                 
                 if (error != null)
-                    errors.Add(error.WithInfo(method.Name, method.GetType().Namespace, method.GetType().Name, null));
+                    errors.Add(error.WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null));
             }
 
             return errors;
