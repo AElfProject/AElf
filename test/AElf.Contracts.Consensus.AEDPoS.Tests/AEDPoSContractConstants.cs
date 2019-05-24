@@ -6,7 +6,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     internal static class AEDPoSContractConstants
     {
-        internal const int TinyBlocksNumber = 8;
+        internal const int TinySlots = 10;
 
         internal const int InitialMinersCount = 5;
         
@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         internal const long TotalSupply = 1000_000_000;
 
-        internal static readonly int SmallBlockMiningInterval = MiningInterval.Div(TinyBlocksNumber);
+        internal static readonly int SmallBlockMiningInterval = MiningInterval.Div(TinySlots);
 
         /// <summary>
         /// 7 days.

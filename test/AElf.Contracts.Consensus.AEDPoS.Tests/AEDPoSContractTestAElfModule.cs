@@ -14,6 +14,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             context.Services.AddSingleton<ITransactionExecutor, AEDPoSContractTransactionExecutor>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
+            context.Services.AddSingleton<IRandomHashCacheService, MockRandomHashCacheService>();
         }
     }
 }
