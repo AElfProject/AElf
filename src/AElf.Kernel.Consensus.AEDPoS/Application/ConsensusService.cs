@@ -45,6 +45,8 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task TriggerConsensusAsync(ChainContext chainContext)
         {
+            Logger.LogDebug($"Trigger consensus: BlockHeight: {chainContext.BlockHeight}, BlockHash: {chainContext.BlockHash}");
+                
             var triggerInformation =
                 _consensusInformationGenerationService.GetTriggerInformation(TriggerType.ConsensusCommand);
             // Upload the consensus command.
@@ -68,6 +70,8 @@ namespace AElf.Kernel.Consensus.Application
             _nextMiningTime =
                 DateTime.UtcNow.AddMilliseconds(_consensusControlInformation.ConsensusCommand
                     .NextBlockMiningLeftMilliseconds);
+            
+            Logger.LogDebug($"Finish trigger consensus: BlockHeight: {chainContext.BlockHeight}, BlockHash: {chainContext.BlockHash}");
         }
 
         public async Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,

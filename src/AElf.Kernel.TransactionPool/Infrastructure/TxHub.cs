@@ -249,6 +249,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
         {
+            Logger.LogDebug($"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
+            
             var heights = _allTransactions.Select(kv => kv.Value.Transaction.RefBlockNumber).Distinct();
             var prefixes = await GetPrefixesByHeightAsync(heights, eventData.BlockHash);
             ResetCurrentCollections();
@@ -261,6 +263,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             _bestChainHash = eventData.BlockHash;
             _bestChainHeight = eventData.BlockHeight;
+            
+            Logger.LogDebug($"Finish handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
         }
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
