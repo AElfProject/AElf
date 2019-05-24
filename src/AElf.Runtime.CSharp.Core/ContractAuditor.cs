@@ -36,6 +36,11 @@ namespace AElf.Runtime.CSharp
             // Run method validators
             foreach (var typ in modDef.Types)
             {
+                #if DEBUG
+                // Skip validation if it is a coverlet injected type, only in debug mode
+                if (typ.Namespace.StartsWith("Coverlet."))
+                    continue;
+                #endif
                 foreach (var method in typ.Methods)
                 {
                     findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));    
