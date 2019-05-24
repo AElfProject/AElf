@@ -28,15 +28,7 @@ namespace AElf.Runtime.CSharp.Policies
                 .Assembly(typeof(IMethod).Assembly, Trust.Full)             // AElf.CSharp.Core
                 .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Full) // AElf.Cryptography
                     
-                // Allowed namespaces
-                //.Namespace("Aelf", Permission.Allowed) // For protobuf generated code
-                //.Namespace("AElf", Permission.Allowed)
-                //.Namespace("AElf.CrossChain.*", Permission.Allowed)
-                //.Namespace("AElf.Sdk.*", Permission.Allowed)
-                //.Namespace("AElf.CSharp.Core", Permission.Allowed)
-                //.Namespace("AElf.Kernel", Permission.Allowed)        // Remove later
-                //.Namespace("AElf.Kernel.Types", Permission.Allowed)  // Remove later
-                //.Namespace("Google.Protobuf.*", Permission.Allowed)
+                // Allowed namespaces, types and members
                 .Namespace("System.Collections.Generic", Permission.Allowed)
             
                 // Selectively allowed types and members
@@ -108,8 +100,8 @@ namespace AElf.Runtime.CSharp.Policies
                 new FloatOpsValidator(),
                 new ArrayValidator(), 
                 new MultiDimArrayValidator(),
+                // TODO: Enable unchecked math validator once test cases are passing with overflow check
                 // new UncheckedMathValidator(),
-                // new NewObjValidator(),     // Define a blacklist of objects types
             });
         }
     }
