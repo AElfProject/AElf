@@ -409,3 +409,7 @@ enum TimeUnit {
     Minutes = 2;
     Hours = 3;
 }
+
+message MerklePath {
+    repeated Hash Path = 1;
+}

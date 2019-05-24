@@ -17,6 +17,9 @@ service ACS7{
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
     }
+    rpc GetSideChainIndexingInformationList (google.protobuf.Empty) returns (SideChainIndexingInformationList) {
+        option (aelf.is_view) = true;
+    }
     rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
     }
@@ -26,11 +29,10 @@ service ACS7{
     rpc GetBoundParentChainHeightAndMerklePathByHeight (aelf.SInt64Value) returns (CrossChainMerkleProofContext) {
         option (aelf.is_view) = true;
     }
-    rpc GetChainInitializationContext (aelf.SInt32Value) returns (ChainInitializationData) {
+    rpc GetChainInitializationData (aelf.SInt32Value) returns (ChainInitializationData) {
         option (aelf.is_view) = true;
     }
 }
-
 
 message SideChainBlockData {
     int64 height = 1;
@@ -52,7 +54,7 @@ message ParentChainBlockData {
     aelf.Hash transactionStatusMerkleRoot = 4;
 
     // Indexed block height from side chain and merkle path for this side chain block
-    map<int64, MerklePath> indexedMerklePath = 5;
+    map<int64, aelf.MerklePath> indexedMerklePath = 5;
     map<string, bytes> extraData = 6;
 }
 
@@ -77,19 +79,26 @@ message SideChainIdAndHeightDict {
     map<int32, int64> idHeightDict = 1;
 }
 
+message SideChainIndexingInformationList{
+    repeated SideChainIndexingInformation SideChainIndexingInformation =1;
+}
+
+message SideChainIndexingInformation{
+    int32 chainId = 1;
+    int64 IndexedHeight = 2;
+    int64 ToBeIndexedCount = 3;
+}
+
+
 message CrossChainBlockData {
     repeated SideChainBlockData sideChainBlockData = 1;
     repeated ParentChainBlockData parentChainBlockData = 2;
     int64 previousBlockHeight = 3;
 }
 
-message MerklePath {
-    repeated aelf.Hash Path = 1;
-}
-
 message CrossChainMerkleProofContext {
     int64 boundParentChainHeight = 1;
-    MerklePath merklePathForParentChainRoot = 2;
+    aelf.MerklePath merklePathForParentChainRoot = 2;
 }
 
 message ChainInitializationData {

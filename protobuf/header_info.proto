@@ -13,13 +13,13 @@ message CrossChainRequest {
     int32 listeningPort = 3;
 }
 
-message SideChainResponse {
-    acs7.SideChainBlockData SideChainBlockData =1; 
-}
-
-message ParentChainResponse {
-    acs7.ParentChainBlockData ParentChainBlockData =1;
-}
+//message SideChainResponse {
+//    acs7.SideChainBlockData SideChainBlockData =1; 
+//}
+//
+//message ParentChainResponse {
+//    acs7.ParentChainBlockData ParentChainBlockData =1;
+//}
 
 message MerklePath {
     repeated aelf.Hash Path = 1;
@@ -47,10 +47,19 @@ message SideChainInitializationRequest{
     int32 chainId = 1;
 }
 
-service CrossChainRpc {
-    rpc RequestIndexingFromSideChainAsync (CrossChainRequest) returns (stream acs7.SideChainBlockData) {}
+service ParentChainRpc {
     rpc RequestIndexingFromParentChainAsync (CrossChainRequest) returns (stream acs7.ParentChainBlockData) {}
-    rpc CrossChainIndexingShakeAsync (HandShake) returns (HandShakeReply) {}
-    rpc RequestChainInitializationContextFromParentChainAsync (SideChainInitializationRequest) returns (acs7.ChainInitializationData) {}
+//    rpc CrossChainHandShake (HandShake) returns (HandShakeReply) {}
+    rpc RequestChainInitializationDataFromParentChainAsync (SideChainInitializationRequest) returns (acs7.ChainInitializationData) {}
 }
+
+service SideChainRpc{
+    rpc RequestIndexingFromSideChainAsync (CrossChainRequest) returns (stream acs7.SideChainBlockData) {}
+//    rpc CrossChainHandShake (HandShake) returns (HandShakeReply) {}
+}
+
+service BasicCrossChainRpc{
+    rpc CrossChainHandShakeAsync (HandShake) returns (HandShakeReply) {}
+}
+
 
