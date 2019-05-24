@@ -55,7 +55,8 @@ namespace AElf.Contract.CrossChain.Tests
                     sideChainCreationRequest);
                 var status = txResult.Status;
                 Assert.True(status == TransactionResultStatus.Failed);
-                Assert.True(txResult.Error.Contains("Invalid chain creation request."));
+                var checkErrorMessage = txResult.Error.Contains("Invalid chain creation request.");
+                Assert.True(checkErrorMessage);
             }
             {
                 sideChainCreationRequest.LockedTokenAmount = 1;
@@ -64,7 +65,8 @@ namespace AElf.Contract.CrossChain.Tests
                     sideChainCreationRequest);
                 var status = txResult.Status;
                 Assert.True(status == TransactionResultStatus.Failed);
-                Assert.True(txResult.Error.Contains("Invalid chain creation request."));
+                var checkErrorMessage = txResult.Error.Contains("Invalid chain creation request.");
+                Assert.True(checkErrorMessage);
             }
             {
                 sideChainCreationRequest.LockedTokenAmount = 10;
@@ -74,7 +76,8 @@ namespace AElf.Contract.CrossChain.Tests
                     sideChainCreationRequest);
                 var status = txResult.Status;
                 Assert.True(status == TransactionResultStatus.Failed);
-                Assert.True(txResult.Error.Contains("Invalid chain creation request."));
+                var checkErrorMessage = txResult.Error.Contains("Invalid chain creation request.");
+                Assert.True(checkErrorMessage);
             }
         }
 
@@ -180,7 +183,8 @@ namespace AElf.Contract.CrossChain.Tests
                     new SInt32Value() {Value = chainId});
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.True(txResult.Error.Contains("Authentication failed."));
+            var checkErrorMessage = txResult.Error.Contains("Authentication failed.");
+            Assert.True(checkErrorMessage);
         }
         
         [Fact]
@@ -313,7 +317,8 @@ namespace AElf.Contract.CrossChain.Tests
                 });
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.True(transactionResult.Error.Contains("Not authorized to do this."));
+            var checkErrorMessage = transactionResult.Error.Contains("Not authorized to do this.");
+            Assert.True(checkErrorMessage);
         }
 
         [Fact]
@@ -339,7 +344,8 @@ namespace AElf.Contract.CrossChain.Tests
             await Tester.MineAsync(new List<Transaction> {approveTransaction2});
             var tx2Result = await GetTransactionResult(approveTransaction2.GetHash());
             Assert.True(tx2Result.Status == TransactionResultStatus.Failed);
-            Assert.True(tx2Result.Error.Contains("Side chain creation request not found."));
+            var checkErrorMessage = tx2Result.Error.Contains("Side chain creation request not found.");
+            Assert.True(checkErrorMessage);
         }
         
         [Fact]
@@ -374,7 +380,8 @@ namespace AElf.Contract.CrossChain.Tests
             await Tester.MineAsync(new List<Transaction> {approveTransaction2});
             var tx2Result = await GetTransactionResult(approveTransaction2.GetHash());
             Assert.True(tx2Result.Status == TransactionResultStatus.Failed);
-            Assert.True(tx2Result.Error.Contains("Side chain creation request not found."));
+            var checkErrorMessage = tx2Result.Error.Contains("Side chain creation request not found.");
+            Assert.True(checkErrorMessage);
         }
         
         [Fact]
@@ -427,7 +434,8 @@ namespace AElf.Contract.CrossChain.Tests
                     });
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.True(txResult.Error.Contains("Not authorized to dispose."));
+            var checkErrorMessage = txResult.Error.Contains("Not authorized to dispose.");
+            Assert.True(checkErrorMessage);
         }
 
         [Fact]
@@ -443,7 +451,8 @@ namespace AElf.Contract.CrossChain.Tests
                     });
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.True(txResult.Error.Contains("Side chain not found"));
+            var checkErrorMessage = txResult.Error.Contains("Side chain not found");
+            Assert.True(checkErrorMessage);
         }
 
         [Fact]
@@ -468,7 +477,8 @@ namespace AElf.Contract.CrossChain.Tests
                     });
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.True(txResult.Error.Contains("Side chain not found"));
+            var checkErrorMessage = txResult.Error.Contains("Side chain not found");
+            Assert.True(checkErrorMessage);
         }
         
         [Fact]
@@ -513,7 +523,8 @@ namespace AElf.Contract.CrossChain.Tests
             var txResult = await ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.DisposeSideChain),new SInt32Value{Value = ChainHelpers.GetChainId(1)});
             Assert.True(txResult.Status == TransactionResultStatus.Failed);
-            Assert.True(txResult.Error.Contains("Not authorized to do this."));
+            var checkErrorMessage = txResult.Error.Contains("Not authorized to do this.");
+            Assert.True(checkErrorMessage);
         }
 
         [Fact]
@@ -540,7 +551,8 @@ namespace AElf.Contract.CrossChain.Tests
             await Tester.MineAsync(new List<Transaction> {approveTransaction2});
             var tx2Result = await GetTransactionResult(approveTransaction2.GetHash());
             Assert.True(tx2Result.Status == TransactionResultStatus.Failed);
-            Assert.True(tx2Result.Error.Contains("Not existed side chain."));
+            var checkErrorMessage = tx2Result.Error.Contains("Not existed side chain.");
+            Assert.True(checkErrorMessage);
         }
 
         [Fact]
@@ -574,7 +586,8 @@ namespace AElf.Contract.CrossChain.Tests
             await Tester.MineAsync(new List<Transaction> {approveTransaction2});
             var tx2Result = await GetTransactionResult(approveTransaction2.GetHash());
             Assert.True(tx2Result.Status == TransactionResultStatus.Failed);
-            Assert.True(tx2Result.Error.Contains("Unable to dispose this side chain."));
+            var checkErrorMessage = tx2Result.Error.Contains("Unable to dispose this side chain.");
+            Assert.True(checkErrorMessage);
         }
 
         [Fact]

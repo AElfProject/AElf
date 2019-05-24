@@ -373,7 +373,7 @@ namespace AElf.Contracts.AssociationAuth
             return transactionResult.Output;
         }
 
-        public async Task TransferForOrganizationAddress()
+        private async Task TransferForOrganizationAddress()
         {
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {

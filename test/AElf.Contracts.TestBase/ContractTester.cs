@@ -17,6 +17,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
@@ -203,13 +204,19 @@ namespace AElf.Contracts.TestBase
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
             var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
+            var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             var consensusOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ConsensusOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-                ContractZeroInitializationInput = new ContractZeroInitializationInput()
+                ContractZeroInitializationInput = new ContractZeroInitializationInput
+                {
+                    ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
+                    ZeroOwnerAddressGenerationContractHashName = ParliamentAuthContractAddressNameProvider.Name,
+                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetZeroOwnerAddress)
+                }
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract(
@@ -237,13 +244,19 @@ namespace AElf.Contracts.TestBase
             
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
+            var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-                ContractZeroInitializationInput = new ContractZeroInitializationInput()
+                ContractZeroInitializationInput = new ContractZeroInitializationInput
+                {
+                    ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
+                    ZeroOwnerAddressGenerationContractHashName = ParliamentAuthContractAddressNameProvider.Name,
+                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetZeroOwnerAddress)
+                }
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract(

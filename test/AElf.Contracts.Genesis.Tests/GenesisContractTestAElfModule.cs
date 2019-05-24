@@ -1,14 +1,20 @@
+using AElf.Contracts.TestBase;
 using AElf.Contracts.TestKit;
 using AElf.Kernel.SmartContract;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.Genesis
 {
     [DependsOn(
-        typeof(ContractTestModule)
+        typeof(ContractTestAElfModule)
     )]
-    public class BasicContractZeroTestAElfModule : ContractTestModule
+    public class BasicContractZeroTestAElfModule : ContractTestAElfModule
     {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddAssemblyOf<BasicContractZeroTestAElfModule>(); 
+        }
     }
 
     [DependsOn(
@@ -18,6 +24,7 @@ namespace AElf.Contracts.Genesis
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.AddAssemblyOf<AuthorityNotRequiredBasicContractZeroTestModule>();
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }

@@ -48,7 +48,6 @@ namespace AElf.Contracts.ParliamentAuth
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
-//        internal BasicContractZeroContainer BasicContractZeroStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub ConsensusContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub { get; set; }
@@ -61,8 +60,6 @@ namespace AElf.Contracts.ParliamentAuth
 
         protected void InitializeContracts()
         {
-//            BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
-
             //deploy parliamentAuth contract
             ParliamentAuthContractAddress = AsyncHelper.RunSync(() =>
                 DeploySystemSmartContract(
@@ -128,17 +125,6 @@ namespace AElf.Contracts.ParliamentAuth
         {
             await ParliamentAuthContractStub.Initialize.SendAsync(new Empty());
         }
-//        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateParliamentAuthInitializationCallList()
-//        {
-//            var parliamentMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//            parliamentMethodCallList.Add(nameof(ParliamentAuthContractStub.Initialize),
-//                new ParliamentAuthInitializationInput
-//                {
-//                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
-//                });
-//
-//            return parliamentMethodCallList;
-//        }
 
         private async Task InitializeToken()
         {
@@ -161,31 +147,7 @@ namespace AElf.Contracts.ParliamentAuth
                 Memo = "Issue token to default user.",
             });
         }
-//        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
-//        {
-//            const string symbol = "ELF";
-//            const long totalSupply = 100_000_000;
-//            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//            tokenContractCallList.Add(nameof(TokenContractStub.CreateNativeToken), new CreateNativeTokenInput
-//            {
-//                Symbol = symbol,
-//                Decimals = 2,
-//                IsBurnable = true,
-//                TokenName = "elf token",
-//                TotalSupply = totalSupply,
-//                Issuer = DefaultSender,
-//            });
-//
-//            //issue default user
-//            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
-//            {
-//                Symbol = symbol,
-//                Amount = totalSupply - 20 * 100_000L,
-//                To = DefaultSender,
-//                Memo = "Issue token to default user.",
-//            });
-//            return tokenContractCallList;
-//        }
+
         private async Task InitializeConsensus()
         {
             await ConsensusContractStub.InitialAElfConsensusContract.SendAsync(new InitialAElfConsensusContractInput
@@ -195,19 +157,5 @@ namespace AElf.Contracts.ParliamentAuth
             await ConsensusContractStub.FirstRound.SendAsync(InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex())
                 .ToList().ToMiners().GenerateFirstRoundOfNewTerm(MiningInterval, BlockchainStartTime));
         }
-//        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList()
-//        {
-//            var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//            consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
-//                new InitialAElfConsensusContractInput
-//                {
-//                    IsTermStayOne = true
-//                });
-//            consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
-//                InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(
-//                    MiningInterval, BlockchainStartTime));
-//            
-//            return consensusMethodCallList;
-//        }
     }
 }

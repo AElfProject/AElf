@@ -352,7 +352,7 @@ namespace AElf.Contracts.ParliamentAuth
             return _defaultOrganizationAddress;
         }
         
-        public async Task TransferForOrganizationAddress(Address to)
+        private async Task TransferForOrganizationAddress(Address to)
         {
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
