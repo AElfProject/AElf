@@ -1,10 +1,11 @@
 using System.Threading.Tasks;
 using AElf.CrossChain.Communication.Application;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Communication
 {
-    public class CrossChainCommunicationEventHandler : ILocalEventHandler<CrossChainDataValidatedEvent>
+    public class CrossChainCommunicationEventHandler : ILocalEventHandler<CrossChainDataValidatedEvent>, ISingletonDependency
     {
         private readonly ICrossChainRequestService _crossChainRequestService;
 

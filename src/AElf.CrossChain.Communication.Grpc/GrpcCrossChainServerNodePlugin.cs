@@ -1,10 +1,11 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Infrastructure;
 using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcCrossChainServerNodePlugin : IGrpcCrossChainPlugin
+    public class GrpcCrossChainServerNodePlugin : IGrpcServePlugin, ITransientDependency
     {
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
         private readonly IGrpcCrossChainServer _grpcCrossChainServer;

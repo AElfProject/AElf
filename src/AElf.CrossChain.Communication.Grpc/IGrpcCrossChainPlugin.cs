@@ -7,4 +7,13 @@ namespace AElf.CrossChain.Communication.Grpc
         Task StartAsync(int chainId);
         Task StopAsync();
     }
+
+    public interface IGrpcClientPlugin : IGrpcCrossChainPlugin
+    {
+        Task CreateClientAsync(GrpcCrossChainClientDto grpcCrossChainClientDto);
+    }
+
+    public interface IGrpcServePlugin : IGrpcCrossChainPlugin
+    {
+    }
 }

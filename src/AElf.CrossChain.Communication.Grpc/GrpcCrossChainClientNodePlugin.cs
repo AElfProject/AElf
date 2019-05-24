@@ -2,12 +2,14 @@ using System;
 using System.Threading.Tasks;
 using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel.Blockchain.Application;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcCrossChainClientNodePlugin : IGrpcCrossChainPlugin, ILocalEventHandler<GrpcCrossChainRequestReceivedEvent>
+    public class GrpcCrossChainClientNodePlugin : IGrpcClientPlugin
     {
         private readonly ICrossChainClientProvider _crossChainClientProvider;
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
@@ -18,10 +20,10 @@ namespace AElf.CrossChain.Communication.Grpc
 //        private bool _readyToLaunchClient;
         private int _localChainId;
 
+        public ILogger<GrpcCrossChainClientNodePlugin> Logger { get; set; }
+
         public GrpcCrossChainClientNodePlugin(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption,
-            IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption,
-            INewChainRegistrationService newChainRegistrationService, IBlockchainService blockchainService, 
-            ICrossChainClientProvider crossChainClientProvider)
+            IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption, ICrossChainClientProvider crossChainClientProvider)
         {
 //            _newChainRegistrationService = newChainRegistrationService;
 //            _blockchainService = blockchainService;
@@ -30,7 +32,7 @@ namespace AElf.CrossChain.Communication.Grpc
             _crossChainConfigOption = crossChainConfigOption.Value;
         }
 
-        public async Task StartAsync(int chainId)
+        public Task StartAsync(int chainId)
         {
             _localChainId = chainId;
 //            var libIdHeight = await _blockchainService.GetLibHashAndHeightAsync();
@@ -41,36 +43,41 @@ namespace AElf.CrossChain.Communication.Grpc
 //                await _newChainRegistrationService.RegisterNewChainsAsync(libIdHeight.BlockHash,
 //                    libIdHeight.BlockHeight);
 //            }
-
+            Logger.LogTrace("Starting client to parent chain..");
+            
             if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.RemoteParentChainServerHost)
                 || _grpcCrossChainConfigOption.LocalServerPort == 0)
-                return;
+                return Task.CompletedTask;
 
-            await _crossChainClientProvider.CreateAndCacheClientAsync(new GrpcCrossChainClientDto
+            _crossChainClientProvider.CreateAndCacheClient(new GrpcCrossChainClientDto
             {
                 RemoteChainId = _crossChainConfigOption.ParentChainId,
                 RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
                 RemoteServerPort = _grpcCrossChainConfigOption.RemoteParentChainServerPort,
                 LocalChainId = chainId,
-                LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort
+                IsClientToParentChain = true
             });
+            return Task.CompletedTask;
         }
 
-        public async Task HandleEventAsync(GrpcCrossChainRequestReceivedEvent requestReceivedEventData)
+        public Task CreateClientAsync(GrpcCrossChainClientDto grpcCrossChainClientDto)
         {
 //            if (!await IsReadyToRequestAsync())
 //                return;
+            Logger.LogTrace(
+                $"Handle cross chain request received event from chain {ChainHelpers.ConvertChainIdToBase58(grpcCrossChainClientDto.RemoteChainId)}..");
+            
             var grpcCrossChainCommunicationDto = new GrpcCrossChainClientDto
             {
-                LocalListeningPort = _grpcCrossChainConfigOption.LocalServerPort,
-                RemoteServerHost = requestReceivedEventData.RemoteServerHost,
-                RemoteServerPort = requestReceivedEventData.RemoteServerPort,
-                RemoteChainId = requestReceivedEventData.RemoteChainId,
+                RemoteServerHost = grpcCrossChainClientDto.RemoteServerHost,
+                RemoteServerPort = grpcCrossChainClientDto.RemoteServerPort,
+                RemoteChainId = grpcCrossChainClientDto.RemoteChainId,
                 LocalChainId = _localChainId,
-                IsClientToParentChain = requestReceivedEventData.RemoteChainId == _crossChainConfigOption.ParentChainId
+                IsClientToParentChain = grpcCrossChainClientDto.RemoteChainId == _crossChainConfigOption.ParentChainId
             };
 
-            await _crossChainClientProvider.CreateAndCacheClientAsync(grpcCrossChainCommunicationDto);
+            _crossChainClientProvider.CreateAndCacheClient(grpcCrossChainCommunicationDto);
+            return Task.CompletedTask;
         }
 
 //        public async Task HandleEventAsync(CrossChainDataValidatedEvent eventData)

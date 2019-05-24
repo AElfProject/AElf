@@ -1,33 +1,47 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.CrossChain.Communication;
+using Volo.Abp.DependencyInjection;
+using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcCommunicationController : ICrossChainCommunicationController
+    public class GrpcCommunicationController : ICrossChainCommunicationController, ILocalEventHandler<NewChainConnectionEvent>, ITransientDependency
     {
-        private readonly IEnumerable<IGrpcCrossChainPlugin> _grpcCrossChainPlugins;
+        private readonly IGrpcClientPlugin _grpcClientPlugin;
+        private readonly IGrpcServePlugin _grpcServePlugin;
 
-        public GrpcCommunicationController(IEnumerable<IGrpcCrossChainPlugin> grpcCrossChainPlugins)
+        public GrpcCommunicationController(IGrpcClientPlugin grpcClientPlugin, IGrpcServePlugin grpcServePlugin)
         {
-            _grpcCrossChainPlugins = grpcCrossChainPlugins;
+            _grpcClientPlugin = grpcClientPlugin;
+            _grpcServePlugin = grpcServePlugin;
         }
 
         public async Task StartAsync(int chainId)
         {
-            foreach (var grpcCrossChainPlugin in _grpcCrossChainPlugins)
-            {
-                await grpcCrossChainPlugin.StartAsync(chainId);
-            }
+            await _grpcServePlugin.StartAsync(chainId);
+            await _grpcClientPlugin.StartAsync(chainId);
         }
 
         public async Task StopAsync()
         {
-            foreach (var grpcCrossChainPlugin in _grpcCrossChainPlugins)
+            await _grpcClientPlugin.StopAsync();
+            await _grpcServePlugin.StopAsync();
+        }
+
+        private void CreateClient(GrpcCrossChainClientDto grpcCrossChainClientDto)
+        {
+            _grpcClientPlugin.CreateClientAsync(grpcCrossChainClientDto);
+        }
+
+        public Task HandleEventAsync(NewChainConnectionEvent eventData)
+        {
+            CreateClient(new GrpcCrossChainClientDto
             {
-                await grpcCrossChainPlugin.StopAsync();
-            }
+                RemoteChainId = eventData.RemoteChainId,
+                RemoteServerHost = eventData.RemoteServerHost,
+                RemoteServerPort = eventData.RemoteServerPort
+            });
+            return Task.CompletedTask;
         }
     }
 }
