@@ -50,9 +50,8 @@ namespace AElf.Runtime.CSharp.Tests
         #region Positive Cases
         
         [Fact]
-        public void CheckDefaultContracts_AllShouldPass()
+        public void CheckSystemContracts_AllShouldPass()
         {
-            // TODO: Add other contracts in contract security test once contract dependencies are simplified.
             var contracts = new[]
             {
                 typeof(AssociationAuthContract).Module.ToString(),
@@ -74,10 +73,34 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 var contractDllPath = _contractDllDir + contract;
                 
-                Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), false));
+                Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), true));
             }
-            
-            Should.NotThrow(()=>_auditor.Audit(ReadCode(typeof(BasicContractZero).Assembly.Location), false));
+        }
+        
+        [Fact]
+        public void CheckSystemContracts_Injected_AllShouldPass()
+        {
+            var injectedContracts = new[]
+            {
+                typeof(AssociationAuthContract).Assembly.Location,
+                typeof(AEDPoSContract).Assembly.Location,
+                typeof(CrossChainContract).Assembly.Location,
+                typeof(ElectionContract).Assembly.Location,
+                typeof(BasicContractZero).Assembly.Location,
+                typeof(TokenContract).Assembly.Location,
+                typeof(ParliamentAuthContract).Assembly.Location,
+                typeof(ProfitContract).Assembly.Location,
+                typeof(ReferendumAuthContract).Assembly.Location,
+                typeof(FeeReceiverContract).Assembly.Location,
+                typeof(TokenConverterContract).Assembly.Location,
+                typeof(TestContract.TestContract).Assembly.Location,
+            };
+
+            // Load the DLL's from contracts folder to prevent codecov injection
+            foreach (var contract in injectedContracts)
+            {
+                Should.NotThrow(()=>_auditor.Audit(ReadCode(contract), true));
+            }
         }
         
         #endregion
