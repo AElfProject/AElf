@@ -7,30 +7,59 @@
         <ContractManifestFileName>Contracts.manifest</ContractManifestFileName>
     </PropertyGroup>
 
-    <Target Name="BuildContracts" Condition="@(Contract) != ''" BeforeTargets="BeforeBuild">
-        <MSBuild Projects="@(Contract)" ContinueOnError="false" Properties="Configuration=$(Configuration)">
-            <Output ItemName="ContractDlls" TaskParameter="TargetOutputs"/>
-        </MSBuild>
-        <!--  Create Manifest -->
+    <!--    <Target Name="BuildContracts" Condition="@(Contract) != ''" BeforeTargets="BeforeBuild">-->
+    <!--        <MSBuild Projects="@(Contract)" ContinueOnError="false" Properties="Configuration=$(Configuration)">-->
+    <!--            <Output ItemName="ContractDlls" TaskParameter="TargetOutputs"/>-->
+    <!--        </MSBuild>-->
+    <!--        &lt;!&ndash;  Create Manifest &ndash;&gt;-->
+    <!--        <Delete Files="$(ContractManifestFileName)" ContinueOnError="true"/>-->
+    <!--        <GetAssemblyIdentity AssemblyFiles="@(ContractDlls)">-->
+    <!--            <Output TaskParameter="Assemblies" ItemName="ContractDllIdentities" />-->
+    <!--        </GetAssemblyIdentity>-->
+    <!--        <WriteLinesToFile Condition="@(ContractDllIdentities) != ''" File="$(ContractManifestFileName)" Lines="%(Identity)"/>-->
+    <!--        <ItemGroup Condition="Exists($(ContractManifestFileName))">-->
+    <!--            <EmbeddedResource Include="$(ContractManifestFileName)"></EmbeddedResource>-->
+    <!--        </ItemGroup>-->
+    <!--    </Target>-->
+    <!--    <Target Name="CopyContractDlls" Condition="@(Contract) != ''" AfterTargets="AfterBuild">-->
+    <!--        <ItemGroup>-->
+    <!--            &lt;!&ndash;<ContractPdbs Include="@(ContractDlls)"><Exntension>.pdb</Exntension></ContractPdbs>&ndash;&gt;-->
+    <!--            <ContractDlls>-->
+    <!--                <Pdb>%(RootDir)%(Directory)%(Filename).pdb</Pdb>-->
+    <!--            </ContractDlls>-->
+    <!--        </ItemGroup>-->
+    <!--        <Copy SourceFiles="@(ContractDlls)"-->
+    <!--              DestinationFiles="@(ContractDlls->'$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')"/>-->
+    <!--        <Copy SourceFiles="@(ContractDlls->'%(Pdb)')"-->
+    <!--              DestinationFiles="@(ContractDlls->'$(OutDir)%(RecursiveDir)%(Filename).pdb')"/>-->
+    <!--    </Target>-->
+    <Target Name="CreateContractsManifest" AfterTargets="ResolveProjectReferences">
+        <ItemGroup>
+            <Contract Include="@(ProjectReference)" Condition="'%(ProjectReference.OutputItemType)' == 'Contract'"/>
+        </ItemGroup>
+        <PropertyGroup>
+            <AllContracts>@(Contract, ';')</AllContracts>
+        </PropertyGroup>
+        <ItemGroup>
+            <ContractDlls Include="%(_ResolvedProjectReferencePaths.Identity)" Condition="$(AllContracts) != '' And $(AllContracts.Contains(%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec)))"/>
+        </ItemGroup>
         <Delete Files="$(ContractManifestFileName)" ContinueOnError="true"/>
         <GetAssemblyIdentity AssemblyFiles="@(ContractDlls)">
-            <Output TaskParameter="Assemblies" ItemName="ContractDllIdentities" />
+            <Output TaskParameter="Assemblies" ItemName="ContractDllIdentities"/>
         </GetAssemblyIdentity>
         <WriteLinesToFile Condition="@(ContractDllIdentities) != ''" File="$(ContractManifestFileName)" Lines="%(Identity)"/>
         <ItemGroup Condition="Exists($(ContractManifestFileName))">
             <EmbeddedResource Include="$(ContractManifestFileName)"></EmbeddedResource>
         </ItemGroup>
     </Target>
-    <Target Name="CopyContractDlls" Condition="@(Contract) != ''" AfterTargets="AfterBuild">
-        <ItemGroup>
-            <!--<ContractPdbs Include="@(ContractDlls)"><Exntension>.pdb</Exntension></ContractPdbs>-->
-            <ContractDlls>
-                <Pdb>%(RootDir)%(Directory)%(Filename).pdb</Pdb>
-            </ContractDlls>
-        </ItemGroup>
-        <Copy SourceFiles="@(ContractDlls)"
-              DestinationFiles="@(ContractDlls->'$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')"/>
-        <Copy SourceFiles="@(ContractDlls->'%(Pdb)')"
-              DestinationFiles="@(ContractDlls->'$(OutDir)%(RecursiveDir)%(Filename).pdb')"/>
+    <Target Name="CreateContractsManifest1" Condition="@(ContractDlls) != ''" AfterTargets="AfterBuild">
+<!--        <Delete Files="$(ContractManifestFileName)" ContinueOnError="true"/>-->
+<!--        <GetAssemblyIdentity AssemblyFiles="@(ContractDlls)">-->
+<!--            <Output TaskParameter="Assemblies" ItemName="ContractDllIdentities"/>-->
+<!--        </GetAssemblyIdentity>-->
+<!--        <WriteLinesToFile Condition="@(ContractDllIdentities) != ''" File="$(ContractManifestFileName)" Lines="%(Identity)"/>-->
+<!--        <ItemGroup Condition="Exists($(ContractManifestFileName))">-->
+<!--            <EmbeddedResource Include="$(ContractManifestFileName)"></EmbeddedResource>-->
+<!--        </ItemGroup>-->
     </Target>
 </Project>
