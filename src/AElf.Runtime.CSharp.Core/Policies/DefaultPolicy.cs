@@ -67,7 +67,13 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(typeof(decimal).Name, Permission.Allowed)
                     .Type(typeof(string).Name, Permission.Allowed, member => member
                         .Constructor(Permission.Denied))
-                    .Type(typeof(Byte[]).Name, Permission.Allowed))
+                    .Type(typeof(Byte[]).Name, Permission.Allowed)
+                    #if DEBUG
+                    // Allow codecov injected codes
+                    .Type(typeof(AppDomain), Permission.Allowed)
+                    .Type(typeof(EventHandler), Permission.Allowed)
+                    #endif
+                )
                 .Namespace("System.Linq", Permission.Allowed)
                 .Namespace("System.Collections", Permission.Allowed)
                 
@@ -93,6 +99,11 @@ namespace AElf.Runtime.CSharp.Policies
                 #if DEBUG
                 // Allow printing logs
                 .Namespace("System.Text", Permission.Allowed)
+                
+                // Allow codecov injected codes
+                .Namespace("System.IO.MemoryMappedFiles", Permission.Allowed)
+                .Namespace("System.Threading", Permission.Allowed)
+                .Namespace("System.Runtime.InteropServices", Permission.Allowed)
                 #endif
                 ;
             

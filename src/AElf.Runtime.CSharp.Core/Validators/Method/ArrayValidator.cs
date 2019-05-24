@@ -83,7 +83,7 @@ namespace AElf.Runtime.CSharp.Validators.Method
                     }
                     else
                     {
-                        error = new ArrayValidationResult($"Array size could not be identified for {typ}.");
+                        error = new ArrayValidationResult($"Array size could not be identified for {typ}." + GetIlCodesPartial(instruction));
                     }
                 }
                 else
@@ -118,6 +118,33 @@ namespace AElf.Runtime.CSharp.Validators.Method
 
             size = -1;
             return false;
+        }
+
+        private string GetIlCodesNext(Instruction instruction, int depth)
+        {
+            var code = "";
+            while (depth-- > 0)
+            {
+                instruction = instruction.Next;
+                code += instruction + "\n";
+            }
+            return code;
+        }
+
+        private string GetIlCodesPrevious(Instruction instruction, int depth)
+        {
+            var code = "";
+            while (depth-- > 0)
+            {
+                instruction = instruction.Previous;
+                code += "\n" + instruction + code;
+            }
+            return code;
+        }
+
+        private string GetIlCodesPartial(Instruction instruction, int depth = 5)
+        {
+            return GetIlCodesPrevious(instruction, depth) + GetIlCodesNext(instruction, depth);
         }
 
         private class ArrayLimitLookup
