@@ -10,12 +10,28 @@
 
     <Target Name="MakeAllContractsReferenceable" BeforeTargets="ResolvePackageDependenciesForBuild">
         <ItemGroup>
+            <NoneReferenceContracts Include="@(ProjectReference)" Condition="'%(ProjectReference.OutputItemType)' == 'Contract' And '%(ProjectReference.ReferenceOutputAssembly)' != 'true'"/>
             <ProjectReference Condition="'%(ProjectReference.OutputItemType)' == 'Contract'">
                 <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
             </ProjectReference>
         </ItemGroup>
     </Target>
-    <Target Name="CreateContractsManifest" AfterTargets="ResolveProjectReferences">
+    <Target Name="RevertBackContracts" BeforeTargets="ResolveAssemblyReferences" AfterTargets="CreateContractsManifest">
+        <PropertyGroup>
+            <AllNonReferenceContracts>@(NoneReferenceContracts, ';')</AllNonReferenceContracts>
+        </PropertyGroup>
+        <ItemGroup>
+            <!-- Remove AllNonReferenceContracts -->
+            <Removed_ResolvedProjectReferencePaths Include="@(_ResolvedProjectReferencePaths)" Condition="'$(AllNonReferenceContracts)' != '' And $(AllNonReferenceContracts.Contains(%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec)))"/>
+            <_ResolvedProjectReferencePaths Remove="@(_ResolvedProjectReferencePaths)" Condition="'$(AllNonReferenceContracts)' != '' And $(AllNonReferenceContracts.Contains(%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec)))"/>    
+        </ItemGroup>
+    </Target>
+    <Target Name="AddContractsReferenceBack" AfterTargets="ResolveAssemblyReferences" BeforeTargets="ResolvePackageDependenciesForBuildDependsOn">
+        <ItemGroup>
+            <_ResolvedProjectReferencePaths Include="@(Removed_ResolvedProjectReferencePaths)"/>
+        </ItemGroup>
+    </Target>
+    <Target Name="CreateContractsManifest" BeforeTargets="ResolveReferences" AfterTargets="ResolveProjectReferences">
         <ItemGroup>
             <Contract Include="@(ProjectReference)" Condition="'%(ProjectReference.OutputItemType)' == 'Contract'"/>
         </ItemGroup>
@@ -31,7 +47,7 @@
         </GetAssemblyIdentity>
         <WriteLinesToFile Condition="@(ContractDllIdentities) != ''" File="$(ContractManifestFileName)" Lines="%(Identity)"/>
         <ItemGroup Condition="Exists($(ContractManifestFileName))">
-            <EmbeddedResource Include="$(ContractManifestFileName)"></EmbeddedResource>
+            <EmbeddedResource Include="$(ContractManifestFileName)"/>
         </ItemGroup>
     </Target>
 </Project>
