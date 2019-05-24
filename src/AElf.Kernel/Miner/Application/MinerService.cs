@@ -141,25 +141,22 @@ namespace AElf.Kernel.Miner.Application
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight,
             List<Transaction> transactions, DateTime blockTime, TimeSpan timeSpan)
         {
-            var block = await GenerateBlock(previousBlockHash, previousBlockHeight, blockTime);
-            var systemTransactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
-
-            var pending = transactions;
-
             using (var cts = new CancellationTokenSource())
             {
+                var block = await GenerateBlock(previousBlockHash, previousBlockHeight, blockTime);
+                var systemTransactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
+
+                var pending = transactions;
+
                 cts.CancelAfter(timeSpan);
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
+                await SignBlockAsync(block);
+                Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
+                                      $"previous: {block.Header.PreviousBlockHash}, " +
+                                      $"transactions: {block.Body.TransactionsCount}");
+                return block;
             }
-
-            await SignBlockAsync(block);
-
-            Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
-                                  $"previous: {block.Header.PreviousBlockHash}, " +
-                                  $"transactions: {block.Body.TransactionsCount}");
-
-            return block;
         }
     }
 }

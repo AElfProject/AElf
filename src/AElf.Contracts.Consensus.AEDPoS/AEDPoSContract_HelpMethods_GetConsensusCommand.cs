@@ -167,13 +167,28 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"NextBlockMiningLeftMilliseconds: {nextBlockMiningLeftMilliseconds}");
 
+            var offset = 0;
+            if (nextBlockMiningLeftMilliseconds < 0)
+            {
+                offset = nextBlockMiningLeftMilliseconds;
+            }
+
+            var limitMillisecondsOfMiningBlock = miningInterval.Div(AEDPoSContractConstants.TotalTinySlots).Add(offset);
+            limitMillisecondsOfMiningBlock = limitMillisecondsOfMiningBlock < 0 ? 0 : limitMillisecondsOfMiningBlock;
+
+            if (minerInRound.ProducedTinyBlocks == AEDPoSContractConstants.TinyBlocksNumber ||
+                minerInRound.ProducedTinyBlocks == AEDPoSContractConstants.TinyBlocksNumber.Mul(2))
+            {
+                limitMillisecondsOfMiningBlock = limitMillisecondsOfMiningBlock.Div(2);
+            }
+
             return new ConsensusCommand
             {
                 ExpectedMiningTime = expectedMiningTime,
                 NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
                 LimitMillisecondsOfMiningBlock = behaviour == AElfConsensusBehaviour.NextTerm
                     ? miningInterval
-                    : miningInterval.Div(AEDPoSContractConstants.TotalTinySlots),
+                    :limitMillisecondsOfMiningBlock,
                 Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString()
             };
         }
@@ -230,15 +245,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 nextBlockMiningLeftMilliseconds =
                     ConvertDurationToMilliseconds(expectedMiningTime - currentBlockTime.ToTimestamp());
-            }
-
-            if (minerInRound.Order >= currentRound.RealTimeMinersInformation.Count) return;
-
-            var nextMinerInRound =
-                currentRound.RealTimeMinersInformation.Values.First(m => m.Order == minerInRound.Order.Add(1));
-            if (nextMinerInRound.ActualMiningTimes.Any(t => t > nextMinerInRound.ExpectedMiningTime))
-            {
-                nextBlockMiningLeftMilliseconds = int.MaxValue;
             }
         }
     }
