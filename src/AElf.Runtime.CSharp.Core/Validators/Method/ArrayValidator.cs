@@ -144,7 +144,9 @@ namespace AElf.Runtime.CSharp.Validators.Method
 
         private string GetIlCodesPartial(Instruction instruction, int depth = 5)
         {
-            return GetIlCodesPrevious(instruction, depth) + GetIlCodesNext(instruction, depth);
+            return GetIlCodesPrevious(instruction, depth) + "\n" + 
+                   instruction + "\n" + 
+                   GetIlCodesNext(instruction, depth);
         }
 
         private class ArrayLimitLookup
