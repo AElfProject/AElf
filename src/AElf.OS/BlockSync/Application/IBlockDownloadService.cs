@@ -29,7 +29,7 @@ namespace AElf.OS.BlockSync.Application
 
         public ILogger<BlockDownloadService> Logger { get; set; }
 
-        private const int BlockSyncJobLimit = 10;
+        private const int BlockSyncJobLimit = 50;
 
         public BlockDownloadService(IBlockchainService blockchainService,
             INetworkService networkService,
