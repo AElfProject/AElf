@@ -6,7 +6,7 @@ namespace AElf.CrossChain.Communication.Infrastructure
     public interface ICrossChainClientProvider
     {
         ICrossChainClient CreateClientForChainInitializationData(int chainId);
-        Task CreateAndCacheClientAsync(ICrossChainClientDto crossChainClientDto);
+        void CreateAndCacheClient(ICrossChainClientDto crossChainClientDto);
         Task<ICrossChainClient> GetClientAsync(int chainId);
         Task<T> RequestAsync<T>(ICrossChainClient client, Func<ICrossChainClient, Task<T>> requestFunc);
         Task RequestAsync(ICrossChainClient client, Func<ICrossChainClient, Task> requestFunc);

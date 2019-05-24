@@ -6,7 +6,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    [DependsOn(typeof(CrossChainAElfModule))]
+    [DependsOn(typeof(CrossChainCommunicationModule))]
     public class GrpcCrossChainAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -20,10 +20,10 @@ namespace AElf.CrossChain.Communication.Grpc
             if (grpcCrossChainConfiguration == null)
                 return;
             Configure<GrpcCrossChainConfigOption>(grpcCrossChainConfiguration);
-            services.AddTransient<IGrpcCrossChainPlugin, GrpcCrossChainServerNodePlugin>();
-            services.AddTransient<IGrpcCrossChainPlugin, GrpcCrossChainClientNodePlugin>();
+            services.AddSingleton<IGrpcClientPlugin, GrpcCrossChainClientNodePlugin>();
+            services.AddSingleton<IGrpcServePlugin, GrpcCrossChainServerNodePlugin>();
             services.AddSingleton<IGrpcCrossChainServer, GrpcGrpcCrossChainServer>();
-            services.AddSingleton<GrpcCrossChainClientNodePlugin>();
+            services.AddTransient<ICrossChainCommunicationController, GrpcCommunicationController>();
         }
     }
 }

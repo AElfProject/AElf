@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.CrossChain.Grpc;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.Threading;
@@ -10,14 +9,20 @@ namespace AElf.CrossChain.Communication.Grpc
     public class GrpcGrpcCrossChainServer : IGrpcCrossChainServer
     {
         private Server _server;
-        private readonly IEnumerable<CrossChainRpc.CrossChainRpcBase> _serverBases;
-        public ILogger<GrpcGrpcCrossChainServer> Logger { get; set; }
+        private readonly GrpcParentChainServerBase _grpcParentChainServerBase;
+        private readonly GrpcSideChainServerBase _grpcSideChainServerBase;
+        private readonly GrpcBasicServerBase _grpcBasicServerBase;
 
-        public GrpcGrpcCrossChainServer(IEnumerable<CrossChainRpc.CrossChainRpcBase> serverBases)
+        public GrpcGrpcCrossChainServer(GrpcParentChainServerBase grpcParentChainServerBase, 
+            GrpcSideChainServerBase grpcSideChainServerBase, GrpcBasicServerBase grpcBasicServerBase)
         {
-            _serverBases = serverBases;
+            _grpcParentChainServerBase = grpcParentChainServerBase;
+            _grpcSideChainServerBase = grpcSideChainServerBase;
+            _grpcBasicServerBase = grpcBasicServerBase;
         }
 
+        public ILogger<GrpcGrpcCrossChainServer> Logger { get; set; }
+        
         public async Task StartAsync(string localServerHost, int localServerPort)
         {
             _server = new Server
@@ -25,13 +30,19 @@ namespace AElf.CrossChain.Communication.Grpc
                 Ports =
                 {
                     new ServerPort(localServerHost, localServerPort, ServerCredentials.Insecure)
+                },
+                Services =
+                {
+                    ParentChainRpc.BindService(_grpcParentChainServerBase),
+                    SideChainRpc.BindService(_grpcSideChainServerBase), 
+                    BasicCrossChainRpc.BindService(_grpcBasicServerBase)
                 }
             };
-            foreach (var serverBase in _serverBases)
-            {
-                var serviceDefinition = CrossChainRpc.BindService(serverBase);
-                _server.Services.Add(serviceDefinition);
-            }
+//            foreach (var serverBase in _serverBases)
+//            {
+//                var serviceDefinition = CrossChainRpc.BindService(serverBase);
+//                _server.Services.Add(serviceDefinition);
+//            }
         
             await Task.Run(() => _server.Start());
             

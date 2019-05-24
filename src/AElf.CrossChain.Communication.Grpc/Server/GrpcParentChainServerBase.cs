@@ -8,12 +8,12 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcParentChainServerBase : CrossChainRpc.CrossChainRpcBase, ITransientDependency
+    public class GrpcParentChainServerBase : ParentChainRpc.ParentChainRpcBase, ITransientDependency
     {
         public ILogger<GrpcParentChainServerBase> Logger { get; set; }
         private readonly ICrossChainResponseService _crossChainResponseService;
 
-        internal GrpcParentChainServerBase(ICrossChainResponseService crossChainResponseService)
+        public GrpcParentChainServerBase(ICrossChainResponseService crossChainResponseService)
         {
             _crossChainResponseService = crossChainResponseService;
         }
@@ -25,7 +25,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 $"Parent Chain Server received IndexedInfo message from chain {ChainHelpers.ConvertChainIdToBase58(crossChainRequest.FromChainId)}.");
             var requestedHeight = crossChainRequest.NextHeight;
             var remoteChainId = crossChainRequest.FromChainId;
-            while (true)
+            while (requestedHeight - crossChainRequest.NextHeight <= 64)
             {
                 var parentChainBlockData =
                     await _crossChainResponseService.ResponseParentChainBlockDataAsync(requestedHeight, remoteChainId);
@@ -39,15 +39,17 @@ namespace AElf.CrossChain.Communication.Grpc
         }
         
         
-        public override Task<HandShakeReply> CrossChainIndexingShakeAsync(HandShake request, ServerCallContext context)
+//        public override Task<HandShakeReply> CrossChainHandShake(HandShake request, ServerCallContext context)
+//        {
+//            Logger.LogTrace($"Received shake from chain {ChainHelpers.ConvertChainIdToBase58(request.FromChainId)}.");
+////            PublishCrossChainRequestReceivedEvent(context.Host, request.ListeningPort, request.FromChainId);
+//            return Task.FromResult(new HandShakeReply {Result = true});
+//        }
+//
+        public override async Task<ChainInitializationData> RequestChainInitializationDataFromParentChainAsync(SideChainInitializationRequest request, ServerCallContext context)
         {
-            Logger.LogTrace($"Received shake from chain {ChainHelpers.ConvertChainIdToBase58(request.FromChainId)}.");
-//            PublishCrossChainRequestReceivedEvent(context.Host, request.ListeningPort, request.FromChainId);
-            return Task.FromResult(new HandShakeReply {Result = true});
-        }
-
-        public override async Task<ChainInitializationData> RequestChainInitializationContextFromParentChainAsync(SideChainInitializationRequest request, ServerCallContext context)
-        {
+            Logger.LogTrace(
+                $"Received initialization data request from  chain {ChainHelpers.ConvertChainIdToBase58(request.ChainId)}");
             var sideChainInitializationResponse =
                 await _crossChainResponseService.ResponseChainInitializationDataFromParentChainAsync(request.ChainId);
             return sideChainInitializationResponse;

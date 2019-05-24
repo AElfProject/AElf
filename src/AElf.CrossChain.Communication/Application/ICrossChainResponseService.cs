@@ -6,7 +6,6 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf;
-using MerklePath = Acs7.MerklePath;
 
 namespace AElf.CrossChain.Communication.Application
 {
@@ -50,6 +49,8 @@ namespace AElf.CrossChain.Communication.Application
         public async Task<ParentChainBlockData> ResponseParentChainBlockDataAsync(long requestHeight, int remoteSideChainId)
         {
             var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestHeight);
+            if (block == null)
+                return null;
             var parentChainBlockData = new ParentChainBlockData
             {
                 Height = block.Height, ChainId = block.Header.ChainId
@@ -75,11 +76,9 @@ namespace AElf.CrossChain.Communication.Application
         {
             var libDto = await _blockchainService.GetLibHashAndHeightAsync();
             var chainInitializationData =
-                await _crossChainDataProvider.GetChainInitializationContextAsync(chainId, libDto.BlockHash,
+                await _crossChainDataProvider.GetChainInitializationDataAsync(chainId, libDto.BlockHash,
                     libDto.BlockHeight);
-            var result = new ChainInitializationData();
-            result.MergeFrom(chainInitializationData.ToByteString());
-            return result;
+            return chainInitializationData;
         }
 
         private ParentChainBlockData FillExtraDataInResponse(ParentChainBlockData parentChainBlockData, BlockHeader blockHeader)
@@ -150,7 +149,7 @@ namespace AElf.CrossChain.Communication.Application
             foreach (var symbol in symbolsOfExchangedExtraData)
             {
                 var extraData = GetExtraDataFromHeader(header, symbol);
-                if(extraData != null)
+                if (extraData != null)
                     res.Add(symbol, extraData);
             }
             

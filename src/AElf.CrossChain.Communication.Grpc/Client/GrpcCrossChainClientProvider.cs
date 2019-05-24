@@ -10,9 +10,9 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcClientProvider : ICrossChainClientProvider, ISingletonDependency
+    public class GrpcCrossChainClientProvider : ICrossChainClientProvider, ISingletonDependency
     {
-        public ILogger<GrpcClientProvider> Logger { get; set; }
+        public ILogger<GrpcCrossChainClientProvider> Logger { get; set; }
 
         private readonly ConcurrentDictionary<int, ICrossChainClient> _grpcCrossChainClients =
             new ConcurrentDictionary<int, ICrossChainClient>();
@@ -24,7 +24,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
 
-        public GrpcClientProvider(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
+        public GrpcCrossChainClientProvider(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
             IBlockCacheEntityProducer blockCacheEntityProducer)
         {
             _blockCacheEntityProducer = blockCacheEntityProducer;
@@ -47,11 +47,11 @@ namespace AElf.CrossChain.Communication.Grpc
                 UriStr = uriStr,
                 LocalServerHost = _grpcCrossChainConfigOption.LocalServerHost
             };
-            var client = new ClientForSideChain(clientInitializationContext, _blockCacheEntityProducer);
+            var client = new ClientForParentChain(clientInitializationContext, _blockCacheEntityProducer);
             return client;
         }
 
-        public async Task CreateAndCacheClientAsync(ICrossChainClientDto crossChainClientDto)
+        public void CreateAndCacheClient(ICrossChainClientDto crossChainClientDto)
         {
             var chainId = crossChainClientDto.RemoteChainId;
             var uriStr = GetUriStr(crossChainClientDto.RemoteServerHost, crossChainClientDto.RemoteServerPort);
@@ -61,14 +61,15 @@ namespace AElf.CrossChain.Communication.Grpc
             
             var localChainId = crossChainClientDto.LocalChainId;
             //var connectionTimeout = crossChainClientDto.ConnectionTimeout;
-            client = CreateGrpcClient(uriStr, localChainId, isClientToParentChain);
-            var handShakeResult = await TryConnectAsync(client);
-            if (!handShakeResult)
-            {
-                return;
-            }
-            
-            _grpcCrossChainClients[crossChainClientDto.RemoteChainId] = client;
+            client = CreateGrpcClient(uriStr, localChainId, chainId, isClientToParentChain);
+            _ = TryConnectAndUpdateClientAsync(client);
+//            if (!handShakeResult)
+//            {
+//                return;
+//            }
+//            
+//            Logger.LogTrace($"Created client to chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
+//            _grpcCrossChainClients.TryAdd(crossChainClientDto.RemoteChainId, client);
         }
 
         /// <summary>
@@ -84,10 +85,16 @@ namespace AElf.CrossChain.Communication.Grpc
             if (_connectionFailedClients.TryGetValue(chainId, out crossChainClient))
             {
                 // try connect first 
-                var connectionResult = await TryConnectAsync(crossChainClient);
+                var connectionResult = await TryConnectAndUpdateClientAsync(crossChainClient);
+//                if (connectionResult)
+//                {
+//                    _connectionFailedClients.TryRemove(chainId, out crossChainClient);
+//                    _grpcCrossChainClients.TryAdd(chainId, crossChainClient);
+//                }
+                
                 return connectionResult ? crossChainClient : null;
             }
-
+            
             return null;
         }
         
@@ -96,7 +103,7 @@ namespace AElf.CrossChain.Communication.Grpc
         /// </summary>
         /// <returns>
         /// </returns>
-        private ICrossChainClient CreateGrpcClient(string uriStr, int localChainId, bool isClientToParentChain)
+        private ICrossChainClient CreateGrpcClient(string uriStr, int localChainId, int remoteChainId, bool isClientToParentChain)
         {
             var clientInitializationContext = new GrpcCrossChainInitializationContext
             {
@@ -104,7 +111,8 @@ namespace AElf.CrossChain.Communication.Grpc
                 LocalChainId = localChainId,
                 LocalServerPort = _grpcCrossChainConfigOption.LocalServerPort,
                 UriStr = uriStr,
-                LocalServerHost = _grpcCrossChainConfigOption.LocalServerHost
+                LocalServerHost = _grpcCrossChainConfigOption.LocalServerHost,
+                RemoteChainId = remoteChainId
             };
             if (isClientToParentChain)
                 return new ClientForParentChain(clientInitializationContext, _blockCacheEntityProducer);
@@ -152,10 +160,17 @@ namespace AElf.CrossChain.Communication.Grpc
 //            }
 //        }
         
-        private async Task<bool> TryConnectAsync(ICrossChainClient client)
+        private async Task<bool> TryConnectAndUpdateClientAsync(ICrossChainClient client)
         {
-            Logger.LogTrace($"Try handshake with chain {ChainHelpers.ConvertChainIdToBase58(client.ChainId)}");
-            var connectionResult = await client.ConnectAsync();
+            Logger.LogTrace($"Try handshake with chain {ChainHelpers.ConvertChainIdToBase58(client.RemoteChainId)}");
+            _connectionFailedClients.TryAdd(client.RemoteChainId, client);
+            var connectionResult = await RequestAsync(client, c => c.ConnectAsync());
+            if (connectionResult)
+            {
+                Logger.LogTrace($"Connected to chain {ChainHelpers.ConvertChainIdToBase58(client.RemoteChainId)}");
+                UpdateClient(client);
+            }
+            
             return connectionResult;
         }
 
@@ -167,7 +182,7 @@ namespace AElf.CrossChain.Communication.Grpc
             }
             catch (RpcException e)
             {
-                await HandleRpcException(client, e);
+                HandleRpcException(client, e);
                 return default(T);
             }
         }
@@ -180,18 +195,20 @@ namespace AElf.CrossChain.Communication.Grpc
             }
             catch (RpcException e)
             {
-                await HandleRpcException(client, e);
+                HandleRpcException(client, e);
             }
         }
 
-        
-        private async Task HandleRpcException(ICrossChainClient client, RpcException e)
+        private void HandleRpcException(ICrossChainClient client, RpcException e)
         {
             Logger.LogWarning($"Cross chain grpc request failed with exception {e.Message}");
-            var reconnectionResult = await TryConnectAsync(client);
-            if (reconnectionResult)
-                return;
-            MarkConnectionFailedClient(client.ChainId); 
+            MarkConnectionFailedClient(client.RemoteChainId); 
+        }
+
+        private void UpdateClient(ICrossChainClient client)
+        {
+            _connectionFailedClients.TryRemove(client.RemoteChainId, out _);
+            _grpcCrossChainClients.TryAdd(client.RemoteChainId, client);
         }
 
         #endregion      

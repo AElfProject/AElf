@@ -7,10 +7,10 @@ namespace AElf.CrossChain.Communication.Infrastructure
 {
     public interface ICrossChainClient
     {
-        int ChainId { get; }
+        int RemoteChainId { get; }
         string TargetUriString { get; }
         Task RequestCrossChainDataAsync(long targetHeight);
-        Task<ChainInitializationData> RequestChainInitializationContext(int chainId);
+        Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
         Task<bool> ConnectAsync();
         Task CloseAsync();
     }

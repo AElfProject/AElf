@@ -9,12 +9,12 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcSideChainServerBase : CrossChainRpc.CrossChainRpcBase, ITransientDependency
+    public class GrpcSideChainServerBase : SideChainRpc.SideChainRpcBase, ITransientDependency
     {
-        public ILogger<GrpcParentChainServerBase> Logger { get; set; }
+        public ILogger<GrpcSideChainServerBase> Logger { get; set; }
         private readonly ICrossChainResponseService _crossChainResponseService;
 
-        internal GrpcSideChainServerBase(ICrossChainResponseService crossChainResponseService)
+        public GrpcSideChainServerBase(ICrossChainResponseService crossChainResponseService)
         {
             _crossChainResponseService = crossChainResponseService;
         }
@@ -24,7 +24,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             Logger.LogTrace("Side Chain Server received IndexedInfo message.");
             var requestedHeight = crossChainRequest.NextHeight;
-            while (true)
+            while (requestedHeight - crossChainRequest.NextHeight <= 64)
             {
                 var sideChainBlock = await _crossChainResponseService.ResponseSideChainBlockDataAsync(requestedHeight);
                 if (sideChainBlock == null)
@@ -35,5 +35,12 @@ namespace AElf.CrossChain.Communication.Grpc
             
 //            PublishCrossChainRequestReceivedEvent(context.Host, crossChainRequest.ListeningPort, crossChainRequest.FromChainId);
         }
+        
+//        public override Task<HandShakeReply> CrossChainHandShake(HandShake request, ServerCallContext context)
+//        {
+//            Logger.LogTrace($"Received shake from chain {ChainHelpers.ConvertChainIdToBase58(request.FromChainId)}.");
+////            PublishCrossChainRequestReceivedEvent(context.Host, request.ListeningPort, request.FromChainId);
+//            return Task.FromResult(new HandShakeReply {Result = true});
+//        }
     }
 }
