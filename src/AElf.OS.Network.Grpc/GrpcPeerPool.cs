@@ -164,6 +164,11 @@ namespace AElf.OS.Network.Grpc
             return p;
         }
 
+        public IPeer GetBestPeer()
+        {
+            return GetPeers().FirstOrDefault(p => p.IsBest);
+        }
+
         public bool AddPeer(IPeer peer)
         {
             if (!(peer is GrpcPeer p))

@@ -27,6 +27,7 @@ namespace AElf.OS.Network.Grpc
             get { return _channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready; }
         }
 
+        public bool IsBest { get; set; }
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
         public string PeerIpAddress { get; }
