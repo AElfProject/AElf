@@ -242,7 +242,7 @@ namespace AElf.Contracts.CrossChain
             foreach (var blockInfo in parentChainBlockData)
             {
                 Assert(parentChainId == blockInfo.ChainId, "Wrong parent chain id.");
-                long parentChainHeight = blockInfo.ChainId;
+                long parentChainHeight = blockInfo.Height;
                 var currentHeight = State.CurrentParentChainHeight.Value;
                 var target = currentHeight != 0 ? currentHeight + 1 : State.CreationHeightOnParentChain.Value;
                 Assert(target == parentChainHeight,
@@ -259,6 +259,7 @@ namespace AElf.Contracts.CrossChain
                 // send consensus data shared from main chain  
                 if (blockInfo.ExtraData.TryGetValue("Consensus", out var bytes))
                 {
+                    Context.LogDebug(() => "Updating consensus information..");
                     UpdateCurrentMiners(bytes);
                 }
 
@@ -307,6 +308,7 @@ namespace AElf.Contracts.CrossChain
                 {
                     info.SideChainStatus = SideChainStatus.InsufficientBalance;
                 }
+                
                 State.SideChainInfos[chainId] = info;
 
                 Transfer(new TransferInput
@@ -320,6 +322,7 @@ namespace AElf.Contracts.CrossChain
                 State.CurrentSideChainHeight[chainId] = sideChainHeight;
                 indexedSideChainBlockData.Add(blockInfo);
             }
+            
             return indexedSideChainBlockData;
         }
         

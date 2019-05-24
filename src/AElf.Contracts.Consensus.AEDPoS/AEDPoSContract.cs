@@ -300,7 +300,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
         {
-            Assert(State.ElectionContract.Value == null, "Only side chain can update consensus information.");
+            //TODO: Replace this invalid assert because ElectionContract.Value won't be null. 
+            //Assert(State.ElectionContract.Value == null, "Only side chain can update consensus information.");
             // For now we just extract the miner list from main chain consensus information, then update miners list.
             if(input == null || input.Bytes.IsEmpty)
                 return new Empty();
