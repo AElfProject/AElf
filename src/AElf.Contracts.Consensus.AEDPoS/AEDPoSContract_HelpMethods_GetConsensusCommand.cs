@@ -173,7 +173,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
                 LimitMillisecondsOfMiningBlock = behaviour == AElfConsensusBehaviour.NextTerm
                     ? miningInterval
-                    : miningInterval.Div(AEDPoSContractConstants.TinyBlocksNumber.Add(AEDPoSContractConstants.RemainSlots)),
+                    : miningInterval.Div(AEDPoSContractConstants.TotalTinySlots),
                 Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString()
             };
         }
@@ -193,7 +193,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 if (currentRound.ExtraBlockProducerOfPreviousRound != publicKey)
                 {
                     expectedMiningTime = expectedMiningTime.ToDateTime().AddMilliseconds(producedTinyBlocks
-                            .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber.Add(AEDPoSContractConstants.RemainSlots)))
+                            .Mul(miningInterval).Div(AEDPoSContractConstants.TotalTinySlots))
                         .ToTimestamp();
                 }
                 else
@@ -201,14 +201,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     // EBP of previous round will produce double tiny blocks. This is for normal time slot of current round.
                     expectedMiningTime = expectedMiningTime.ToDateTime().AddMilliseconds(producedTinyBlocks
                         .Sub(AEDPoSContractConstants.TinyBlocksNumber)
-                        .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber.Add(AEDPoSContractConstants.RemainSlots))).ToTimestamp();
+                        .Mul(miningInterval).Div(AEDPoSContractConstants.TotalTinySlots)).ToTimestamp();
                 }
             }
             else if (previousRound != null)
             {
                 // EBP of previous round will produce double tiny blocks. This is for extra time slot of previous round.
                 expectedMiningTime = previousRound.GetExtraBlockMiningTime().AddMilliseconds(producedTinyBlocks
-                    .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber.Add(AEDPoSContractConstants.RemainSlots))).ToTimestamp();
+                    .Mul(miningInterval).Div(AEDPoSContractConstants.TotalTinySlots)).ToTimestamp();
             }
 
             if (currentRound.RoundNumber == 1)

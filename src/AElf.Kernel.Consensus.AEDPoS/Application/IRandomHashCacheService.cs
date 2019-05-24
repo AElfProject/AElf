@@ -1,7 +1,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Types;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
@@ -16,25 +19,40 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
     public class RandomHashCacheService : IRandomHashCacheService
     {
-        private readonly ConcurrentDictionary<Hash, Hash> _randomHashes = new ConcurrentDictionary<Hash, Hash>();
-        private readonly ConcurrentDictionary<long, Hash> _blockHashes = new ConcurrentDictionary<long, Hash>();
+        private readonly Dictionary<Hash, Hash> _randomHashes = new Dictionary<Hash, Hash>();
+        private readonly Dictionary<long, Hash> _blockHashes = new Dictionary<long, Hash>();
 
         public ILogger<RandomHashCacheService> Logger { get; set; }
 
         public void SetRandomHash(Hash bestChainBlockHash, Hash randomHash)
         {
-            // Only keep one before setting.
-            _randomHashes.RemoveAll(p => p.Key != _randomHashes.Keys.Last());
-            _randomHashes.TryAdd(bestChainBlockHash, randomHash);
+            _randomHashes.RemoveAll(p => !_blockHashes.Values.Contains(p.Key));
+            _randomHashes.Add(bestChainBlockHash, randomHash);
 
-            Logger.LogTrace(
-                $"Setting. Block hash {bestChainBlockHash} - Random hash {randomHash}. Count of cached random hashes: {_randomHashes.Count}");
+            {
+                var log = new StringBuilder("\n");
+                foreach (var hashLink in _blockHashes)
+                {
+                    log.Append($"{hashLink.Key} - {hashLink.Value.ToHex()}\n");
+                }
+
+                Logger.LogTrace($"Block hash links:{log}");
+            }
+
+            {
+                var log = new StringBuilder("\n");
+                foreach (var hashLink in _randomHashes)
+                {
+                    log.Append($"{hashLink.Key} - {hashLink.Value.ToHex()}\n");
+                }
+
+                Logger.LogTrace($"Random hash links:{log}");
+            }
         }
 
         public Hash GetRandomHash(Hash bestChainBlockHash)
         {
             _randomHashes.TryGetValue(bestChainBlockHash, out var randomHash);
-            Logger.LogTrace($"Getting. Block hash {bestChainBlockHash} - Random hash {randomHash}");
             return randomHash ?? Hash.Empty;
         }
 
@@ -42,22 +60,24 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             if (_blockHashes.Count > 0)
             {
-                _blockHashes.RemoveAll(p => p.Key < _blockHashes.OrderByDescending(h => h.Key).First().Key);
+                var highestHeight = _blockHashes.OrderByDescending(h => h.Key).First().Key;
+                _blockHashes.RemoveAll(p => p.Key < highestHeight);
             }
-            Logger.LogTrace(
-                $"Count of cached block hashes: {_blockHashes.Count}");
-            _blockHashes.TryAdd(blockHeight, blockHash);
+
+            _blockHashes.Add(blockHeight, blockHash);
         }
 
         public Hash GetLatestGeneratedBlockRandomHash()
         {
-            if ( _blockHashes.Count == 0)
+            if (_blockHashes.Count == 1)
             {
                 return Hash.Empty;
             }
 
-            var blockHash = _blockHashes.OrderByDescending(p => p.Key).First().Value;
-            return GetRandomHash(blockHash);
+            var blockHash = _blockHashes.OrderBy(p => p.Key).First().Value;
+            var randomHash = GetRandomHash(blockHash);
+
+            return randomHash;
         }
     }
 }
