@@ -18,12 +18,8 @@
       <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
       <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
-      <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj">
-          <OutputItemType>Contract</OutputItemType>
-      </ProjectReference>
-        <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj">
-            <OutputItemType>Contract</OutputItemType>
-        </ProjectReference> 
+      <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj"/>
+      <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj"/>
     </ItemGroup>
 
 <!--    <Target Name="IdentifyProjectReferences" AfterTargets="ResolveProjectReferences">-->
