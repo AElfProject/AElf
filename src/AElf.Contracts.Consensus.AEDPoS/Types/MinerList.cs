@@ -12,7 +12,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var sortedMiners =
-                (from obj in PublicKeys.Distinct()
+                (from obj in PublicKeys
                         .ToDictionary<ByteString, string, int>(miner => miner.ToHex(), miner => miner[0])
                     orderby obj.Value descending
                     select obj.Key).ToList();
