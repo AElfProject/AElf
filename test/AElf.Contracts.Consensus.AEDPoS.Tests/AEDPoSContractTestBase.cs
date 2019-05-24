@@ -26,7 +26,7 @@ using IBlockTimeProvider = AElf.Contracts.TestKit.IBlockTimeProvider;
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    public class AElfConsensusContractTestBase : ContractTestBase<AEDPoSContractTestAElfModule>
+    public class AEDPoSContractTestBase : ContractTestBase<AEDPoSContractTestAElfModule>
     {
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();

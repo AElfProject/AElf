@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <IsPackable>false</IsPackable>
+        <RootNamespace>AElf.Kernel.Consensus.DPoS.Tests</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Google.Protobuf" Version="3.7.0" />
@@ -14,7 +15,7 @@
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AElfConsensus\AElf.Kernel.Consensus.AElfConsensus.csproj" />
+      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />
@@ -28,9 +29,4 @@
       <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
-    <!--<ItemGroup>-->
-        <!--<ContractMessage Include="..\..\protobuf\acs4.proto">-->
-            <!--<Link>Protobuf\Proto\acs4.proto</Link>-->
-        <!--</ContractMessage>-->
-    <!--</ItemGroup>-->
 </Project>
