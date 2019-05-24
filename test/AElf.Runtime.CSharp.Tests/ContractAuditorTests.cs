@@ -76,6 +76,8 @@ namespace AElf.Runtime.CSharp.Tests
                 
                 Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), false));
             }
+            
+            Should.NotThrow(()=>_auditor.Audit(ReadCode(typeof(BasicContractZero).Assembly.Location), false));
         }
         
         #endregion
