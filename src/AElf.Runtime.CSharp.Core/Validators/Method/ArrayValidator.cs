@@ -116,6 +116,15 @@ namespace AElf.Runtime.CSharp.Validators.Method
                 return true;
             }
 
+            #if DEBUG
+            // Creating array from an already existing array, only allowed in Debug mode
+            if (previous.OpCode == OpCodes.Conv_I4 && previous.Previous.OpCode == OpCodes.Ldlen)
+            {
+                size = 0;
+                return true;
+            }
+            #endif
+
             size = -1;
             return false;
         }
@@ -123,10 +132,11 @@ namespace AElf.Runtime.CSharp.Validators.Method
         private string GetIlCodesNext(Instruction instruction, int depth)
         {
             var code = "";
+            var next = instruction.Next;
             while (depth-- > 0)
             {
-                instruction = instruction.Next;
-                code += instruction + "\n";
+                code += next + "\n";
+                next = next.Next;
             }
             return code;
         }
@@ -134,10 +144,11 @@ namespace AElf.Runtime.CSharp.Validators.Method
         private string GetIlCodesPrevious(Instruction instruction, int depth)
         {
             var code = "";
+            var previous = instruction.Previous;
             while (depth-- > 0)
             {
-                instruction = instruction.Previous;
-                code += "\n" + instruction + code;
+                code += "\n" + previous + code;
+                previous = previous.Previous;
             }
             return code;
         }
