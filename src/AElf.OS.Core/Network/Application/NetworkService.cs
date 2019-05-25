@@ -82,9 +82,9 @@ namespace AElf.OS.Network.Application
             {
                 try
                 {
-                    Logger.LogDebug($"Before broadcast to {peer}.");
+                    Logger.LogDebug($"Before broadcast {announce.BlockHash} to {peer}.");
                     await peer.AnnounceAsync(announce);
-                    Logger.LogDebug($"After broadcast to {peer}.");
+                    Logger.LogDebug($"After broadcast {announce.BlockHash} to {peer}.");
 
                     return true;
                     //Interlocked.Increment(ref successfulBcasts);
