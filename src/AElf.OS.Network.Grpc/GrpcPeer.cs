@@ -36,9 +36,9 @@ namespace AElf.OS.Network.Grpc
         public bool Inbound { get; set; }
         public long StartHeight { get; set; }
 
-        public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+        public IReadOnlyDictionary<long, PeerBlockInfo> RecentBlockHeightAndHashMappings { get; }
 
-        private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
+        private readonly ConcurrentDictionary<long, PeerBlockInfo> _recentBlockHeightAndHashMappings;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string pubKey, string peerIpAddress,
             int protocolVersion, long connectionTime, long startHeight, bool inbound = true)
@@ -58,8 +58,8 @@ namespace AElf.OS.Network.Grpc
 
             StartHeight = startHeight;
 
-            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
-            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
+            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, PeerBlockInfo>();
+            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, PeerBlockInfo>(_recentBlockHeightAndHashMappings);
         }
 
         public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)
@@ -162,7 +162,20 @@ namespace AElf.OS.Network.Grpc
         {
             CurrentBlockHeight = peerNewBlockAnnouncement.BlockHeight;
             CurrentBlockHash = peerNewBlockAnnouncement.BlockHash;
-            _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
+            if (_recentBlockHeightAndHashMappings.ContainsKey(CurrentBlockHeight) &&
+                _recentBlockHeightAndHashMappings[CurrentBlockHeight].BlockHash != CurrentBlockHash)
+            {
+                _recentBlockHeightAndHashMappings[CurrentBlockHeight].HasFork = true;
+            }
+            else
+            {
+                _recentBlockHeightAndHashMappings[CurrentBlockHeight] = new PeerBlockInfo
+                {
+                    BlockHash = CurrentBlockHash,
+                    HasFork = _recentBlockHeightAndHashMappings[CurrentBlockHeight].HasFork
+                };
+            }
+
             while (_recentBlockHeightAndHashMappings.Count > 10)
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);

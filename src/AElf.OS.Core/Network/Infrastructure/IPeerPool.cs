@@ -10,7 +10,7 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> RemovePeerByAddressAsync(string address);
         List<IPeer> GetPeers(bool includeFailing = false);
         
-        IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+        IReadOnlyDictionary<long, PeerBlockInfo> RecentBlockHeightAndHashMappings { get; }
         
         IPeer FindPeerByAddress(string peerIpAddress);
         IPeer FindPeerByPublicKey(string remotePubKey);

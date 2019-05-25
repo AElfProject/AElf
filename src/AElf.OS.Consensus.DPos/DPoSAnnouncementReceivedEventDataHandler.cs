@@ -100,21 +100,30 @@ namespace AElf.OS.Consensus.DPos
 
             foreach (var block in orderedBlocks)
             {
-                var peersHadBlockAmount = peers.Where(p =>
                 {
-                    p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
-                    return hash == block.Value;
-                }).Count();
+                    if (peers.Any(p =>
+                        p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var peerBlockInfo) &&
+                        peerBlockInfo.HasFork))
+                        return null;
+                    if (pubkeyList.Contains(pubKey.ToHex()) &&
+                        _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockInfo) &&
+                        blockInfo.HasFork)
+                        return null;
+                }
+
+                var peersHadBlockAmount = peers.Count(p =>
+                    p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var peerBlockInfo) &&
+                    peerBlockInfo.BlockHash == block.Value.BlockHash);
                 if (pubkeyList.Contains(pubKey.ToHex()) &&
-                    _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
-                    blockHash == block.Value)
+                    _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockinfo) &&
+                    blockinfo.BlockHash == block.Value.BlockHash)
                     peersHadBlockAmount++;
 
                 var sureAmount = pubkeyList.Count.Mul(2).Div(3) + 1;
                 if (peersHadBlockAmount >= sureAmount)
                 {
                     Logger.LogDebug($"LIB found in network layer: height {block.Key}");
-                    return new BlockIndex(block.Value, block.Key);
+                    return new BlockIndex(block.Value.BlockHash, block.Key);
                 }
             }
 

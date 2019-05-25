@@ -15,7 +15,7 @@ namespace AElf.OS.Network.Infrastructure
         long ConnectionTime { get; set; }
         bool Inbound { get; set; }
         long StartHeight { get; set; }
-        IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+        IReadOnlyDictionary<long, PeerBlockInfo> RecentBlockHeightAndHashMappings { get; }
 
         void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement);
 

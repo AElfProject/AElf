@@ -53,12 +53,17 @@ namespace AElf.OS.Network.Application
             {
                 BlockHash = blockHeader.GetHash(),
                 BlockHeight = blockHeader.Height,
-                BlockTime = blockHeader.Time
+                BlockTime = blockHeader.Time,
+                HasFork = false
             };
+            if (_peerPool.RecentBlockHeightAndHashMappings.ContainsKey(blockHeader.Height) &&
+                _peerPool.RecentBlockHeightAndHashMappings[blockHeader.Height].BlockHash != blockHeader.GetHash())
+            {
+                announce.HasFork = true;
+            }
             
             var peers = _peerPool.GetPeers().ToList();
 
-            if (_peerPool.RecentBlockHeightAndHashMappings.ContainsKey(blockHeader.Height)) return successfulBcasts;
             _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash());
             await Task.WhenAll(peers.Select(async peer =>
             {

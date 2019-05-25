@@ -29,9 +29,9 @@ namespace AElf.OS.Network.Grpc
 
         private readonly ConcurrentDictionary<string, GrpcPeer> _authenticatedPeers;
 
-        public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+        public IReadOnlyDictionary<long, PeerBlockInfo> RecentBlockHeightAndHashMappings { get; }
 
-        private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
+        private readonly ConcurrentDictionary<long, PeerBlockInfo> _recentBlockHeightAndHashMappings;
 
         public ILogger<GrpcPeerPool> Logger { get; set; }
 
@@ -43,8 +43,8 @@ namespace AElf.OS.Network.Grpc
             _blockchainService = blockChainService;
 
             _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
-            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
-            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
+            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, PeerBlockInfo>();
+            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, PeerBlockInfo>(_recentBlockHeightAndHashMappings);
 
             Logger = NullLogger<GrpcPeerPool>.Instance;
         }
@@ -250,7 +250,20 @@ namespace AElf.OS.Network.Grpc
         
         public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash)
         {
-            _recentBlockHeightAndHashMappings[blockHeight] = blockHash;
+            if (_recentBlockHeightAndHashMappings.ContainsKey(blockHeight) &&
+                _recentBlockHeightAndHashMappings[blockHeight].BlockHash != blockHash)
+            {
+                _recentBlockHeightAndHashMappings[blockHeight].HasFork = true;
+            }
+            else
+            {
+                _recentBlockHeightAndHashMappings[blockHeight] = new PeerBlockInfo
+                {
+                    BlockHash = blockHash,
+                    HasFork = false
+                }; 
+            }
+
             while (_recentBlockHeightAndHashMappings.Count > 10)
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
