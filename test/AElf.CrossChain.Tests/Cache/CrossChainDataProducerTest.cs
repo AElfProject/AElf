@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Acs7;
 using Xunit;
 
 namespace AElf.CrossChain.Cache
@@ -23,7 +24,7 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_NotExistChain()
         {
             int chainId = 123;
-            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new BlockCacheEntity
+            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
             {
                 ChainId = chainId
             });
@@ -41,7 +42,7 @@ namespace AElf.CrossChain.Cache
                 }
             };
             CreateFakeCache(dict);
-            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new BlockCacheEntity
+            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
             {
                 ChainId = chainId,
                 Height = 2
@@ -60,7 +61,7 @@ namespace AElf.CrossChain.Cache
                 }
             };
             CreateFakeCache(dict);
-            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new BlockCacheEntity
+            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
             {
                 ChainId = chainId,
                 Height = 1

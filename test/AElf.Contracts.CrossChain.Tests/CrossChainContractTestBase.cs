@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
+using Acs7;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
@@ -19,7 +20,6 @@ using Shouldly;
 using Volo.Abp.Threading;
 using ApproveInput = AElf.Contracts.MultiToken.Messages.ApproveInput;
 using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
-using ResourceTypeBalancePair = AElf.Contracts.CrossChain.ResourceTypeBalancePair;
 
 namespace AElf.Contract.CrossChain.Tests
 {
@@ -134,9 +134,9 @@ namespace AElf.Contract.CrossChain.Tests
                 IndexingPrice = indexingPrice,
                 LockedTokenAmount = lockedTokenAmount
             };
-            if (resourceTypeBalancePairs != null)
-                res.ResourceBalances.AddRange(resourceTypeBalancePairs.Select(x =>
-                    ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
+//            if (resourceTypeBalancePairs != null)
+//                res.ResourceBalances.AddRange(resourceTypeBalancePairs.Select(x =>
+//                    ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
             return res;
         }
 

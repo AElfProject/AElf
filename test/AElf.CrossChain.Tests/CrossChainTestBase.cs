@@ -27,7 +27,7 @@ namespace AElf.CrossChain
             }
         }
 
-        protected void AddFakeCacheData(Dictionary<int, List<BlockCacheEntity>> fakeCache)
+        protected void AddFakeCacheData(Dictionary<int, List<IBlockCacheEntity>> fakeCache)
         {
             foreach (var (crossChainId, blockInfos) in fakeCache)
             {
@@ -52,7 +52,7 @@ namespace AElf.CrossChain
             _chainCacheEntityProvider = Application.ServiceProvider.GetRequiredService<IChainCacheEntityProvider>();
         }
         
-        protected void AddFakeCacheData(Dictionary<int, List<BlockCacheEntity>> fakeCache)
+        protected void AddFakeCacheData(Dictionary<int, List<IBlockCacheEntity>> fakeCache)
         {
             foreach (var (crossChainId, blockInfos) in fakeCache)
             {

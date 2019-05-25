@@ -1,6 +1,5 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Contracts.CrossChain;
+using Acs7;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
@@ -9,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 
-namespace AElf.CrossChain.Grpc
+namespace AElf.CrossChain.Communication.Grpc
 {
     public class GrpcCrossChainServerTestModule : GrpcCrossChainTestModule
     {
@@ -42,7 +41,7 @@ namespace AElf.CrossChain.Grpc
                             ChainId = 0,
                             BlockExtraDatas =
                             {
-                                ByteString.CopyFrom(Hash.Generate().ToByteArray()),
+                                ByteString.CopyFrom(new CrossChainExtraData().ToByteArray()),
                                 ByteString.CopyFrom(Hash.Generate().ToByteArray())
                             }
                         }
@@ -55,8 +54,8 @@ namespace AElf.CrossChain.Grpc
             {
                 var mockCrossChainDataProvider = new Mock<ICrossChainDataProvider>();
                 mockCrossChainDataProvider
-                    .Setup(c => c.GetChainInitializationContextAsync(It.IsAny<int>(), It.IsAny<Hash>(),
-                        It.IsAny<long>())).Returns(async () => await Task.FromResult(new ChainInitializationInformation
+                    .Setup(c => c.GetChainInitializationDataAsync(It.IsAny<int>(), It.IsAny<Hash>(),
+                        It.IsAny<long>())).Returns(async () => await Task.FromResult(new ChainInitializationData
                     {
                         CreationHeightOnParentChain = 1,
                     }));
@@ -68,8 +67,6 @@ namespace AElf.CrossChain.Grpc
                 var mockService = new Mock<INewChainRegistrationService>();
                 return mockService.Object;
             });
-
-            services.AddSingleton<CrossChainRpc.CrossChainRpcBase, CrossChainGrpcServerBase>();
         }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs7;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
 using AElf.Kernel;
@@ -64,9 +65,9 @@ namespace AElf.CrossChain
             int chainId = 123;
             var fakeSideChainBlockData = new SideChainBlockData
             {
-                SideChainHeight = 1,
+                Height = 1,
                 TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
-                SideChainId = chainId
+                ChainId = chainId
             };
             CreateFakeCacheAndStateData(chainId, fakeSideChainBlockData, block.Height);
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
@@ -80,9 +81,9 @@ namespace AElf.CrossChain
             int chainId = 123;
             var sideChainBlockData = new SideChainBlockData
             {
-                SideChainHeight = 1,
+                Height = 1,
                 TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
-                SideChainId = chainId
+                ChainId = chainId
             };
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new []{sideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
@@ -99,12 +100,7 @@ namespace AElf.CrossChain
         {
             var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
             var fakeSideChainId = 123;
-            var fakeSideChainBlockData = new SideChainBlockData
-            {
-                SideChainHeight = 1,
-                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
-                SideChainId = fakeSideChainId
-            };
+            var fakeSideChainBlockData = CreateSideChainBlockData(fakeSideChainId, 1, fakeMerkleTreeRoot1);
             CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData, 2);
             
             // mock data in cache
@@ -120,20 +116,10 @@ namespace AElf.CrossChain
         {
             var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
             var fakeSideChainId = 123;
-            var fakeSideChainBlockData = new SideChainBlockData
-            {
-                SideChainHeight = 1,
-                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
-                SideChainId = fakeSideChainId
-            };
+            var fakeSideChainBlockData = CreateSideChainBlockData(fakeSideChainId, 1, fakeMerkleTreeRoot1);
             
             var fakeTxnMerkleTreeRoot2 = Hash.FromString("fakeMerkleTreeRoot2");
-            var fakeSideChainBlockData2 = new SideChainBlockData
-            {
-                SideChainHeight = 1,
-                TransactionMerkleTreeRoot = fakeTxnMerkleTreeRoot2,
-                SideChainId = fakeSideChainId
-            };
+            var fakeSideChainBlockData2 = CreateSideChainBlockData(fakeSideChainId, 1, fakeTxnMerkleTreeRoot2);
             
             CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData2, 2);
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new []{fakeSideChainBlockData});
@@ -147,12 +133,7 @@ namespace AElf.CrossChain
         {
             var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
             var fakeSideChainId = 123;
-            var fakeSideChainBlockData = new SideChainBlockData
-            {
-                SideChainHeight = 1,
-                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
-                SideChainId = fakeSideChainId
-            };
+            var fakeSideChainBlockData = CreateSideChainBlockData(fakeSideChainId, 1, fakeMerkleTreeRoot1);
             
             CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData, 2);
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new []{fakeSideChainBlockData});
@@ -192,21 +173,26 @@ namespace AElf.CrossChain
             _crossChainTestHelper.AddFakeSideChainIdHeight(fakeSideChainId, 0);
             
             // mock data in cache
-            AddFakeCacheData(new Dictionary<int, List<BlockCacheEntity>>
+            AddFakeCacheData(new Dictionary<int, List<IBlockCacheEntity>>
             {
                 {
                     fakeSideChainId,
-                    new List<BlockCacheEntity>
+                    new List<IBlockCacheEntity>
                     {
-                        new BlockCacheEntity
-                        {
-                            ChainId = fakeSideChainBlockData.SideChainId,
-                            Height = fakeSideChainBlockData.SideChainHeight,
-                            Payload = fakeSideChainBlockData.ToByteString()
-                        }
+                        fakeSideChainBlockData
                     }
                 }
             });
+        }
+
+        private SideChainBlockData CreateSideChainBlockData(int chainId, long height, Hash transactionMerkleTreeRoot)
+        {
+            return new SideChainBlockData
+            {
+                Height = height,
+                TransactionMerkleTreeRoot = transactionMerkleTreeRoot,
+                ChainId = chainId
+            };
         }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 
-namespace AElf.CrossChain.Grpc
+namespace AElf.CrossChain.Communication.Grpc
 {
     [DependsOn(
         typeof(GrpcCrossChainAElfModule),
@@ -33,9 +33,9 @@ namespace AElf.CrossChain.Grpc
             
             Configure<CrossChainConfigOption>(option=>option.ParentChainId = ChainHelpers.ConvertBase58ToChainId("AELF"));
             
-            services.AddTransient<INodePlugin, GrpcCrossChainClientNodePlugin>();
-            services.AddTransient<INodePlugin, GrpcCrossChainServerNodePlugin>();
-            services.AddSingleton<ICrossChainServer, CrossChainGrpcServer>();
+            services.AddTransient<IGrpcClientPlugin, GrpcCrossChainClientNodePlugin>();
+            services.AddTransient<IGrpcServePlugin, GrpcCrossChainServerNodePlugin>();
+            services.AddSingleton<IGrpcCrossChainServer, GrpcGrpcCrossChainServer>();
             services.AddSingleton<GrpcCrossChainClientNodePlugin>();
 
             context.Services.AddSingleton(provider =>

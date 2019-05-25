@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using AElf.Contracts.CrossChain;
+using Acs7;
 using Google.Protobuf;
 using Xunit;
 
@@ -43,17 +43,8 @@ namespace AElf.CrossChain.Cache
         {
             int chainId = 123;
             var blockInfoCache = new ChainCacheEntity(1);
-            var sideChainBlockData = new SideChainBlockData
-            {
-                SideChainId = chainId,
-                SideChainHeight = 1
-            };
-            blockInfoCache.TryAdd(new BlockCacheEntity
-            {
-                ChainId = sideChainBlockData.SideChainId,
-                Height = sideChainBlockData.SideChainHeight,
-                Payload = sideChainBlockData.ToByteString()
-            });
+            var sideChainBlockData = CreateSideChainBlockData(chainId, 1);
+            blockInfoCache.TryAdd(sideChainBlockData);
             var dict = new Dictionary<int, ChainCacheEntity>
             {
                 {chainId, blockInfoCache}
@@ -70,17 +61,8 @@ namespace AElf.CrossChain.Cache
             _chainCacheEntityProvider.AddChainCacheEntity(chainId, new ChainCacheEntity(1));
             var blockInfoCache = ChainCacheEntityProvider.GetChainCacheEntity(chainId);
             Assert.NotNull(blockInfoCache);
-            var expectedBlockInfo = new SideChainBlockData
-            {
-                SideChainId = chainId,
-                SideChainHeight = 1
-            };
-            blockInfoCache.TryAdd(new BlockCacheEntity
-            {
-                ChainId = expectedBlockInfo.SideChainId,
-                Height = expectedBlockInfo.SideChainHeight,
-                Payload = expectedBlockInfo.ToByteString()
-            });
+            var expectedBlockInfo = CreateSideChainBlockData(chainId, 1);
+            blockInfoCache.TryAdd(expectedBlockInfo);
             var actualBlockInfo = _blockCacheEntityConsumer.Take<SideChainBlockData>(chainId, 1, false);
             Assert.Equal(expectedBlockInfo, actualBlockInfo);
         }
@@ -92,19 +74,19 @@ namespace AElf.CrossChain.Cache
             _chainCacheEntityProvider.AddChainCacheEntity(chainId, new ChainCacheEntity(1));
             var blockInfoCache = ChainCacheEntityProvider.GetChainCacheEntity(chainId);
             Assert.NotNull(blockInfoCache);
-            var expectedBlockInfo = new SideChainBlockData
-            {
-                SideChainId = chainId,
-                SideChainHeight = 1
-            };
-            blockInfoCache.TryAdd(new BlockCacheEntity
-            {
-                ChainId = expectedBlockInfo.SideChainId,
-                Height = expectedBlockInfo.SideChainHeight,
-                Payload = expectedBlockInfo.ToByteString()
-            });
+            var expectedBlockInfo = CreateSideChainBlockData(chainId, 1);
+            blockInfoCache.TryAdd(expectedBlockInfo);
             var blockInfo = _blockCacheEntityConsumer.Take<SideChainBlockData>(chainId, 2, false);
             Assert.Null(blockInfo);
+        }
+
+        private SideChainBlockData CreateSideChainBlockData(int chainId, long height)
+        {
+            return new SideChainBlockData
+            {
+                ChainId = chainId,
+                Height = height
+            };
         }
     }
 }

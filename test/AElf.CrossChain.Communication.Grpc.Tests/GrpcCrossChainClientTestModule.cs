@@ -1,18 +1,13 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.CrossChain.Cache;
-using AElf.Cryptography.Certificate;
+using Acs7;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
-using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NSubstitute;
 using Volo.Abp.Modularity;
 
-namespace AElf.CrossChain.Grpc
+namespace AElf.CrossChain.Communication.Grpc
 {
     public class GrpcCrossChainClientTestModule : GrpcCrossChainTestModule
     {
@@ -21,7 +16,7 @@ namespace AElf.CrossChain.Grpc
             base.ConfigureServices(context);
             
             var services = context.Services;
-            services.AddSingleton<ICrossChainServer, CrossChainGrpcServer>();
+            services.AddSingleton<IGrpcCrossChainServer, GrpcGrpcCrossChainServer>();
             
             services.AddTransient(o =>
             {
@@ -32,6 +27,17 @@ namespace AElf.CrossChain.Grpc
                         LastIrreversibleBlockHeight = 1
                     }));
                 return mockService.Object;
+            });
+            services.AddTransient(o =>
+            {
+                var mockCrossChainDataProvider = new Mock<ICrossChainDataProvider>();
+                mockCrossChainDataProvider
+                    .Setup(c => c.GetChainInitializationDataAsync(It.IsAny<int>(), It.IsAny<Hash>(),
+                        It.IsAny<long>())).Returns(async () => await Task.FromResult(new ChainInitializationData
+                    {
+                        CreationHeightOnParentChain = 1,
+                    }));
+                return mockCrossChainDataProvider.Object;
             });
             
             services.AddTransient(o =>

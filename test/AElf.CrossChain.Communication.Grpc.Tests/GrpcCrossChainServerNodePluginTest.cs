@@ -4,17 +4,17 @@ using AElf.Kernel.Node.Infrastructure;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace AElf.CrossChain.Grpc
+namespace AElf.CrossChain.Communication.Grpc
 {
     public sealed class GrpcCrossChainServerNodePluginTest : GrpcCrossChainServerTestBase
     {
-        private readonly INodePlugin _grpcCrossChainServerNodePlugin;
+        private readonly GrpcCrossChainServerNodePlugin _grpcCrossChainServerNodePlugin;
         private readonly GrpcCrossChainClientNodePlugin _grpcCrossChainClientNodePlugin;
         private readonly ChainOptions _chainOptions;
         
         public GrpcCrossChainServerNodePluginTest()
         {
-            _grpcCrossChainServerNodePlugin = GetRequiredService<INodePlugin>();
+            _grpcCrossChainServerNodePlugin = GetRequiredService<GrpcCrossChainServerNodePlugin>();
             _grpcCrossChainClientNodePlugin = GetRequiredService<GrpcCrossChainClientNodePlugin>();
             _chainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
         }
@@ -36,12 +36,12 @@ namespace AElf.CrossChain.Grpc
         [Fact]
         public async Task Server_Shutdown_Test()
         {
-            await _grpcCrossChainServerNodePlugin.ShutdownAsync();
+            await _grpcCrossChainServerNodePlugin.StopAsync();
         }
 
         public override void Dispose()
         {
-            _grpcCrossChainServerNodePlugin?.ShutdownAsync().Wait();
+            _grpcCrossChainServerNodePlugin?.StopAsync().Wait();
         }
     }
 }

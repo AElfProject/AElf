@@ -1,6 +1,6 @@
 using AElf.TestBase;
 
-namespace AElf.CrossChain.Grpc
+namespace AElf.CrossChain.Communication.Grpc
 {
     public class GrpcCrossChainClientTestBase : AElfIntegratedTest<GrpcCrossChainClientTestModule>
     {

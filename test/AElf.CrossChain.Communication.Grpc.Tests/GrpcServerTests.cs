@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Acs7;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Grpc.Core;
@@ -10,16 +11,21 @@ using Moq;
 using Shouldly;
 using Xunit;
 
-namespace AElf.CrossChain.Grpc
+namespace AElf.CrossChain.Communication.Grpc
 {
     public class GrpcServerTests : GrpcCrossChainServerTestBase
     {
-        private CrossChainRpc.CrossChainRpcBase CrossChainGrpcServer;
+        private ParentChainRpc.ParentChainRpcBase ParentChainGrpcServerBase;
+        private SideChainRpc.SideChainRpcBase SideChainGrpcServerBase;
+        private BasicCrossChainRpc.BasicCrossChainRpcBase BasicCrossChainRpcBase;
+
         private ISmartContractAddressService _smartContractAddressService;
 
         public GrpcServerTests()
         {
-            CrossChainGrpcServer = GetRequiredService<CrossChainRpc.CrossChainRpcBase>();
+            ParentChainGrpcServerBase = GetRequiredService<GrpcParentChainServerBase>();
+            SideChainGrpcServerBase = GetRequiredService<GrpcSideChainServerBase>();
+            BasicCrossChainRpcBase = GetRequiredService<GrpcBasicServerBase>();
             _smartContractAddressService = GetRequiredService<SmartContractAddressService>();
             _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name, Address.Generate());
         }
@@ -30,12 +36,12 @@ namespace AElf.CrossChain.Grpc
             var requestData = new CrossChainRequest
             {
                 FromChainId = 0,
-                NextHeight = 15
+                NextHeight = 10
             };
 
-            IServerStreamWriter<CrossChainResponse> responseStream = Mock.Of<IServerStreamWriter<CrossChainResponse>>();
+            IServerStreamWriter<ParentChainBlockData> responseStream = Mock.Of<IServerStreamWriter<ParentChainBlockData>>();
             var context = BuildServerCallContext();
-            await CrossChainGrpcServer.RequestIndexingFromParentChainAsync(requestData, responseStream, context);
+            await ParentChainGrpcServerBase.RequestIndexingFromParentChainAsync(requestData, responseStream, context);
         }
         
         [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1643")]
@@ -47,9 +53,9 @@ namespace AElf.CrossChain.Grpc
                 NextHeight = 9
             };
 
-            IServerStreamWriter<CrossChainResponse> responseStream = Mock.Of<IServerStreamWriter<CrossChainResponse>>();
+            IServerStreamWriter<ParentChainBlockData> responseStream = Mock.Of<IServerStreamWriter<ParentChainBlockData>>();
             var context = BuildServerCallContext();
-            await CrossChainGrpcServer.RequestIndexingFromParentChainAsync(requestData, responseStream, context);
+            await ParentChainGrpcServerBase.RequestIndexingFromParentChainAsync(requestData, responseStream, context);
         }
 
         [Fact]
@@ -61,9 +67,9 @@ namespace AElf.CrossChain.Grpc
                 NextHeight = 10
             };
             
-            IServerStreamWriter<CrossChainResponse> responseStream = Mock.Of<IServerStreamWriter<CrossChainResponse>>();
+            IServerStreamWriter<SideChainBlockData> responseStream = Mock.Of<IServerStreamWriter<SideChainBlockData>>();
             var context = BuildServerCallContext();
-            await CrossChainGrpcServer.RequestIndexingFromSideChainAsync(requestData, responseStream, context);
+            await SideChainGrpcServerBase.RequestIndexingFromSideChainAsync(requestData, responseStream, context);
         }
 
         [Fact]
@@ -72,10 +78,11 @@ namespace AElf.CrossChain.Grpc
             var request = new HandShake
             {
                 ListeningPort = 2100,
-                FromChainId = 0
+                FromChainId = 0,
+                Host = "127.0.0.1"
             };
             var context = BuildServerCallContext();
-            var indexingHandShakeReply = await CrossChainGrpcServer.CrossChainIndexingShakeAsync(request, context);
+            var indexingHandShakeReply = await BasicCrossChainRpcBase.CrossChainHandShakeAsync(request, context);
             
             indexingHandShakeReply.ShouldNotBeNull();
             indexingHandShakeReply.Result.ShouldBeTrue();

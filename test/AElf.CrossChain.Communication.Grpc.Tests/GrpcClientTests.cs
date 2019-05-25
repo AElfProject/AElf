@@ -2,28 +2,22 @@ using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
 using AElf.Cryptography.Certificate;
 using Grpc.Core;
-using Moq;
 using Shouldly;
 using Xunit;
 
-namespace AElf.CrossChain.Grpc
+namespace AElf.CrossChain.Communication.Grpc
 {
     public class GrpcClientTests : GrpcCrossChainClientTestBase
     {
         private const string Host = "localhost";
         private const int ListenPort = 2200;
-        private GrpcClientForParentChain parentClient;
-        private GrpcClientForSideChain sideClient;
+        private BasicCrossChainRpc.BasicCrossChainRpcClient _basicClient;
         
-        private ICrossChainServer _server;
-        private ICertificateStore _certificateStore;
-        private IBlockCacheEntityProducer _blockCacheEntityProducer;
+        private IGrpcCrossChainServer _server;
         
         public GrpcClientTests()
         {
-            _server = GetRequiredService<ICrossChainServer>();
-            _certificateStore = GetRequiredService<ICertificateStore>();
-            _blockCacheEntityProducer = GetRequiredService<IBlockCacheEntityProducer>();
+            _server = GetRequiredService<IGrpcCrossChainServer>();
         }
 
         // TODO: These cases are meaningless and should be rewritten.
@@ -41,30 +35,23 @@ namespace AElf.CrossChain.Grpc
 //        }
 
         [Fact]
-        public async Task ParentChainClient_TryHandShakeAsync()
+        public void BasicCrossChainClient_TryHandShake()
         {
             InitServerAndClient(5000);
-            var result = await parentClient.HandShakeAsync(0, ListenPort);
+            var result = _basicClient.CrossChainHandShakeAsync(new HandShake
+            {
+                ListeningPort = 2100,
+                FromChainId = 0,
+                Host = "127.0.0.1"
+            });
             result.Result.ShouldBeTrue();
             Dispose();
         }
         
-        [Fact]
-        public async Task SideChainClient_TryHandShakeAsync()
-        {
-            InitServerAndClient(6000);
-            var result = await sideClient.HandShakeAsync(0, ListenPort);
-            result.Result.ShouldBeTrue();
-            Dispose();
-        }
-
         private void InitServerAndClient(int port)
         {
             _server.StartAsync(Host, port).Wait();
-            
-            string uri = $"{Host}:{port}";
-            parentClient = new GrpcClientForParentChain(uri, 0, 1);
-            sideClient = new GrpcClientForSideChain(uri, 1, 1);
+            _basicClient = new BasicCrossChainRpc.BasicCrossChainRpcClient(new Channel(Host, port, ChannelCredentials.Insecure));
         }
 
         public override void Dispose()
