@@ -31,21 +31,21 @@ namespace AElf.OS.Network.Grpc
     /// </summary>
     public class GrpcServerService : PeerService.PeerServiceBase
     {
-        private readonly NetworkOptions _netOpts;
+        
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockChainService;
         private readonly IAccountService _accountService;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
 
         public ILocalEventBus EventBus { get; set; }
-
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(IOptionsSnapshot<NetworkOptions> netOpts, IPeerPool peerPool, 
-            IBlockchainService blockChainService, IAccountService accountService, 
+        private NetworkOptions NetworkOptions => NetOpts.Value;
+        public IOptionsSnapshot<NetworkOptions> NetOpts { get; set; }
+
+        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockChainService, IAccountService accountService, 
             IBlockchainNodeContextService blockchainNodeContextService)
         {
-            _netOpts = netOpts.Value;
             _peerPool = peerPool;
             _blockChainService = blockChainService;
             _accountService = accountService;
@@ -203,7 +203,7 @@ namespace AElf.OS.Network.Grpc
             if (blockList.Blocks.Count != request.Count)
                 Logger.LogTrace($"Replied with {blockList.Blocks.Count} blocks for request {request}");
 
-            if (_netOpts.CompressBlocksOnRequest)
+            if (NetworkOptions.CompressBlocksOnRequest)
             {
                 var headers = new Metadata{new Metadata.Entry(GrpcConsts.GrpcRequestCompressKey, GrpcConsts.GrpcGzipConst)};
                 await context.WriteResponseHeadersAsync(headers);
