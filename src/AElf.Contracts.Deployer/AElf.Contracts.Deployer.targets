@@ -4,43 +4,16 @@
         <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     </PropertyGroup>
     <PropertyGroup>
-        <NoWarn>$(NoWarn);0436</NoWarn>
         <ContractManifestFileName>Contracts.manifest</ContractManifestFileName>
     </PropertyGroup>
 
-    <Target Name="MakeAllContractsReferenceable" BeforeTargets="ResolvePackageDependenciesForBuild">
-        <ItemGroup>
-            <NoneReferenceContracts Include="@(ProjectReference)" Condition="'%(ProjectReference.OutputItemType)' == 'Contract' And '%(ProjectReference.ReferenceOutputAssembly)' != 'true'"/>
-            <ProjectReference Condition="'%(ProjectReference.OutputItemType)' == 'Contract'">
-                <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-            </ProjectReference>
-        </ItemGroup>
-    </Target>
-    <Target Name="RevertBackContracts" BeforeTargets="ResolveAssemblyReferences" AfterTargets="CreateContractsManifest">
-        <PropertyGroup>
-            <AllNonReferenceContracts>@(NoneReferenceContracts, ';')</AllNonReferenceContracts>
-        </PropertyGroup>
-        <ItemGroup>
-            <!-- Remove AllNonReferenceContracts -->
-            <Removed_ResolvedProjectReferencePaths Include="@(_ResolvedProjectReferencePaths)" Condition="'$(AllNonReferenceContracts)' != '' And $(AllNonReferenceContracts.Contains(%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec)))"/>
-            <_ResolvedProjectReferencePaths Remove="@(_ResolvedProjectReferencePaths)" Condition="'$(AllNonReferenceContracts)' != '' And $(AllNonReferenceContracts.Contains(%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec)))"/>    
-        </ItemGroup>
-    </Target>
-    <Target Name="AddContractsReferenceBack" AfterTargets="ResolveAssemblyReferences" BeforeTargets="ResolvePackageDependenciesForBuildDependsOn">
-        <ItemGroup>
-            <_ResolvedProjectReferencePaths Include="@(Removed_ResolvedProjectReferencePaths)"/>
-        </ItemGroup>
-    </Target>
-    <Target Name="CreateContractsManifest" BeforeTargets="ResolveReferences" AfterTargets="ResolveProjectReferences">
+    <Target Name="CreateContractsManifest" AfterTargets="ResolveReferences" BeforeTargets="BeforeBuild">
         <ItemGroup>
             <Contract Include="@(ProjectReference)" Condition="'%(ProjectReference.OutputItemType)' == 'Contract'"/>
         </ItemGroup>
-        <PropertyGroup>
-            <AllContracts>@(Contract, ';')</AllContracts>
-        </PropertyGroup>
-        <ItemGroup>
-            <ContractDlls Include="%(_ResolvedProjectReferencePaths.Identity)" Condition="$(AllContracts) != '' And $(AllContracts.Contains(%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec)))"/>
-        </ItemGroup>
+        <MSBuild Projects="@(Contract)" Targets="GetTargetPath">
+            <Output TaskParameter="TargetOutputs" ItemName="ContractDlls"/>
+        </MSBuild>
         <Delete Files="$(ContractManifestFileName)" ContinueOnError="true"/>
         <GetAssemblyIdentity AssemblyFiles="@(ContractDlls)">
             <Output TaskParameter="Assemblies" ItemName="ContractDllIdentities"/>
@@ -49,5 +22,12 @@
         <ItemGroup Condition="Exists($(ContractManifestFileName))">
             <EmbeddedResource Include="$(ContractManifestFileName)"/>
         </ItemGroup>
+    </Target>
+    <Target Name="CopyContractAssets" AfterTargets="AfterBuild">
+        <ItemGroup>
+            <ContractAssets Include="@(ContractDlls)"/>
+            <ContractAssets Include="%(ContractDlls.RootDir)%(ContractDlls.Directory)%(ContractDlls.Filename).pdb" Condition="'@(ContractDlls)' != ''"/>
+        </ItemGroup>
+        <Copy SourceFiles="@(ContractAssets)" DestinationFolder="$(OutDir)" ContinueOnError="true"/>
     </Target>
 </Project>
