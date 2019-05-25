@@ -13,6 +13,10 @@ namespace AElf.OS.BlockSync.Application
     public interface IBlockSyncService
     {
         Task SyncBlockAsync(Hash blockHash, long blockHeight, int batchRequestBlockCount, string suggestedPeerPubKey);
+
+        Timestamp GetBlockSyncAnnouncementEnqueueTime();
+
+        void SetBlockSyncAnnouncementEnqueueTime(Timestamp timestamp);
     }
 
     public class BlockSyncService : IBlockSyncService
@@ -45,18 +49,6 @@ namespace AElf.OS.BlockSync.Application
         public async Task SyncBlockAsync(Hash blockHash, long blockHeight, int batchRequestBlockCount,
             string suggestedPeerPubKey)
         {
-            Logger.LogDebug(
-                $"Start block sync job, target height: {blockHash}, target block hash: {blockHeight}, peer: {suggestedPeerPubKey}");
-
-            var chain = await _blockchainService.GetChainAsync();
-
-            _announcementCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
-            if (_announcementCacheProvider.ContainsAnnouncement(blockHash, blockHeight))
-            {
-                Logger.LogWarning($"The block have been synchronized, block hash: {blockHash}");
-                return;
-            }
-
             if (_blockSyncStateProvider.BlockSyncJobEnqueueTime != null
                 && TimestampHelper.GetUtcNow() >
                 _blockSyncStateProvider.BlockSyncJobEnqueueTime + _blockSyncJobAgeLimit)
@@ -65,7 +57,19 @@ namespace AElf.OS.BlockSync.Application
                     $"Queue is too busy, block sync job enqueue timestamp: {_blockSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime()}");
                 return;
             }
+            
+            if (_announcementCacheProvider.ContainsAnnouncement(blockHash, blockHeight))
+            {
+                Logger.LogWarning($"The block have been synchronized, block hash: {blockHash}");
+                return;
+            }
+            
+            Logger.LogDebug(
+                $"Start block sync job, target height: {blockHash}, target block hash: {blockHeight}, peer: {suggestedPeerPubKey}");
 
+            var chain = await _blockchainService.GetChainAsync();
+            _announcementCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
+                        
             bool syncResult;
             if (blockHash != null && blockHeight < chain.BestChainHeight + 5)
             {
@@ -92,6 +96,16 @@ namespace AElf.OS.BlockSync.Application
             }
 
             Logger.LogDebug($"Finishing block sync job, longest chain height: {chain.LongestChainHeight}");
+        }
+        
+        public Timestamp GetBlockSyncAnnouncementEnqueueTime()
+        {
+            return _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime?.Clone();
+        }
+        
+        public void SetBlockSyncAnnouncementEnqueueTime(Timestamp timestamp)
+        {
+            _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = timestamp;
         }
     }
 }
