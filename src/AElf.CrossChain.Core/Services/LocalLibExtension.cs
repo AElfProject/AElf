@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {

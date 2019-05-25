@@ -1,13 +1,10 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
-using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf;
-using Microsoft.Extensions.Logging;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain

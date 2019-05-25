@@ -4,7 +4,6 @@ using AElf.CrossChain.Communication.Application;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
@@ -34,18 +33,8 @@ namespace AElf.CrossChain.Communication.Grpc
                 await responseStream.WriteAsync(parentChainBlockData);
                 requestedHeight++;
             }
-            
-//            PublishCrossChainRequestReceivedEvent(context.Host, crossChainRequest.ListeningPort, crossChainRequest.FromChainId);
         }
         
-        
-//        public override Task<HandShakeReply> CrossChainHandShake(HandShake request, ServerCallContext context)
-//        {
-//            Logger.LogTrace($"Received shake from chain {ChainHelpers.ConvertChainIdToBase58(request.FromChainId)}.");
-////            PublishCrossChainRequestReceivedEvent(context.Host, request.ListeningPort, request.FromChainId);
-//            return Task.FromResult(new HandShakeReply {Result = true});
-//        }
-//
         public override async Task<ChainInitializationData> RequestChainInitializationDataFromParentChainAsync(SideChainInitializationRequest request, ServerCallContext context)
         {
             Logger.LogTrace(

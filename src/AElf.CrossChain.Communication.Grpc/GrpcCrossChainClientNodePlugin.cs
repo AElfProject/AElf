@@ -1,11 +1,7 @@
-using System;
 using System.Threading.Tasks;
 using AElf.CrossChain.Communication.Infrastructure;
-using AElf.Kernel.Blockchain.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Volo.Abp.DependencyInjection;
-using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Communication.Grpc
 {

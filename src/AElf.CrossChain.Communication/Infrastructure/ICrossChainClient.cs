@@ -1,7 +1,5 @@
 using System.Threading.Tasks;
 using Acs7;
-using AElf.CrossChain.Cache;
-using Google.Protobuf;
 
 namespace AElf.CrossChain.Communication.Infrastructure
 {

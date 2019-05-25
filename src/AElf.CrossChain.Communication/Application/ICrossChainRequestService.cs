@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache;
 using AElf.CrossChain.Communication.Infrastructure;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.CrossChain.Communication.Application
@@ -11,7 +10,6 @@ namespace AElf.CrossChain.Communication.Application
     public interface ICrossChainRequestService
     {
         Task RequestCrossChainDataFromOtherChainsAsync();
-//        Task ConnectWithNewChainAsync(ICrossChainClientDto crossChainClientDto);
 
         Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId);
     }
@@ -43,11 +41,6 @@ namespace AElf.CrossChain.Communication.Application
                 _ = _crossChainClientProvider.RequestAsync(client, c => c.RequestCrossChainDataAsync(targetHeight));
             }
         }
-
-//        public async Task ConnectWithNewChainAsync(ICrossChainClientDto crossChainClientDto)
-//        {
-//            await _crossChainClientProvider.CreateAndCacheClientAsync(crossChainClientDto);
-//        }
 
         public async Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId)
         {

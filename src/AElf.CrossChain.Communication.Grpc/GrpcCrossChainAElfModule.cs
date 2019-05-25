@@ -1,5 +1,4 @@
 using System.Linq;
-using AElf.CrossChain.Communication.Grpc;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;

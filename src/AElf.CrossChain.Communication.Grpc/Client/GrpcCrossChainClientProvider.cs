@@ -39,7 +39,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
             var uriStr = GetUriStr(_grpcCrossChainConfigOption.RemoteParentChainServerHost,
                 _grpcCrossChainConfigOption.RemoteParentChainServerPort);
-            var clientInitializationContext = new GrpcCrossChainInitializationContext
+            var clientInitializationContext = new GrpcClientInitializationContext
             {
                 DialTimeout = _grpcCrossChainConfigOption.ConnectionTimeout,
                 LocalChainId = localChainId,
@@ -60,16 +60,8 @@ namespace AElf.CrossChain.Communication.Grpc
                 return; // client already cached
             
             var localChainId = crossChainClientDto.LocalChainId;
-            //var connectionTimeout = crossChainClientDto.ConnectionTimeout;
             client = CreateGrpcClient(uriStr, localChainId, chainId, isClientToParentChain);
             _ = TryConnectAndUpdateClientAsync(client);
-//            if (!handShakeResult)
-//            {
-//                return;
-//            }
-//            
-//            Logger.LogTrace($"Created client to chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
-//            _grpcCrossChainClients.TryAdd(crossChainClientDto.RemoteChainId, client);
         }
 
         /// <summary>
@@ -86,11 +78,6 @@ namespace AElf.CrossChain.Communication.Grpc
             {
                 // try connect first 
                 var connectionResult = await TryConnectAndUpdateClientAsync(crossChainClient);
-//                if (connectionResult)
-//                {
-//                    _connectionFailedClients.TryRemove(chainId, out crossChainClient);
-//                    _grpcCrossChainClients.TryAdd(chainId, crossChainClient);
-//                }
                 
                 return connectionResult ? crossChainClient : null;
             }
@@ -105,7 +92,7 @@ namespace AElf.CrossChain.Communication.Grpc
         /// </returns>
         private ICrossChainClient CreateGrpcClient(string uriStr, int localChainId, int remoteChainId, bool isClientToParentChain)
         {
-            var clientInitializationContext = new GrpcCrossChainInitializationContext
+            var clientInitializationContext = new GrpcClientInitializationContext
             {
                 DialTimeout = _grpcCrossChainConfigOption.ConnectionTimeout,
                 LocalChainId = localChainId,
@@ -135,30 +122,10 @@ namespace AElf.CrossChain.Communication.Grpc
             if (_grpcCrossChainClients.TryRemove(chainId, out var client))
                 _connectionFailedClients.AddOrUpdate(chainId, client, (id, c) => client);
         }
-
-//        private bool IsAlreadyCachedChain(int chainId, bool isClientToParentChain)
-//        {
-//            // dont create client for not cached remote side chain
-//            return isClientToParentChain || _chainCacheEntityProvider.CachedChainIds.Contains(chainId);
-//        }
         
         #endregion Create client
 
         #region Request
-
-//        public void RequestCrossChainIndexing(int localListeningPort)
-//        {
-//            //Logger.LogTrace("Request cross chain indexing ..");
-//            var chainIds = _chainCacheEntityProvider.CachedChainIds;
-//            foreach (var chainId in chainIds)
-//            {
-//                if (!_grpcCrossChainClients.TryGetValue(chainId, out var client))
-//                    continue;
-//                Logger.LogTrace($"Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)}");
-//                var targetHeight = _chainCacheEntityProvider.GetChainCacheEntity(chainId).TargetChainHeight();
-//                Request(client, c => c.StartIndexingRequest(chainId, targetHeight, _blockCacheEntityProducer, localListeningPort));
-//            }
-//        }
         
         private async Task<bool> TryConnectAndUpdateClientAsync(ICrossChainClient client)
         {
@@ -225,13 +192,5 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             return new UriBuilder("http", host, port).Uri.Authority;
         }
-
-//        public async Task<SideChainInitializationInformation> RequestChainInitializationContextAsync(string uri, int chainId, int timeout)
-//        {
-//            var clientForParentChain = new GrpcClientForParentChain(uri, chainId, timeout);
-//            var chainInitializationContext = await RequestAsync(clientForParentChain, 
-//                c => c.RequestChainInitializationContext(chainId));
-//            return chainInitializationContext;
-//        }
     }
 }

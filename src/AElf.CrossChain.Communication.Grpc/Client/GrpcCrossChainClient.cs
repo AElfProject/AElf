@@ -7,15 +7,27 @@ using AElf.CrossChain.Communication.Infrastructure;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 
-namespace AElf.CrossChain
+namespace AElf.CrossChain.Communication.Grpc
 {
+    public class GrpcClientInitializationContext
+    {
+        public string UriStr { get; set; }
+        public int LocalChainId { get; set; }
+        
+        public int RemoteChainId { get; set; }
+        public int DialTimeout { get; set; }
+        public int LocalServerPort { get; set; }
+        
+        public string LocalServerHost { get; set; }
+    }
+    
     public abstract class GrpcCrossChainClient<TData, TClient> : ICrossChainClient where TData : IBlockCacheEntity where TClient : ClientBase<TClient>
     {
         protected Channel Channel;
         protected readonly int DialTimeout;
         private readonly int _localChainId;
         private readonly int _localListeningPort;
-        private BasicCrossChainRpc.BasicCrossChainRpcClient _basicGrpcClient;
+        private readonly BasicCrossChainRpc.BasicCrossChainRpcClient _basicGrpcClient;
         protected TClient GrpcClient;
         private readonly string _host;
         protected IBlockCacheEntityProducer BlockCacheEntityProducer;
@@ -23,16 +35,15 @@ namespace AElf.CrossChain
         public int RemoteChainId { get; }
 
 
-        protected GrpcCrossChainClient(GrpcCrossChainInitializationContext grpcCrossChainInitializationContext)
+        protected GrpcCrossChainClient(GrpcClientInitializationContext grpcClientInitializationContext)
         {
-            _localChainId = grpcCrossChainInitializationContext.LocalChainId;
-            RemoteChainId = grpcCrossChainInitializationContext.RemoteChainId;
-            DialTimeout = grpcCrossChainInitializationContext.DialTimeout;
-            Channel = CreateChannel(grpcCrossChainInitializationContext.UriStr);
+            _localChainId = grpcClientInitializationContext.LocalChainId;
+            RemoteChainId = grpcClientInitializationContext.RemoteChainId;
+            DialTimeout = grpcClientInitializationContext.DialTimeout;
+            Channel = CreateChannel(grpcClientInitializationContext.UriStr);
             _basicGrpcClient = new BasicCrossChainRpc.BasicCrossChainRpcClient(Channel);
-//            _grpcClient = new CrossChainRpc.CrossChainRpcClient(Channel);
-            _localListeningPort = grpcCrossChainInitializationContext.LocalServerPort;
-            _host = grpcCrossChainInitializationContext.LocalServerHost;
+            _localListeningPort = grpcClientInitializationContext.LocalServerPort;
+            _host = grpcClientInitializationContext.LocalServerHost;
         }
         
         /// <summary>
@@ -48,13 +59,10 @@ namespace AElf.CrossChain
             return channel;
         }
 
-        private Channel CreateChannel(string uriStr)
+        private static Channel CreateChannel(string uriStr)
         {
             return new Channel(uriStr, ChannelCredentials.Insecure);
-        }
-
-        protected abstract void UpdateClient();
-        
+        }      
 
         public Task<bool> ConnectAsync()
         {
@@ -65,12 +73,6 @@ namespace AElf.CrossChain
                 Host = _host
             }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
             var res = reply != null && reply.Result;
-//            if (!res)
-//            {
-//                Channel = CreateChannel(Channel.Target);
-//                _basicGrpcClient = new BasicCrossChainRpc.BasicCrossChainRpcClient(Channel);
-//                UpdateClient();
-//            }
             
             return Task.FromResult(res);
         }
@@ -94,12 +96,6 @@ namespace AElf.CrossChain
                 {
                     var response = serverStream.ResponseStream.Current;
 
-//                    var blockCacheEntity = new IBlockCacheEntity
-//                    {
-//                        ChainId = response.ChainId, 
-//                        Height = response.Height,
-//                        Payload = response.BlockData.Payload
-//                    };
                     // requestCrossChain failed or useless response
                     if (!BlockCacheEntityProducer.TryAddBlockCacheEntity(response))
                     {
@@ -111,50 +107,19 @@ namespace AElf.CrossChain
                 }
             }
         }
-    
-//        private Task<HandShakeReply> HandShakeAsync()
-//        {
-//            var handShakeReply = GrpcClient.CrossChainIndexingShake(new HandShake
-//            {
-//                FromChainId = _localChainId,
-//                ListeningPort = _localListeningPort,
-//                Host = _host
-//            }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
-//            return Task.FromResult(handShakeReply);
-//        }
 
         public abstract Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
-//        {
-//            var sideChainInitializationResponse = GrpcClient.RequestChainInitializationContextFromParentChain(
-//                new SideChainInitializationRequest
-//                {
-//                    ChainId = chainId
-//                }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
-//            return Task.FromResult(sideChainInitializationResponse);
-//        }
 
-        protected abstract AsyncServerStreamingCall<TData> RequestIndexing(
-            CrossChainRequest crossChainRequest);
-
-//        private HandShakeReply DoHandShake(HandShake handShake)
-//        {
-//            return CrossChainHandShakeAsync(handShake,
-//                new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
-//        }
+        protected abstract AsyncServerStreamingCall<TData> RequestIndexing(CrossChainRequest crossChainRequest);
     }
     
     public class ClientForSideChain : GrpcCrossChainClient<SideChainBlockData, SideChainRpc.SideChainRpcClient>
     {
-        public ClientForSideChain(GrpcCrossChainInitializationContext grpcCrossChainInitializationContext, IBlockCacheEntityProducer blockCacheEntityProducer)
-            : base(grpcCrossChainInitializationContext)
+        public ClientForSideChain(GrpcClientInitializationContext grpcClientInitializationContext, IBlockCacheEntityProducer blockCacheEntityProducer)
+            : base(grpcClientInitializationContext)
         {
             GrpcClient = new SideChainRpc.SideChainRpcClient(Channel);
             BlockCacheEntityProducer = blockCacheEntityProducer;
-        }
-
-        protected override void UpdateClient()
-        {
-            GrpcClient = new SideChainRpc.SideChainRpcClient(Channel);
         }
 
         public override Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
@@ -167,18 +132,12 @@ namespace AElf.CrossChain
             return GrpcClient.RequestIndexingFromSideChainAsync(crossChainRequest,
                 new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
         }
-
-//        protected override HandShakeReply DoHandShake(HandShake handShake)
-//        {
-//            return GrpcClient.CrossChainHandShake(handShake,
-//                new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
-//        }
     }
     
     public class ClientForParentChain : GrpcCrossChainClient<ParentChainBlockData, ParentChainRpc.ParentChainRpcClient>
     {
-        public ClientForParentChain(GrpcCrossChainInitializationContext grpcCrossChainInitializationContext, IBlockCacheEntityProducer blockCacheEntityProducer)
-            : base(grpcCrossChainInitializationContext)
+        public ClientForParentChain(GrpcClientInitializationContext grpcClientInitializationContext, IBlockCacheEntityProducer blockCacheEntityProducer)
+            : base(grpcClientInitializationContext)
         {
             GrpcClient = new ParentChainRpc.ParentChainRpcClient(Channel);
             BlockCacheEntityProducer = blockCacheEntityProducer;
@@ -190,11 +149,6 @@ namespace AElf.CrossChain
                 new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
         }
 
-        protected override void UpdateClient()
-        {
-            GrpcClient = new ParentChainRpc.ParentChainRpcClient(Channel);
-        }
-
         public override Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
         {
             var sideChainInitializationResponse = GrpcClient.RequestChainInitializationDataFromParentChainAsync(
@@ -204,23 +158,5 @@ namespace AElf.CrossChain
                 }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
             return Task.FromResult(sideChainInitializationResponse);
         }
-        
-//        protected override HandShakeReply DoHandShake(HandShake handShake)
-//        {
-//            return GrpcClient.CrossChainHandShake(handShake,
-//                new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
-//        }
-    }
-    
-    public class GrpcCrossChainInitializationContext
-    {
-        public string UriStr { get; set; }
-        public int LocalChainId { get; set; }
-        
-        public int RemoteChainId { get; set; }
-        public int DialTimeout { get; set; }
-        public int LocalServerPort { get; set; }
-        
-        public string LocalServerHost { get; set; }
     }
 }
