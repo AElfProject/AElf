@@ -25,12 +25,14 @@ namespace AElf.CrossChain.Communication.Grpc
     {
         protected Channel Channel;
         protected readonly int DialTimeout;
+        protected TClient GrpcClient;
+        protected IBlockCacheEntityProducer BlockCacheEntityProducer;
+
         private readonly int _localChainId;
         private readonly int _localListeningPort;
         private readonly BasicCrossChainRpc.BasicCrossChainRpcClient _basicGrpcClient;
-        protected TClient GrpcClient;
         private readonly string _host;
-        protected IBlockCacheEntityProducer BlockCacheEntityProducer;
+        
         public string TargetUriString => Channel.Target;
         public int RemoteChainId { get; }
 

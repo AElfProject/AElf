@@ -9,8 +9,6 @@ namespace AElf.CrossChain.Communication.Grpc
         public int RemoteChainId { get; set; }
         public int LocalChainId { get; set; }
         
-        //public int ConnectionTimeout { get; set; }
-        
         public bool IsClientToParentChain { get; set; }
     }
 }
