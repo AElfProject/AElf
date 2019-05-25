@@ -87,7 +87,6 @@ namespace AElf.OS.Network.Application
                     Logger.LogDebug($"After broadcast to {peer}.");
 
                     return true;
-                    //Interlocked.Increment(ref successfulBcasts);
                 }
                 catch (NetworkException e)
                 {
@@ -122,9 +121,6 @@ namespace AElf.OS.Network.Application
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, long previousHeight,
             int count, string peerPubKey = null, bool tryOthersIfFail = false)
         {
-            if (string.IsNullOrWhiteSpace(peerPubKey))
-                throw new InvalidOperationException();
-
             var peers = SelectPeers(peerPubKey);
 
             var blocks = await RequestAsync(peers, p => p.GetBlocksAsync(previousBlock, count), 

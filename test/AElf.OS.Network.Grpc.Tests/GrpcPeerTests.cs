@@ -58,7 +58,7 @@ namespace AElf.OS.Network
             block.ShouldNotBeNull();
         }
 
-        [Fact]
+        [Fact(Skip="Improve the logic of this test.")]
         public async Task RequestBlockAsync_Failed()
         {
             _grpcPeer = CreateNewPeer("127.0.0.1:3000", false);

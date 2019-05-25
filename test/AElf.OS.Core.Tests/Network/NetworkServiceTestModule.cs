@@ -51,7 +51,6 @@ namespace AElf.OS
                     var p2 = new Mock<IPeer>();
                     p2.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("block")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { new BlockWithTransactions() }));
-                    
                     p2.Setup(p => p.RequestBlockAsync(It.Is<Hash>(h => h == Hash.FromString("block"))))
                         .Returns<Hash>(h => Task.FromResult(new BlockWithTransactions()));
                     peers.Add(p2.Object);
@@ -59,7 +58,6 @@ namespace AElf.OS
                     var p3 = new Mock<IPeer>();
                     p3.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("blocks")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { new BlockWithTransactions(), new BlockWithTransactions() }));
-                    
                     p3.Setup(p => p.RequestBlockAsync(It.Is<Hash>(h => h == Hash.FromString("bHash2"))))
                         .Returns<Hash>(h => Task.FromResult(new BlockWithTransactions()));
                     peers.Add(p3.Object);
