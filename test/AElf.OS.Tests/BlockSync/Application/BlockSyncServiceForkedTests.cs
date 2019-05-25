@@ -20,7 +20,7 @@ namespace AElf.OS.BlockSync.Application
             _taskQueueManager = GetRequiredService<ITaskQueueManager>();
         }
 
-        [Fact(Skip = "Logic change - rewrite")]
+        [Fact]
         public async Task SyncBlock_ShouldSyncChain()
         {
             await _blockSyncService.SyncBlockAsync(null, 12, 10, null);
@@ -33,6 +33,8 @@ namespace AElf.OS.BlockSync.Application
 
         private void DisposeQueue()
         {
+            _taskQueueManager.GetQueue(OSConsts.BlockSyncQueueName).Dispose();
+            _taskQueueManager.GetQueue(OSConsts.BlockSyncAttachQueueName).Dispose();
             _taskQueueManager.GetQueue(KernelConstants.UpdateChainQueueName).Dispose();
         }
     }
