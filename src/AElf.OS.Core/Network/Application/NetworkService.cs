@@ -42,7 +42,7 @@ namespace AElf.OS.Network.Application
 
         public List<IPeer> GetPeers()
         {
-            return _peerPool.GetPeers(true).ToList();
+            return _peerPool.GetPeers(true).ToList(); 
         }
 
         public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader)
@@ -59,24 +59,45 @@ namespace AElf.OS.Network.Application
             var peers = _peerPool.GetPeers().ToList();
 
             _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash());
-            await Task.WhenAll(peers.Select(async peer =>
+            
+            Logger.LogDebug("About to broadcast to peers.");
+            
+            var tasks = peers.Select(peer => DoAnnounce(peer, announce)).ToList();
+            await Task.WhenAll(tasks);
+
+            foreach (var finishedtask in tasks.Where(t => t.IsCompleted))
+            {
+                if (finishedtask.Result == true)
+                    successfulBcasts++;
+            }
+            
+            Logger.LogDebug("Broadcast successful !");
+            
+            return successfulBcasts;
+        }
+
+        private Task<bool> DoAnnounce(IPeer peer, PeerNewBlockAnnouncement announce)
+        {
+            return Task.Run(async () =>
             {
                 try
                 {
-                    Logger.LogDebug($"Block announced: {announce}");
+                    Logger.LogDebug($"Before broadcast to {peer}.");
                     await peer.AnnounceAsync(announce);
-                    
-                    Interlocked.Increment(ref successfulBcasts);
+                    Logger.LogDebug($"After broadcast to {peer}.");
+
+                    return true;
+                    //Interlocked.Increment(ref successfulBcasts);
                 }
                 catch (NetworkException e)
                 {
                     Logger.LogError(e, "Error while sending block.");
                 }
-            }));
-            
-            return successfulBcasts;
-        }
 
+                return false;
+            });
+        }
+        
         public async Task<int> BroadcastTransactionAsync(Transaction tx)
         {
             int successfulBcasts = 0;
@@ -86,6 +107,7 @@ namespace AElf.OS.Network.Application
                 try
                 {
                     await peer.SendTransactionAsync(tx);
+                    
                     successfulBcasts++;
                 }
                 catch (NetworkException e)
@@ -97,58 +119,24 @@ namespace AElf.OS.Network.Application
             return successfulBcasts;
         }
 
-        public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, long previousHeight, int count, string peerPubKey = null, bool tryOthersIfFail = false)
+        public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, long previousHeight,
+            int count, string peerPubKey = null, bool tryOthersIfFail = false)
         {
             if (string.IsNullOrWhiteSpace(peerPubKey))
                 throw new InvalidOperationException();
 
             var peers = SelectPeers(peerPubKey);
-               
-            var blocks = await RequestAsync(peers, p => p.GetBlocksAsync(previousBlock, count));
+
+            var blocks = await RequestAsync(peers, p => p.GetBlocksAsync(previousBlock, count), 
+                blockList => blockList != null && blockList.Count > 0, 
+                peerPubKey);
+
+            if (blocks != null && (blocks.Count == 0 || blocks.Count != count))
+                Logger.LogWarning($"Block count miss match, asked for {count} but got {blocks.Count}");
 
             return blocks;
-            
-            // try get the block from the specified peer. 
-//            if (!string.IsNullOrWhiteSpace(peerPubKey))
-//            {
-//                IPeer peer = _peerPool.FindPeerByPublicKey(peerPubKey);
-//
-//                if (peer == null)
-//                {
-//                    // if the peer was specified but we can't find it 
-//                    // we don't try any further.
-//                    Logger.LogWarning($"Specified peer was not found.");
-//                    return null;
-//                }
-//
-//                var blocks = await RequestAsync(peer, p => p.GetBlocksAsync(previousBlock, count));
-//
-//                if (blocks != null && blocks.Count > 0)
-//                    return blocks;
-//
-//                if (!tryOthersIfFail)
-//                {
-//                    Logger.LogWarning($"{peerPubKey} does not have blocks {nameof(tryOthersIfFail)} is false.");
-//                    return null;
-//                }
-//            }
-            
-            // shuffle the peers that can give us the blocks
-//            var shuffledPeers = _peerPool.GetPeers()
-//                .Where(p => p.CurrentBlockHeight >= previousHeight)
-//                .OrderBy(a => Guid.NewGuid());
-//                
-//            foreach (var peer in shuffledPeers)
-//            {
-//                var blocks = await RequestAsync(peer, p => p.GetBlocksAsync(previousBlock, count));
-//
-//                if (blocks != null)
-//                    return blocks;
-//            }
-
-            return null;
         }
-
+        
         private List<IPeer> SelectPeers(string peerPubKey)
         {
             List<IPeer> peers = new List<IPeer>();
@@ -166,7 +154,7 @@ namespace AElf.OS.Network.Application
             
             if (bestPeer == null)
                 Logger.LogWarning("No best peer.");
-            else
+            else if (bestPeer.PubKey != peerPubKey)
                 peers.Add(bestPeer);
             
             Random rnd = new Random();
@@ -184,149 +172,100 @@ namespace AElf.OS.Network.Application
 
             return peers;
         }
-
+        
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
         {
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
             return await GetBlockAsync(hash, peer, tryOthersIfSpecifiedFails);
         }
 
-        private async Task<BlockWithTransactions> GetBlockAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
+        private async Task<BlockWithTransactions> GetBlockAsync(Hash hash, string peer = null,
+            bool tryOthersIfSpecifiedFails = false)
         {
             if (tryOthersIfSpecifiedFails && string.IsNullOrWhiteSpace(peer))
                 throw new InvalidOperationException($"Parameter {nameof(tryOthersIfSpecifiedFails)} cannot be true, " +
                                                     $"if no fallback peer is specified.");
-            
+
             var peers = SelectPeers(peer);
-            var block = await RequestBlockToAsync(hash, peers);
+            var block = await RequestBlockToAsync(hash, peers, peer);
             return block;
-            
-            // try get the block from the specified peer. 
-//            if (!string.IsNullOrWhiteSpace(peer))
-//            {
-//                IPeer p = _peerPool.FindPeerByPublicKey(peer);
-//
-//                if (p == null)
-//                {
-//                    // if the peer was specified but we can't find it 
-//                    // we don't try any further.
-//                    Logger.LogWarning($"Specified peer was not found.");
-//                    return null;
-//                }
-//
-//                var block = await RequestBlockToAsync(hash, p);
-//
-//                if (block != null)
-//                    return block;
-//
-//                if (!tryOthersIfSpecifiedFails)
-//                {
-//                    Logger.LogWarning($"{peer} does not have block {nameof(tryOthersIfSpecifiedFails)} is false.");
-//                    return null;
-//                }
-//            }
-//
-//            foreach (var p in _peerPool.GetPeers())
-//            {
-//                BlockWithTransactions block = await RequestBlockToAsync(hash, p);
-//
-//                if (block != null)
-//                    return block;
-//            }
-
-            return null;
+        }
+        
+        private async Task<BlockWithTransactions> RequestBlockToAsync(Hash hash, List<IPeer> peers, string suggested)
+        {
+            return await RequestAsync(peers, p => p.RequestBlockAsync(hash), (blockWithTransactions) => blockWithTransactions != null, suggested);
         }
 
-        private async Task<BlockWithTransactions> RequestBlockToAsync(Hash hash, List<IPeer> peers)
+        private Task<(IPeer, T)> DoRequest<T>(IPeer peer, Func<IPeer, Task<T>> func) where T : class
         {
-            return await RequestAsync(peers, p => p.RequestBlockAsync(hash));
-        }
-
-        private async Task<T> RequestAsync<T>(List<IPeer> peers, Func<IPeer, Task<T>> func) where T : class
-        {
-            var taskList = peers.Select(async peer =>
+            return Task.Run(async () =>
             {
                 try
                 {
+                    Logger.LogDebug($"before request send to {peer.PeerIpAddress}.");
                     var res = await func(peer);
+                    Logger.LogDebug($"request send to {peer.PeerIpAddress}.");
+                    
                     return (peer, res);
                 }
                 catch (NetworkException e)
                 {
                     Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
-                    return (peer, null);
                 }
                 
-            }).ToList();
+                return (peer, null);
+            });
+            
+        }
 
-            Task<(IPeer, T)> finished = null; 
-                
+        private async Task<T> RequestAsync<T>(List<IPeer> peers, Func<IPeer, Task<T>> func,
+            Predicate<T> validationFunc, string suggested) where T : class
+        {
+            var tasks = peers.Select(peer => DoRequest(peer, func));
+            Task<(IPeer, T)> finished = null;
+
+            List<Task<(IPeer, T)>> taskList = tasks.ToList();
+            
             while (taskList.Count > 0)
             {
-                var next = await Task.WhenAny(taskList.ToArray<Task<(IPeer, T)>>());
+                var next = await Task.WhenAny(taskList);
 
-                if (next.Result.Item2 != null)
+                if (validationFunc(next.Result.Item2))
                 {
                     finished = next;
                     break;
                 }
-                
+
                 taskList.Remove(next);
             }
 
             if (finished == null)
-                return null;
-            
-            if (finished.Result.Item1 != null)
             {
-                var peer = finished.Result.Item1;
-                
-                Logger.LogDebug($"First replied : {peer}.");
-                
-                if (!peer.IsBest)
-                {
-                    Logger.LogDebug($"New best peer found: {peer}.");
+                Logger.LogDebug($"No peer succeeded.");
+                return null;
+            }
 
-                    foreach (var peerToReset in _peerPool.GetPeers(true))
-                    {
-                        peerToReset.IsBest = false;
-                    }
-                    
-                    peer.IsBest = true;
+            IPeer taskPeer = finished.Result.Item1;
+            T taskRes = finished.Result.Item2;
+            
+            if (!taskPeer.IsBest)
+            {
+                Logger.LogDebug($"New best peer found: {taskPeer}.");
+
+                foreach (var peerToReset in _peerPool.GetPeers(true))
+                {
+                    peerToReset.IsBest = false;
                 }
+                
+                taskPeer.IsBest = true;
             }
             
-            return finished.Result.Item2;
+            if (suggested != taskPeer.PubKey)
+                Logger.LogWarning($"Suggested {suggested}, used {taskPeer.PubKey}");
             
-//            var taskList = peers.Select(async peer =>
-//            {
-//                try
-//                {
-//                    return await func(peer);
-//                }
-//                catch (NetworkException e)
-//                {
-//                    Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
-//                    return null;
-//                }
-//                
-//            }).ToList();
-//            
-//            var finished = await Task.WhenAny(taskList.ToArray<Task<T>>());
-//
-//            return finished.Result;
+            Logger.LogDebug($"First replied {taskRes} : {taskPeer}.");
 
-
-//                try
-//                {
-//                    return await func(peer);
-//                }
-//                catch (NetworkException e)
-//                {
-//                    Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
-//                    return null;
-//                }
-
+            return taskRes;
         }
 
         public Task<long> GetBestChainHeightAsync(string peerPubKey = null)
@@ -334,47 +273,7 @@ namespace AElf.OS.Network.Application
             var peer = !peerPubKey.IsNullOrEmpty()
                 ? _peerPool.FindPeerByPublicKey(peerPubKey)
                 : _peerPool.GetPeers().OrderByDescending(p => p.CurrentBlockHeight).FirstOrDefault();
-            
             return Task.FromResult(peer?.CurrentBlockHeight ?? 0);
-        }
-    }
-
-    public static class TaskExtensions
-    {
-        public static Task<T> GetFirstResult<T>(
-            ICollection<Func<CancellationToken, Task<T>>> taskFactories, 
-            Predicate<T> predicate) where T : class
-        {
-            var tcs = new TaskCompletionSource<T>();
-            var cts = new CancellationTokenSource();
-
-            int completedCount = 0;
-            // in case you have a lot of tasks you might need to throttle them 
-            //(e.g. so you don't try to send 99999999 requests at the same time)
-            // see: http://stackoverflow.com/a/25877042/67824
-            foreach (var taskFactory in taskFactories)
-            {
-                taskFactory(cts.Token).ContinueWith(t => 
-                {
-                    if (t.Exception != null)
-                    {
-                        Console.WriteLine($"Task completed with exception: {t.Exception}");
-                    }
-                    else if (predicate(t.Result))
-                    {
-                        cts.Cancel();
-                        tcs.TrySetResult(t.Result);
-                    }
-
-                    if (Interlocked.Increment(ref completedCount) == taskFactories.Count)
-                    {
-                        tcs.SetException(new InvalidOperationException("All tasks failed"));
-                    }
-
-                }, cts.Token);
-            }
-
-            return tcs.Task;
         }
     }
 }
