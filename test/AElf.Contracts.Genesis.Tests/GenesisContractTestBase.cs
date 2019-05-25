@@ -1,16 +1,12 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using Acs3;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.TestKit;
-using AElf.Contracts.TestBase;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -22,7 +18,7 @@ using Volo.Abp.Threading;
 namespace AElf.Contracts.Genesis
 {
     public class
-        AuthorityNotRequiredBasicContractZeroTestBase : TestKit.ContractTestBase<
+        AuthorityNotRequiredBasicContractZeroTestBase : ContractTestBase<
             AuthorityNotRequiredBasicContractZeroTestModule>
     {
         protected ISmartContractAddressService ContractAddressService =>

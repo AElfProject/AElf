@@ -2,11 +2,9 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
