@@ -15,7 +15,7 @@ namespace AElf.OS.Handlers
         ILocalEventHandler<IsolatedNodeEventData>
     {
         private readonly IPeerPool _peerPool;
-        private readonly IBlockchainNodeContextService _blockchainNodeContextService;
+        private readonly IBlockChainNodeStateService _blockChainNodeStateService;
         private readonly IBlockchainService _blockchainService;
         
         private readonly NetworkOptions _networkOptions;
@@ -23,11 +23,11 @@ namespace AElf.OS.Handlers
         public ILogger<SyncStateAnnouncementEventHandler> Logger { get; set; }
 
         public SyncStateAnnouncementEventHandler(IOptionsSnapshot<NetworkOptions> networkOptions, IPeerPool peerPool, 
-            IBlockchainNodeContextService blockchainNodeContextService,
+            IBlockChainNodeStateService blockChainNodeStateService,
             IBlockchainService blockchainService)
         {
             _peerPool = peerPool;
-            _blockchainNodeContextService = blockchainNodeContextService;
+            _blockChainNodeStateService = blockChainNodeStateService;
             _blockchainService = blockchainService;
 
             _networkOptions = networkOptions.Value;
@@ -37,7 +37,7 @@ namespace AElf.OS.Handlers
         {
             if (_peerPool.GetPeers().Count == 0)
             {
-                if (_blockchainNodeContextService.SetSyncing(false))
+                if (_blockChainNodeStateService.SetSyncing(false))
                     Logger.LogDebug($"Finished a sync phase, no peers available.");
             }
 
@@ -77,12 +77,12 @@ namespace AElf.OS.Handlers
 
                 if (blockHeight > chain.BestChainHeight + _networkOptions.MinBlockGapBeforeSync)
                 {
-                    if (_blockchainNodeContextService.SetSyncing(true))
+                    if (_blockChainNodeStateService.SetSyncing(true))
                         Logger.LogDebug($"Starting a sync phase, best chain height: {chain.BestChainHeight}.");
                 }
                 else
                 {
-                    if (_blockchainNodeContextService.SetSyncing(false))
+                    if (_blockChainNodeStateService.SetSyncing(false))
                         Logger.LogDebug($"Finished a sync phase, best chain height: {chain.BestChainHeight}.");
                 }
             }

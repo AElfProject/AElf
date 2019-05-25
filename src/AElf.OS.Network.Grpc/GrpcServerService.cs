@@ -35,7 +35,7 @@ namespace AElf.OS.Network.Grpc
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockChainService;
         private readonly IAccountService _accountService;
-        private readonly IBlockchainNodeContextService _blockchainNodeContextService;
+        private readonly IBlockChainNodeStateService _blockChainNodeStateService;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
@@ -44,12 +44,12 @@ namespace AElf.OS.Network.Grpc
         public IOptionsSnapshot<NetworkOptions> NetOpts { get; set; }
 
         public GrpcServerService(IPeerPool peerPool, IBlockchainService blockChainService, IAccountService accountService, 
-            IBlockchainNodeContextService blockchainNodeContextService)
+            IBlockChainNodeStateService blockChainNodeStateService)
         {
             _peerPool = peerPool;
             _blockChainService = blockChainService;
             _accountService = accountService;
-            _blockchainNodeContextService = blockchainNodeContextService;
+            _blockChainNodeStateService = blockChainNodeStateService;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -135,7 +135,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
-            if (_blockchainNodeContextService.IsNodeSyncing()) 
+            if (_blockChainNodeStateService.IsNodeSyncing()) 
                 return Task.FromResult(new VoidReply());
             
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
@@ -186,7 +186,7 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null || request.PreviousBlockHash == null || _blockchainNodeContextService.IsNodeSyncing()) 
+            if (request == null || request.PreviousBlockHash == null || _blockChainNodeStateService.IsNodeSyncing()) 
                 return new BlockList();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");
