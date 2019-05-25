@@ -12,6 +12,7 @@ namespace AElf.Runtime.CSharp.Validators.Method
         private const long AllowedTotalSize = 40 * 1024; // Byte per array when limiting by total array size
 
         private static readonly ArrayLimitLookup AllowedTypes = new ArrayLimitLookup()
+            .LimitByTotalSize(typeof(Byte), sizeof(Byte))
             .LimitByTotalSize(typeof(Int16), sizeof(Int16))
             .LimitByTotalSize(typeof(Int32), sizeof(Int32))
             .LimitByTotalSize(typeof(Int64), sizeof(Int64))
