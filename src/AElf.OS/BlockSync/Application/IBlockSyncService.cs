@@ -17,6 +17,8 @@ namespace AElf.OS.BlockSync.Application
         Timestamp GetBlockSyncAnnouncementEnqueueTime();
 
         void SetBlockSyncAnnouncementEnqueueTime(Timestamp timestamp);
+        
+        Timestamp GetBlockSyncAttachBlockEnqueueTime();
     }
 
     public class BlockSyncService : IBlockSyncService
@@ -106,6 +108,11 @@ namespace AElf.OS.BlockSync.Application
         public void SetBlockSyncAnnouncementEnqueueTime(Timestamp timestamp)
         {
             _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = timestamp;
+        }
+        
+        public Timestamp GetBlockSyncAttachBlockEnqueueTime()
+        {
+            return _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime?.Clone();
         }
     }
 }
