@@ -27,8 +27,7 @@ message CrossChainExtraData{
 message HandShake {
     int32 listeningPort = 1;
     int32 fromChainId = 2;
-    bool fromSideChain = 3;
-    string host = 4;
+    string host = 3;
 }
 
 message HandShakeReply {
