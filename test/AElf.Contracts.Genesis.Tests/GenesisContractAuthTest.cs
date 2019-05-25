@@ -32,7 +32,6 @@ namespace AElf.Contracts.Genesis
         [Fact]
         public async Task DeploySmartContracts()
         {
-            //Can't get the DeployContractAddress
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
