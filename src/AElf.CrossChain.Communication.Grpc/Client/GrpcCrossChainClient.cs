@@ -5,10 +5,8 @@ using Acs7;
 using AElf.CrossChain.Cache;
 using AElf.CrossChain.Communication.Infrastructure;
 using Grpc.Core;
-using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 
-// ReSharper disable once CheckNamespace
 namespace AElf.CrossChain.Communication.Grpc
 {
     public class GrpcClientInitializationContext
@@ -33,7 +31,6 @@ namespace AElf.CrossChain.Communication.Grpc
         protected TClient GrpcClient;
         private readonly string _host;
         protected IBlockCacheEntityProducer BlockCacheEntityProducer;
-        protected readonly RetryInterceptor RetryInterceptor; 
         public string TargetUriString => Channel.Target;
         public int RemoteChainId { get; }
 
@@ -44,8 +41,7 @@ namespace AElf.CrossChain.Communication.Grpc
             RemoteChainId = grpcClientInitializationContext.RemoteChainId;
             DialTimeout = grpcClientInitializationContext.DialTimeout;
             Channel = CreateChannel(grpcClientInitializationContext.UriStr);
-            RetryInterceptor = new RetryInterceptor(3);
-            _basicGrpcClient = new BasicCrossChainRpc.BasicCrossChainRpcClient(Channel.Intercept(RetryInterceptor));
+            _basicGrpcClient = new BasicCrossChainRpc.BasicCrossChainRpcClient(Channel);
             _localListeningPort = grpcClientInitializationContext.LocalServerPort;
             _host = grpcClientInitializationContext.LocalServerHost;
         }
@@ -122,7 +118,7 @@ namespace AElf.CrossChain.Communication.Grpc
         public ClientForSideChain(GrpcClientInitializationContext grpcClientInitializationContext, IBlockCacheEntityProducer blockCacheEntityProducer)
             : base(grpcClientInitializationContext)
         {
-            GrpcClient = new SideChainRpc.SideChainRpcClient(Channel.Intercept(RetryInterceptor));
+            GrpcClient = new SideChainRpc.SideChainRpcClient(Channel);
             BlockCacheEntityProducer = blockCacheEntityProducer;
         }
 
@@ -143,7 +139,7 @@ namespace AElf.CrossChain.Communication.Grpc
         public ClientForParentChain(GrpcClientInitializationContext grpcClientInitializationContext, IBlockCacheEntityProducer blockCacheEntityProducer)
             : base(grpcClientInitializationContext)
         {
-            GrpcClient = new ParentChainRpc.ParentChainRpcClient(Channel.Intercept(RetryInterceptor));
+            GrpcClient = new ParentChainRpc.ParentChainRpcClient(Channel);
             BlockCacheEntityProducer = blockCacheEntityProducer;
         }
 
