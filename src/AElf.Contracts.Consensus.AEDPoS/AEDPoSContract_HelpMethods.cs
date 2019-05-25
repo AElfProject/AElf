@@ -84,6 +84,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return (int) duration.Seconds.Mul(1000).Add(duration.Nanos.Div(1000000));
         }
 
+        private Duration ConvertMillisecondsToDuration(int milliseconds)
+        {
+            var seconds = 0L;
+            if (milliseconds.Sub(1000) > 0)
+            {
+                seconds = milliseconds.Div(1000);
+            }
+
+            var nanos = (milliseconds % 1000).Mul(1000000);
+
+            return new Duration {Seconds = seconds, Nanos = nanos};
+        }
+
         private int GetNextBlockMiningLeftMillisecondsForFirstRound(MinerInRound minerInRound, DateTime blockTime)
         {
             var actualMiningTime = minerInRound.ActualMiningTimes.First();

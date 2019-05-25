@@ -124,17 +124,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
-                    if (currentRound.RoundNumber == 1 &&
-                        currentRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).OutValue == null)
-                    {
-                        // To avoid the initial miners fork so fast at the very beginning.
-                        nextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval;
-                    }
-                    else
-                    {
-                        nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
-                    }
-
+                    GetNextBlockMiningLeftMillisecondsForUpdateValueWithoutPreviousInValue(currentRound, publicKey,
+                        duration, out nextBlockMiningLeftMilliseconds);
                     break;
                 case AElfConsensusBehaviour.UpdateValue:
                     nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
@@ -144,10 +135,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         out nextBlockMiningLeftMilliseconds);
                     break;
                 case AElfConsensusBehaviour.NextRound:
-                    expectedMiningTime =
-                        currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, currentBlockTime);
-                    duration = expectedMiningTime - currentBlockTime.ToTimestamp();
-                    nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+                    GetNextBlockMiningLeftMillisecondsForNextRound(currentRound, publicKey,
+                        out nextBlockMiningLeftMilliseconds, out expectedMiningTime);
                     break;
                 case AElfConsensusBehaviour.NextTerm:
                     expectedMiningTime =
@@ -167,13 +156,30 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"NextBlockMiningLeftMilliseconds: {nextBlockMiningLeftMilliseconds}");
 
+            AdjustLimitMillisecondsOfMiningBlock(nextBlockMiningLeftMilliseconds, minerInRound, miningInterval,
+                out var limitMillisecondsOfMiningBlock);
+
+            return new ConsensusCommand
+            {
+                ExpectedMiningTime = expectedMiningTime,
+                NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
+                LimitMillisecondsOfMiningBlock = behaviour == AElfConsensusBehaviour.NextTerm
+                    ? miningInterval.Div(2)
+                    : limitMillisecondsOfMiningBlock,
+                Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString()
+            };
+        }
+
+        private void AdjustLimitMillisecondsOfMiningBlock(int nextBlockMiningLeftMilliseconds,
+            MinerInRound minerInRound, int miningInterval, out int limitMillisecondsOfMiningBlock)
+        {
             var offset = 0;
             if (nextBlockMiningLeftMilliseconds < 0)
             {
                 offset = nextBlockMiningLeftMilliseconds;
             }
 
-            var limitMillisecondsOfMiningBlock = miningInterval.Div(AEDPoSContractConstants.TotalTinySlots).Add(offset);
+            limitMillisecondsOfMiningBlock = miningInterval.Div(AEDPoSContractConstants.TotalTinySlots).Add(offset);
             limitMillisecondsOfMiningBlock = limitMillisecondsOfMiningBlock < 0 ? 0 : limitMillisecondsOfMiningBlock;
 
             if (minerInRound.ProducedTinyBlocks == AEDPoSContractConstants.TinyBlocksNumber ||
@@ -181,16 +187,40 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 limitMillisecondsOfMiningBlock = limitMillisecondsOfMiningBlock.Div(2);
             }
+        }
 
-            return new ConsensusCommand
+        private void GetNextBlockMiningLeftMillisecondsForUpdateValueWithoutPreviousInValue(Round currentRound,
+            string publicKey, Duration duration, out int nextBlockMiningLeftMilliseconds)
+        {
+            var minerInRound = currentRound.RealTimeMinersInformation[publicKey];
+            var miningInterval = currentRound.GetMiningInterval();
+            if (currentRound.RoundNumber == 1 &&
+                currentRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).OutValue == null)
             {
-                ExpectedMiningTime = expectedMiningTime,
-                NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
-                LimitMillisecondsOfMiningBlock = behaviour == AElfConsensusBehaviour.NextTerm
-                    ? miningInterval
-                    :limitMillisecondsOfMiningBlock,
-                Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString()
-            };
+                // To avoid the initial miners fork so fast at the very beginning.
+                nextBlockMiningLeftMilliseconds = minerInRound.Order * miningInterval;
+            }
+            else
+            {
+                nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+            }
+        }
+
+        private void GetNextBlockMiningLeftMillisecondsForNextRound(Round currentRound,
+            string publicKey, out int nextBlockMiningLeftMilliseconds, out Timestamp expectedMiningTime)
+        {
+            var minerInRound = currentRound.RealTimeMinersInformation[publicKey];
+            if (currentRound.RoundNumber == 1 && minerInRound.Order != 1)
+            {
+                nextBlockMiningLeftMilliseconds = minerInRound.Order.Add(currentRound.RealTimeMinersInformation.Count)
+                    .Mul(currentRound.GetMiningInterval());
+                expectedMiningTime = Context.CurrentBlockTime.ToTimestamp() +
+                                     ConvertMillisecondsToDuration(nextBlockMiningLeftMilliseconds);
+            }
+            expectedMiningTime =
+                currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, Context.CurrentBlockTime);
+            var duration = expectedMiningTime - Context.CurrentBlockTime.ToTimestamp();
+            nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
         }
 
         private void GetNextBlockMiningLeftMillisecondsForTinyBlock(Round currentRound, string publicKey,
