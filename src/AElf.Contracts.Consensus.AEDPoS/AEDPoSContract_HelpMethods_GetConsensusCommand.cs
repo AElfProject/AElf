@@ -32,7 +32,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var behaviour = GetBehaviourIfMinerDoesNotProduceBlockInCurrentRound(currentRound, minerInRound,
                     isPreviousRoundExists, isTermJustChanged);
                 
-                if (!isTimeSlotPassed)
+                if (!isTimeSlotPassed && behaviour == AElfConsensusBehaviour.Nothing)
                     behaviour = AElfConsensusBehaviour.UpdateValue;
 
                 if (behaviour != AElfConsensusBehaviour.Nothing)
