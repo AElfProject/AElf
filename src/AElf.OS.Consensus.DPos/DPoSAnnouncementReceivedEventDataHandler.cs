@@ -30,27 +30,27 @@ namespace AElf.OS.Consensus.DPos
 
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            var irreversibleBlockIndex =
-                await _idpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
-                    eventData.SenderPubKey);
-
-            if (irreversibleBlockIndex != null)
-            {
-                _taskQueueManager.Enqueue(async () =>
-                {
-                    var chain = await _blockchainService.GetChainAsync();
-                    if (chain.LastIrreversibleBlockHeight < irreversibleBlockIndex.Height)
-                    {
-                        var hash = await _blockchainService.GetBlockHashByHeightAsync(chain,
-                            irreversibleBlockIndex.Height, chain.BestChainHash);
-                        if (hash == irreversibleBlockIndex.Hash)
-                        {
-                            await _blockchainService.SetIrreversibleBlockAsync(chain, irreversibleBlockIndex.Height,
-                                irreversibleBlockIndex.Hash);
-                        }
-                    }
-                }, KernelConstants.UpdateChainQueueName);
-            }
+//            var irreversibleBlockIndex =
+//                await _idpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
+//                    eventData.SenderPubKey);
+//
+//            if (irreversibleBlockIndex != null)
+//            {
+//                _taskQueueManager.Enqueue(async () =>
+//                {
+//                    var chain = await _blockchainService.GetChainAsync();
+//                    if (chain.LastIrreversibleBlockHeight < irreversibleBlockIndex.Height)
+//                    {
+//                        var hash = await _blockchainService.GetBlockHashByHeightAsync(chain,
+//                            irreversibleBlockIndex.Height, chain.BestChainHash);
+//                        if (hash == irreversibleBlockIndex.Hash)
+//                        {
+//                            await _blockchainService.SetIrreversibleBlockAsync(chain, irreversibleBlockIndex.Height,
+//                                irreversibleBlockIndex.Hash);
+//                        }
+//                    }
+//                }, KernelConstants.UpdateChainQueueName);
+//            }
         }
     }
 
