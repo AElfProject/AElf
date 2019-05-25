@@ -6,7 +6,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     internal static class AEDPoSContractConstants
     {
-        internal const int TinySlots = 10;
+        internal const int TinySlots = 8;
 
         internal const int InitialMinersCount = 5;
         

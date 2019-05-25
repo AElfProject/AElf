@@ -217,10 +217,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 expectedMiningTime = Context.CurrentBlockTime.ToTimestamp() +
                                      ConvertMillisecondsToDuration(nextBlockMiningLeftMilliseconds);
             }
-            expectedMiningTime =
-                currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, Context.CurrentBlockTime);
-            var duration = expectedMiningTime - Context.CurrentBlockTime.ToTimestamp();
-            nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+            else
+            {
+                expectedMiningTime =
+                    currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, Context.CurrentBlockTime);
+                var duration = expectedMiningTime - Context.CurrentBlockTime.ToTimestamp();
+                nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+            }
         }
 
         private void GetNextBlockMiningLeftMillisecondsForTinyBlock(Round currentRound, string publicKey,
