@@ -51,20 +51,20 @@ namespace AElf.Kernel.Consensus.Application
 
             Logger.LogDebug($"Updated consensus command: {_consensusCommand}");
 
+            // Update next mining time, also block time of both getting consensus extra data and txs.
+            _nextMiningTime =
+                DateTime.UtcNow.AddMilliseconds(_consensusCommand
+                    .NextBlockMiningLeftMilliseconds);
+
             // Initial consensus scheduler.
             var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
                 chainContext.BlockHeight,
-                _consensusCommand.ExpectedMiningTime.ToDateTime(),
+                _nextMiningTime,
                 TimeSpan.FromMilliseconds(_consensusCommand
                     .LimitMillisecondsOfMiningBlock));
             _consensusScheduler.CancelCurrentEvent();
             _consensusScheduler.NewEvent(_consensusCommand.NextBlockMiningLeftMilliseconds,
                 blockMiningEventData);
-
-            // Update next mining time, also block time of both getting consensus extra data and txs.
-            _nextMiningTime =
-                DateTime.UtcNow.AddMilliseconds(_consensusCommand
-                    .NextBlockMiningLeftMilliseconds);
 
             Logger.LogTrace($"Set next mining time to: {_nextMiningTime:hh:mm:ss.ffffff}");
         }

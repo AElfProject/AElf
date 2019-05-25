@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
 using AElf.Modularity;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -32,7 +34,10 @@ namespace AElf.Kernel.Consensus.AEDPoS
 
             Configure<ConsensusOptions>(option =>
             {
-                configuration.GetSection("Consensus").Bind(option);
+                var consensusOptions = configuration.GetSection("Consensus");
+                consensusOptions.Bind(option);
+
+                option.StartTimestamp = new Timestamp {Seconds = long.Parse(consensusOptions["StartTimestamp"])};
 
                 if (option.InitialMiners == null || option.InitialMiners.Count == 0 ||
                     string.IsNullOrWhiteSpace(option.InitialMiners[0]))

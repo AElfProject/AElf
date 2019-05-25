@@ -42,7 +42,7 @@ namespace AElf.Blockchains.MainChain
                         _consensusOptions.InitialMiners.Select(p => p.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval,
-                    _consensusOptions.StartTimestamp.ToUniversalTime()));
+                    _consensusOptions.StartTimestamp.ToDateTime()));
             return aelfConsensusMethodCallList;
         }
     }

@@ -315,7 +315,7 @@ namespace AElf.Contracts.Election
             };
             consensusMethodList.Add(nameof(AEDPoSContract.FirstRound),
                 miners.GenerateFirstRoundOfNewTerm(ConsensusOption.MiningInterval,
-                    ConsensusOption.StartTimestamp.ToUniversalTime()));
+                    ConsensusOption.StartTimestamp.ToDateTime()));
             return consensusMethodList;
         }
 
@@ -392,7 +392,7 @@ namespace AElf.Contracts.Election
             {
                 MiningInterval = 4000,
                 InitialMiners = InitialMinersKeyPairs.Select(k => k.PublicKey.ToHex()).ToList(),
-                StartTimestamp = StartTimestamp.ToDateTime(),
+                StartTimestamp = new Timestamp {Seconds = 0},
                 TimeEachTerm = 604800
             };
         }

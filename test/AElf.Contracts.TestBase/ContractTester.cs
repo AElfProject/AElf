@@ -108,7 +108,7 @@ namespace AElf.Contracts.TestBase
                         options.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
                     }
 
-                    options.Services.Configure<ConsensusOptions>(o => 
+                    options.Services.Configure<ConsensusOptions>(o =>
                     {
                         var miners = new List<string>();
 
@@ -119,7 +119,7 @@ namespace AElf.Contracts.TestBase
 
                         o.InitialMiners = miners;
                         o.MiningInterval = 4000;
-                        o.StartTimestamp = DateTime.UtcNow;
+                        o.StartTimestamp = new Timestamp {Seconds = 0};
                     });
                     
                     if (keyPair != null)
@@ -270,7 +270,7 @@ namespace AElf.Contracts.TestBase
                         consensusOptions.InitialMiners.Select(k => k.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
-                    consensusOptions.StartTimestamp.ToUniversalTime()));
+                    consensusOptions.StartTimestamp.ToDateTime()));
             return consensusMethodCallList;
         }
 
