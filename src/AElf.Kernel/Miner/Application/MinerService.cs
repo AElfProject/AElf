@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
@@ -23,6 +24,7 @@ namespace AElf.Kernel.Miner.Application
         /// <returns>The block that has been produced.</returns>
         Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime, TimeSpan timeSpan);
     }
+
     public class MinerService : IMinerService
     {
         public ILogger<MinerService> Logger { get; set; }
@@ -74,7 +76,7 @@ namespace AElf.Kernel.Miner.Application
         private readonly IAccountService _accountService;
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IBlockchainService _blockchainService;
-        
+
         public ILocalEventBus EventBus { get; set; }
 
         public MiningService(IAccountService accountService,
@@ -89,7 +91,7 @@ namespace AElf.Kernel.Miner.Application
             _blockExecutingService = blockExecutingService;
             _accountService = accountService;
             _blockchainService = blockchainService;
-            
+
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -97,14 +99,14 @@ namespace AElf.Kernel.Miner.Application
             long previousBlockHeight)
         {
             var address = Address.FromPublicKey(await _accountService.GetPublicKeyAsync());
-            var systemTransactions = _systemTransactionGenerationService.GenerateSystemTransactions(address, 
-                                    previousBlockHeight, previousBlockHash);
-            
+            var systemTransactions = _systemTransactionGenerationService.GenerateSystemTransactions(address,
+                previousBlockHeight, previousBlockHash);
+
             foreach (var transaction in systemTransactions)
             {
                 await SignAsync(transaction);
             }
-            
+
             await _blockchainService.AddTransactionsAsync(systemTransactions);
 
             return systemTransactions;

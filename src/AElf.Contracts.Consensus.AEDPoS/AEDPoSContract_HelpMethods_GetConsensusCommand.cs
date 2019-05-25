@@ -30,11 +30,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (minerInRound.OutValue == null)
             {
                 var behaviour = GetBehaviourIfMinerDoesNotProduceBlockInCurrentRound(currentRound, minerInRound,
-                    isPreviousRoundExists, isTermJustChanged, isTimeSlotPassed);
+                    isPreviousRoundExists, isTermJustChanged);
+                
+                if (!isTimeSlotPassed)
+                    behaviour = AElfConsensusBehaviour.UpdateValue;
+
                 if (behaviour != AElfConsensusBehaviour.Nothing)
-                {
                     return behaviour;
-                }
             }
             else if (!isTimeSlotPassed &&
                      minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
@@ -56,7 +58,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         private AElfConsensusBehaviour GetBehaviourIfMinerDoesNotProduceBlockInCurrentRound(Round currentRound,
-            MinerInRound minerInRound, bool isPreviousRoundExists, bool isTermJustChanged, bool isTimeSlotPassed)
+            MinerInRound minerInRound, bool isPreviousRoundExists, bool isTermJustChanged)
         {
             if (!isPreviousRoundExists && minerInRound.Order != 1 &&
                 currentRound.RealTimeMinersInformation.Values.First(m => m.Order == 1).OutValue == null)
@@ -79,7 +81,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return AElfConsensusBehaviour.TinyBlock;
             }
 
-            return !isTimeSlotPassed ? AElfConsensusBehaviour.UpdateValue : AElfConsensusBehaviour.Nothing;
+            return AElfConsensusBehaviour.Nothing;
         }
 
         private AElfConsensusBehaviour GetBehaviourForChainAbleToChangeTerm(Round currentRound, Round previousRound,
