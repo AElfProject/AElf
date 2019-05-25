@@ -36,7 +36,7 @@ namespace AElf.Contracts.ParliamentAuth
             return result;
         }
 
-        public override Address GetZeroOwnerAddress(Empty input)
+        public override Address GetDefaultOwnerAddress(Empty input)
         {
             Assert(State.Initialized.Value, "Not initialized.");
             return State.ZeroOwnerAddress.Value;

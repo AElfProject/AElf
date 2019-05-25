@@ -50,7 +50,7 @@ namespace AElf.Blockchains.MainChain
             var contractZeroInitializationInput = new ContractZeroInitializationInput
             {
                 ZeroOwnerAddressGenerationContractHashName = ParliamentAuthContractAddressNameProvider.Name,
-                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetZeroOwnerAddress),
+//                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress),
                 ContractDeploymentAuthorityRequired = true
             };
             

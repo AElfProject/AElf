@@ -28,7 +28,7 @@ namespace AElf.Contracts.ParliamentAuth
         public async Task Get_DefaultOrganizationAddressFailed()
         {
             var transactionResult =
-                await OtherParliamentAuthContractStub.GetZeroOwnerAddress.SendAsync(new Empty());
+                await OtherParliamentAuthContractStub.GetDefaultOwnerAddress.SendAsync(new Empty());
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Not initialized.").ShouldBeTrue();
         }
@@ -333,7 +333,7 @@ namespace AElf.Contracts.ParliamentAuth
         
         public async Task<Address> Create_Organization()
         {           
-            _createOrganizationInput =  new CreateOrganizationInput
+            _createOrganizationInput = new CreateOrganizationInput
             {
                 ReleaseThreshold = 10000 / MinersCount
             };
@@ -346,8 +346,8 @@ namespace AElf.Contracts.ParliamentAuth
 
         public async Task<Address> Get_DefaultOrganizationAddress()
         {
-             _defaultOrganizationAddress =
-                await ParliamentAuthContractStub.GetZeroOwnerAddress.CallAsync(new Empty());
+            _defaultOrganizationAddress =
+                await ParliamentAuthContractStub.GetDefaultOwnerAddress.CallAsync(new Empty());
 
             return _defaultOrganizationAddress;
         }
