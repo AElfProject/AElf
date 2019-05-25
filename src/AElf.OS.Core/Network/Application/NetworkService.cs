@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -46,21 +45,21 @@ namespace AElf.OS.Network.Application
             return _peerPool.GetPeers(true).ToList(); 
         }
 
-        public async Task<int> BroadcastAnnounceAsync(BlockAcceptedEvent blockAcceptedEvent)
+        public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader,bool hasFork)
         {
             int successfulBcasts = 0;
             
             var announce = new PeerNewBlockAnnouncement
             {
-                BlockHash = blockAcceptedEvent.BlockHeader.GetHash(),
-                BlockHeight = blockAcceptedEvent.BlockHeader.Height,
-                BlockTime = blockAcceptedEvent.BlockHeader.Time,
-                HasFork = blockAcceptedEvent.HasFork
+                BlockHash = blockHeader.GetHash(),
+                BlockHeight = blockHeader.Height,
+                BlockTime = blockHeader.Time,
+                HasFork = hasFork
             };
             
             var peers = _peerPool.GetPeers().ToList();
 
-            _peerPool.AddRecentBlockHeightAndHash(announce.BlockHeight, announce.BlockHash, announce.HasFork);
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash(), hasFork);
             
             Logger.LogDebug("About to broadcast to peers.");
             
