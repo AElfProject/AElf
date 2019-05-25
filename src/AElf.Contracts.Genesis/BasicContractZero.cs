@@ -78,8 +78,7 @@ namespace AElf.Contracts.Genesis
 
         private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code)
         {
-            if (name != null)
-                Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
+            Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
 
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment
@@ -119,15 +118,14 @@ namespace AElf.Contracts.Genesis
             Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
 
 
-            if (name != null)
-                State.NameAddressMapping[name] = contractAddress;
+            State.NameAddressMapping[name] = contractAddress;
             return contractAddress;
         }
 
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
             CheckAuthority();
-            var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray());
+            var address = PrivateDeploySystemSmartContract(input.Name, input.Category, input.Code.ToByteArray());
             return address;
         }
 

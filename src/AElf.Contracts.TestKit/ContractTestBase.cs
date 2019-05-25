@@ -44,13 +44,14 @@ namespace AElf.Contracts.TestKit
 
         protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
 
-        protected async Task<Address> DeployContractAsync(int category, byte[] code, ECKeyPair senderKey)
+        protected async Task<Address> DeployContractAsync(int category, byte[] code, Hash hashName, ECKeyPair senderKey)
         {
             var zeroStub = GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, senderKey);
             var res = await zeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput()
             {
                 Category = category,
-                Code = ByteString.CopyFrom(code)
+                Code = ByteString.CopyFrom(code),
+                Name = hashName
             });
             return res.Output;
         }

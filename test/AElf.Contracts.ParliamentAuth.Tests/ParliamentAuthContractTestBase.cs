@@ -75,6 +75,7 @@ namespace AElf.Contracts.ParliamentAuth
                 DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
                     ParliamentAuthCode,
+                    Hash.FromString("ParliamentAuth"),
                     DefaultSenderKeyPair));
             OtherParliamentAuthContractStub = GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(otherParliamentAuthContractAddress, DefaultSenderKeyPair);
             

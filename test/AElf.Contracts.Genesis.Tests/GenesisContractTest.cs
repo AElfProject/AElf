@@ -18,7 +18,8 @@ namespace AElf.Contracts.Genesis
             var result = await DefaultTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value),
+                Name = Hash.FromString("MultiToken")
             });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             result.Output.ShouldNotBeNull();
@@ -61,7 +62,7 @@ namespace AElf.Contracts.Genesis
                 new ContractUpdateInput()
                 {
                     Address = contractAddress,
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value)
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value),
                 });
             resultUpdate.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 

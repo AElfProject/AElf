@@ -36,7 +36,8 @@ namespace AElf.Contracts.Genesis
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value),
+                Name = Hash.FromString("MultiToken")
             };
             string methodName = "DeploySmartContract";
             //create proposal to deploy
@@ -79,7 +80,8 @@ namespace AElf.Contracts.Genesis
                 nameof(ACS0Container.ACS0Stub.DeploySmartContract), (new ContractDeploymentInput()
                 {
                     Category = KernelConstants.DefaultRunnerCategory, 
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value),
+                    Name = Hash.FromString("MultiToken")
                 }));
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -92,7 +94,8 @@ namespace AElf.Contracts.Genesis
                 nameof(ACS0Container.ACS0Stub.DeploySmartContract), (new ContractDeploymentInput()
                 {
                     Category = KernelConstants.DefaultRunnerCategory, 
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value),
+                    Name = Hash.FromString("MultiToken")
                 }));
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
             txResult.Error.Contains("Unauthorized to do this.").ShouldBeTrue();
