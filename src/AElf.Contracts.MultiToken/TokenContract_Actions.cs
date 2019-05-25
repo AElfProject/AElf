@@ -120,12 +120,12 @@ namespace AElf.Contracts.MultiToken
             var amount = crossChainTransferInput.Amount;
             var receivingAddress = crossChainTransferInput.To;
             var targetChainId = crossChainTransferInput.ToChainId;
-
+            var transferSender = transferTransaction.From;
             Context.LogDebug(() =>
                 $"symbol == {symbol}, amount == {amount}, receivingAddress == {receivingAddress}, targetChainId == {targetChainId}");
 
-            Assert(receivingAddress.Equals(Context.Sender) && targetChainId == Context.ChainId,
-                "Unable to receive cross chain token.");
+            Assert(transferSender.Equals(Context.Sender) && targetChainId == Context.ChainId,
+                "Unable to claim cross chain token.");
             if (State.CrossChainContractReferenceState.Value == null)
                 State.CrossChainContractReferenceState.Value =
                     Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
