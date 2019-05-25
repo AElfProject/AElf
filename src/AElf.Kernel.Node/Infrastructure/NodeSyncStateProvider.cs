@@ -4,16 +4,26 @@ namespace AElf.Kernel.Node.Infrastructure
 {
     public class NodeSyncStateProvider : INodeSyncStateProvider, ISingletonDependency
     {
-        private volatile bool _isSyncing = true;
-        
-        public bool IsNodeSyncing() => _isSyncing;
+        private readonly object _syncStateLock = new object();
+        private bool _isSyncing = true;
+
+        public bool IsNodeSyncing()
+        {
+            lock (_syncStateLock)
+            {
+                return _isSyncing;
+            }
+        }
 
         public bool SetSyncing(bool value)
         {
-            if (_isSyncing == value)
-                return false;
+            lock (_syncStateLock)
+            {
+                if (_isSyncing == value)
+                    return false;
 
-            _isSyncing = value;
+                _isSyncing = value;
+            }
 
             return true;
         }
