@@ -204,6 +204,31 @@ namespace AElf.Contracts.TestBase
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
             var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
+            var consensusOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ConsensusOptions>>().Value;
+            var dto = new OsBlockchainNodeContextStartDto
+            {
+                ChainId = chainOptions.ChainId,
+                ZeroSmartContract = typeof(BasicContractZero),
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
+                ContractZeroInitializationInput = new ContractZeroInitializationInput
+                {
+                }
+            };
+
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                ConsensusContractCode,
+                ConsensusSmartContractAddressNameProvider.Name,
+                GenerateConsensusInitializationCallList(consensusOptions));
+            configureSmartContract?.Invoke(dto.InitializationSmartContracts);
+
+            return await osBlockchainNodeContextService.StartAsync(dto);
+        }
+        
+        public async Task<OsBlockchainNodeContext> InitialChainAsyncWithAuth(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
+        {
+            var osBlockchainNodeContextService =
+                Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
+            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             var consensusOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ConsensusOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto

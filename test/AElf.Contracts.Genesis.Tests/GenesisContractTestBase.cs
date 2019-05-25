@@ -54,7 +54,7 @@ namespace AElf.Contracts.Genesis
         public BasicContractZeroTestBase()
         {
             AsyncHelper.RunSync(() =>
-                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
+                Tester.InitialChainAsyncWithAuth(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
                     out _,
                     out _balanceOfStarter)));
             BasicContractZeroAddress = Tester.GetZeroContractAddress();
