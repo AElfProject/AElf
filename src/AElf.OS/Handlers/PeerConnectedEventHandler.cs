@@ -6,6 +6,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -19,12 +20,12 @@ namespace AElf.OS.Handlers
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
 
         private readonly IBlockchainService _blockchainService;
-
         private readonly ITaskQueueManager _taskQueueManager;
-
         private readonly IBlockSyncService _blockSyncService;
-
         private readonly NetworkOptions _networkOptions;
+        
+        private readonly Duration _blockSyncAnnouncementAgeLimit = new Duration {Seconds = 4};
+        private readonly Duration _blockSyncAttachBlockAgeLimit = new Duration {Seconds = 2};
 
         public PeerConnectedEventHandler(ITaskQueueManager taskQueueManager,
             IBlockchainService blockchainService,
@@ -45,6 +46,25 @@ namespace AElf.OS.Handlers
 
         private async Task ProcessNewBlock(AnnouncementReceivedEventData header, string senderPubKey)
         {
+            var announcementEnqueueTime = _blockSyncService.GetBlockSyncAnnouncementEnqueueTime();
+            if (announcementEnqueueTime != null &&
+                TimestampHelper.GetUtcNow() > announcementEnqueueTime + _blockSyncAnnouncementAgeLimit)
+            {
+                Logger.LogWarning(
+                    $"Block sync queue is too busy, enqueue timestamp: {announcementEnqueueTime.ToDateTime()}");
+                return;
+            }
+            
+            var blockSyncAttachBlockEnqueueTime = _blockSyncService.GetBlockSyncAttachBlockEnqueueTime();
+            if (blockSyncAttachBlockEnqueueTime != null &&
+                TimestampHelper.GetUtcNow() >
+                blockSyncAttachBlockEnqueueTime + _blockSyncAttachBlockAgeLimit)
+            {
+                Logger.LogWarning(
+                    $"Block sync attach queue is too busy, enqueue timestamp: {blockSyncAttachBlockEnqueueTime.ToDateTime()}");
+                return;
+            }
+
             var blockHeight = header.Announce.BlockHeight;
             var blockHash = header.Announce.BlockHash;
 
@@ -63,10 +83,19 @@ namespace AElf.OS.Handlers
                 return;
             }
 
+            var enqueueTimestamp = TimestampHelper.GetUtcNow();
             _taskQueueManager.Enqueue(async () =>
             {
-                await _blockSyncService.SyncBlockAsync(blockHash, blockHeight, _networkOptions.BlockIdRequestCount,
-                    senderPubKey);
+                try
+                {
+                    _blockSyncService.SetBlockSyncAnnouncementEnqueueTime(enqueueTimestamp);
+                    await _blockSyncService.SyncBlockAsync(blockHash, blockHeight, _networkOptions.BlockIdRequestCount,
+                        senderPubKey);
+                }
+                finally
+                {
+                    _blockSyncService.SetBlockSyncAnnouncementEnqueueTime(null);
+                }
             }, OSConsts.BlockSyncQueueName);
         }
 

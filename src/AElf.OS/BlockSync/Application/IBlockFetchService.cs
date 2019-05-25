@@ -22,21 +22,18 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
         private readonly IBlockSyncAttachService _blockSyncAttachService;
-        private readonly ITaskQueueManager _taskQueueManager;
 
         public ILogger<BlockFetchService> Logger { get; set; }
 
         public BlockFetchService(IBlockSyncAttachService blockSyncAttachService,
             IBlockchainService blockchainService,
-            INetworkService networkService,
-            ITaskQueueManager taskQueueManager)
+            INetworkService networkService)
         {
             Logger = NullLogger<BlockFetchService>.Instance;
 
             _blockchainService = blockchainService;
             _networkService = networkService;
             _blockSyncAttachService = blockSyncAttachService;
-            _taskQueueManager = taskQueueManager;
         }
 
         public async Task<bool> FetchBlockAsync(Hash blockHash, long blockHeight, string suggestedPeerPubKey)
@@ -50,8 +47,7 @@ namespace AElf.OS.BlockSync.Application
 
             var blockWithTransactions = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
 
-            _taskQueueManager.Enqueue(async () => await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions),
-                OSConsts.BlockSyncAttachQueueName);
+            _blockSyncAttachService.EnqueueAttachBlockWithTransactionsJob(blockWithTransactions);
 
             return blockWithTransactions != null;
         }
