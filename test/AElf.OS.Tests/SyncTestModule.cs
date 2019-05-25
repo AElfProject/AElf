@@ -4,6 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.OS.Handlers;

@@ -29,6 +29,8 @@ namespace AElf.OS.Handlers
         [Fact]
         public async Task NullAnnounceShouldNotChangeState()
         {
+            _blockchainNodeContextService.SetSyncing(false);
+            
             await _handler.HandleEventAsync(new AnnouncementReceivedEventData(null, null));
             
             var isSyncing = _blockchainNodeContextService.IsNodeSyncing();
@@ -64,6 +66,8 @@ namespace AElf.OS.Handlers
             _peerPool.AddPeer(bp1);
             _peerPool.AddPeer(bp2);
             _peerPool.AddPeer(bp3);
+            
+            _blockchainNodeContextService.SetSyncing(false);
             
             // b1 announces the block1
             bp1.HandlerRemoteAnnounce(announce);

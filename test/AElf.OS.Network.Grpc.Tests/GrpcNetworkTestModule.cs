@@ -1,11 +1,14 @@
 using System;
+using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Kernel.Node.Infrastructure;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -20,6 +23,13 @@ namespace AElf.OS.Network
             {
                 o.ListeningPort = 2000;
             });
+            
+            context.Services.AddTransient<INodeSyncStateProvider>(o =>
+            {
+                var mockService = new Mock<INodeSyncStateProvider>();
+                mockService.Setup(a => a.IsNodeSyncing()).Returns(false);
+                return mockService.Object;
+            });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -31,6 +41,7 @@ namespace AElf.OS.Network
             pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), GrpcTestConstants.FakePubKey2,
                 GrpcTestConstants.FakeListeningPort, KernelConstants.ProtocolVersion,
                 DateTime.UtcNow.ToTimestamp().Seconds, 1));
+
         }
     }
 }
