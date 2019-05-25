@@ -240,7 +240,7 @@ namespace AElf.Contracts.TestBase
                 {
                     ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
                     ZeroOwnerAddressGenerationContractHashName = ParliamentAuthContractAddressNameProvider.Name,
-                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetZeroOwnerAddress)
+                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress)
                 }
             };
 
@@ -280,7 +280,7 @@ namespace AElf.Contracts.TestBase
                 {
                     ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
                     ZeroOwnerAddressGenerationContractHashName = ParliamentAuthContractAddressNameProvider.Name,
-                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetZeroOwnerAddress)
+                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress)
                 }
             };
 

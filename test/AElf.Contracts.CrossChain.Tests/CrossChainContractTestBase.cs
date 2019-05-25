@@ -163,7 +163,7 @@ namespace AElf.Contract.CrossChain.Tests
                 Value = chainId
             };
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetZeroOwnerAddress), new Empty())).ReturnValue);
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress), new Empty())).ReturnValue);
             var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal), new CreateProposalInput
                 {

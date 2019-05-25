@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
-using AElf.Blockchains.BasicBaseChain;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.Deployer;
@@ -14,9 +13,6 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
-using AElf.Sdk.CSharp;
-using Google.Protobuf;
-using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
 namespace AElf.Blockchains.SideChain
@@ -26,6 +22,7 @@ namespace AElf.Blockchains.SideChain
     {
         private readonly IReadOnlyDictionary<string, byte[]> _codes =
             ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>();
+        
         private readonly ChainOptions _chainOptions;
         private readonly ContractOptions _contractOptions;
         private readonly ConsensusOptions _consensusOptions;
@@ -79,7 +76,7 @@ namespace AElf.Blockchains.SideChain
             var contractZeroInitializationInput = new ContractZeroInitializationInput
             {
                 ZeroOwnerAddressGenerationContractHashName = ParliamentAuthContractAddressNameProvider.Name,
-                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetZeroOwnerAddress),
+                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress),
                 ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
             };
             
