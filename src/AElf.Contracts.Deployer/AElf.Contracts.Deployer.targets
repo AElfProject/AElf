@@ -11,14 +11,8 @@
         <ItemGroup>
             <Contract Include="@(ProjectReference)" Condition="'%(ProjectReference.OutputItemType)' == 'Contract'"/>
         </ItemGroup>
-        <MSBuild Projects="@(Contract)" Targets="GetTargetPath">
-            <Output TaskParameter="TargetOutputs" ItemName="ContractDlls"/>
-        </MSBuild>
         <Delete Files="$(ContractManifestFileName)" ContinueOnError="true"/>
-        <GetAssemblyIdentity AssemblyFiles="@(ContractDlls)">
-            <Output TaskParameter="Assemblies" ItemName="ContractDllIdentities"/>
-        </GetAssemblyIdentity>
-        <WriteLinesToFile Condition="@(ContractDllIdentities) != ''" File="$(ContractManifestFileName)" Lines="%(Identity)"/>
+        <WriteLinesToFile Condition="@(Contract) != ''" File="$(ContractManifestFileName)" Lines="%(Filename)"/>
         <ItemGroup Condition="Exists($(ContractManifestFileName))">
             <EmbeddedResource Include="$(ContractManifestFileName)"/>
         </ItemGroup>
