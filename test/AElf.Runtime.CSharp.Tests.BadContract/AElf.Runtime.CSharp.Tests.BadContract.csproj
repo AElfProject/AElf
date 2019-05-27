@@ -16,9 +16,4 @@
             <Link>Protobuf\Proto\bad_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
-
-    <Target Name="CopyContractDll" AfterTargets="AfterBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll ../AElf.Runtime.CSharp.Tests/contracts" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll ..\AElf.Runtime.CSharp.Tests\contracts" />
-    </Target>
 </Project>
