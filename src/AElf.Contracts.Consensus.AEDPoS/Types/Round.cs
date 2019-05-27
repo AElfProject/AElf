@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using AElf.Kernel;
+using Acs4;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -85,14 +84,29 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return distance > 0 ? distance : -distance;
         }
 
-        public bool IsTimeSlotPassed(string publicKey, DateTime dateTime,
+        public bool IsTimeSlotPassed(string publicKey, DateTime currentBlockTime,
             out MinerInRound minerInRound)
         {
             minerInRound = null;
             var miningInterval = GetMiningInterval();
             if (!RealTimeMinersInformation.ContainsKey(publicKey)) return false;
             minerInRound = RealTimeMinersInformation[publicKey];
-            return minerInRound.ExpectedMiningTime.ToDateTime().AddMilliseconds(miningInterval) <= dateTime;
+            if (RoundNumber == 1)
+            {
+                var actualStartTimes =
+                    RealTimeMinersInformation.Values.First(m => m.Order == 1).ActualMiningTimes;
+                if (actualStartTimes.Count == 0)
+                {
+                    return false;
+                }
+
+                var actualStartTime = actualStartTimes.First();
+                var runningTime = currentBlockTime.ToTimestamp() - actualStartTime;
+                var expectedOrder = runningTime.Seconds.Div(miningInterval.Div(1000)).Add(1);
+                return minerInRound.Order < expectedOrder;
+            }
+            return minerInRound.ExpectedMiningTime + new Duration {Seconds = miningInterval.Div(1000)} <
+                   currentBlockTime.ToTimestamp();
         }
 
         /// <summary>
@@ -231,7 +245,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// This method for now is able to handle the situation of a miner keeping offline so many rounds,
         /// by using missedRoundsCount.
         /// </summary>
-        /// <param name="round"></param>
         /// <param name="miningInterval"></param>
         /// <param name="missedRoundsCount"></param>
         /// <returns></returns>
@@ -312,9 +325,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Signature = minerInRound.Signature,
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = RoundId,
-                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
                 ProducedBlocks = minerInRound.ProducedBlocks,
-                ActualMiningTime = minerInRound.ActualMiningTime,
+                ActualMiningTime = minerInRound.ActualMiningTimes.Last(),
                 SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,
                 TuneOrderInformation = {tuneOrderInformation},
                 EncryptedInValues = {minerInRound.EncryptedInValues},
@@ -333,8 +345,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
             var minimumCount = minersCount.Mul(2).Div(3).Add(1);
-            var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null)
-                .Select(m => m.ActualMiningTime)
+            var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTimes.Any())
+                .Select(m => m.ActualMiningTimes.Last())
                 .Count(actualMiningTimestamp =>
                     IsTimeToChangeTerm(blockchainStartTimestamp, actualMiningTimestamp, termNumber, timeEachTerm));
             return approvalsCount >= minimumCount;
@@ -366,7 +378,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var checkableMinerInRound = minerInRound.Value.Clone();
                 checkableMinerInRound.EncryptedInValues.Clear();
-                checkableMinerInRound.ActualMiningTime = null;
+                checkableMinerInRound.ActualMiningTimes.Clear();
                 if (!isContainPreviousInValue)
                 {
                     checkableMinerInRound.PreviousInValue = Hash.Empty;

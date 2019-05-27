@@ -5,19 +5,25 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+    <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs0.proto">
-            <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractBase>
+    </ItemGroup>
+    <ItemGroup>
         <ContractCode Include="..\..\protobuf\association_auth_contract.proto">
             <Link>Protobuf\Proto\association_auth_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
+
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+      <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 </Project>

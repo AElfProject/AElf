@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Acs4;
 using AElf.Kernel;
 using AElf.Types;
 using AElf.Sdk.CSharp;
@@ -267,7 +268,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return RealTimeMinersInformation.Count * miningInterval + miningInterval;
         }
         
-        internal MinerInRound GetExtraBlockProducerInformation()
+        public MinerInRound GetExtraBlockProducerInformation()
         {
             return RealTimeMinersInformation.First(bp => bp.Value.IsExtraBlockProducer).Value;
         }
@@ -285,7 +286,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <param name="publicKey"></param>
         /// <returns></returns>
-        internal UpdateValueInput ExtractInformationToUpdateConsensus(string publicKey)
+        public UpdateValueInput ExtractInformationToUpdateConsensus(string publicKey)
         {
             if (!RealTimeMinersInformation.ContainsKey(publicKey))
             {
@@ -312,9 +313,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Signature = minerInRound.Signature,
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = RoundId,
-                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
                 ProducedBlocks = minerInRound.ProducedBlocks,
-                ActualMiningTime = minerInRound.ActualMiningTime,
+                ActualMiningTime = minerInRound.ActualMiningTimes.First(),
                 SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,
                 TuneOrderInformation = {tuneOrderInformation},
                 EncryptedInValues = {minerInRound.EncryptedInValues},
@@ -332,9 +332,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             long termNumber, long timeEachTerm)
         {
             var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
-            var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
-            var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null)
-                .Select(m => m.ActualMiningTime)
+            var minimumCount = minersCount.Mul(2).Div(3).Add(1);
+            var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTimes.Any())
+                .Select(m => m.ActualMiningTimes.Last())
                 .Count(actualMiningTimestamp =>
                     IsTimeToChangeTerm(blockchainStartTimestamp, actualMiningTimestamp, termNumber, timeEachTerm));
             return approvalsCount >= minimumCount;
@@ -366,7 +366,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var checkableMinerInRound = minerInRound.Value.Clone();
                 checkableMinerInRound.EncryptedInValues.Clear();
-                checkableMinerInRound.ActualMiningTime = null;
+                checkableMinerInRound.ActualMiningTimes.Clear();
                 if (!isContainPreviousInValue)
                 {
                     checkableMinerInRound.PreviousInValue = Hash.Empty;

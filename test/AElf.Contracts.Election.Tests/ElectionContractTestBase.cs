@@ -13,6 +13,7 @@ using AElf.Contracts.TestKit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
@@ -314,7 +315,7 @@ namespace AElf.Contracts.Election
             };
             consensusMethodList.Add(nameof(AEDPoSContract.FirstRound),
                 miners.GenerateFirstRoundOfNewTerm(ConsensusOption.MiningInterval,
-                    ConsensusOption.StartTimestamp.ToUniversalTime()));
+                    ConsensusOption.StartTimestamp.ToDateTime()));
             return consensusMethodList;
         }
 
@@ -341,7 +342,7 @@ namespace AElf.Contracts.Election
             var miner = GetAEDPoSContractStub(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             round.GenerateNextRoundInformation(
-                StartTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds()), StartTimestamp,
+                StartTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds()).ToTimestamp(), StartTimestamp,
                 out var nextRound);
             await miner.NextRound.SendAsync(nextRound);
         }
@@ -357,7 +358,6 @@ namespace AElf.Contracts.Election
                 Signature = Hash.Generate(),
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = round.RoundId,
-                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
                 ProducedBlocks = minerInRound.ProducedBlocks + 1,
                 ActualMiningTime = minerInRound.ExpectedMiningTime,
                 SupposedOrderOfNextRound = 1
@@ -392,7 +392,7 @@ namespace AElf.Contracts.Election
             {
                 MiningInterval = 4000,
                 InitialMiners = InitialMinersKeyPairs.Select(k => k.PublicKey.ToHex()).ToList(),
-                StartTimestamp = StartTimestamp.ToDateTime(),
+                StartTimestamp = new Timestamp {Seconds = 0},
                 TimeEachTerm = 604800
             };
         }
