@@ -4,7 +4,7 @@ using AElf.Sdk.CSharp;
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    internal static class AEDPoSContractConstants
+    internal static class AEDPoSContractTestConstants
     {
         internal const int TinySlots = 8;
 
@@ -20,7 +20,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         internal const long TotalSupply = 1000_000_000;
 
-        internal static readonly int SmallBlockMiningInterval = MiningInterval.Div(TinySlots);
+        internal static readonly int SmallBlockMiningInterval = MiningInterval.Div(TinySlots)
+            .Mul(AEDPoSContractConstants.LimitBlockExecutionTimeWeight)
+            .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalWeight);
 
         /// <summary>
         /// 7 days.

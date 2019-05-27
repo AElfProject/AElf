@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package aedposimpl;
+package AEDPoSImpl;
 
 import "aelf/options.proto";
 import "acs4.proto";

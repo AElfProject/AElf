@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Deployer;
-using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
