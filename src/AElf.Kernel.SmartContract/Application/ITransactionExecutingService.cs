@@ -90,8 +90,8 @@ namespace AElf.Kernel.SmartContract.Application
                 var returnSet = GetReturnSet(trace, result);
                 returnSets.Add(returnSet);
             }
-            if (!executeCanceled && transactions.Count>TypeConsts.BestTxCount)
-                TypeConsts.BestTxCount += 10;
+            if (!executeCanceled)
+                TypeConsts.BestTxCount += 1;
             
             return returnSets;
         }
