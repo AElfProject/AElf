@@ -50,8 +50,6 @@
         <Exec Condition="@(ContractReference) != ''" Command="$(GenerateContractReferenceCommand)  %(Identity)"/>
         <Exec Condition="@(ContractStub) != ''" Command="$(GenerateContractStubCommand) %(Identity)"/>
         <Exec Condition="@(ContractMessage) != ''" Command="$(GenerateContractMessageCommand) %(Identity)"/>
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
             <Compile Remove="Protobuf/Generated/*.cs"/>
             <Compile Include="Protobuf/Generated/*.cs"/>

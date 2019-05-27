@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj" />
+      <ProjectReference Include="..\..\cntr\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj" />
     </ItemGroup>
 
 </Project>
