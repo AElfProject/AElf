@@ -265,13 +265,8 @@ namespace AElf.OS.Network.Grpc
             return removed;
         }
         
-        public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash,bool hasFork)
+        public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash)
         {
-            if (hasFork)
-            {
-                _recentBlockHeightAndHashMappings.TryRemove(blockHeight, out _);
-                return;
-            }
             _recentBlockHeightAndHashMappings[blockHeight] = blockHash;
             while (_recentBlockHeightAndHashMappings.Count > 10)
             {

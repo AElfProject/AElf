@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
 using AElf.OS.Network.Application;
@@ -14,7 +15,7 @@ namespace AElf.OS.Handlers
 
             public Task HandleEventAsync(BlockAcceptedEvent eventData)
             {
-                NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
+                NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader);
                 return Task.CompletedTask;
             }
         }

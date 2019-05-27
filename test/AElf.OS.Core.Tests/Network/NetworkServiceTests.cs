@@ -104,14 +104,14 @@ namespace AElf.OS.Network
         [Fact]
         public async Task BroadcastAnnounceAsync_OnePeerThrows_ShouldNotBlockOthers()
         {
-            int successfulBcasts = await _networkService.BroadcastAnnounceAsync(new BlockHeader(),false);
+            int successfulBcasts = await _networkService.BroadcastAnnounceAsync(new BlockHeader());
             Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
         }
         
         [Fact]
         public async Task BroadcastTransactionAsync_OnePeerThrows_ShouldNotBlockOthers()
         {
-            int successfulBcasts = await _networkService.BroadcastAnnounceAsync(new BlockHeader(),false);
+            int successfulBcasts = await _networkService.BroadcastAnnounceAsync(new BlockHeader());
             Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
         }
 

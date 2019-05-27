@@ -284,6 +284,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests.BadContract", "test\AElf.Runtime.CSharp.Tests.BadContract\AElf.Runtime.CSharp.Tests.BadContract.csproj", "{E770800E-64BC-46A3-A3BA-C9910BB5771C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Parallel", "src\AElf.Kernel.SmartContractExecution.Parallel\AElf.Kernel.SmartContractExecution.Parallel.csproj", "{CF33B86C-3056-49D1-BF23-96E69564337C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Parallel.Tests", "test\AElf.Kernel.SmartContractExecution.Parallel.Tests\AElf.Kernel.SmartContractExecution.Parallel.Tests.csproj", "{380A3025-5888-498D-8359-0F63961E7C4C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract", "test\AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract\AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract.csproj", "{2968AA64-9848-4932-A571-39F160166FD7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -802,6 +808,18 @@ Global
 		{E770800E-64BC-46A3-A3BA-C9910BB5771C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E770800E-64BC-46A3-A3BA-C9910BB5771C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E770800E-64BC-46A3-A3BA-C9910BB5771C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF33B86C-3056-49D1-BF23-96E69564337C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF33B86C-3056-49D1-BF23-96E69564337C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF33B86C-3056-49D1-BF23-96E69564337C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF33B86C-3056-49D1-BF23-96E69564337C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{380A3025-5888-498D-8359-0F63961E7C4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{380A3025-5888-498D-8359-0F63961E7C4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{380A3025-5888-498D-8359-0F63961E7C4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{380A3025-5888-498D-8359-0F63961E7C4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2968AA64-9848-4932-A571-39F160166FD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2968AA64-9848-4932-A571-39F160166FD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2968AA64-9848-4932-A571-39F160166FD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2968AA64-9848-4932-A571-39F160166FD7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -948,5 +966,8 @@ Global
 		{342CCE8D-0715-42BC-A7C8-5FA3AAC40C85} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{BF408F9E-1A91-4C66-B466-A13743E91A6E} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{E770800E-64BC-46A3-A3BA-C9910BB5771C} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{CF33B86C-3056-49D1-BF23-96E69564337C} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
+		{380A3025-5888-498D-8359-0F63961E7C4C} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{2968AA64-9848-4932-A571-39F160166FD7} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal
