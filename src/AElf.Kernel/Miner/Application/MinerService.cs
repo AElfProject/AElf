@@ -22,7 +22,8 @@ namespace AElf.Kernel.Miner.Application
         /// This method mines a block.
         /// </summary>
         /// <returns>The block that has been produced.</returns>
-        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime, TimeSpan timeSpan);
+        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime,
+            TimeSpan blockExecutionTime);
     }
 
     public class MinerService : IMinerService
@@ -48,7 +49,7 @@ namespace AElf.Kernel.Miner.Application
         /// </summary>
         /// <returns></returns>
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime dateTime,
-            TimeSpan timeSpan)
+            TimeSpan blockExecutionTime)
         {
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
             var pending = new List<Transaction>();
@@ -63,7 +64,12 @@ namespace AElf.Kernel.Miner.Application
                                   $"best chain hash {previousBlockHash}.");
             }
 
-            return await _miningService.MineAsync(previousBlockHash, previousBlockHeight, pending, dateTime, timeSpan);
+            return await _miningService.MineAsync(
+                new RequestMiningDto
+                {
+                    PreviousBlockHash = previousBlockHash, PreviousBlockHeight = previousBlockHeight,
+                    BlockExecutionTime = blockExecutionTime
+                }, pending, dateTime);
         }
     }
 
@@ -140,17 +146,19 @@ namespace AElf.Kernel.Miner.Application
             block.Header.Signature = ByteString.CopyFrom(signature);
         }
 
-        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight,
-            List<Transaction> transactions, DateTime blockTime, TimeSpan timeSpan)
+        public async Task<Block> MineAsync(RequestMiningDto requestMiningDto, List<Transaction> transactions,
+            DateTime blockTime)
         {
             using (var cts = new CancellationTokenSource())
             {
-                var block = await GenerateBlock(previousBlockHash, previousBlockHeight, blockTime);
-                var systemTransactions = await GenerateSystemTransactions(previousBlockHash, previousBlockHeight);
+                var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
+                    requestMiningDto.PreviousBlockHeight, blockTime);
+                var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
+                    requestMiningDto.PreviousBlockHeight);
 
                 var pending = transactions;
 
-                cts.CancelAfter(timeSpan);
+                cts.CancelAfter(requestMiningDto.BlockExecutionTime);
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
                 await SignBlockAsync(block);

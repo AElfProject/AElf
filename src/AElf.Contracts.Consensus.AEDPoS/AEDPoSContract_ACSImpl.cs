@@ -63,7 +63,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var publicKeyBytes = triggerInformation.PublicKey;
             var publicKey = publicKeyBytes.ToHex();
-            
+
+            LogIfPreviousMinerHasNotProduceEnoughTinyBlocks(currentRound, publicKey);
+
             switch (triggerInformation.Behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
