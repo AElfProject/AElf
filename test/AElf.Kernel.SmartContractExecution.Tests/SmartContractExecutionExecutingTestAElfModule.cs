@@ -34,30 +34,30 @@ namespace AElf.Kernel.SmartContractExecution
                 var mockService = new Mock<ITransactionExecutingService>();
                 mockService.Setup(m => m.ExecuteAsync(It.IsAny<TransactionExecutingDto>(),
                         It.IsAny<CancellationToken>(), It.IsAny<bool>(), It.IsAny<BlockStateSet>()))
-                    .Returns<BlockHeader, List<Transaction>,
-                        CancellationToken,bool, BlockStateSet>((blockHeader, transactions, cancellationToken, throwException, blockStateSet) =>
-                    {
-                        var returnSets = new List<ExecutionReturnSet>();
-
-                        var count = 0;
-                        foreach (var tx in transactions)
+                    .Returns<TransactionExecutingDto, CancellationToken, bool, BlockStateSet>(
+                        (transactionExecutingDto, cancellationToken, throwException, blockStateSet) =>
                         {
-                            if (cancellationToken.IsCancellationRequested && count >= 3)
+                            var returnSets = new List<ExecutionReturnSet>();
+
+                            var count = 0;
+                            foreach (var tx in transactionExecutingDto.Transactions)
                             {
-                                break;
+                                if (cancellationToken.IsCancellationRequested && count >= 3)
+                                {
+                                    break;
+                                }
+
+                                var returnSet = new ExecutionReturnSet
+                                {
+                                    TransactionId = tx.GetHash()
+                                };
+                                returnSet.StateChanges.Add(tx.GetHash().ToHex(), tx.ToByteString());
+                                returnSets.Add(returnSet);
+                                count++;
                             }
 
-                            var returnSet = new ExecutionReturnSet
-                            {
-                                TransactionId = tx.GetHash()
-                            };
-                            returnSet.StateChanges.Add(tx.GetHash().ToHex(), tx.ToByteString());
-                            returnSets.Add(returnSet);
-                            count++;
-                        }
-
-                        return Task.FromResult(returnSets);
-                    });
+                            return Task.FromResult(returnSets);
+                        });
 
                 return mockService.Object;
             });
