@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Types;
 
 namespace AElf.OS.Network.Infrastructure
@@ -17,6 +16,8 @@ namespace AElf.OS.Network.Infrastructure
         bool Inbound { get; set; }
         long StartHeight { get; set; }
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+
+        Dictionary<string, List<RequestMetric>> GetRequestMetrics();
 
         void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement);
 
