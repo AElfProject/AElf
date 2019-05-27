@@ -44,10 +44,14 @@ namespace AElf.Kernel.SmartContract.Application
                 blockHeader.Height - 1, groupStateCache);
 
             var returnSets = new List<ExecutionReturnSet>();
+            var executeCanceled = false;
             foreach (var transaction in transactions)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
+                    executeCanceled = true;
+                    TypeConsts.BestTxCount -= 5;
+                    Logger.LogWarning($"Cancel transaction execution, BestTxCount: {TypeConsts.BestTxCount}");
                     break;
                 }
 
@@ -86,7 +90,9 @@ namespace AElf.Kernel.SmartContract.Application
                 var returnSet = GetReturnSet(trace, result);
                 returnSets.Add(returnSet);
             }
-
+            if (!executeCanceled)
+                TypeConsts.BestTxCount += 10;
+            
             return returnSets;
         }
 
