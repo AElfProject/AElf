@@ -161,11 +161,6 @@ namespace AElf.OS.Network.Grpc
 
         public void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement)
         {
-            if (peerNewBlockAnnouncement.HasFork)
-            {
-                _recentBlockHeightAndHashMappings.TryRemove(peerNewBlockAnnouncement.BlockHeight, out _);
-                return;
-            }
             CurrentBlockHeight = peerNewBlockAnnouncement.BlockHeight;
             CurrentBlockHash = peerNewBlockAnnouncement.BlockHash;
             _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
