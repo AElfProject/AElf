@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,7 +46,7 @@ namespace AElf.OS.Network.Application
             return _peerPool.GetPeers(true).ToList(); 
         }
 
-        public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader,bool hasFork)
+        public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader)
         {
             int successfulBcasts = 0;
             
@@ -53,13 +54,12 @@ namespace AElf.OS.Network.Application
             {
                 BlockHash = blockHeader.GetHash(),
                 BlockHeight = blockHeader.Height,
-                BlockTime = blockHeader.Time,
-                HasFork = hasFork
+                BlockTime = blockHeader.Time
             };
             
             var peers = _peerPool.GetPeers().ToList();
 
-            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash(), hasFork);
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash());
             
             Logger.LogDebug("About to broadcast to peers.");
             
@@ -212,7 +212,6 @@ namespace AElf.OS.Network.Application
                 
                 return (peer, null);
             });
-            
         }
 
         private async Task<T> RequestAsync<T>(List<IPeer> peers, Func<IPeer, Task<T>> func,

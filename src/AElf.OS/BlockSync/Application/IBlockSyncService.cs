@@ -73,7 +73,7 @@ namespace AElf.OS.BlockSync.Application
             _announcementCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
                         
             bool syncResult;
-            if (blockHash != null && blockHeight < chain.BestChainHeight + 5)
+            if (blockHash != null && blockHeight < chain.BestChainHeight + 8)
             {
                 syncResult = await _blockFetchService.FetchBlockAsync(blockHash, blockHeight, suggestedPeerPubKey);
             }

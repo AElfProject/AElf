@@ -50,6 +50,8 @@ namespace AElf.WebApp.Application.Chain
         Task<ChainStatusDto> GetChainStatus();
 
         Task<BlockStateDto> GetBlockState(string blockHash);
+
+        List<TaskQueueStatusInfoDto> GetTaskQueueStatus();
     }
     
     public class BlockChainAppService : IBlockChainAppService
@@ -61,6 +63,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionResultQueryService _transactionResultQueryService;
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly ITaskQueueManager _taskQueueManager;
         public ILogger<BlockChainAppService> Logger { get; set; }
         
         public ILocalEventBus LocalEventBus { get; set; }
@@ -71,7 +74,8 @@ namespace AElf.WebApp.Application.Chain
             ITransactionManager transactionManager,
             ITransactionResultQueryService transactionResultQueryService,
             ITxHub txHub,
-            IBlockchainStateManager blockchainStateManager
+            IBlockchainStateManager blockchainStateManager,
+            ITaskQueueManager taskQueueManager
             )
         {
             _blockchainService = blockchainService;
@@ -81,6 +85,7 @@ namespace AElf.WebApp.Application.Chain
             _transactionResultQueryService = transactionResultQueryService;
             _txHub = txHub;
             _blockchainStateManager = blockchainStateManager;
+            _taskQueueManager = taskQueueManager;
             
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -375,7 +380,8 @@ namespace AElf.WebApp.Application.Chain
                     Height = block.Header.Height,
                     Time = block.Header.Time.ToDateTime(),
                     ChainId = ChainHelpers.ConvertChainIdToBase58(block.Header.ChainId),
-                    Bloom = block.Header.Bloom.ToByteArray().ToHex()
+                    Bloom = block.Header.Bloom.ToByteArray().ToHex(),
+                    SignerPubkey = block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
                 {
@@ -428,7 +434,8 @@ namespace AElf.WebApp.Application.Chain
                     Height = blockInfo.Header.Height,
                     Time = blockInfo.Header.Time.ToDateTime(),
                     ChainId = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
-                    Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex()
+                    Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex(),
+                    SignerPubkey = blockInfo.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
                 {
@@ -518,6 +525,16 @@ namespace AElf.WebApp.Application.Chain
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
         }
         
+        public List<TaskQueueStatusInfoDto> GetTaskQueueStatus()
+        {
+            var taskQueueStateInfos = _taskQueueManager.GetQueueStateInfos();
+            return taskQueueStateInfos.Select(taskQueueStateInfo=>new TaskQueueStatusInfoDto
+            {
+                Name = taskQueueStateInfo.Name,
+                Size = taskQueueStateInfo.Size
+            }).ToList();
+        }
+
         private async Task<Block> GetBlock(Hash blockHash)
         {
             return await _blockchainService.GetBlockByHashAsync(blockHash);

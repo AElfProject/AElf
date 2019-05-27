@@ -22,6 +22,6 @@ namespace AElf.OS.Network.Infrastructure
 
         Task<Handshake> GetHandshakeAsync();
 
-        void AddRecentBlockHeightAndHash(long blockHeight, Hash blockHash, bool hasFork);
+        void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash);
     }
 }
