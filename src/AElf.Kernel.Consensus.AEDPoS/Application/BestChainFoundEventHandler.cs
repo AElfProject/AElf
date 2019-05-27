@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
