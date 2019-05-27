@@ -1,7 +1,5 @@
+using System;
 using System.Collections.Generic;
-using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.WebApp.Application.Chain.Dto
 {
@@ -18,11 +16,11 @@ namespace AElf.WebApp.Application.Chain.Dto
     {
         public int Order { get; set; }
         public int ProducedTinyBlocks { get; set; }
-        public Timestamp ExpectedMiningTime { get; set; }
-        public List<Timestamp> ActualMiningTimes { get; set; }
-        public Hash InValue { get; set; }
-        public Hash PreviousInValue { get; set; }
-        public Hash OutValue { get; set; }
+        public DateTime ExpectedMiningTime { get; set; }
+        public List<DateTime> ActualMiningTimes { get; set; }
+        public string InValue { get; set; }
+        public string PreviousInValue { get; set; }
+        public string OutValue { get; set; }
         public long ProducedBlocks { get; set; }
         public long MissedBlocks { get; set; }
     }

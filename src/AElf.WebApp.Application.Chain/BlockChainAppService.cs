@@ -557,14 +557,14 @@ namespace AElf.WebApp.Application.Chain
                     new MinerInRoundDto
                     {
                         Order = i.Value.Order,
-                        ExpectedMiningTime = i.Value.ExpectedMiningTime,
-                        ActualMiningTimes = i.Value.ActualMiningTimes.ToList(),
+                        ExpectedMiningTime = i.Value.ExpectedMiningTime.ToDateTime(),
+                        ActualMiningTimes = i.Value.ActualMiningTimes.Select(t => t.ToDateTime()).ToList(),
                         ProducedTinyBlocks = i.Value.ProducedTinyBlocks,
                         ProducedBlocks = i.Value.ProducedBlocks,
                         MissedBlocks = i.Value.MissedTimeSlots,
-                        InValue = i.Value.InValue,
-                        OutValue = i.Value.OutValue,
-                        PreviousInValue = i.Value.PreviousInValue
+                        InValue = i.Value.InValue.ToHex(),
+                        OutValue = i.Value.OutValue.ToHex(),
+                        PreviousInValue = i.Value.PreviousInValue.ToHex()
                     }),
                 RoundNumber = round.RoundNumber,
                 TermNumber = round.TermNumber,
