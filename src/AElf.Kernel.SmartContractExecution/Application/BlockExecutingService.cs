@@ -70,12 +70,27 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
 
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
+            var stopwatch1 = new Stopwatch();
+            stopwatch1.Start();
             var allExecutedTransactions =
                 nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
-            stopwatch.Stop();
-            Logger.LogWarning($"Filter timespan: {stopwatch.ElapsedMilliseconds} milliseconds");
+            stopwatch1.Stop();
+            
+            var stopwatch2 = new Stopwatch();
+            stopwatch2.Start();
+//            var filterTxs = new List<Transaction>();
+//            foreach (var tx in executed)
+//            {
+//                var filterItem = cancellable.First(o => o.GetHash() == tx);
+//                filterTxs.Add(filterItem);
+//            }
+//            var allExecutedTransactions1 =
+//                nonCancellable.Concat(filterTxs).ToList();
+            var allExecutedTransactions1 =
+                nonCancellable.Concat(executed.Select(o => cancellable.First(tx => tx.GetHash() == o))).ToList();
+            stopwatch2.Stop();
+            Logger.LogWarning($"Filter1 = {stopwatch1.ElapsedMilliseconds} milliseconds, Filter2 = {stopwatch2.ElapsedMilliseconds} milliseconds");
+            
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
                 returnSetContainer.Executed);
 
