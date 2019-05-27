@@ -51,6 +51,8 @@ namespace AElf.WebApp.Application.Chain
         Task<ChainStatusDto> GetChainStatus();
 
         Task<BlockStateDto> GetBlockState(string blockHash);
+
+        Task<RoundDto> GetCurrentRoundInformation();
     }
     
     public class BlockChainAppService : IBlockChainAppService
