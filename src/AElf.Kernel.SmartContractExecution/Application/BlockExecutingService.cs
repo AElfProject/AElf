@@ -56,6 +56,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     await _executingService.ExecuteAsync(blockHeader, cancellable, cancellationToken, false,
                         returnSetContainer.ToBlockStateSet());
                 returnSetContainer.AddRange(cancellableReturnSets);
+                TypeConsts.BestTxCount -= 5;
+            }
+            else
+            {
+                TypeConsts.BestTxCount += 10;
             }
 
             Logger.LogTrace("Executed cancellable txs");
