@@ -57,4 +57,7 @@
             <Compile Include="Protobuf/Generated/*.cs"/>
         </ItemGroup>
     </Target>
+    <Target Name="CopyNonInjectedContractDll" AfterTargets="AfterBuild">
+        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" SourceFiles="$(TargetDir)$(TargetName).dll" DestinationFolder="../../test/AElf.Runtime.CSharp.Tests/contracts" />
+    </Target>
 </Project>
