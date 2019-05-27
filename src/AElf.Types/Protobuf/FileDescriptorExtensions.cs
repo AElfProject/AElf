@@ -1,6 +1,6 @@
 using Google.Protobuf.Reflection;
 
-namespace AElf.CSharp.Core
+namespace AElf
 {
     public static class FileDescriptorExtensions
     {

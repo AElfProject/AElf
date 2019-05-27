@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
 using AElf.Common.Application;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -466,7 +465,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         public void Transaction_To_JObject()
         {
             var transaction = _osTestHelper.GenerateTransaction(Address.Generate(), Address.Generate(),
-                nameof(TokenContract.Transfer), new TransferInput
+                nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
                 {
                     Symbol = "ELF",
                     Amount = 1000L,
@@ -474,7 +473,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 });
             var transactionObj = transaction.GetTransactionInfo();
             transactionObj.ShouldNotBeNull();
-            transactionObj["Transaction"]["Method"].ToString().ShouldBe(nameof(TokenContract.Transfer));
+            transactionObj["Transaction"]["Method"].ToString().ShouldBe(nameof(TokenContractContainer.TokenContractStub.Transfer));
         }
 
         [Fact]
@@ -605,7 +604,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             {
                 var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
-                    nameof(TokenContract.Create), new CreateInput
+                    nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
                     {
                         Symbol = $"ELF",
                         TokenName= $"elf token {i}",
