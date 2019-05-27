@@ -22,8 +22,16 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
-        <Contract Include="..\..\src\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" >
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\src\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj" >
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
     <ItemGroup>
       <ContractStub Include="..\..\protobuf\token_contract.proto">
