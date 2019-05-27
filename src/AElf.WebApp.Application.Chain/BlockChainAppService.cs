@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -61,6 +62,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly ITaskQueueManager _taskQueueManager;
@@ -73,6 +75,7 @@ namespace AElf.WebApp.Application.Chain
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ITransactionManager transactionManager,
             ITransactionResultQueryService transactionResultQueryService,
+            IBlockExtraDataService blockExtraDataService,
             ITxHub txHub,
             IBlockchainStateManager blockchainStateManager,
             ITaskQueueManager taskQueueManager
@@ -83,6 +86,7 @@ namespace AElf.WebApp.Application.Chain
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _transactionManager = transactionManager;
             _transactionResultQueryService = transactionResultQueryService;
+            _blockExtraDataService = blockExtraDataService;
             _txHub = txHub;
             _blockchainStateManager = blockchainStateManager;
             _taskQueueManager = taskQueueManager;
@@ -533,6 +537,39 @@ namespace AElf.WebApp.Application.Chain
                 Name = taskQueueStateInfo.Name,
                 Size = taskQueueStateInfo.Size
             }).ToList();
+        }
+
+
+        /// <summary>
+        /// Get AEDPoS latest round information from last block header's consensus extra data of best chain.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<RoundDto> GetCurrentRoundInformation()
+        {
+            var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
+            var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", blockHeader);
+            var round = new Round();
+            round.MergeFrom(consensusExtraData);
+            return new RoundDto
+            {
+                ExtraBlockProducerOfPreviousRound = round.ExtraBlockProducerOfPreviousRound,
+                RealTimeMinerInformation = round.RealTimeMinersInformation.ToDictionary(i => i.Key, i =>
+                    new MinerInRoundDto
+                    {
+                        Order = i.Value.Order,
+                        ExpectedMiningTime = i.Value.ExpectedMiningTime,
+                        ActualMiningTimes = i.Value.ActualMiningTimes.ToList(),
+                        ProducedTinyBlocks = i.Value.ProducedTinyBlocks,
+                        ProducedBlocks = i.Value.ProducedBlocks,
+                        MissedBlocks = i.Value.MissedTimeSlots,
+                        InValue = i.Value.InValue,
+                        OutValue = i.Value.OutValue,
+                        PreviousInValue = i.Value.PreviousInValue
+                    }),
+                RoundNumber = round.RoundNumber,
+                TermNumber = round.TermNumber,
+                RoundId = round.RoundId
+            };
         }
 
         private async Task<Block> GetBlock(Hash blockHash)

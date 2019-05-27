@@ -10,6 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
       <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />
