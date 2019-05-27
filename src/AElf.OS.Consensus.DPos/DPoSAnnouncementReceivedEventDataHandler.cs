@@ -97,8 +97,8 @@ namespace AElf.OS.Consensus.DPos
 
             var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.PubKey)).ToList();
 
-            var pubKey = (await _accountService.GetPublicKeyAsync()).ToHex();
-            if (peers.Count == 0 && !pubkeyList.Contains(pubKey))
+            var pubKey = await _accountService.GetPublicKeyAsync();
+            if (peers.Count == 0 && !pubkeyList.Contains(pubKey.ToHex()))
                 return null;
 
             foreach (var block in orderedBlocks)
@@ -108,7 +108,7 @@ namespace AElf.OS.Consensus.DPos
                     p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
                     return hash == block.Value;
                 }).Count();
-                if (pubkeyList.Contains(pubKey) &&
+                if (pubkeyList.Contains(pubKey.ToHex()) &&
                     _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
                     blockHash == block.Value)
                     peersHadBlockAmount++;

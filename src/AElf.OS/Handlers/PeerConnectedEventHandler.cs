@@ -46,6 +46,8 @@ namespace AElf.OS.Handlers
 
         private async Task ProcessNewBlock(AnnouncementReceivedEventData header, string senderPubKey)
         {
+            Logger.LogTrace($"Receive announcement and sync block {{ hash: {header.Announce.BlockHash}, height: {header.Announce.BlockHeight} }} from {senderPubKey}.");
+
             var announcementEnqueueTime = _blockSyncService.GetBlockSyncAnnouncementEnqueueTime();
             if (announcementEnqueueTime != null &&
                 TimestampHelper.GetUtcNow() > announcementEnqueueTime + _blockSyncAnnouncementAgeLimit)
@@ -64,21 +66,16 @@ namespace AElf.OS.Handlers
                     $"Block sync attach queue is too busy, enqueue timestamp: {blockSyncAttachBlockEnqueueTime.ToDateTime()}");
                 return;
             }
-
-            var blockHeight = header.Announce.BlockHeight;
-            var blockHash = header.Announce.BlockHash;
-
-            Logger.LogTrace($"Receive header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
-
+            
             if (!VerifyAnnouncement(header.Announce))
             {
                 return;
             }
 
             var chain = await _blockchainService.GetChainAsync();
-            if (blockHeight < chain.LastIrreversibleBlockHeight)
+            if (header.Announce.BlockHeight < chain.LastIrreversibleBlockHeight)
             {
-                Logger.LogTrace($"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} " +
+                Logger.LogTrace($"Receive lower header {{ hash: {header.Announce.BlockHash}, height: {header.Announce.BlockHeight} }} " +
                                 $"form {senderPubKey}, ignore.");
                 return;
             }
@@ -89,8 +86,8 @@ namespace AElf.OS.Handlers
                 try
                 {
                     _blockSyncService.SetBlockSyncAnnouncementEnqueueTime(enqueueTimestamp);
-                    await _blockSyncService.SyncBlockAsync(blockHash, blockHeight, _networkOptions.BlockIdRequestCount,
-                        senderPubKey);
+                    await _blockSyncService.SyncBlockAsync(header.Announce.BlockHash, header.Announce.BlockHeight,
+                        _networkOptions.BlockIdRequestCount, senderPubKey);
                 }
                 finally
                 {
