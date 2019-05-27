@@ -81,11 +81,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var filterTxs = new List<Transaction>();
             foreach (var tx in executed)
             {
-                var filterItem = cancellable.First(o => o.GetHash() == tx);
+                var filterItem = cancellable.FirstOrDefault(o => o.GetHash() == tx);
                 filterTxs.Add(filterItem);
             }
             var allExecutedTransactions1 =
                 nonCancellable.Concat(filterTxs).ToList();
+            stopwatch2.Stop();
             Logger.LogWarning($"Filter1 = {stopwatch1.ElapsedMilliseconds} milliseconds, Filter2 = {stopwatch2.ElapsedMilliseconds} milliseconds");
             
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
