@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.Types;
@@ -31,7 +32,7 @@ namespace AElf.Kernel.SmartContractExecution
             services.AddTransient<ITransactionExecutingService>(p =>
             {
                 var mockService = new Mock<ITransactionExecutingService>();
-                mockService.Setup(m => m.ExecuteAsync(It.IsAny<BlockHeader>(), It.IsAny<List<Transaction>>(),
+                mockService.Setup(m => m.ExecuteAsync(It.IsAny<TransactionExecutingDto>(),
                         It.IsAny<CancellationToken>(), It.IsAny<bool>(), It.IsAny<BlockStateSet>()))
                     .Returns<BlockHeader, List<Transaction>,
                         CancellationToken,bool, BlockStateSet>((blockHeader, transactions, cancellationToken, throwException, blockStateSet) =>
