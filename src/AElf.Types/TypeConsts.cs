@@ -6,6 +6,6 @@ namespace AElf
         public const int AddressHashLength = 32;
         public const string AElfAddressPrefix = "ELF";
 
-        public static int BestTxCount = 100;
+        public static int BestTxCount = 10000;
     }
 }

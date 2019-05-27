@@ -49,9 +49,9 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
+                    Logger.LogWarning($"Cancel transaction execution, BestTxCount: {TypeConsts.BestTxCount}");
                     executeCanceled = true;
                     TypeConsts.BestTxCount -= 5;
-                    Logger.LogWarning($"Cancel transaction execution, BestTxCount: {TypeConsts.BestTxCount}");
                     break;
                 }
 

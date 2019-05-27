@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,8 +70,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
 
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             var allExecutedTransactions =
                 nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
+            stopwatch.Stop();
+            Logger.LogWarning($"Filter timespan: {stopwatch.ElapsedMilliseconds} milliseconds");
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
                 returnSetContainer.Executed);
 
