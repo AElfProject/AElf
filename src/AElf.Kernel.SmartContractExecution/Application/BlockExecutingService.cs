@@ -78,17 +78,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             
             var stopwatch2 = new Stopwatch();
             stopwatch2.Start();
-//            var filterTxs = new List<Transaction>();
-//            foreach (var tx in executed)
-//            {
-//                var filterItem = cancellable.First(o => o.GetHash() == tx);
-//                filterTxs.Add(filterItem);
-//            }
-//            var allExecutedTransactions1 =
-//                nonCancellable.Concat(filterTxs).ToList();
+            var filterTxs = new List<Transaction>();
+            foreach (var tx in executed)
+            {
+                var filterItem = cancellable.First(o => o.GetHash() == tx);
+                filterTxs.Add(filterItem);
+            }
             var allExecutedTransactions1 =
-                nonCancellable.Concat(executed.Select(o => cancellable.First(tx => tx.GetHash() == o))).ToList();
-            stopwatch2.Stop();
+                nonCancellable.Concat(filterTxs).ToList();
             Logger.LogWarning($"Filter1 = {stopwatch1.ElapsedMilliseconds} milliseconds, Filter2 = {stopwatch2.ElapsedMilliseconds} milliseconds");
             
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
