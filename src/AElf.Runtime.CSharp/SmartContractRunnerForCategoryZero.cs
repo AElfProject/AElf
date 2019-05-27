@@ -34,14 +34,14 @@ namespace AElf.Runtime.CSharp
         protected readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
         public SmartContractRunnerForCategoryZero(
             string sdkDir,
-            IServiceContainer<IExecutivePlugin> executivePlugins,
+            IServiceContainer<IExecutivePlugin> executivePlugins= null,
             IEnumerable<string> blackList = null,
             IEnumerable<string> whiteList = null)
         {
             _sdkDir = Path.GetFullPath(sdkDir);
             _sdkStreamManager = new SdkStreamManager(_sdkDir);
             _contractAuditor = new ContractAuditor(blackList, whiteList);
-            _executivePlugins = executivePlugins;
+            _executivePlugins = executivePlugins ?? ServiceContainerFactory<IExecutivePlugin>.Empty;
         }
 
         /// <summary>
