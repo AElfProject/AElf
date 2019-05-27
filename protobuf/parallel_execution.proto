@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option csharp_namespace = "AElf.Kernel.SmartContractExecution";
+
+import "aelf/core.proto";
+
+message TransactionResourceInfo {
+    repeated int32 resources = 1;
+    bool non_parallelizable = 2;
+    aelf.Hash transaction_id = 3;
+}
