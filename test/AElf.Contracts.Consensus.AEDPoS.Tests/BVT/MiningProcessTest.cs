@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs4;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
@@ -15,25 +14,18 @@ using Xunit.Abstractions;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public class MiningProcessTest : AElfConsensusContractTestBase
+    public partial class AEDPoSTest
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public MiningProcessTest(ITestOutputHelper testOutputHelper)
-        {
-            _testOutputHelper = testOutputHelper;
-            InitializeContracts();
-            AsyncHelper.RunSync(() => InitializeCandidates(InitialMinersCount));
-            AsyncHelper.RunSync(InitializeVoters);
-        }
-
         [Fact]
         public async Task EvilNodeDetectionTest()
         {
+            await InitializeVoters();
+            await InitializeCandidates(AEDPoSContractConstants.InitialMinersCount);
+            
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            var randomHashes = Enumerable.Range(0, InitialMinersCount).Select(_ => Hash.Generate()).ToList();
-            var triggers = Enumerable.Range(0, InitialMinersCount).Select(i => new AElfConsensusTriggerInformation
+            var randomHashes = Enumerable.Range(0, AEDPoSContractConstants.InitialMinersCount).Select(_ => Hash.Generate()).ToList();
+            var triggers = Enumerable.Range(0, AEDPoSContractConstants.InitialMinersCount).Select(i => new AElfConsensusTriggerInformation
             {
                 PublicKey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
                 RandomHash = randomHashes[i]
@@ -52,7 +44,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             //in order candidate 0 be selected
             var count = 0;
-            foreach (var candidateKeyPair in CandidatesKeyPairs.Take(InitialMinersCount).Append(oneMoreCandidateKeyPair))
+            foreach (var candidateKeyPair in CandidatesKeyPairs.Take(AEDPoSContractConstants.InitialMinersCount).Append(oneMoreCandidateKeyPair))
             {
                 await voter.Vote.SendAsync(new VoteMinerInput
                 {
@@ -67,34 +59,38 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
 
-                ECKeyPairProvider.SetKeyPair(currentKeyPair);
+                KeyPairProvider.SetKeyPair(currentKeyPair);
 
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
 
-                var tester = GetAElfConsensusContractTester(currentKeyPair);
-                var headerInformation =
-                    await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]);
+                var tester = GetAEDPoSContractStub(currentKeyPair);
+                var headerInformationBytes =
+                    await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]
+                        .ToBytesValue());
+                var headerInformation = new AElfConsensusHeaderInformation();
+                headerInformation.MergeFrom(headerInformationBytes.Value);
 
                 // Update consensus information.
                 var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.PublicKey);
                 await tester.UpdateValue.SendAsync(toUpdate);
             }
 
-            var changeTermTime = BlockchainStartTime.AddMinutes(TimeEachTerm + 1);
+            var changeTermTime = BlockchainStartTimestamp.ToDateTime().AddMinutes(AEDPoSContractConstants.TimeEachTerm + 1);
             BlockTimeProvider.SetBlockTime(changeTermTime);
 
-            var nextTermInformation = await BootMiner.GetInformationToUpdateConsensus.CallAsync(
+            var nextTermInformationBytes = await BootMiner.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextTerm,
                     PublicKey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)
-                });
-
+                }.ToBytesValue());
+            var nextTermInformation = new AElfConsensusHeaderInformation();
+            nextTermInformation.MergeFrom(nextTermInformationBytes.Value);
             await BootMiner.NextTerm.SendAsync(nextTermInformation.Round);
 
             // First candidate cheat others with in value.
-            var oneCandidate = GetAElfConsensusContractTester(CandidatesKeyPairs[0]);
-            var anotherCandidate = GetAElfConsensusContractTester(CandidatesKeyPairs[1]);
+            var oneCandidate = GetAEDPoSContractStub(CandidatesKeyPairs[0]);
+            var anotherCandidate = GetAEDPoSContractStub(CandidatesKeyPairs[1]);
             var randomHash = Hash.Generate();
             var input = new AElfConsensusTriggerInformation
             {
@@ -103,43 +99,54 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 RandomHash = randomHash,
                 PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
             };
-            var informationOfSecondRound = await oneCandidate.GetInformationToUpdateConsensus.CallAsync(input);
+            var informationOfSecondRoundBytes = await oneCandidate.GetInformationToUpdateConsensus.CallAsync(input.ToBytesValue());
+            var informationOfSecondRound = new AElfConsensusHeaderInformation();
+            informationOfSecondRound.MergeFrom(informationOfSecondRoundBytes.Value);
             if(informationOfSecondRound.Round == null)
                 _testOutputHelper.WriteLine(informationOfSecondRound.ToString());
             await oneCandidate.UpdateValue.SendAsync(
                 informationOfSecondRound.Round.ExtractInformationToUpdateConsensus(CandidatesKeyPairs[0].PublicKey
                     .ToHex()));
 
-            var thirdRoundStartTime = changeTermTime.AddMinutes(TimeEachTerm + 2);
+            var thirdRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractConstants.TimeEachTerm + 2);
             BlockTimeProvider.SetBlockTime(thirdRoundStartTime);
-            var thirdRound = (await oneCandidate.GetInformationToUpdateConsensus.CallAsync(new AElfConsensusTriggerInformation
-            {
-                Behaviour = AElfConsensusBehaviour.NextRound,
-                PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
-            })).Round;
 
+            var informationOfThirdRoundBytes = await oneCandidate.GetInformationToUpdateConsensus.CallAsync(
+                new AElfConsensusTriggerInformation
+                {
+                    Behaviour = AElfConsensusBehaviour.NextRound,
+                    PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
+                }.ToBytesValue());
+            var informationOfThirdRound = new AElfConsensusHeaderInformation();
+            informationOfThirdRound.MergeFrom(informationOfThirdRoundBytes.Value);
+            var thirdRound = informationOfThirdRound.Round;
             await oneCandidate.NextRound.SendAsync(thirdRound);
 
-            var cheatInformation = await oneCandidate.GetInformationToUpdateConsensus.CallAsync(
+            var cheatInformationBytes = await oneCandidate.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,
                     PreviousRandomHash = Hash.FromMessage(randomHash), // Not same as before.
                     RandomHash = Hash.Generate(), // Don't care this value in current test case.
                     PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
-                });
+                }.ToBytesValue());
+            var cheatInformation = new AElfConsensusHeaderInformation();
+            cheatInformation.MergeFrom(cheatInformationBytes.Value);
             await oneCandidate.UpdateValue.SendAsync(
                 cheatInformation.Round.ExtractInformationToUpdateConsensus(CandidatesKeyPairs[0].PublicKey.ToHex()));
 
             // The other miner generate information of next round.
-            var fourthRoundStartTime = changeTermTime.AddMinutes(TimeEachTerm + 3);
+            var fourthRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractConstants.TimeEachTerm + 3);
             BlockTimeProvider.SetBlockTime(fourthRoundStartTime);
-            var fourthRound = (await anotherCandidate.GetInformationToUpdateConsensus.CallAsync(
+            var informationOfFourthRoundBytes = await anotherCandidate.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextRound,
                     PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[1].PublicKey)
-                })).Round;
+                }.ToBytesValue());
+            var informationOfFourthRound = new AElfConsensusHeaderInformation();
+            informationOfFourthRound.MergeFrom(informationOfFourthRoundBytes.Value);
+            var fourthRound = informationOfFourthRound.Round;
 
             fourthRound.RealTimeMinersInformation.Keys.ShouldNotContain(CandidatesKeyPairs[0].PublicKey.ToHex());
             fourthRound.RealTimeMinersInformation.Keys.ShouldContain(oneMoreCandidateKeyPair.PublicKey.ToHex());
@@ -148,10 +155,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public async Task CandidatesNotEnough()
         {
+            await InitializeVoters();
+            await InitializeCandidates(AEDPoSContractConstants.InitialMinersCount);
+
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            var randomHashes = Enumerable.Range(0, InitialMinersCount).Select(_ => Hash.Generate()).ToList();
-            var triggers = Enumerable.Range(0, InitialMinersCount).Select(i => new AElfConsensusTriggerInformation
+            var randomHashes = Enumerable.Range(0, AEDPoSContractConstants.InitialMinersCount).Select(_ => Hash.Generate()).ToList();
+            var triggers = Enumerable.Range(0, AEDPoSContractConstants.InitialMinersCount).Select(i => new AElfConsensusTriggerInformation
             {
                 PublicKey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
                 RandomHash = randomHashes[i]
@@ -159,7 +169,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var voter = GetElectionContractTester(VotersKeyPairs[0]);
 
-            foreach (var candidateKeyPair in CandidatesKeyPairs.Take(InitialMinersCount))
+            foreach (var candidateKeyPair in CandidatesKeyPairs.Take(AEDPoSContractConstants.InitialMinersCount))
             {
                 await voter.Vote.SendAsync(new VoteMinerInput
                 {
@@ -173,77 +183,78 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
 
-                ECKeyPairProvider.SetKeyPair(currentKeyPair);
+                KeyPairProvider.SetKeyPair(currentKeyPair);
 
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
 
-                var tester = GetAElfConsensusContractTester(currentKeyPair);
+                var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation =
-                    await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]);
+                    (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]
+                        .ToBytesValue())).ToConsensusHeaderInformation();
 
                 // Update consensus information.
                 var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.PublicKey);
                 await tester.UpdateValue.SendAsync(toUpdate);
             }
 
-            var changeTermTime = BlockchainStartTime.AddMinutes(TimeEachTerm + 1);
+            var changeTermTime = BlockchainStartTimestamp.ToDateTime().AddMinutes(AEDPoSContractConstants.TimeEachTerm + 1);
             BlockTimeProvider.SetBlockTime(changeTermTime);
 
-            var nextTermInformation = await BootMiner.GetInformationToUpdateConsensus.CallAsync(
+            var nextTermInformation = (await BootMiner.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextTerm,
                     PublicKey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)
-                });
+                }.ToBytesValue())).ToConsensusHeaderInformation();
 
             await BootMiner.NextTerm.SendAsync(nextTermInformation.Round);
 
             // First candidate cheat others with in value.
-            var oneCandidate = GetAElfConsensusContractTester(CandidatesKeyPairs[0]);
-            var anotherCandidate = GetAElfConsensusContractTester(CandidatesKeyPairs[1]);
+            var oneCandidate = GetAEDPoSContractStub(CandidatesKeyPairs[0]);
+            var anotherCandidate = GetAEDPoSContractStub(CandidatesKeyPairs[1]);
             var randomHash = Hash.Generate();
-            var informationOfSecondRound = await oneCandidate.GetInformationToUpdateConsensus.CallAsync(
+            var informationOfSecondRound = (await oneCandidate.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,
                     PreviousRandomHash = Hash.Empty,
                     RandomHash = randomHash,
                     PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
-                });
+                }.ToBytesValue())).ToConsensusHeaderInformation();
             await oneCandidate.UpdateValue.SendAsync(
                 informationOfSecondRound.Round.ExtractInformationToUpdateConsensus(CandidatesKeyPairs[0].PublicKey
                     .ToHex()));
 
-            var thirdRoundStartTime = changeTermTime.AddMinutes(TimeEachTerm + 2);
+            var thirdRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractConstants.TimeEachTerm + 2);
             BlockTimeProvider.SetBlockTime(thirdRoundStartTime);
             var thirdRound = (await oneCandidate.GetInformationToUpdateConsensus.CallAsync(new AElfConsensusTriggerInformation
             {
                 Behaviour = AElfConsensusBehaviour.NextRound,
                 PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
-            })).Round;
+            }.ToBytesValue())).ToConsensusHeaderInformation().Round;
 
             await oneCandidate.NextRound.SendAsync(thirdRound);
 
-            var cheatInformation = await oneCandidate.GetInformationToUpdateConsensus.CallAsync(
+            var cheatInformation = (await oneCandidate.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,
                     PreviousRandomHash = Hash.FromMessage(randomHash), // Not same as before.
                     RandomHash = Hash.Generate(), // Don't care this value in current test case.
                     PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
-                });
+                }.ToBytesValue())).ToConsensusHeaderInformation();
             await oneCandidate.UpdateValue.SendAsync(
                 cheatInformation.Round.ExtractInformationToUpdateConsensus(CandidatesKeyPairs[0].PublicKey.ToHex()));
 
             // The other miner generate information of next round.
-            var fourthRoundStartTime = changeTermTime.AddMinutes(TimeEachTerm + 3);
+            var fourthRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractConstants.TimeEachTerm + 3);
             BlockTimeProvider.SetBlockTime(fourthRoundStartTime);
             var fourthRound = (await anotherCandidate.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextRound,
                     PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[1].PublicKey)
-                })).Round;
+                }.ToBytesValue())).ToConsensusHeaderInformation().Round;
 
             fourthRound.RealTimeMinersInformation.Keys.ShouldNotContain(CandidatesKeyPairs[0].PublicKey.ToHex());
             var newMiner = fourthRound.RealTimeMinersInformation.Keys.Where(k => !thirdRound.RealTimeMinersInformation.ContainsKey(k))

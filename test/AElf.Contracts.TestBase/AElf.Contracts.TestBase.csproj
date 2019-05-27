@@ -3,11 +3,8 @@
         <TargetFramework>netcoreapp2.2</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
-        <!--<Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />-->
-        <!--<Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />-->
         <Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
         <Contract Include="..\..\src\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
-        <!--<Contract Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />-->
         <Contract Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <Contract Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <Contract Include="..\..\src\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
@@ -44,17 +41,11 @@
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\stub\aedpos_contract.proto</Link>
         </ContractStub>
-        <!--<ContractStub Include="..\..\protobuf\dpos_sidechain_contract.proto">-->
-            <!--<Link>Protobuf\Proto\stub\dpos_sidechain_contract.proto</Link>-->
-        <!--</ContractStub>-->
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\stub\token_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
             <Link>Protobuf\Proto\stub\parliament_auth_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\dividend_contract.proto">
-            <Link>Protobuf\Proto\stub\dividend_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\resource_contract.proto">
             <Link>Protobuf\Proto\stub\resource_contract.proto</Link>

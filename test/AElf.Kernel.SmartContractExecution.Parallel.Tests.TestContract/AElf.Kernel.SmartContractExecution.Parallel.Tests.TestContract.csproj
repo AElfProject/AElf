@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs2.proto">
+            <Link>Protobuf\Proto\acs2.proto</Link>
+        </ContractBase>
+        <ContractCode Include="..\..\protobuf\parallel_execution_resource_testcontract.proto">
+            <Link>Protobuf\Proto\parallel_execution_resource_testcontract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+</Project>

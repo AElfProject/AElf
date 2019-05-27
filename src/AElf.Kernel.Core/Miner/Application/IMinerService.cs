@@ -11,7 +11,6 @@ namespace AElf.Kernel.Miner.Application
         /// This method mines a block.
         /// </summary>
         /// <returns>The block that has been produced.</returns>
-        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, List<Transaction> transactions,
-            DateTime blockTime, TimeSpan blockExecutionTime);
+        Task<Block> MineAsync(RequestMiningDto requestMiningDto, List<Transaction> transactions, DateTime blockTime);
     }
 }
