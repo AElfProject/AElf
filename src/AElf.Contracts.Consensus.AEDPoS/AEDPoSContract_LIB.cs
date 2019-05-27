@@ -38,7 +38,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var minersCount = currentRoundMiners.Count;
 
-            var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
+            var minimumCount = minersCount.Mul(2).Div(3).Add(1);
 
             if (minersCount == 1)
             {

@@ -61,22 +61,23 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Assert(false, "Failed to get current round information.");
             }
 
-            var publicKey = triggerInformation.PublicKey;
-
+            var publicKeyBytes = triggerInformation.PublicKey;
+            var publicKey = publicKeyBytes.ToHex();
+            
             switch (triggerInformation.Behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
-                    return GetInformationToUpdateConsensusToPublishOutValue(currentRound, publicKey.ToHex(),
+                    return GetInformationToUpdateConsensusToPublishOutValue(currentRound, publicKey,
                         triggerInformation).ToBytesValue();
                 case AElfConsensusBehaviour.TinyBlock:
-                    return GetInformationToUpdateConsensusForTinyBlock(currentRound, publicKey.ToHex(),
+                    return GetInformationToUpdateConsensusForTinyBlock(currentRound, publicKey,
                         triggerInformation).ToBytesValue();
                 case AElfConsensusBehaviour.NextRound:
-                    return GetInformationToUpdateConsensusForNextRound(currentRound, publicKey.ToHex(),
+                    return GetInformationToUpdateConsensusForNextRound(currentRound, publicKey,
                         triggerInformation).ToBytesValue();
                 case AElfConsensusBehaviour.NextTerm:
-                    return GetInformationToUpdateConsensusForNextTerm(publicKey.ToHex(), triggerInformation)
+                    return GetInformationToUpdateConsensusForNextTerm(publicKey, triggerInformation)
                         .ToBytesValue();
                 default:
                     return new BytesValue();
