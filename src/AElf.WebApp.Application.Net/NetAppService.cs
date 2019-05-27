@@ -56,14 +56,17 @@ namespace AElf.WebApp.Application.Net
         public List<PeerDto> GetPeers()
         {
             var peerList = _networkService.GetPeers();
+            
             var peerDtoList = peerList.Select(p => new PeerDto
             {
                 IpAddress = p.PeerIpAddress,
                 ProtocolVersion = p.ProtocolVersion,
                 ConnectionTime = p.ConnectionTime,
                 Inbound = p.Inbound,
-                StartHeight = p.StartHeight
+                StartHeight = p.StartHeight,
+                RequestMetrics = p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList()
             }).ToList();
+            
             return peerDtoList;
         }
 
