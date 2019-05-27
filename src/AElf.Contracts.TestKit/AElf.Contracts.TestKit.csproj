@@ -10,7 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\cntr\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />

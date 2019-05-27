@@ -13,21 +13,21 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\cntr\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
+      <ProjectReference Include="..\..\contract\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
       <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\cntr\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" >
+        <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" >
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\cntr\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" >
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" >
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\cntr\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" >
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" >
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -14,17 +14,17 @@
     <PackageReference Include="Mono.Cecil" Version="0.10.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\cntr\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj" />
-    <ProjectReference Include="..\..\cntr\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
-    <ProjectReference Include="..\..\cntr\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
-    <ProjectReference Include="..\..\cntr\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
-    <ProjectReference Include="..\..\cntr\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
-    <ProjectReference Include="..\..\cntr\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
-    <ProjectReference Include="..\..\cntr\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
-    <ProjectReference Include="..\..\cntr\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
-    <ProjectReference Include="..\..\cntr\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj" />
-    <ProjectReference Include="..\..\cntr\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
-    <ProjectReference Include="..\..\cntr\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
+    <ProjectReference Include="..\..\contract\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj" />
+    <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
+    <ProjectReference Include="..\..\contract\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />
+    <ProjectReference Include="..\..\contract\AElf.Contracts.Election\AElf.Contracts.Election.csproj" />
+    <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+    <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
+    <ProjectReference Include="..\..\contract\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj" />
+    <ProjectReference Include="..\..\contract\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" />
+    <ProjectReference Include="..\..\contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj" />
+    <ProjectReference Include="..\..\contract\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />
+    <ProjectReference Include="..\..\contract\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
     <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
     <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj" />
