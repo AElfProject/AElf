@@ -172,7 +172,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 NextBlockMiningLeftMilliseconds = nextBlockMiningLeftMilliseconds,
                 LimitMillisecondsOfMiningBlock = behaviour == AElfConsensusBehaviour.NextTerm
                     ? miningInterval.Div(2)
-                    : limitMillisecondsOfMiningBlock.Mul(4).Div(5),
+                    : limitMillisecondsOfMiningBlock.Mul(AEDPoSContractConstants.LimitBlockExecutionTimeWeight)
+                        .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalWeight),
                 Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString()
             };
         }

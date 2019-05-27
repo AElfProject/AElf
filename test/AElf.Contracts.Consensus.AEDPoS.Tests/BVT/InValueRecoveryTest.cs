@@ -16,16 +16,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSTest
     {
-        private static int MinimumCount => AEDPoSContractConstants.InitialMinersCount.Mul(2).Div(3);
+        private static int MinimumCount => AEDPoSContractTestConstants.InitialMinersCount.Mul(2).Div(3);
 
         [Fact]
         internal async Task<Dictionary<string, AElfConsensusTriggerInformation>> GenerateEncryptedMessagesTest()
         {
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            var randomHashes = Enumerable.Range(0, AEDPoSContractConstants.InitialMinersCount)
+            var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount)
                 .Select(_ => Hash.Generate()).ToList();
-            var triggers = Enumerable.Range(0, AEDPoSContractConstants.InitialMinersCount).Select(i =>
+            var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {
                     PublicKey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
@@ -48,7 +48,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var encryptedInValues = headerInformation.Round.RealTimeMinersInformation[minerInRound.PublicKey]
                     .EncryptedInValues;
 
-                encryptedInValues.Count.ShouldBe(AEDPoSContractConstants.InitialMinersCount - 1);
+                encryptedInValues.Count.ShouldBe(AEDPoSContractTestConstants.InitialMinersCount - 1);
                 foreach (var (key, value) in encryptedInValues)
                 {
                     InitialMinersKeyPairs.Select(p => p.PublicKey.ToHex()).ShouldContain(key);
@@ -64,7 +64,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             foreach (var minerInRound in updatedRound.RealTimeMinersInformation.Values)
             {
-                minerInRound.EncryptedInValues.Count.ShouldBe(AEDPoSContractConstants.InitialMinersCount - 1);
+                minerInRound.EncryptedInValues.Count.ShouldBe(AEDPoSContractTestConstants.InitialMinersCount - 1);
             }
 
             return triggers;
@@ -79,7 +79,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             var message = Hash.Generate().ToHex();
             var secrets =
-                SecretSharingHelper.EncodeSecret(message, MinimumCount, AEDPoSContractConstants.InitialMinersCount);
+                SecretSharingHelper.EncodeSecret(message, MinimumCount, AEDPoSContractTestConstants.InitialMinersCount);
             var encryptedValues = new Dictionary<string, byte[]>();
             var decryptedValues = new Dictionary<string, byte[]>();
             var ownerKeyPair = InitialMinersKeyPairs[0];
@@ -95,7 +95,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             // Check encrypted values.
-            encryptedValues.Count.ShouldBe(AEDPoSContractConstants.InitialMinersCount - 1);
+            encryptedValues.Count.ShouldBe(AEDPoSContractTestConstants.InitialMinersCount - 1);
 
             // Others try to recover.
             foreach (var keyPair in othersKeyPairs)
@@ -126,9 +126,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var currentRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            var randomHashes = Enumerable.Range(0, AEDPoSContractConstants.InitialMinersCount)
+            var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount)
                 .Select(_ => Hash.Generate()).ToList();
-            var triggers = Enumerable.Range(0, AEDPoSContractConstants.InitialMinersCount).Select(i =>
+            var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {
                     PublicKey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
@@ -159,7 +159,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // But in values all filled.
             var secondRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
             secondRound.RealTimeMinersInformation.Values.Count(v => v.PreviousInValue != null)
-                .ShouldBe(AEDPoSContractConstants.InitialMinersCount);
+                .ShouldBe(AEDPoSContractTestConstants.InitialMinersCount);
         }
     }
 }

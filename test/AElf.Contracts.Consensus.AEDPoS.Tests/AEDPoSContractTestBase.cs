@@ -58,20 +58,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
             .ToList();
 
         protected List<ECKeyPair> InitialMinersKeyPairs =>
-            SampleECKeyPairs.KeyPairs.Take(AEDPoSContractConstants.InitialMinersCount).ToList();
+            SampleECKeyPairs.KeyPairs.Take(AEDPoSContractTestConstants.InitialMinersCount).ToList();
 
         protected List<ECKeyPair> CandidatesKeyPairs =>
-            SampleECKeyPairs.KeyPairs.Skip(AEDPoSContractConstants.InitialMinersCount)
-                .Take(AEDPoSContractConstants.CandidatesCount).ToList();
+            SampleECKeyPairs.KeyPairs.Skip(AEDPoSContractTestConstants.InitialMinersCount)
+                .Take(AEDPoSContractTestConstants.CandidatesCount).ToList();
 
         protected List<ECKeyPair> VotersKeyPairs =>
             SampleECKeyPairs.KeyPairs
-                .Skip(AEDPoSContractConstants.InitialMinersCount + AEDPoSContractConstants.CandidatesCount)
-                .Take(AEDPoSContractConstants.VotersCount).ToList();
+                .Skip(AEDPoSContractTestConstants.InitialMinersCount + AEDPoSContractTestConstants.CandidatesCount)
+                .Take(AEDPoSContractTestConstants.VotersCount).ToList();
 
         protected List<ECKeyPair> BackupNodesKeyPair =>
-            SampleECKeyPairs.KeyPairs.Skip(AEDPoSContractConstants.InitialMinersCount)
-                .Take(AEDPoSContractConstants.InitialMinersCount).ToList();
+            SampleECKeyPairs.KeyPairs.Skip(AEDPoSContractTestConstants.InitialMinersCount)
+                .Take(AEDPoSContractTestConstants.InitialMinersCount).ToList();
 
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
 
@@ -176,7 +176,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var currentRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
             var expectedStartTime = BlockchainStartTimestamp.ToDateTime()
                 .AddMilliseconds(
-                    ((long) currentRound.TotalMilliseconds(AEDPoSContractConstants.MiningInterval)).Mul(
+                    ((long) currentRound.TotalMilliseconds(AEDPoSContractTestConstants.MiningInterval)).Mul(
                         nextRoundNumber.Sub(1)));
             currentRound.GenerateNextRoundInformation(expectedStartTime.ToTimestamp(), BlockchainStartTimestamp,
                 out var nextRound);
@@ -189,7 +189,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return blockchainStartTime.AddMilliseconds(roundTotalMilliseconds * (roundNumber - 1));
         }
 
-        protected async Task InitializeCandidates(int take = AEDPoSContractConstants.CandidatesCount)
+        protected async Task InitializeCandidates(int take = AEDPoSContractTestConstants.CandidatesCount)
         {
             var initialMiner = GetTokenContractTester(BootMinerKeyPair);
             foreach (var candidatesKeyPair in CandidatesKeyPairs.Take(take))
@@ -243,7 +243,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        TimeEachTerm = AEDPoSContractConstants.TimeEachTerm
+                        TimeEachTerm = AEDPoSContractTestConstants.TimeEachTerm
                     });
                 CheckResult(result.TransactionResult);
             }
@@ -252,7 +252,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     new MinerList
                     {
                         PublicKeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
-                    }.GenerateFirstRoundOfNewTerm(AEDPoSContractConstants.MiningInterval, BlockchainStartTimestamp.ToDateTime()));
+                    }.GenerateFirstRoundOfNewTerm(AEDPoSContractTestConstants.MiningInterval, BlockchainStartTimestamp.ToDateTime()));
                 CheckResult(result.TransactionResult);
             }
         }
@@ -262,11 +262,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var result = await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput
                 {
-                    Symbol = AEDPoSContractConstants.Symbol,
+                    Symbol = AEDPoSContractTestConstants.Symbol,
                     Decimals = 2,
                     IsBurnable = true,
                     TokenName = "elf token",
-                    TotalSupply = AEDPoSContractConstants.TotalSupply,
+                    TotalSupply = AEDPoSContractTestConstants.TotalSupply,
                     Issuer = BootMinerAddress,
                     LockWhiteSystemContractNameList =
                     {
@@ -281,8 +281,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var result = await TokenContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
                 {
-                    Symbol = AEDPoSContractConstants.Symbol,
-                    Amount = AEDPoSContractConstants.TotalSupply.Div(5),
+                    Symbol = AEDPoSContractTestConstants.Symbol,
+                    Amount = AEDPoSContractTestConstants.TotalSupply.Div(5),
                     // Should be address of Treasury Contract.
                     ToSystemContractName = ElectionSmartContractAddressNameProvider.Name,
                     Memo = "Set total mining rewards."
@@ -293,8 +293,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var result = await TokenContractStub.Issue.SendAsync(new IssueInput
                 {
-                    Symbol = AEDPoSContractConstants.Symbol,
-                    Amount = AEDPoSContractConstants.TotalSupply.Mul(3).Div(5),
+                    Symbol = AEDPoSContractTestConstants.Symbol,
+                    Amount = AEDPoSContractTestConstants.TotalSupply.Mul(3).Div(5),
                     To = BootMinerAddress,
                     Memo = "Issue token to default user.",
                 });
@@ -306,9 +306,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     var result = await TokenContractStub.Issue.SendAsync(new IssueInput
                     {
-                        Symbol = AEDPoSContractConstants.Symbol,
-                        Amount = AEDPoSContractConstants.TotalSupply.Div(5)
-                            .Div(AEDPoSContractConstants.InitialMinersCount),
+                        Symbol = AEDPoSContractTestConstants.Symbol,
+                        Amount = AEDPoSContractTestConstants.TotalSupply.Div(5)
+                            .Div(AEDPoSContractTestConstants.InitialMinersCount),
                         To = Address.FromPublicKey(initialMinerKeyPair.PublicKey),
                         Memo = "Set initial miner's balance for testing."
                     });
