@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package election;
+package Election;
 
 import "aelf/options.proto";
 import "aelf/core.proto";

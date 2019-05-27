@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         internal const long TotalSupply = 1000_000_000;
 
-        internal static readonly int SmallBlockMiningInterval = MiningInterval.Div(TinySlots);
+        internal static readonly int SmallBlockMiningInterval = MiningInterval.Div(TinySlots).Mul(4).Div(5);
 
         /// <summary>
         /// 7 days.
