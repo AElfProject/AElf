@@ -2,4 +2,4 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Import Project="src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.targets" />
     <Import Project="AElf.Contract.Tools.targets" />
-</Project>
+</Project> 

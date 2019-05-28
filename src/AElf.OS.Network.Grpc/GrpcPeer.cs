@@ -273,6 +273,11 @@ namespace AElf.OS.Network.Grpc
 
         public void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement)
         {
+            if (peerNewBlockAnnouncement.HasFork)
+            {
+                _recentBlockHeightAndHashMappings.Clear();
+                return;
+            }
             CurrentBlockHeight = peerNewBlockAnnouncement.BlockHeight;
             CurrentBlockHash = peerNewBlockAnnouncement.BlockHash;
             _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
