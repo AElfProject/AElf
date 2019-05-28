@@ -5,29 +5,29 @@
     <ItemGroup>
         <!--<Contract Include="..\..\src\AElf.Contracts.Consensus.DPoS.SideChain\AElf.Contracts.Consensus.DPoS.SideChain.csproj" />-->
         <!--<Contract Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />-->
-        <ProjectReference Include="..\..\src\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\src\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj">
+        <ProjectReference Include="..\..\contract\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
         <!--<Contract Include="..\..\src\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />-->
-        <ProjectReference Include="..\..\src\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj"/>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\src\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj">
+        <ProjectReference Include="..\..\contract\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\..\src\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj">
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

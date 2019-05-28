@@ -5,9 +5,6 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
     </PropertyGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
-    </ItemGroup>
 
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs0.proto">

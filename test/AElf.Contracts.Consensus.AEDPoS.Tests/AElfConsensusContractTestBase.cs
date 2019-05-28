@@ -95,8 +95,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             ECKeyPairProvider.SetKeyPair(BootMinerKeyPair);
 
-//            BasicContractZeroStub = GetContractZeroTester(BootMinerKeyPair);
-
             // Deploy Vote Contract
             VoteContractAddress = AsyncHelper.RunSync(  () =>
                 DeploySystemSmartContract(
@@ -104,8 +102,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     VoteContractCode,
                     VoteSmartContractAddressNameProvider.Name,
                     BootMinerKeyPair));
-//                        TransactionMethodCallList = GenerateVoteInitializationCallList()
-//                    })).Output;
             VoteContractStub = GetVoteContractTester(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeVote);
             
@@ -116,8 +112,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ProfitContractCode,
                     ProfitSmartContractAddressNameProvider.Name,
                     BootMinerKeyPair));
-//                        TransactionMethodCallList = GenerateProfitInitializationCallList()
-//        })).Output;
             ProfitContractStub =
                 GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeProfit);
@@ -129,8 +123,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ElectionContractCode,
                     ElectionSmartContractAddressNameProvider.Name,
                     BootMinerKeyPair));
-//                        TransactionMethodCallList = GenerateElectionInitializationCallList()
-//                    })).Output;
             ElectionContractStub = GetElectionContractTester(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeElection);
             
@@ -141,8 +133,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     TokenContractCode,
                     TokenSmartContractAddressNameProvider.Name,
                     BootMinerKeyPair));
-//                        TransactionMethodCallList = GenerateTokenInitializationCallList()
-//                    })).Output;
             TokenContractStub = GetTokenContractTester(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeToken);
 
@@ -152,16 +142,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name,
                 BootMinerKeyPair));
-//                        TransactionMethodCallList = GenerateAElfConsensusInitializationCallList()
-//                    })).Output;
             AElfConsensusContractStub = GetAElfConsensusContractTester(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeAElfConsensus);
         }
-
-//        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
-//        {
-//            return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
-//        }
 
         internal ElectionContractContainer.ElectionContractStub GetElectionContractTester(ECKeyPair keyPair)
         {
@@ -247,21 +230,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new Empty());
             CheckResult(result.TransactionResult);
         }
-//        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
-//        {
-//            var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
-//                new InitialVoteContractInput
-//                {
-//                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-//                });
-//
-//            return voteMethodCallList;
-//        }
 
         private async Task InitializeElection()
         {
-//            var electionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var result = await ElectionContractStub.InitialElectionContract.SendAsync(new InitialElectionContractInput
                 {
                     MaximumLockTime = 1080 * 86400,
@@ -270,28 +241,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             CheckResult(result.TransactionResult);
         }
         
-//        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateElectionInitializationCallList()
-//        {
-//            var electionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//            electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
-//                new InitialElectionContractInput
-//                {
-//                    // Create Treasury profit item and register sub items.
-//                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-//                    VoteContractSystemName = VoteSmartContractAddressNameProvider.Name,
-//                    ProfitContractSystemName = ProfitSmartContractAddressNameProvider.Name,
-//                    
-//                    // Get current miners.
-//                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-//                    MaximumLockTime = 1080 * 86400,
-//                    MinimumLockTime = 90 * 86400
-//                });
-//            return electionMethodCallList;
-//        }
-
         private async Task InitializeAElfConsensus()
         {
-//            var aelfConsensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var result1 = await AElfConsensusContractStub.InitialAElfConsensusContract.SendAsync(
                 new InitialAElfConsensusContractInput
                 {
@@ -357,76 +308,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 CheckResult(result4.TransactionResult);
             }
         }
-//        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
-//        {
-//            const string symbol = "ELF";
-//            const long totalSupply = 1000_000_0000; //1000_000_000
-//            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
-//            {
-//                Symbol = symbol,
-//                Decimals = 2,
-//                IsBurnable = true,
-//                TokenName = "elf token",
-//                TotalSupply = totalSupply,
-//                Issuer = BootMinerAddress,
-//                LockWhiteSystemContractNameList =
-//                {
-//                    ElectionSmartContractAddressNameProvider.Name,
-//                    VoteSmartContractAddressNameProvider.Name,
-//                    ProfitSmartContractAddressNameProvider.Name,
-//                }
-//            });
-//            
-//            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
-//            {
-//                Symbol = symbol,
-//                Amount = (long) (totalSupply * 0.2),
-//                ToSystemContractName = ElectionSmartContractAddressNameProvider.Name,
-//                Memo = "Set dividends.",
-//            });
-//
-//            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
-//            {
-//                Symbol = symbol,
-//                Amount = (long)(totalSupply * 0.6),
-//                To = BootMinerAddress,
-//                Memo = "Issue token to default user.",
-//            });
-//
-//            foreach (var initialMinerKeyPair in InitialMinersKeyPairs)
-//            {
-//                tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
-//                {
-//                    Symbol = symbol,
-//                    Amount = (long) (totalSupply * 0.2) / InitialMinersCount,
-//                    To = Address.FromPublicKey(initialMinerKeyPair.PublicKey),
-//                    Memo = "Set initial miner's balance.",
-//                });
-//            }
-//            
-//            // Set fee pool address to election contract address.
-//            tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
-//                ElectionSmartContractAddressNameProvider.Name);
-//
-//            return tokenContractCallList;
-//        }
-        
+
         private async Task InitializeProfit()
         {
             var result = await ProfitContractStub.InitializeProfitContract.SendAsync(new Empty());
             CheckResult(result.TransactionResult);
         }
-//        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
-//        {
-//        var profitContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//        profitContractMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),
-//        new InitializeProfitContractInput
-//        {
-//        // To handle tokens when release profit, add profits and receive profits.
-//        TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-//        });
-//        return profitContractMethodCallList;
-//        } 
+
     }
 }

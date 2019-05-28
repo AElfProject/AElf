@@ -8,10 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>

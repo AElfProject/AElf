@@ -1,27 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <PackageId>AElf.Contracts.Profit</PackageId>
+        <RootNamespace>TokenConverter</RootNamespace>
+        <PackageId>AElf.Contracts.TokenConverter</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IsContract>true</IsContract>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ContractReference Include="..\..\protobuf\acs0.proto">
-            <Link>Protobuf\Proto\reference\acs0.proto</Link>
-        </ContractReference>
         <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\profit_contract.proto">
-            <Link>Protobuf\Proto\profit_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf\Proto\token_converter_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

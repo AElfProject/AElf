@@ -8,10 +8,6 @@
         <IsContract>true</IsContract>
     </PropertyGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
-    </ItemGroup>
-
     <!--<ItemGroup>-->
         <!--<ContractReference Include="$(ProtoBaseDir)\token_contract.proto">-->
             <!--<Link>Protobuf\Proto\reference\token_contract.proto</Link>-->
