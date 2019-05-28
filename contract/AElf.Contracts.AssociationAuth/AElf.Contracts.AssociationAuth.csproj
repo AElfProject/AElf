@@ -9,7 +9,6 @@
             <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
     </ItemGroup>
-
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
