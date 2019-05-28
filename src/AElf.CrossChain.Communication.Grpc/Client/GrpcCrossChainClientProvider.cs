@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using AElf.CrossChain.Cache;
-using AElf.CrossChain.Communication.Infrastructure;
+using AElf.CrossChain.Cache.Application;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

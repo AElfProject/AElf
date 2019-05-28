@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.CrossChain.Communication.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

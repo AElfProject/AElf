@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Acs7;
+using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Communication.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Node.Infrastructure;
@@ -9,16 +10,16 @@ namespace AElf.CrossChain.Communication
     public class CrossChainPlugin : INodePlugin, IChainInitializationDataPlugin
     {
         private readonly ICrossChainRequestService _crossChainRequestService;
-        private readonly INewChainRegistrationService _newChainRegistrationService;
+        private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
         private readonly ICrossChainCommunicationController _crossChainCommunicationController;
         private readonly IBlockchainService _blockchainService;
 
         public CrossChainPlugin(ICrossChainRequestService crossChainRequestService, 
-            INewChainRegistrationService newChainRegistrationService, IBlockchainService blockchainService, 
+            ICrossChainCacheEntityService crossChainCacheEntityService, IBlockchainService blockchainService, 
             ICrossChainCommunicationController crossChainCommunicationController)
         {
             _crossChainRequestService = crossChainRequestService;
-            _newChainRegistrationService = newChainRegistrationService;
+            _crossChainCacheEntityService = crossChainCacheEntityService;
             _blockchainService = blockchainService;
             _crossChainCommunicationController = crossChainCommunicationController;
         }
@@ -37,7 +38,7 @@ namespace AElf.CrossChain.Communication
             if (libIdHeight.BlockHeight > Constants.GenesisBlockHeight)
             {
                 // start cache if the lib is higher than genesis 
-                await _newChainRegistrationService.RegisterNewChainsAsync(libIdHeight.BlockHash,
+                await _crossChainCacheEntityService.RegisterNewChainsAsync(libIdHeight.BlockHash,
                     libIdHeight.BlockHeight);
             }
 

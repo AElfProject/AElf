@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.CrossChain.Cache.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Events;
 using Volo.Abp.DependencyInjection;
@@ -9,17 +10,17 @@ namespace AElf.CrossChain
     internal class CrossChainModuleEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>, ISingletonDependency
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
-        private readonly INewChainRegistrationService _newChainRegistrationService;
+        private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
 
-        public CrossChainModuleEventHandler(ICrossChainDataProvider crossChainDataProvider, INewChainRegistrationService newChainRegistrationService)
+        public CrossChainModuleEventHandler(ICrossChainDataProvider crossChainDataProvider, ICrossChainCacheEntityService crossChainCacheEntityService)
         {
             _crossChainDataProvider = crossChainDataProvider;
-            _newChainRegistrationService = newChainRegistrationService;
+            _crossChainCacheEntityService = crossChainCacheEntityService;
         }
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            await _newChainRegistrationService.RegisterNewChainsAsync(eventData.BlockHash, eventData.BlockHeight);
+            await _crossChainCacheEntityService.RegisterNewChainsAsync(eventData.BlockHash, eventData.BlockHeight);
             _crossChainDataProvider.UpdateWithLibIndex(new BlockIndex
             {
                 Hash = eventData.BlockHash,

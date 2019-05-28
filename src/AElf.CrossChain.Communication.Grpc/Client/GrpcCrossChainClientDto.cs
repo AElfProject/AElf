@@ -1,5 +1,3 @@
-using AElf.CrossChain.Communication.Infrastructure;
-
 namespace AElf.CrossChain.Communication.Grpc
 {
     public class GrpcCrossChainClientDto : ICrossChainClientDto

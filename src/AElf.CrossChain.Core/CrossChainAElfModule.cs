@@ -3,6 +3,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Modularity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
@@ -27,6 +28,20 @@ namespace AElf.CrossChain
             Configure<CrossChainConfigOption>(option =>
             {
                 option.ParentChainId = ChainHelpers.ConvertBase58ToChainId(crossChainConfiguration["ParentChainId"]);
+                var maximalCountForIndexingParentChainBlockConfiguration =
+                    crossChainConfiguration.GetSection("MaximalCountForIndexingParentChainBlock");
+                if (maximalCountForIndexingParentChainBlockConfiguration.Exists())
+                {
+                    option.MaximalCountForIndexingParentChainBlock = int.Parse(maximalCountForIndexingParentChainBlockConfiguration.Value);
+                }
+
+                var maximalCountForIndexingSideChainBlockConfiguration =
+                    crossChainConfiguration.GetSection("MaximalCountForIndexingSideChainBlock");
+                if (maximalCountForIndexingSideChainBlockConfiguration.Exists())
+                {
+                    option.MaximalCountForIndexingSideChainBlock =
+                        int.Parse(maximalCountForIndexingSideChainBlockConfiguration.Value);
+                }
             });
         }
     }

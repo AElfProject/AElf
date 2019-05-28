@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Cache;
-using AElf.CrossChain.Communication.Infrastructure;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 

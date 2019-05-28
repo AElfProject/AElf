@@ -1,8 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
-using AElf.CrossChain.Cache;
-using AElf.CrossChain.Communication.Infrastructure;
+using AElf.CrossChain.Cache.Application;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.CrossChain.Communication.Application
@@ -17,26 +16,27 @@ namespace AElf.CrossChain.Communication.Application
     public class CrossChainRequestService : ICrossChainRequestService
     {
         private readonly ICrossChainClientProvider _crossChainClientProvider;
-        private readonly IChainCacheEntityProvider _chainCacheEntityProvider;
+        private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
         public ILogger<CrossChainRequestService> Logger { get; set; }
 
         public CrossChainRequestService(ICrossChainClientProvider crossChainClientProvider, 
-            IChainCacheEntityProvider chainCacheEntityProvider)
+            ICrossChainCacheEntityService crossChainCacheEntityService)
         {
             _crossChainClientProvider = crossChainClientProvider;
-            _chainCacheEntityProvider = chainCacheEntityProvider;
+            _crossChainCacheEntityService = crossChainCacheEntityService;
         }
 
         public async Task RequestCrossChainDataFromOtherChainsAsync()
         {
-            var chainIds = _chainCacheEntityProvider.CachedChainIds;
-            Logger.LogTrace($"Try to request from chain {string.Join(",", chainIds.Select(ChainHelpers.ConvertChainIdToBase58))}");
+            var chainIds = _crossChainCacheEntityService.GetCachedChainIds();
+            Logger.LogTrace(
+                $"Try to request from chain {string.Join(",", chainIds.Select(ChainHelpers.ConvertChainIdToBase58))}");
             foreach (var chainId in chainIds)
             {
                 var client = await _crossChainClientProvider.GetClientAsync(chainId);
                 if (client == null)
                     continue;
-                var targetHeight = _chainCacheEntityProvider.GetChainCacheEntity(chainId).TargetChainHeight();
+                var targetHeight = _crossChainCacheEntityService.GetTargetHeightForChainCacheEntity(chainId);
                 Logger.LogTrace($" Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)} from {targetHeight}");
                 _ = _crossChainClientProvider.RequestAsync(client, c => c.RequestCrossChainDataAsync(targetHeight));
             }
