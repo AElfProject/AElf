@@ -19,5 +19,5 @@
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
-    <Import Project="..\AllContracts.props"/>
+<!--    <Import Project="..\AllContracts.props"/>-->
 </Project>

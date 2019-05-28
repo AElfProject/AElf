@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs4;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
