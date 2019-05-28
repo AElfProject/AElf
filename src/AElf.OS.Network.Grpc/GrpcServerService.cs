@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -145,6 +146,10 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
         {
+            Logger.LogError($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
+            
+            Stopwatch ss = Stopwatch.StartNew();
+            
             if (an?.BlockHash == null || an?.BlockTime == null)
             {
                 Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
@@ -153,10 +158,21 @@ namespace AElf.OS.Network.Grpc
 
             var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
             peerInPool?.HandlerRemoteAnnounce(an);
-
-            Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
             
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
+            ss.Stop();
+            
+            Logger.LogDebug($"Time in HandlerRemoteAnnounce {ss.ElapsedMilliseconds} announce {an.BlockHash} from {context.GetPeerInfo()}.");
+
+            //Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
+
+            Stopwatch s = Stopwatch.StartNew();
+            
+            Task.Run(async () => await EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey())));
+            
+            s.Stop();
+            
+            Logger.LogDebug($"Time in async {s.ElapsedMilliseconds} announce {an.BlockHash} from {context.GetPeerInfo()}.");
+
 
             return Task.FromResult(new VoidReply());
         }

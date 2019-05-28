@@ -55,8 +55,8 @@ namespace AElf.OS.Network.Grpc
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
-        public IReadOnlyDictionary<string, List<RequestMetric>> RecentRequestsRoundtripTime { get; }
-        private readonly ConcurrentDictionary<string, List<RequestMetric>> _recentRequestsRoundtripTimes;
+        public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTime { get; }
+        private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string pubKey, string peerIpAddress,
             int protocolVersion, long connectionTime, long startHeight, bool inbound = true)
@@ -74,12 +74,12 @@ namespace AElf.OS.Network.Grpc
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
             
-            _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, List<RequestMetric>>();
-            RecentRequestsRoundtripTime = new ReadOnlyDictionary<string, List<RequestMetric>>(_recentRequestsRoundtripTimes);
+            _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
+            RecentRequestsRoundtripTime = new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
 
-            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new List<RequestMetric>(MaxMetricsPerMethod));
-            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new List<RequestMetric>(MaxMetricsPerMethod));
-            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new List<RequestMetric>(MaxMetricsPerMethod));
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -93,7 +93,7 @@ namespace AElf.OS.Network.Grpc
                     var metricsToAdd = new List<RequestMetric>();
                     
                     metrics.Add(roundtripTime.Key, metricsToAdd);
-                    foreach (var requestMetric in roundtripTime.Value)
+                    foreach (var requestMetric in roundtripTime.Value.ToArray())
                     {
                         metricsToAdd.Add(requestMetric);
                     }
@@ -189,22 +189,19 @@ namespace AElf.OS.Network.Grpc
                     Logger.LogDebug($"[{this}] Just awakened ! {requestParams.MetricInfo} ");
 
                     s.Stop();
-
-                    lock (_metricsLock)
+                    
+                    var metrics = _recentRequestsRoundtripTimes[metricsName];
+                    
+                    while (metrics.Count >= MaxMetricsPerMethod)
+                        metrics.TryDequeue(out _);
+                    
+                    metrics.Enqueue(new RequestMetric
                     {
-                        var metrics = _recentRequestsRoundtripTimes[metricsName];
-                        
-                        if (metrics.Count >= MaxMetricsPerMethod)
-                            metrics.RemoveAt(0);
-                        
-                        metrics.Add(new RequestMetric
-                        {
-                            Info = requestParams.MetricInfo,
-                            RequestTime = dateBeforeRequest,
-                            MethodName = metricsName,
-                            RoundTripTime = s.ElapsedMilliseconds
-                        });
-                    }
+                        Info = requestParams.MetricInfo,
+                        RequestTime = dateBeforeRequest,
+                        MethodName = metricsName,
+                        RoundTripTime = s.ElapsedMilliseconds
+                    });
                 }
                 
                 return response;
