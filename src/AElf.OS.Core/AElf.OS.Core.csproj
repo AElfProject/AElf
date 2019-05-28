@@ -6,7 +6,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
         <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />

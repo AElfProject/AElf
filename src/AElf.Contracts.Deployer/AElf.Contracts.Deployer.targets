@@ -19,12 +19,12 @@
         <ItemGroup Condition="Exists($(ContractManifestFileName))">
             <EmbeddedResource Include="$(ContractManifestFileName)"/>
         </ItemGroup>
-    </Target>
-    <Target Name="CopyContractAssets" AfterTargets="AfterBuild">
         <ItemGroup>
             <ContractAssets Include="@(ContractDlls)"/>
             <ContractAssets Include="%(ContractDlls.RootDir)%(ContractDlls.Directory)%(ContractDlls.Filename).pdb" Condition="'@(ContractDlls)' != ''"/>
         </ItemGroup>
+    </Target>
+    <Target Name="CopyContractAssets" AfterTargets="AfterBuild">
         <Copy SourceFiles="@(ContractAssets)" DestinationFolder="$(OutDir)" ContinueOnError="true"/>
     </Target>
 </Project>
