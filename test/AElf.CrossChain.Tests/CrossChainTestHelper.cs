@@ -101,7 +101,7 @@ namespace AElf.CrossChain
                 var sideChainIndexingInformationList = new SideChainIndexingInformationList();
                 foreach (var kv in _sideChainIdHeights)
                 {
-                    sideChainIndexingInformationList.SideChainIndexingInformation.Add(new SideChainIndexingInformation
+                    sideChainIndexingInformationList.IndexingInformationList.Add(new SideChainIndexingInformation
                     {
                         ChainId = kv.Key,
                         IndexedHeight = kv.Value,

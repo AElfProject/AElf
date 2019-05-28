@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Acs7;
-using Google.Protobuf;
+using AElf.CrossChain.Cache.Application;
 using Xunit;
 
 namespace AElf.CrossChain.Cache
@@ -8,12 +8,12 @@ namespace AElf.CrossChain.Cache
     public class CrossChainDataConsumerTest : CrossChainTestBase
     {
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
-        private readonly IChainCacheEntityProvider _chainCacheEntityProvider;
+        private readonly ICrossChainCacheEntityProvider _crossChainCacheEntityProvider;
 
         public CrossChainDataConsumerTest()
         {
             _blockCacheEntityConsumer = GetRequiredService<IBlockCacheEntityConsumer>();
-            _chainCacheEntityProvider = GetRequiredService<IChainCacheEntityProvider>();
+            _crossChainCacheEntityProvider = GetRequiredService<ICrossChainCacheEntityProvider>();
         }
         
         [Fact]
@@ -28,9 +28,9 @@ namespace AElf.CrossChain.Cache
         public void TryTake_NotExistChain()
         {
             int chainIdA = 123;
-            var dict = new Dictionary<int, ChainCacheEntity>
+            var dict = new Dictionary<int, BlockCacheEntityProvider>
             {
-                {chainIdA, new ChainCacheEntity(1)}
+                {chainIdA, new BlockCacheEntityProvider(1)}
             };
             CreateFakeCache(dict);
             int chainIdB = 124;
@@ -42,10 +42,10 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WrongIndex()
         {
             int chainId = 123;
-            var blockInfoCache = new ChainCacheEntity(1);
+            var blockInfoCache = new BlockCacheEntityProvider(1);
             var sideChainBlockData = CreateSideChainBlockData(chainId, 1);
             blockInfoCache.TryAdd(sideChainBlockData);
-            var dict = new Dictionary<int, ChainCacheEntity>
+            var dict = new Dictionary<int, BlockCacheEntityProvider>
             {
                 {chainId, blockInfoCache}
             };
@@ -58,8 +58,8 @@ namespace AElf.CrossChain.Cache
         public void TryTake_After_RegisterNewChain()
         {
             int chainId = 123;
-            _chainCacheEntityProvider.AddChainCacheEntity(chainId, new ChainCacheEntity(1));
-            var blockInfoCache = ChainCacheEntityProvider.GetChainCacheEntity(chainId);
+            _crossChainCacheEntityProvider.AddChainCacheEntity(chainId, 1);
+            var blockInfoCache = CrossChainCacheEntityProvider.GetChainCacheEntity(chainId);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = CreateSideChainBlockData(chainId, 1);
             blockInfoCache.TryAdd(expectedBlockInfo);
@@ -71,8 +71,8 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WrongIndex_After_RegisterNewChain()
         {
             int chainId = 123;
-            _chainCacheEntityProvider.AddChainCacheEntity(chainId, new ChainCacheEntity(1));
-            var blockInfoCache = ChainCacheEntityProvider.GetChainCacheEntity(chainId);
+            _crossChainCacheEntityProvider.AddChainCacheEntity(chainId, 1);
+            var blockInfoCache = CrossChainCacheEntityProvider.GetChainCacheEntity(chainId);
             Assert.NotNull(blockInfoCache);
             var expectedBlockInfo = CreateSideChainBlockData(chainId, 1);
             blockInfoCache.TryAdd(expectedBlockInfo);

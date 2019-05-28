@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Acs7;
+using AElf.CrossChain.Cache.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
@@ -42,7 +43,7 @@ namespace AElf.CrossChain.Communication.Grpc
             
             services.AddTransient(o =>
             {
-                var mockService = new Mock<INewChainRegistrationService>();
+                var mockService = new Mock<ICrossChainCacheEntityService>();
                 return mockService.Object;
             });
         }

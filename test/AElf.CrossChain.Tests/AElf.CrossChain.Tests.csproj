@@ -22,5 +22,5 @@
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" /> 
     </ItemGroup>
 
-    <Import Project="..\AllContracts.props"/>
+    <Import Project="..\AllContracts.props" />
 </Project>
