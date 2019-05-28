@@ -39,10 +39,10 @@ namespace AElf.OS.Network.Grpc
             }
 
             var responseContinuation = continuation(request, context);
-            var responseAsync = responseContinuation.ResponseAsync.ContinueWith(RetryCallback);
+            var responseAsync = responseContinuation.ResponseAsync.ContinueWith(RetryCallback).Unwrap();
 
             return new AsyncUnaryCall<TResponse>(
-                responseAsync.Result,
+                responseAsync,
                 responseContinuation.ResponseHeadersAsync,
                 responseContinuation.GetStatus,
                 responseContinuation.GetTrailers,

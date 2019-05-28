@@ -108,7 +108,8 @@ namespace AElf.OS.Network.Grpc
             {
                 ErrorMessage = $"Block request for {hash} failed.",
                 MetricName = nameof(MetricNames.GetBlock),
-                MetricInfo = $"Block request for {hash}"
+                MetricInfo = $"Block request for {hash}",
+                Timeout = 300
             };
 
             var blockReply 
@@ -126,7 +127,8 @@ namespace AElf.OS.Network.Grpc
             {
                 ErrorMessage = $"Get blocks for {blockInfo} failed.",
                 MetricName = nameof(MetricNames.GetBlocks),
-                MetricInfo = $"Get blocks for {blockInfo}"
+                MetricInfo = $"Get blocks for {blockInfo}",
+                Timeout = 500
             };
 
             var list = await RequestAsync(_client, (c, d) => c.RequestBlocksAsync(blockRequest, deadline: d), request);
@@ -143,7 +145,8 @@ namespace AElf.OS.Network.Grpc
             {
                 ErrorMessage = $"Bcast announce for {header.BlockHash} failed.",
                 MetricName = nameof(MetricNames.Announce),
-                MetricInfo = $"Block hash {header.BlockHash}"
+                MetricInfo = $"Block hash {header.BlockHash}", 
+                Timeout = 100
             };
             
             await RequestAsync(_client, (c, d) => c.AnnounceAsync(header, deadline: d), request);
@@ -153,7 +156,8 @@ namespace AElf.OS.Network.Grpc
         {
             GrpcRequest request = new GrpcRequest
             {
-                ErrorMessage = $"Bcast tx for {tx.GetHash()} failed."
+                ErrorMessage = $"Bcast tx for {tx.GetHash()} failed.",
+                Timeout = 100
             };
             
             await RequestAsync(_client, (c, d) => c.SendTransactionAsync(tx, deadline: d), request);
@@ -164,7 +168,7 @@ namespace AElf.OS.Network.Grpc
         {
             var metricsName = requestParams.MetricName;
             bool timeRequest = !string.IsNullOrEmpty(metricsName);
-            var timeoutMs = requestParams.TimeoutMs < 0 ? requestParams.TimeoutMs : DefaultRequestTimeoutMs;
+            var timeoutMs = requestParams.Timeout < 0 ? requestParams.Timeout : DefaultRequestTimeoutMs;
             var dateBeforeRequest = DateTime.Now;
             var utcNow = DateTime.UtcNow;
             var timeout = utcNow.Add(TimeSpan.FromMilliseconds(timeoutMs));
