@@ -31,14 +31,41 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
                     $"Throwing exception is not supported in {nameof(LocalParallelTransactionExecutingService)}.");
             }
 
-            // TODO: Group transactions
             var groups = new List<List<Transaction>>();
-            var tasks = groups.Select(txns =>
-                _plainExecutingService.ExecuteAsync(blockHeader, txns, cancellationToken, throwException,
-                    partialBlockStateSet));
+            var tasks = groups.Select(txns => ExecuteAndPreprocessResult(blockHeader, txns, cancellationToken,
+                throwException, partialBlockStateSet));
             var results = await Task.WhenAll(tasks);
-            // TODO: Compare not conflicts in returned data
-            return results.SelectMany(r => r).ToList();
+
+            return MergeResults(results).Item1;
+        }
+
+        private async Task<(List<ExecutionReturnSet>, HashSet<string>)> ExecuteAndPreprocessResult(
+            BlockHeader blockHeader, List<Transaction> transactions, CancellationToken cancellationToken,
+            bool throwException = false, BlockStateSet partialBlockStateSet = null)
+        {
+            var executionReturnSets = await _plainExecutingService.ExecuteAsync(blockHeader, transactions,
+                cancellationToken, throwException,
+                partialBlockStateSet);
+            var keys = new HashSet<string>(executionReturnSets.SelectMany(s => s.StateChanges.Keys));
+            return (executionReturnSets, keys);
+        }
+
+        private (List<ExecutionReturnSet>, HashSet<string>) MergeResults(
+            IEnumerable<(List<ExecutionReturnSet>, HashSet<string>)> results)
+        {
+            var returnSets = new List<ExecutionReturnSet>();
+            var existingKeys = new HashSet<string>();
+            foreach (var (sets, keys) in results)
+            {
+                if (!existingKeys.Overlaps(keys))
+                {
+                    returnSets.AddRange(sets);
+                }
+
+                // TODO: Fire event if overlaps
+            }
+
+            return (returnSets, existingKeys);
         }
     }
 }
