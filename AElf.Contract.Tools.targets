@@ -30,7 +30,7 @@
             </PropertyGroup>
         </Otherwise>
     </Choose>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild;GetTargetPath">
+    <Target Name="GenerateProtobufCode" BeforeTargets="BeforeBuild;GetTargetPath">
         <PropertyGroup>
             <LocalProtobufDir>$(ProjectDir)/Protobuf</LocalProtobufDir>
             <GenerateContractInternalCommand>protoc --proto_path=../../protobuf --csharp_out=internal_access:$(LocalProtobufDir)/Generated --csharp_opt=file_extension=.g.cs</GenerateContractInternalCommand>
