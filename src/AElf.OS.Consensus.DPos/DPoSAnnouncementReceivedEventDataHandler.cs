@@ -30,6 +30,8 @@ namespace AElf.OS.Consensus.DPos
 
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
+            //Disable network lib
+            return;
             var irreversibleBlockIndex =
                 await _idpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
                     eventData.SenderPubKey);
