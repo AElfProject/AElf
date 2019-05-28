@@ -13,7 +13,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
@@ -21,8 +20,16 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf/Proto/acs4.proto</Link>
+        </ContractStub>
       <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
         <Link>Protobuf/Proto/aedpos_contract.proto</Link>
       </ContractStub>
     </ItemGroup>
+
+    <Target Name="CopyContractDll" AfterTargets="AfterBuild">
+        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll ../../test/AElf.Runtime.CSharp.Tests/contracts" />
+        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll ..\..\test\AElf.Runtime.CSharp.Tests\contracts" />
+    </Target>
 </Project>

@@ -10,7 +10,7 @@
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\aelf\core.proto">
-            <Link>Protobuf/Proto/aelf/core.proto</Link>
+            <Link>Protobuf/Proto/core.proto</Link>
         </CommonMessage>
     </ItemGroup>
 </Project>

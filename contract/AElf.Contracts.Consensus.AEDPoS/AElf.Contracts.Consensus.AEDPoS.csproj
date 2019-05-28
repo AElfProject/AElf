@@ -7,11 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ContractReference Include="$(ProtoBaseDir)\acs0.proto">
+        <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
-        <ContractReference Include="$(ProtoBaseDir)\election_contract.proto">
-            <Link>Protobuf/Proto/election_contract.proto</Link>
+        <ContractReference Include="..\..\protobuf\election_contract.proto">
+            <Link>Protobuf\Proto\reference\election_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
 
@@ -28,10 +28,6 @@
         <ContractCode Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>
         </ContractCode>
-    </ItemGroup>
-    
-    <ItemGroup>
-      <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 
 </Project>

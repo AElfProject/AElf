@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKit;
@@ -16,9 +13,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
-using AElf.OS.Node.Application;
 using AElf.Types;
-using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -380,17 +375,6 @@ namespace AElf.Contracts.Election
             })).Balance;
 
             return balance;
-        }
-
-        private ConsensusOptions GetDefaultConsensusOptions()
-        {
-            return new ConsensusOptions
-            {
-                MiningInterval = 4000,
-                InitialMiners = InitialMinersKeyPairs.Select(k => k.PublicKey.ToHex()).ToList(),
-                StartTimestamp = new Timestamp {Seconds = 0},
-                TimeEachTerm = 604800
-            };
         }
     }
 }
