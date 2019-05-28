@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Contracts.Consensus.AEDPoS</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ContractReference Include="$(ProtoBaseDir)\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="$(ProtoBaseDir)\election_contract.proto">
+            <Link>Protobuf/Proto/election_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>

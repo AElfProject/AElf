@@ -36,6 +36,8 @@ namespace AElf.Contracts.Election
 
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs[0];
 
+        protected Address BootMinerAddress => Address.FromPublicKey(BootMinerKeyPair.PublicKey);
+
         internal static List<ECKeyPair> InitialMinersKeyPairs =>
             SampleECKeyPairs.KeyPairs.Take(InitialMinersCount).ToList();
 
@@ -70,6 +72,12 @@ namespace AElf.Contracts.Election
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
+        
+        private byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("AEDPoS")).Value;
+        private byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
+        private byte[] ElectionContractCode => Codes.Single(kv => kv.Key.Contains("Election")).Value;
+        private byte[] ProfitContractCode => Codes.Single(kv => kv.Key.Contains("Profit")).Value;
+        private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;       
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
         {
@@ -109,64 +117,55 @@ namespace AElf.Contracts.Election
             BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime());
 
             // Deploy Vote Contract
-            VoteContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(VoteContract).Assembly.Location)),
-                        Name = VoteSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateVoteInitializationCallList()
-                    })).Output;
+            VoteContractAddress = AsyncHelper.RunSync(  () =>
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    VoteContractCode,
+                    VoteSmartContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
             VoteContractStub = GetVoteContractTester(BootMinerKeyPair);
+            AsyncHelper.RunSync(InitializeVote);
             
-            //Deploy Profit Contract
+            // Deploy Profit Contract
             ProfitContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ProfitContract).Assembly.Location)),
-                        Name = ProfitSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateProfitInitializationCallList()
-                    })).Output;
-            ProfitContractStub = GetProfitContractTester(BootMinerKeyPair);
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    ProfitContractCode,
+                    ProfitSmartContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
+            ProfitContractStub =
+                GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, BootMinerKeyPair);
+            AsyncHelper.RunSync(InitializeProfit);
             
-            // Deploy Election Contract
+            // Deploy Election Contract.
             ElectionContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ElectionContract).Assembly.Location)),
-                        Name = ElectionSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateElectionInitializationCallList()
-                    })).Output;
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    ElectionContractCode,
+                    ElectionSmartContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
             ElectionContractStub = GetElectionContractTester(BootMinerKeyPair);
-
+            AsyncHelper.RunSync(InitializeElection);
+            
             // Deploy Token Contract
             TokenContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
-                        Name = TokenSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateTokenInitializationCallList()
-                    })).Output;
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    TokenContractCode,
+                    TokenSmartContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
             TokenContractStub = GetTokenContractTester(BootMinerKeyPair);
-            
-            // Deploy AElf Consensus Contract
-            ConsensusContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AEDPoSContract).Assembly.Location)),
-                        Name = ConsensusSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateConsensusInitializationCallList(),
-                    })).Output;
+            AsyncHelper.RunSync(InitializeToken);
+
+            // Deploy AElf Consensus Contract.
+            ConsensusContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                ConsensusContractCode,
+                ConsensusSmartContractAddressNameProvider.Name,
+                BootMinerKeyPair));
+
             AEDPoSContractStub = GetAEDPoSContractStub(BootMinerKeyPair);
+            AsyncHelper.RunSync(InitializeAElfConsensus);
 
             var profitIds = AsyncHelper.RunSync(() =>
                 ProfitContractStub.GetCreatedProfitItems.CallAsync(
@@ -199,32 +198,50 @@ namespace AElf.Contracts.Election
             VotesWeightReward,
             ReElectionReward
         }
-
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
+        
+        private async Task InitializeVote()
         {
-            var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),new Empty());
-            return voteMethodCallList;
+            var result = await VoteContractStub.InitialVoteContract.SendAsync(
+                new Empty());
+            CheckResult(result.TransactionResult);
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
+        private async Task InitializeElection()
         {
-            var profitMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            profitMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),new Empty());
-            return profitMethodCallList;
+            var result = await ElectionContractStub.InitialElectionContract.SendAsync(new InitialElectionContractInput
+                {
+                    MaximumLockTime = 1080 * 86400,
+                    MinimumLockTime = 90 * 86400
+                });
+            CheckResult(result.TransactionResult);
+        }
+        
+        private async Task InitializeAElfConsensus()
+        {
+            var result1 = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
+                new InitialAElfConsensusContractInput
+                {
+                    TimeEachTerm = 604800L
+                });
+            CheckResult(result1.TransactionResult);
+            var result2 = await AEDPoSContractStub.FirstRound.SendAsync(
+                new MinerList
+                    {
+                        PublicKeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
+                    }.GenerateFirstRoundOfNewTerm(MiningInterval, StartTimestamp.ToDateTime()));
+            CheckResult(result2.TransactionResult);
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+        private async Task InitializeToken()
         {
-            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            var result1 = await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput
             {
-                Symbol = "ELF",
+                Symbol = ElectionContractTestConstants.NativeTokenSymbol,
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = ElectionContractTestConstants.NativeTokenTotalSupply,
-                Issuer = ContractZeroAddress,
+                Issuer = BootMinerAddress,
                 LockWhiteSystemContractNameList =
                 {
                     ElectionSmartContractAddressNameProvider.Name,
@@ -232,84 +249,69 @@ namespace AElf.Contracts.Election
                     ProfitSmartContractAddressNameProvider.Name,
                 }
             });
+            CheckResult(result1.TransactionResult);
 
-            //issue default user
-            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
+            var result2 = await TokenContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
             {
-                Symbol = "ELF",
+                Symbol = ElectionContractTestConstants.NativeTokenSymbol,
                 Amount = ElectionContractTestConstants.NativeTokenTotalSupply / 5,
                 ToSystemContractName = ElectionSmartContractAddressNameProvider.Name,
                 Memo = "Set dividends.",
             });
+            CheckResult(result2.TransactionResult);
 
-            //issue some amount for bp announcement and user vote
             for (var i = 0; i < InitialMinersCount + FullNodesCount + VotersCount; i++)
             {
                 if (i < InitialMinersCount)
                 {
-                    tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                    var result3 = await TokenContractStub.Issue.SendAsync(new IssueInput
                     {
                         Symbol = ElectionContractTestConstants.NativeTokenSymbol,
                         Amount = ElectionContractConstants.LockTokenForElection * 10,
                         To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                         Memo = "Initial balance for initial miners."
                     });
+                    CheckResult(result3.TransactionResult);
                     continue;
                 }
                 
                 if (i < InitialMinersCount + FullNodesCount)
                 {
-                    tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                    var result3 = await TokenContractStub.Issue.SendAsync(new IssueInput
                     {
                         Symbol = ElectionContractTestConstants.NativeTokenSymbol,
                         Amount = ElectionContractConstants.LockTokenForElection * 10,
                         To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                         Memo = "Initial balance for initial full nodes."
                     });
+                    CheckResult(result3.TransactionResult);
                     continue;
                 }
                 
-                tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+                var result4 = await TokenContractStub.Issue.SendAsync(new IssueInput
                 {
                     Symbol = ElectionContractTestConstants.NativeTokenSymbol,
                     Amount = ElectionContractConstants.LockTokenForElection - 1,
                     To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                     Memo = "Initial balance for voters."
                 });
+                CheckResult(result4.TransactionResult);
             }
-            
-            //set pool address to election contract address
-            tokenContractCallList.Add(nameof(TokenContract.SetFeePoolAddress),
-                ElectionSmartContractAddressNameProvider.Name);
-            
-            return tokenContractCallList;
+
+
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateElectionInitializationCallList()
+        private async Task InitializeProfit()
         {
-            var electionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
-                new InitialElectionContractInput
-                {
-                    MaximumLockTime = 1080 * 60 * 60 * 24,
-                    MinimumLockTime = 90 * 60 * 60 * 24
-                });
-
-            return electionMethodCallList;
+            var result = await ProfitContractStub.InitializeProfitContract.SendAsync(new Empty());
+            CheckResult(result.TransactionResult);
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList()
+        private void CheckResult(TransactionResult result)
         {
-            var consensusMethodList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            ConsensusOption = GetDefaultConsensusOptions();
-            
-            consensusMethodList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
-                new InitialAElfConsensusContractInput
-                {
-                    TimeEachTerm = ConsensusOption.TimeEachTerm
-                });
-            var miners = new MinerList
+            if (!string.IsNullOrEmpty(result.Error))
             {
+<<<<<<< HEAD
                 PublicKeys =
                     {ConsensusOption.InitialMiners.Select(p => p.ToByteString())}
             };
@@ -317,6 +319,10 @@ namespace AElf.Contracts.Election
                 miners.GenerateFirstRoundOfNewTerm(ConsensusOption.MiningInterval,
                     ConsensusOption.StartTimestamp.ToDateTime()));
             return consensusMethodList;
+=======
+                throw new Exception(result.Error);
+            }
+>>>>>>> ab2cdfdc079508b00529e6a0d44c0f7d9443a541
         }
 
         internal async Task NextTerm(ECKeyPair keyPair)
