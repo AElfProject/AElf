@@ -17,7 +17,4 @@
             <Link>Protobuf\Proto\association_auth_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
-    </ItemGroup>
 </Project>
