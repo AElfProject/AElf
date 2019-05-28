@@ -311,18 +311,8 @@ namespace AElf.Contracts.Election
         {
             if (!string.IsNullOrEmpty(result.Error))
             {
-<<<<<<< HEAD
-                PublicKeys =
-                    {ConsensusOption.InitialMiners.Select(p => p.ToByteString())}
-            };
-            consensusMethodList.Add(nameof(AEDPoSContract.FirstRound),
-                miners.GenerateFirstRoundOfNewTerm(ConsensusOption.MiningInterval,
-                    ConsensusOption.StartTimestamp.ToDateTime()));
-            return consensusMethodList;
-=======
                 throw new Exception(result.Error);
             }
->>>>>>> ab2cdfdc079508b00529e6a0d44c0f7d9443a541
         }
 
         internal async Task NextTerm(ECKeyPair keyPair)

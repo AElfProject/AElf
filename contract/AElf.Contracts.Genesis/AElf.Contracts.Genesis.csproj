@@ -9,9 +9,6 @@
         <ContractBase Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\acs0.proto</Link>
         </ContractBase>
-    </ItemGroup>
-    
-    <ItemGroup>
         <ContractCode Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
         </ContractCode>

@@ -46,6 +46,9 @@
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <ContractStub Include="..\..\protobuf\kernel.proto">
+            <Link>Protobuf/Proto/kernel.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf/Proto/vote_contract.proto</Link>
         </ContractStub>
@@ -64,8 +67,5 @@
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf/Proto/aedpos_contract.proto</Link>
         </ContractStub>
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 </Project>
