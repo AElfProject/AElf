@@ -80,7 +80,7 @@ message SideChainIdAndHeightDict {
 }
 
 message SideChainIndexingInformationList{
-    repeated SideChainIndexingInformation SideChainIndexingInformation =1;
+    repeated SideChainIndexingInformation IndexingInformationList =1;
 }
 
 message SideChainIndexingInformation{
@@ -88,7 +88,6 @@ message SideChainIndexingInformation{
     int64 IndexedHeight = 2;
     int64 ToBeIndexedCount = 3;
 }
-
 
 message CrossChainBlockData {
     repeated SideChainBlockData sideChainBlockData = 1;

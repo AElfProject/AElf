@@ -119,7 +119,7 @@ namespace AElf.Contracts.CrossChain
                 var balance = State.IndexingBalance[chainId];
                 var sideChainInfo = State.SideChainInfos[chainId];
                 var toBeIndexedCount = balance.Div(sideChainInfo.SideChainCreationRequest.IndexingPrice);
-                sideChainIndexingInformationList.SideChainIndexingInformation.Add(new SideChainIndexingInformation
+                sideChainIndexingInformationList.IndexingInformationList.Add(new SideChainIndexingInformation
                 {
                     ChainId = chainId,
                     IndexedHeight = kv.Value,
