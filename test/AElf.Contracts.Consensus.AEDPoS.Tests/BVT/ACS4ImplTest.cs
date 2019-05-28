@@ -84,7 +84,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
 
             transactionList.Transactions.Count.ShouldBe(1);
-            transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContract.UpdateValue));
+            transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContractStub.UpdateValue));
 
             return transactionList;
         }
@@ -189,7 +189,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
 
             transactionList.Transactions.Count.ShouldBe(1);
-            transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContract.UpdateValue));
+            transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContractStub.UpdateValue));
 
             return transactionList;
         }
@@ -294,7 +294,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
 
             transactionList.Transactions.Count.ShouldBe(1);
-            transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContract.NextRound));
+            transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContractStub.NextRound));
 
             return transactionList;
         }

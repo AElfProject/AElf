@@ -541,7 +541,6 @@ namespace AElf.WebApp.Application.Chain
             }).ToList();
         }
 
-
         /// <summary>
         /// Get AEDPoS latest round information from last block header's consensus extra data of best chain.
         /// </summary>
@@ -570,7 +569,7 @@ namespace AElf.WebApp.Application.Chain
                     }),
                 RoundNumber = round.RoundNumber,
                 TermNumber = round.TermNumber,
-                RoundId = round.RoundId
+                RoundId = round.RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum()
             };
         }
 
