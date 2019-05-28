@@ -9,6 +9,7 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Grpc.Core;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -30,6 +31,8 @@ namespace AElf.OS.Network.Grpc
 
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
+        
+        public ILogger Logger { get; set; }
 
         /// <summary>
         /// Property that describes a valid state. Valid here means that the peer is ready to be used for communication.
@@ -170,16 +173,21 @@ namespace AElf.OS.Network.Grpc
             var timeout = utcNow.Add(TimeSpan.FromMilliseconds(timeoutMs));
             
             Stopwatch s = null;
-            
+
             if (timeRequest)
+            {
                 s = Stopwatch.StartNew();
+                Logger.LogDebug($"[{this}] Started stopwatch! Time: {DateTime.Now} {requestParams.MetricInfo} ");
+            }
                 
             try
             {
                 var response = await func(client, timeout);
-
+                
                 if (timeRequest)
                 {
+                    Logger.LogDebug($"[{this}] Just awakened ! {requestParams.MetricInfo} ");
+
                     s.Stop();
 
                     lock (_metricsLock)
@@ -228,6 +236,8 @@ namespace AElf.OS.Network.Grpc
 
             if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
             {
+                Logger.LogDebug($"[{this}] Transient failure!");
+
                 Task.Run(async () =>
                 {
                     await _channel.TryWaitForStateChangedAsync(_channel.State,

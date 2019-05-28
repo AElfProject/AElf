@@ -70,13 +70,17 @@ namespace AElf.OS.Network.Grpc
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConsts.DefaultMaxReceiveMessageLength)
             });
 
+            var interceptor = new RetryInterceptor();
+            interceptor.Logger = Logger;
+            interceptor.PeerIp = ipAddress;
+            
             var client = new PeerService.PeerServiceClient(channel
                 .Intercept(metadata =>
                     {
                         metadata.Add(GrpcConsts.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
                         return metadata;
                     })
-                .Intercept(new RetryInterceptor()));
+                .Intercept(interceptor));
             
             var hsk = await BuildHandshakeAsync();
 
@@ -123,6 +127,8 @@ namespace AElf.OS.Network.Grpc
             }
 
             peer.DisconnectionEvent += PeerOnDisconnectionEvent;
+
+            peer.Logger = Logger;
             
             Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
 
