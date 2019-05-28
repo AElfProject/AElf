@@ -25,13 +25,13 @@ namespace AElf.OS.Network.Grpc
                     return response.Result;
                 }
 
-                retryCount++;
-
                 // if a problem occured but reached the max retries
                 if (retryCount == _retryCount)
                 {
                     return response.Result;
                 }
+                
+                retryCount++;
 
                 // try again
                 var result = continuation(request, context).ResponseAsync.ContinueWith(RetryCallback).Unwrap();

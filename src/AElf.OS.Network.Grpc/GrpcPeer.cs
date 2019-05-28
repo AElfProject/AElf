@@ -17,7 +17,7 @@ namespace AElf.OS.Network.Grpc
         private static readonly object _metricsLock = new object();
         
         private const int MaxMetricsPerMethod = 100;
-        private const int DefaultRequestTimeoutMs = 700;
+        private const int DefaultRequestTimeoutMs = 200;
 
         private enum MetricNames
         {
@@ -181,22 +181,7 @@ namespace AElf.OS.Network.Grpc
                 if (timeRequest)
                 {
                     s.Stop();
-
-                    lock (_metricsLock)
-                    {
-                        var metrics = _recentRequestsRoundtripTimes[metricsName];
-                        
-                        if (metrics.Count >= MaxMetricsPerMethod)
-                            metrics.RemoveAt(0);
-                        
-                        metrics.Add(new RequestMetric
-                        {
-                            Info = requestParams.MetricInfo,
-                            RequestTime = dateBeforeRequest,
-                            MethodName = metricsName,
-                            RoundTripTime = s.ElapsedMilliseconds
-                        });
-                    }
+                    RecordMetric(requestParams, dateBeforeRequest, s.ElapsedMilliseconds);
                 }
                 
                 return response;
@@ -207,12 +192,35 @@ namespace AElf.OS.Network.Grpc
             }
             finally
             {
-                s?.Stop();
+                if (timeRequest)
+                {
+                    s.Stop();
+                    RecordMetric(requestParams, dateBeforeRequest, s.ElapsedMilliseconds);
+                }
             }
 
             return default(TResp);
         }
 
+        private void RecordMetric(GrpcRequest grpcRequest, DateTime dateTimeBeforeRequest, long elapsedMilliseconds)
+        {
+            lock (_metricsLock)
+            {
+                var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
+                        
+                if (metrics.Count >= MaxMetricsPerMethod)
+                    metrics.RemoveAt(0);
+                        
+                metrics.Add(new RequestMetric
+                {
+                    Info = grpcRequest.MetricInfo,
+                    RequestTime = dateTimeBeforeRequest,
+                    MethodName = grpcRequest.MetricName,
+                    RoundTripTime = elapsedMilliseconds
+                });
+            }
+        }
+        
         /// <summary>
         /// This method handles the case where the peer is potentially down. If the Rpc call
         /// put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
