@@ -14,11 +14,24 @@
             <Link>Protobuf/Proto/election_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
+
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractBase>
+    </ItemGroup>
     
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\aedpos_contract.proto">
-            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\aedpos_contract_impl.proto">
+            <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>
         </ContractCode>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 
 </Project>
