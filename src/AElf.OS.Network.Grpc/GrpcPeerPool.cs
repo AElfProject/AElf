@@ -75,7 +75,8 @@ namespace AElf.OS.Network.Grpc
                     {
                         metadata.Add(GrpcConsts.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
                         return metadata;
-                    }));
+                    })
+                .Intercept(new RetryInterceptor()));
             
             var hsk = await BuildHandshakeAsync();
 
