@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Acs4;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -200,6 +201,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
                     }
 
+                    if (!ValidatePreviousInValue(extraData))
+                    {
+                        return new ValidationResult {Success = false, Message = "Incorrect previous in value."};
+                    }
+
                     break;
                 case AElfConsensusBehaviour.NextRound:
                     // None of in values should be filled.
@@ -242,6 +248,29 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return new ValidationResult {Success = true};
+        }
+
+        private bool ValidatePreviousInValue(AElfConsensusHeaderInformation extraData)
+        {
+            var publicKey = extraData.SenderPublicKey.ToHex();
+            if (extraData.Behaviour == AElfConsensusBehaviour.UpdateValue)
+            {
+                if (TryToGetPreviousRoundInformation(out var previousRound))
+                {
+                    if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKey)) return true;
+                    var previousOutValue = previousRound.RealTimeMinersInformation[publicKey].OutValue;
+                    var previousInValue = extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue;
+                    if (previousInValue == Hash.Empty)
+                    {
+                        return true;
+                    }
+                    return Hash.FromMessage(previousInValue) == previousOutValue;
+                }
+
+                return false;
+            }
+
+            return true;
         }
     }
 }
