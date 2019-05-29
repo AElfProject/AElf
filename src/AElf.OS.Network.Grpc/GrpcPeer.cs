@@ -14,8 +14,6 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcPeer : IPeer
     {
-        private static readonly object _metricsLock = new object();
-        
         private const int MaxMetricsPerMethod = 100;
         private const int DefaultRequestTimeoutMs = 200;
 
@@ -211,21 +209,18 @@ namespace AElf.OS.Network.Grpc
 
         private void RecordMetric(GrpcRequest grpcRequest, DateTime dateTimeBeforeRequest, long elapsedMilliseconds)
         {
-            lock (_metricsLock)
+            var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
+                    
+            while (metrics.Count >= MaxMetricsPerMethod)
+                metrics.TryDequeue(out _);
+                    
+            metrics.Enqueue(new RequestMetric
             {
-                var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
-                        
-                while (metrics.Count >= MaxMetricsPerMethod)
-                    metrics.TryDequeue(out _);
-                        
-                metrics.Enqueue(new RequestMetric
-                {
-                    Info = grpcRequest.MetricInfo,
-                    RequestTime = dateTimeBeforeRequest,
-                    MethodName = grpcRequest.MetricName,
-                    RoundTripTime = elapsedMilliseconds
-                });
-            }
+                Info = grpcRequest.MetricInfo,
+                RequestTime = dateTimeBeforeRequest,
+                MethodName = grpcRequest.MetricName,
+                RoundTripTime = elapsedMilliseconds
+            });
         }
         
         /// <summary>
