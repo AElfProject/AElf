@@ -1,2 +1,12 @@
 component_depth: 2
 
+languages:
+- csharp
+
+- name: csharp
+  production:
+    include:
+      - .*/src\.cs
+  test:
+    exclude:
+      - .*/test\.cs
