@@ -2,16 +2,39 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using Volo.Abp;
+using Volo.Abp.Modularity;
 using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
 {
-    public class TransactionGrouperTest
+    public class TransactionGrouperTestModule : AbpModule
     {
-        // TODO: Replace this with actual grouper
-        private readonly MockTransactionGrouper _grouper = new MockTransactionGrouper();
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddSingleton<ITransactionGrouper, TransactionGrouper>();
+            context.Services.AddSingleton<IBlockchainService>(
+                _ =>
+                {
+                    var mock = new Mock<IBlockchainService>();
+                    mock.Setup(s => s.GetChainAsync()).Returns(Task.FromResult<Chain>(new Chain()
+                    {
+                        BestChainHash = Hash.Empty
+                    }));
+                    return mock.Object;
+                });
+            context.Services.AddSingleton<IResourceExtractionService, MockResourceExtractionService>();
+        }
+    }
+
+    public class TransactionGrouperTest : AbpIntegratedTest<TransactionGrouperTestModule>
+    {
+        private ITransactionGrouper Grouper => Application.ServiceProvider.GetRequiredService<ITransactionGrouper>();
 
         [Fact]
         public async Task Process_Transaction_ByAccount()
@@ -32,7 +55,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
             var txLookup = groups.SelectMany(x => x).ToDictionary(x => x.Transaction.Params, x => x.Resource);
             var allTxns = groups.SelectMany(x => x).Select(x => x.Transaction).OrderBy(x => Guid.NewGuid()).ToList();
 
-            var grouped = await _grouper.GroupAsync(allTxns);
+            var grouped = await Grouper.GroupAsync(allTxns);
             var groupedResources = grouped.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();
             var expected = groups.Select(g => g.Select(x => x.Resource).ToList()).Select(StringRepresentation)
                 .OrderBy(x => x);
