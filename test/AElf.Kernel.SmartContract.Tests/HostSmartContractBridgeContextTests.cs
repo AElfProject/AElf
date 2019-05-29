@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
@@ -238,7 +239,7 @@ namespace AElf.Kernel.SmartContract
                     RefBlockPrefix = ByteString.CopyFrom(new byte[4])
                 },
                 BlockHeight = 3,
-                CurrentBlockTime = DateTime.UtcNow.ToTimestamp(),
+                CurrentBlockTime = DateTimeHelper.Now.ToTimestamp(),
                 PreviousBlockHash = Hash.Empty,
                 Trace = new TransactionTrace(),
                 StateCache = new NullStateCache()

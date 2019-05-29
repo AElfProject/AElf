@@ -53,7 +53,7 @@ namespace AElf.Kernel.Consensus.Application
             // Upload the consensus command.
             _consensusControlInformation.ConsensusCommand =
                 await _consensusInformationGenerationService.ExecuteContractAsync<ConsensusCommand>(chainContext,
-                    ConsensusConsts.GetConsensusCommand, triggerInformation, DateTime.UtcNow.ToTimestamp());
+                    ConsensusConsts.GetConsensusCommand, triggerInformation, DateTimeHelper.Now.ToTimestamp());
 
             Logger.LogDebug($"Updated consensus command: {_consensusControlInformation.ConsensusCommand}");
 
@@ -69,7 +69,7 @@ namespace AElf.Kernel.Consensus.Application
 
             // Update next mining time, also block time of both getting consensus extra data and txs.
             _nextMiningTime =
-                DateTime.UtcNow.AddMilliseconds(_consensusControlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds).ToTimestamp();
+                DateTimeHelper.Now.AddMilliseconds(_consensusControlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds).ToTimestamp();
         }
 
         public async Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,
@@ -78,7 +78,7 @@ namespace AElf.Kernel.Consensus.Application
             var validationResult = await _consensusInformationGenerationService.ExecuteContractAsync<ValidationResult>(
                 chainContext, ConsensusConsts.ValidateConsensusBeforeExecution,
                 _consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData),
-                DateTime.UtcNow.ToTimestamp());
+                DateTimeHelper.Now.ToTimestamp());
 
             if (!validationResult.Success)
             {
@@ -94,7 +94,7 @@ namespace AElf.Kernel.Consensus.Application
             var validationResult = await _consensusInformationGenerationService.ExecuteContractAsync<ValidationResult>(
                 chainContext, ConsensusConsts.ValidateConsensusAfterExecution,
                 _consensusInformationGenerationService.ParseConsensusTriggerInformation(consensusExtraData),
-                DateTime.UtcNow.ToTimestamp());
+                DateTimeHelper.Now.ToTimestamp());
 
             if (!validationResult.Success)
             {

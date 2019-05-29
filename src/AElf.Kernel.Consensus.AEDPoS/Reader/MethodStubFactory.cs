@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
@@ -48,7 +49,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
                 };
 
                 var trace =
-                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, DateTime.UtcNow.ToTimestamp());
+                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, DateTimeHelper.Now.ToTimestamp());
 
                 return trace.IsSuccessful()
                     ? method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray())

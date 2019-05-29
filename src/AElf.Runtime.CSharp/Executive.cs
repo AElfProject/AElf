@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.CSharp.Core;
@@ -111,7 +112,7 @@ namespace AElf.Runtime.CSharp
 
         public void Execute()
         {
-            var s = CurrentTransactionContext.Trace.StartTime = DateTime.UtcNow;
+            var s = CurrentTransactionContext.Trace.StartTime = DateTimeHelper.Now;
             var methodName = CurrentTransactionContext.Transaction.MethodName;
 
             try
@@ -191,7 +192,7 @@ namespace AElf.Runtime.CSharp
                 Cleanup();
             }
 
-            var e = CurrentTransactionContext.Trace.EndTime = DateTime.UtcNow;
+            var e = CurrentTransactionContext.Trace.EndTime = DateTimeHelper.Now;
             CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }
 

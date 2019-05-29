@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -53,7 +54,7 @@ namespace AElf.CrossChain
                 };
 
                 var trace =
-                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, DateTime.UtcNow.ToTimestamp());
+                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, DateTimeHelper.Now.ToTimestamp());
 
                 if (trace.IsSuccessful())
                 {

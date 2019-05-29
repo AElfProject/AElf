@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
 using Grpc.Core;
@@ -81,7 +82,7 @@ namespace AElf.CrossChain.Grpc
             {
                 FromChainId = _localChainId,
                 ListeningPort = localListeningPort
-            }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
+            }, new CallOptions().WithDeadline(DateTimeHelper.Now.AddSeconds(DialTimeout)));
             return Task.FromResult(handShakeReply);
         }
         
@@ -91,7 +92,7 @@ namespace AElf.CrossChain.Grpc
                 new SideChainInitializationRequest
                 {
                     ChainId = chainId
-                }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
+                }, new CallOptions().WithDeadline(DateTimeHelper.Now.AddSeconds(DialTimeout)));
             return Task.FromResult(sideChainInitializationResponse);
         }
 
@@ -108,7 +109,7 @@ namespace AElf.CrossChain.Grpc
         protected override AsyncServerStreamingCall<CrossChainResponse> RequestIndexing(CrossChainRequest crossChainRequest)
         {
             return new CrossChainRpc.CrossChainRpcClient(Channel).RequestIndexingFromSideChainAsync(crossChainRequest,
-                new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
+                new CallOptions().WithDeadline(DateTimeHelper.Now.AddSeconds(DialTimeout)));
         }
     }
     
@@ -121,7 +122,7 @@ namespace AElf.CrossChain.Grpc
         protected override AsyncServerStreamingCall<CrossChainResponse> RequestIndexing(CrossChainRequest crossChainRequest)
         {
             return new CrossChainRpc.CrossChainRpcClient(Channel).RequestIndexingFromParentChainAsync(crossChainRequest,
-                new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
+                new CallOptions().WithDeadline(DateTimeHelper.Now.AddSeconds(DialTimeout)));
         }
     }
 }

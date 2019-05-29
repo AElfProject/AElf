@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Common;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -31,7 +32,7 @@ namespace AElf.Contracts.Election
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
-        protected Timestamp StartTimestamp => DateTime.UtcNow.ToTimestamp();
+        protected Timestamp StartTimestamp => DateTimeHelper.Now.ToTimestamp();
 
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs[0];
 

@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Grpc.Core;
@@ -84,7 +85,7 @@ namespace AElf.CrossChain.Grpc
         private ServerCallContext BuildServerCallContext(Metadata metadata = null)
         {
             var meta = metadata ?? new Metadata();
-            return TestServerCallContext.Create("mock", "127.0.0.1", DateTime.UtcNow.AddHours(1), meta, CancellationToken.None, 
+            return TestServerCallContext.Create("mock", "127.0.0.1", DateTimeHelper.Now.AddHours(1), meta, CancellationToken.None, 
                 "ipv4:127.0.0.1:2100", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
         }
     }

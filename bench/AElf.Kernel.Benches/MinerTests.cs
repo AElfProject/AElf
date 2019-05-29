@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using AElf.BenchBase;
+using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Miner.Application;
@@ -63,7 +64,7 @@ namespace AElf.Kernel.Benches
             {
                 var chain = await _blockchainService.GetChainAsync();
                 _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
-                    DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMilliseconds(4000));
+                    DateTimeHelper.Now.ToTimestamp(), TimeSpan.FromMilliseconds(4000));
             });
             _counter.Increment();
         }

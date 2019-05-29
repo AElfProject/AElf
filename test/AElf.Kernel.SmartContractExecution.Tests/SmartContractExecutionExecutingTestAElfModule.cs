@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -123,7 +124,7 @@ namespace AElf.Kernel.SmartContractExecution
                         else
                         {
                             result = new Block
-                                {Header = new BlockHeader {Time = Timestamp.FromDateTime(DateTime.UtcNow)}};
+                                {Header = new BlockHeader {Time = DateTimeHelper.Now.ToTimestamp()}};
                         }
 
                         return Task.FromResult(result);

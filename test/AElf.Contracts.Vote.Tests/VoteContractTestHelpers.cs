@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Types;
@@ -29,7 +30,7 @@ namespace AElf.Contracts.Vote
         private async Task<VotingItem> RegisterVotingItemAsync(int lastingDays, int optionsCount, bool isLockToken, Address sender,
             int totalSnapshotNumber = int.MaxValue)
         {
-            var startTime = DateTime.UtcNow;
+            var startTime = DateTimeHelper.Now;
             var input = new VotingRegisterInput
             {
                 TotalSnapshotNumber = totalSnapshotNumber,

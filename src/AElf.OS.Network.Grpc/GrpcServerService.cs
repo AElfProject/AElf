@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -113,7 +114,7 @@ namespace AElf.OS.Network.Grpc
             }
             
             var grpcPeer = new GrpcPeer(channel, client, pubKey, peerAddress, handshake.HskData.Version,
-                DateTime.UtcNow.ToTimestamp().Seconds, handshake.Header.Height);
+                DateTimeHelper.Now.ToTimestamp().Seconds, handshake.Header.Height);
 
             // send our credentials
             var hsk = await _peerPool.GetHandshakeAsync();

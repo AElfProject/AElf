@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
@@ -41,7 +42,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         protected const long TimeEachTerm = 604800;// 7 * 60 * 60 * 24
 
-        protected static readonly Timestamp StartTimestamp = DateTime.UtcNow.ToTimestamp();
+        protected static readonly Timestamp StartTimestamp = DateTimeHelper.Now.ToTimestamp();
 
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address BootMinerAddress => Address.FromPublicKey(BootMinerKeyPair.PublicKey);
@@ -89,7 +90,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private byte[] ElectionContractCode => Codes.Single(kv => kv.Key.Contains("Election")).Value;
         private byte[] ProfitContractCode => Codes.Single(kv => kv.Key.Contains("Profit")).Value;
         private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;       
-        protected DateTime BlockchainStartTime => DateTime.UtcNow - TimeSpan.FromDays(1);
+        protected DateTime BlockchainStartTime => DateTimeHelper.Now - TimeSpan.FromDays(1);
 
         protected void InitializeContracts()
         {

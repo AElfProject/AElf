@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Common;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
@@ -119,7 +120,7 @@ namespace AElf.Contracts.TestBase
 
                         o.InitialMiners = miners;
                         o.MiningInterval = 4000;
-                        o.StartTimestamp = DateTime.UtcNow.ToTimestamp();
+                        o.StartTimestamp = DateTimeHelper.Now.ToTimestamp();
                     });
                     
                     if (keyPair != null)
@@ -231,7 +232,7 @@ namespace AElf.Contracts.TestBase
 
             if (startTimestamp == null)
             {
-                startTimestamp = DateTime.UtcNow.ToTimestamp();
+                startTimestamp = DateTimeHelper.Now.ToTimestamp();
             }
             
             var osBlockchainNodeContextService =
@@ -463,7 +464,7 @@ namespace AElf.Contracts.TestBase
             var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMilliseconds(int.MaxValue));
+                DateTimeHelper.Now.ToTimestamp(), TimeSpan.FromMilliseconds(int.MaxValue));
             
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
@@ -541,7 +542,7 @@ namespace AElf.Contracts.TestBase
                 {
                     BlockHash = preBlock.GetHash(),
                     BlockHeight = preBlock.Height
-                }, tx, DateTime.UtcNow.ToTimestamp());
+                }, tx, DateTimeHelper.Now.ToTimestamp());
 
             return transactionTrace.ReturnValue;
         }

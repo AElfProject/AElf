@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Common;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
@@ -168,7 +169,7 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal), new CreateProposalInput
                 {
                     ContractMethodName = methodName,
-                    ExpiredTime = DateTime.UtcNow.AddDays(1).ToTimestamp(),
+                    ExpiredTime = DateTimeHelper.Now.AddDays(1).ToTimestamp(),
                     Params = createProposalInput.ToByteString(),
                     ToAddress = CrossChainContractAddress,
                     OrganizationAddress = organizationAddress

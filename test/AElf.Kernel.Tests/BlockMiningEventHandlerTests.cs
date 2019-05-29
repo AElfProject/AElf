@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Miner.Application;
@@ -26,7 +27,7 @@ namespace AElf.Kernel
             var hash = chain.BestChainHash;
             var height = chain.BestChainHeight;
             var eventData =
-                new ConsensusRequestMiningEventData(hash, height, DateTime.UtcNow.ToTimestamp(),
+                new ConsensusRequestMiningEventData(hash, height, DateTimeHelper.Now.ToTimestamp(),
                     TimeSpan.FromMilliseconds(60 * 1000));
 
             await _miningEventHandler.HandleEventAsync(eventData);

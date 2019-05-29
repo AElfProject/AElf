@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Types;
@@ -34,7 +35,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_Register_CurrencyNotSupportVoting()
         {
-            var startTime = DateTime.UtcNow;
+            var startTime = DateTimeHelper.Now;
             var input = new VotingRegisterInput
             {
                 TotalSnapshotNumber = 5,

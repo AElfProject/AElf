@@ -1,4 +1,5 @@
 using System;
+using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestKit
@@ -20,7 +21,7 @@ namespace AElf.Contracts.TestKit
         public DateTime GetBlockTime()
         {
 
-            return _blockTime == new DateTime() ? DateTime.UtcNow : _blockTime;
+            return _blockTime == new DateTime() ? DateTimeHelper.Now : _blockTime;
         }
 
         public void SetBlockTime(DateTime blockTime)

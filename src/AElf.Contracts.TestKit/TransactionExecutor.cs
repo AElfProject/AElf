@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -32,7 +33,7 @@ namespace AElf.Contracts.TestKit
             
             var block = await miningService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 new List<Transaction> {transaction},
-                DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMilliseconds(int.MaxValue));
+                DateTimeHelper.Now.ToTimestamp(), TimeSpan.FromMilliseconds(int.MaxValue));
 
             await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             await blockchainService.AddBlockAsync(block);

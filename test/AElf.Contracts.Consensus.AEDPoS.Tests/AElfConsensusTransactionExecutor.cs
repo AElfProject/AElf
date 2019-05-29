@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -39,7 +40,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMilliseconds(int.MaxValue));
+                DateTimeHelper.Now.ToTimestamp(), TimeSpan.FromMilliseconds(int.MaxValue));
 
             await _blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);

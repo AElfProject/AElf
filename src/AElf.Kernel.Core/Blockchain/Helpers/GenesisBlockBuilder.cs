@@ -1,4 +1,5 @@
 ﻿using System;
+using AElf.Common;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -18,7 +19,7 @@ namespace AElf.Kernel.Blockchain.Helpers
                     Height = Constants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
                     ChainId = chainId,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow),
+                    Time = DateTimeHelper.Now.ToTimestamp(),
                     MerkleTreeRootOfWorldState = Hash.Empty
                 },
                 Body = new BlockBody()

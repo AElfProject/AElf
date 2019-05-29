@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using Google.Protobuf.WellKnownTypes;
@@ -27,7 +28,7 @@ namespace AElf.Kernel
             var hash = chain.BestChainHash;
             var height = chain.BestChainHeight;
 
-            var block = await _minerService.MineAsync(hash, height, DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMinutes(1));
+            var block = await _minerService.MineAsync(hash, height, DateTimeHelper.Now.ToTimestamp(), TimeSpan.FromMinutes(1));
             block.ShouldNotBeNull();
             block.Header.Signature.ShouldNotBeNull();
         }
