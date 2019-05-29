@@ -117,8 +117,8 @@ namespace AElf.OS.Network.Application
             return successfulBcasts;
         }
 
-        public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, long previousHeight,
-            int count, string peerPubKey = null, bool tryOthersIfFail = false)
+        public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 
+            string peerPubKey = null)
         {
             var peers = SelectPeers(peerPubKey);
 
@@ -168,19 +168,14 @@ namespace AElf.OS.Network.Application
             return peers;
         }
         
-        public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
+        public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null)
         {
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
-            return await GetBlockAsync(hash, peer, tryOthersIfSpecifiedFails);
+            return await GetBlockAsync(hash, peer);
         }
 
-        private async Task<BlockWithTransactions> GetBlockAsync(Hash hash, string peer = null,
-            bool tryOthersIfSpecifiedFails = false)
+        private async Task<BlockWithTransactions> GetBlockAsync(Hash hash, string peer = null)
         {
-            if (tryOthersIfSpecifiedFails && string.IsNullOrWhiteSpace(peer))
-                throw new InvalidOperationException($"Parameter {nameof(tryOthersIfSpecifiedFails)} cannot be true, " +
-                                                    $"if no fallback peer is specified.");
-
             var peers = SelectPeers(peer);
             var block = await RequestBlockToAsync(hash, peers, peer);
             return block;
