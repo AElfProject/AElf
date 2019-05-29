@@ -8,6 +8,7 @@ using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NSubstitute;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS
@@ -19,6 +20,9 @@ namespace AElf.OS
             context.Services.AddSingleton<INetworkService, NetworkService>();
             
             Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
+            var p3 = new Mock<IPeer>();
+
+            peerPoolMock.Setup(p => p.GetBestPeer()).Returns(p3.Object);
                 
             peerPoolMock.Setup(p => p.FindPeerByPublicKey(It.Is<string>(adr => adr == "p1")))
                 .Returns<string>(adr =>
@@ -58,7 +62,8 @@ namespace AElf.OS
                         .Returns<Hash>(h => Task.FromResult(new BlockWithTransactions()));
                     peers.Add(p2.Object);
                     
-                    var p3 = new Mock<IPeer>();
+                    
+                    p3.SetupProperty(p => p.IsBest, true);
                     p3.Setup(p => p.PubKey).Returns("p3");
                     p3.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("blocks")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { new BlockWithTransactions(), new BlockWithTransactions() }));

@@ -47,9 +47,14 @@ namespace AElf.OS.BlockSync.Application
 
             var blockWithTransactions = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
 
+            if (blockWithTransactions == null)
+            {
+                return false;
+            }
+
             _blockSyncAttachService.EnqueueAttachBlockWithTransactionsJob(blockWithTransactions);
 
-            return blockWithTransactions != null;
+            return true;
         }
     }
 }

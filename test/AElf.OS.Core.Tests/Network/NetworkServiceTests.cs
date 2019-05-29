@@ -20,32 +20,16 @@ namespace AElf.OS.Network
         }
 
         #region GetBlocks
-
-        [Fact]
-        public async Task GetBlocks_FromAnyone_ReturnsBlocks()
-        {
-            var blocks = await _networkService.GetBlocksAsync(Hash.FromString("blocks"), 0, 5);
-            Assert.NotNull(blocks);
-            Assert.True(blocks.Count == 2);
-        }
         
         [Fact]
         public async Task GetBlocks_FromAnyoneThatNoOneHas_ReturnsNull()
         {
-            var blocks = await _networkService.GetBlocksAsync(Hash.FromString("unknown"), 0, 5);
+            var blocks = await _networkService.GetBlocksAsync(Hash.FromString("unknown"), 5);
             Assert.Null(blocks);
         }
         
         [Fact]
-        public async Task GetBlocks_TryOthers_ReturnsBlocks()
-        {
-            var blocks = await _networkService.GetBlocksAsync(Hash.FromString("block"), 0, 5, "p1", true);
-            Assert.NotNull(blocks);
-            Assert.True(blocks.Count == 1);
-        }
-        
-        [Fact]
-        public async Task GetBlocks_FaultyPeer_ShouldTryOthers()
+        public async Task GetBlocks_FaultyPeer_ShouldGetFromBestPeer()
         {
             var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash2"), "failed_peer");
             Assert.NotNull(block);
@@ -58,42 +42,14 @@ namespace AElf.OS.Network
         [Fact]
         public async Task GetBlockByHash_UnfindablePeer_ReturnsNull()
         {
-            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), "a", false);
+            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), "a");
             Assert.Null(block);
-        }
-
-        [Fact]
-        public async Task GetBlockByHash_WithNoPeerAndTryOthers_ShoudlThrow()
-        {
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                async () => await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), null, true));
         }
         
         [Fact]
         public async Task GetBlockByHash_FromSpecifiedPeer_ReturnsBlocks()
         {
             var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"),  "p1");
-            Assert.NotNull(block);
-        }
-        
-        [Fact]
-        public async Task GetBlockByHash_TryOthers_ReturnsBlocks()
-        {
-            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash2"), "p1", true);
-            Assert.NotNull(block);
-        }
-        
-        [Fact]
-        public async Task GetBlocks_TryOthersRandomBlock_ReturnsBlocks()
-        {
-            var blocks = await _networkService.GetBlockByHashAsync(Hash.FromString("rnd"), "p1", true);
-            Assert.Null(blocks);
-        }
-        
-        [Fact]
-        public async Task GetBlockByHash_FromUnknownPeer_ShouldGetFromOthers()
-        {
-            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash2"), "failed_peer");
             Assert.NotNull(block);
         }
 
