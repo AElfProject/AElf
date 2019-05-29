@@ -5,6 +5,6 @@ namespace AElf.OS.Network
         public const int DefaultPeerDialTimeout = 3;
         public const int DefaultBlockRequestCount = 10;
         public const bool DefaultCompressBlocks = true;
-        public const int DefaultMaxRequestRetryCount = 1;
+        public const int DefaultMaxRequestRetryCount = 3;
     }
 }

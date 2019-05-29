@@ -25,13 +25,13 @@ namespace AElf.OS.Network.Grpc
                     return response.Result;
                 }
 
-                retryCount++;
-
                 // if a problem occured but reached the max retries
                 if (retryCount == _retryCount)
                 {
                     return response.Result;
                 }
+                
+                retryCount++;
 
                 // try again
                 var result = continuation(request, context).ResponseAsync.ContinueWith(RetryCallback).Unwrap();
@@ -39,10 +39,10 @@ namespace AElf.OS.Network.Grpc
             }
 
             var responseContinuation = continuation(request, context);
-            var responseAsync = responseContinuation.ResponseAsync.ContinueWith(RetryCallback);
+            var responseAsync = responseContinuation.ResponseAsync.ContinueWith(RetryCallback).Unwrap();
 
             return new AsyncUnaryCall<TResponse>(
-                responseAsync.Result,
+                responseAsync,
                 responseContinuation.ResponseHeadersAsync,
                 responseContinuation.GetStatus,
                 responseContinuation.GetTrailers,

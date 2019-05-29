@@ -17,7 +17,7 @@ namespace AElf.OS.Network.Grpc
         private static readonly object _metricsLock = new object();
         
         private const int MaxMetricsPerMethod = 100;
-        private const int DefaultRequestTimeoutMs = 700;
+        private const int DefaultRequestTimeoutMs = 200;
 
         private enum MetricNames
         {
@@ -108,7 +108,8 @@ namespace AElf.OS.Network.Grpc
             {
                 ErrorMessage = $"Block request for {hash} failed.",
                 MetricName = nameof(MetricNames.GetBlock),
-                MetricInfo = $"Block request for {hash}"
+                MetricInfo = $"Block request for {hash}",
+                Timeout = 300
             };
 
             var blockReply 
@@ -126,7 +127,8 @@ namespace AElf.OS.Network.Grpc
             {
                 ErrorMessage = $"Get blocks for {blockInfo} failed.",
                 MetricName = nameof(MetricNames.GetBlocks),
-                MetricInfo = $"Get blocks for {blockInfo}"
+                MetricInfo = $"Get blocks for {blockInfo}",
+                Timeout = 500
             };
 
             var list = await RequestAsync(_client, (c, d) => c.RequestBlocksAsync(blockRequest, deadline: d), request);
@@ -143,7 +145,8 @@ namespace AElf.OS.Network.Grpc
             {
                 ErrorMessage = $"Bcast announce for {header.BlockHash} failed.",
                 MetricName = nameof(MetricNames.Announce),
-                MetricInfo = $"Block hash {header.BlockHash}"
+                MetricInfo = $"Block hash {header.BlockHash}", 
+                Timeout = 100
             };
             
             await RequestAsync(_client, (c, d) => c.AnnounceAsync(header, deadline: d), request);
@@ -153,7 +156,8 @@ namespace AElf.OS.Network.Grpc
         {
             GrpcRequest request = new GrpcRequest
             {
-                ErrorMessage = $"Bcast tx for {tx.GetHash()} failed."
+                ErrorMessage = $"Bcast tx for {tx.GetHash()} failed.",
+                Timeout = 100
             };
             
             await RequestAsync(_client, (c, d) => c.SendTransactionAsync(tx, deadline: d), request);
@@ -164,7 +168,7 @@ namespace AElf.OS.Network.Grpc
         {
             var metricsName = requestParams.MetricName;
             bool timeRequest = !string.IsNullOrEmpty(metricsName);
-            var timeoutMs = requestParams.TimeoutMs < 0 ? requestParams.TimeoutMs : DefaultRequestTimeoutMs;
+            var timeoutMs = requestParams.Timeout < 0 ? requestParams.Timeout : DefaultRequestTimeoutMs;
             var dateBeforeRequest = DateTime.Now;
             var utcNow = DateTime.UtcNow;
             var timeout = utcNow.Add(TimeSpan.FromMilliseconds(timeoutMs));
@@ -181,22 +185,7 @@ namespace AElf.OS.Network.Grpc
                 if (timeRequest)
                 {
                     s.Stop();
-
-                    lock (_metricsLock)
-                    {
-                        var metrics = _recentRequestsRoundtripTimes[metricsName];
-                        
-                        if (metrics.Count >= MaxMetricsPerMethod)
-                            metrics.RemoveAt(0);
-                        
-                        metrics.Add(new RequestMetric
-                        {
-                            Info = requestParams.MetricInfo,
-                            RequestTime = dateBeforeRequest,
-                            MethodName = metricsName,
-                            RoundTripTime = s.ElapsedMilliseconds
-                        });
-                    }
+                    RecordMetric(requestParams, dateBeforeRequest, s.ElapsedMilliseconds);
                 }
                 
                 return response;
@@ -207,12 +196,35 @@ namespace AElf.OS.Network.Grpc
             }
             finally
             {
-                s?.Stop();
+                if (timeRequest)
+                {
+                    s.Stop();
+                    RecordMetric(requestParams, dateBeforeRequest, s.ElapsedMilliseconds);
+                }
             }
 
             return default(TResp);
         }
 
+        private void RecordMetric(GrpcRequest grpcRequest, DateTime dateTimeBeforeRequest, long elapsedMilliseconds)
+        {
+            lock (_metricsLock)
+            {
+                var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
+                        
+                if (metrics.Count >= MaxMetricsPerMethod)
+                    metrics.RemoveAt(0);
+                        
+                metrics.Add(new RequestMetric
+                {
+                    Info = grpcRequest.MetricInfo,
+                    RequestTime = dateTimeBeforeRequest,
+                    MethodName = grpcRequest.MetricName,
+                    RoundTripTime = elapsedMilliseconds
+                });
+            }
+        }
+        
         /// <summary>
         /// This method handles the case where the peer is potentially down. If the Rpc call
         /// put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
