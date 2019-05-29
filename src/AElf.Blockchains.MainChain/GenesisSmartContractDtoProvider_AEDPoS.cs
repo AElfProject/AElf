@@ -49,7 +49,7 @@ namespace AElf.Blockchains.MainChain
 
     internal static class MinerListExtension
     {
-        public static Round GenerateFirstRoundOfNewTerm(this MinerList miners, int miningInterval,
+        internal static Round GenerateFirstRoundOfNewTerm(this MinerList miners, int miningInterval,
             DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var sortedMiners =

@@ -7,13 +7,13 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    internal partial class MinerList
+    internal static class MinerListExtension
     {
-        public Round GenerateFirstRoundOfNewTerm(int miningInterval,
+        internal static Round GenerateFirstRoundOfNewTerm(this MinerList miners, int miningInterval,
             DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var sortedMiners =
-                (from obj in PublicKeys
+                (from obj in miners.PublicKeys.Distinct()
                         .ToDictionary<ByteString, string, int>(miner => miner.ToHex(), miner => miner[0])
                     orderby obj.Value descending
                     select obj.Key).ToList();
