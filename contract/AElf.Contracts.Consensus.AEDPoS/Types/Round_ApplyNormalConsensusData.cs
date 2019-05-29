@@ -4,7 +4,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    internal partial class Round
+    public partial class Round
     {
         public Round ApplyNormalConsensusData(string publicKey, Hash previousInValue,
             Hash outValue, Hash signature)

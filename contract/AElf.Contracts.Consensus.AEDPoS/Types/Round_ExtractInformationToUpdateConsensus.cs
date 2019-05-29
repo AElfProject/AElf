@@ -3,7 +3,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    internal partial class Round
+    public partial class Round
     {
         /// <summary>
         /// Maybe tune other miners' supposed order of next round,

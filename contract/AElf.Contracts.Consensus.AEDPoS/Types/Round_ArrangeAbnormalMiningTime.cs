@@ -4,7 +4,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    internal partial class Round
+    public partial class Round
     {
         /// <summary>
         /// If one node produced block this round or missed his time slot,
