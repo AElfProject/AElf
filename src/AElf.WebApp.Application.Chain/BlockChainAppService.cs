@@ -532,8 +532,8 @@ namespace AElf.WebApp.Application.Chain
         {
             var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", blockHeader);
-            var round = new Round();
-            round.MergeFrom(consensusExtraData);
+            var information = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
+            var round = information.Round;
             return new RoundDto
             {
                 ExtraBlockProducerOfPreviousRound = round.ExtraBlockProducerOfPreviousRound,
@@ -546,13 +546,14 @@ namespace AElf.WebApp.Application.Chain
                         ProducedTinyBlocks = i.Value.ProducedTinyBlocks,
                         ProducedBlocks = i.Value.ProducedBlocks,
                         MissedBlocks = i.Value.MissedTimeSlots,
-                        InValue = i.Value.InValue.ToHex(),
-                        OutValue = i.Value.OutValue.ToHex(),
-                        PreviousInValue = i.Value.PreviousInValue.ToHex()
+                        InValue = i.Value.InValue?.ToHex(),
+                        OutValue = i.Value.OutValue?.ToHex(),
+                        PreviousInValue = i.Value.PreviousInValue?.ToHex()
                     }),
                 RoundNumber = round.RoundNumber,
                 TermNumber = round.TermNumber,
-                RoundId = round.RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum()
+                RoundId = round.RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds)
+                    .Sum()
             };
         }
 
