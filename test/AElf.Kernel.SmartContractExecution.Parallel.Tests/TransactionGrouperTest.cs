@@ -37,7 +37,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
         private ITransactionGrouper Grouper => Application.ServiceProvider.GetRequiredService<ITransactionGrouper>();
 
         [Fact]
-        public async Task Process_Transaction_ByAccount()
+        public async Task Group_Test()
         {
             var group1Resources = new[] {(0, 1), (2, 1), (2, 4), (3, 2), (4, 5)};
             var group1 =
