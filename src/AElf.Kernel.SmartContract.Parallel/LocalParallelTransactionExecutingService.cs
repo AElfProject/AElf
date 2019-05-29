@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
@@ -15,10 +16,12 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly ITransactionExecutingService _plainExecutingService;
 
         public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
-            ITransactionExecutingService plainExecutingService)
+            ITransactionResultService transactionResultService,
+            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IExecutionPlugin> plugins)
         {
             _grouper = grouper;
-            _plainExecutingService = plainExecutingService;
+            _plainExecutingService =
+                new TransactionExecutingService(transactionResultService, smartContractExecutiveService, plugins);
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(BlockHeader blockHeader,
@@ -38,9 +41,9 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             var returnSets = MergeResults(results).Item1;
             var returnSetCollection = new ReturnSetCollection(returnSets);
-            
+
             var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
-            updatedPartialBlockStateSet.MergeFrom(partialBlockStateSet?.Clone()??new BlockStateSet());
+            updatedPartialBlockStateSet.MergeFrom(partialBlockStateSet?.Clone() ?? new BlockStateSet());
 
             var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(blockHeader, nonParallizable,
                 cancellationToken, throwException, updatedPartialBlockStateSet);
