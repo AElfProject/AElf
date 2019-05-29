@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var baseMiningInterval =
-                (miners[1].ExpectedMiningTime.ToSafeDateTime() - miners[0].ExpectedMiningTime).TotalMilliseconds;
+                (miners[1].ExpectedMiningTime - miners[0].ExpectedMiningTime).Milliseconds();
 
             if (baseMiningInterval <= 0)
             {
@@ -47,7 +47,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             for (var i = 1; i < miners.Count - 1; i++)
             {
                 var miningInterval =
-                    (miners[i + 1].ExpectedMiningTime.ToSafeDateTime() - miners[i].ExpectedMiningTime).TotalMilliseconds;
+                    (miners[i + 1].ExpectedMiningTime - miners[i].ExpectedMiningTime).Milliseconds();
                 if (Math.Abs(miningInterval - baseMiningInterval) > baseMiningInterval)
                 {
                     return new ValidationResult {Success = false, Message = "Time slots are so different."};
@@ -77,8 +77,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var firstTwoMiners = RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
                 .ToList();
             var distance =
-                (int) (firstTwoMiners[1].ExpectedMiningTime.ToSafeDateTime() - firstTwoMiners[0].ExpectedMiningTime)
-                .TotalMilliseconds;
+                (int) (firstTwoMiners[1].ExpectedMiningTime - firstTwoMiners[0].ExpectedMiningTime)
+                .Milliseconds();
             return distance > 0 ? distance : -distance;
         }
 
@@ -141,8 +141,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public Timestamp GetExtraBlockMiningTime()
         {
             return RealTimeMinersInformation.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value
-                .ExpectedMiningTime.ToSafeDateTime()
-                .AddMilliseconds(GetMiningInterval()).ToTimestamp();
+                .ExpectedMiningTime
+                .AddMilliseconds(GetMiningInterval());
         }
 
         public long GetMinedBlocks()

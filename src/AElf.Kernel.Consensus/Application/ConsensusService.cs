@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs4;
+using AElf.Common;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -39,7 +40,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task TriggerConsensusAsync(ChainContext chainContext)
         {
-            var now = DateTime.UtcNow.ToSafeDateTime();
+            var now = DateTimeHelper.Now.ToTimestamp();
             _blockTimeProvider.SetBlockTime(now);
 
             Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.ffffff}. Trigger.");
@@ -54,7 +55,7 @@ namespace AElf.Kernel.Consensus.Application
 
             // Update next mining time, also block time of both getting consensus extra data and txs.
             _nextMiningTime =
-                DateTime.UtcNow.ToSafeDateTime().AddMilliseconds(_consensusCommand
+                DateTimeHelper.Now.AddMilliseconds(_consensusCommand
                     .NextBlockMiningLeftMilliseconds).ToTimestamp();
 
             // Initial consensus scheduler.
@@ -73,7 +74,7 @@ namespace AElf.Kernel.Consensus.Application
         public async Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,
             byte[] consensusExtraData)
         {
-            var now = DateTime.UtcNow.ToSafeDateTime();
+            var now = DateTimeHelper.Now.ToTimestamp();
             _blockTimeProvider.SetBlockTime(now);
 
             Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.ffffff}. Validate Before.");
@@ -92,7 +93,7 @@ namespace AElf.Kernel.Consensus.Application
         public async Task<bool> ValidateConsensusAfterExecutionAsync(ChainContext chainContext,
             byte[] consensusExtraData)
         {
-            var now = DateTime.UtcNow.ToSafeDateTime();
+            var now = DateTimeHelper.Now.ToTimestamp();
             _blockTimeProvider.SetBlockTime(now);
 
             Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.ffffff}. Validate After.");
@@ -116,7 +117,7 @@ namespace AElf.Kernel.Consensus.Application
         /// <returns></returns>
         public async Task<byte[]> GetInformationToUpdateConsensusAsync(ChainContext chainContext)
         {
-            _blockTimeProvider.SetBlockTime(_nextMiningTime.ToSafeDateTime());
+            _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
             Logger.LogTrace($"Set block time to next mining time: {_nextMiningTime:hh:mm:ss.ffffff}. Extra Data.");
 
@@ -128,7 +129,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task<IEnumerable<Transaction>> GenerateConsensusTransactionsAsync(ChainContext chainContext)
         {
-            _blockTimeProvider.SetBlockTime(_nextMiningTime.ToSafeDateTime());
+            _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
             Logger.LogTrace($"Set block time to next mining time: {_nextMiningTime:hh:mm:ss.ffffff}. Txs.");
 

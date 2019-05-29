@@ -40,7 +40,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (GetExtraBlockProducerInformation().PublicKey == publicKey)
             {
-                var distance = (GetExtraBlockMiningTime().ToSafeDateTime() - dateTime).TotalMilliseconds;
+                var distance = (GetExtraBlockMiningTime() - dateTime).Milliseconds();
                 if (distance > 0)
                 {
                     return GetExtraBlockMiningTime();
@@ -49,10 +49,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (RealTimeMinersInformation.ContainsKey(publicKey) && miningInterval > 0)
             {
-                var distanceToRoundStartTime = (dateTime.ToSafeDateTime() - GetStartTime()).TotalMilliseconds;
+                var distanceToRoundStartTime = (dateTime - GetStartTime()).Milliseconds();
                 var missedRoundsCount = (int) (distanceToRoundStartTime / TotalMilliseconds(miningInterval));
                 var expectedEndTime = GetExpectedEndTime(missedRoundsCount, miningInterval);
-                return expectedEndTime.ToSafeDateTime().AddMilliseconds(minerInRound.Order.Mul(miningInterval)).ToTimestamp();
+                return expectedEndTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval));
             }
 
             // Never do the mining if this node has no privilege to mime or the mining interval is invalid.
@@ -79,10 +79,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var totalMilliseconds = TotalMilliseconds(miningInterval);
-            return GetStartTime().ToSafeDateTime().AddMilliseconds(totalMilliseconds)
+            return GetStartTime().AddMilliseconds(totalMilliseconds)
                 // Arrange an ending time if this node missed so many rounds.
-                .AddMilliseconds(missedRoundsCount.Mul(totalMilliseconds))
-                .ToTimestamp();
+                .AddMilliseconds(missedRoundsCount.Mul(totalMilliseconds));
         }
 
         /// <summary>

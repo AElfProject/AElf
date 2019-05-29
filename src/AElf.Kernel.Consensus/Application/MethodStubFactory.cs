@@ -51,7 +51,7 @@ namespace AElf.Kernel.Consensus.Application
 
                 var trace =
                     await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction,
-                        _blockTimeProvider.GetBlockTime().ToTimestamp());
+                        _blockTimeProvider.GetBlockTime());
 
                 return trace.IsSuccessful()
                     ? method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray())

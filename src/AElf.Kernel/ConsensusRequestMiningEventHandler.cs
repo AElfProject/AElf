@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Miner.Application;
@@ -41,7 +42,7 @@ namespace AElf.Kernel
                 {
                     if (eventData.BlockTime > new Timestamp {Seconds = 3600} &&
                         eventData.BlockTime + eventData.BlockExecutionTime.ToDuration() <
-                        DateTime.UtcNow.ToSafeDateTime().ToTimestamp())
+                        DateTimeHelper.Now.ToTimestamp())
                     {
                         Logger.LogTrace(
                             $"Will cancel mining due to timeout: Actual mining time: {eventData.BlockTime}, execution limit: {eventData.BlockExecutionTime.TotalMilliseconds} ms.");
