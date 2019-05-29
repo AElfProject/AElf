@@ -108,9 +108,11 @@ namespace AElf.OS.Network.Grpc
                 MetricInfo = $"Block request for {hash}",
                 Timeout = 300
             };
+            
+            Metadata data = new Metadata { { GrpcConsts.MetricInfoMetadataKey, request.MetricInfo } };
 
             var blockReply 
-                = await RequestAsync(_client, (c, d) => c.RequestBlockAsync(blockRequest, deadline: d), request);
+                = await RequestAsync(_client, (c, d) => c.RequestBlockAsync(blockRequest, deadline: d, headers: data), request);
 
             return blockReply?.Block;
         }
@@ -127,8 +129,10 @@ namespace AElf.OS.Network.Grpc
                 MetricInfo = $"Get blocks for {blockInfo}",
                 Timeout = 500
             };
+            
+            Metadata data = new Metadata { { GrpcConsts.MetricInfoMetadataKey, request.MetricInfo } };
 
-            var list = await RequestAsync(_client, (c, d) => c.RequestBlocksAsync(blockRequest, deadline: d), request);
+            var list = await RequestAsync(_client, (c, d) => c.RequestBlocksAsync(blockRequest, deadline: d, headers: data), request);
 
             if (list == null)
                 return new List<BlockWithTransactions>();
@@ -146,7 +150,9 @@ namespace AElf.OS.Network.Grpc
                 Timeout = 300
             };
             
-            await RequestAsync(_client, (c, d) => c.AnnounceAsync(header, deadline: d), request);
+            Metadata data = new Metadata { { GrpcConsts.MetricInfoMetadataKey, request.MetricInfo } };
+
+            await RequestAsync(_client, (c, d) => c.AnnounceAsync(header, deadline: d, headers: data), request);
         }
 
         public async Task SendTransactionAsync(Transaction tx)

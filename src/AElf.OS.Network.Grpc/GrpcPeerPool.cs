@@ -69,6 +69,10 @@ namespace AElf.OS.Network.Grpc
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConsts.DefaultMaxSendMessageLength),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConsts.DefaultMaxReceiveMessageLength)
             });
+            
+            var interceptor = new RetryInterceptor();
+            interceptor.Logger = Logger;
+            interceptor.PeerIp = ipAddress;
 
             var client = new PeerService.PeerServiceClient(channel
                 .Intercept(metadata =>
@@ -76,7 +80,7 @@ namespace AElf.OS.Network.Grpc
                         metadata.Add(GrpcConsts.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
                         return metadata;
                     })
-                .Intercept(new RetryInterceptor()));
+                .Intercept(interceptor));
             
             var hsk = await BuildHandshakeAsync();
 
