@@ -168,7 +168,7 @@ namespace AElf.OS.Network.Grpc
         {
             var metricsName = requestParams.MetricName;
             bool timeRequest = !string.IsNullOrEmpty(metricsName);
-            var timeoutMs = requestParams.Timeout < 0 ? requestParams.Timeout : DefaultRequestTimeoutMs;
+            var timeoutMs = requestParams.Timeout > 0 ? requestParams.Timeout : DefaultRequestTimeoutMs;
             var dateBeforeRequest = DateTime.Now;
             var utcNow = DateTime.UtcNow;
             var timeout = utcNow.Add(TimeSpan.FromMilliseconds(timeoutMs));
