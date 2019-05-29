@@ -66,10 +66,6 @@ message StateChange {
     StateValue StateValue = 2;
 }
 
-//message TransactionList {
-//    repeated Transaction Transactions = 1;
-//}
-
 //enum TransactionResultStatus {
 //    NotExisted = 0;
 //    Pending = 1;

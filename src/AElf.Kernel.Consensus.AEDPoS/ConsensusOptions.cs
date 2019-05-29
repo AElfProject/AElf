@@ -11,7 +11,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
         public List<string> InitialMiners { get; set; }
         public int MiningInterval { get; set; }
         public Timestamp StartTimestamp { get; set; } = DateTime.MinValue.ToUniversalTime().ToTimestamp();
-        public long InitialTermNumber { get; set; }
         public long TimeEachTerm { get; set; } = 604800;
     }
 }

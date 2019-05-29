@@ -4,66 +4,30 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Consensus.AEDPoS</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <RootNamespace>AElf.Contracts.Consensus.AEDPoS</RootNamespace>
-        <IsContract>true</IsContract>
     </PropertyGroup>
 
-    <!--<ItemGroup>-->
-        <!--<ContractReference Include="$(ProtoBaseDir)\token_contract.proto">-->
-            <!--<Link>Protobuf\Proto\reference\token_contract.proto</Link>-->
-        <!--</ContractReference>-->
-        <!--<ContractReference Include="$(ProtoBaseDir)\dividend_contract.proto">-->
-            <!--<Link>Protobuf\Proto\reference\dividend_contract.proto</Link>-->
-        <!--</ContractReference>-->
-        <!--<ContractReference Include="$(ProtoBaseDir)\acs0.proto">-->
-            <!--<Link>Protobuf\Proto\reference\acs0.proto</Link>-->
-        <!--</ContractReference>-->
-    <!--</ItemGroup>-->
-    <!--<ItemGroup>-->
-        <!--<ContractBase Include="$(ProtoBaseDir)\acs4.proto">-->
-            <!--<Link>Protobuf\Proto\acs4.proto</Link>-->
-        <!--</ContractBase>-->
-        <!--<ContractCode Include="$(ProtoBaseDir)\dpos_contract.proto">-->
-            <!--<Link>Protobuf\Proto\dpos_contract.proto</Link>-->
-        <!--</ContractCode>-->
-    <!--</ItemGroup>-->
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\election_contract.proto">
+            <Link>Protobuf\Proto\reference\election_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
 
     <ItemGroup>
-        <!--<None Include="..\..\protobuf\common.proto">-->
-            <!--<Link>Protobuf/Proto/common.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\kernel.proto">-->
-            <!--<Link>Protobuf/Proto/kernel.proto</Link>-->
-        <!--</None>-->
-        <ContractReference Include="$(ProtoBaseDir)\acs0.proto">
-        <Link>Protobuf\Proto\reference\acs0.proto</Link>
-        </ContractReference>
-        <ContractReference Include="$(ProtoBaseDir)\election_contract.proto">
-            <Link>Protobuf/Proto/election_contract.proto</Link>
-        </ContractReference>
-        <ContractCode Include="..\..\protobuf\aedpos_contract.proto">
-            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
-        </ContractCode>
-        <!--<None Include="..\..\protobuf\token_contract.proto">-->
-            <!--<Link>Protobuf/Proto/token_contract.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\aelf_options.proto">-->
-            <!--<Link>Protobuf/Proto/aelf_options.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\basic_contract_zero.proto">-->
-            <!--<Link>Protobuf/Proto/basic_contract_zero.proto</Link>-->
-        <!--</None>-->
-        <!--<None Include="..\..\protobuf\aedpos_contract.proto">-->
-            <!--<Link>Protobuf/Proto/aedpos_contract.proto</Link>-->
-        <!--</None>-->
+        <ContractBase Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractBase>
     </ItemGroup>
-    <!--<Target Name="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto election_contract.proto; ../../scripts/generate_contract_code.sh aedpos_contract.proto" />-->
-        <!--<Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto election_contract.proto &amp; ..\..\scripts\generate_contract_code.bat aedpos_contract.proto" />-->
-    <!--</Target>-->
-    <!--<Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">-->
-        <!--<ItemGroup>-->
-            <!--<Compile Include="./Protobuf/Generated/*.cs" />-->
-        <!--</ItemGroup>-->
-    <!--</Target>-->
+    
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\aedpos_contract_impl.proto">
+            <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
 </Project>

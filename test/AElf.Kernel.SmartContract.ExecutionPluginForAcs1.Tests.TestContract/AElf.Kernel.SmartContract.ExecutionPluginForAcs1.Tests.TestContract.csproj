@@ -17,4 +17,5 @@
         <Link>Protobuf/Proto/acs1_plugin_test_contract.proto</Link>
       </ContractCode>
     </ItemGroup>
+
 </Project>
