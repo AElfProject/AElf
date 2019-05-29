@@ -35,7 +35,7 @@ namespace AElf.OS.Network.Grpc
 
                 // try again
                 var result = continuation(request, context).ResponseAsync.ContinueWith(RetryCallback).Unwrap();
-                return result.Result;
+                return await result;
             }
 
             var responseContinuation = continuation(request, context);

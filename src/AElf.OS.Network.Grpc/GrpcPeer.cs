@@ -146,7 +146,7 @@ namespace AElf.OS.Network.Grpc
                 ErrorMessage = $"Bcast announce for {header.BlockHash} failed.",
                 MetricName = nameof(MetricNames.Announce),
                 MetricInfo = $"Block hash {header.BlockHash}", 
-                Timeout = 100
+                Timeout = 300
             };
             
             await RequestAsync(_client, (c, d) => c.AnnounceAsync(header, deadline: d), request);
