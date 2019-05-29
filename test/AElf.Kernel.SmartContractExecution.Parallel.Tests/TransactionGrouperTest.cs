@@ -56,7 +56,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
             var allTxns = groups.SelectMany(x => x).Select(x => x.Transaction).OrderBy(x => Guid.NewGuid()).ToList();
 
             var grouped = await Grouper.GroupAsync(allTxns);
-            var groupedResources = grouped.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();
+            var groupedResources = grouped.Item1.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();
             var expected = groups.Select(g => g.Select(x => x.Resource).ToList()).Select(StringRepresentation)
                 .OrderBy(x => x);
             var actual = groupedResources.Select(StringRepresentation).OrderBy(x => x);

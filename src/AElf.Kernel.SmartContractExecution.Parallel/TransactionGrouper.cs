@@ -24,7 +24,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
             Logger = NullLogger<TransactionGrouper>.Instance;
         }
 
-        public async Task<List<List<Transaction>>> GroupAsync(List<Transaction> transactions)
+        public async Task<(List<List<Transaction>>, List<Transaction>)> GroupAsync(List<Transaction> transactions)
         {
             var chainContext = await GetChainContextAsync();
             var resourceUnionSet = new Dictionary<int, UnionFindNode>();
@@ -82,9 +82,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
                     }
                 }
             }
-            if (nonParallelizable.Count > 0)
-                groups.Add(nonParallelizable);
-            
+
             var grouped = new Dictionary<int, List<Transaction>>();
 
             foreach (var transaction in transactions)
@@ -107,7 +105,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
             
             groups.AddRange(grouped.Values);
 
-            return groups;
+            return (groups, nonParallelizable);
         }
 
         private async Task<ChainContext> GetChainContextAsync()
