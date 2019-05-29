@@ -4,10 +4,11 @@ using System.Threading.Tasks;
 using Acs2;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContractExecution;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContractExecution.Parallel
+namespace AElf.Kernel.SmartContract.Parallel
 {
     internal static class ExecutiveExtensions
     {

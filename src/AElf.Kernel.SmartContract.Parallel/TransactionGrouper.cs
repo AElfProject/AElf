@@ -7,7 +7,7 @@ using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace AElf.Kernel.SmartContractExecution.Parallel
+namespace AElf.Kernel.SmartContract.Parallel
 {
     public class TransactionGrouper : ITransactionGrouper
     {

@@ -9,7 +9,7 @@ using Shouldly;
 using Volo.Abp;
 using Xunit;
 
-namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
+namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
     public class ResourceExtractionServiceTest : AbpIntegratedTest<TestModule>
     {
@@ -76,7 +76,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
             {
                 From = Address.FromString("Dummy"),
                 To = Address.FromString(InternalConstants.Acs2),
-                MethodName = nameof(TestContract.TestContract.GetResourceInfo),
+                MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };
@@ -88,7 +88,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
             {
                 From = Address.FromString("Dummy"),
                 To = Address.FromString(InternalConstants.NonAcs2),
-                MethodName = nameof(TestContract.TestContract.GetResourceInfo),
+                MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };

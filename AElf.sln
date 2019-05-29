@@ -282,9 +282,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Runtime.CSharp.Tests.BadContract", "test\AElf.Runtime.CSharp.Tests.BadContract\AElf.Runtime.CSharp.Tests.BadContract.csproj", "{E770800E-64BC-46A3-A3BA-C9910BB5771C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Parallel", "src\AElf.Kernel.SmartContractExecution.Parallel\AElf.Kernel.SmartContractExecution.Parallel.csproj", "{CF33B86C-3056-49D1-BF23-96E69564337C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Parallel", "src\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj", "{CF33B86C-3056-49D1-BF23-96E69564337C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Parallel.Tests", "test\AElf.Kernel.SmartContractExecution.Parallel.Tests\AElf.Kernel.SmartContractExecution.Parallel.Tests.csproj", "{380A3025-5888-498D-8359-0F63961E7C4C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Parallel.Tests", "test\AElf.Kernel.SmartContract.Parallel.Tests\AElf.Kernel.SmartContract.Parallel.Tests.csproj", "{380A3025-5888-498D-8359-0F63961E7C4C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract", "test\AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract\AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract.csproj", "{2968AA64-9848-4932-A571-39F160166FD7}"
 EndProject

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
+namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
     public class MockResourceExtractionService : IResourceExtractionService
     {

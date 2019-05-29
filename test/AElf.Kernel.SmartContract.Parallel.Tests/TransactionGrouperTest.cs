@@ -11,7 +11,7 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 using Xunit;
 
-namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
+namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
     public class TransactionGrouperTestModule : AbpModule
     {

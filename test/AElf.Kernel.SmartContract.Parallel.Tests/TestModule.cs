@@ -1,6 +1,5 @@
 using System.IO;
 using System.Threading.Tasks;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.CSharp;
@@ -12,7 +11,7 @@ using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 using ServiceDescriptor = Google.Protobuf.Reflection.ServiceDescriptor;
 
-namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
+namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
     public class TestModule : AbpModule
     {
@@ -45,7 +44,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
 
         private static IExecutive GetAcs2Executive()
         {
-            var testContractFile = typeof(TestContract.TestContract).Assembly.Location;
+            var testContractFile = typeof(SmartContractExecution.Parallel.Tests.TestContract.TestContract).Assembly.Location;
             var code = File.ReadAllBytes(testContractFile);
             var runner = new SmartContractRunnerForCategoryZero(
                 Path.GetDirectoryName(testContractFile)

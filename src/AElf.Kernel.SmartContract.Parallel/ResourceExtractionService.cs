@@ -5,7 +5,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 
-namespace AElf.Kernel.SmartContractExecution.Parallel
+namespace AElf.Kernel.SmartContract.Parallel
 {
     public class ResourceExtractionService : IResourceExtractionService
     {
