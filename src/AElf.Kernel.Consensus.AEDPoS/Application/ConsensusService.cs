@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Types;
@@ -68,8 +69,7 @@ namespace AElf.Kernel.Consensus.Application
 
             // Update next mining time, also block time of both getting consensus extra data and txs.
             _nextMiningTime =
-                DateTime.UtcNow.ToSafeDateTime().AddMilliseconds(_consensusControlInformation.ConsensusCommand
-                    .NextBlockMiningLeftMilliseconds).ToTimestamp();
+                DateTime.UtcNow.AddMilliseconds(_consensusControlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds).ToTimestamp();
         }
 
         public async Task<bool> ValidateConsensusBeforeExecutionAsync(ChainContext chainContext,

@@ -135,45 +135,44 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 case AElfConsensusBehaviour.UpdateValue:
                     nextBlockMiningLeftMilliseconds =
-                        (int) (expectedMiningTime.ToSafeDateTime() - dateTime).TotalMilliseconds;
+                        (int) (expectedMiningTime - dateTime).Milliseconds();
                     break;
                 case AElfConsensusBehaviour.TinyBlock:
                     if (minerInRound.OutValue != null)
                     {
                         if (currentRound.ExtraBlockProducerOfPreviousRound != publicKey)
                         {
-                            expectedMiningTime = expectedMiningTime.ToSafeDateTime().AddMilliseconds(producedTinyBlocks
-                                    .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber))
-                                .ToTimestamp();
+                            expectedMiningTime = expectedMiningTime.AddMilliseconds(producedTinyBlocks
+                                    .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber));
                         }
                         else
                         {
                             // EBP of previous round will produce double tiny blocks. This is for normal time slot of current round.
-                            expectedMiningTime = expectedMiningTime.ToSafeDateTime().AddMilliseconds(producedTinyBlocks
+                            expectedMiningTime = expectedMiningTime.AddMilliseconds(producedTinyBlocks
                                 .Sub(AEDPoSContractConstants.TinyBlocksNumber)
-                                .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber)).ToTimestamp();
+                                .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber));
                         }
                     }
                     else if (previousRound != null)
                     {
                         // EBP of previous round will produce double tiny blocks. This is for extra time slot of previous round.
-                        expectedMiningTime = previousRound.GetExtraBlockMiningTime().ToSafeDateTime().AddMilliseconds(producedTinyBlocks
-                            .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber)).ToTimestamp();
+                        expectedMiningTime = previousRound.GetExtraBlockMiningTime().AddMilliseconds(producedTinyBlocks
+                            .Mul(miningInterval).Div(AEDPoSContractConstants.TinyBlocksNumber));
                     }
 
                     nextBlockMiningLeftMilliseconds =
-                        (int) (expectedMiningTime.ToSafeDateTime() - dateTime).TotalMilliseconds;
+                        (int) (expectedMiningTime - dateTime).Milliseconds();
                     break;
                 case AElfConsensusBehaviour.NextRound:
                     nextBlockMiningLeftMilliseconds = currentRound.RoundNumber == 1
                         ? currentRound.RealTimeMinersInformation.Count * miningInterval + myOrder * miningInterval
-                        : (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToSafeDateTime() -
-                                 dateTime).TotalMilliseconds;
+                        : (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime) -
+                                 dateTime).Milliseconds();
                     break;
                 case AElfConsensusBehaviour.NextTerm:
                     nextBlockMiningLeftMilliseconds =
-                        (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime).ToSafeDateTime() -
-                               dateTime).TotalMilliseconds;
+                        (int) (currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, dateTime) -
+                               dateTime).Milliseconds();
                     break;
                 default:
                     return new ConsensusCommand

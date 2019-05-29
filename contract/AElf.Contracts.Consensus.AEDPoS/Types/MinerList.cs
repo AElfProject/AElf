@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInRound.PublicKey = sortedMiners[i];
                 minerInRound.Order = i + 1;
                 minerInRound.ExpectedMiningTime =
-                    currentBlockTime.ToSafeDateTime().AddMilliseconds(i.Mul(miningInterval).Add(miningInterval)).ToTimestamp();
+                    currentBlockTime.AddMilliseconds(i.Mul(miningInterval).Add(miningInterval));
                 minerInRound.PromisedTinyBlocks = 1;
                 // Should be careful during validation.
                 minerInRound.PreviousInValue = Hash.Empty;

@@ -39,8 +39,7 @@ namespace AElf.Contracts.TestBase
 
                 minerInRound.PublicKey = sortedMiners[i];
                 minerInRound.Order = i + 1;
-                minerInRound.ExpectedMiningTime =
-                    currentBlockTime.ToSafeDateTime().AddMilliseconds((i * miningInterval) + miningInterval).ToTimestamp();
+                minerInRound.ExpectedMiningTime = currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval);
                 minerInRound.PromisedTinyBlocks = 1;
                 // Should be careful during validation.
                 minerInRound.PreviousInValue = Hash.Empty;

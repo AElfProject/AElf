@@ -36,8 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return new ValidationResult {Success = false, Message = "Incorrect expected mining time."};
             }
 
-            var baseMiningInterval =
-                (miners[1].ExpectedMiningTime.ToSafeDateTime() - miners[0].ExpectedMiningTime).TotalMilliseconds;
+            var baseMiningInterval = (miners[1].ExpectedMiningTime - miners[0].ExpectedMiningTime).Milliseconds();
 
             if (baseMiningInterval <= 0)
             {
@@ -46,8 +45,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             for (var i = 1; i < miners.Count - 1; i++)
             {
-                var miningInterval =
-                    (miners[i + 1].ExpectedMiningTime.ToSafeDateTime() - miners[i].ExpectedMiningTime).TotalMilliseconds;
+                var miningInterval = (miners[i + 1].ExpectedMiningTime - miners[i].ExpectedMiningTime).Milliseconds();
                 if (Math.Abs(miningInterval - baseMiningInterval) > baseMiningInterval)
                 {
                     return new ValidationResult {Success = false, Message = "Time slots are so different."};
@@ -77,8 +75,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var firstTwoMiners = RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
                 .ToList();
             var distance =
-                (int) (firstTwoMiners[1].ExpectedMiningTime.ToSafeDateTime() - firstTwoMiners[0].ExpectedMiningTime)
-                .TotalMilliseconds;
+                (int) (firstTwoMiners[1].ExpectedMiningTime - firstTwoMiners[0].ExpectedMiningTime).Milliseconds();
             return distance > 0 ? distance : -distance;
         }
 
@@ -89,7 +86,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var miningInterval = GetMiningInterval();
             if (!RealTimeMinersInformation.ContainsKey(publicKey)) return false;
             minerInRound = RealTimeMinersInformation[publicKey];
-            return minerInRound.ExpectedMiningTime.ToSafeDateTime().AddMilliseconds(miningInterval).ToTimestamp() <= dateTime;
+            return minerInRound.ExpectedMiningTime.AddMilliseconds(miningInterval) <= dateTime;
         }
 
         /// <summary>
@@ -125,7 +122,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (GetExtraBlockProducerInformation().PublicKey == publicKey)
             {
-                var distance = (GetExtraBlockMiningTime().ToSafeDateTime() - dateTime).TotalMilliseconds;
+                var distance = (GetExtraBlockMiningTime() - dateTime).Milliseconds();
                 if (distance > 0)
                 {
                     return GetExtraBlockMiningTime();
@@ -134,10 +131,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (RealTimeMinersInformation.ContainsKey(publicKey) && miningInterval > 0)
             {
-                var distanceToRoundStartTime = (dateTime.ToSafeDateTime() - GetStartTime()).TotalMilliseconds;
+                var distanceToRoundStartTime = (dateTime - GetStartTime()).Milliseconds();
                 var missedRoundsCount = (int) (distanceToRoundStartTime / TotalMilliseconds(miningInterval));
                 var expectedEndTime = GetExpectedEndTime(missedRoundsCount, miningInterval);
-                return expectedEndTime.ToSafeDateTime().AddMilliseconds(minerInRound.Order.Mul(miningInterval)).ToTimestamp();
+                return expectedEndTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval));
             }
 
             // Never do the mining if this node has no privilege to mime or the mining interval is invalid.
@@ -238,10 +235,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var totalMilliseconds = TotalMilliseconds(miningInterval);
-            return GetStartTime().ToSafeDateTime().AddMilliseconds(totalMilliseconds)
+            return GetStartTime().AddMilliseconds(totalMilliseconds)
                 // Arrange an ending time if this node missed so many rounds.
-                .AddMilliseconds(missedRoundsCount.Mul(totalMilliseconds))
-                .ToTimestamp();
+                .AddMilliseconds(missedRoundsCount.Mul(totalMilliseconds));
         }
 
         /// <summary>
@@ -270,8 +266,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public Timestamp GetExtraBlockMiningTime()
         {
             return RealTimeMinersInformation.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value
-                .ExpectedMiningTime.ToSafeDateTime()
-                .AddMilliseconds(GetMiningInterval()).ToTimestamp();
+                .ExpectedMiningTime
+                .AddMilliseconds(GetMiningInterval());
         }
         
         /// <summary>
