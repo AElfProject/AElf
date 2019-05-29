@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Common;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
@@ -209,7 +210,7 @@ namespace AElf.OS
             }
 
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
-                DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMilliseconds(4000));
+                DateTimeHelper.Now.ToTimestamp(), TimeSpan.FromMilliseconds(4000));
 
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
@@ -226,7 +227,7 @@ namespace AElf.OS
                     ChainId = _staticChainInformationProvider.ChainId,
                     Height = preBlockHeight + 1,
                     PreviousBlockHash = preBlockHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = DateTimeHelper.Now.ToTimestamp()
                 },
                 Body = new BlockBody()
             };

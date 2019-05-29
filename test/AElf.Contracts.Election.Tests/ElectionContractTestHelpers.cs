@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -54,7 +56,7 @@ namespace AElf.Contracts.Election
             {
                 CandidatePublicKey = candidatePublicKey,
                 Amount = amount,
-                EndTimestamp = DateTime.UtcNow.ToUniversalTime().AddSeconds(lockTime).ToTimestamp()
+                EndTimestamp = DateTimeHelper.Now.ToTimestamp().AddSeconds(lockTime)
             })).TransactionResult;
         }
         

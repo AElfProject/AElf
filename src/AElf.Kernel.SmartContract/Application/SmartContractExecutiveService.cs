@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
@@ -180,7 +181,7 @@ namespace AElf.Kernel.SmartContract.Application
             var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
-                CurrentBlockTime = DateTime.UtcNow.ToTimestamp(),
+                CurrentBlockTime = DateTimeHelper.Now.ToTimestamp(),
                 Transaction = transaction,
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,

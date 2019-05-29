@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -63,7 +64,7 @@ namespace AElf.Benchmark
         public async Task MineBlockTest()
         {
             _block = await _minerService.MineAsync(_chain.BestChainHash, _chain.BestChainHeight,
-                DateTime.UtcNow.ToTimestamp(), TimeSpan.FromMilliseconds(4000));
+                DateTimeHelper.Now.ToTimestamp(), TimeSpan.FromMilliseconds(4000));
         }
 
         [IterationCleanup]

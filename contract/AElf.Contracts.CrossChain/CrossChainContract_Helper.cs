@@ -193,7 +193,7 @@ namespace AElf.Contracts.CrossChain
         
         private Hash Propose(int waitingPeriod, Address targetAddress, string invokingMethod, IMessage input)
         {
-            var expiredTime = Context.CurrentBlockTime.ToSafeDateTime().AddSeconds(waitingPeriod).ToTimestamp();
+            var expiredTime = Context.CurrentBlockTime.AddSeconds(waitingPeriod);
             var proposal = new CreateProposalInput
             {
                 ContractMethodName = invokingMethod,

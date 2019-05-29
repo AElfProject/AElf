@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.Consensus.Application;
 using FluentScheduler;
 using Microsoft.Extensions.Logging;
@@ -29,7 +30,7 @@ namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
 
             var registry = new Registry();
             registry.Schedule(() => LocalEventBus.PublishAsync(consensusRequestMiningEventData))
-                .ToRunOnceAt(DateTime.UtcNow.AddMilliseconds(countingMilliseconds));
+                .ToRunOnceAt(DateTimeHelper.Now.AddMilliseconds(countingMilliseconds));
             JobManager.Initialize(registry);
         }
 

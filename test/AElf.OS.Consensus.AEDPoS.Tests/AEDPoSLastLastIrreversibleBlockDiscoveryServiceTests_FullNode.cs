@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
@@ -20,7 +21,7 @@ namespace AElf.OS.Consensus.DPos
         private readonly IPeerPool _peerPool;
         private readonly OSTestHelper _osTestHelper;
 
-        private readonly long _connectionTime = DateTime.UtcNow.ToTimestamp().Seconds;
+        private readonly long _connectionTime = DateTimeHelper.Now.ToTimestamp().Seconds;
 
         public AEDPoSLastLastIrreversibleBlockDiscoveryServiceTests_FullNode()
         {

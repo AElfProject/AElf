@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using AElf.Types;
@@ -30,7 +31,7 @@ namespace AElf.OS.Handlers
             {
                 BlockHash = Hash.FromString("block"),
                 BlockHeight = 1,
-                BlockTime = DateTime.UtcNow.ToTimestamp()
+                BlockTime = DateTimeHelper.Now.ToTimestamp()
             };
             var exception = await Record.ExceptionAsync(async () =>
                 await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1")));
@@ -44,7 +45,7 @@ namespace AElf.OS.Handlers
             {
                 BlockHash = Hash.FromString("block"),
                 BlockHeight = 1,
-                BlockTime = (DateTime.UtcNow + TimeSpan.FromSeconds(5)).ToTimestamp()
+                BlockTime = (DateTimeHelper.Now + TimeSpan.FromSeconds(5)).ToTimestamp()
             };
             var exception = await Record.ExceptionAsync(async () => 
                 await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1")));

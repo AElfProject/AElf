@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
@@ -145,7 +146,7 @@ namespace AElf.Kernel
                 {
                     Height = previousBlockHeight + 1,
                     PreviousBlockHash = previousBlockHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = DateTimeHelper.Now.ToTimestamp()
                 },
                 Body = new BlockBody()
             };

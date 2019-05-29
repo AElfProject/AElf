@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
@@ -17,7 +18,7 @@ namespace AElf.Kernel.Blockchain.Application
         public Hash PreviousBlockHash { get; set; }
         public long PreviousBlockHeight { get; set; }
 
-        public Timestamp BlockTime { get; set; } = DateTime.UtcNow.ToTimestamp();
+        public Timestamp BlockTime { get; set; } = DateTimeHelper.Now.ToTimestamp();
     }
 
     public interface IBlockGenerationService

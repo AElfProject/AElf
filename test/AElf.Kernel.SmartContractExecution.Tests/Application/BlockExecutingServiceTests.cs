@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
@@ -32,7 +33,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 Height = 2,
                 PreviousBlockHash = Hash.Empty,
-                Time = DateTime.UtcNow.ToTimestamp()
+                Time = DateTimeHelper.Now.ToTimestamp()
             };
             var txs = BuildTransactions(5);
 
@@ -56,7 +57,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 Height = 2,
                 PreviousBlockHash = Hash.Empty,
-                Time = DateTime.UtcNow.ToTimestamp()
+                Time = DateTimeHelper.Now.ToTimestamp()
             };
             var nonCancellableTxs = BuildTransactions(5);
             var cancellableTxs = BuildTransactions(5);

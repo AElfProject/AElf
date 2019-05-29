@@ -3,6 +3,7 @@ using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -43,7 +44,7 @@ namespace AElf.OS.Network
 
         private ServerCallContext BuildServerCallContext(Metadata metadata = null, string address = null)
         {
-            return TestServerCallContext.Create("mock", null, DateTime.UtcNow.AddHours(1), metadata ?? new Metadata(), CancellationToken.None, 
+            return TestServerCallContext.Create("mock", null, DateTimeHelper.Now.AddHours(1), metadata ?? new Metadata(), CancellationToken.None, 
                 address ?? "127.0.0.1", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
         }
 
@@ -62,7 +63,7 @@ namespace AElf.OS.Network
             Hash hash = Hash.Generate();
             await _service.Announce(new PeerNewBlockAnnouncement
             {
-                BlockHeight = 10, BlockHash = hash, BlockTime = DateTime.UtcNow.ToTimestamp()
+                BlockHeight = 10, BlockHash = hash, BlockTime = DateTimeHelper.Now.ToTimestamp()
             }, BuildServerCallContext());
 
             Assert.NotNull(received);
@@ -231,7 +232,7 @@ namespace AElf.OS.Network
                 handshake.HskData.PublicKey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey);
                 var metadata = new Metadata
                     {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
-                var context = TestServerCallContext.Create("mock", "127.0.0.1", DateTime.UtcNow.AddHours(1), metadata, CancellationToken.None, 
+                var context = TestServerCallContext.Create("mock", "127.0.0.1", DateTimeHelper.Now.AddHours(1), metadata, CancellationToken.None, 
                     "ipv4:127.0.0.1:2000", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
                 
                 var connectReply = await _service.Connect(handshake, context);

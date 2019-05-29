@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
@@ -50,7 +51,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     CandidatePublicKey = candidateKeyPair.PublicKey.ToHex(),
                     Amount = 10000 - new Random().Next(1, 200) * count,
-                    EndTimestamp = DateTime.UtcNow.Add(TimeSpan.FromDays(100)).ToTimestamp()
+                    EndTimestamp = DateTimeHelper.Now.Add(TimeSpan.FromDays(100)).ToTimestamp()
                 });
                 count++;
             }
@@ -175,7 +176,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     CandidatePublicKey = candidateKeyPair.PublicKey.ToHex(),
                     Amount = 100 + new Random().Next(1, 200),
-                    EndTimestamp = DateTime.UtcNow.Add(TimeSpan.FromDays(100)).ToTimestamp()
+                    EndTimestamp = DateTimeHelper.Now.Add(TimeSpan.FromDays(100)).ToTimestamp()
                 });
             }
 
