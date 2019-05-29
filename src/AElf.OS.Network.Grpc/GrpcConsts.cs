@@ -4,6 +4,7 @@ namespace AElf.OS.Network.Grpc
     {
         public const string PubkeyMetadataKey = "public-key";
         public const string PeerInfoMetadataKey = "peer-info";
+        public const string MetricInfoMetadataKey = "metric-info";
 
         public const string GrpcRequestCompressKey = "grpc-internal-encoding-request";
         public const string GrpcGzipConst = "gzip";

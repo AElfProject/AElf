@@ -101,11 +101,15 @@ namespace AElf.OS.Network.Grpc
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConsts.DefaultMaxReceiveMessageLength)
             });
             
+            var interceptor = new RetryInterceptor();
+            interceptor.Logger = Logger;
+            interceptor.PeerIp = peer.IpAddress;
+            
             var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
             {
                 metadata.Add(GrpcConsts.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
                 return metadata;
-            }).Intercept(new RetryInterceptor()));
+            }).Intercept(interceptor));
 
             if (channel.State != ChannelState.Ready)
             {

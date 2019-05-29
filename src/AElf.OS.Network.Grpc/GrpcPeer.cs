@@ -14,8 +14,6 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcPeer : IPeer
     {
-        private static readonly object _metricsLock = new object();
-        
         private const int MaxMetricsPerMethod = 100;
         private const int DefaultRequestTimeoutMs = 200;
 
@@ -52,8 +50,8 @@ namespace AElf.OS.Network.Grpc
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
-        public IReadOnlyDictionary<string, List<RequestMetric>> RecentRequestsRoundtripTime { get; }
-        private readonly ConcurrentDictionary<string, List<RequestMetric>> _recentRequestsRoundtripTimes;
+        public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTime { get; }
+        private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string pubKey, string peerIpAddress,
             int protocolVersion, long connectionTime, long startHeight, bool inbound = true)
@@ -71,29 +69,26 @@ namespace AElf.OS.Network.Grpc
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
             
-            _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, List<RequestMetric>>();
-            RecentRequestsRoundtripTime = new ReadOnlyDictionary<string, List<RequestMetric>>(_recentRequestsRoundtripTimes);
+            _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
+            RecentRequestsRoundtripTime = new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
 
-            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new List<RequestMetric>(MaxMetricsPerMethod));
-            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new List<RequestMetric>(MaxMetricsPerMethod));
-            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new List<RequestMetric>(MaxMetricsPerMethod));
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
         {
             Dictionary<string, List<RequestMetric>> metrics = new Dictionary<string, List<RequestMetric>>();
-            
-            lock (_metricsLock)
+
+            foreach (var roundtripTime in _recentRequestsRoundtripTimes.ToArray())
             {
-                foreach (var roundtripTime in _recentRequestsRoundtripTimes)
+                var metricsToAdd = new List<RequestMetric>();
+                
+                metrics.Add(roundtripTime.Key, metricsToAdd);
+                foreach (var requestMetric in roundtripTime.Value)
                 {
-                    var metricsToAdd = new List<RequestMetric>();
-                    
-                    metrics.Add(roundtripTime.Key, metricsToAdd);
-                    foreach (var requestMetric in roundtripTime.Value)
-                    {
-                        metricsToAdd.Add(requestMetric);
-                    }
+                    metricsToAdd.Add(requestMetric);
                 }
             }
 
@@ -111,9 +106,11 @@ namespace AElf.OS.Network.Grpc
                 MetricInfo = $"Block request for {hash}",
                 Timeout = 300
             };
+            
+            Metadata data = new Metadata { { GrpcConsts.MetricInfoMetadataKey, request.MetricInfo } };
 
             var blockReply 
-                = await RequestAsync(_client, (c, d) => c.RequestBlockAsync(blockRequest, deadline: d), request);
+                = await RequestAsync(_client, (c, d) => c.RequestBlockAsync(blockRequest, deadline: d, headers: data), request);
 
             return blockReply?.Block;
         }
@@ -130,8 +127,10 @@ namespace AElf.OS.Network.Grpc
                 MetricInfo = $"Get blocks for {blockInfo}",
                 Timeout = 500
             };
+            
+            Metadata data = new Metadata { { GrpcConsts.MetricInfoMetadataKey, request.MetricInfo } };
 
-            var list = await RequestAsync(_client, (c, d) => c.RequestBlocksAsync(blockRequest, deadline: d), request);
+            var list = await RequestAsync(_client, (c, d) => c.RequestBlocksAsync(blockRequest, deadline: d, headers: data), request);
 
             if (list == null)
                 return new List<BlockWithTransactions>();
@@ -139,20 +138,22 @@ namespace AElf.OS.Network.Grpc
             return list.Blocks.ToList();
         }
 
-        public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
+        public Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
             GrpcRequest request = new GrpcRequest
             {
                 ErrorMessage = $"Bcast announce for {header.BlockHash} failed.",
                 MetricName = nameof(MetricNames.Announce),
                 MetricInfo = $"Block hash {header.BlockHash}", 
-                Timeout = 100
+                Timeout = 300
             };
             
-            await RequestAsync(_client, (c, d) => c.AnnounceAsync(header, deadline: d), request);
+            Metadata data = new Metadata { { GrpcConsts.MetricInfoMetadataKey, request.MetricInfo } };
+
+            return RequestAsync(_client, (c, d) => c.AnnounceAsync(header, deadline: d, headers: data), request);
         }
 
-        public async Task SendTransactionAsync(Transaction tx)
+        public Task SendTransactionAsync(Transaction tx)
         {
             GrpcRequest request = new GrpcRequest
             {
@@ -160,7 +161,7 @@ namespace AElf.OS.Network.Grpc
                 Timeout = 100
             };
             
-            await RequestAsync(_client, (c, d) => c.SendTransactionAsync(tx, deadline: d), request);
+            return RequestAsync(_client, (c, d) => c.SendTransactionAsync(tx, deadline: d), request);
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
@@ -168,7 +169,7 @@ namespace AElf.OS.Network.Grpc
         {
             var metricsName = requestParams.MetricName;
             bool timeRequest = !string.IsNullOrEmpty(metricsName);
-            var timeoutMs = requestParams.Timeout < 0 ? requestParams.Timeout : DefaultRequestTimeoutMs;
+            var timeoutMs = requestParams.Timeout > 0 ? requestParams.Timeout : DefaultRequestTimeoutMs;
             var dateBeforeRequest = DateTime.Now;
             var utcNow = DateTime.UtcNow;
             var timeout = utcNow.Add(TimeSpan.FromMilliseconds(timeoutMs));
@@ -208,21 +209,18 @@ namespace AElf.OS.Network.Grpc
 
         private void RecordMetric(GrpcRequest grpcRequest, DateTime dateTimeBeforeRequest, long elapsedMilliseconds)
         {
-            lock (_metricsLock)
+            var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
+                    
+            while (metrics.Count >= MaxMetricsPerMethod)
+                metrics.TryDequeue(out _);
+                    
+            metrics.Enqueue(new RequestMetric
             {
-                var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
-                        
-                if (metrics.Count >= MaxMetricsPerMethod)
-                    metrics.RemoveAt(0);
-                        
-                metrics.Add(new RequestMetric
-                {
-                    Info = grpcRequest.MetricInfo,
-                    RequestTime = dateTimeBeforeRequest,
-                    MethodName = grpcRequest.MetricName,
-                    RoundTripTime = elapsedMilliseconds
-                });
-            }
+                Info = grpcRequest.MetricInfo,
+                RequestTime = dateTimeBeforeRequest,
+                MethodName = grpcRequest.MetricName,
+                RoundTripTime = elapsedMilliseconds
+            });
         }
         
         /// <summary>
