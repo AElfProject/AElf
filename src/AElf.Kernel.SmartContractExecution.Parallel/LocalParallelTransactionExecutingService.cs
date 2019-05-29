@@ -11,10 +11,10 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
 {
     public class LocalParallelTransactionExecutingService : ILocalParallelTransactionExecutingService
     {
-        private readonly IGrouper _grouper;
+        private readonly ITransactionGrouper _grouper;
         private readonly ITransactionExecutingService _plainExecutingService;
 
-        public LocalParallelTransactionExecutingService(IGrouper grouper,
+        public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
             ITransactionExecutingService plainExecutingService)
         {
             _grouper = grouper;
