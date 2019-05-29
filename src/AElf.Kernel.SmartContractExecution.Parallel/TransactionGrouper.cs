@@ -82,7 +82,8 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
                     }
                 }
             }
-            groups.Add(nonParallelizable);
+            if (nonParallelizable.Count > 0)
+                groups.Add(nonParallelizable);
             
             var grouped = new Dictionary<int, List<Transaction>>();
 
