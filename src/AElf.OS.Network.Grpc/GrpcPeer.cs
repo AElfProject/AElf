@@ -15,8 +15,11 @@ namespace AElf.OS.Network.Grpc
     public class GrpcPeer : IPeer
     {
         private const int MaxMetricsPerMethod = 100;
-        private const int DefaultRequestTimeoutMs = 200;
-
+        private const int AnnouncementTimeout = 300;
+        private const int BlockRequestTimeout = 300;
+        private const int TransactionBroadCastTimeout = 300;
+        private const int BlocksRequestTimeout = 500;
+        
         private enum MetricNames
         {
             Announce,
@@ -106,11 +109,15 @@ namespace AElf.OS.Network.Grpc
                 MetricInfo = $"Block request for {hash}",
                 Timeout = 300
             };
-            
-            Metadata data = new Metadata { { GrpcConsts.MetricInfoMetadataKey, request.MetricInfo } };
+
+            Metadata data = new Metadata
+            {
+                {GrpcConsts.MetricInfoMetadataKey, request.MetricInfo},
+                {GrpcConsts.TimeoutMetadataKey, BlockRequestTimeout.ToString()}
+            };
 
             var blockReply 
-                = await RequestAsync(_client, (c, d) => c.RequestBlockAsync(blockRequest, deadline: d, headers: data), request);
+                = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest, data), request);
 
             return blockReply?.Block;
         }
@@ -127,10 +134,14 @@ namespace AElf.OS.Network.Grpc
                 MetricInfo = $"Get blocks for {blockInfo}",
                 Timeout = 500
             };
-            
-            Metadata data = new Metadata { { GrpcConsts.MetricInfoMetadataKey, request.MetricInfo } };
 
-            var list = await RequestAsync(_client, (c, d) => c.RequestBlocksAsync(blockRequest, deadline: d, headers: data), request);
+            Metadata data = new Metadata
+            {
+                {GrpcConsts.MetricInfoMetadataKey, request.MetricInfo},
+                {GrpcConsts.TimeoutMetadataKey, BlocksRequestTimeout.ToString()}
+            };
+
+            var list = await RequestAsync(_client, c => c.RequestBlocksAsync(blockRequest, data), request);
 
             if (list == null)
                 return new List<BlockWithTransactions>();
@@ -147,10 +158,14 @@ namespace AElf.OS.Network.Grpc
                 MetricInfo = $"Block hash {header.BlockHash}", 
                 Timeout = 300
             };
-            
-            Metadata data = new Metadata { { GrpcConsts.MetricInfoMetadataKey, request.MetricInfo } };
 
-            return RequestAsync(_client, (c, d) => c.AnnounceAsync(header, deadline: d, headers: data), request);
+            Metadata data = new Metadata
+            {
+                {GrpcConsts.MetricInfoMetadataKey, request.MetricInfo},
+                {GrpcConsts.TimeoutMetadataKey, AnnouncementTimeout.ToString()}
+            };
+
+            return RequestAsync(_client, c => c.AnnounceAsync(header, data), request);
         }
 
         public Task SendTransactionAsync(Transaction tx)
@@ -161,18 +176,20 @@ namespace AElf.OS.Network.Grpc
                 Timeout = 100
             };
             
-            return RequestAsync(_client, (c, d) => c.SendTransactionAsync(tx, deadline: d), request);
+            Metadata data = new Metadata
+            {
+                {GrpcConsts.TimeoutMetadataKey, TransactionBroadCastTimeout.ToString()}
+            };
+            
+            return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
-            Func<PeerService.PeerServiceClient, DateTime, AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
+            Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
         {
             var metricsName = requestParams.MetricName;
             bool timeRequest = !string.IsNullOrEmpty(metricsName);
-            var timeoutMs = requestParams.Timeout > 0 ? requestParams.Timeout : DefaultRequestTimeoutMs;
             var dateBeforeRequest = DateTime.Now;
-            var utcNow = DateTime.UtcNow;
-            var timeout = utcNow.Add(TimeSpan.FromMilliseconds(timeoutMs));
             
             Stopwatch s = null;
             
@@ -181,7 +198,7 @@ namespace AElf.OS.Network.Grpc
                 
             try
             {
-                var response = await func(client, timeout);
+                var response = await func(client);
 
                 if (timeRequest)
                 {
@@ -241,7 +258,7 @@ namespace AElf.OS.Network.Grpc
                 Task.Run(async () =>
                 {
                     await _channel.TryWaitForStateChangedAsync(_channel.State,
-                        DateTime.UtcNow.AddSeconds(NetworkConsts.DefaultPeerDialTimeout));
+                        DateTime.UtcNow.AddSeconds(NetworkConsts.DefaultPeerDialTimeoutInMilliSeconds));
 
                     // Either we connected again or the state change wait timed out.
                     if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
@@ -276,6 +293,7 @@ namespace AElf.OS.Network.Grpc
                 _recentBlockHeightAndHashMappings.Clear();
                 return;
             }
+            
             CurrentBlockHeight = peerNewBlockAnnouncement.BlockHeight;
             CurrentBlockHash = peerNewBlockAnnouncement.BlockHash;
             _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;

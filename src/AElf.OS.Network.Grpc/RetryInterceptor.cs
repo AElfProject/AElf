@@ -22,18 +22,25 @@ namespace AElf.OS.Network.Grpc
         {
             var retryCount = 0;
 
-            Metadata.Entry metadataEntry = null;
+            Metadata.Entry metricInfoMetadataEntry = null;
+            Metadata.Entry timeoutInMilliSecondsMetaEntry = null;
             if (context.Options.Headers != null && context.Options.Headers.Any())
             {
-                metadataEntry = context.Options.Headers.FirstOrDefault(m => 
+                metricInfoMetadataEntry = context.Options.Headers.FirstOrDefault(m => 
                     String.Equals(m.Key, GrpcConsts.MetricInfoMetadataKey, StringComparison.Ordinal));
+                timeoutInMilliSecondsMetaEntry = context.Options.Headers.FirstOrDefault(m => 
+                    String.Equals(m.Key, GrpcConsts.TimeoutMetadataKey, StringComparison.Ordinal));
             }
 
-            if (metadataEntry != null)
-                context.Options.Headers.Remove(metadataEntry);
+            if (metricInfoMetadataEntry != null)
+                context.Options.Headers.Remove(metricInfoMetadataEntry);
 
-            string metricInfo = metadataEntry?.Value ?? DefaultMetricInfoString; 
+            string metricInfo = metricInfoMetadataEntry?.Value ?? DefaultMetricInfoString;
 
+            var timeoutSpan = timeoutInMilliSecondsMetaEntry == null
+                ? TimeSpan.FromMilliseconds(GrpcConsts.DefaultRequestTimeoutInMilliSeconds)
+                : TimeSpan.FromMilliseconds(int.Parse(timeoutInMilliSecondsMetaEntry.Value)); 
+            
             async Task<TResponse> RetryCallback(Task<TResponse> responseTask)
             {
                 var response = responseTask;
@@ -41,7 +48,7 @@ namespace AElf.OS.Network.Grpc
                 // if no problem occured return
                 if (!response.IsFaulted)
                 {
-                    Logger.LogDebug($"[{PeerIp}] {metricInfo} - Success");
+                    Logger.LogDebug($"[{PeerIp}] {metricInfo} - succeed.");
 
                     return response.Result;
                 }
@@ -49,7 +56,7 @@ namespace AElf.OS.Network.Grpc
                 // if a problem occured but reached the max retries
                 if (retryCount == _retryCount)
                 {
-                    Logger.LogDebug($"[{PeerIp}] {metricInfo} - Last retry");
+                    Logger.LogDebug($"[{PeerIp}] {metricInfo} - retry finished.");
 
                     return response.Result;
                 }
@@ -57,13 +64,18 @@ namespace AElf.OS.Network.Grpc
                 retryCount++;
                 
                 Logger.LogDebug($"[{PeerIp}] {metricInfo} - Retrying");
-
+                
                 // try again
-                var result = continuation(request, context).ResponseAsync.ContinueWith(RetryCallback).Unwrap();
+
+                var retryContext = new ClientInterceptorContext<TRequest, TResponse>(context.Method, context.Host,
+                    context.Options.WithDeadline(DateTime.UtcNow.Add(timeoutSpan)));
+                var result = continuation(request, retryContext).ResponseAsync.ContinueWith(RetryCallback).Unwrap();
                 return await result;
             }
 
-            var responseContinuation = continuation(request, context);
+            var newContext = new ClientInterceptorContext<TRequest, TResponse>(context.Method, context.Host,
+                context.Options.WithDeadline(DateTime.UtcNow.Add(timeoutSpan)));
+            var responseContinuation = continuation(request, newContext);
             var responseAsync = responseContinuation.ResponseAsync.ContinueWith(RetryCallback).Unwrap();
 
             return new AsyncUnaryCall<TResponse>(

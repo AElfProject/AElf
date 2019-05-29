@@ -88,15 +88,18 @@ namespace AElf.OS.Network.Grpc
             {
                 // if failing give it some time to recover
                 await channel.TryWaitForStateChangedAsync(channel.State,
-                    DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout));
+                    DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeoutInMilliSeconds));
             }
 
             ConnectReply connectReply;
             
             try
             {
-                connectReply = await client.ConnectAsync(hsk,
-                    new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout)));
+                Metadata data = new Metadata
+                {
+                    {GrpcConsts.TimeoutMetadataKey, _networkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
+                };
+                connectReply = await client.ConnectAsync(hsk, data);
             }
             catch (AggregateException e)
             {
