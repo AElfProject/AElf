@@ -33,8 +33,6 @@ namespace AElf.Kernel.Miner.Application
         private IMiningService _miningService;
         public ILocalEventBus EventBus { get; set; }
 
-        private const float RatioMine = 0.3f;
-
         public MinerService(IMiningService miningService, ITxHub txHub)
         {
             _miningService = miningService;

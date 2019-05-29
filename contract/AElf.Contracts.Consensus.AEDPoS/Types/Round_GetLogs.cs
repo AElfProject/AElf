@@ -3,7 +3,7 @@ using System.Text;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public partial class Round
+    internal partial class Round
     {
         public string GetLogs(string publicKey, AElfConsensusBehaviour behaviour)
         {
