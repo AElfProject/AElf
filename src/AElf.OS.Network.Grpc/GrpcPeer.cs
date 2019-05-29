@@ -138,7 +138,7 @@ namespace AElf.OS.Network.Grpc
             return list.Blocks.ToList();
         }
 
-        public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
+        public Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
             GrpcRequest request = new GrpcRequest
             {
@@ -150,10 +150,10 @@ namespace AElf.OS.Network.Grpc
             
             Metadata data = new Metadata { { GrpcConsts.MetricInfoMetadataKey, request.MetricInfo } };
 
-            await RequestAsync(_client, (c, d) => c.AnnounceAsync(header, deadline: d, headers: data), request);
+            return RequestAsync(_client, (c, d) => c.AnnounceAsync(header, deadline: d, headers: data), request);
         }
 
-        public async Task SendTransactionAsync(Transaction tx)
+        public Task SendTransactionAsync(Transaction tx)
         {
             GrpcRequest request = new GrpcRequest
             {
@@ -161,7 +161,7 @@ namespace AElf.OS.Network.Grpc
                 Timeout = 100
             };
             
-            await RequestAsync(_client, (c, d) => c.SendTransactionAsync(tx, deadline: d), request);
+            return RequestAsync(_client, (c, d) => c.SendTransactionAsync(tx, deadline: d), request);
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
