@@ -38,7 +38,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Order = order,
                     ExpectedMiningTime = currentBlockTimestamp +
                                          new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
-                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots
                 };
@@ -57,7 +56,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Order = order,
                     ExpectedMiningTime = currentBlockTimestamp +
                                          new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
-                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots + 1
                 };
@@ -96,14 +94,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var order = GetAbsModulus(sigNum, blockProducerCount) + 1;
             return order;
         }
-        
-        public List<MinerInRound> GetMinedMiners()
+
+        private List<MinerInRound> GetMinedMiners()
         {
             // For now only this implementation can support test cases.
             return RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound != 0).ToList();
         }
-        
-        public List<MinerInRound> GetNotMinedMiners()
+
+        private List<MinerInRound> GetNotMinedMiners()
         {
             // For now only this implementation can support test cases.
             return RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound == 0).ToList();
