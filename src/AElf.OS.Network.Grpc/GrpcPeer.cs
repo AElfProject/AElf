@@ -52,8 +52,8 @@ namespace AElf.OS.Network.Grpc
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
-        public IReadOnlyDictionary<string, List<RequestMetric>> RecentRequestsRoundtripTime { get; }
-        private readonly ConcurrentDictionary<string, List<RequestMetric>> _recentRequestsRoundtripTimes;
+        public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTime { get; }
+        private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string pubKey, string peerIpAddress,
             int protocolVersion, long connectionTime, long startHeight, bool inbound = true)
@@ -71,29 +71,26 @@ namespace AElf.OS.Network.Grpc
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
             
-            _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, List<RequestMetric>>();
-            RecentRequestsRoundtripTime = new ReadOnlyDictionary<string, List<RequestMetric>>(_recentRequestsRoundtripTimes);
+            _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
+            RecentRequestsRoundtripTime = new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
 
-            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new List<RequestMetric>(MaxMetricsPerMethod));
-            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new List<RequestMetric>(MaxMetricsPerMethod));
-            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new List<RequestMetric>(MaxMetricsPerMethod));
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
         {
             Dictionary<string, List<RequestMetric>> metrics = new Dictionary<string, List<RequestMetric>>();
-            
-            lock (_metricsLock)
+
+            foreach (var roundtripTime in _recentRequestsRoundtripTimes.ToArray())
             {
-                foreach (var roundtripTime in _recentRequestsRoundtripTimes)
+                var metricsToAdd = new List<RequestMetric>();
+                
+                metrics.Add(roundtripTime.Key, metricsToAdd);
+                foreach (var requestMetric in roundtripTime.Value)
                 {
-                    var metricsToAdd = new List<RequestMetric>();
-                    
-                    metrics.Add(roundtripTime.Key, metricsToAdd);
-                    foreach (var requestMetric in roundtripTime.Value)
-                    {
-                        metricsToAdd.Add(requestMetric);
-                    }
+                    metricsToAdd.Add(requestMetric);
                 }
             }
 
@@ -212,10 +209,10 @@ namespace AElf.OS.Network.Grpc
             {
                 var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
                         
-                if (metrics.Count >= MaxMetricsPerMethod)
-                    metrics.RemoveAt(0);
+                while (metrics.Count >= MaxMetricsPerMethod)
+                    metrics.TryDequeue(out _);
                         
-                metrics.Add(new RequestMetric
+                metrics.Enqueue(new RequestMetric
                 {
                     Info = grpcRequest.MetricInfo,
                     RequestTime = dateTimeBeforeRequest,
