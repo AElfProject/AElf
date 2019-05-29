@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.SmartContractExecution.Scheduling;
 using AElf.Types;
 
 namespace AElf.Kernel.SmartContractExecution.Parallel
