@@ -30,7 +30,7 @@
             </PropertyGroup>
         </Otherwise>
     </Choose>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
+    <Target Name="GenerateProtobufCode" BeforeTargets="BeforeBuild;GetTargetPath">
         <PropertyGroup>
             <LocalProtobufDir>$(ProjectDir)/Protobuf</LocalProtobufDir>
             <GenerateContractInternalCommand>protoc --proto_path=../../protobuf --csharp_out=internal_access:$(LocalProtobufDir)/Generated --csharp_opt=file_extension=.g.cs</GenerateContractInternalCommand>
@@ -50,8 +50,6 @@
         <Exec Condition="@(ContractReference) != ''" Command="$(GenerateContractReferenceCommand)  %(Identity)"/>
         <Exec Condition="@(ContractStub) != ''" Command="$(GenerateContractStubCommand) %(Identity)"/>
         <Exec Condition="@(ContractMessage) != ''" Command="$(GenerateContractMessageCommand) %(Identity)"/>
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
         <ItemGroup>
             <Compile Remove="Protobuf/Generated/*.cs"/>
             <Compile Include="Protobuf/Generated/*.cs"/>

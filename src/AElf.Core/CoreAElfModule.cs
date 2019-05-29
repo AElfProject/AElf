@@ -51,7 +51,13 @@ namespace AElf
 
     public class ServiceContainerFactory<T> : IServiceContainer<T>
     {
+        public static ServiceContainerFactory<T> Empty { get; } = new ServiceContainerFactory<T>();
         private readonly IEnumerable<T> _services;
+
+        private ServiceContainerFactory()
+        {
+            _services = Enumerable.Empty<T>();
+        }
 
         public ServiceContainerFactory(IOptionsSnapshot<ServiceContainerFactoryOptions<T>> options,
             IServiceProvider serviceProvider)
