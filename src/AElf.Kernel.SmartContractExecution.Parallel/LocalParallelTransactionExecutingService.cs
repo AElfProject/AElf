@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContractExecution.Scheduling;
 using AElf.Types;
 
@@ -36,8 +37,16 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
                 throwException, partialBlockStateSet));
             var results = await Task.WhenAll(tasks);
 
-            // TODO: Create BlockStateSet and execute non-parallizable
-            return MergeResults(results).Item1;
+            var returnSets = MergeResults(results).Item1;
+            var returnSetCollection = new ReturnSetCollection(returnSets);
+            
+            var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
+            updatedPartialBlockStateSet.MergeFrom(partialBlockStateSet?.Clone()??new BlockStateSet());
+
+            var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(blockHeader, nonParallizable,
+                cancellationToken, throwException, updatedPartialBlockStateSet);
+            returnSets.AddRange(nonParallelizableReturnSets);
+            return returnSets;
         }
 
         private async Task<(List<ExecutionReturnSet>, HashSet<string>)> ExecuteAndPreprocessResult(
