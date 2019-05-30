@@ -6,6 +6,6 @@ namespace AElf.OS
     {
         public const string BlockSyncQueueName = "BlockSyncQueue";
 
-        public const string BlockSyncAttachQueueName = "BlockSyncAttach";
+        public const string BlockSyncAttachQueueName = "BlockSyncAttachQueue";
     }
 }
