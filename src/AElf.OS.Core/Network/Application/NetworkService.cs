@@ -207,6 +207,12 @@ namespace AElf.OS.Network.Application
         private async Task<T> RequestAsync<T>(List<IPeer> peers, Func<IPeer, Task<T>> func,
             Predicate<T> validationFunc, string suggested) where T : class
         {
+            if (peers.Count <= 0)
+            {
+                Logger.LogWarning("Peer list is empty.");
+                return null;
+            }
+            
             var taskList = peers.Select(peer => DoRequest(peer, func)).ToList();
             
             Task<(IPeer, T)> finished = null;
