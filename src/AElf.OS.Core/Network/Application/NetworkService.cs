@@ -171,19 +171,9 @@ namespace AElf.OS.Network.Application
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null)
         {
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
-            return await GetBlockAsync(hash, peer);
-        }
-
-        private async Task<BlockWithTransactions> GetBlockAsync(Hash hash, string peer = null)
-        {
+            
             var peers = SelectPeers(peer);
-            var block = await RequestBlockToAsync(hash, peers, peer);
-            return block;
-        }
-        
-        private async Task<BlockWithTransactions> RequestBlockToAsync(Hash hash, List<IPeer> peers, string suggested)
-        {
-            return await RequestAsync(peers, p => p.RequestBlockAsync(hash), (blockWithTransactions) => blockWithTransactions != null, suggested);
+            return await RequestAsync(peers, p => p.RequestBlockAsync(hash), blockWithTransactions => blockWithTransactions != null, peer);
         }
 
         private async Task<(IPeer, T)> DoRequest<T>(IPeer peer, Func<IPeer, Task<T>> func) where T : class
