@@ -16,6 +16,8 @@
         <ContractBase Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractBase>
+    </ItemGroup>
+    <ItemGroup>
         <ContractCode Include="..\..\protobuf\parliament_auth_contract.proto">
             <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
         </ContractCode>
