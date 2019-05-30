@@ -158,7 +158,7 @@ namespace AElf.OS.Network.Application
             List<IPeer> randomPeers = _peerPool.GetPeers()
                 .Where(p => p.PubKey != peerPubKey && (bestPeer == null || p.PubKey != bestPeer.PubKey))
                 .OrderBy(x => rnd.Next())
-                .Take(NetworkConsts.DefaultMaxPeersPerRequest - peers.Count)
+                .Take(NetworkConstants.DefaultMaxPeersPerRequest - peers.Count)
                 .ToList();
             
             peers.AddRange(randomPeers);

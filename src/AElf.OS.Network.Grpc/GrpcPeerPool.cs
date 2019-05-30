@@ -66,21 +66,17 @@ namespace AElf.OS.Network.Grpc
 
             Channel channel = new Channel(ipAddress, ChannelCredentials.Insecure, new List<ChannelOption>
             {
-                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConsts.DefaultMaxSendMessageLength),
-                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConsts.DefaultMaxReceiveMessageLength)
+                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
+                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
             });
-            
-            var interceptor = new RetryInterceptor();
-            interceptor.Logger = Logger;
-            interceptor.PeerIp = ipAddress;
             
             var client = new PeerService.PeerServiceClient(channel
                 .Intercept(metadata =>
                     {
-                        metadata.Add(GrpcConsts.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
+                        metadata.Add(GrpcConstants.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
                         return metadata;
                     })
-                .Intercept(interceptor));
+                .Intercept(new RetryInterceptor()));
             
             var hsk = await BuildHandshakeAsync();
 
@@ -97,7 +93,7 @@ namespace AElf.OS.Network.Grpc
             {
                 Metadata data = new Metadata
                 {
-                    {GrpcConsts.TimeoutMetadataKey, _networkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
+                    {GrpcConstants.TimeoutMetadataKey, _networkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
                 };
                 connectReply = await client.ConnectAsync(hsk, data);
             }
@@ -118,9 +114,18 @@ namespace AElf.OS.Network.Grpc
             }
 
             var pubKey = connectReply.Handshake.HskData.PublicKey.ToHex();
+            
+            var connectionInfo = new GrpcPeerInfo
+            {
+                PublicKey = pubKey,
+                PeerIpAddress = ipAddress,
+                ProtocolVersion = connectReply.Handshake.HskData.Version,
+                ConnectionTime = DateTime.UtcNow.ToTimestamp().Seconds,
+                StartHeight = connectReply.Handshake.Header.Height,
+                IsInbound = false
+            };
 
-            var peer = new GrpcPeer(channel, client, pubKey, ipAddress, connectReply.Handshake.HskData.Version,
-                DateTime.UtcNow.ToTimestamp().Seconds, connectReply.Handshake.Header.Height, false);
+            var peer = new GrpcPeer(channel, client, connectionInfo);
 
             if (!_authenticatedPeers.TryAdd(pubKey, peer))
             {

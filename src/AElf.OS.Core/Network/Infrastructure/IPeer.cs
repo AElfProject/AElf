@@ -7,14 +7,16 @@ namespace AElf.OS.Network.Infrastructure
     public interface IPeer
     {
         bool IsBest { get; set; }
-        string PeerIpAddress { get; }
-        string PubKey { get; }
         Hash CurrentBlockHash { get; }
         long CurrentBlockHeight { get; }
-        int ProtocolVersion { get; set; }
-        long ConnectionTime { get; set; }
-        bool Inbound { get; set; }
-        long StartHeight { get; set; }
+        
+        string PeerIpAddress { get; }
+        string PubKey { get; }
+        int ProtocolVersion { get; }
+        long ConnectionTime { get; }
+        bool Inbound { get; }
+        long StartHeight { get; }
+        
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();

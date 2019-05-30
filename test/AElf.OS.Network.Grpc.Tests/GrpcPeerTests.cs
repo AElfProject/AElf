@@ -141,14 +141,23 @@ namespace AElf.OS.Network
             if(isValid)
                 client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
                 {
-                    metadata.Add(GrpcConsts.PubkeyMetadataKey, GrpcTestConstants.FakePubKey);
+                    metadata.Add(GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubKey);
                     return metadata;
                 }));
             else
                 client = new PeerService.PeerServiceClient(channel);
+            
+            var connectionInfo = new GrpcPeerInfo
+            {
+                PublicKey = GrpcTestConstants.FakePubKey,
+                PeerIpAddress = ipAddress,
+                ProtocolVersion = KernelConstants.ProtocolVersion,
+                ConnectionTime = DateTime.UtcNow.ToTimestamp().Seconds,
+                StartHeight = 1,
+                IsInbound = true
+            };
 
-            return new GrpcPeer(channel, client, GrpcTestConstants.FakePubKey, ipAddress, KernelConstants.ProtocolVersion,
-                DateTime.UtcNow.ToTimestamp().Seconds, 1);
+            return new GrpcPeer(channel, client, connectionInfo);
         }
 
         private async Task RestartNetworkServer()

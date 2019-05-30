@@ -1,6 +1,6 @@
 namespace AElf.OS.Network
 {
-    public static class NetworkConsts
+    public static class NetworkConstants
     {
         public const int DefaultPeerDialTimeoutInMilliSeconds = 3000;
         public const int DefaultBlockRequestCount = 10;

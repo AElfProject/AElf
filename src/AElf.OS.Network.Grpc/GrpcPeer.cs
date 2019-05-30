@@ -15,9 +15,10 @@ namespace AElf.OS.Network.Grpc
     public class GrpcPeer : IPeer
     {
         private const int MaxMetricsPerMethod = 100;
+        
         private const int AnnouncementTimeout = 300;
         private const int BlockRequestTimeout = 300;
-        private const int TransactionBroadCastTimeout = 300;
+        private const int TransactionBroadcastTimeout = 300;
         private const int BlocksRequestTimeout = 500;
         
         private enum MetricNames
@@ -43,9 +44,10 @@ namespace AElf.OS.Network.Grpc
         public bool IsBest { get; set; }
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
+        
         public string PeerIpAddress { get; }
         public string PubKey { get; }
-        public int ProtocolVersion { get; set; }
+        public int ProtocolVersion { get; }
         public long ConnectionTime { get; set; }
         public bool Inbound { get; set; }
         public long StartHeight { get; set; }
@@ -56,18 +58,17 @@ namespace AElf.OS.Network.Grpc
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTime { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
 
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string pubKey, string peerIpAddress,
-            int protocolVersion, long connectionTime, long startHeight, bool inbound = true)
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
         {
             _channel = channel;
             _client = client;
 
-            PeerIpAddress = peerIpAddress;
-            PubKey = pubKey;
-            ProtocolVersion = protocolVersion;
-            ConnectionTime = connectionTime;
-            Inbound = inbound;
-            StartHeight = startHeight;
+            PeerIpAddress = peerInfo.PeerIpAddress;
+            PubKey = peerInfo.PublicKey;
+            ProtocolVersion = peerInfo.ProtocolVersion;
+            ConnectionTime = peerInfo.ConnectionTime;
+            Inbound = peerInfo.IsInbound;
+            StartHeight = peerInfo.StartHeight;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
@@ -110,11 +111,7 @@ namespace AElf.OS.Network.Grpc
                 Timeout = 300
             };
 
-            Metadata data = new Metadata
-            {
-                {GrpcConsts.MetricInfoMetadataKey, request.MetricInfo},
-                {GrpcConsts.TimeoutMetadataKey, BlockRequestTimeout.ToString()}
-            };
+            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString()} };
 
             var blockReply 
                 = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest, data), request);
@@ -135,11 +132,7 @@ namespace AElf.OS.Network.Grpc
                 Timeout = 500
             };
 
-            Metadata data = new Metadata
-            {
-                {GrpcConsts.MetricInfoMetadataKey, request.MetricInfo},
-                {GrpcConsts.TimeoutMetadataKey, BlocksRequestTimeout.ToString()}
-            };
+            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, BlocksRequestTimeout.ToString()} };
 
             var list = await RequestAsync(_client, c => c.RequestBlocksAsync(blockRequest, data), request);
 
@@ -153,17 +146,13 @@ namespace AElf.OS.Network.Grpc
         {
             GrpcRequest request = new GrpcRequest
             {
-                ErrorMessage = $"Bcast announce for {header.BlockHash} failed.",
+                ErrorMessage = $"Broadcast announce for {header.BlockHash} failed.",
                 MetricName = nameof(MetricNames.Announce),
                 MetricInfo = $"Block hash {header.BlockHash}", 
                 Timeout = 300
             };
 
-            Metadata data = new Metadata
-            {
-                {GrpcConsts.MetricInfoMetadataKey, request.MetricInfo},
-                {GrpcConsts.TimeoutMetadataKey, AnnouncementTimeout.ToString()}
-            };
+            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
 
             return RequestAsync(_client, c => c.AnnounceAsync(header, data), request);
         }
@@ -172,13 +161,13 @@ namespace AElf.OS.Network.Grpc
         {
             GrpcRequest request = new GrpcRequest
             {
-                ErrorMessage = $"Bcast tx for {tx.GetHash()} failed.",
+                ErrorMessage = $"Broadcast transaction for {tx.GetHash()} failed.",
                 Timeout = 100
             };
             
             Metadata data = new Metadata
             {
-                {GrpcConsts.TimeoutMetadataKey, TransactionBroadCastTimeout.ToString()}
+                {GrpcConstants.TimeoutMetadataKey, TransactionBroadcastTimeout.ToString()}
             };
             
             return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
@@ -258,7 +247,7 @@ namespace AElf.OS.Network.Grpc
                 Task.Run(async () =>
                 {
                     await _channel.TryWaitForStateChangedAsync(_channel.State,
-                        DateTime.UtcNow.AddSeconds(NetworkConsts.DefaultPeerDialTimeoutInMilliSeconds));
+                        DateTime.UtcNow.AddSeconds(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds));
 
                     // Either we connected again or the state change wait timed out.
                     if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)

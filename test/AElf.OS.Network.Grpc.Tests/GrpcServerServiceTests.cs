@@ -163,7 +163,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Disconnect_ShouldRemovePeer()
         {
-            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConsts.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}}));
+            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}}));
             Assert.Empty(_peerPool.GetPeers(true));
         }
         
@@ -218,7 +218,7 @@ namespace AElf.OS.Network
             {
                 var handshake = new Handshake();
                 var metadata = new Metadata
-                    {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
+                    {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
                 var context = BuildServerCallContext(metadata);
 
                 var connectReply = await _service.Connect(handshake, context);
@@ -230,7 +230,7 @@ namespace AElf.OS.Network
                 var handshake = await _peerPool.GetHandshakeAsync();
                 handshake.HskData.PublicKey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey);
                 var metadata = new Metadata
-                    {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
+                    {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
                 var context = TestServerCallContext.Create("mock", "127.0.0.1", DateTime.UtcNow.AddHours(1), metadata, CancellationToken.None, 
                     "ipv4:127.0.0.1:2000", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
                 
@@ -242,7 +242,7 @@ namespace AElf.OS.Network
             {
                 var handshake = await _peerPool.GetHandshakeAsync();
                 var metadata = new Metadata
-                    {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
+                    {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
                 var context = BuildServerCallContext(metadata);
 
                 var connectReply = await _service.Connect(handshake, context);
@@ -295,7 +295,7 @@ namespace AElf.OS.Network
             
             var continuation = new UnaryServerMethod<string, string>((s, y) => Task.FromResult(s));
             var metadata = new Metadata
-                {{GrpcConsts.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}};
+                {{GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}};
             var context = BuildServerCallContext(metadata);
             var headerCount = context.RequestHeaders.Count;
             var result = await authInterceptor.UnaryServerHandler("test", context, continuation);
