@@ -37,7 +37,9 @@ namespace AElf.Kernel.Consensus.AEDPoS
                 var consensusOptions = configuration.GetSection("Consensus");
                 consensusOptions.Bind(option);
 
-                option.StartTimestamp = new Timestamp {Seconds = long.Parse(consensusOptions["StartTimestamp"])};
+                var startTimeStamp = consensusOptions["StartTimestamp"];
+                option.StartTimestamp = new Timestamp
+                    {Seconds = string.IsNullOrEmpty(startTimeStamp) ? 0 : long.Parse(startTimeStamp)};
 
                 if (option.InitialMiners == null || option.InitialMiners.Count == 0 ||
                     string.IsNullOrWhiteSpace(option.InitialMiners[0]))

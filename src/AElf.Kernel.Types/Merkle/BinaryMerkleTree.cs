@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using AElf.Types;
 
@@ -10,11 +9,6 @@ namespace AElf.Kernel
     /// </summary>
     public partial class BinaryMerkleTree
     {
-        /// <summary>
-        /// Use a cache to speed up the calculation of hash value.
-        /// </summary>
-        private readonly Dictionary<string, Hash> _cache = new Dictionary<string, Hash>();
-
         /// <summary>
         /// Add a leaf node and compute root hash.
         /// </summary>
@@ -28,17 +22,7 @@ namespace AElf.Kernel
 
         public BinaryMerkleTree AddNodes(IEnumerable<Hash> hashes)
         {
-            var enumerable = hashes as Hash[] ?? hashes.ToArray();
-            var hashesList = enumerable.ToList();
-
-            // remove sort here
-            //hashesList.Sort(CompareHash);
-
-            foreach (var hash in hashesList)
-            {
-                Nodes.Add(hash);
-            }
-
+            Nodes.AddRange(hashes);
             return this;
         }
 
@@ -110,7 +94,7 @@ namespace AElf.Kernel
         ///     10 ------ 11
         ///   6 -- 7    8 -- 9   
         ///  0-1  2-3  4-5
-        /// For leaf [4], the returned <see cref="Path"/> is {5, 9, 10}.
+        /// For leaf [4], the returned path is {5, 9, 10}.
         /// </example>
         public MerklePath GenerateMerklePath(int index)
         {
@@ -133,6 +117,7 @@ namespace AElf.Kernel
             res.Path.AddRange(path);
             return res;
         }
+        
         public static Hash ComputeParent(Hash left, Hash right)
         {
             return left.ComputeParentWith(right);
