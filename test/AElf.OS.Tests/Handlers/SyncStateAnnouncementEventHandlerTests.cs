@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Kernel.Node.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
@@ -111,7 +112,17 @@ namespace AElf.OS.Handlers
 
         private GrpcPeer CreatePeer(string publicKey)
         {
-            return new GrpcPeer(new Channel("127.0.0.1:5000", ChannelCredentials.Insecure), null, publicKey, null, 0, 0, 0);
+            var connectionInfo = new GrpcPeerInfo
+            {
+                PublicKey = publicKey,
+                PeerIpAddress = "127.0.0.1:5000",
+                ProtocolVersion = 1,
+                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                StartHeight = 1,
+                IsInbound = true
+            };
+            
+            return new GrpcPeer(new Channel("127.0.0.1:5000", ChannelCredentials.Insecure), null, connectionInfo);
         }
     }
 }

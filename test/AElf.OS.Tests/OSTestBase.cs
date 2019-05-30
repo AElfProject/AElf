@@ -8,12 +8,17 @@ namespace AElf.OS
         
     }
     
-    public class NetWorkTestBase : AElfIntegratedTest<NetTestAElfModule>
+    public class SyncNotForkedTestBase : AElfIntegratedTest<SyncNotForkedTestAElfModule>
     {
         
     }
     
     public class SyncTestBase : AElfIntegratedTest<SyncTestModule>
+    {
+        
+    }
+
+    public class SyncForkedTestBase : AElfIntegratedTest<SyncForkedTestAElfModule>
     {
         
     }

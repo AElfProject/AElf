@@ -18,9 +18,24 @@
       <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
       <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
-      <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
-      <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" /> 
+      <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj"/>
+      <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj"/>
     </ItemGroup>
 
-    <Import Project="..\AllContracts.props"/>
+<!--    <Target Name="IdentifyProjectReferences" AfterTargets="ResolveProjectReferences">-->
+<!--        <ItemGroup>-->
+<!--            <Contract1 Include="@(ProjectReference)" Condition="'%(ProjectReference.OutputItemType)' == 'Contract'"/>-->
+<!--        </ItemGroup>-->
+<!--        <PropertyGroup>-->
+<!--            <AllContracts>@(Contract1, ';')</AllContracts>-->
+<!--        </PropertyGroup>-->
+<!--        <ItemGroup>-->
+<!--            <ContractDlls1 Include="%(_ResolvedProjectReferencePaths.Identity)" Condition="$(AllContracts.Contains(%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec)))"/>-->
+<!--        </ItemGroup>-->
+<!--        <Message Text="'haha'" Importance="high"/>-->
+<!--        <Message Text="%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec) + %(_ResolvedProjectReferencePaths.Identity)" Condition="$(AllContracts.Contains(%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec)))" Importance="high"/>-->
+<!--        <Message Text="@(ContractDlls1, ';')" Importance="high"/>-->
+<!--        <Message Text="'haha end'" Importance="high"/>-->
+<!--    </Target>-->
+    <Import Project="..\AllContracts.props" />
 </Project>

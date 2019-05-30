@@ -31,6 +31,8 @@ namespace AElf.OS.Network.Grpc
     /// </summary>
     public class GrpcServerService : PeerService.PeerServiceBase
     {
+        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
+        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
         
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockChainService;
@@ -40,11 +42,7 @@ namespace AElf.OS.Network.Grpc
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        private NetworkOptions NetworkOptions => NetOpts.Value;
-        public IOptionsSnapshot<NetworkOptions> NetOpts { get; set; }
-
-        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockChainService, IAccountService accountService, 
-            IBlockChainNodeStateService blockChainNodeStateService)
+        public GrpcServerService(IBlockChainNodeStateService blockChainNodeStateService, IPeerPool peerPool, IBlockchainService blockChainService, IAccountService accountService)
         {
             _peerPool = peerPool;
             _blockChainService = blockChainService;
@@ -103,23 +101,32 @@ namespace AElf.OS.Network.Grpc
 
             Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure, new List<ChannelOption>
             {
-                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConsts.DefaultMaxSendMessageLength),
-                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConsts.DefaultMaxReceiveMessageLength)
+                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
+                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
             });
             
             var client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
             {
-                metadata.Add(GrpcConsts.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
+                metadata.Add(GrpcConstants.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
                 return metadata;
-            }));
+            }).Intercept(new RetryInterceptor()));
 
             if (channel.State != ChannelState.Ready)
             {
                 var c = channel.WaitForStateChangedAsync(channel.State);
             }
+
+            var connectionInfo = new GrpcPeerInfo
+            {
+                PublicKey = pubKey,
+                PeerIpAddress = peerAddress,
+                ProtocolVersion = handshake.HskData.Version,
+                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                StartHeight = handshake.Header.Height,
+                IsInbound = true
+            };
             
-            var grpcPeer = new GrpcPeer(channel, client, pubKey, peerAddress, handshake.HskData.Version,
-                DateTime.UtcNow.ToTimestamp().Seconds, handshake.Header.Height);
+            var grpcPeer = new GrpcPeer(channel, client, connectionInfo);
 
             // send our credentials
             var hsk = await _peerPool.GetHandshakeAsync();
@@ -148,6 +155,8 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
         {
+            Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
+
             if (an?.BlockHash == null || an?.BlockTime == null)
             {
                 Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
@@ -157,10 +166,11 @@ namespace AElf.OS.Network.Grpc
             var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
             peerInPool?.HandlerRemoteAnnounce(an);
 
-            Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
-            
+            Logger.LogTrace("Publish event for announcement received..");
             _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
 
+            Logger.LogTrace("Finish event publish.");
+            
             return Task.FromResult(new VoidReply());
         }
 
@@ -205,7 +215,7 @@ namespace AElf.OS.Network.Grpc
 
             if (NetworkOptions.CompressBlocksOnRequest)
             {
-                var headers = new Metadata{new Metadata.Entry(GrpcConsts.GrpcRequestCompressKey, GrpcConsts.GrpcGzipConst)};
+                var headers = new Metadata{new Metadata.Entry(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst)};
                 await context.WriteResponseHeadersAsync(headers);
             }
             
