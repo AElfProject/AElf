@@ -176,10 +176,10 @@ namespace AElf.OS.Network.Grpc
             bool timeRequest = !string.IsNullOrEmpty(metricsName);
             var dateBeforeRequest = DateTime.Now;
             
-            Stopwatch s = null;
+            Stopwatch requestTimer = null;
             
             if (timeRequest)
-                s = Stopwatch.StartNew();
+                requestTimer = Stopwatch.StartNew();
                 
             try
             {
@@ -187,8 +187,8 @@ namespace AElf.OS.Network.Grpc
 
                 if (timeRequest)
                 {
-                    s.Stop();
-                    RecordMetric(requestParams, dateBeforeRequest, s.ElapsedMilliseconds);
+                    requestTimer.Stop();
+                    RecordMetric(requestParams, dateBeforeRequest, requestTimer.ElapsedMilliseconds);
                 }
                 
                 return response;
@@ -201,8 +201,8 @@ namespace AElf.OS.Network.Grpc
             {
                 if (timeRequest)
                 {
-                    s.Stop();
-                    RecordMetric(requestParams, dateBeforeRequest, s.ElapsedMilliseconds);
+                    requestTimer.Stop();
+                    RecordMetric(requestParams, dateBeforeRequest, requestTimer.ElapsedMilliseconds);
                 }
             }
 
