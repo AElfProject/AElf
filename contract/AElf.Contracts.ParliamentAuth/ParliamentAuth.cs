@@ -80,8 +80,7 @@ namespace AElf.Contracts.ParliamentAuth
                 && proposal.ToAddress != null
                 && proposal.OrganizationAddress != null
                 && proposal.ExpiredTime != null, "Invalid proposal.");
-            DateTime timestamp = proposal.ExpiredTime.ToDateTime();
-            Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
+            Assert(Context.CurrentBlockTime < proposal.ExpiredTime, "Expired proposal.");
             Hash hash = Hash.FromMessage(proposal);
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = new ProposalInfo
@@ -101,8 +100,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             var proposalInfo = State.Proposals[approvalInput.ProposalId];
             Assert(proposalInfo != null, "Not found proposal.");
-            DateTime timestamp = proposalInfo.ExpiredTime.ToDateTime();
-            if (Context.CurrentBlockTime > timestamp)
+            if (Context.CurrentBlockTime > proposalInfo.ExpiredTime)
             {
                 // expired proposal
                 // TODO: Set null to delete data from state db.

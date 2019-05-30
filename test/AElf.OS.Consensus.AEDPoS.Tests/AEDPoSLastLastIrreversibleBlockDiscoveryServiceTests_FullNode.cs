@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;

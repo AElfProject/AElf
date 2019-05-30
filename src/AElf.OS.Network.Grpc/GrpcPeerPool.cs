@@ -277,7 +277,7 @@ namespace AElf.OS.Network.Grpc
             return removed;
         }
         
-        public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash,bool hasFork)
+        public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash, bool hasFork)
         {
             if (hasFork)
             {

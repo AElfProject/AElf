@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using AElf.BenchBase;
+using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
@@ -53,7 +54,7 @@ namespace AElf.Kernel.SmartContractExecution.Benches
                         ChainId = chain.Id,
                         Height = chain.BestChainHeight + 1,
                         PreviousBlockHash = chain.BestChainHash,
-                        Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                        Time = TimestampHelper.GetUtcNow()
                     },
                     Body = new BlockBody()
                 };

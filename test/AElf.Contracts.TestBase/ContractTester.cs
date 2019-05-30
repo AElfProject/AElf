@@ -270,7 +270,7 @@ namespace AElf.Contracts.TestBase
                         consensusOptions.InitialMiners.Select(k => k.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
-                    consensusOptions.StartTimestamp.ToDateTime()));
+                    consensusOptions.StartTimestamp));
             return consensusMethodCallList;
         }
 
@@ -290,8 +290,7 @@ namespace AElf.Contracts.TestBase
                     {
                         initialMiners.Select(k => k.ToByteString())
                     }
-                }.GenerateFirstRoundOfNewTerm(miningInterval,
-                    startTimestamp.ToDateTime()));
+                }.GenerateFirstRoundOfNewTerm(miningInterval, startTimestamp));
             return consensusMethodCallList;
         }
 
@@ -464,7 +463,7 @@ namespace AElf.Contracts.TestBase
             var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
+                DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
             
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
@@ -542,7 +541,7 @@ namespace AElf.Contracts.TestBase
                 {
                     BlockHash = preBlock.GetHash(),
                     BlockHeight = preBlock.Height
-                }, tx, DateTime.UtcNow);
+                }, tx, DateTime.UtcNow.ToTimestamp());
 
             return transactionTrace.ReturnValue;
         }
@@ -559,7 +558,7 @@ namespace AElf.Contracts.TestBase
             {
                 BlockHash = preBlock.GetHash(),
                 BlockHeight = preBlock.Height
-            }, tx, dateTime);
+            }, tx, dateTime.ToTimestamp());
 
             return transactionTrace.ReturnValue;
         }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Blockchain.Application
 {
@@ -10,7 +11,7 @@ namespace AElf.Kernel.Blockchain.Application
         public Hash PreviousBlockHash { get; set; }
         public long PreviousBlockHeight { get; set; }
 
-        public DateTime BlockTime { get; set; } = DateTime.UtcNow;
+        public Timestamp BlockTime { get; set; } = TimestampHelper.GetUtcNow();
     }
 
     public interface IBlockGenerationService

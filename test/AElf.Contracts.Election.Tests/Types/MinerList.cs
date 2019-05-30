@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Types;
 using System.Runtime.CompilerServices;
+using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -11,7 +12,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     internal partial class MinerList
     {
         public Round GenerateFirstRoundOfNewTerm(int miningInterval,
-            DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
+            Timestamp currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var sortedMiners =
                 (from obj in PublicKeys
@@ -33,8 +34,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 minerInRound.PublicKey = sortedMiners[i];
                 minerInRound.Order = i + 1;
-                minerInRound.ExpectedMiningTime =
-                    currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval).ToTimestamp();
+                minerInRound.ExpectedMiningTime = currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval);
                 // Should be careful during validation.
                 minerInRound.PreviousInValue = Hash.Empty;
 

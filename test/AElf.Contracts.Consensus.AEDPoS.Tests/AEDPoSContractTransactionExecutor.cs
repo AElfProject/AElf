@@ -11,6 +11,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -41,7 +42,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                blockTimeProvider.GetBlockTime(), TimeSpan.FromMilliseconds(int.MaxValue));
+                blockTimeProvider.GetBlockTime(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
 
             await _blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);

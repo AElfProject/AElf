@@ -10,7 +10,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
         // ReSharper disable once CollectionNeverUpdated.Global
         public List<string> InitialMiners { get; set; }
         public int MiningInterval { get; set; }
-        public Timestamp StartTimestamp { get; set; }
+        public Timestamp StartTimestamp { get; set; } = DateTime.MinValue.ToUniversalTime().ToTimestamp();
         public long TimeEachTerm { get; set; } = 604800;
     }
 }

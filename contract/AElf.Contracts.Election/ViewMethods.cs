@@ -3,6 +3,7 @@ using AElf.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Sdk.CSharp;
 using AElf.Contracts.Profit;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -289,7 +290,7 @@ namespace AElf.Contracts.Election
                 LockTime = lockSeconds,
                 VoteTimestamp = votingRecord.VoteTimestamp,
                 WithdrawTimestamp = votingRecord.WithdrawTimestamp,
-                UnlockTimestamp = (votingRecord.VoteTimestamp + new Duration{Seconds = lockSeconds}).ToDateTime().ToTimestamp(),
+                UnlockTimestamp = votingRecord.VoteTimestamp.AddSeconds(lockSeconds),
                 IsWithdrawn = votingRecord.IsWithdrawn
             };
         }

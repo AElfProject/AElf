@@ -209,6 +209,12 @@ namespace AElf.Types
             return Value.ToHex();
         }
 
+        public Int64 ToInt64()
+        {
+            return BitConverter.ToInt64(
+                BitConverter.IsLittleEndian ? this.Value.Reverse().ToArray() : this.Value.ToArray(), 0);
+        }
+
         /// <summary>
         /// Loads the content value from 32-byte long byte array.
         /// </summary>

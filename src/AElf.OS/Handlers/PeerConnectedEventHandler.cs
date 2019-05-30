@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Application;
@@ -104,8 +105,8 @@ namespace AElf.OS.Handlers
         
         private bool VerifyAnnouncement(PeerNewBlockAnnouncement announcement)
         {
-            var allowedFutureBlockTime = DateTime.UtcNow + KernelConstants.AllowedFutureBlockTimeSpan;
-            if (allowedFutureBlockTime < announcement.BlockTime.ToDateTime())
+            var allowedFutureBlockTime = TimestampHelper.GetUtcNow() + KernelConstants.AllowedFutureBlockTimeSpan;
+            if (allowedFutureBlockTime < announcement.BlockTime)
             {
                 Logger.LogWarning($"Receive future block {announcement}");
                 return false;

@@ -121,7 +121,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minerInRound = currentRound.RealTimeMinersInformation[publicKey];
             var miningInterval = currentRound.GetMiningInterval();
             var expectedMiningTime = currentRound.RealTimeMinersInformation[minerInRound.PublicKey].ExpectedMiningTime;
-            var duration = expectedMiningTime - currentBlockTime.ToTimestamp();
+            var duration = expectedMiningTime - currentBlockTime;
             int nextBlockMiningLeftMilliseconds;
             switch (behaviour)
             {
@@ -130,7 +130,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         duration, out nextBlockMiningLeftMilliseconds);
                     break;
                 case AElfConsensusBehaviour.UpdateValue:
-                    nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+                    nextBlockMiningLeftMilliseconds = (int) duration.Milliseconds();
                     break;
                 case AElfConsensusBehaviour.TinyBlock:
                     GetNextBlockMiningLeftMillisecondsForTinyBlock(currentRound, publicKey,
@@ -148,8 +148,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 case AElfConsensusBehaviour.NextTerm:
                     expectedMiningTime =
                         currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, currentBlockTime);
-                    nextBlockMiningLeftMilliseconds =
-                        ConvertDurationToMilliseconds(expectedMiningTime - currentBlockTime.ToTimestamp());
+                    nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - currentBlockTime).Milliseconds();
                     break;
                 default:
                     return new ConsensusCommand
@@ -210,7 +209,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
             else
             {
-                nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+                nextBlockMiningLeftMilliseconds = (int) duration.Milliseconds();
             }
         }
 
@@ -222,15 +221,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 nextBlockMiningLeftMilliseconds = minerInRound.Order.Add(currentRound.RealTimeMinersInformation.Count)
                     .Mul(currentRound.GetMiningInterval());
-                expectedMiningTime = Context.CurrentBlockTime.ToTimestamp() +
+                expectedMiningTime = Context.CurrentBlockTime +
                                      ConvertMillisecondsToDuration(nextBlockMiningLeftMilliseconds);
             }
             else
             {
                 expectedMiningTime =
                     currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, Context.CurrentBlockTime);
-                var duration = expectedMiningTime - Context.CurrentBlockTime.ToTimestamp();
-                nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+                nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - Context.CurrentBlockTime).Milliseconds();
             }
         }
 
@@ -268,7 +266,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             else if (previousRound != null)
             {
                 // EBP of previous round will produce double tiny blocks. This is for extra time slot of previous round.
-                expectedMiningTime = previousRound.GetExtraBlockMiningTime().ToTimestamp() + new Duration
+                expectedMiningTime = previousRound.GetExtraBlockMiningTime() + new Duration
                 {
                     Seconds = producedTinyBlocks
                         .Mul(miningInterval).Div(AEDPoSContractConstants.TotalTinySlots).Div(1000)
@@ -311,11 +309,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
             else
             {
-                nextBlockMiningLeftMilliseconds =
-                    ConvertDurationToMilliseconds(expectedMiningTime - Context.CurrentBlockTime.ToTimestamp());
+                nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - Context.CurrentBlockTime).Milliseconds();
             }
 
-            if (Context.CurrentBlockTime.ToTimestamp() >=
+            if (Context.CurrentBlockTime >=
                 minerInRound.ExpectedMiningTime + new Duration {Seconds = miningInterval.Div(1000)})
             {
                 nextBlockMiningLeftMilliseconds = int.MinValue;
@@ -324,10 +321,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void TuneExpectedMiningTimeForTinyBlock(int miningInterval, ref Timestamp expectedMiningTime)
         {
-            var currentBlockTime = Context.CurrentBlockTime.ToTimestamp();
+            var currentBlockTime = Context.CurrentBlockTime;
             var step = ConvertMillisecondsToDuration(
                 State.MiningInterval.Value.Div(AEDPoSContractConstants.TotalTinySlots));
-            while (currentBlockTime > expectedMiningTime && Context.CurrentBlockTime.ToTimestamp() <
+            while (currentBlockTime > expectedMiningTime && Context.CurrentBlockTime <
                    expectedMiningTime + new Duration {Seconds = miningInterval.Div(1000)})
             {
                 var toPrint = expectedMiningTime.Clone();
