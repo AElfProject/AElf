@@ -52,7 +52,7 @@ namespace AElf.WebApp.Application.Chain
 
         Task<BlockStateDto> GetBlockState(string blockHash);
 
-        List<TaskQueueStatusInfoDto> GetTaskQueueStatus();
+        List<TaskQueueInfoDto> GetTaskQueueStatus();
 
         Task<RoundDto> GetCurrentRoundInformation();
     }
@@ -543,13 +543,13 @@ namespace AElf.WebApp.Application.Chain
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
         }
 
-        public List<TaskQueueStatusInfoDto> GetTaskQueueStatus()
+        public List<TaskQueueInfoDto> GetTaskQueueStatus()
         {
-            var taskQueueStateInfos = _taskQueueManager.GetQueueStateInfos();
-            return taskQueueStateInfos.Select(taskQueueStateInfo => new TaskQueueStatusInfoDto
+            var taskQueueStatus = _taskQueueManager.GetQueueStatus();
+            return taskQueueStatus.Select(taskQueueState => new TaskQueueInfoDto
             {
-                Name = taskQueueStateInfo.Name,
-                Size = taskQueueStateInfo.Size
+                Name = taskQueueState.Name,
+                Size = taskQueueState.Size
             }).ToList();
         }
 

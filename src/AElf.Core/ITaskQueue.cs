@@ -94,7 +94,7 @@ namespace AElf
     public interface ITaskQueueManager : IDisposable
     {
         ITaskQueue GetQueue(string name = null);
-        List<TaskQueueStateInfo> GetQueueStateInfos();
+        List<TaskQueueInfo> GetQueueStatus();
     }
 
     public static class TaskQueueManagerExtensions
@@ -151,13 +151,13 @@ namespace AElf
             });
         }
 
-        public List<TaskQueueStateInfo> GetQueueStateInfos()
+        public List<TaskQueueInfo> GetQueueStatus()
         {
-            var result = new List<TaskQueueStateInfo>();
+            var result = new List<TaskQueueInfo>();
             foreach (var taskQueueName in _taskQueues.Keys)
             {
                 _taskQueues.TryGetValue(taskQueueName, out var queue);
-                result.Add(new TaskQueueStateInfo
+                result.Add(new TaskQueueInfo
                 {
                     Name = taskQueueName,
                     Size = queue?.Size ?? 0
@@ -168,7 +168,7 @@ namespace AElf
         }
     }
 
-    public class TaskQueueStateInfo
+    public class TaskQueueInfo
     {
         public string Name { get; set; }
 

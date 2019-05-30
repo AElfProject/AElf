@@ -1040,7 +1040,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         public async Task GetTaskQueueStateInfos_Test()
         {
             var response =
-                await GetResponseAsObjectAsync<List<TaskQueueStatusInfoDto>>("/api/blockChain/taskQueueStatus");
+                await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
             response.Count.ShouldBe(1);
             
             const string testQueueOneName = "testQueueOneName";
@@ -1049,7 +1049,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
             _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
 
-            response = await GetResponseAsObjectAsync<List<TaskQueueStatusInfoDto>>("/api/blockChain/taskQueueStatus");
+            response = await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
             response.Count.ShouldBe(2);
             response.Any(info=>info.Name == testQueueOneName).ShouldBeTrue();
             response.First(info=>info.Name == testQueueOneName).Size.ShouldBe(1);
@@ -1057,7 +1057,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
             _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
 
-            response = await GetResponseAsObjectAsync<List<TaskQueueStatusInfoDto>>("/api/blockChain/taskQueueStatus");
+            response = await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
             response.Count.ShouldBe(3);
             response.First(info=>info.Name == testQueueTwoName).Size.ShouldBe(2);
             response.Any(info=>info.Name == testQueueTwoName).ShouldBeTrue();
