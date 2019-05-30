@@ -50,7 +50,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (RealTimeMinersInformation.ContainsKey(publicKey) && miningInterval > 0)
             {
                 var distanceToRoundStartTime = (dateTime - GetStartTime()).Milliseconds();
-                var missedRoundsCount = (int) (distanceToRoundStartTime / TotalMilliseconds(miningInterval));
+                var missedRoundsCount = distanceToRoundStartTime.Div(TotalMilliseconds(miningInterval));
                 var expectedEndTime = GetExpectedEndTime(missedRoundsCount, miningInterval);
                 return expectedEndTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval));
             }
@@ -71,7 +71,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="miningInterval"></param>
         /// <param name="missedRoundsCount"></param>
         /// <returns></returns>
-        private Timestamp GetExpectedEndTime(int missedRoundsCount = 0, int miningInterval = 0)
+        private Timestamp GetExpectedEndTime(long missedRoundsCount = 0, int miningInterval = 0)
         {
             if (miningInterval == 0)
             {
