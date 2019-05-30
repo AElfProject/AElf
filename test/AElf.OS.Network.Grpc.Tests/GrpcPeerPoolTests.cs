@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.OS.Network.Grpc;
@@ -16,6 +15,8 @@ namespace AElf.OS.Network
         private const string TestIp = "127.0.0.1:6800";
         private readonly string _testPubKey;
 
+        private readonly GrpcPeerInfo _peerInfo;
+
         private readonly GrpcPeerPool _pool;
 
         public GrpcPeerPoolTests()
@@ -24,13 +25,22 @@ namespace AElf.OS.Network
 
             var keyPair = CryptoHelpers.GenerateKeyPair();
             _testPubKey = keyPair.PublicKey.ToHex();
+            
+            _peerInfo = new GrpcPeerInfo
+            {
+                PublicKey = _testPubKey,
+                PeerIpAddress = TestIp,
+                ProtocolVersion = KernelConstants.ProtocolVersion,
+                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                StartHeight = 1,
+                IsInbound = true
+            };
         }
             
         [Fact]
         public void GetPeer_RemoteAddressOrPubKeyAlreadyPresent_ShouldReturnPeer()
         {
-            _pool.AddPeer(new GrpcPeer(null, null, _testPubKey, TestIp, KernelConstants.ProtocolVersion,
-                TimestampHelper.GetUtcNow().Seconds, 1));
+            _pool.AddPeer(new GrpcPeer(null, null, _peerInfo));
             
             Assert.NotNull(_pool.FindPeerByAddress(TestIp));
             Assert.NotNull(_pool.FindPeerByPublicKey(_testPubKey));
@@ -39,9 +49,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task AddPeerAsync_PeerAlreadyConnected_ShouldReturnFalse()
         {
-            _pool.AddPeer(
-                new GrpcPeer(null, null, _testPubKey, TestIp, KernelConstants.ProtocolVersion,
-                    TimestampHelper.GetUtcNow().Seconds, 1));
+            _pool.AddPeer( new GrpcPeer(null, null, _peerInfo));
 
             var added = await _pool.AddPeerAsync(TestIp);
             
@@ -77,8 +85,7 @@ namespace AElf.OS.Network
         {
             var channel = new Channel(TestIp, ChannelCredentials.Insecure);
             var client = new PeerService.PeerServiceClient(channel);
-            _pool.AddPeer(new GrpcPeer(channel, client, _testPubKey, TestIp, KernelConstants.ProtocolVersion,
-                TimestampHelper.GetUtcNow().Seconds, 1));
+            _pool.AddPeer(new GrpcPeer(channel, client, _peerInfo));
             _pool.FindPeerByAddress(TestIp).ShouldNotBeNull();
 
             await _pool.RemovePeerByAddressAsync(TestIp);

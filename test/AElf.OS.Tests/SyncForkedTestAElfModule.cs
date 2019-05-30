@@ -3,16 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
-using AElf.OS.Jobs;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
-using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -23,13 +20,12 @@ using Volo.Abp.Threading;
 namespace AElf.OS
 {
     [DependsOn(typeof(OSTestAElfModule))]
-    public class NetTestAElfModule : AElfModule
+    public class SyncForkedTestAElfModule : AElfModule
     {
         private readonly List<Block> _blockList = new List<Block>();
         
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<BlockSyncJob>();
             context.Services.AddSingleton<INetworkService, NetworkService>();
 
             context.Services.AddSingleton<IPeerPool>(o =>
@@ -37,16 +33,16 @@ namespace AElf.OS
                 Mock<IPeer> peerMock = new Mock<IPeer>();
 
                 peerMock.Setup(p => p.CurrentBlockHeight).Returns(15);
+                peerMock.Setup(p => p.PubKey).Returns("PubKey");
                 peerMock.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
                     .Returns<Hash, int>((hash, cnt) => 
                     {
                         var requested = _blockList.FirstOrDefault(b => b.GetHash() == hash);
                         
                         if (requested == null)
-                            return null;
+                            return Task.FromResult(new List<BlockWithTransactions>());
                         
                         var selection = _blockList.Where(b => b.Height > requested.Height).Select(b => new BlockWithTransactions {Header = b.Header}).OrderBy(b => b.Height).Take(cnt).ToList();
-                        
                         return Task.FromResult(selection);
                     });
 
@@ -68,12 +64,14 @@ namespace AElf.OS
             var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
             
             var chain = AsyncHelper.RunSync(() => blockchainService.GetChainAsync());
-            var previousBlockHash = chain.BestChainHash;
-            long height = chain.BestChainHeight;
+            var previousBlockHash = osTestHelper.ForkBranchBlockList.Last().GetHash();
+            long height = osTestHelper.ForkBranchBlockList.Last().Height;
 
-            _blockList.AddRange(osTestHelper.BestBranchBlockList);
+            _blockList.Add(osTestHelper.BestBranchBlockList[4]);
+            _blockList.AddRange(osTestHelper.ForkBranchBlockList);
+            var forkBranchHeight = height;
 
-            for (var i = chain.BestChainHeight; i < chain.BestChainHeight + 10; i++)
+            for (var i = forkBranchHeight; i < forkBranchHeight + 5; i++)
             {
                 var newBlock = AsyncHelper.RunSync(() => genService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
                 {
