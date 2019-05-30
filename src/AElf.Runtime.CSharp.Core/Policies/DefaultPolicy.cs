@@ -1,6 +1,9 @@
 using System;
+using System.Globalization;
 using AElf.Sdk.CSharp;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using AElf.Cryptography.SecretSharing;
 using AElf.CSharp.Core;
 using AElf.Runtime.CSharp.Validators;
 using Mono.Cecil;
@@ -16,35 +19,47 @@ namespace AElf.Runtime.CSharp.Policies
     {        
         public DefaultPolicy()
         {
-            Whitelist = new Whitelist()
-                // Allowed assemblies
+            Whitelist = new Whitelist();
+            
+            WhitelistAssemblies();
+            WhitelistSystemTypes();
+            WhitelistReflectionTypes();
+            WhitelistLinqAndCollections();
+            WhitelistOthers();
+
+            UseMethodValidators();
+        }
+
+        private void WhitelistAssemblies()
+        {
+            Whitelist
                 .Assembly(Assembly.Load("netstandard"), Trust.Partial)
                 .Assembly(Assembly.Load("Google.Protobuf"), Trust.Full)
                 .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
-                .Assembly(typeof(Address).Assembly, Trust.Full)             // AElf.Types
-                .Assembly(typeof(IMethod).Assembly, Trust.Full)             // AElf.CSharp.Core
-                    
-                // Allowed namespaces
-                //.Namespace("Aelf", Permission.Allowed) // For protobuf generated code
-                //.Namespace("AElf", Permission.Allowed)
-                //.Namespace("AElf.CrossChain.*", Permission.Allowed)
-                //.Namespace("AElf.Sdk.*", Permission.Allowed)
-                //.Namespace("AElf.CSharp.Core", Permission.Allowed)
-                //.Namespace("AElf.Kernel", Permission.Allowed)        // Remove later
-                //.Namespace("AElf.Kernel.Types", Permission.Allowed)  // Remove later
-                //.Namespace("Google.Protobuf.*", Permission.Allowed)
-                .Namespace("System.Collections.Generic", Permission.Allowed)
-            
+                .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
+                .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
+                .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Full) // AElf.Cryptography
+                ;
+        }
+
+        private void WhitelistSystemTypes()
+        {
+            Whitelist
                 // Selectively allowed types and members
                 .Namespace("System", Permission.Denied, type => type
                     .Type("Func`1", Permission.Allowed) // Required for protobuf generated code
                     .Type("Func`2", Permission.Allowed) // Required for protobuf generated code
                     .Type("Func`3", Permission.Allowed) // Required for protobuf generated code
+                    .Type("Nullable`1", Permission.Allowed) // Required for protobuf generated code
                     // Required to support yield keyword in protobuf generated code
                     .Type(typeof(Environment), Permission.Denied, member => member
                         .Member(nameof(Environment.CurrentManagedThreadId), Permission.Allowed))
-                    .Type(typeof(NotImplementedException), Permission.Allowed) // Required for protobuf generated code
-                    .Type(typeof(NotSupportedException), Permission.Allowed)   // Required for protobuf generated code
+                    .Type(typeof(BitConverter), Permission.Denied, member => member
+                        .Member(nameof(BitConverter.GetBytes), Permission.Allowed))
+                    .Type(typeof(NotImplementedException),
+                        Permission.Allowed) // Required for protobuf generated code
+                    .Type(typeof(NotSupportedException), Permission.Allowed) // Required for protobuf generated code
+                    .Type(typeof(ArgumentOutOfRangeException), Permission.Allowed) // From AEDPoS
                     .Type(nameof(DateTime), Permission.Allowed, member => member
                         .Member(nameof(DateTime.Now), Permission.Denied)
                         .Member(nameof(DateTime.UtcNow), Permission.Denied)
@@ -64,25 +79,75 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(typeof(uint).Name, Permission.Allowed)
                     .Type(typeof(long).Name, Permission.Allowed)
                     .Type(typeof(ulong).Name, Permission.Allowed)
+                    .Type(typeof(decimal).Name, Permission.Allowed)
                     .Type(typeof(string).Name, Permission.Allowed, member => member
                         .Constructor(Permission.Denied))
-                    .Type(typeof(Byte[]).Name, Permission.Allowed))
-                .Namespace("System.Linq", Permission.Allowed)
-                .Namespace("System.Collections", Permission.Allowed)
+                    .Type(typeof(Byte[]).Name, Permission.Allowed)
+                    #if DEBUG
+                    // Allow coverlet injected codes
+                    .Type(typeof(AppDomain), Permission.Allowed)
+                    .Type(typeof(EventHandler), Permission.Allowed)
+                    #endif
+                );
+        }
+
+        private void WhitelistReflectionTypes()
+        {
+            Whitelist
+                // Used by protobuf generated code
                 .Namespace("System.Reflection", Permission.Denied, type => type
                     .Type(nameof(AssemblyCompanyAttribute), Permission.Allowed)
                     .Type(nameof(AssemblyConfigurationAttribute), Permission.Allowed)
                     .Type(nameof(AssemblyFileVersionAttribute), Permission.Allowed)
                     .Type(nameof(AssemblyInformationalVersionAttribute), Permission.Allowed)
                     .Type(nameof(AssemblyProductAttribute), Permission.Allowed)
-                    .Type(nameof(AssemblyTitleAttribute), Permission.Allowed));
-            
+                    .Type(nameof(AssemblyTitleAttribute), Permission.Allowed))
+                ;
+        }
+
+        private void WhitelistLinqAndCollections()
+        {
+            Whitelist
+                .Namespace("System.Linq", Permission.Allowed)
+                .Namespace("System.Collections", Permission.Allowed)
+                .Namespace("System.Collections.Generic", Permission.Allowed)
+                ;
+        }
+
+        private void WhitelistOthers()
+        {
+            Whitelist
+                // Used for converting numbers to strings
+                .Namespace("System.Globalization", Permission.Denied, type => type
+                    .Type(nameof(CultureInfo), Permission.Denied, m => m
+                        .Member(nameof(CultureInfo.InvariantCulture), Permission.Allowed)))
+                
+                // Used for initializing large arrays hardcoded in the code, array validator will take care of the size
+                .Namespace("System.Runtime.CompilerServices", Permission.Denied, type => type
+                    .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
+                        .Member(nameof(RuntimeHelpers.InitializeArray), Permission.Allowed)))
+                
+                #if DEBUG
+                // Allow printing logs
+                .Namespace("System.Text", Permission.Allowed)
+                
+                // Allow coverlet injected codes
+                .Namespace("System.IO.MemoryMappedFiles", Permission.Allowed)
+                .Namespace("System.Threading", Permission.Allowed)
+                .Namespace("System.Runtime.InteropServices", Permission.Allowed)
+                .Namespace("Microsoft.Win32.SafeHandles", Permission.Allowed)
+                #endif
+                ;
+        }
+
+        private void UseMethodValidators()
+        {
             MethodValidators.AddRange(new IValidator<MethodDefinition>[]{
                 new FloatOpsValidator(),
                 new ArrayValidator(), 
                 new MultiDimArrayValidator(),
-                // new UnsafeMathValidator(), // Google protobuf generated code contains unsafe opcodes, 
-                // new NewObjValidator(),     // Define a blacklist of objects types
+                // TODO: Enable unchecked math validator once test cases are passing with overflow check
+                // new UncheckedMathValidator(),
             });
         }
     }

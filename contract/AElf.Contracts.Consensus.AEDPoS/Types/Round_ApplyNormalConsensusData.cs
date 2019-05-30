@@ -22,10 +22,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minersCount = RealTimeMinersInformation.Count;
-            var sigNum =
-                BitConverter.ToInt64(
-                    BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(),
-                    0);
+            var sigNum = signature.ToInt64();
+
             var supposedOrderOfNextRound = GetAbsModulus(sigNum, minersCount) + 1;
 
             // Check the existence of conflicts about OrderOfNextRound.

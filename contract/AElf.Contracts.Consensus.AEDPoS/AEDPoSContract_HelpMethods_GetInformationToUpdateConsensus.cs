@@ -14,7 +14,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             currentRound.RealTimeMinersInformation[publicKey].ProducedBlocks =
                 currentRound.RealTimeMinersInformation[publicKey].ProducedBlocks.Add(1);
             currentRound.RealTimeMinersInformation[publicKey].ActualMiningTimes
-                .Add(Context.CurrentBlockTime.ToTimestamp());
+                .Add(Context.CurrentBlockTime);
 
             Assert(triggerInformation.RandomHash != null, "Random hash should not be null.");
 
@@ -56,7 +56,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             currentRound.RealTimeMinersInformation[publicKey].ProducedBlocks =
                 currentRound.RealTimeMinersInformation[publicKey].ProducedBlocks.Add(1);
             currentRound.RealTimeMinersInformation[publicKey].ActualMiningTimes
-                .Add(Context.CurrentBlockTime.ToTimestamp());
+                .Add(Context.CurrentBlockTime);
 
             return new AElfConsensusHeaderInformation
             {
@@ -79,7 +79,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             nextRound.RealTimeMinersInformation[publicKey].ProducedTinyBlocks = 1;
             nextRound.RealTimeMinersInformation[publicKey].ActualMiningTimes
-                .Add(Context.CurrentBlockTime.ToTimestamp());
+                .Add(Context.CurrentBlockTime);
 
             return new AElfConsensusHeaderInformation
             {

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Sdk;
+using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -53,7 +54,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
 
                 var trace = await ExecuteOneAsync(0, groupChainContext, transaction,
-                    transactionExecutingDto.BlockHeader.Time.ToDateTime(),
+                    transactionExecutingDto.BlockHeader.Time,
                     cancellationToken);
                 // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
                 //Logger.LogTrace(transaction.MethodName);
@@ -94,7 +95,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, IChainContext chainContext,
-            Transaction transaction, DateTime currentBlockTime, CancellationToken cancellationToken)
+            Transaction transaction, Timestamp currentBlockTime, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
             {

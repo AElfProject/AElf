@@ -13,6 +13,7 @@ using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
@@ -52,6 +53,8 @@ namespace AElf.WebApp.Application.Chain
 
         Task<BlockStateDto> GetBlockState(string blockHash);
 
+        List<TaskQueueInfoDto> GetTaskQueueStatus();
+
         Task<RoundDto> GetCurrentRoundInformation();
     }
     
@@ -65,6 +68,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly ITaskQueueManager _taskQueueManager;
         public ILogger<BlockChainAppService> Logger { get; set; }
         
         public ILocalEventBus LocalEventBus { get; set; }
@@ -76,8 +80,9 @@ namespace AElf.WebApp.Application.Chain
             ITransactionResultQueryService transactionResultQueryService,
             IBlockExtraDataService blockExtraDataService,
             ITxHub txHub,
-            IBlockchainStateManager blockchainStateManager
-            )
+            IBlockchainStateManager blockchainStateManager,
+            ITaskQueueManager taskQueueManager
+        )
         {
             _blockchainService = blockchainService;
             _smartContractAddressService = smartContractAddressService;
@@ -87,7 +92,8 @@ namespace AElf.WebApp.Application.Chain
             _blockExtraDataService = blockExtraDataService;
             _txHub = txHub;
             _blockchainStateManager = blockchainStateManager;
-            
+            _taskQueueManager = taskQueueManager;
+
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -104,17 +110,20 @@ namespace AElf.WebApp.Application.Chain
                 var transaction = Transaction.Parser.ParseFrom(hexString);
                 if (!transaction.VerifySignature())
                 {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                        Error.InvalidTransaction.ToString());
                 }
+
                 var response = await CallReadOnly(transaction);
                 return response?.ToHex();
             }
             catch
             {
-                throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
+                throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                    Error.InvalidTransaction.ToString());
             }
         }
-        
+
 
         /// <summary>
         /// Get the protobuf definitions related to a contract
@@ -162,8 +171,9 @@ namespace AElf.WebApp.Application.Chain
             }
             catch
             {
-                throw new UserFriendlyException(Error.Message[Error.InvalidParams],Error.InvalidParams.ToString());
+                throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
             }
+
             return new CreateRawTransactionOutput
             {
                 RawTransaction = transaction.ToByteArray().ToHex()
@@ -189,7 +199,8 @@ namespace AElf.WebApp.Application.Chain
             if (!input.ReturnTransaction) return output;
             
             var transactionDto = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
-            var contractMethodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+            var contractMethodDescriptor =
+                await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
 
             var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
 
@@ -238,7 +249,8 @@ namespace AElf.WebApp.Application.Chain
             }
             catch
             {
-                throw new UserFriendlyException(Error.Message[Error.InvalidTransactionId],Error.InvalidTransactionId.ToString());
+                throw new UserFriendlyException(Error.Message[Error.InvalidTransactionId],
+                    Error.InvalidTransactionId.ToString());
             }
 
             var transactionResult = await GetTransactionResult(transactionHash);
@@ -277,16 +289,17 @@ namespace AElf.WebApp.Application.Chain
         /// <param name="limit">limit</param>
         /// <returns></returns>
         /// <exception cref="UserFriendlyException"></exception>
-        public async Task<List<TransactionResultDto>> GetTransactionResults(string blockHash, int offset = 0, int limit = 10)
+        public async Task<List<TransactionResultDto>> GetTransactionResults(string blockHash, int offset = 0,
+            int limit = 10)
         {
             if (offset < 0)
             {
-                throw new UserFriendlyException(Error.Message[Error.InvalidOffset],Error.InvalidOffset.ToString());
+                throw new UserFriendlyException(Error.Message[Error.InvalidOffset], Error.InvalidOffset.ToString());
             }
 
             if (limit <= 0 || limit > 100)
             {
-                throw new UserFriendlyException(Error.Message[Error.InvalidLimit],Error.InvalidLimit.ToString());
+                throw new UserFriendlyException(Error.Message[Error.InvalidLimit], Error.InvalidLimit.ToString());
             }
 
             Hash realBlockHash;
@@ -296,13 +309,14 @@ namespace AElf.WebApp.Application.Chain
             }
             catch
             {
-                throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash],Error.InvalidBlockHash.ToString());
+                throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash],
+                    Error.InvalidBlockHash.ToString());
             }
 
             var block = await GetBlock(realBlockHash);
             if (block == null)
             {
-                throw new UserFriendlyException(Error.Message[Error.NotFound],Error.NotFound.ToString());
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
 
             var output = new List<TransactionResultDto>();
@@ -313,19 +327,22 @@ namespace AElf.WebApp.Application.Chain
                 foreach (var hash in transactionHashes)
                 {
                     var transactionResult = await GetTransactionResult(hash);
-                    var transactionResultDto = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
+                    var transactionResultDto =
+                        JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
                     var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
                     transactionResultDto.BlockHash = block.GetHash().ToHex();
 
                     if (transactionResult.Status == TransactionResultStatus.Failed)
                         transactionResultDto.Error = transactionResult.Error;
 
-                    transactionResultDto.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+                    transactionResultDto.Transaction =
+                        JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
 
-                    var methodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+                    var methodDescriptor =
+                        await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
                     transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
                         methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
-                        
+
                     transactionResultDto.Status = transactionResult.Status.ToString();
                     output.Add(transactionResultDto);
                 }
@@ -333,7 +350,7 @@ namespace AElf.WebApp.Application.Chain
 
             return output;
         }
-        
+
         /// <summary>
         /// Get the height of the current chain.
         /// </summary>
@@ -343,7 +360,7 @@ namespace AElf.WebApp.Application.Chain
             var chainContext = await _blockchainService.GetChainAsync();
             return chainContext.BestChainHeight;
         }
-        
+
         /// <summary>
         /// Get information about a given block by block hash. Otionally with the list of its transactions.
         /// </summary>
@@ -359,7 +376,8 @@ namespace AElf.WebApp.Application.Chain
             }
             catch
             {
-                throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash],Error.InvalidBlockHash.ToString());
+                throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash],
+                    Error.InvalidBlockHash.ToString());
             }
 
             var block = await GetBlock(realBlockHash);
@@ -466,7 +484,7 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus()
         {
-            var queued= await _txHub.GetTransactionPoolSizeAsync();
+            var queued = await _txHub.GetTransactionPoolSizeAsync();
             return new GetTransactionPoolStatusOutput
             {
                 Queued = queued
@@ -482,7 +500,7 @@ namespace AElf.WebApp.Application.Chain
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
      
             var chain = await _blockchainService.GetChainAsync();
-            var branches = JsonConvert.DeserializeObject<Dictionary<string,long>>(chain.Branches.ToString());
+            var branches = JsonConvert.DeserializeObject<Dictionary<string, long>>(chain.Branches.ToString());
             var formattedNotLinkedBlocks = new List<NotLinkedBlockDto>();
 
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
@@ -522,8 +540,18 @@ namespace AElf.WebApp.Application.Chain
         {
             var blockState = await _blockchainStateManager.GetBlockStateSetAsync(Hash.LoadHex(blockHash));
             if (blockState == null)
-                throw new UserFriendlyException(Error.Message[Error.NotFound],Error.NotFound.ToString());
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
+        }
+
+        public List<TaskQueueInfoDto> GetTaskQueueStatus()
+        {
+            var taskQueueStatus = _taskQueueManager.GetQueueStatus();
+            return taskQueueStatus.Select(taskQueueState => new TaskQueueInfoDto
+            {
+                Name = taskQueueState.Name,
+                Size = taskQueueState.Size
+            }).ToList();
         }
 
         /// <summary>
@@ -611,19 +639,22 @@ namespace AElf.WebApp.Application.Chain
                 }
                 catch
                 {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                        Error.InvalidTransaction.ToString());
                 }
-                
-                if(!IsValidMessage(transaction))
-                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
-                
-                var contractMethodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+
+                if (!IsValidMessage(transaction))
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                        Error.InvalidTransaction.ToString());
+
+                var contractMethodDescriptor =
+                    await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
                 if (contractMethodDescriptor == null)
                     throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
                         Error.NoMatchMethodInContractAddress.ToString());
 
                 var parameters = contractMethodDescriptor.InputType.Parser.ParseFrom(transaction.Params);
-                
+
                 if (!IsValidMessage(parameters))
                 {
                     throw new UserFriendlyException(Error.Message[Error.InvalidParams], Error.InvalidParams.ToString());
@@ -631,7 +662,8 @@ namespace AElf.WebApp.Application.Chain
 
                 if (!transaction.VerifySignature())
                 {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],Error.InvalidTransaction.ToString());
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                        Error.InvalidTransaction.ToString());
                 }
 
                 transactions.Add(transaction);
@@ -673,7 +705,7 @@ namespace AElf.WebApp.Application.Chain
         {
             var chainContext = await GetChainContextAsync();
 
-            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
+            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow.ToTimestamp());
 
             if (!string.IsNullOrEmpty(trace.StdErr))
                 throw new Exception(trace.StdErr);
@@ -691,8 +723,9 @@ namespace AElf.WebApp.Application.Chain
             };
             return chainContext;
         }
-        
-        private async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress, string methodName)
+
+        private async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress,
+            string methodName)
         {
             IEnumerable<FileDescriptor> fileDescriptors;
             try
@@ -701,7 +734,8 @@ namespace AElf.WebApp.Application.Chain
             }
             catch
             {
-                throw new UserFriendlyException(Error.Message[Error.InvalidContractAddress],Error.InvalidContractAddress.ToString());
+                throw new UserFriendlyException(Error.Message[Error.InvalidContractAddress],
+                    Error.InvalidContractAddress.ToString());
             }
             
             foreach (var fileDescriptor in fileDescriptors)

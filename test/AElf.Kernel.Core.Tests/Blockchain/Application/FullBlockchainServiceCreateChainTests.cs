@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -26,7 +27,7 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     Height = Constants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = TimestampHelper.GetUtcNow()
                 },
                 Body = new BlockBody()
             };

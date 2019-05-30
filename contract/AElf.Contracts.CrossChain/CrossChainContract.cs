@@ -94,7 +94,7 @@ namespace AElf.Contracts.CrossChain
                 sideChainInfo.SideChainStatus == SideChainStatus.Review, "Side chain creation request not found.");
 
             sideChainInfo.SideChainStatus = SideChainStatus.Active;
-            sideChainInfo.CreationTimestamp = Timestamp.FromDateTime(Context.CurrentBlockTime);
+            sideChainInfo.CreationTimestamp = Context.CurrentBlockTime;
             sideChainInfo.CreationHeightOnParentChain = Context.CurrentHeight;
             State.SideChainInfos[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = 0;
@@ -238,8 +238,9 @@ namespace AElf.Contracts.CrossChain
             //Api.IsMiner("Not authorized to do this.");
             Assert(parentChainBlockData.Length <= 256, "Beyond maximal capacity for once indexing.");
             var parentChainId = State.ParentChainId.Value;
-            foreach (var blockInfo in parentChainBlockData)
+            for (var i = 0; i < parentChainBlockData.Length; i++)
             {
+                var blockInfo = parentChainBlockData[i];
                 Assert(parentChainId == blockInfo.ParentChainId, "Wrong parent chain id.");
                 long parentChainHeight = blockInfo.ParentChainHeight;
                 var currentHeight = State.CurrentParentChainHeight.Value;
@@ -280,8 +281,9 @@ namespace AElf.Contracts.CrossChain
 //            Api.IsMiner("Not authorized to do this.");
 
             var indexedSideChainBlockData = new List<SideChainBlockData>();
-            foreach (var blockInfo in sideChainBlockData)
+            for (var i = 0; i < sideChainBlockData.Length; i++)
             {
+                var blockInfo = sideChainBlockData[i];
                 var chainId = blockInfo.SideChainId;
                 var info = State.SideChainInfos[chainId];
                 if (info == null || info.SideChainStatus != SideChainStatus.Active)
@@ -319,6 +321,7 @@ namespace AElf.Contracts.CrossChain
                 State.CurrentSideChainHeight[chainId] = sideChainHeight;
                 indexedSideChainBlockData.Add(blockInfo);
             }
+            
             return indexedSideChainBlockData;
         }
         
