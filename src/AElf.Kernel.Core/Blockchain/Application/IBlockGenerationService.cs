@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Blockchain.Application
 {
