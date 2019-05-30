@@ -31,6 +31,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     // If PreviousRandomHash is Hash.Empty, it means the sender unable or unwilling to publish his previous in value.
                     previousInValue = previousRound.CalculateInValue(triggerInformation.PreviousRandomHash);
+                    // Self check.
+                    if (Hash.FromMessage(previousInValue) != previousRound.RealTimeMinersInformation[publicKey].OutValue)
+                    {
+                        Context.LogDebug(() => "Failed to produce block at previous round?");
+                        previousInValue = Hash.Empty;
+                    }
                 }
             }
 

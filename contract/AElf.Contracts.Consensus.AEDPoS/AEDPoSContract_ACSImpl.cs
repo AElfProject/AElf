@@ -253,24 +253,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool ValidatePreviousInValue(AElfConsensusHeaderInformation extraData)
         {
             var publicKey = extraData.SenderPublicKey.ToHex();
-            if (extraData.Behaviour == AElfConsensusBehaviour.UpdateValue)
-            {
-                if (TryToGetPreviousRoundInformation(out var previousRound))
-                {
-                    if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKey)) return true;
-                    var previousOutValue = previousRound.RealTimeMinersInformation[publicKey].OutValue;
-                    var previousInValue = extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue;
-                    if (previousInValue == Hash.Empty)
-                    {
-                        return true;
-                    }
-                    return Hash.FromMessage(previousInValue) == previousOutValue;
-                }
 
-                return false;
-            }
+            if (!TryToGetPreviousRoundInformation(out var previousRound)) return true;
 
-            return true;
+            if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKey)) return true;
+
+            if (extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue == null) return true;
+
+            var previousOutValue = previousRound.RealTimeMinersInformation[publicKey].OutValue;
+            var previousInValue = extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue;
+            if (previousInValue == Hash.Empty) return true;
+
+            return Hash.FromMessage(previousInValue) == previousOutValue;
         }
     }
 }

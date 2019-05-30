@@ -33,10 +33,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     isPreviousRoundExists, isTermJustChanged);
 
                 if (!isTimeSlotPassed && behaviour == AElfConsensusBehaviour.Nothing)
+                {
+                    Context.LogDebug(() => "Directly go to next round.");
                     behaviour = AElfConsensusBehaviour.UpdateValue;
+                }
 
                 if (behaviour != AElfConsensusBehaviour.Nothing)
+                {
                     return behaviour;
+                }
             }
             else if (!isTimeSlotPassed &&
                      minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
@@ -289,8 +294,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         private void TuneNextBlockMiningLeftMillisecondsForTinyBlock(Round currentRound, string publicKey,
-            Timestamp expectedMiningTime,
-            out int nextBlockMiningLeftMilliseconds)
+            Timestamp expectedMiningTime, out int nextBlockMiningLeftMilliseconds)
         {
             var minerInRound = currentRound.RealTimeMinersInformation[publicKey];
             var producedTinyBlocks = minerInRound.ProducedTinyBlocks;
