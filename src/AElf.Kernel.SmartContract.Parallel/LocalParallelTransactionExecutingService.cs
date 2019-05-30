@@ -69,8 +69,8 @@ namespace AElf.Kernel.SmartContract.Parallel
             var executionReturnSets = await _plainExecutingService.ExecuteAsync(blockHeader, transactions,
                 cancellationToken, throwException,
                 partialBlockStateSet);
-            // TODO: Check keys for reads
-            var keys = new HashSet<string>(executionReturnSets.SelectMany(s => s.StateChanges.Keys));
+            var keys = new HashSet<string>(
+                executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateAccesses.Keys)));
             return (executionReturnSets, keys);
         }
 

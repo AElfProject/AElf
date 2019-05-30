@@ -67,7 +67,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
                 else
                 {
-                    groupStateCache.Update(trace.GetFlattenedWrite()
+                    groupStateCache.Update(trace.GetFlattenedWrites()
                         .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                 }
 
@@ -150,7 +150,7 @@ namespace AElf.Kernel.SmartContract.Application
                                 return trace;
                             }
 
-                            internalStateCache.Update(preTrace.GetFlattenedWrite()
+                            internalStateCache.Update(preTrace.GetFlattenedWrites()
                                 .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                         }    
                     }
@@ -162,7 +162,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)
                 {
-                    internalStateCache.Update(txCtxt.Trace.GetFlattenedWrite()
+                    internalStateCache.Update(txCtxt.Trace.GetFlattenedWrites()
                         .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                     foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                     {
@@ -175,7 +175,7 @@ namespace AElf.Kernel.SmartContract.Application
                             break;
                         }
 
-                        internalStateCache.Update(inlineTrace.GetFlattenedWrite()
+                        internalStateCache.Update(inlineTrace.GetFlattenedWrites()
                             .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                     }
                 }
@@ -260,12 +260,17 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (trace.IsSuccessful())
             {
-                foreach (var s in trace.GetFlattenedWrite())
+                foreach (var s in trace.GetFlattenedWrites())
                 {
                     returnSet.StateChanges[s.Key] = s.Value;
                 }
 
                 returnSet.ReturnValue = trace.ReturnValue;
+            }
+
+            foreach (var s in trace.GetFlattenedReads())
+            {
+                returnSet.StateAccesses[s.Key] = s.Value;
             }
 
             return returnSet;

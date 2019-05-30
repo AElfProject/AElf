@@ -56,10 +56,13 @@ namespace AElf.Sdk.CSharp.State
         internal override TransactionExecutingStateSet GetChanges()
         {
             var stateSet = new TransactionExecutingStateSet();
+            var key = Path.ToStateKey(Context.Self);
             if (!Equals(_originalValue, _value))
             {
-                stateSet.Writes[Path.ToStateKey(Context.Self)] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
+                stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
             }
+
+            stateSet.Reads[key] = true;
 
             return stateSet;
         }
