@@ -10,6 +10,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.TestKit
@@ -34,10 +35,10 @@ namespace AElf.Contracts.TestKit
                 new RequestMiningDto
                 {
                     PreviousBlockHash = preBlock.GetHash(), PreviousBlockHeight = preBlock.Height,
-                    BlockExecutionTime = TimeSpan.FromMilliseconds(int.MaxValue)
+                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
                 },
                 new List<Transaction> {transaction},
-                DateTime.UtcNow);
+                DateTime.UtcNow.ToTimestamp());
 
             await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             await blockchainService.AddBlockAsync(block);

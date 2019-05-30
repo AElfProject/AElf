@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp
 {
@@ -39,7 +40,7 @@ namespace AElf.Sdk.CSharp
 
         public long CurrentHeight => _smartContractBridgeContextImplementation.CurrentHeight;
 
-        public DateTime CurrentBlockTime => _smartContractBridgeContextImplementation.CurrentBlockTime;
+        public Timestamp CurrentBlockTime => _smartContractBridgeContextImplementation.CurrentBlockTime;
 
         public Hash PreviousBlockHash => _smartContractBridgeContextImplementation.PreviousBlockHash;
 

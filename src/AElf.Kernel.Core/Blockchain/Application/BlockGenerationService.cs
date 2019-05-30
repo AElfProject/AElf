@@ -34,7 +34,7 @@ namespace AElf.Kernel.Blockchain.Application
                     ChainId = _staticChainInformationProvider.ChainId,
                     Height = generateBlockDto.PreviousBlockHeight + 1,
                     PreviousBlockHash = generateBlockDto.PreviousBlockHash,
-                    Time = Timestamp.FromDateTime(generateBlockDto.BlockTime)
+                    Time = generateBlockDto.BlockTime
                 },
                 Body = new BlockBody()
             };

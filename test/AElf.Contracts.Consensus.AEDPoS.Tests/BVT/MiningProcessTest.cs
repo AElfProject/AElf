@@ -1,9 +1,12 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
+using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -50,7 +53,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     CandidatePublicKey = candidateKeyPair.PublicKey.ToHex(),
                     Amount = 10000 - new Random().Next(1, 200) * count,
-                    EndTimestamp = DateTime.UtcNow.Add(TimeSpan.FromDays(100)).ToTimestamp()
+                    EndTimestamp = TimestampHelper.GetUtcNow().AddDays(100)
                 });
                 count++;
             }
@@ -61,7 +64,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 KeyPairProvider.SetKeyPair(currentKeyPair);
 
-                BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
+                BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime);
 
                 var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformationBytes =
@@ -175,7 +178,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     CandidatePublicKey = candidateKeyPair.PublicKey.ToHex(),
                     Amount = 100 + new Random().Next(1, 200),
-                    EndTimestamp = DateTime.UtcNow.Add(TimeSpan.FromDays(100)).ToTimestamp()
+                    EndTimestamp = TimestampHelper.GetUtcNow().AddDays(100)
                 });
             }
 
@@ -185,7 +188,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 KeyPairProvider.SetKeyPair(currentKeyPair);
 
-                BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
+                BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime);
 
                 var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation =

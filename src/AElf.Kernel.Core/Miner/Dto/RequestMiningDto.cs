@@ -1,5 +1,6 @@
 using System;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Miner
 {
@@ -9,6 +10,6 @@ namespace AElf.Kernel.Miner
 
         public long PreviousBlockHeight { get; set; }
 
-        public TimeSpan BlockExecutionTime { get; set; }
+        public Duration BlockExecutionTime { get; set; }
     }
 }

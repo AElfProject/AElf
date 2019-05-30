@@ -109,7 +109,7 @@ namespace AElf.Contracts.Election
         {
             BasicContractZeroStub = GetContractZeroTester(BootMinerKeyPair);
 
-            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime());
+            BlockTimeProvider.SetBlockTime(StartTimestamp);
 
             // Deploy Vote Contract
             VoteContractAddress = AsyncHelper.RunSync(  () =>
@@ -223,7 +223,7 @@ namespace AElf.Contracts.Election
                 new MinerList
                     {
                         PublicKeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
-                    }.GenerateFirstRoundOfNewTerm(MiningInterval, StartTimestamp.ToDateTime()));
+                    }.GenerateFirstRoundOfNewTerm(MiningInterval, StartTimestamp));
             CheckResult(result2.TransactionResult);
         }
 
@@ -292,8 +292,6 @@ namespace AElf.Contracts.Election
                 });
                 CheckResult(result4.TransactionResult);
             }
-
-
         }
 
         private async Task InitializeProfit()

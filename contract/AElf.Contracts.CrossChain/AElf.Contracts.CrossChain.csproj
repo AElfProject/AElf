@@ -3,6 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.CrossChain</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <IsContract>true</IsContract>
     </PropertyGroup>
 
     <ItemGroup>
@@ -28,5 +29,4 @@
             <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
-
 </Project>

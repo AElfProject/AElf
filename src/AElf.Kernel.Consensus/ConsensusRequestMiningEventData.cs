@@ -1,4 +1,5 @@
 using System;
+using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
 
 namespace AElf.Kernel.Consensus
@@ -7,11 +8,11 @@ namespace AElf.Kernel.Consensus
     {
         public Hash PreviousBlockHash { get; }
         public long PreviousBlockHeight { get; }
-        public TimeSpan BlockExecutionTime { get; }
-        public DateTime BlockTime { get; }
+        public Duration BlockExecutionTime { get; }
+        public Timestamp BlockTime { get; }
 
-        public ConsensusRequestMiningEventData(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime,
-            TimeSpan blockExecutionTime)
+        public ConsensusRequestMiningEventData(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
+            Duration blockExecutionTime)
         {
             PreviousBlockHash = previousBlockHash;
             PreviousBlockHeight = previousBlockHeight;

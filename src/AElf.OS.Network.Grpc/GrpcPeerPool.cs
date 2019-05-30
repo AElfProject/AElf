@@ -4,10 +4,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Infrastructure;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -79,7 +81,7 @@ namespace AElf.OS.Network.Grpc
             {
                 // if failing give it some time to recover
                 await channel.TryWaitForStateChangedAsync(channel.State,
-                    DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout));
+                    TimestampHelper.GetUtcNow().AddSeconds(_networkOptions.PeerDialTimeout).ToDateTime());
             }
 
             ConnectReply connectReply;
@@ -87,7 +89,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 connectReply = await client.ConnectAsync(hsk,
-                    new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout)));
+                    new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().AddSeconds(_networkOptions.PeerDialTimeout).ToDateTime()));
             }
             catch (RpcException e)
             {
@@ -108,7 +110,7 @@ namespace AElf.OS.Network.Grpc
             var pubKey = connectReply.Handshake.HskData.PublicKey.ToHex();
 
             var peer = new GrpcPeer(channel, client, pubKey, ipAddress, connectReply.Handshake.HskData.Version,
-                DateTime.UtcNow.ToTimestamp().Seconds, connectReply.Handshake.Header.Height, false);
+                TimestampHelper.GetUtcNow().Seconds, connectReply.Handshake.Header.Height, false);
 
             if (!_authenticatedPeers.TryAdd(pubKey, peer))
             {

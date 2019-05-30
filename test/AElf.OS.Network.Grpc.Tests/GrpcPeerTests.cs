@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -95,7 +96,7 @@ namespace AElf.OS.Network
             {
                 BlockHeight = 100,
                 BlockHash = Hash.Generate(),
-                BlockTime = DateTime.UtcNow.ToTimestamp()
+                BlockTime = TimestampHelper.GetUtcNow()
             };
 
             await _grpcPeer.AnnounceAsync(header);
@@ -148,7 +149,7 @@ namespace AElf.OS.Network
                 client = new PeerService.PeerServiceClient(channel);
 
             return new GrpcPeer(channel, client, GrpcTestConstants.FakePubKey, ipAddress, KernelConstants.ProtocolVersion,
-                DateTime.UtcNow.ToTimestamp().Seconds, 1);
+                TimestampHelper.GetUtcNow().Seconds, 1);
         }
 
         private async Task RestartNetworkServer()

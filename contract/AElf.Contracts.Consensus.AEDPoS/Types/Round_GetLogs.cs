@@ -22,7 +22,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var roundStartTime = GetStartTime();
                 var actualMiningTimes = minerInRound.ActualMiningTimes.OrderBy(t => t).Select(t =>
                 {
-                    if (t.ToDateTime() < roundStartTime)
+                    if (t < roundStartTime)
                     {
                         return $"{t.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,ffffff} (For Extra Block Slot Of Previous Round)";
                     }

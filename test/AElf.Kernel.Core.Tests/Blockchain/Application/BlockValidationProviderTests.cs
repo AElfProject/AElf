@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Types;
 using AElf.Kernel.Account.Application;
 using Google.Protobuf;
@@ -43,7 +44,7 @@ namespace AElf.Kernel.Blockchain.Application
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync( block);
             validateResult.ShouldBeFalse();
 
-            block.Header.Time = DateTime.UtcNow.ToTimestamp();
+            block.Header.Time = TimestampHelper.GetUtcNow();
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
             validateResult.ShouldBeTrue();        

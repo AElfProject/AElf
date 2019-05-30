@@ -4,6 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.Profit</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <IsContract>true</IsContract>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,5 +20,4 @@
             <Link>Protobuf\Proto\profit_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
-
 </Project>

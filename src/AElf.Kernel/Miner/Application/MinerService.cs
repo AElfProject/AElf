@@ -8,6 +8,8 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,8 +24,7 @@ namespace AElf.Kernel.Miner.Application
         /// This method mines a block.
         /// </summary>
         /// <returns>The block that has been produced.</returns>
-        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime blockTime,
-            TimeSpan blockExecutionTime);
+        Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime, Duration blockExecutionTime);
     }
 
     public class MinerService : IMinerService
@@ -46,8 +47,8 @@ namespace AElf.Kernel.Miner.Application
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, DateTime dateTime,
-            TimeSpan blockExecutionTime)
+        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp dateTime,
+            Duration blockExecutionTime)
         {
             var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
             var pending = new List<Transaction>();
@@ -126,7 +127,7 @@ namespace AElf.Kernel.Miner.Application
         /// Generate block
         /// </summary>
         /// <returns></returns>
-        private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight, DateTime expectedMiningTime)
+        private async Task<Block> GenerateBlock(Hash preBlockHash, long preBlockHeight, Timestamp expectedMiningTime)
         {
             var block = await _blockGenerationService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
             {
@@ -145,7 +146,7 @@ namespace AElf.Kernel.Miner.Application
         }
 
         public async Task<Block> MineAsync(RequestMiningDto requestMiningDto, List<Transaction> transactions,
-            DateTime blockTime)
+            Timestamp blockTime)
         {
             using (var cts = new CancellationTokenSource())
             {
@@ -156,7 +157,7 @@ namespace AElf.Kernel.Miner.Application
 
                 var pending = transactions;
 
-                cts.CancelAfter(requestMiningDto.BlockExecutionTime);
+                cts.CancelAfter((int) requestMiningDto.BlockExecutionTime.Milliseconds());
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
                 await SignBlockAsync(block);

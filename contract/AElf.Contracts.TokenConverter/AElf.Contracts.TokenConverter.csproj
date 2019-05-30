@@ -3,6 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.TokenConverter</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <IsContract>true</IsContract>
     </PropertyGroup>
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\token_contract.proto">
