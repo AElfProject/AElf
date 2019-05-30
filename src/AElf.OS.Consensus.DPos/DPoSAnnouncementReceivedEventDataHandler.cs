@@ -30,9 +30,8 @@ namespace AElf.OS.Consensus.DPos
 
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            // Disable network lib
+            //Disable network lib
             return;
-            
             var irreversibleBlockIndex =
                 await _idpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
                     eventData.SenderPubKey);
@@ -97,8 +96,8 @@ namespace AElf.OS.Consensus.DPos
 
             var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.PubKey)).ToList();
 
-            var pubKey = await _accountService.GetPublicKeyAsync();
-            if (peers.Count == 0 && !pubkeyList.Contains(pubKey.ToHex()))
+            var pubKey = (await _accountService.GetPublicKeyAsync()).ToHex();
+            if (peers.Count == 0 && !pubkeyList.Contains(pubKey))
                 return null;
 
             foreach (var block in orderedBlocks)
@@ -108,7 +107,7 @@ namespace AElf.OS.Consensus.DPos
                     p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
                     return hash == block.Value;
                 }).Count();
-                if (pubkeyList.Contains(pubKey.ToHex()) &&
+                if (pubkeyList.Contains(pubKey) &&
                     _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
                     blockHash == block.Value)
                     peersHadBlockAmount++;

@@ -69,7 +69,7 @@ namespace AElf.OS.Network.Grpc
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConsts.DefaultMaxSendMessageLength),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConsts.DefaultMaxReceiveMessageLength)
             });
-
+            
             var interceptor = new RetryInterceptor();
             interceptor.Logger = Logger;
             interceptor.PeerIp = ipAddress;
@@ -88,15 +88,18 @@ namespace AElf.OS.Network.Grpc
             {
                 // if failing give it some time to recover
                 await channel.TryWaitForStateChangedAsync(channel.State,
-                    DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout));
+                    DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeoutInMilliSeconds));
             }
 
             ConnectReply connectReply;
             
             try
             {
-                connectReply = await client.ConnectAsync(hsk,
-                    new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout)));
+                Metadata data = new Metadata
+                {
+                    {GrpcConsts.TimeoutMetadataKey, _networkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
+                };
+                connectReply = await client.ConnectAsync(hsk, data);
             }
             catch (AggregateException e)
             {
@@ -127,8 +130,6 @@ namespace AElf.OS.Network.Grpc
             }
 
             peer.DisconnectionEvent += PeerOnDisconnectionEvent;
-
-            peer.Logger = Logger;
             
             Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
 
@@ -271,8 +272,13 @@ namespace AElf.OS.Network.Grpc
             return removed;
         }
         
-        public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash)
+        public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash,bool hasFork)
         {
+            if (hasFork)
+            {
+                _recentBlockHeightAndHashMappings.Clear();
+                return;
+            }
             _recentBlockHeightAndHashMappings[blockHeight] = blockHash;
             while (_recentBlockHeightAndHashMappings.Count > 10)
             {

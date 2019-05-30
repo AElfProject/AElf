@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -123,8 +122,6 @@ namespace AElf.OS.Network.Grpc
             // send our credentials
             var hsk = await _peerPool.GetHandshakeAsync();
             
-            grpcPeer.Logger = Logger;
-            
             // If auth ok -> add it to our peers
             _peerPool.AddPeer(grpcPeer);
 
@@ -146,10 +143,8 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
         {
-            Logger.LogError($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
-            
-            Stopwatch ss = Stopwatch.StartNew();
-            
+            Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
+
             if (an?.BlockHash == null || an?.BlockTime == null)
             {
                 Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
@@ -158,22 +153,12 @@ namespace AElf.OS.Network.Grpc
 
             var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
             peerInPool?.HandlerRemoteAnnounce(an);
-            
-            ss.Stop();
-            
-            Logger.LogDebug($"Time in HandlerRemoteAnnounce {ss.ElapsedMilliseconds} announce {an.BlockHash} from {context.GetPeerInfo()}.");
 
-            //Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
+            Logger.LogTrace("Publish event for announcement received..");
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
 
-            Stopwatch s = Stopwatch.StartNew();
+            Logger.LogTrace("Finish event publish.");
             
-            Task.Run(async () => await EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey())));
-            
-            s.Stop();
-            
-            Logger.LogDebug($"Time in async {s.ElapsedMilliseconds} announce {an.BlockHash} from {context.GetPeerInfo()}.");
-
-
             return Task.FromResult(new VoidReply());
         }
 

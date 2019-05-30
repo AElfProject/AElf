@@ -39,12 +39,13 @@ namespace AElf.OS.Handlers
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
 
-        public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
+        public Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            await ProcessNewBlock(eventData, eventData.SenderPubKey);
+            ProcessNewBlockAsync(eventData, eventData.SenderPubKey);
+            return Task.CompletedTask;
         }
 
-        private async Task ProcessNewBlock(AnnouncementReceivedEventData header, string senderPubKey)
+        private async Task ProcessNewBlockAsync(AnnouncementReceivedEventData header, string senderPubKey)
         {
             Logger.LogTrace($"Receive announcement and sync block {{ hash: {header.Announce.BlockHash}, height: {header.Announce.BlockHeight} }} from {senderPubKey}.");
 
@@ -71,7 +72,7 @@ namespace AElf.OS.Handlers
             {
                 return;
             }
-
+            
             var chain = await _blockchainService.GetChainAsync();
             if (header.Announce.BlockHeight < chain.LastIrreversibleBlockHeight)
             {
@@ -80,6 +81,11 @@ namespace AElf.OS.Handlers
                 return;
             }
 
+            EnqueueJob(header, senderPubKey);
+        }
+
+        private void EnqueueJob(AnnouncementReceivedEventData header, string senderPubKey)
+        {
             var enqueueTimestamp = TimestampHelper.GetUtcNow();
             _taskQueueManager.Enqueue(async () =>
             {
@@ -95,7 +101,7 @@ namespace AElf.OS.Handlers
                 }
             }, OSConsts.BlockSyncQueueName);
         }
-
+        
         private bool VerifyAnnouncement(PeerNewBlockAnnouncement announcement)
         {
             var allowedFutureBlockTime = DateTime.UtcNow + KernelConstants.AllowedFutureBlockTimeSpan;

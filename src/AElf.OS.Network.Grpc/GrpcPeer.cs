@@ -9,17 +9,17 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Grpc.Core;
-using Microsoft.Extensions.Logging;
 
 namespace AElf.OS.Network.Grpc
 {
     public class GrpcPeer : IPeer
     {
-        private static readonly object _metricsLock = new object();
-        
         private const int MaxMetricsPerMethod = 100;
-        private const int DefaultRequestTimeoutMs = 700;
-
+        private const int AnnouncementTimeout = 300;
+        private const int BlockRequestTimeout = 300;
+        private const int TransactionBroadCastTimeout = 300;
+        private const int BlocksRequestTimeout = 500;
+        
         private enum MetricNames
         {
             Announce,
@@ -31,8 +31,6 @@ namespace AElf.OS.Network.Grpc
 
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
-        
-        public ILogger Logger { get; set; }
 
         /// <summary>
         /// Property that describes a valid state. Valid here means that the peer is ready to be used for communication.
@@ -85,18 +83,15 @@ namespace AElf.OS.Network.Grpc
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
         {
             Dictionary<string, List<RequestMetric>> metrics = new Dictionary<string, List<RequestMetric>>();
-            
-            lock (_metricsLock)
+
+            foreach (var roundtripTime in _recentRequestsRoundtripTimes.ToArray())
             {
-                foreach (var roundtripTime in _recentRequestsRoundtripTimes)
+                var metricsToAdd = new List<RequestMetric>();
+                
+                metrics.Add(roundtripTime.Key, metricsToAdd);
+                foreach (var requestMetric in roundtripTime.Value)
                 {
-                    var metricsToAdd = new List<RequestMetric>();
-                    
-                    metrics.Add(roundtripTime.Key, metricsToAdd);
-                    foreach (var requestMetric in roundtripTime.Value.ToArray())
-                    {
-                        metricsToAdd.Add(requestMetric);
-                    }
+                    metricsToAdd.Add(requestMetric);
                 }
             }
 
@@ -111,11 +106,18 @@ namespace AElf.OS.Network.Grpc
             {
                 ErrorMessage = $"Block request for {hash} failed.",
                 MetricName = nameof(MetricNames.GetBlock),
-                MetricInfo = $"Block request for {hash}"
+                MetricInfo = $"Block request for {hash}",
+                Timeout = 300
+            };
+
+            Metadata data = new Metadata
+            {
+                {GrpcConsts.MetricInfoMetadataKey, request.MetricInfo},
+                {GrpcConsts.TimeoutMetadataKey, BlockRequestTimeout.ToString()}
             };
 
             var blockReply 
-                = await RequestAsync(_client, (c, d) => c.RequestBlockAsync(blockRequest, deadline: d), request);
+                = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest, data), request);
 
             return blockReply?.Block;
         }
@@ -129,10 +131,17 @@ namespace AElf.OS.Network.Grpc
             {
                 ErrorMessage = $"Get blocks for {blockInfo} failed.",
                 MetricName = nameof(MetricNames.GetBlocks),
-                MetricInfo = $"Get blocks for {blockInfo}"
+                MetricInfo = $"Get blocks for {blockInfo}",
+                Timeout = 500
             };
 
-            var list = await RequestAsync(_client, (c, d) => c.RequestBlocksAsync(blockRequest, deadline: d), request);
+            Metadata data = new Metadata
+            {
+                {GrpcConsts.MetricInfoMetadataKey, request.MetricInfo},
+                {GrpcConsts.TimeoutMetadataKey, BlocksRequestTimeout.ToString()}
+            };
+
+            var list = await RequestAsync(_client, c => c.RequestBlocksAsync(blockRequest, data), request);
 
             if (list == null)
                 return new List<BlockWithTransactions>();
@@ -140,68 +149,61 @@ namespace AElf.OS.Network.Grpc
             return list.Blocks.ToList();
         }
 
-        public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
+        public Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
             GrpcRequest request = new GrpcRequest
             {
                 ErrorMessage = $"Bcast announce for {header.BlockHash} failed.",
                 MetricName = nameof(MetricNames.Announce),
-                MetricInfo = $"Block hash {header.BlockHash}"
+                MetricInfo = $"Block hash {header.BlockHash}", 
+                Timeout = 300
             };
-            
-            await RequestAsync(_client, (c, d) => c.AnnounceAsync(header, deadline: d), request);
+
+            Metadata data = new Metadata
+            {
+                {GrpcConsts.MetricInfoMetadataKey, request.MetricInfo},
+                {GrpcConsts.TimeoutMetadataKey, AnnouncementTimeout.ToString()}
+            };
+
+            return RequestAsync(_client, c => c.AnnounceAsync(header, data), request);
         }
 
-        public async Task SendTransactionAsync(Transaction tx)
+        public Task SendTransactionAsync(Transaction tx)
         {
             GrpcRequest request = new GrpcRequest
             {
-                ErrorMessage = $"Bcast tx for {tx.GetHash()} failed."
+                ErrorMessage = $"Bcast tx for {tx.GetHash()} failed.",
+                Timeout = 100
             };
             
-            await RequestAsync(_client, (c, d) => c.SendTransactionAsync(tx, deadline: d), request);
+            Metadata data = new Metadata
+            {
+                {GrpcConsts.TimeoutMetadataKey, TransactionBroadCastTimeout.ToString()}
+            };
+            
+            return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
-            Func<PeerService.PeerServiceClient, DateTime, AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
+            Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
         {
             var metricsName = requestParams.MetricName;
             bool timeRequest = !string.IsNullOrEmpty(metricsName);
-            var timeoutMs = requestParams.TimeoutMs < 0 ? requestParams.TimeoutMs : DefaultRequestTimeoutMs;
             var dateBeforeRequest = DateTime.Now;
-            var utcNow = DateTime.UtcNow;
-            var timeout = utcNow.Add(TimeSpan.FromMilliseconds(timeoutMs));
             
             Stopwatch s = null;
-
+            
             if (timeRequest)
-            {
                 s = Stopwatch.StartNew();
-                Logger.LogDebug($"[{this}] Started stopwatch! Time: {DateTime.Now} {requestParams.MetricInfo} ");
-            }
                 
             try
             {
-                var response = await func(client, timeout);
-                
+                var response = await func(client);
+
                 if (timeRequest)
                 {
-                    Logger.LogDebug($"[{this}] Just awakened ! {requestParams.MetricInfo} ");
-
                     s.Stop();
-                    
-                    var metrics = _recentRequestsRoundtripTimes[metricsName];
-                    
-                    while (metrics.Count >= MaxMetricsPerMethod)
-                        metrics.TryDequeue(out _);
-                    
-                    metrics.Enqueue(new RequestMetric
-                    {
-                        Info = requestParams.MetricInfo,
-                        RequestTime = dateBeforeRequest,
-                        MethodName = metricsName,
-                        RoundTripTime = s.ElapsedMilliseconds
-                    });
+                    RecordMetric(requestParams, dateBeforeRequest, s.ElapsedMilliseconds);
                 }
                 
                 return response;
@@ -212,12 +214,32 @@ namespace AElf.OS.Network.Grpc
             }
             finally
             {
-                s?.Stop();
+                if (timeRequest)
+                {
+                    s.Stop();
+                    RecordMetric(requestParams, dateBeforeRequest, s.ElapsedMilliseconds);
+                }
             }
 
             return default(TResp);
         }
 
+        private void RecordMetric(GrpcRequest grpcRequest, DateTime dateTimeBeforeRequest, long elapsedMilliseconds)
+        {
+            var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
+                    
+            while (metrics.Count >= MaxMetricsPerMethod)
+                metrics.TryDequeue(out _);
+                    
+            metrics.Enqueue(new RequestMetric
+            {
+                Info = grpcRequest.MetricInfo,
+                RequestTime = dateTimeBeforeRequest,
+                MethodName = grpcRequest.MetricName,
+                RoundTripTime = elapsedMilliseconds
+            });
+        }
+        
         /// <summary>
         /// This method handles the case where the peer is potentially down. If the Rpc call
         /// put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
@@ -233,12 +255,10 @@ namespace AElf.OS.Network.Grpc
 
             if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
             {
-                Logger.LogDebug($"[{this}] Transient failure!");
-
                 Task.Run(async () =>
                 {
                     await _channel.TryWaitForStateChangedAsync(_channel.State,
-                        DateTime.UtcNow.AddSeconds(NetworkConsts.DefaultPeerDialTimeout));
+                        DateTime.UtcNow.AddSeconds(NetworkConsts.DefaultPeerDialTimeoutInMilliSeconds));
 
                     // Either we connected again or the state change wait timed out.
                     if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
@@ -268,6 +288,12 @@ namespace AElf.OS.Network.Grpc
 
         public void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement)
         {
+            if (peerNewBlockAnnouncement.HasFork)
+            {
+                _recentBlockHeightAndHashMappings.Clear();
+                return;
+            }
+            
             CurrentBlockHeight = peerNewBlockAnnouncement.BlockHeight;
             CurrentBlockHash = peerNewBlockAnnouncement.BlockHash;
             _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;

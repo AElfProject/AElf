@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
@@ -8,6 +9,8 @@ namespace AElf.OS.Network.Grpc
 {
     public class RetryInterceptor : Interceptor
     {
+        private const string DefaultMetricInfoString = "Unknown metadata";
+        
         private int _retryCount = NetworkConsts.DefaultMaxRequestRetryCount;
         
         public ILogger Logger { get; set; }
@@ -18,9 +21,26 @@ namespace AElf.OS.Network.Grpc
             AsyncUnaryCallContinuation<TRequest, TResponse> continuation)
         {
             var retryCount = 0;
-            
-            Logger.LogDebug($"[{PeerIp}] {context.Method.Name} - Current time {DateTime.Now}");
 
+            Metadata.Entry metricInfoMetadataEntry = null;
+            Metadata.Entry timeoutInMilliSecondsMetaEntry = null;
+            if (context.Options.Headers != null && context.Options.Headers.Any())
+            {
+                metricInfoMetadataEntry = context.Options.Headers.FirstOrDefault(m => 
+                    String.Equals(m.Key, GrpcConsts.MetricInfoMetadataKey, StringComparison.Ordinal));
+                timeoutInMilliSecondsMetaEntry = context.Options.Headers.FirstOrDefault(m => 
+                    String.Equals(m.Key, GrpcConsts.TimeoutMetadataKey, StringComparison.Ordinal));
+            }
+
+            if (metricInfoMetadataEntry != null)
+                context.Options.Headers.Remove(metricInfoMetadataEntry);
+
+            string metricInfo = metricInfoMetadataEntry?.Value ?? DefaultMetricInfoString;
+
+            var timeoutSpan = timeoutInMilliSecondsMetaEntry == null
+                ? TimeSpan.FromMilliseconds(GrpcConsts.DefaultRequestTimeoutInMilliSeconds)
+                : TimeSpan.FromMilliseconds(int.Parse(timeoutInMilliSecondsMetaEntry.Value)); 
+            
             async Task<TResponse> RetryCallback(Task<TResponse> responseTask)
             {
                 var response = responseTask;
@@ -28,30 +48,38 @@ namespace AElf.OS.Network.Grpc
                 // if no problem occured return
                 if (!response.IsFaulted)
                 {
+                    Logger.LogDebug($"[{PeerIp}] {metricInfo} - succeed.");
+
                     return response.Result;
                 }
-
-                retryCount++;
-
-                Logger.LogDebug($"[{PeerIp}] {context.Method.Name} RETRY retry count {retryCount}");
 
                 // if a problem occured but reached the max retries
                 if (retryCount == _retryCount)
                 {
-                    Logger.LogDebug($"[{PeerIp}] {context.Method.Name} RETRY not retrying");
+                    Logger.LogDebug($"[{PeerIp}] {metricInfo} - retry finished.");
+
                     return response.Result;
                 }
-
+                
+                retryCount++;
+                
+                Logger.LogDebug($"[{PeerIp}] {metricInfo} - Retrying");
+                
                 // try again
-                var result = continuation(request, context).ResponseAsync.ContinueWith(RetryCallback).Unwrap();
-                return result.Result;
+
+                var retryContext = new ClientInterceptorContext<TRequest, TResponse>(context.Method, context.Host,
+                    context.Options.WithDeadline(DateTime.UtcNow.Add(timeoutSpan)));
+                var result = continuation(request, retryContext).ResponseAsync.ContinueWith(RetryCallback).Unwrap();
+                return await result;
             }
 
-            var responseContinuation = continuation(request, context);
-            var responseAsync = responseContinuation.ResponseAsync.ContinueWith(RetryCallback);
+            var newContext = new ClientInterceptorContext<TRequest, TResponse>(context.Method, context.Host,
+                context.Options.WithDeadline(DateTime.UtcNow.Add(timeoutSpan)));
+            var responseContinuation = continuation(request, newContext);
+            var responseAsync = responseContinuation.ResponseAsync.ContinueWith(RetryCallback).Unwrap();
 
             return new AsyncUnaryCall<TResponse>(
-                responseAsync.Result,
+                responseAsync,
                 responseContinuation.ResponseHeadersAsync,
                 responseContinuation.GetStatus,
                 responseContinuation.GetTrailers,

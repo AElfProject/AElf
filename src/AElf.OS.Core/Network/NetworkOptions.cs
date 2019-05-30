@@ -27,7 +27,7 @@ namespace AElf.OS.Network
         /// <summary>
         /// Timeout used when trying to connect to another peer.
         /// </summary>
-        public int PeerDialTimeout { get; set; } = NetworkConsts.DefaultPeerDialTimeout;
+        public int PeerDialTimeoutInMilliSeconds { get; set; } = NetworkConsts.DefaultPeerDialTimeoutInMilliSeconds;
 
         /// <summary>
         /// Maximum amount of values used when synchronizing a fork.
