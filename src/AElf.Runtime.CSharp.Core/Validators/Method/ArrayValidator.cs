@@ -12,14 +12,20 @@ namespace AElf.Runtime.CSharp.Validators.Method
         private const long AllowedTotalSize = 40 * 1024; // Byte per array when limiting by total array size
 
         private static readonly ArrayLimitLookup AllowedTypes = new ArrayLimitLookup()
-            .LimitByTotalSize(typeof(int), sizeof(int))
-            .LimitByTotalSize(typeof(uint), sizeof(uint))
+            .LimitByTotalSize(typeof(Byte), sizeof(Byte))
+            .LimitByTotalSize(typeof(Int16), sizeof(Int16))
+            .LimitByTotalSize(typeof(Int32), sizeof(Int32))
+            .LimitByTotalSize(typeof(Int64), sizeof(Int64))
+            .LimitByTotalSize(typeof(UInt16), sizeof(UInt16))
+            .LimitByTotalSize(typeof(UInt32), sizeof(UInt32))
+            .LimitByTotalSize(typeof(UInt64), sizeof(UInt64))
             .LimitByTotalSize(typeof(decimal), sizeof(decimal))
             .LimitByTotalSize(typeof(char), sizeof(char))
             .LimitByTotalSize(typeof(String), 128) // Need to limit the size of strings by disallowing String.Concat
             
             // It isn't possible to estimate runtime sizes for below, so limit by count
             .LimitByCount(typeof(Type), 5)
+            .LimitByCount(typeof(Object), 5) // Support object in Linq queries
             .LimitByCount("Google.Protobuf.Reflection.FileDescriptor", 10)
             .LimitByCount("Google.Protobuf.Reflection.GeneratedClrTypeInfo", 100);
 
@@ -78,7 +84,7 @@ namespace AElf.Runtime.CSharp.Validators.Method
                     }
                     else
                     {
-                        error = new ArrayValidationResult($"Array size could not be identified for {typ}.");
+                        error = new ArrayValidationResult($"Array size could not be identified for {typ}." + GetIlCodesPartial(instruction));
                     }
                 }
                 else
@@ -87,7 +93,7 @@ namespace AElf.Runtime.CSharp.Validators.Method
                 }
                 
                 if (error != null)
-                    errors.Add(error.WithInfo(method.Name, method.GetType().Namespace, method.GetType().Name, null));
+                    errors.Add(error.WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null));
             }
 
             return errors;
@@ -111,8 +117,48 @@ namespace AElf.Runtime.CSharp.Validators.Method
                 return true;
             }
 
+            #if DEBUG
+            // Creating array from an already existing array, only allowed in Debug mode
+            if (previous.OpCode == OpCodes.Conv_I4 && previous.Previous.OpCode == OpCodes.Ldlen)
+            {
+                size = 0;
+                return true;
+            }
+            #endif
+
             size = -1;
             return false;
+        }
+
+        private string GetIlCodesNext(Instruction instruction, int depth)
+        {
+            var code = "";
+            var next = instruction.Next;
+            while (depth-- > 0)
+            {
+                code += next + "\n";
+                next = next.Next;
+            }
+            return code;
+        }
+
+        private string GetIlCodesPrevious(Instruction instruction, int depth)
+        {
+            var code = "";
+            var previous = instruction.Previous;
+            while (depth-- > 0)
+            {
+                code += "\n" + previous + code;
+                previous = previous.Previous;
+            }
+            return code;
+        }
+
+        private string GetIlCodesPartial(Instruction instruction, int depth = 5)
+        {
+            return GetIlCodesPrevious(instruction, depth) + "\n" + 
+                   instruction + "\n" + 
+                   GetIlCodesNext(instruction, depth);
         }
 
         private class ArrayLimitLookup

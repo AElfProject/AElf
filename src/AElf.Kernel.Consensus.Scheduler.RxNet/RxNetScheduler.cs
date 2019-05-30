@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.Consensus.Application;
+using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -37,7 +39,7 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
         public IDisposable Subscribe(int countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
         {
             Logger.LogDebug($"Will produce block after {countingMilliseconds} ms - " +
-                            $"{DateTime.UtcNow.AddMilliseconds(countingMilliseconds):yyyy-MM-dd HH.mm.ss,fff}");
+                            $"{TimestampHelper.GetUtcNow().AddMilliseconds(countingMilliseconds).ToDateTime():yyyy-MM-dd HH.mm.ss,fff}");
 
             return Observable.Timer(TimeSpan.FromMilliseconds(countingMilliseconds))
                 .Select(_ => consensusRequestMiningEventData).Subscribe(this);

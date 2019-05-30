@@ -160,6 +160,7 @@ message BlockHeader {
     int64 Height = 7;
     repeated bytes BlockExtraDatas = 8;
     google.protobuf.Timestamp Time = 9;
+    Hash MerkleTreeRootOfTransactionStatus = 10;
     bytes SignerPubkey = 9999;
     bytes Signature = 10000;
 }

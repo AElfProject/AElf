@@ -13,6 +13,7 @@ using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
@@ -381,7 +382,8 @@ namespace AElf.WebApp.Application.Chain
                     Height = block.Header.Height,
                     Time = block.Header.Time.ToDateTime(),
                     ChainId = ChainHelpers.ConvertChainIdToBase58(block.Header.ChainId),
-                    Bloom = block.Header.Bloom.ToByteArray().ToHex()
+                    Bloom = block.Header.Bloom.ToByteArray().ToHex(),
+                    SignerPubkey =  block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
                 {
@@ -434,7 +436,8 @@ namespace AElf.WebApp.Application.Chain
                     Height = blockInfo.Header.Height,
                     Time = blockInfo.Header.Time.ToDateTime(),
                     ChainId = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
-                    Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex()
+                    Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex(),
+                    SignerPubkey = blockInfo.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
                 {
@@ -671,7 +674,7 @@ namespace AElf.WebApp.Application.Chain
         {
             var chainContext = await GetChainContextAsync();
 
-            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
+            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow.ToTimestamp());
 
             if (!string.IsNullOrEmpty(trace.StdErr))
                 throw new Exception(trace.StdErr);

@@ -1,4 +1,5 @@
 using System;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
@@ -30,7 +31,7 @@ namespace AElf.OS.Network
             var channel = new Channel(GrpcTestConstants.FakeListeningPort, ChannelCredentials.Insecure);
             pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), GrpcTestConstants.FakePubKey2,
                 GrpcTestConstants.FakeListeningPort, KernelConstants.ProtocolVersion,
-                DateTime.UtcNow.ToTimestamp().Seconds, 1));
+                TimestampHelper.GetUtcNow().Seconds, 1));
         }
     }
 }
