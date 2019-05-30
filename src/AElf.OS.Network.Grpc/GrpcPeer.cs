@@ -107,8 +107,7 @@ namespace AElf.OS.Network.Grpc
             {
                 ErrorMessage = $"Block request for {hash} failed.",
                 MetricName = nameof(MetricNames.GetBlock),
-                MetricInfo = $"Block request for {hash}",
-                Timeout = 300
+                MetricInfo = $"Block request for {hash}"
             };
 
             Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString()} };
@@ -128,8 +127,7 @@ namespace AElf.OS.Network.Grpc
             {
                 ErrorMessage = $"Get blocks for {blockInfo} failed.",
                 MetricName = nameof(MetricNames.GetBlocks),
-                MetricInfo = $"Get blocks for {blockInfo}",
-                Timeout = 500
+                MetricInfo = $"Get blocks for {blockInfo}"
             };
 
             Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, BlocksRequestTimeout.ToString()} };
@@ -148,8 +146,7 @@ namespace AElf.OS.Network.Grpc
             {
                 ErrorMessage = $"Broadcast announce for {header.BlockHash} failed.",
                 MetricName = nameof(MetricNames.Announce),
-                MetricInfo = $"Block hash {header.BlockHash}", 
-                Timeout = 300
+                MetricInfo = $"Block hash {header.BlockHash}"
             };
 
             Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
@@ -161,8 +158,7 @@ namespace AElf.OS.Network.Grpc
         {
             GrpcRequest request = new GrpcRequest
             {
-                ErrorMessage = $"Broadcast transaction for {tx.GetHash()} failed.",
-                Timeout = 100
+                ErrorMessage = $"Broadcast transaction for {tx.GetHash()} failed."
             };
             
             Metadata data = new Metadata
