@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Types;
 using AElf.Kernel.Consensus.AEDPoS;
 using Shouldly;

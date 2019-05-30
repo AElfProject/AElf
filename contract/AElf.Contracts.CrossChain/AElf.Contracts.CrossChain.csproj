@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Contracts.CrossChain</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\reference\acs3.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\cross_chain_contract.proto">
+            <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>

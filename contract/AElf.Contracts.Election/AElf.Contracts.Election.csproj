@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Contracts.Election</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\vote_contract.proto">
+            <Link>Protobuf\Proto\reference\vote_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\profit_contract.proto">
+            <Link>Protobuf/Proto/profit_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\election_contract.proto">
+            <Link>Protobuf\Proto\election_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>
