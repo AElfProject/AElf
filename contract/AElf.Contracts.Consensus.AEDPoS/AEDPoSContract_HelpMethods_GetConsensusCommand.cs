@@ -130,7 +130,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         duration, out nextBlockMiningLeftMilliseconds);
                     break;
                 case AElfConsensusBehaviour.UpdateValue:
-                    nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+                    nextBlockMiningLeftMilliseconds = (int) duration.Milliseconds();
                     break;
                 case AElfConsensusBehaviour.TinyBlock:
                     GetNextBlockMiningLeftMillisecondsForTinyBlock(currentRound, publicKey,
@@ -148,8 +148,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 case AElfConsensusBehaviour.NextTerm:
                     expectedMiningTime =
                         currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, currentBlockTime);
-                    nextBlockMiningLeftMilliseconds =
-                        ConvertDurationToMilliseconds(expectedMiningTime - currentBlockTime);
+                    nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - currentBlockTime).Milliseconds();
                     break;
                 default:
                     return new ConsensusCommand
@@ -210,7 +209,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
             else
             {
-                nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+                nextBlockMiningLeftMilliseconds = (int) duration.Milliseconds();
             }
         }
 
@@ -229,8 +228,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 expectedMiningTime =
                     currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, Context.CurrentBlockTime);
-                var duration = expectedMiningTime - Context.CurrentBlockTime;
-                nextBlockMiningLeftMilliseconds = ConvertDurationToMilliseconds(duration);
+                nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - Context.CurrentBlockTime).Milliseconds();
             }
         }
 
@@ -311,8 +309,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
             else
             {
-                nextBlockMiningLeftMilliseconds =
-                    ConvertDurationToMilliseconds(expectedMiningTime - Context.CurrentBlockTime);
+                nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - Context.CurrentBlockTime).Milliseconds();
             }
 
             if (Context.CurrentBlockTime >=

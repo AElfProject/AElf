@@ -79,11 +79,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return tx;
         }
 
-        private int ConvertDurationToMilliseconds(Duration duration)
-        {
-            return (int) duration.Seconds.Mul(1000).Add(duration.Nanos.Div(1000000));
-        }
-
         private Duration ConvertMillisecondsToDuration(int milliseconds)
         {
             var seconds = 0L;
@@ -97,24 +92,24 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Duration {Seconds = seconds, Nanos = nanos};
         }
 
-        private int GetNextBlockMiningLeftMillisecondsForFirstRound(MinerInRound minerInRound, DateTime blockTime)
+        private int GetNextBlockMiningLeftMillisecondsForFirstRound(MinerInRound minerInRound, Timestamp blockTime)
         {
             var actualMiningTime = minerInRound.ActualMiningTimes.First();
             var producedTinyBlocks = minerInRound.ProducedTinyBlocks;
             var timeForEachBlock = State.MiningInterval.Value.Div(AEDPoSContractConstants.TotalTinySlots);
             var expectedMiningTime = actualMiningTime.ToDateTime()
                 .AddMilliseconds(timeForEachBlock.Mul(producedTinyBlocks)).ToTimestamp();
-            var leftMilliseconds = ConvertDurationToMilliseconds(expectedMiningTime - blockTime.ToTimestamp());
+            var leftMilliseconds = (int) (expectedMiningTime - blockTime).Milliseconds();
             return leftMilliseconds;
         }
 
         private int GetNextBlockMiningLeftMillisecondsForPreviousRoundExtraBlockProducer(
-            Timestamp previousExtraBlockTimestamp, int producedTinyBlocks, DateTime blockTime)
+            Timestamp previousExtraBlockTimestamp, int producedTinyBlocks, Timestamp blockTime)
         {
             var timeForEachBlock = State.MiningInterval.Value.Div(AEDPoSContractConstants.TotalTinySlots);
             var expectedMiningTime = previousExtraBlockTimestamp.ToDateTime()
                 .AddMilliseconds(timeForEachBlock.Mul(producedTinyBlocks)).ToTimestamp();
-            var leftMilliseconds = ConvertDurationToMilliseconds(expectedMiningTime - blockTime.ToTimestamp());
+            var leftMilliseconds = (int) (expectedMiningTime - blockTime).Milliseconds();
             return leftMilliseconds;
         }
 
