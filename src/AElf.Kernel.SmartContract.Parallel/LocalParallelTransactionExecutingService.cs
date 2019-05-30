@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Parallel
 {
@@ -15,6 +16,8 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly ITransactionGrouper _grouper;
         private readonly ITransactionExecutingService _plainExecutingService;
 
+        public ILocalEventBus EventBus { get; set; }
+
         public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
             ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IExecutionPlugin> plugins)
@@ -22,6 +25,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             _grouper = grouper;
             _plainExecutingService =
                 new TransactionExecutingService(transactionResultService, smartContractExecutiveService, plugins);
+            EventBus = NullLocalEventBus.Instance;
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(BlockHeader blockHeader,
@@ -39,7 +43,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 throwException, partialBlockStateSet));
             var results = await Task.WhenAll(tasks);
 
-            var returnSets = MergeResults(results).Item1;
+            var returnSets = MergeResults(results, out var conflictingSets).Item1;
             var returnSetCollection = new ReturnSetCollection(returnSets);
 
             var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
@@ -48,6 +52,13 @@ namespace AElf.Kernel.SmartContract.Parallel
             var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(blockHeader, nonParallizable,
                 cancellationToken, throwException, updatedPartialBlockStateSet);
             returnSets.AddRange(nonParallelizableReturnSets);
+            if (conflictingSets.Count > 0)
+            {
+                // TODO: Add event handler somewhere
+                await EventBus.PublishAsync(
+                    new ConflictingTransactionsFoundInParallelGroupsEvent(returnSets, conflictingSets));
+            }
+
             return returnSets;
         }
 
@@ -63,9 +74,11 @@ namespace AElf.Kernel.SmartContract.Parallel
         }
 
         private (List<ExecutionReturnSet>, HashSet<string>) MergeResults(
-            IEnumerable<(List<ExecutionReturnSet>, HashSet<string>)> results)
+            IEnumerable<(List<ExecutionReturnSet>, HashSet<string>)> results,
+            out List<ExecutionReturnSet> conflictingSets)
         {
             var returnSets = new List<ExecutionReturnSet>();
+            conflictingSets = new List<ExecutionReturnSet>();
             var existingKeys = new HashSet<string>();
             foreach (var (sets, keys) in results)
             {
@@ -73,8 +86,10 @@ namespace AElf.Kernel.SmartContract.Parallel
                 {
                     returnSets.AddRange(sets);
                 }
-
-                // TODO: Fire event if overlaps
+                else
+                {
+                    conflictingSets.AddRange(sets);
+                }
             }
 
             return (returnSets, existingKeys);
