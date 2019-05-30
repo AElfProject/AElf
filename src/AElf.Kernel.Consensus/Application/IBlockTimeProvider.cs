@@ -1,5 +1,4 @@
-using AElf.Common;
-using Google.Protobuf.WellKnownTypes;
+using System;
 
 namespace AElf.Kernel.Consensus.Application
 {

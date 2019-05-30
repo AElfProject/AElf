@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using System.Runtime.CompilerServices;
 using Google.Protobuf;

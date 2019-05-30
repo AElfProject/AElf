@@ -10,7 +10,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     public partial class MinerList
     {
         internal Round GenerateFirstRoundOfNewTerm(int miningInterval,
-            Timestamp currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
+            DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var sortedMiners =
                 (from obj in PublicKeys
@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInRound.PublicKey = sortedMiners[i];
                 minerInRound.Order = i + 1;
                 minerInRound.ExpectedMiningTime =
-                    currentBlockTime.AddMilliseconds(i.Mul(miningInterval).Add(miningInterval));
+                    currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval).ToTimestamp();
                 // Should be careful during validation.
                 minerInRound.PreviousInValue = Hash.Empty;
 

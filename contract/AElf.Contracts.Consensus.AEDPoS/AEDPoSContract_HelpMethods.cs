@@ -97,24 +97,24 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Duration {Seconds = seconds, Nanos = nanos};
         }
 
-        private int GetNextBlockMiningLeftMillisecondsForFirstRound(MinerInRound minerInRound, Timestamp blockTime)
+        private int GetNextBlockMiningLeftMillisecondsForFirstRound(MinerInRound minerInRound, DateTime blockTime)
         {
             var actualMiningTime = minerInRound.ActualMiningTimes.First();
             var producedTinyBlocks = minerInRound.ProducedTinyBlocks;
             var timeForEachBlock = State.MiningInterval.Value.Div(AEDPoSContractConstants.TotalTinySlots);
             var expectedMiningTime = actualMiningTime.ToDateTime()
                 .AddMilliseconds(timeForEachBlock.Mul(producedTinyBlocks)).ToTimestamp();
-            var leftMilliseconds = ConvertDurationToMilliseconds(expectedMiningTime - blockTime);
+            var leftMilliseconds = ConvertDurationToMilliseconds(expectedMiningTime - blockTime.ToTimestamp());
             return leftMilliseconds;
         }
 
         private int GetNextBlockMiningLeftMillisecondsForPreviousRoundExtraBlockProducer(
-            Timestamp previousExtraBlockTimestamp, int producedTinyBlocks, Timestamp blockTime)
+            Timestamp previousExtraBlockTimestamp, int producedTinyBlocks, DateTime blockTime)
         {
             var timeForEachBlock = State.MiningInterval.Value.Div(AEDPoSContractConstants.TotalTinySlots);
             var expectedMiningTime = previousExtraBlockTimestamp.ToDateTime()
                 .AddMilliseconds(timeForEachBlock.Mul(producedTinyBlocks)).ToTimestamp();
-            var leftMilliseconds = ConvertDurationToMilliseconds(expectedMiningTime - blockTime);
+            var leftMilliseconds = ConvertDurationToMilliseconds(expectedMiningTime - blockTime.ToTimestamp());
             return leftMilliseconds;
         }
 

@@ -126,7 +126,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private long GetBlockchainAge()
         {
-            return (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds;
+            return (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds;
         }
 
         private bool TryToGetVictories(out MinerList victories)
@@ -150,7 +150,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void ShareAndRecoverInValue(Round round, Round previousRound, Hash inValue, string publicKey)
         {
             var minersCount = round.RealTimeMinersInformation.Count;
-            var minimumCount = (int) (minersCount * ((decimal) 2 / 3));
+            var minimumCount = (int) (minersCount * 2d / 3);
             minimumCount = minimumCount == 0 ? 1 : minimumCount;
 
             var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToHex(), minimumCount, minersCount);
@@ -224,7 +224,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        private bool GenerateNextRoundInformation(Round currentRound, Timestamp currentBlockTime, out Round nextRound)
+        private bool GenerateNextRoundInformation(Round currentRound, DateTime currentBlockTime, out Round nextRound)
         {
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
             if (TryToGetPreviousRoundInformation(out var previousRound) &&
@@ -261,7 +261,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            var result = currentRound.GenerateNextRoundInformation(currentBlockTime, blockchainStartTimestamp, out nextRound);
+            var result = currentRound.GenerateNextRoundInformation(currentBlockTime.ToTimestamp(),
+                blockchainStartTimestamp, out nextRound);
             return result;
         }
 
@@ -289,20 +290,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
-            var evilMinerList = new List<string>();
-            foreach (var minerInCurrentRound in currentRound.RealTimeMinersInformation.Values)
-            {
-                if (!previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey) ||
-                    minerInCurrentRound.PreviousInValue == null)
-                    continue;
-                
-                var previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue;
-                
-                if (previousOutValue !=null && Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue)
-                    evilMinerList.Add(minerInCurrentRound.PublicKey);
-            }
-
-            return evilMinerList;
+            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
+                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey) &&
+                      minerInCurrentRound.PreviousInValue != null
+                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue
+                where previousOutValue != null &&
+                      Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
+                select minerInCurrentRound.PublicKey).ToList();
         }
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
@@ -351,7 +345,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // TODO: Maybe this should according to date, like every July 1st we increase 2 miners.
                 var initialMinersCount = firstRound.RealTimeMinersInformation.Count;
                 return initialMinersCount.Add(
-                    (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
+                    (int) (Context.CurrentBlockTime.ToTimestamp() - State.BlockchainStartTimestamp.Value).Seconds
                     .Div(365 * 60 * 60 * 24).Mul(2));
             }
 
