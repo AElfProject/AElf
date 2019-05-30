@@ -26,6 +26,10 @@ namespace AElf.Kernel.SmartContract.Parallel
         public async Task<(List<List<Transaction>>, List<Transaction>)> GroupAsync(List<Transaction> transactions)
         {
             var chainContext = await GetChainContextAsync();
+            if (chainContext == null)
+            {
+                return (new List<List<Transaction>>(), transactions);
+            }
             var resourceUnionSet = new Dictionary<int, UnionFindNode>();
             var txResourceHandle = new Dictionary<Transaction, int>();
             var groups = new List<List<Transaction>>();
@@ -110,6 +114,11 @@ namespace AElf.Kernel.SmartContract.Parallel
         private async Task<ChainContext> GetChainContextAsync()
         {
             var chain = await _blockchainService.GetChainAsync();
+            if (chain == null)
+            {
+                return null;
+            }
+
             var chainContext = new ChainContext()
             {
                 BlockHash = chain.BestChainHash,
