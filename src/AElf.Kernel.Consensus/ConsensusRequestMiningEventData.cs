@@ -8,11 +8,11 @@ namespace AElf.Kernel.Consensus
     {
         public Hash PreviousBlockHash { get; }
         public long PreviousBlockHeight { get; }
-        public TimeSpan BlockExecutionTime { get; }
+        public Duration BlockExecutionTime { get; }
         public Timestamp BlockTime { get; }
 
         public ConsensusRequestMiningEventData(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
-            TimeSpan blockExecutionTime)
+            Duration blockExecutionTime)
         {
             PreviousBlockHash = previousBlockHash;
             PreviousBlockHeight = previousBlockHeight;

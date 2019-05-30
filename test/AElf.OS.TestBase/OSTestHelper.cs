@@ -210,7 +210,7 @@ namespace AElf.OS
             }
 
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
-                TimestampHelper.GetUtcNow(), TimeSpan.FromMilliseconds(4000));
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(4000));
 
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);

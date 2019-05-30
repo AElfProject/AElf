@@ -61,9 +61,8 @@ namespace AElf.Kernel.Consensus.Application
             // Initial consensus scheduler.
             var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
                 chainContext.BlockHeight,
-                _nextMiningTime,
-                TimeSpan.FromMilliseconds(_consensusCommand
-                    .LimitMillisecondsOfMiningBlock));
+                _nextMiningTime, 
+                TimestampHelper.DurationFromMilliseconds(_consensusCommand.LimitMillisecondsOfMiningBlock));
             _consensusScheduler.CancelCurrentEvent();
             _consensusScheduler.NewEvent(_consensusCommand.NextBlockMiningLeftMilliseconds,
                 blockMiningEventData);

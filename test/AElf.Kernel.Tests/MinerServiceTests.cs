@@ -28,7 +28,7 @@ namespace AElf.Kernel
             var hash = chain.BestChainHash;
             var height = chain.BestChainHeight;
 
-            var block = await _minerService.MineAsync(hash, height, TimestampHelper.GetUtcNow(), TimeSpan.FromMinutes(1));
+            var block = await _minerService.MineAsync(hash, height, TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMinutes(1));
             block.ShouldNotBeNull();
             block.Header.Signature.ShouldNotBeNull();
         }

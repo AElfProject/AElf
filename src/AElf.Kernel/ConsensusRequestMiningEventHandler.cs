@@ -41,11 +41,11 @@ namespace AElf.Kernel
                 _taskQueueManager.Enqueue(async () =>
                 {
                     if (eventData.BlockTime > new Timestamp {Seconds = 3600} &&
-                        eventData.BlockTime + eventData.BlockExecutionTime.ToDuration() <
+                        eventData.BlockTime + eventData.BlockExecutionTime <
                         TimestampHelper.GetUtcNow())
                     {
                         Logger.LogTrace(
-                            $"Will cancel mining due to timeout: Actual mining time: {eventData.BlockTime}, execution limit: {eventData.BlockExecutionTime.TotalMilliseconds} ms.");
+                            $"Will cancel mining due to timeout: Actual mining time: {eventData.BlockTime}, execution limit: {eventData.BlockExecutionTime.Milliseconds()} ms.");
                         return;
                     }
 

@@ -64,7 +64,7 @@ namespace AElf.Benchmark
         public async Task MineBlockTest()
         {
             _block = await _minerService.MineAsync(_chain.BestChainHash, _chain.BestChainHeight,
-                TimestampHelper.GetUtcNow(), TimeSpan.FromMilliseconds(4000));
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
         }
 
         [IterationCleanup]
