@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs4;
 using AElf.Common;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

@@ -1,4 +1,3 @@
-using System;
 using AElf.Common;
 using Google.Protobuf.WellKnownTypes;
 
