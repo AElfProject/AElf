@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract.Application
 {
     public interface ITransactionExecutingService
     {
-        Task<List<ExecutionReturnSet>> ExecuteAsync(BlockHeader blockHeader, List<Transaction> transactions,
+        Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
             CancellationToken cancellationToken, bool throwException = false,
             BlockStateSet partialBlockStateSet = null);
     }
@@ -34,24 +34,26 @@ namespace AElf.Kernel.SmartContract.Application
             Logger = NullLogger<TransactionExecutingService>.Instance;
         }
 
-        public async Task<List<ExecutionReturnSet>> ExecuteAsync(BlockHeader blockHeader,
-            List<Transaction> transactions, CancellationToken cancellationToken, bool throwException, BlockStateSet partialBlockStateSet)
+        public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
+            CancellationToken cancellationToken, bool throwException, BlockStateSet partialBlockStateSet)
         {
             var groupStateCache = partialBlockStateSet == null
                 ? new TieredStateCache()
                 : new TieredStateCache(new StateCacheFromPartialBlockStateSet(partialBlockStateSet));
-            var groupChainContext = new ChainContextWithTieredStateCache(blockHeader.PreviousBlockHash,
-                blockHeader.Height - 1, groupStateCache);
+            var groupChainContext = new ChainContextWithTieredStateCache(
+                transactionExecutingDto.BlockHeader.PreviousBlockHash,
+                transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
 
             var returnSets = new List<ExecutionReturnSet>();
-            foreach (var transaction in transactions)
+            foreach (var transaction in transactionExecutingDto.Transactions)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
                     break;
                 }
 
-                var trace = await ExecuteOneAsync(0, groupChainContext, transaction, blockHeader.Time.ToDateTime(),
+                var trace = await ExecuteOneAsync(0, groupChainContext, transaction,
+                    transactionExecutingDto.BlockHeader.Time.ToDateTime(),
                     cancellationToken);
                 // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
                 //Logger.LogTrace(transaction.MethodName);
@@ -76,11 +78,12 @@ namespace AElf.Kernel.SmartContract.Application
                     Logger.LogError(trace.StdErr);
                 }
 
-                var result = GetTransactionResult(trace, blockHeader.Height);
+                var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
 
                 if (result != null)
                 {
-                    await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
+                    await _transactionResultService.AddTransactionResultAsync(result,
+                        transactionExecutingDto.BlockHeader);
                 }
 
                 var returnSet = GetReturnSet(trace, result);
@@ -95,7 +98,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                return new TransactionTrace()
+                return new TransactionTrace
                 {
                     TransactionId = transaction.GetHash(),
                     ExecutionStatus = ExecutionStatus.Canceled
@@ -152,7 +155,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                             internalStateCache.Update(preTrace.GetFlattenedWrite()
                                 .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
-                        }    
+                        }
                     }
                 }
 
