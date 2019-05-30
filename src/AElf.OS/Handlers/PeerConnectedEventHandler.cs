@@ -71,7 +71,7 @@ namespace AElf.OS.Handlers
 
         private bool VerifyAnnouncement(PeerNewBlockAnnouncement announcement)
         {
-            var allowedFutureBlockTime = DateTimeHelper.Now.ToTimestamp() + KernelConstants.AllowedFutureBlockTimeSpan;
+            var allowedFutureBlockTime = TimestampHelper.GetUtcNow() + KernelConstants.AllowedFutureBlockTimeSpan;
             if (allowedFutureBlockTime < announcement.BlockTime)
             {
                 Logger.LogWarning($"Receive future block {announcement}");

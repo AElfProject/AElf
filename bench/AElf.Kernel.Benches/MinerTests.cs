@@ -64,7 +64,7 @@ namespace AElf.Kernel.Benches
             {
                 var chain = await _blockchainService.GetChainAsync();
                 _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
-                    DateTimeHelper.Now.ToTimestamp(), TimeSpan.FromMilliseconds(4000));
+                    TimestampHelper.GetUtcNow(), TimeSpan.FromMilliseconds(4000));
             });
             _counter.Increment();
         }

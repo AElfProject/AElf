@@ -56,7 +56,7 @@ namespace AElf.Contracts.Election
             {
                 CandidatePublicKey = candidatePublicKey,
                 Amount = amount,
-                EndTimestamp = DateTimeHelper.Now.ToTimestamp().AddSeconds(lockTime)
+                EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime)
             })).TransactionResult;
         }
         

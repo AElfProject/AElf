@@ -79,7 +79,7 @@ namespace AElf.OS
                 {
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = height,
-                    BlockTime = DateTimeHelper.Now.ToTimestamp()
+                    BlockTime = TimestampHelper.GetUtcNow()
                 }));
 
                 // no choice need to execute the block to finalize it.

@@ -52,7 +52,7 @@ namespace AElf.Benchmark
                     ChainId = chain.Id,
                     Height = chain.BestChainHeight + 1,
                     PreviousBlockHash = chain.BestChainHash,
-                    Time = DateTimeHelper.Now.ToTimestamp()
+                    Time = TimestampHelper.GetUtcNow()
                 },
                 Body = new BlockBody()
             };

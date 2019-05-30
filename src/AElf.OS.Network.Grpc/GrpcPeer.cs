@@ -8,6 +8,7 @@ using AElf.Common;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Grpc.Core;
 
@@ -131,7 +132,7 @@ namespace AElf.OS.Network.Grpc
                 Task.Run(async () =>
                 {
                     await _channel.TryWaitForStateChangedAsync(_channel.State,
-                        DateTimeHelper.Now.AddSeconds(NetworkConsts.DefaultPeerDialTimeout));
+                        TimestampHelper.GetUtcNow().AddSeconds(NetworkConsts.DefaultPeerDialTimeout).ToDateTime());
 
                     // Either we connected again or the state change wait timed out.
                     if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)

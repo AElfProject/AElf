@@ -223,7 +223,7 @@ namespace AElf.Contracts.Election
                 new MinerList
                     {
                         PublicKeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
-                    }.GenerateFirstRoundOfNewTerm(MiningInterval, StartTimestamp.ToDateTime()));
+                    }.GenerateFirstRoundOfNewTerm(MiningInterval, StartTimestamp));
             CheckResult(result2.TransactionResult);
         }
 

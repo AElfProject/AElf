@@ -125,7 +125,7 @@ namespace AElf.Kernel.Types.Tests
 
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
-            block.Header.Time = DateTimeHelper.Now.ToTimestamp();
+            block.Header.Time = TimestampHelper.GetUtcNow();
             block.Header.Height = height;
             block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
 

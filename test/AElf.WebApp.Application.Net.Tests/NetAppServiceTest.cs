@@ -36,7 +36,7 @@ namespace AElf.WebApp.Application.Net.Tests
         [Fact]
         public async Task GetPeersTest()
         {
-            var connectionTime = DateTimeHelper.Now.ToTimestamp().Seconds;
+            var connectionTime = TimestampHelper.GetUtcNow().Seconds;
             var startHeight = 1;
             var ipAddressOne = "192.168.1.1:1680";
             var channelOne = new Channel(ipAddressOne, ChannelCredentials.Insecure);
@@ -64,7 +64,7 @@ namespace AElf.WebApp.Application.Net.Tests
         [Fact]
         public async Task RemovePeerTest()
         {
-            var connectionTime = DateTimeHelper.Now.ToTimestamp().Seconds;
+            var connectionTime = TimestampHelper.GetUtcNow().Seconds;
             var ipAddressOne = "192.168.1.1:1680";
             var channelOne = new Channel(ipAddressOne, ChannelCredentials.Insecure);
             var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne),
@@ -90,7 +90,7 @@ namespace AElf.WebApp.Application.Net.Tests
         [Fact]
         public async Task GetNetWorkInfoTest()
         {
-            var connectionTime = DateTimeHelper.Now.ToTimestamp().Seconds;
+            var connectionTime = TimestampHelper.GetUtcNow().Seconds;
             var ipAddressOne = "192.168.1.1:1680";
             var channelOne = new Channel(ipAddressOne, ChannelCredentials.Insecure);
             var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne),

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -30,12 +31,12 @@ namespace AElf.Contracts.Vote
         private async Task<VotingItem> RegisterVotingItemAsync(int lastingDays, int optionsCount, bool isLockToken, Address sender,
             int totalSnapshotNumber = int.MaxValue)
         {
-            var startTime = DateTimeHelper.Now;
+            var startTime = TimestampHelper.GetUtcNow();
             var input = new VotingRegisterInput
             {
                 TotalSnapshotNumber = totalSnapshotNumber,
-                EndTimestamp = startTime.AddDays(lastingDays).ToTimestamp(),
-                StartTimestamp = startTime.ToTimestamp(),
+                EndTimestamp = startTime.AddDays(lastingDays),
+                StartTimestamp = startTime,
                 Options = {GenerateOptions(optionsCount)},
                 AcceptedCurrency = TestTokenSymbol,
                 IsLockToken = isLockToken

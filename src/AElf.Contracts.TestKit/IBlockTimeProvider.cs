@@ -1,5 +1,6 @@
 using System;
 using AElf.Common;
+using AElf.Kernel;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestKit
@@ -10,28 +11,28 @@ namespace AElf.Contracts.TestKit
     /// </summary>
     public interface IBlockTimeProvider
     {
-        DateTime GetBlockTime();
+        Timestamp GetBlockTime();
         void SetBlockTime(DateTime blockTime);
         void SetBlockTime(Timestamp blockTime);
     }
 
     public class BlockTimeProvider : IBlockTimeProvider
     {
-        private DateTime _blockTime;
-        public DateTime GetBlockTime()
+        private Timestamp _blockTime;
+        public Timestamp GetBlockTime()
         {
 
-            return _blockTime == new DateTime() ? DateTimeHelper.Now : _blockTime;
+            return (_blockTime == null) ? TimestampHelper.GetUtcNow() : _blockTime;
         }
 
         public void SetBlockTime(DateTime blockTime)
         {
-            _blockTime = blockTime;
+            _blockTime = blockTime.ToTimestamp();
         }
 
         public void SetBlockTime(Timestamp blockTime)
         {
-            _blockTime = blockTime.ToDateTime();
+            _blockTime = blockTime;
         }
     }
 }

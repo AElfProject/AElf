@@ -59,7 +59,7 @@ namespace AElf.Contracts.TestKit
                     BlockHeight = preBlock.Height
                 },
                 transaction,
-                blockTimeProvider.GetBlockTime().ToTimestamp());
+                blockTimeProvider.GetBlockTime());
 
             return transactionTrace.ReturnValue;
         }

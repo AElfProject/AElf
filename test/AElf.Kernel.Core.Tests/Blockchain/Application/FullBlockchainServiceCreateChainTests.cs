@@ -27,7 +27,7 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     Height = Constants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
-                    Time = DateTimeHelper.Now.ToTimestamp()
+                    Time = TimestampHelper.GetUtcNow()
                 },
                 Body = new BlockBody()
             };

@@ -39,7 +39,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel
             var transactionContext = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
-                CurrentBlockTime = DateTimeHelper.Now.ToTimestamp(),
+                CurrentBlockTime = TimestampHelper.GetUtcNow(),
                 Transaction = generatedTxn,
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,

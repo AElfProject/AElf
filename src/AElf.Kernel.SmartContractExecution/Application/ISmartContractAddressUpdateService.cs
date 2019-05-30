@@ -54,7 +54,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var transactionResult =
                 (await _transactionExecutingService.ExecuteAsync(
                     new ChainContext() {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height}, t,
-                    DateTimeHelper.Now.ToTimestamp()));
+                    TimestampHelper.GetUtcNow()));
 
             if (!transactionResult.IsSuccessful())
                 throw new InvalidOperationException();

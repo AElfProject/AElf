@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using AElf.Contracts.CrossChain;
 using AElf.Types;
 
-namespace AElf.Kernel
+namespace AElf.Contracts.CrossChain
 {
     public static class MerklePathExtensions
     {

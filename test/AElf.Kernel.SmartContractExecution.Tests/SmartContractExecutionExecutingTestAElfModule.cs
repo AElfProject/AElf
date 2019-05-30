@@ -125,7 +125,7 @@ namespace AElf.Kernel.SmartContractExecution
                         else
                         {
                             result = new Block
-                                {Header = new BlockHeader {Time = DateTimeHelper.Now.ToTimestamp()}};
+                                {Header = new BlockHeader {Time = TimestampHelper.GetUtcNow()}};
                         }
 
                         return Task.FromResult(result);

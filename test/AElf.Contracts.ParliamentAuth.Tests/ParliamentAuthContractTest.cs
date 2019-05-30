@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -116,7 +117,7 @@ namespace AElf.Contracts.ParliamentAuth
             {
                 ToAddress = Address.FromString("Test"),
                 Params = ByteString.CopyFromUtf8("Test"),
-                ExpiredTime = blockTime.AddDays(1).ToTimestamp(),
+                ExpiredTime = blockTime.AddDays(1),
                 OrganizationAddress =_defaultOrganizationAddress
             };
             //"Invalid proposal."
@@ -146,7 +147,7 @@ namespace AElf.Contracts.ParliamentAuth
             }
             //"Expired proposal."
             {
-                _createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5).ToTimestamp();
+                _createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5);
                 Thread.Sleep(10);
                 
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
@@ -155,7 +156,7 @@ namespace AElf.Contracts.ParliamentAuth
             }
             //"No registered organization."
             {
-                _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1).ToTimestamp();
+                _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
                 _createProposalInput.OrganizationAddress = Address.FromString("NoRegisteredOrganizationAddress");
                 
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
@@ -323,7 +324,7 @@ namespace AElf.Contracts.ParliamentAuth
                 ContractMethodName = nameof(TokenContractStub.Transfer),
                 ToAddress = TokenContractAddress,
                 Params = _transferInput.ToByteString(),
-                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2).ToTimestamp(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
                 OrganizationAddress = organizationAddress
             };
             var proposal = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);

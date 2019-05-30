@@ -3,7 +3,6 @@ using System.Linq;
 using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
 using AElf.Types;

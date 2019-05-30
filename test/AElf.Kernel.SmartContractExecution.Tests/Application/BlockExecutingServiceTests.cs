@@ -33,7 +33,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 Height = 2,
                 PreviousBlockHash = Hash.Empty,
-                Time = DateTimeHelper.Now.ToTimestamp()
+                Time = TimestampHelper.GetUtcNow()
             };
             var txs = BuildTransactions(5);
 
@@ -57,7 +57,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 Height = 2,
                 PreviousBlockHash = Hash.Empty,
-                Time = DateTimeHelper.Now.ToTimestamp()
+                Time = TimestampHelper.GetUtcNow()
             };
             var nonCancellableTxs = BuildTransactions(5);
             var cancellableTxs = BuildTransactions(5);

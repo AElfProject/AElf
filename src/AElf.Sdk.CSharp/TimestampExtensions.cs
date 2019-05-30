@@ -13,6 +13,21 @@ namespace AElf.Sdk.CSharp
         {
             return timestamp + new Duration() { Seconds = seconds };
         }
+        
+        public static Timestamp AddMinutes(this Timestamp timestamp, long minutes)
+        {
+            return timestamp + new Duration() { Seconds = minutes.Mul(60) };
+        }
+        
+        public static Timestamp AddHours(this Timestamp timestamp, long hours)
+        {
+            return timestamp + new Duration() { Seconds = hours.Mul(60 * 60) };
+        }
+        
+        public static Timestamp AddDays(this Timestamp timestamp, long days)
+        {
+            return timestamp + new Duration() { Seconds = days.Mul(24 * 60 * 60) };
+        }
 
         public static long Milliseconds(this Duration duration)
         {

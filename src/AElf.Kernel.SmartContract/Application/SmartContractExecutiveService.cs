@@ -181,7 +181,7 @@ namespace AElf.Kernel.SmartContract.Application
             var txCtxt = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
-                CurrentBlockTime = DateTimeHelper.Now.ToTimestamp(),
+                CurrentBlockTime = TimestampHelper.GetUtcNow(),
                 Transaction = transaction,
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,

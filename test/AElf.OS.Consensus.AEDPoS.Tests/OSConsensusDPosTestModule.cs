@@ -27,7 +27,7 @@ namespace AElf.OS.Consensus.DPos
             for (int i = 0; i < 3; i++)
             {
                 var peer = new GrpcPeer(null, null, $"bp{i + 1}-pubkey", $"127.0.0.1:68{i + 1}0",
-                    KernelConstants.ProtocolVersion, DateTimeHelper.Now.ToTimestamp().Seconds, 1);
+                    KernelConstants.ProtocolVersion, TimestampHelper.GetUtcNow().Seconds, 1);
                 peerList.Add(peer);
             }
             

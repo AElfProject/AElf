@@ -44,7 +44,7 @@ namespace AElf.Kernel.Blockchain.Application
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync( block);
             validateResult.ShouldBeFalse();
 
-            block.Header.Time = DateTimeHelper.Now.ToTimestamp();
+            block.Header.Time = TimestampHelper.GetUtcNow();
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
             validateResult.ShouldBeTrue();        

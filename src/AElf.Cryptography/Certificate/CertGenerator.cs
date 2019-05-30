@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using AElf.Common;
+using AElf.Kernel;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
@@ -31,7 +32,7 @@ namespace AElf.Cryptography.Certificate
             _certificateGenerator.SetIssuerDN(issuerDn);
             _certificateGenerator.SetSubjectDN(subjectDn);
 
-            var notBefore = DateTimeHelper.Now.Date;
+            var notBefore = TimestampHelper.GetUtcNow().ToDateTime().Date;
             var notAfter = notBefore.AddDays(Math.Abs(days) >= 1 ? days : DefautIntervalDays);
             _certificateGenerator.SetNotBefore(notBefore);
             _certificateGenerator.SetNotAfter(notAfter);

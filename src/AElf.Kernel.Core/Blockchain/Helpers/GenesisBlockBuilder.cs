@@ -19,7 +19,7 @@ namespace AElf.Kernel.Blockchain.Helpers
                     Height = Constants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
                     ChainId = chainId,
-                    Time = DateTimeHelper.Now.ToTimestamp(),
+                    Time = TimestampHelper.GetUtcNow(),
                     MerkleTreeRootOfWorldState = Hash.Empty
                 },
                 Body = new BlockBody()

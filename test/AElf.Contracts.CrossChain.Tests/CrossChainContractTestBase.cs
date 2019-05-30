@@ -14,6 +14,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -170,7 +171,7 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal), new CreateProposalInput
                 {
                     ContractMethodName = methodName,
-                    ExpiredTime = DateTimeHelper.Now.AddDays(1).ToTimestamp(),
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                     Params = createProposalInput.ToByteString(),
                     ToAddress = CrossChainContractAddress,
                     OrganizationAddress = organizationAddress

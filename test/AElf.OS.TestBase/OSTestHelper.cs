@@ -210,7 +210,7 @@ namespace AElf.OS
             }
 
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
-                DateTimeHelper.Now.ToTimestamp(), TimeSpan.FromMilliseconds(4000));
+                TimestampHelper.GetUtcNow(), TimeSpan.FromMilliseconds(4000));
 
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
@@ -227,7 +227,7 @@ namespace AElf.OS
                     ChainId = _staticChainInformationProvider.ChainId,
                     Height = preBlockHeight + 1,
                     PreviousBlockHash = preBlockHash,
-                    Time = DateTimeHelper.Now.ToTimestamp()
+                    Time = TimestampHelper.GetUtcNow()
                 },
                 Body = new BlockBody()
             };

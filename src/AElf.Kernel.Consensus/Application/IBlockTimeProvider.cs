@@ -14,7 +14,7 @@ namespace AElf.Kernel.Consensus.Application
         private Timestamp _blockTime;
         public Timestamp GetBlockTime()
         {
-            return _blockTime == default ? DateTimeHelper.Now.ToTimestamp() : _blockTime;
+            return _blockTime == default ? TimestampHelper.GetUtcNow() : _blockTime;
         }
 
         public void SetBlockTime(Timestamp blockTime)

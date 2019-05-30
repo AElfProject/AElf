@@ -146,7 +146,7 @@ namespace AElf.Kernel
                 {
                     Height = previousBlockHeight + 1,
                     PreviousBlockHash = previousBlockHash,
-                    Time = DateTimeHelper.Now.ToTimestamp()
+                    Time = TimestampHelper.GetUtcNow()
                 },
                 Body = new BlockBody()
             };

@@ -239,7 +239,7 @@ namespace AElf.Kernel.SmartContract
                     RefBlockPrefix = ByteString.CopyFrom(new byte[4])
                 },
                 BlockHeight = 3,
-                CurrentBlockTime = DateTimeHelper.Now.ToTimestamp(),
+                CurrentBlockTime = TimestampHelper.GetUtcNow(),
                 PreviousBlockHash = Hash.Empty,
                 Trace = new TransactionTrace(),
                 StateCache = new NullStateCache()

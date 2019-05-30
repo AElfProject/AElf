@@ -42,7 +42,7 @@ namespace AElf.Kernel
                 {
                     if (eventData.BlockTime > new Timestamp {Seconds = 3600} &&
                         eventData.BlockTime + eventData.BlockExecutionTime.ToDuration() <
-                        DateTimeHelper.Now.ToTimestamp())
+                        TimestampHelper.GetUtcNow())
                     {
                         Logger.LogTrace(
                             $"Will cancel mining due to timeout: Actual mining time: {eventData.BlockTime}, execution limit: {eventData.BlockExecutionTime.TotalMilliseconds} ms.");

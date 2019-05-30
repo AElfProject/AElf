@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using AElf.Common;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
+using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 
@@ -82,7 +84,7 @@ namespace AElf.CrossChain.Grpc
             {
                 FromChainId = _localChainId,
                 ListeningPort = localListeningPort
-            }, new CallOptions().WithDeadline(DateTimeHelper.Now.AddSeconds(DialTimeout)));
+            }, new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().AddSeconds(DialTimeout).ToDateTime()));
             return Task.FromResult(handShakeReply);
         }
         
@@ -92,7 +94,7 @@ namespace AElf.CrossChain.Grpc
                 new SideChainInitializationRequest
                 {
                     ChainId = chainId
-                }, new CallOptions().WithDeadline(DateTimeHelper.Now.AddSeconds(DialTimeout)));
+                }, new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().AddSeconds(DialTimeout).ToDateTime()));
             return Task.FromResult(sideChainInitializationResponse);
         }
 
@@ -109,7 +111,7 @@ namespace AElf.CrossChain.Grpc
         protected override AsyncServerStreamingCall<CrossChainResponse> RequestIndexing(CrossChainRequest crossChainRequest)
         {
             return new CrossChainRpc.CrossChainRpcClient(Channel).RequestIndexingFromSideChainAsync(crossChainRequest,
-                new CallOptions().WithDeadline(DateTimeHelper.Now.AddSeconds(DialTimeout)));
+                new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().AddSeconds(DialTimeout).ToDateTime()));
         }
     }
     
@@ -122,7 +124,7 @@ namespace AElf.CrossChain.Grpc
         protected override AsyncServerStreamingCall<CrossChainResponse> RequestIndexing(CrossChainRequest crossChainRequest)
         {
             return new CrossChainRpc.CrossChainRpcClient(Channel).RequestIndexingFromParentChainAsync(crossChainRequest,
-                new CallOptions().WithDeadline(DateTimeHelper.Now.AddSeconds(DialTimeout)));
+                new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().AddSeconds(DialTimeout).ToDateTime()));
         }
     }
 }

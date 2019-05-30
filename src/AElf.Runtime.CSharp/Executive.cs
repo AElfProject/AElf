@@ -112,7 +112,7 @@ namespace AElf.Runtime.CSharp
 
         public void Execute()
         {
-            var s = CurrentTransactionContext.Trace.StartTime = DateTimeHelper.Now;
+            var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
             var methodName = CurrentTransactionContext.Transaction.MethodName;
 
             try
@@ -192,7 +192,7 @@ namespace AElf.Runtime.CSharp
                 Cleanup();
             }
 
-            var e = CurrentTransactionContext.Trace.EndTime = DateTimeHelper.Now;
+            var e = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
             CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }
 

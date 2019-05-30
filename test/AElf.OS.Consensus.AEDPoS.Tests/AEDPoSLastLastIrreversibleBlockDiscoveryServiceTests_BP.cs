@@ -21,7 +21,7 @@ namespace AElf.OS.Consensus.DPos
         private readonly IPeerPool _peerPool;
         private readonly OSTestHelper _osTestHelper;
 
-        private readonly long _connectionTime = DateTimeHelper.Now.ToTimestamp().Seconds;
+        private readonly long _connectionTime = TimestampHelper.GetUtcNow().Seconds;
 
         public AEDPoSLastLastIrreversibleBlockDiscoveryServiceTests_BP()
         {

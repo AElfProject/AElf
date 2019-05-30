@@ -54,7 +54,7 @@ namespace AElf.CrossChain
                 };
 
                 var trace =
-                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, DateTimeHelper.Now.ToTimestamp());
+                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, TimestampHelper.GetUtcNow());
 
                 if (trace.IsSuccessful())
                 {
