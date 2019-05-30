@@ -1,23 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs0;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
-using AElf.OS.Node.Application;
 using AElf.Types;
-using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -113,7 +109,7 @@ namespace AElf.Contracts.Election
         {
             BasicContractZeroStub = GetContractZeroTester(BootMinerKeyPair);
 
-            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime());
+            BlockTimeProvider.SetBlockTime(StartTimestamp);
 
             // Deploy Vote Contract
             VoteContractAddress = AsyncHelper.RunSync(  () =>
@@ -227,7 +223,7 @@ namespace AElf.Contracts.Election
                 new MinerList
                     {
                         PublicKeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
-                    }.GenerateFirstRoundOfNewTerm(MiningInterval, StartTimestamp.ToDateTime()));
+                    }.GenerateFirstRoundOfNewTerm(MiningInterval, StartTimestamp));
             CheckResult(result2.TransactionResult);
         }
 
@@ -296,8 +292,6 @@ namespace AElf.Contracts.Election
                 });
                 CheckResult(result4.TransactionResult);
             }
-
-
         }
 
         private async Task InitializeProfit()
@@ -337,7 +331,7 @@ namespace AElf.Contracts.Election
             var miner = GetAEDPoSContractStub(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
             round.GenerateNextRoundInformation(
-                StartTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds()), StartTimestamp,
+                StartTimestamp.ToDateTime().AddMilliseconds(round.TotalMilliseconds()).ToTimestamp(), StartTimestamp,
                 out var nextRound);
             await miner.NextRound.SendAsync(nextRound);
         }
@@ -353,7 +347,6 @@ namespace AElf.Contracts.Election
                 Signature = Hash.Generate(),
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = round.RoundId,
-                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
                 ProducedBlocks = minerInRound.ProducedBlocks + 1,
                 ActualMiningTime = minerInRound.ExpectedMiningTime,
                 SupposedOrderOfNextRound = 1
@@ -380,17 +373,6 @@ namespace AElf.Contracts.Election
             })).Balance;
 
             return balance;
-        }
-
-        private ConsensusOptions GetDefaultConsensusOptions()
-        {
-            return new ConsensusOptions
-            {
-                MiningInterval = 4000,
-                InitialMiners = InitialMinersKeyPairs.Select(k => k.PublicKey.ToHex()).ToList(),
-                StartTimestamp = StartTimestamp.ToDateTime(),
-                TimeEachTerm = 604800
-            };
         }
     }
 }

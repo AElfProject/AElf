@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
@@ -46,16 +47,18 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var cancellable = cancellableTransactions.ToList();
 
             var nonCancellableReturnSets =
-                await _executingService.ExecuteAsync(blockHeader, nonCancellable, CancellationToken.None, true);
+                await _executingService.ExecuteAsync(
+                    new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
+                    CancellationToken.None, true);
             Logger.LogTrace("Executed non-cancellable txs");
 
             var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
             if (cancellable.Count > 0)
             {
-                cancellableReturnSets =
-                    await _executingService.ExecuteAsync(blockHeader, cancellable, cancellationToken, false,
-                        returnSetCollection.ToBlockStateSet());
+                cancellableReturnSets = await _executingService.ExecuteAsync(
+                    new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = cancellable},
+                    cancellationToken, false, returnSetCollection.ToBlockStateSet());
                 returnSetCollection.AddRange(cancellableReturnSets);
             }
 

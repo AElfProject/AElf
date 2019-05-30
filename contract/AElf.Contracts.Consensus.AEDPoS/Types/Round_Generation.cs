@@ -36,9 +36,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKey = minerInRound.PublicKey,
                     Order = order,
-                    ExpectedMiningTime = currentBlockTimestamp +
-                                         new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
-                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
+                    ExpectedMiningTime = currentBlockTimestamp
+                        .AddMilliseconds(miningInterval.Mul(order)),
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots
                 };
@@ -55,9 +54,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKey = minersNotMinedCurrentRound[i].PublicKey,
                     Order = order,
-                    ExpectedMiningTime = currentBlockTimestamp +
-                                         new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
-                    PromisedTinyBlocks = minerInRound.PromisedTinyBlocks,
+                    ExpectedMiningTime = currentBlockTimestamp
+                        .AddMilliseconds(miningInterval.Mul(order)),
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots + 1
                 };
@@ -90,20 +88,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var signature = firstPlaceInfo.Signature;
-            var sigNum = BitConverter.ToInt64(
-                BitConverter.IsLittleEndian ? signature.Value.Reverse().ToArray() : signature.Value.ToArray(), 0);
+            var sigNum = signature.ToInt64();
             var blockProducerCount = RealTimeMinersInformation.Count;
             var order = GetAbsModulus(sigNum, blockProducerCount) + 1;
             return order;
         }
-        
-        public List<MinerInRound> GetMinedMiners()
+
+        private List<MinerInRound> GetMinedMiners()
         {
             // For now only this implementation can support test cases.
             return RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound != 0).ToList();
         }
-        
-        public List<MinerInRound> GetNotMinedMiners()
+
+        private List<MinerInRound> GetNotMinedMiners()
         {
             // For now only this implementation can support test cases.
             return RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound == 0).ToList();

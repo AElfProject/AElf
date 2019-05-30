@@ -2,11 +2,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs2;
+using AElf.Common;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContract.Parallel
 {
@@ -38,7 +40,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var transactionContext = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
-                CurrentBlockTime = DateTime.UtcNow,
+                CurrentBlockTime = TimestampHelper.GetUtcNow(),
                 Transaction = generatedTxn,
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,

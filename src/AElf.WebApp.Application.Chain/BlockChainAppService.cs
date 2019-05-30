@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -12,6 +13,7 @@ using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
@@ -50,6 +52,8 @@ namespace AElf.WebApp.Application.Chain
         Task<ChainStatusDto> GetChainStatus();
 
         Task<BlockStateDto> GetBlockState(string blockHash);
+
+        Task<RoundDto> GetCurrentRoundInformation();
     }
     
     public class BlockChainAppService : IBlockChainAppService
@@ -59,6 +63,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ITransactionManager _transactionManager;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateManager _blockchainStateManager;
         public ILogger<BlockChainAppService> Logger { get; set; }
@@ -70,6 +75,7 @@ namespace AElf.WebApp.Application.Chain
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ITransactionManager transactionManager,
             ITransactionResultQueryService transactionResultQueryService,
+            IBlockExtraDataService blockExtraDataService,
             ITxHub txHub,
             IBlockchainStateManager blockchainStateManager
             )
@@ -79,6 +85,7 @@ namespace AElf.WebApp.Application.Chain
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _transactionManager = transactionManager;
             _transactionResultQueryService = transactionResultQueryService;
+            _blockExtraDataService = blockExtraDataService;
             _txHub = txHub;
             _blockchainStateManager = blockchainStateManager;
             
@@ -375,7 +382,8 @@ namespace AElf.WebApp.Application.Chain
                     Height = block.Header.Height,
                     Time = block.Header.Time.ToDateTime(),
                     ChainId = ChainHelpers.ConvertChainIdToBase58(block.Header.ChainId),
-                    Bloom = block.Header.Bloom.ToByteArray().ToHex()
+                    Bloom = block.Header.Bloom.ToByteArray().ToHex(),
+                    SignerPubkey =  block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
                 {
@@ -428,7 +436,8 @@ namespace AElf.WebApp.Application.Chain
                     Height = blockInfo.Header.Height,
                     Time = blockInfo.Header.Time.ToDateTime(),
                     ChainId = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
-                    Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex()
+                    Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex(),
+                    SignerPubkey = blockInfo.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
                 {
@@ -517,7 +526,40 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.NotFound],Error.NotFound.ToString());
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
         }
-        
+
+        /// <summary>
+        /// Get AEDPoS latest round information from last block header's consensus extra data of best chain.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<RoundDto> GetCurrentRoundInformation()
+        {
+            var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
+            var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", blockHeader);
+            var information = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
+            var round = information.Round;
+            return new RoundDto
+            {
+                ExtraBlockProducerOfPreviousRound = round.ExtraBlockProducerOfPreviousRound,
+                RealTimeMinerInformation = round.RealTimeMinersInformation.ToDictionary(i => i.Key, i =>
+                    new MinerInRoundDto
+                    {
+                        Order = i.Value.Order,
+                        ExpectedMiningTime = i.Value.ExpectedMiningTime.ToDateTime(),
+                        ActualMiningTimes = i.Value.ActualMiningTimes.Select(t => t.ToDateTime()).ToList(),
+                        ProducedTinyBlocks = i.Value.ProducedTinyBlocks,
+                        ProducedBlocks = i.Value.ProducedBlocks,
+                        MissedBlocks = i.Value.MissedTimeSlots,
+                        InValue = i.Value.InValue?.ToHex(),
+                        OutValue = i.Value.OutValue?.ToHex(),
+                        PreviousInValue = i.Value.PreviousInValue?.ToHex()
+                    }),
+                RoundNumber = round.RoundNumber,
+                TermNumber = round.TermNumber,
+                RoundId = round.RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds)
+                    .Sum()
+            };
+        }
+
         private async Task<Block> GetBlock(Hash blockHash)
         {
             return await _blockchainService.GetBlockByHashAsync(blockHash);
@@ -632,7 +674,7 @@ namespace AElf.WebApp.Application.Chain
         {
             var chainContext = await GetChainContextAsync();
 
-            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
+            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow.ToTimestamp());
 
             if (!string.IsNullOrEmpty(trace.StdErr))
                 throw new Exception(trace.StdErr);

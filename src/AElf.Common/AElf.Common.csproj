@@ -5,6 +5,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0"/>
+        <PackageReference Include="Google.Protobuf" Version="3.7.0" />
+        <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
     </ItemGroup>
 </Project>

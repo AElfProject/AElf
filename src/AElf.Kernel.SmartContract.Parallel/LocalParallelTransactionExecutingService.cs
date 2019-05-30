@@ -28,10 +28,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             EventBus = NullLocalEventBus.Instance;
         }
 
-        public async Task<List<ExecutionReturnSet>> ExecuteAsync(BlockHeader blockHeader,
-            List<Transaction> transactions, CancellationToken cancellationToken, bool throwException = false,
-            BlockStateSet partialBlockStateSet = null)
+        public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
+            CancellationToken cancellationToken,
+            bool throwException = false, BlockStateSet partialBlockStateSet = null)
         {
+            var transactions = transactionExecutingDto.Transactions.ToList();
+            var blockHeader = transactionExecutingDto.BlockHeader;
             if (throwException)
             {
                 throw new NotSupportedException(
@@ -49,7 +51,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
             updatedPartialBlockStateSet.MergeFrom(partialBlockStateSet?.Clone() ?? new BlockStateSet());
 
-            var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(blockHeader, nonParallizable,
+            var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(
+                new TransactionExecutingDto
+                {
+                    BlockHeader = blockHeader,
+                    Transactions = nonParallizable
+                },
                 cancellationToken, throwException, updatedPartialBlockStateSet);
             returnSets.AddRange(nonParallelizableReturnSets);
             if (conflictingSets.Count > 0)
@@ -66,7 +73,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             BlockHeader blockHeader, List<Transaction> transactions, CancellationToken cancellationToken,
             bool throwException = false, BlockStateSet partialBlockStateSet = null)
         {
-            var executionReturnSets = await _plainExecutingService.ExecuteAsync(blockHeader, transactions,
+            var executionReturnSets = await _plainExecutingService.ExecuteAsync(
+                new TransactionExecutingDto
+                {
+                    BlockHeader = blockHeader,
+                    Transactions = transactions
+                },
                 cancellationToken, throwException,
                 partialBlockStateSet);
             var keys = new HashSet<string>(
