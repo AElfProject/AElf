@@ -231,7 +231,7 @@ namespace AElf.Contracts.TestBase
 
             if (startTimestamp == null)
             {
-                startTimestamp = DateTime.UtcNow.ToTimestamp();
+                startTimestamp = TimestampHelper.GetUtcNow();
             }
             
             var osBlockchainNodeContextService =

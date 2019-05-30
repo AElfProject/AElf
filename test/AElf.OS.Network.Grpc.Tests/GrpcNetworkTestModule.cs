@@ -34,7 +34,7 @@ namespace AElf.OS.Network
                 PublicKey = GrpcTestConstants.FakePubKey2,
                 PeerIpAddress = GrpcTestConstants.FakeListeningPort,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = DateTime.UtcNow.ToTimestamp().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = 1,
                 IsInbound = true
             };

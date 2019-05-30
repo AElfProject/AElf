@@ -30,7 +30,7 @@ namespace AElf.OS.Consensus.DPos
                     PublicKey = $"bp{i + 1}-pubkey", 
                     PeerIpAddress = $"127.0.0.1:68{i + 1}0",
                     ProtocolVersion = KernelConstants.ProtocolVersion,
-                    ConnectionTime = DateTime.UtcNow.ToTimestamp().Seconds,
+                    ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                     StartHeight = 1,
                     IsInbound = true
                 };

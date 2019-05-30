@@ -312,7 +312,7 @@ namespace AElf.Contract.TestContract
                 {
                     FromAmount = 1830,
                     ToAmount = 1000,
-                    Timestamp = DateTime.UtcNow.ToTimestamp()
+                    Timestamp = TimestampHelper.GetUtcNow()
                 }
             });
 

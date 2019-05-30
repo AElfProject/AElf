@@ -120,7 +120,7 @@ namespace AElf.OS.Network.Grpc
                 PublicKey = pubKey,
                 PeerIpAddress = ipAddress,
                 ProtocolVersion = connectReply.Handshake.HskData.Version,
-                ConnectionTime = DateTime.UtcNow.ToTimestamp().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = connectReply.Handshake.Header.Height,
                 IsInbound = false
             };

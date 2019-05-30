@@ -95,7 +95,7 @@ namespace AElf.OS.Network
             {
                 BlockHeight = 100,
                 BlockHash = Hash.Generate(),
-                BlockTime = DateTime.UtcNow.ToTimestamp()
+                BlockTime = TimestampHelper.GetUtcNow()
             };
 
             await _grpcPeer.AnnounceAsync(header);
@@ -152,7 +152,7 @@ namespace AElf.OS.Network
                 PublicKey = GrpcTestConstants.FakePubKey,
                 PeerIpAddress = ipAddress,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = DateTime.UtcNow.ToTimestamp().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = 1,
                 IsInbound = true
             };
