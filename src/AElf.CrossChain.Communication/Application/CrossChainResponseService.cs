@@ -76,9 +76,7 @@ namespace AElf.CrossChain.Communication.Application
 
         private ParentChainBlockData FillExtraDataInResponse(ParentChainBlockData parentChainBlockData, BlockHeader blockHeader)
         {
-            var transactionStatusMerkleRoot = GetTransactionStatusMerkleTreeRootFromHeader(blockHeader);
-
-            parentChainBlockData.TransactionStatusMerkleRoot = transactionStatusMerkleRoot;
+            parentChainBlockData.TransactionStatusMerkleRoot = blockHeader.MerkleTreeRootOfTransactionStatus;
 
             var crossChainExtraByteString = GetExtraDataFromHeader(blockHeader, "CrossChain");
             var crossChainExtra = crossChainExtraByteString == ByteString.Empty || crossChainExtraByteString == null
@@ -124,11 +122,6 @@ namespace AElf.CrossChain.Communication.Application
             }
             
             return merklepathList;
-        }
-        
-        private Hash GetTransactionStatusMerkleTreeRootFromHeader(BlockHeader header)
-        {
-            return Hash.Parser.ParseFrom(_blockExtraDataService.GetMerkleTreeRootExtraDataForTransactionStatus(header));
         }
         
         private ByteString GetExtraDataFromHeader(BlockHeader header, string symbol)
