@@ -7,11 +7,12 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Parallel
 {
-    public class LocalParallelTransactionExecutingService : ITransactionExecutingService
+    public class LocalParallelTransactionExecutingService : ITransactionExecutingService, ISingletonDependency
     {
         private readonly ITransactionGrouper _grouper;
         private readonly ITransactionExecutingService _plainExecutingService;

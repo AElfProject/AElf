@@ -4,10 +4,11 @@ using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Parallel
 {
-    public class ResourceExtractionService : IResourceExtractionService
+    public class ResourceExtractionService : IResourceExtractionService, ISingletonDependency
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
 

@@ -6,16 +6,17 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Parallel
 {
-    public class TransactionGrouper : ITransactionGrouper
+    public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
     {
         private IBlockchainService _blockchainService;
         private IResourceExtractionService _resourceExtractionService;
-        public ILogger<TransactionGrouper> Logger {get; set;}
-        
-        public TransactionGrouper(IBlockchainService blockchainService, 
+        public ILogger<TransactionGrouper> Logger { get; set; }
+
+        public TransactionGrouper(IBlockchainService blockchainService,
             IResourceExtractionService resourceExtractionService)
         {
             _blockchainService = blockchainService;
@@ -43,15 +44,17 @@ namespace AElf.Kernel.SmartContract.Parallel
 
                 try
                 {
-                    txResourceInfo = _resourceExtractionService.GetResourcesAsync(chainContext, new[] {transaction}).Result.First();
+                    txResourceInfo = _resourceExtractionService.GetResourcesAsync(chainContext, new[] {transaction})
+                        .Result.First();
                 }
                 catch (Exception e)
                 {
-                    Logger.LogWarning(e, $"Unable to get resources for transaction {transaction.GetHashCode()}. Won't be executed in parallel.");
+                    Logger.LogWarning(e,
+                        $"Unable to get resources for transaction {transaction.GetHashCode()}. Won't be executed in parallel.");
                     nonParallelizable.Add(transaction);
                     continue;
                 }
-                
+
                 // If non-parallelizable, execute with others in same group
                 if (txResourceInfo.NonParallelizable)
                 {
@@ -62,7 +65,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 // If no resources, execute in its own group
                 if (txResourceInfo.Resources.Count == 0)
                 {
-                    groups.Add(new List<Transaction>() { transaction });
+                    groups.Add(new List<Transaction>() {transaction});
                 }
 
                 // Add resources to disjoint-set, later each resource will be connected to a node id, which will be our group id
@@ -90,22 +93,22 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             foreach (var transaction in transactions)
             {
-                if (!txResourceHandle.TryGetValue(transaction, out var firstResource)) 
+                if (!txResourceHandle.TryGetValue(transaction, out var firstResource))
                     continue;
-                
+
                 // Node Id will be our group id
                 var gId = resourceUnionSet[firstResource].Find().NodeId;
-                    
+
                 if (!grouped.TryGetValue(gId, out var gTransactions))
                 {
                     gTransactions = new List<Transaction>();
                     grouped.Add(gId, gTransactions);
                 }
-                
+
                 // Add transaction to its group
                 gTransactions.Add(transaction);
             }
-            
+
             groups.AddRange(grouped.Values);
 
             return (groups, nonParallelizable);
