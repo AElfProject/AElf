@@ -31,9 +31,13 @@ namespace AElf.OS.BlockSync
                 var networkServiceMock = new Mock<INetworkService>();
                 networkServiceMock
                     .Setup(p => p.GetBlockByHashAsync(It.IsAny<Hash>(), It.IsAny<string>(), It.IsAny<bool>()))
-                    .Returns<Hash, int>((hash, peer) =>
+                    .Returns<Hash, int, bool>((hash, peer, tryOthersIfFail) =>
                     {
-                        var result = new BlockWithTransactions {Header = _blockList.Last().Header};
+                        BlockWithTransactions result = null;
+                        if (hash != Hash.Empty)
+                        {
+                            result = new BlockWithTransactions {Header = _blockList.Last().Header};
+                        }
                         return Task.FromResult(result);
                     });
                 

@@ -50,6 +50,8 @@ namespace AElf.OS
             });
 
             context.Services.AddTransient<AccountService>();
+
+            context.Services.AddTransient<BlockSyncTestHelper>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
