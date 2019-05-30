@@ -150,7 +150,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void ShareAndRecoverInValue(Round round, Round previousRound, Hash inValue, string publicKey)
         {
             var minersCount = round.RealTimeMinersInformation.Count;
-            var minimumCount = (int) (minersCount * 2d / 3);
+            var minimumCount = (int) (minersCount * 2m / 3);
             minimumCount = minimumCount == 0 ? 1 : minimumCount;
 
             var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToHex(), minimumCount, minersCount);
