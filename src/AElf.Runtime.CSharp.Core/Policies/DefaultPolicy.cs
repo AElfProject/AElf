@@ -127,10 +127,11 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
                         .Member(nameof(RuntimeHelpers.InitializeArray), Permission.Allowed)))
                 
-                #if DEBUG
-                // Allow printing logs
+                // TODO: Allow System.Text only for system contracts
+                // Used for logging and other string operations, conversions
                 .Namespace("System.Text", Permission.Allowed)
                 
+                #if DEBUG
                 // Allow coverlet injected codes
                 .Namespace("System.IO.MemoryMappedFiles", Permission.Allowed)
                 .Namespace("System.Threading", Permission.Allowed)
