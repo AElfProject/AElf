@@ -224,7 +224,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        private bool GenerateNextRoundInformation(Round currentRound, DateTime currentBlockTime, out Round nextRound)
+        private bool GenerateNextRoundInformation(Round currentRound, Timestamp currentBlockTime, out Round nextRound)
         {
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
             if (TryToGetPreviousRoundInformation(out var previousRound) &&
