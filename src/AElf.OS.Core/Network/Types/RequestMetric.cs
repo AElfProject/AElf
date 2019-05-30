@@ -1,4 +1,5 @@
 using System;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.OS.Network
 {
@@ -7,6 +8,6 @@ namespace AElf.OS.Network
         public long RoundTripTime { get; set; }
         public string MethodName { get; set; }
         public string Info { get; set; }
-        public DateTime RequestTime { get; set; }
+        public Timestamp RequestTime { get; set; }
     }
 }

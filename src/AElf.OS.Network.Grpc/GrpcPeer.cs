@@ -5,9 +5,11 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 
 namespace AElf.OS.Network.Grpc
@@ -174,7 +176,7 @@ namespace AElf.OS.Network.Grpc
         {
             var metricsName = requestParams.MetricName;
             bool timeRequest = !string.IsNullOrEmpty(metricsName);
-            var dateBeforeRequest = DateTime.Now;
+            var requestStartTime = TimestampHelper.GetUtcNow();
             
             Stopwatch requestTimer = null;
             
@@ -188,7 +190,7 @@ namespace AElf.OS.Network.Grpc
                 if (timeRequest)
                 {
                     requestTimer.Stop();
-                    RecordMetric(requestParams, dateBeforeRequest, requestTimer.ElapsedMilliseconds);
+                    RecordMetric(requestParams, requestStartTime, requestTimer.ElapsedMilliseconds);
                 }
                 
                 return response;
@@ -202,14 +204,14 @@ namespace AElf.OS.Network.Grpc
                 if (timeRequest)
                 {
                     requestTimer.Stop();
-                    RecordMetric(requestParams, dateBeforeRequest, requestTimer.ElapsedMilliseconds);
+                    RecordMetric(requestParams, requestStartTime, requestTimer.ElapsedMilliseconds);
                 }
             }
 
             return default(TResp);
         }
 
-        private void RecordMetric(GrpcRequest grpcRequest, DateTime dateTimeBeforeRequest, long elapsedMilliseconds)
+        private void RecordMetric(GrpcRequest grpcRequest, Timestamp requestStartTime, long elapsedMilliseconds)
         {
             var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
                     
@@ -219,7 +221,7 @@ namespace AElf.OS.Network.Grpc
             metrics.Enqueue(new RequestMetric
             {
                 Info = grpcRequest.MetricInfo,
-                RequestTime = dateTimeBeforeRequest,
+                RequestTime = requestStartTime,
                 MethodName = grpcRequest.MetricName,
                 RoundTripTime = elapsedMilliseconds
             });
