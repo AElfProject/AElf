@@ -54,6 +54,17 @@ namespace AElf.Blockchains.BasicBaseChain
     {
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
 
+        public override void PreConfigureServices(ServiceConfigurationContext context)
+        {
+            var configuration = context.Services.GetConfiguration();
+
+            var chainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
+            var netType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
+            context.Services.SetConfiguration(new ConfigurationBuilder().AddConfiguration(configuration)
+                .AddJsonFile($"appsettings.{chainType}.{netType}.json")
+                .Build());
+        }
+
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var s = context.Services;
@@ -74,6 +85,8 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 option.ChainId =
                     ChainHelpers.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
+                option.ChainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
+                option.NetType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
             });
 
             Configure<HostSmartContractBridgeContextOptions>(options =>

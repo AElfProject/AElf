@@ -381,7 +381,8 @@ namespace AElf.WebApp.Application.Chain
                     Height = block.Header.Height,
                     Time = block.Header.Time.ToDateTime(),
                     ChainId = ChainHelpers.ConvertChainIdToBase58(block.Header.ChainId),
-                    Bloom = block.Header.Bloom.ToByteArray().ToHex()
+                    Bloom = block.Header.Bloom.ToByteArray().ToHex(),
+                    SignerPubkey =  block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
                 {
@@ -434,7 +435,8 @@ namespace AElf.WebApp.Application.Chain
                     Height = blockInfo.Header.Height,
                     Time = blockInfo.Header.Time.ToDateTime(),
                     ChainId = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
-                    Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex()
+                    Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex(),
+                    SignerPubkey = blockInfo.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
                 {
