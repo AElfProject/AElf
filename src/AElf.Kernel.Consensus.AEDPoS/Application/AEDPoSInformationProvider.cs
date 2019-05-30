@@ -1,17 +1,15 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     internal class AEDPoSInformationProvider : IAEDPoSInformationProvider
     {
-        private readonly IConsensusReaderFactory _readerFactory;
+        private readonly IAEDPoSReaderFactory _readerFactory;
 
-        public AEDPoSInformationProvider(IConsensusReaderFactory readerFactory)
+        public AEDPoSInformationProvider(IAEDPoSReaderFactory readerFactory)
         {
             _readerFactory = readerFactory;
         }

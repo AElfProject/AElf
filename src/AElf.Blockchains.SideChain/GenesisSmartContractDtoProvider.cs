@@ -8,6 +8,7 @@ using AElf.Contracts.Deployer;
 using AElf.CrossChain;
 using AElf.CrossChain.Communication;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
@@ -84,14 +85,14 @@ namespace AElf.Blockchains.SideChain
                     }
                 }
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationData.ExtraInformation[0]).MinerList;
-            var timestamp = chainInitializationData?.CreationTimestamp.ToDateTime() ?? _consensusOptions.StartTimestamp;
+            var timestamp = chainInitializationData?.CreationTimestamp ?? _consensusOptions.StartTimestamp;
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
                     IsSideChain = true
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
-                miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp.ToUniversalTime()));
+                miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp.ToDateTime()));
             return consensusMethodCallList;
         }
 
