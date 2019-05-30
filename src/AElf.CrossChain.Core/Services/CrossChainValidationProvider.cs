@@ -36,7 +36,6 @@ namespace AElf.CrossChain
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
         {
-            return true;
             if (block.Header.Height == Constants.GenesisBlockHeight)
                 return true;
             
