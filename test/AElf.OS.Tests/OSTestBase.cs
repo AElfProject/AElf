@@ -1,3 +1,4 @@
+using AElf.OS.BlockSync;
 using AElf.TestBase;
 using Volo.Abp.Modularity;
 
@@ -20,6 +21,11 @@ namespace AElf.OS
     }
 
     public class SyncForkedTestBase : AElfIntegratedTest<SyncForkedTestAElfModule>
+    {
+        
+    }
+
+    public class BlockSyncForkedTestBase : AElfIntegratedTest<BlockSyncForkedTestAElfModule>
     {
         
     }
