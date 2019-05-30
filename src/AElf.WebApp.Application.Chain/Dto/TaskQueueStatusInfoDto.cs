@@ -1,6 +1,6 @@
 namespace AElf.WebApp.Application.Chain.Dto
 {
-    public class TaskQueueStatusInfoDto
+    public class TaskQueueInfoDto
     {
         public string Name { get; set; }
         
