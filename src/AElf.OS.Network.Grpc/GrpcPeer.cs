@@ -50,9 +50,9 @@ namespace AElf.OS.Network.Grpc
         public string PeerIpAddress { get; }
         public string PubKey { get; }
         public int ProtocolVersion { get; }
-        public long ConnectionTime { get; set; }
-        public bool Inbound { get; set; }
-        public long StartHeight { get; set; }
+        public long ConnectionTime { get; }
+        public bool Inbound { get; }
+        public long StartHeight { get; }
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
