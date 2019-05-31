@@ -21,7 +21,7 @@ namespace AElf.OS
     [DependsOn(typeof(OSTestAElfModule))]
     public class BlockSyncForkedTestAElfModule : AElfModule
     {
-        private readonly List<Block> _blockList = new List<Block>();
+        private readonly Dictionary<Hash,Block> _peerBlockList = new Dictionary<Hash,Block>();
         
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -29,14 +29,21 @@ namespace AElf.OS
             {
                 var networkServiceMock = new Mock<INetworkService>();
                 networkServiceMock
-                    .Setup(p => p.GetBlockByHashAsync(It.IsAny<Hash>(), It.IsAny<string>()))
-                    .Returns<Hash, int, bool>((hash, peer, tryOthersIfFail) =>
+                    .Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>(),
+                        It.IsAny<string>()))
+                    .Returns<Hash, int, string>((previousBlockHash, count, peerPubKey) =>
                     {
-                        BlockWithTransactions result = null;
-                        if (hash != Hash.Empty)
+                        var result = new List<BlockWithTransactions>();
+
+                        var hash = previousBlockHash;
+                        
+                        while (result.Count < count && _peerBlockList.TryGetValue(hash, out var block))
                         {
-                            result = new BlockWithTransactions {Header = _blockList.Last().Header};
+                            result.Add(new BlockWithTransactions {Header = block.Header});
+
+                            hash = block.GetHash();
                         }
+
                         return Task.FromResult(result);
                     });
                 
@@ -53,13 +60,16 @@ namespace AElf.OS
             var previousBlockHash = osTestHelper.ForkBranchBlockList.Last().GetHash();
             long height = osTestHelper.ForkBranchBlockList.Last().Height;
 
-            _blockList.Add(osTestHelper.BestBranchBlockList[4]);
-            _blockList.AddRange(osTestHelper.ForkBranchBlockList);
+            foreach (var block in osTestHelper.ForkBranchBlockList)
+            {
+                _peerBlockList.Add(block.Header.PreviousBlockHash,block);
+            }
+            
             var forkBranchHeight = height;
 
             for (var i = forkBranchHeight; i < forkBranchHeight + 10; i++)
             {
-                var newBlock = AsyncHelper.RunSync(() => genService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
+                var block = AsyncHelper.RunSync(() => genService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
                 {
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = height,
@@ -67,12 +77,12 @@ namespace AElf.OS
                 }));
 
                 // no choice need to execute the block to finalize it.
-                var newNewBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(newBlock.Header, new List<Transaction>(), new List<Transaction>(), CancellationToken.None));
+                var newBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(block.Header, new List<Transaction>(), new List<Transaction>(), CancellationToken.None));
 
-                previousBlockHash = newNewBlock.GetHash();
+                previousBlockHash = newBlock.GetHash();
                 height++;
                         
-                _blockList.Add(newNewBlock);
+                _peerBlockList.Add(newBlock.Header.PreviousBlockHash, newBlock);
             }
             
         }

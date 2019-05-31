@@ -86,7 +86,7 @@ namespace AElf.OS
 
             for (var i = bestBranchHeight; i < bestBranchHeight + 10; i++)
             {
-                var newBlock = AsyncHelper.RunSync(() => genService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
+                var block = AsyncHelper.RunSync(() => genService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
                 {
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = height,
@@ -94,12 +94,12 @@ namespace AElf.OS
                 }));
 
                 // no choice need to execute the block to finalize it.
-                var newNewBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(newBlock.Header, new List<Transaction>(), new List<Transaction>(), CancellationToken.None));
+                var newBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(block.Header, new List<Transaction>(), new List<Transaction>(), CancellationToken.None));
 
-                previousBlockHash = newNewBlock.GetHash();
+                previousBlockHash = newBlock.GetHash();
                 height++;
                         
-                _peerBlockList.Add(newNewBlock.Header.PreviousBlockHash,newNewBlock);
+                _peerBlockList.Add(newBlock.Header.PreviousBlockHash,newBlock);
             }
         }
     }

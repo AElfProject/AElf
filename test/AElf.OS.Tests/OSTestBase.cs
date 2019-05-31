@@ -9,22 +9,12 @@ namespace AElf.OS
     {
         
     }
-    
-    public class SyncNotForkedTestBase : AElfIntegratedTest<SyncNotForkedTestAElfModule>
-    {
-        
-    }
-    
+
     public class SyncTestBase : AElfIntegratedTest<SyncTestModule>
     {
         
     }
 
-    public class SyncForkedTestBase : AElfIntegratedTest<SyncForkedTestAElfModule>
-    {
-        
-    }
-    
     public class BlockSyncTestBase : AElfIntegratedTest<BlockSyncTestAElfModule>
     {
         
