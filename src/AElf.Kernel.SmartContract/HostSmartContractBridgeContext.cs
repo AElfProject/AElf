@@ -9,6 +9,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
@@ -114,7 +115,7 @@ namespace AElf.Kernel.SmartContract
         public Address Self => TransactionContext.Transaction.To.Clone();
         public Address Genesis => Address.Genesis;
         public long CurrentHeight => TransactionContext.BlockHeight;
-        public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
+        public Timestamp CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();
 
         private byte[] RecoverPublicKey(byte[] signature, byte[] hash)

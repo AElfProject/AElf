@@ -64,7 +64,7 @@ namespace AElf.OS.BlockSync.Application
 
                 Logger.LogDebug($"Request blocks start with {lastDownloadBlockHash}");
 
-                var blocksWithTransactions = await _networkService.GetBlocksAsync(lastDownloadBlockHash, lastDownloadBlockHeight,
+                var blocksWithTransactions = await _networkService.GetBlocksAsync(lastDownloadBlockHash,
                     batchRequestBlockCount, suggestedPeerPubKey);
 
                 if (blocksWithTransactions == null || !blocksWithTransactions.Any())

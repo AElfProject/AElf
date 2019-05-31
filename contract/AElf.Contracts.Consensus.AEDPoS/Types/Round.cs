@@ -36,8 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var baseMiningInterval =
-                (miners[1].ExpectedMiningTime.ToDateTime() - miners[0].ExpectedMiningTime.ToDateTime())
-                .TotalMilliseconds;
+                (miners[1].ExpectedMiningTime - miners[0].ExpectedMiningTime).Milliseconds();
 
             if (baseMiningInterval <= 0)
             {
@@ -48,8 +47,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             for (var i = 1; i < miners.Count - 1; i++)
             {
                 var miningInterval =
-                    (miners[i + 1].ExpectedMiningTime.ToDateTime() - miners[i].ExpectedMiningTime.ToDateTime())
-                    .TotalMilliseconds;
+                    (miners[i + 1].ExpectedMiningTime - miners[i].ExpectedMiningTime).Milliseconds();
                 if (Math.Abs(miningInterval - baseMiningInterval) > baseMiningInterval)
                 {
                     return new ValidationResult {Success = false, Message = "Time slots are so different."};
@@ -79,13 +77,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var firstTwoMiners = RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
                 .ToList();
             var distance =
-                (int) (firstTwoMiners[1].ExpectedMiningTime.ToDateTime() -
-                       firstTwoMiners[0].ExpectedMiningTime.ToDateTime())
-                .TotalMilliseconds;
+                (int) (firstTwoMiners[1].ExpectedMiningTime - firstTwoMiners[0].ExpectedMiningTime)
+                .Milliseconds();
             return distance > 0 ? distance : -distance;
         }
 
-        public bool IsTimeSlotPassed(string publicKey, DateTime currentBlockTime,
+        public bool IsTimeSlotPassed(string publicKey, Timestamp currentBlockTime,
             out MinerInRound minerInRound)
         {
             minerInRound = null;
@@ -102,22 +99,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
 
                 var actualStartTime = actualStartTimes.First();
-                var runningTime = currentBlockTime.ToTimestamp() - actualStartTime;
+                var runningTime = currentBlockTime - actualStartTime;
                 var expectedOrder = runningTime.Seconds.Div(miningInterval.Div(1000)).Add(1);
                 return minerInRound.Order < expectedOrder;
             }
 
             return minerInRound.ExpectedMiningTime + new Duration {Seconds = miningInterval.Div(1000)} <
-                   currentBlockTime.ToTimestamp();
+                   currentBlockTime;
         }
 
         /// <summary>
         /// Actually the expected mining time of the miner whose order is 1.
         /// </summary>
         /// <returns></returns>
-        public DateTime GetStartTime()
+        public Timestamp GetStartTime()
         {
-            return RealTimeMinersInformation.Values.First(m => m.Order == 1).ExpectedMiningTime.ToDateTime();
+            return RealTimeMinersInformation.Values.First(m => m.Order == 1).ExpectedMiningTime;
         }
 
         public Hash CalculateSignature(Hash inValue)
@@ -141,10 +138,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return Hash.FromTwoHashes(Hash.FromMessage(new Int64Value {Value = RoundId}), randomHash);
         }
 
-        public DateTime GetExtraBlockMiningTime()
+        public Timestamp GetExtraBlockMiningTime()
         {
             return RealTimeMinersInformation.OrderBy(m => m.Value.ExpectedMiningTime.ToDateTime()).Last().Value
-                .ExpectedMiningTime.ToDateTime()
+                .ExpectedMiningTime
                 .AddMilliseconds(GetMiningInterval());
         }
 

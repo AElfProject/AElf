@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -10,6 +11,7 @@ using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
+using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -76,7 +78,7 @@ namespace AElf.OS
                 {
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = height,
-                    BlockTime = DateTime.UtcNow
+                    BlockTime = TimestampHelper.GetUtcNow()
                 }));
 
                 // no choice need to execute the block to finalize it.

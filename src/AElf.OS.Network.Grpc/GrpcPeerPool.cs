@@ -66,21 +66,17 @@ namespace AElf.OS.Network.Grpc
 
             Channel channel = new Channel(ipAddress, ChannelCredentials.Insecure, new List<ChannelOption>
             {
-                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConsts.DefaultMaxSendMessageLength),
-                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConsts.DefaultMaxReceiveMessageLength)
+                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
+                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
             });
             
-            var interceptor = new RetryInterceptor();
-            interceptor.Logger = Logger;
-            interceptor.PeerIp = ipAddress;
-
             var client = new PeerService.PeerServiceClient(channel
                 .Intercept(metadata =>
                     {
-                        metadata.Add(GrpcConsts.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
+                        metadata.Add(GrpcConstants.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
                         return metadata;
                     })
-                .Intercept(interceptor));
+                .Intercept(new RetryInterceptor()));
             
             var hsk = await BuildHandshakeAsync();
 
@@ -88,15 +84,18 @@ namespace AElf.OS.Network.Grpc
             {
                 // if failing give it some time to recover
                 await channel.TryWaitForStateChangedAsync(channel.State,
-                    DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout));
+                    DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeoutInMilliSeconds));
             }
 
             ConnectReply connectReply;
             
             try
             {
-                connectReply = await client.ConnectAsync(hsk,
-                    new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeout)));
+                Metadata data = new Metadata
+                {
+                    {GrpcConstants.TimeoutMetadataKey, _networkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
+                };
+                connectReply = await client.ConnectAsync(hsk, data);
             }
             catch (AggregateException e)
             {
@@ -115,9 +114,18 @@ namespace AElf.OS.Network.Grpc
             }
 
             var pubKey = connectReply.Handshake.HskData.PublicKey.ToHex();
+            
+            var connectionInfo = new GrpcPeerInfo
+            {
+                PublicKey = pubKey,
+                PeerIpAddress = ipAddress,
+                ProtocolVersion = connectReply.Handshake.HskData.Version,
+                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                StartHeight = connectReply.Handshake.Header.Height,
+                IsInbound = false
+            };
 
-            var peer = new GrpcPeer(channel, client, pubKey, ipAddress, connectReply.Handshake.HskData.Version,
-                DateTime.UtcNow.ToTimestamp().Seconds, connectReply.Handshake.Header.Height, false);
+            var peer = new GrpcPeer(channel, client, connectionInfo);
 
             if (!_authenticatedPeers.TryAdd(pubKey, peer))
             {
@@ -269,7 +277,7 @@ namespace AElf.OS.Network.Grpc
             return removed;
         }
         
-        public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash,bool hasFork)
+        public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash, bool hasFork)
         {
             if (hasFork)
             {

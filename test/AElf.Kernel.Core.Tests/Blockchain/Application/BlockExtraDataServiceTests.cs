@@ -7,13 +7,11 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public class BlockExtraDataServiceTests: AElfMinerTestBase
     {
-        private IBlockExtraDataProvider _blockExtraDataProvider;
-        private IBlockExtraDataService _blockExtraDataService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
 
         public BlockExtraDataServiceTests()
         {
-            _blockExtraDataProvider = GetRequiredService<IBlockExtraDataProvider>();
-            _blockExtraDataService = new BlockExtraDataService(new[]{_blockExtraDataProvider});
+            _blockExtraDataService = GetRequiredService<IBlockExtraDataService>();
         }
 
         [Fact]

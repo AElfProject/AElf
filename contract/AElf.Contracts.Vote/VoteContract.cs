@@ -61,7 +61,7 @@ namespace AElf.Contracts.Vote
                 CurrentSnapshotStartTimestamp = input.StartTimestamp,
                 StartTimestamp = input.StartTimestamp,
                 EndTimestamp = input.EndTimestamp,
-                RegisterTimestamp = Context.CurrentBlockTime.ToTimestamp(),
+                RegisterTimestamp = Context.CurrentBlockTime,
                 Options = {input.Options}
             };
 
@@ -104,7 +104,7 @@ namespace AElf.Contracts.Vote
                 SnapshotNumber = votingItem.CurrentSnapshotNumber,
                 Option = input.Option,
                 IsWithdrawn = false,
-                VoteTimestamp = Context.CurrentBlockTime.ToTimestamp(),
+                VoteTimestamp = Context.CurrentBlockTime,
                 Voter = input.Voter
             };
             State.VotingRecords[input.VoteId] = votingRecord;
@@ -196,7 +196,7 @@ namespace AElf.Contracts.Vote
 
             // Update VotingRecord.
             votingRecord.IsWithdrawn = true;
-            votingRecord.WithdrawTimestamp = Context.CurrentBlockTime.ToTimestamp();
+            votingRecord.WithdrawTimestamp = Context.CurrentBlockTime;
             State.VotingRecords[input.VoteId] = votingRecord;
 
             var votingResultHash = GetVotingResultHash(votingRecord.VotingItemId, votingRecord.SnapshotNumber);
@@ -250,7 +250,7 @@ namespace AElf.Contracts.Vote
             // Update previous voting going information.
             var previousVotingResultHash = GetVotingResultHash(input.VotingItemId, votingItem.CurrentSnapshotNumber);
             var previousVotingResult = State.VotingResults[previousVotingResultHash];
-            previousVotingResult.SnapshotEndTimestamp = Context.CurrentBlockTime.ToTimestamp();
+            previousVotingResult.SnapshotEndTimestamp = Context.CurrentBlockTime;
             State.VotingResults[previousVotingResultHash] = previousVotingResult;
 
             Assert(votingItem.CurrentSnapshotNumber == input.SnapshotNumber,
@@ -265,7 +265,7 @@ namespace AElf.Contracts.Vote
             {
                 VotingItemId = input.VotingItemId,
                 SnapshotNumber = nextSnapshotNumber,
-                SnapshotStartTimestamp = Context.CurrentBlockTime.ToTimestamp(),
+                SnapshotStartTimestamp = Context.CurrentBlockTime,
                 VotersCount = previousVotingResult.VotersCount,
                 VotesAmount = previousVotingResult.VotesAmount
             };

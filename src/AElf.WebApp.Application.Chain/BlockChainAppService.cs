@@ -13,6 +13,7 @@ using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
@@ -29,7 +30,7 @@ namespace AElf.WebApp.Application.Chain
         Task<byte[]> GetContractFileDescriptorSet(string address);
 
         Task<CreateRawTransactionOutput> CreateRawTransaction(CreateRawTransactionInput input);
-
+        
         Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input);
 
         Task<BroadcastTransactionOutput> BroadcastTransaction(BroadcastTransactionInput input);
@@ -45,18 +46,18 @@ namespace AElf.WebApp.Application.Chain
         Task<BlockDto> GetBlock(string blockHash, bool includeTransactions = false);
 
         Task<BlockDto> GetBlockByHeight(long blockHeight, bool includeTransactions = false);
-
+        
         Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus();
 
         Task<ChainStatusDto> GetChainStatus();
 
         Task<BlockStateDto> GetBlockState(string blockHash);
 
-        List<TaskQueueStatusInfoDto> GetTaskQueueStatus();
+        List<TaskQueueInfoDto> GetTaskQueueStatus();
 
         Task<RoundDto> GetCurrentRoundInformation();
     }
-
+    
     public class BlockChainAppService : IBlockChainAppService
     {
         private readonly IBlockchainService _blockchainService;
@@ -69,7 +70,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly ITaskQueueManager _taskQueueManager;
         public ILogger<BlockChainAppService> Logger { get; set; }
-
+        
         public ILocalEventBus LocalEventBus { get; set; }
 
         public BlockChainAppService(IBlockchainService blockchainService,
@@ -141,7 +142,7 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
         }
-
+        
         /// <summary>
         /// Creates an unsigned serialized transaction 
         /// </summary>
@@ -196,7 +197,7 @@ namespace AElf.WebApp.Application.Chain
             };
 
             if (!input.ReturnTransaction) return output;
-
+            
             var transactionDto = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             var contractMethodDescriptor =
                 await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
@@ -221,7 +222,7 @@ namespace AElf.WebApp.Application.Chain
                 TransactionId = txIds[0]
             };
         }
-
+        
 
         /// <summary>
         /// Broadcast multiple transactions
@@ -230,10 +231,10 @@ namespace AElf.WebApp.Application.Chain
         public async Task<string[]> BroadcastTransactions(BroadcastTransactionsInput input)
         {
             var txIds = await PublishTransactionsAsync(input.RawTransactions.Split(","));
-
+            
             return txIds;
         }
-
+        
         /// <summary>
         /// Get the current status of a transaction
         /// </summary>
@@ -272,11 +273,11 @@ namespace AElf.WebApp.Application.Chain
             }
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
-
+            
             var methodDescriptor = await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
             output.Transaction.Params = JsonFormatter.ToDiagnosticString(
                 methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
-
+            
             return output;
         }
 
@@ -380,7 +381,7 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var block = await GetBlock(realBlockHash);
-
+            
             if (block == null)
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
@@ -399,7 +400,7 @@ namespace AElf.WebApp.Application.Chain
                     Time = block.Header.Time.ToDateTime(),
                     ChainId = ChainHelpers.ConvertChainIdToBase58(block.Header.ChainId),
                     Bloom = block.Header.Bloom.ToByteArray().ToHex(),
-                    SignerPubkey = block.Header.SignerPubkey.ToByteArray().ToHex()
+                    SignerPubkey =  block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
                 {
@@ -434,7 +435,7 @@ namespace AElf.WebApp.Application.Chain
             if (blockHeight == 0)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             var blockInfo = await GetBlockAtHeight(blockHeight);
-
+            
             if (blockInfo == null)
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
@@ -476,7 +477,7 @@ namespace AElf.WebApp.Application.Chain
 
             return blockDto;
         }
-
+        
         /// <summary>
         /// Get the transaction pool status.
         /// </summary>
@@ -489,7 +490,7 @@ namespace AElf.WebApp.Application.Chain
                 Queued = queued
             };
         }
-
+        
         /// <summary>
         /// Get the current status of the block chain.
         /// </summary>
@@ -497,7 +498,7 @@ namespace AElf.WebApp.Application.Chain
         public async Task<ChainStatusDto> GetChainStatus()
         {
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
-
+     
             var chain = await _blockchainService.GetChainAsync();
             var branches = JsonConvert.DeserializeObject<Dictionary<string, long>>(chain.Branches.ToString());
             var formattedNotLinkedBlocks = new List<NotLinkedBlockDto>();
@@ -529,7 +530,7 @@ namespace AElf.WebApp.Application.Chain
                 BestChainHeight = chain.BestChainHeight
             };
         }
-
+        
         /// <summary>
         /// Get the current state about a given block
         /// </summary>
@@ -543,13 +544,13 @@ namespace AElf.WebApp.Application.Chain
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
         }
 
-        public List<TaskQueueStatusInfoDto> GetTaskQueueStatus()
+        public List<TaskQueueInfoDto> GetTaskQueueStatus()
         {
-            var taskQueueStateInfos = _taskQueueManager.GetQueueStateInfos();
-            return taskQueueStateInfos.Select(taskQueueStateInfo => new TaskQueueStatusInfoDto
+            var taskQueueStatus = _taskQueueManager.GetQueueStatus();
+            return taskQueueStatus.Select(taskQueueState => new TaskQueueInfoDto
             {
-                Name = taskQueueStateInfo.Name,
-                Size = taskQueueStateInfo.Size
+                Name = taskQueueState.Name,
+                Size = taskQueueState.Size
             }).ToList();
         }
 
@@ -590,12 +591,12 @@ namespace AElf.WebApp.Application.Chain
         {
             return await _blockchainService.GetBlockByHashAsync(blockHash);
         }
-
+        
         private async Task<Block> GetBlockAtHeight(long height)
         {
             return await _blockchainService.GetBlockByHeightInBestChainBranchAsync(height);
         }
-
+        
         private async Task<TransactionResult> GetTransactionResult(Hash txHash)
         {
             // in storage
@@ -623,7 +624,7 @@ namespace AElf.WebApp.Application.Chain
                 Status = TransactionResultStatus.NotExisted
             };
         }
-
+        
         private async Task<string[]> PublishTransactionsAsync(string[] rawTransactions)
         {
             var txIds = new string[rawTransactions.Length];
@@ -675,7 +676,7 @@ namespace AElf.WebApp.Application.Chain
             });
             return txIds;
         }
-
+        
         private async Task<byte[]> GetFileDescriptorSetAsync(Address address)
         {
             var chain = await _blockchainService.GetChainAsync();
@@ -687,7 +688,7 @@ namespace AElf.WebApp.Application.Chain
 
             return await _transactionReadOnlyExecutionService.GetFileDescriptorSetAsync(chainContext, address);
         }
-
+        
         private async Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(Address address)
         {
             var chain = await _blockchainService.GetChainAsync();
@@ -699,19 +700,19 @@ namespace AElf.WebApp.Application.Chain
 
             return await _transactionReadOnlyExecutionService.GetFileDescriptorsAsync(chainContext, address);
         }
-
+        
         private async Task<byte[]> CallReadOnly(Transaction tx)
         {
             var chainContext = await GetChainContextAsync();
 
-            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow);
+            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow.ToTimestamp());
 
             if (!string.IsNullOrEmpty(trace.StdErr))
                 throw new Exception(trace.StdErr);
 
             return trace.ReturnValue.ToByteArray();
         }
-
+        
         private async Task<ChainContext> GetChainContextAsync()
         {
             var chain = await _blockchainService.GetChainAsync();
@@ -736,7 +737,7 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.InvalidContractAddress],
                     Error.InvalidContractAddress.ToString());
             }
-
+            
             foreach (var fileDescriptor in fileDescriptors)
             {
                 var method = fileDescriptor.Services.Select(s => s.FindMethodByName(methodName)).FirstOrDefault();
