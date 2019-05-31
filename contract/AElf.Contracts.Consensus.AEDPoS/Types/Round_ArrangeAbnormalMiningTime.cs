@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -19,7 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// when this node hasn't missed his time slot.
         /// </summary>
         /// <returns></returns>
-        public Timestamp ArrangeAbnormalMiningTime(string publicKey, DateTime dateTime,
+        public Timestamp ArrangeAbnormalMiningTime(string publicKey, Timestamp dateTime,
             int miningInterval = 0)
         {
             if (!RealTimeMinersInformation.ContainsKey(publicKey))
@@ -39,19 +40,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (GetExtraBlockProducerInformation().PublicKey == publicKey)
             {
-                var distance = (GetExtraBlockMiningTime() - dateTime).TotalMilliseconds;
+                var distance = (GetExtraBlockMiningTime() - dateTime).Milliseconds();
                 if (distance > 0)
                 {
-                    return GetExtraBlockMiningTime().ToTimestamp();
+                    return GetExtraBlockMiningTime();
                 }
             }
 
             if (RealTimeMinersInformation.ContainsKey(publicKey) && miningInterval > 0)
             {
-                var distanceToRoundStartTime = (dateTime - GetStartTime()).TotalMilliseconds;
-                var missedRoundsCount = (int) (distanceToRoundStartTime / TotalMilliseconds(miningInterval));
+                var distanceToRoundStartTime = (dateTime - GetStartTime()).Milliseconds();
+                var missedRoundsCount = distanceToRoundStartTime.Div(TotalMilliseconds(miningInterval));
                 var expectedEndTime = GetExpectedEndTime(missedRoundsCount, miningInterval);
-                return expectedEndTime.ToDateTime().AddMilliseconds(minerInRound.Order * miningInterval).ToTimestamp();
+                return expectedEndTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval));
             }
 
             // Never do the mining if this node has no privilege to mime or the mining interval is invalid.
@@ -70,7 +71,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="miningInterval"></param>
         /// <param name="missedRoundsCount"></param>
         /// <returns></returns>
-        private Timestamp GetExpectedEndTime(int missedRoundsCount = 0, int miningInterval = 0)
+        private Timestamp GetExpectedEndTime(long missedRoundsCount = 0, int miningInterval = 0)
         {
             if (miningInterval == 0)
             {
@@ -80,8 +81,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var totalMilliseconds = TotalMilliseconds(miningInterval);
             return GetStartTime().AddMilliseconds(totalMilliseconds)
                 // Arrange an ending time if this node missed so many rounds.
-                .AddMilliseconds(missedRoundsCount * totalMilliseconds)
-                .ToTimestamp();
+                .AddMilliseconds(missedRoundsCount.Mul(totalMilliseconds));
         }
 
         /// <summary>

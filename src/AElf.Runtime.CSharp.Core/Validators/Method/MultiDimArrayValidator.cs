@@ -22,7 +22,9 @@ namespace AElf.Runtime.CSharp.Validators.Method
 
                     if (methodRef.DeclaringType.IsArray && ((ArrayType) methodRef.DeclaringType).Dimensions.Count > 1)
                     {
-                        errors.Add(new MultiDimArrayValidationResult($"{method.Name} contains multi dimension array declaration."));
+                        errors.Add(
+                            new MultiDimArrayValidationResult($"{method.Name} contains multi dimension array declaration.")
+                                    .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null));
                     }
                 }
             }

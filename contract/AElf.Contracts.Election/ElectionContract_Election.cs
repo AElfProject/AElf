@@ -200,14 +200,14 @@ namespace AElf.Contracts.Election
             Assert(State.CandidateInformationMap[input.CandidatePublicKey].IsCurrentCandidate,
                 "Candidate quited election.");
 
-            var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime.ToTimestamp()).Seconds;
+            var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
             Assert(lockSeconds >= State.MinimumLockTime.Value,
                 $"Invalid lock time. At least {State.MinimumLockTime.Value.Div(60).Div(60).Div(24)} days");
             Assert(lockSeconds <= State.MaximumLockTime.Value,
                 $"Invalid lock time. At most {State.MaximumLockTime.Value.Div(60).Div(60).Div(24)} days");
 
             State.LockTimeMap[Context.TransactionId] =
-                input.EndTimestamp.Seconds - Context.CurrentBlockTime.ToTimestamp().Seconds;
+                input.EndTimestamp.Seconds - Context.CurrentBlockTime.Seconds;
 
             // Update Voter's Votes information.
             var voterPublicKeyBytes = Context.RecoverPublicKey();
@@ -296,7 +296,7 @@ namespace AElf.Contracts.Election
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input);
 
-            var actualLockedTime = (Context.CurrentBlockTime.ToTimestamp() - votingRecord.VoteTimestamp).Seconds;
+            var actualLockedTime = (Context.CurrentBlockTime - votingRecord.VoteTimestamp).Seconds;
             var claimedLockDays = State.LockTimeMap[input];
             Assert(actualLockedTime >= claimedLockDays,
                 $"Still need {claimedLockDays.Sub(actualLockedTime).Div(86400)} days to unlock your token.");

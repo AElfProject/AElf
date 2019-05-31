@@ -1,22 +1,23 @@
-using System;
+using AElf.Common;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Consensus.Application
 {
     public interface IBlockTimeProvider
     {
-        DateTime GetBlockTime();
-        void SetBlockTime(DateTime blockTime);
+        Timestamp GetBlockTime();
+        void SetBlockTime(Timestamp blockTime);
     }
 
     public class BlockTimeProvider : IBlockTimeProvider
     {
-        private DateTime _blockTime;
-        public DateTime GetBlockTime()
+        private Timestamp _blockTime;
+        public Timestamp GetBlockTime()
         {
-            return _blockTime == default ? DateTime.UtcNow : _blockTime;
+            return _blockTime == default ? TimestampHelper.GetUtcNow() : _blockTime;
         }
 
-        public void SetBlockTime(DateTime blockTime)
+        public void SetBlockTime(Timestamp blockTime)
         {
             _blockTime = blockTime;
         }

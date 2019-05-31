@@ -5,6 +5,7 @@ using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.Application
@@ -49,7 +50,8 @@ namespace AElf.Kernel.Consensus.Application
                 };
 
                 var trace =
-                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, _blockTimeProvider.GetBlockTime());
+                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction,
+                        _blockTimeProvider.GetBlockTime());
 
                 return trace.IsSuccessful()
                     ? method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray())

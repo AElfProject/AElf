@@ -1,7 +1,12 @@
+using AElf.Runtime.CSharp.Validators.Whitelist;
+
 namespace AElf.Runtime.CSharp.Policies
 {
-    public class PrivilegePolicy
+    public class PrivilegePolicy : DefaultPolicy
     {
-        // Allow threading
+        public PrivilegePolicy()
+        {
+            Whitelist = Whitelist.Namespace("System.Threading", Permission.Allowed);
+        }
     }
 }

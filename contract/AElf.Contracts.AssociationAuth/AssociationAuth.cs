@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Acs3;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using CreateProposalInput = Acs3.CreateProposalInput;
@@ -74,8 +75,7 @@ namespace AElf.Contracts.AssociationAuth
                 !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
                 && proposal.ToAddress != null
                 && proposal.ExpiredTime != null, "Invalid proposal.");
-            DateTime timestamp = proposal.ExpiredTime.ToDateTime();
-            Assert(Context.CurrentBlockTime < timestamp, "Expired proposal.");
+            Assert(Context.CurrentBlockTime < proposal.ExpiredTime, "Expired proposal.");
             //TODO: Proposals with the same input is not supported. 
             Hash hash = Hash.FromMessage(proposal);
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
@@ -97,8 +97,7 @@ namespace AElf.Contracts.AssociationAuth
         {
             var proposalInfo = State.Proposals[approvalInput.ProposalId];
             Assert(proposalInfo != null, "Not found proposal.");
-            DateTime timestamp = proposalInfo.ExpiredTime.ToDateTime();
-            if (Context.CurrentBlockTime > timestamp)
+            if (Context.CurrentBlockTime > proposalInfo.ExpiredTime)
             {
                 // expired proposal
                 //State.Proposals[approvalInput.ProposalId] = null;

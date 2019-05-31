@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Blockchains.BasicBaseChain;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
+using AElf.Kernel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -12,19 +13,6 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Launcher
 {
-    public enum ChainType
-    {
-        MainChain,
-        SideChain
-    }
-
-    public enum NetType
-    {
-        MainNet,
-        TestNet,
-        CustomNet
-    }
-    
     public class Startup
     {
         private readonly IConfiguration _configuration;
@@ -37,12 +25,7 @@ namespace AElf.Launcher
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-
             var chainType = _configuration.GetValue("ChainType", ChainType.MainChain);
-            var netType = _configuration.GetValue("NetType", NetType.MainNet);
-
-            services.GetHostingEnvironment().EnvironmentName = $"{chainType}.{netType}";
-
             switch (chainType)
             {
                 case ChainType.SideChain:

@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
@@ -52,7 +54,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var transactionResult =
                 (await _transactionExecutingService.ExecuteAsync(
                     new ChainContext() {BlockHash = blockHeader.GetHash(), BlockHeight = blockHeader.Height}, t,
-                    DateTime.UtcNow));
+                    TimestampHelper.GetUtcNow()));
 
             if (!transactionResult.IsSuccessful())
                 throw new InvalidOperationException();
