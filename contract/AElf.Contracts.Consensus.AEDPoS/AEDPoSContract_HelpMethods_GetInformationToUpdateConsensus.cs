@@ -24,7 +24,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Hash.FromTwoHashes(outValue, triggerInformation.RandomHash); // Just initial signature value.
             var previousInValue = Hash.Empty; // Just initial previous in value.
 
-            if (TryToGetPreviousRoundInformation(out var previousRound) && !IsJustChangedTerm(out _))
+            if (TryToGetPreviousRoundInformation(out var previousRound) && !IsFirstRoundOfCurrentTerm(out _))
             {
                 signature = previousRound.CalculateSignature(inValue);
                 if (triggerInformation.PreviousRandomHash != Hash.Empty)

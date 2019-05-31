@@ -33,7 +33,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 miningInterval = GetMiningInterval();
             }
 
-            if (!IsTimeSlotPassed(publicKey, dateTime, out var minerInRound) && minerInRound.OutValue == null)
+            var minerInRound = RealTimeMinersInformation[publicKey];
+            if (!IsTimeSlotPassed(publicKey, dateTime) && minerInRound.OutValue == null)
             {
                 return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
             }

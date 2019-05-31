@@ -12,17 +12,27 @@ namespace AElf.Kernel
         
         public static Duration DurationFromMilliseconds(long milliseconds)
         {
-            return new Duration() { Seconds = milliseconds / 1000, Nanos = (int)(milliseconds % 1000) * 1000000 };
+            return new Duration { Seconds = milliseconds / 1000, Nanos = (int)(milliseconds % 1000) * 1000000 };
         }
         
         public static Duration DurationFromSeconds(long seconds)
         {
-            return new Duration() { Seconds = seconds};
+            return new Duration { Seconds = seconds};
         }
         
         public static Duration DurationFromMinutes(long minutes)
         {
-            return new Duration() { Seconds = minutes * 60};
+            return new Duration { Seconds = minutes * 60};
+        }
+
+        public static Timestamp GetMaxValue()
+        {
+            return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
+        }
+        
+        public static Timestamp GetMinValue()
+        {
+            return DateTime.MinValue.ToUniversalTime().ToTimestamp();
         }
     }
 }

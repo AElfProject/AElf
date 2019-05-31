@@ -16,38 +16,24 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override ConsensusCommand GetConsensusCommand(BytesValue input)
         {
-            // Query state to determine whether produce tiny block.
             Assert(input.Value.Any(), "Invalid public key.");
 
-            TryToGetCurrentRoundInformation(out var currentRound);
+            if (Context.CurrentHeight == 1) return GetInvalidConsensusCommand();
 
-            if (currentRound == null || currentRound.RoundId == 0)
+            var publicKey = input.Value.ToHex();
+
+            if (!TryToGetCurrentRoundInformation(out var currentRound))
             {
-                return new ConsensusCommand
-                {
-                    ExpectedMiningTime = DateTime.MaxValue.ToUniversalTime().ToTimestamp(),
-                    LimitMillisecondsOfMiningBlock = int.MaxValue, NextBlockMiningLeftMilliseconds = int.MaxValue
-                };
+                Assert(false, $"Failed to get current round information in height {Context.CurrentHeight}");
             }
 
-            var behaviour = GetBehaviour(currentRound, input.Value.ToHex());
+            var behaviour = GetConsensusBehaviour(currentRound, publicKey);
 
-            if (behaviour == AElfConsensusBehaviour.Nothing)
-            {
-                return new ConsensusCommand
-                {
-                    ExpectedMiningTime = DateTime.MaxValue.ToUniversalTime().ToTimestamp(),
-                    Hint = ByteString.CopyFrom(new AElfConsensusHint {Behaviour = behaviour}.ToByteArray()),
-                    LimitMillisecondsOfMiningBlock = int.MaxValue, NextBlockMiningLeftMilliseconds = int.MaxValue
-                };
-            }
+            Context.LogDebug(() => currentRound.GetLogs(publicKey, behaviour));
 
-            var command = GetConsensusCommand(behaviour, currentRound, input.Value.ToHex());
-
-            Context.LogDebug(() =>
-                currentRound.GetLogs(input.Value.ToHex(), AElfConsensusHint.Parser.ParseFrom(command.Hint).Behaviour));
-
-            return command;
+            return behaviour == AElfConsensusBehaviour.Nothing
+                ? GetInvalidConsensusCommand() // Handle this situation previously.
+                : GetConsensusCommand(behaviour, currentRound, publicKey);
         }
 
         public override BytesValue GetInformationToUpdateConsensus(BytesValue input)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs4;
+using AElf.Kernel;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -82,30 +83,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return distance > 0 ? distance : -distance;
         }
 
-        public bool IsTimeSlotPassed(string publicKey, Timestamp currentBlockTime,
-            out MinerInRound minerInRound)
+        public bool IsTimeSlotPassed(string publicKey, Timestamp currentBlockTime)
         {
-            minerInRound = null;
             var miningInterval = GetMiningInterval();
             if (!RealTimeMinersInformation.ContainsKey(publicKey)) return false;
-            minerInRound = RealTimeMinersInformation[publicKey];
-            if (RoundNumber == 1)
+            var minerInRound = RealTimeMinersInformation[publicKey];
+            if (RoundNumber != 1)
             {
-                var actualStartTimes =
-                    RealTimeMinersInformation.Values.First(m => m.Order == 1).ActualMiningTimes;
-                if (actualStartTimes.Count == 0)
-                {
-                    return false;
-                }
-
-                var actualStartTime = actualStartTimes.First();
-                var runningTime = currentBlockTime - actualStartTime;
-                var expectedOrder = runningTime.Seconds.Div(miningInterval.Div(1000)).Add(1);
-                return minerInRound.Order < expectedOrder;
+                return minerInRound.ExpectedMiningTime + new Duration {Seconds = miningInterval.Div(1000)} <
+                       currentBlockTime;
             }
 
-            return minerInRound.ExpectedMiningTime + new Duration {Seconds = miningInterval.Div(1000)} <
-                   currentBlockTime;
+            var actualStartTimes = FirstMiner().ActualMiningTimes;
+            if (actualStartTimes.Count == 0)
+            {
+                return false;
+            }
+
+            var actualStartTime = actualStartTimes.First();
+            var runningTime = currentBlockTime - actualStartTime;
+            var expectedOrder = runningTime.Seconds.Div(miningInterval.Div(1000)).Add(1);
+            return minerInRound.Order < expectedOrder;
         }
 
         /// <summary>
@@ -114,7 +112,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public Timestamp GetStartTime()
         {
-            return RealTimeMinersInformation.Values.First(m => m.Order == 1).ExpectedMiningTime;
+            return FirstMiner().ExpectedMiningTime;
         }
 
         public Hash CalculateSignature(Hash inValue)
@@ -162,7 +160,28 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return approvalsCount >= minimumCount;
         }
 
-        /// <summary>
+        public MinerInRound FirstMiner()
+        {
+            return RealTimeMinersInformation.Count > 0
+                ? RealTimeMinersInformation.Values.First(m => m.Order == 1)
+                : new MinerInRound();
+        }
+
+        public Timestamp GetExpectedMiningTime(string publicKey)
+        {
+            return RealTimeMinersInformation.ContainsKey(publicKey)
+                ? RealTimeMinersInformation[publicKey].ExpectedMiningTime
+                : TimestampHelper.GetMaxValue();
+        }
+
+        public int GetMiningOrder(string publicKey)
+        {
+            return RealTimeMinersInformation.ContainsKey(publicKey)
+                ? RealTimeMinersInformation[publicKey].Order
+                : int.MaxValue;
+        }
+
+    /// <summary>
         /// If daysEachTerm == 7:
         /// 1, 1, 1 => 0 != 1 - 1 => false
         /// 1, 2, 1 => 0 != 1 - 1 => false

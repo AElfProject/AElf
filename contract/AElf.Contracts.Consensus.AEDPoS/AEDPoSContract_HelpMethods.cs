@@ -15,12 +15,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return startTimestamp != null;
         }
 
-        private bool IsJustChangedTerm(out long termNumber)
+        private bool IsFirstRoundOfCurrentTerm(out long termNumber)
         {
-            termNumber = 0;
-            return TryToGetPreviousRoundInformation(out var previousRound) &&
-                   TryToGetTermNumber(out termNumber) &&
-                   previousRound.TermNumber != termNumber;
+            termNumber = 1;
+            return TryToGetTermNumber(out termNumber) &&
+                   TryToGetPreviousRoundInformation(out var previousRound) &&
+                   previousRound.TermNumber != termNumber ||
+                   TryToGetRoundNumber(out var roundNumber) && roundNumber == 1;
         }
 
         private bool TryToGetTermNumber(out long termNumber)
@@ -40,24 +41,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
             round = null;
             if (!TryToGetRoundNumber(out var roundNumber)) return false;
             round = State.Rounds[roundNumber];
-            return round != null;
+            return !round.IsEmpty;
         }
 
         private bool TryToGetPreviousRoundInformation(out Round previousRound)
         {
             previousRound = new Round();
-            if (TryToGetRoundNumber(out var roundNumber))
-            {
-                if (roundNumber < 2)
-                {
-                    return false;
-                }
-
-                previousRound = State.Rounds[(roundNumber - 1)];
-                return !previousRound.IsEmpty;
-            }
-
-            return false;
+            if (!TryToGetRoundNumber(out var roundNumber)) return false;
+            if (roundNumber < 2) return false;
+            previousRound = State.Rounds[roundNumber - 1];
+            return !previousRound.IsEmpty;
         }
 
         private bool TryToGetRoundInformation(long roundNumber, out Round roundInformation)
@@ -90,16 +83,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var nanos = (milliseconds % 1000).Mul(1000000);
 
             return new Duration {Seconds = seconds, Nanos = nanos};
-        }
-
-        private int GetNextBlockMiningLeftMillisecondsForFirstRound(MinerInRound minerInRound, Timestamp blockTime)
-        {
-            var actualMiningTime = minerInRound.ActualMiningTimes.First();
-            var producedTinyBlocks = minerInRound.ProducedTinyBlocks;
-            var timeForEachBlock = State.MiningInterval.Value.Div(AEDPoSContractConstants.TotalTinySlots);
-            var expectedMiningTime = actualMiningTime.AddMilliseconds(timeForEachBlock.Mul(producedTinyBlocks));
-            var leftMilliseconds = (int) (expectedMiningTime - blockTime).Milliseconds();
-            return leftMilliseconds;
         }
 
         private int GetNextBlockMiningLeftMillisecondsForPreviousRoundExtraBlockProducer(
