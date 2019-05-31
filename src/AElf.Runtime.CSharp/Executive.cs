@@ -120,9 +120,9 @@ namespace AElf.Runtime.CSharp
                 if (!_callHandlers.TryGetValue(methodName, out var handler))
                 {
                     throw new RuntimeException(
-                        $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: "+
-                        string.Join(", ", _callHandlers.Keys.OrderBy(k=>k))
-                        );
+                        $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: " +
+                        string.Join(", ", _callHandlers.Keys.OrderBy(k => k))
+                    );
                 }
 
                 try
@@ -153,7 +153,7 @@ namespace AElf.Runtime.CSharp
                     CurrentTransactionContext.Trace.StdErr += "\n" + ex;
                 }
 
-                if (!handler.IsView() && CurrentTransactionContext.Trace.IsSuccessful())
+                if (!handler.IsView())
                 {
                     var changes = _smartContractProxy.GetChanges();
 
@@ -174,6 +174,10 @@ namespace AElf.Runtime.CSharp
                         }
                     }
 
+                    if (!CurrentTransactionContext.Trace.IsSuccessful())
+                    {
+                        changes.Writes.Clear();
+                    }
 
                     CurrentTransactionContext.Trace.StateSet = changes;
                 }
