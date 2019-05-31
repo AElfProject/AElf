@@ -518,7 +518,8 @@ namespace AElf.Contract.CrossChain.Tests
 
             binaryMerkleTree.AddNodes(new[] {txHash, fakeHash1, fakeHash2});
             var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
-            var merklePath = binaryMerkleTree.GenerateMerklePath(0);
+            var merklePath = new MerklePath();
+            merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(0));
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = CreateParentChainBlockData(parentChainHeightOfCreation, parentChainId,
                 fakeTransactionStatusMerkleRoot);
@@ -541,7 +542,9 @@ namespace AElf.Contract.CrossChain.Tests
                     Value = sideChainHeight
                 }));
             Assert.Equal(merklePath.ToByteString(), crossChainMerkleProofContext.MerklePathForParentChainRoot.ToByteString());
-            Assert.Equal(merkleTreeRoot, crossChainMerkleProofContext.MerklePathForParentChainRoot.ComputeRootWith(txHash));
+            var calculatedRoot = crossChainMerkleProofContext.MerklePathForParentChainRoot.Path
+                .ComputeBinaryMerkleTreeRootWithPathAndLeafNode(txHash);
+            Assert.Equal(merkleTreeRoot, calculatedRoot);
         }
 
         [Fact]
@@ -563,7 +566,8 @@ namespace AElf.Contract.CrossChain.Tests
 
             binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
             var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
-            var merklePath = binaryMerkleTree.GenerateMerklePath(0);
+            var merklePath = new MerklePath();
+            merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(0));
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = CreateParentChainBlockData(parentChainHeightOfCreation, parentChainId,
                 fakeTransactionStatusMerkleRoot);
@@ -714,7 +718,8 @@ namespace AElf.Contract.CrossChain.Tests
             var hash = Hash.FromRawBytes(rawBytes);
             binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
             var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
-            var merklePath = binaryMerkleTree.GenerateMerklePath(0);
+            var merklePath = new MerklePath();
+            merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(0));
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = CreateParentChainBlockData(parentChainHeightOfCreation, parentChainId,
                 fakeTransactionStatusMerkleRoot);

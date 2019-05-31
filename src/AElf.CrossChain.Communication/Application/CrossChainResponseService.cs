@@ -29,12 +29,12 @@ namespace AElf.CrossChain.Communication.Application
             var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestHeight);
             if (block == null)
                 return null;
-            var transactionStatusMerkleRoot = ExtractTransactionStatusMerkleTreeRoot(block.Header);
+            
             return new SideChainBlockData
             {
                 Height = block.Height,
                 BlockHeaderHash = block.GetHash(),
-                TransactionMerkleTreeRoot = transactionStatusMerkleRoot,
+                TransactionMerkleTreeRoot = block.Header.MerkleTreeRootOfTransactionStatus,
                 ChainId = block.Header.ChainId
             };
         }
@@ -117,8 +117,10 @@ namespace AElf.CrossChain.Communication.Application
                 var info = indexedSideChainBlockDataResult[i];
                 if (!info.ChainId.Equals(sideChainId))
                     continue;
-                var merklePath = binaryMerkleTree.GenerateMerklePath(i);
-                merklepathList.Add((info.Height, MerklePath.Parser.ParseFrom(merklePath.ToByteString())));
+
+                var merklePath = new MerklePath();
+                merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(i));
+                merklepathList.Add((info.Height, merklePath));
             }
             
             return merklepathList;
@@ -140,11 +142,6 @@ namespace AElf.CrossChain.Communication.Application
             }
             
             return res;
-        }
-        
-        private Hash ExtractTransactionStatusMerkleTreeRoot(BlockHeader header)
-        {
-            return Hash.Parser.ParseFrom(_blockExtraDataService.GetMerkleTreeRootExtraDataForTransactionStatus(header));
         }
     }
 }

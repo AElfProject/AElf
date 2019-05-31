@@ -366,7 +366,3 @@ message SInt64Value
 {
     sint64 Value = 1;
 }
-
-message MerklePath {
-    repeated Hash Path = 1;
-}

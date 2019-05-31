@@ -24,7 +24,7 @@ namespace AElf.Kernel.Blockchain.Helpers
                 Body = new BlockBody()
             };
 
-            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
+            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
             block.Body.BlockHeader = block.Header.GetHash();         
             Block = block;
 

@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using AElf.Types;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -8,15 +8,13 @@ namespace AElf.Kernel
     {
         public int TransactionsCount => Transactions.Count;
         private Hash _blockBodyHash;
-        public BinaryMerkleTree BinaryMerkleTree { get; } = new BinaryMerkleTree();
 
         private Hash CalculateBodyHash()
         {
-            _blockBodyHash = new List<Hash>()
-            {
-                BlockHeader,
-                BinaryMerkleTree.Root
-            }.Aggregate(Hash.FromTwoHashes);
+            // TODO: BlockHeader is useless.
+            if (BlockHeader == null)
+                throw new InvalidOperationException("Block header hash is null.");
+            _blockBodyHash = Hash.FromRawBytes(this.ToByteArray());
             return _blockBodyHash;
         }
 

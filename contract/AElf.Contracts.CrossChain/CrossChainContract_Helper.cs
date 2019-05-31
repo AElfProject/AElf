@@ -36,9 +36,9 @@ namespace AElf.Contracts.CrossChain
                 Hash.FromRawBytes(txId.DumpByteArray().Concat(txResultStatusRawBytes).ToArray()));
         }
 
-        private Hash ComputeRootWithMultiHash(IEnumerable<Hash> nodes)
+        private Hash ComputeRootWithMultiHash(List<Hash> nodes)
         {
-            return nodes.ComputeRootHash();
+            return nodes.ComputeBinaryMerkleTreeRootWithLeafNodes();
         }
         
         /// <summary>
@@ -154,7 +154,7 @@ namespace AElf.Contracts.CrossChain
         {
             var indexedSideChainData = State.IndexedCrossChainBlockData[parentChainHeight];
             return ComputeRootWithMultiHash(
-                indexedSideChainData.SideChainBlockData.Select(d => d.TransactionMerkleTreeRoot));
+                indexedSideChainData.SideChainBlockData.Select(d => d.TransactionMerkleTreeRoot).ToList());
         }
         
         private Hash GetCousinChainMerkleTreeRoot(long parentChainHeight)

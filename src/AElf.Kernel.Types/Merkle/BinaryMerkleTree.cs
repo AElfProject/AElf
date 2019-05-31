@@ -45,39 +45,42 @@ namespace AElf.Kernel
         {
             if (Root != null)
                 return Root;
-            if (Nodes.Count == 0)
-            {
-                Root = Hash.Empty;
-                return Root;
-            }
-
             LeafCount = Nodes.Count;
-            if (Nodes.Count % 2 == 1)
-                Nodes.Add(Nodes.Last());
-            var nodeToAdd = Nodes.Count / 2;
-            var newAdded = 0;
-            var i = 0;
-            while (i < Nodes.Count - 1)
-            {
-                var left = Nodes[i++];
-                var right = Nodes[i++];
-                Nodes.Add(left.ComputeParentWith(right));
-                if (++newAdded != nodeToAdd)
-                    continue;
-
-                // complete this row
-                if (nodeToAdd % 2 == 1 && nodeToAdd != 1)
-                {
-                    nodeToAdd++;
-                    Nodes.Add(Nodes.Last());
-                }
-
-                // start a new row
-                nodeToAdd /= 2;
-                newAdded = 0;
-            }
-
-            Root = Nodes.Last();
+            Nodes.GenerateBinaryMerkleTreeNodesWithLeafNodes();
+            Root = Nodes.Any() ? Nodes.Last() : Hash.Empty;
+//            //return Root;
+//            if (Nodes.Count == 0)
+//            {
+//                Root = Hash.Empty;
+//                return Root;
+//            }
+//
+//            if (Nodes.Count % 2 == 1)
+//                Nodes.Add(Nodes.Last());
+//            var nodeToAdd = Nodes.Count / 2;
+//            var newAdded = 0;
+//            var i = 0;
+//            while (i < Nodes.Count - 1)
+//            {
+//                var left = Nodes[i++];
+//                var right = Nodes[i++];
+//                Nodes.Add(left.ComputeParentWith(right));
+//                if (++newAdded != nodeToAdd)
+//                    continue;
+//
+//                // complete this row
+//                if (nodeToAdd % 2 == 1 && nodeToAdd != 1)
+//                {
+//                    nodeToAdd++;
+//                    Nodes.Add(Nodes.Last());
+//                }
+//
+//                // start a new row
+//                nodeToAdd /= 2;
+//                newAdded = 0;
+//            }
+//
+//            Root = Nodes.Last();
             return Root;
         }
 
@@ -96,7 +99,7 @@ namespace AElf.Kernel
         ///  0-1  2-3  4-5
         /// For leaf [4], the returned path is {5, 9, 10}.
         /// </example>
-        public MerklePath GenerateMerklePath(int index)
+        public List<Hash> GenerateMerklePath(int index)
         {
             if (Root == null || index >= LeafCount)
                 return null;
@@ -112,15 +115,8 @@ namespace AElf.Kernel
                 index = firstInRow + shift;
                 rowcount /= 2;
             }
-
-            var res = new MerklePath();
-            res.Path.AddRange(path);
-            return res;
-        }
-        
-        public static Hash ComputeParent(Hash left, Hash right)
-        {
-            return left.ComputeParentWith(right);
+            
+            return path;
         }
     }
 }
