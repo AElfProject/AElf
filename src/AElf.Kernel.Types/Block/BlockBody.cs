@@ -23,11 +23,5 @@ namespace AElf.Kernel
         {
             return _blockBodyHash ?? CalculateBodyHash();
         }
-
-        public Hash GetHashWithoutCache()
-        {
-            _blockBodyHash = null;
-            return GetHash();
-        }
     }
 }
