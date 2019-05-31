@@ -104,8 +104,9 @@ namespace AElf.Contracts.CrossChain
                 return dict;
             var parentChainHeight = State.CurrentParentChainHeight.Value;
 
-            dict.IdHeightDict.Add(State.ParentChainId.Value,
-                parentChainHeight == 0 ? State.CreationHeightOnParentChain.Value - 1 : parentChainHeight); // from parent chain height of creation
+            var lastParentChainHeight =
+                parentChainHeight == 0 ? State.CreationHeightOnParentChain.Value - 1 : parentChainHeight; // from parent chain height of creation
+            dict.IdHeightDict.Add(State.ParentChainId.Value, lastParentChainHeight); 
             return dict;
         }
 

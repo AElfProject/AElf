@@ -48,39 +48,6 @@ namespace AElf.Kernel
             LeafCount = Nodes.Count;
             Nodes.GenerateBinaryMerkleTreeNodesWithLeafNodes();
             Root = Nodes.Any() ? Nodes.Last() : Hash.Empty;
-//            //return Root;
-//            if (Nodes.Count == 0)
-//            {
-//                Root = Hash.Empty;
-//                return Root;
-//            }
-//
-//            if (Nodes.Count % 2 == 1)
-//                Nodes.Add(Nodes.Last());
-//            var nodeToAdd = Nodes.Count / 2;
-//            var newAdded = 0;
-//            var i = 0;
-//            while (i < Nodes.Count - 1)
-//            {
-//                var left = Nodes[i++];
-//                var right = Nodes[i++];
-//                Nodes.Add(left.ComputeParentWith(right));
-//                if (++newAdded != nodeToAdd)
-//                    continue;
-//
-//                // complete this row
-//                if (nodeToAdd % 2 == 1 && nodeToAdd != 1)
-//                {
-//                    nodeToAdd++;
-//                    Nodes.Add(Nodes.Last());
-//                }
-//
-//                // start a new row
-//                nodeToAdd /= 2;
-//                newAdded = 0;
-//            }
-//
-//            Root = Nodes.Last();
             return Root;
         }
 
