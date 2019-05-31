@@ -21,7 +21,7 @@ namespace AElf.OS
     [DependsOn(typeof(OSTestAElfModule))]
     public class BlockSyncTestAElfModule : AElfModule
     {
-        private readonly Dictionary<long,Block> _blockList = new Dictionary<long,Block>();
+        private readonly Dictionary<Hash,Block> _blockList = new Dictionary<Hash,Block>();
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -29,8 +29,8 @@ namespace AElf.OS
             {
                 var networkServiceMock = new Mock<INetworkService>();
                 networkServiceMock
-                    .Setup(p => p.GetBlockByHashAsync(It.IsAny<Hash>(), It.IsAny<string>(), It.IsAny<bool>()))
-                    .Returns<Hash, int, bool>((hash, peer, tryOthersIfFail) =>
+                    .Setup(p => p.GetBlockByHashAsync(It.IsAny<Hash>(), It.IsAny<string>()))
+                    .Returns<Hash, int>((hash, peer) =>
                     {
                         BlockWithTransactions result = null;
                         if (hash != Hash.Empty)
@@ -42,25 +42,19 @@ namespace AElf.OS
                     });
 
                 networkServiceMock
-                    .Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<long>(), It.IsAny<int>(),
-                        It.IsAny<string>(), It.IsAny<bool>()))
-                    .Returns<Hash, long, int, string, bool>((previousBlockHash, previousBlockHeight, count, peerPubKey, tryOthersIfFail) =>
+                    .Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>(),
+                        It.IsAny<string>()))
+                    .Returns<Hash, int, string>((previousBlockHash, count, peerPubKey) =>
                     {
                         var result = new List<BlockWithTransactions>();
-                        if (!_blockList.TryGetValue(previousBlockHeight, out var previousBlock) || previousBlock
-                                .GetHash() != previousBlockHash)
-                        {
-                            return Task.FromResult(result);
-                        }
 
-                        for (var i = previousBlockHeight + 1; i < previousBlockHeight + count; i++)
+                        var hash = previousBlockHash;
+                        
+                        while (result.Count < count && _blockList.TryGetValue(hash, out var block))
                         {
-                            if (!_blockList.TryGetValue(i, out var block))
-                            {
-                                break;
-                            }
-
                             result.Add(new BlockWithTransactions {Header = block.Header});
+
+                            hash = block.GetHash();
                         }
 
                         return Task.FromResult(result);
@@ -83,7 +77,7 @@ namespace AElf.OS
             
             foreach (var block in osTestHelper.BestBranchBlockList)
             {
-                _blockList.Add(block.Header.Height,block);
+                _blockList.Add(block.Header.PreviousBlockHash,block);
             }
             
             var bestBranchHeight = height;
@@ -94,7 +88,7 @@ namespace AElf.OS
                 {
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = height,
-                    BlockTime = DateTime.UtcNow
+                    BlockTime = TimestampHelper.GetUtcNow()
                 }));
 
                 // no choice need to execute the block to finalize it.
@@ -103,7 +97,7 @@ namespace AElf.OS
                 previousBlockHash = newNewBlock.GetHash();
                 height++;
                         
-                _blockList.Add(newNewBlock.Header.Height,newNewBlock);
+                _blockList.Add(newNewBlock.Header.PreviousBlockHash,newNewBlock);
             }
         }
     }

@@ -29,7 +29,7 @@ namespace AElf.OS
             {
                 var networkServiceMock = new Mock<INetworkService>();
                 networkServiceMock
-                    .Setup(p => p.GetBlockByHashAsync(It.IsAny<Hash>(), It.IsAny<string>(), It.IsAny<bool>()))
+                    .Setup(p => p.GetBlockByHashAsync(It.IsAny<Hash>(), It.IsAny<string>()))
                     .Returns<Hash, int, bool>((hash, peer, tryOthersIfFail) =>
                     {
                         BlockWithTransactions result = null;
@@ -63,7 +63,7 @@ namespace AElf.OS
                 {
                     PreviousBlockHash = previousBlockHash,
                     PreviousBlockHeight = height,
-                    BlockTime = DateTime.UtcNow
+                    BlockTime =TimestampHelper.GetUtcNow()
                 }));
 
                 // no choice need to execute the block to finalize it.
