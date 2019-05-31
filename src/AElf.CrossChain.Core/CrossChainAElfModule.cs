@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
@@ -27,7 +28,8 @@ namespace AElf.CrossChain
                 return;
             Configure<CrossChainConfigOption>(option =>
             {
-                option.ParentChainId = ChainHelpers.ConvertBase58ToChainId(crossChainConfiguration["ParentChainId"]);
+                var parentChainIdString = crossChainConfiguration["ParentChainId"];
+                option.ParentChainId = parentChainIdString.IsNullOrEmpty() ? 0 : ChainHelpers.ConvertBase58ToChainId(parentChainIdString);
                 var maximalCountForIndexingParentChainBlockConfiguration =
                     crossChainConfiguration.GetSection("MaximalCountForIndexingParentChainBlock");
                 if (maximalCountForIndexingParentChainBlockConfiguration.Exists())
