@@ -16,38 +16,20 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <None Include="..\..\protobuf\common.proto">
-            <Link>Protobuf/Proto/common.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\aelf_options.proto">
-            <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\vote_contract.proto">
+        <ContractStub Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf/Proto/vote_contract.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\token_contract.proto">
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\basic_contract_zero.proto">
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
             <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </None>
+        </ContractStub>
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Protobuf\Generated" />
-    </ItemGroup>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh basic_contract_zero.proto token_contract.proto vote_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat basic_contract_zero.proto token_contract.proto vote_contract.proto" />
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs" />
-        </ItemGroup>
-    </Target>
 </Project>

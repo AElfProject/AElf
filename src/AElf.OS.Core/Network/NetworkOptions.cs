@@ -27,21 +27,21 @@ namespace AElf.OS.Network
         /// <summary>
         /// The maximum number of peers accepted by this node (0 for no limit).
         /// </summary>
-        public int MaxPeers { get; set; } = NetworkConsts.DefaultMaxPeers;
+        public int MaxPeers { get; set; } = NetworkConstants.DefaultMaxPeers;
 
         /// <summary>
         /// Timeout used when trying to connect to another peer.
         /// </summary>
-        public int PeerDialTimeout { get; set; } = NetworkConsts.DefaultPeerDialTimeout;
+        public int PeerDialTimeoutInMilliSeconds { get; set; } = NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds;
 
         /// <summary>
         /// Maximum amount of values used when synchronizing a fork.
         /// </summary>
-        public int BlockIdRequestCount { get; set; } = NetworkConsts.DefaultBlockRequestCount;
+        public int BlockIdRequestCount { get; set; } = NetworkConstants.DefaultBlockRequestCount;
 
         /// <summary>
         /// Indicates if this node will compress blocks when a peer requests blocks.
         /// </summary>
-        public bool CompressBlocksOnRequest { get; set; } = NetworkConsts.DefaultCompressBlocks;
+        public bool CompressBlocksOnRequest { get; set; } = NetworkConstants.DefaultCompressBlocks;
     }
 }

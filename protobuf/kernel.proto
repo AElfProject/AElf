@@ -66,10 +66,6 @@ message StateChange {
     StateValue StateValue = 2;
 }
 
-//message TransactionList {
-//    repeated Transaction Transactions = 1;
-//}
-
 //enum TransactionResultStatus {
 //    NotExisted = 0;
 //    Pending = 1;
@@ -164,6 +160,7 @@ message BlockHeader {
     int64 Height = 7;
     repeated bytes BlockExtraDatas = 8;
     google.protobuf.Timestamp Time = 9;
+    Hash MerkleTreeRootOfTransactionStatus = 10;
     bytes SignerPubkey = 9999;
     bytes Signature = 10000;
 }

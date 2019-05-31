@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -7,7 +6,6 @@ using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -46,6 +44,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
+        private readonly ITaskQueueManager _taskQueueManager;
 
         public BlockChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
@@ -56,6 +55,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
+            _taskQueueManager = GetRequiredService<ITaskQueueManager>();
         }
         
         [Fact]
@@ -570,6 +570,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
             response.Header.ChainId.ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
             response.Header.Bloom.ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
+            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
             response.Body.TransactionsCount.ShouldBe(3);
 
             var responseTransactions = response.Body.Transactions;
@@ -601,6 +602,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
             response.Header.ChainId.ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
             response.Header.Bloom.ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
+            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
             response.Body.TransactionsCount.ShouldBe(3);
 
             var responseTransactions = response.Body.Transactions;
@@ -1032,6 +1034,33 @@ namespace AElf.WebApp.Application.Chain.Tests
                     parameters, expectedStatusCode: HttpStatusCode.Forbidden);
             errorResponse.Error.Code.ShouldBe(Error.InvalidParams.ToString());
             errorResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
+        }
+
+        [Fact]
+        public async Task GetTaskQueueStateInfos_Test()
+        {
+            var response =
+                await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
+            response.Count.ShouldBe(1);
+            
+            const string testQueueOneName = "testQueueOneName";
+            const string testQueueTwoName = "testQueueTwoName";
+            
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
+
+            response = await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
+            response.Count.ShouldBe(2);
+            response.Any(info=>info.Name == testQueueOneName).ShouldBeTrue();
+            response.First(info=>info.Name == testQueueOneName).Size.ShouldBe(1);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
+
+            response = await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
+            response.Count.ShouldBe(3);
+            response.First(info=>info.Name == testQueueTwoName).Size.ShouldBe(2);
+            response.Any(info=>info.Name == testQueueTwoName).ShouldBeTrue();
         }
         
         private Task<List<Transaction>> GenerateTwoInitializeTransaction()

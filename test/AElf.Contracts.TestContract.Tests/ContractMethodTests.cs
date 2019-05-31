@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Contracts.TestContract;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicSecurity;
@@ -312,7 +313,7 @@ namespace AElf.Contract.TestContract
                 {
                     FromAmount = 1830,
                     ToAmount = 1000,
-                    Timestamp = DateTime.UtcNow.ToTimestamp()
+                    Timestamp = TimestampHelper.GetUtcNow()
                 }
             });
 

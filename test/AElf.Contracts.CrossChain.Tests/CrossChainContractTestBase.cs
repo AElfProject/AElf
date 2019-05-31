@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Common;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
@@ -10,8 +11,10 @@ using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -168,7 +171,7 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal), new CreateProposalInput
                 {
                     ContractMethodName = methodName,
-                    ExpiredTime = DateTime.UtcNow.AddDays(1).ToTimestamp(),
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
                     Params = createProposalInput.ToByteString(),
                     ToAddress = CrossChainContractAddress,
                     OrganizationAddress = organizationAddress

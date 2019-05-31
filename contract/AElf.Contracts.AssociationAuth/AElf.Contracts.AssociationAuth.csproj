@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <IsContract>true</IsContract>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractBase>
+        <ContractCode Include="..\..\protobuf\association_auth_contract.proto">
+            <Link>Protobuf\Proto\association_auth_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+</Project>
