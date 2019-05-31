@@ -13,6 +13,8 @@ namespace AElf.OS.Network.Infrastructure
         
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         
+        IReadOnlyDictionary<long, Hash> PreLibBlockHeightAndHashMappings { get; }
+        
         IPeer FindPeerByAddress(string peerIpAddress);
         IPeer FindPeerByPublicKey(string remotePubKey);
 
@@ -23,5 +25,7 @@ namespace AElf.OS.Network.Infrastructure
         Task<Handshake> GetHandshakeAsync();
 
         void AddRecentBlockHeightAndHash(long blockHeight, Hash blockHash, bool hasFork);
+
+        void AddPreLibBlockHeightAndHash(long blockHeight, Hash blockHash);
     }
 }

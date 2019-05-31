@@ -13,7 +13,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Consensus.DPos
 {
-    public class DPoSAnnouncementReceivedEventDataHandler : ILocalEventHandler<AnnouncementReceivedEventData>
+    public class DPoSAnnouncementReceivedEventDataHandler : ILocalEventHandler<PreLibAnnouncementReceivedEventData>
     {
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IAEDPoSLastLastIrreversibleBlockDiscoveryService _idpoSLastLastIrreversibleBlockDiscoveryService;
@@ -28,10 +28,8 @@ namespace AElf.OS.Consensus.DPos
             _blockchainService = blockchainService;
         }
 
-        public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
+        public async Task HandleEventAsync(PreLibAnnouncementReceivedEventData eventData)
         {
-            //Disable network lib
-            return;
             var irreversibleBlockIndex =
                 await _idpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
                     eventData.SenderPubKey);
@@ -88,7 +86,7 @@ namespace AElf.OS.Consensus.DPos
             if (senderPeer == null)
                 return null;
 
-            var orderedBlocks = senderPeer.RecentBlockHeightAndHashMappings.OrderByDescending(p => p.Key).ToList();
+            var orderedBlocks = senderPeer.PreLibBlockHeightAndHashMappings.OrderByDescending(p => p.Key).ToList();
 
             var chain = await _blockchainService.GetChainAsync();
             var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
@@ -104,11 +102,11 @@ namespace AElf.OS.Consensus.DPos
             {
                 var peersHadBlockAmount = peers.Where(p =>
                 {
-                    p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
+                    p.PreLibBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
                     return hash == block.Value;
                 }).Count();
                 if (pubkeyList.Contains(pubKey) &&
-                    _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
+                    _peerPool.PreLibBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
                     blockHash == block.Value)
                     peersHadBlockAmount++;
 

@@ -11,6 +11,7 @@ service PeerService {
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
     
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
+    rpc PreLibAnnounce (PeerPreLibAnnouncement) returns (VoidReply) {}
     rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
 
     rpc Connect (Handshake) returns (ConnectReply) {}

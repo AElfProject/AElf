@@ -18,15 +18,20 @@ namespace AElf.OS.Network.Infrastructure
         long StartHeight { get; }
         
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+        
+        IReadOnlyDictionary<long, Hash> PreLibBlockHeightAndHashMappings { get; }
 
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
 
         void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement);
+        
+        void HandlerRemotePreLibAnnounce(PeerPreLibAnnouncement peerPreLibAnnouncement);
 
         Task SendDisconnectAsync();
         Task StopAsync();
 
         Task AnnounceAsync(PeerNewBlockAnnouncement an);
+        Task PreLibAnnounceAsync(PeerPreLibAnnouncement peerPreLibAnnouncement);
         Task SendTransactionAsync(Transaction tx);
         Task<BlockWithTransactions> RequestBlockAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);

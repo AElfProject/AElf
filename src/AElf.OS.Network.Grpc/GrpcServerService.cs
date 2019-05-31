@@ -167,6 +167,27 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new VoidReply());
         }
 
+        public override Task<VoidReply> PreLibAnnounce(PeerPreLibAnnouncement request, ServerCallContext context)
+        {
+            Logger.LogDebug($"Received pre lib announce {request.BlockHash} from {context.GetPeerInfo()}.");
+
+            if (request?.BlockHash == null)
+            {
+                Logger.LogError($"Received null pre lib announcement or header from {context.GetPeerInfo()}.");
+                return Task.FromResult(new VoidReply());
+            }
+
+            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            peerInPool?.HandlerRemotePreLibAnnounce(request);
+
+            Logger.LogTrace("Publish event for pre lib announcement received..");
+            _ = EventBus.PublishAsync(new PreLibAnnouncementReceivedEventData(context.GetPublicKey()));
+
+            Logger.LogTrace("Finish event publish.");
+            
+            return Task.FromResult(new VoidReply());
+        }
+
         /// <summary>
         /// This method returns a block. The parameter is a <see cref="BlockRequest"/> object, if the value
         /// of <see cref="BlockRequest.Id"/> is not null, the request is by ID, otherwise it will be

@@ -35,6 +35,10 @@ namespace AElf.OS.Network.Grpc
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
+        
+        public IReadOnlyDictionary<long, Hash> PreLibBlockHeightAndHashMappings { get; }
+        
+        private readonly ConcurrentDictionary<long, Hash> _preLibBlockHeightAndHashMappings;
 
         public ILogger<GrpcPeerPool> Logger { get; set; }
 
@@ -48,6 +52,8 @@ namespace AElf.OS.Network.Grpc
             _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
+            _preLibBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
+            PreLibBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_preLibBlockHeightAndHashMappings);
 
             Logger = NullLogger<GrpcPeerPool>.Instance;
         }
@@ -288,6 +294,15 @@ namespace AElf.OS.Network.Grpc
             while (_recentBlockHeightAndHashMappings.Count > 10)
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
+            }
+        }
+        
+        public void AddPreLibBlockHeightAndHash(long blockHeight,Hash blockHash)
+        {
+            _preLibBlockHeightAndHashMappings[blockHeight] = blockHash;
+            while (_preLibBlockHeightAndHashMappings.Count > 10)
+            {
+                _preLibBlockHeightAndHashMappings.TryRemove(_preLibBlockHeightAndHashMappings.Keys.Min(), out _);
             }
         }
     }

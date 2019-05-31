@@ -27,7 +27,8 @@ namespace AElf.OS.Network.Grpc
         {
             Announce,
             GetBlocks,
-            GetBlock
+            GetBlock,
+            PreLibAnnounce
         };
         
         public event EventHandler DisconnectionEvent;
@@ -57,6 +58,9 @@ namespace AElf.OS.Network.Grpc
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
+        public IReadOnlyDictionary<long, Hash> PreLibBlockHeightAndHashMappings { get; }
+        private readonly ConcurrentDictionary<long, Hash> _preLibBlockHeightAndHashMappings;
+        
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTime { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
 
@@ -74,6 +78,9 @@ namespace AElf.OS.Network.Grpc
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
+            
+            _preLibBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
+            PreLibBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_preLibBlockHeightAndHashMappings);
             
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
             RecentRequestsRoundtripTime = new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
@@ -155,6 +162,22 @@ namespace AElf.OS.Network.Grpc
 
             return RequestAsync(_client, c => c.AnnounceAsync(header, data), request);
         }
+        
+        public Task PreLibAnnounceAsync(PeerPreLibAnnouncement peerPreLibAnnouncement)
+        {
+            var request = new GrpcRequest
+            {
+                ErrorMessage = $"Broadcast announce for {peerPreLibAnnouncement.BlockHash} failed.",
+                MetricName = nameof(MetricNames.PreLibAnnounce),
+                MetricInfo = $"Block hash {peerPreLibAnnouncement.BlockHash}"
+            };
+
+            var data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
+
+            return RequestAsync(_client, c => c.PreLibAnnounceAsync(peerPreLibAnnouncement, data), request);
+        }
+        
+        
 
         public Task SendTransactionAsync(Transaction tx)
         {
@@ -287,6 +310,17 @@ namespace AElf.OS.Network.Grpc
             while (_recentBlockHeightAndHashMappings.Count > 10)
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
+            }
+        }
+
+        public void HandlerRemotePreLibAnnounce(PeerPreLibAnnouncement peerPreLibAnnouncement)
+        {
+            CurrentBlockHeight = peerPreLibAnnouncement.BlockHeight;
+            CurrentBlockHash = peerPreLibAnnouncement.BlockHash;
+            _preLibBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
+            while (_preLibBlockHeightAndHashMappings.Count > 10)
+            {
+                _preLibBlockHeightAndHashMappings.TryRemove(_preLibBlockHeightAndHashMappings.Keys.Min(), out _);
             }
         }
 
