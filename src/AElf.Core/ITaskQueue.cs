@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -7,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using Nito.AsyncEx;
 using Volo.Abp.Threading;
 
 namespace AElf
@@ -17,6 +17,7 @@ namespace AElf
         void Enqueue(Func<Task> task);
         Task StartAsync();
         Task StopAsync();
+        int Size { get; }
     }
 
     public class TaskQueue : ITaskQueue, ITransientDependency
@@ -26,6 +27,8 @@ namespace AElf
         private CancellationTokenSource _cancellationTokenSource;
 
         public ILogger<TaskQueue> Logger { get; set; }
+
+        public int Size => _queue.Count;
 
         public TaskQueue()
         {
@@ -91,6 +94,7 @@ namespace AElf
     public interface ITaskQueueManager : IDisposable
     {
         ITaskQueue GetQueue(string name = null);
+        List<TaskQueueInfo> GetQueueStatus();
     }
 
     public static class TaskQueueManagerExtensions
@@ -146,5 +150,28 @@ namespace AElf
                 return q;
             });
         }
+
+        public List<TaskQueueInfo> GetQueueStatus()
+        {
+            var result = new List<TaskQueueInfo>();
+            foreach (var taskQueueName in _taskQueues.Keys)
+            {
+                _taskQueues.TryGetValue(taskQueueName, out var queue);
+                result.Add(new TaskQueueInfo
+                {
+                    Name = taskQueueName,
+                    Size = queue?.Size ?? 0
+                });
+            }
+
+            return result;
+        }
+    }
+
+    public class TaskQueueInfo
+    {
+        public string Name { get; set; }
+
+        public int Size { get; set; }
     }
 }

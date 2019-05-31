@@ -15,6 +15,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
@@ -36,7 +37,6 @@ using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 using TokenContract = AElf.Contracts.MultiToken.Messages.TokenContractContainer.TokenContractStub;
 using ParliamentAuthContract = AElf.Contracts.ParliamentAuth.ParliamentAuthContractContainer.ParliamentAuthContractStub;
-using DividendContract = AElf.Contracts.Dividend.DividendContractContainer.DividendContractStub;
 using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
 using FeeReceiverContract = AElf.Contracts.Resource.FeeReceiver.FeeReceiverContractContainer.FeeReceiverContractStub;
 using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
@@ -109,7 +109,7 @@ namespace AElf.Contracts.TestBase
                         options.Services.Configure<ChainOptions>(o => { o.ChainId = chainId; });
                     }
 
-                    options.Services.Configure<ConsensusOptions>(o => 
+                    options.Services.Configure<ConsensusOptions>(o =>
                     {
                         var miners = new List<string>();
 
@@ -120,7 +120,7 @@ namespace AElf.Contracts.TestBase
 
                         o.InitialMiners = miners;
                         o.MiningInterval = 4000;
-                        o.StartTimestamp = DateTime.UtcNow;
+                        o.StartTimestamp = new Timestamp {Seconds = 0};
                     });
                     
                     if (keyPair != null)
@@ -264,7 +264,7 @@ namespace AElf.Contracts.TestBase
 
             if (startTimestamp == null)
             {
-                startTimestamp = DateTime.UtcNow.ToTimestamp();
+                startTimestamp = TimestampHelper.GetUtcNow();
             }
             
             var osBlockchainNodeContextService =
@@ -310,7 +310,7 @@ namespace AElf.Contracts.TestBase
                         consensusOptions.InitialMiners.Select(k => k.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
-                    consensusOptions.StartTimestamp.ToUniversalTime()));
+                    consensusOptions.StartTimestamp));
             return consensusMethodCallList;
         }
 
@@ -330,8 +330,7 @@ namespace AElf.Contracts.TestBase
                     {
                         initialMiners.Select(k => k.ToByteString())
                     }
-                }.GenerateFirstRoundOfNewTerm(miningInterval,
-                    startTimestamp.ToDateTime()));
+                }.GenerateFirstRoundOfNewTerm(miningInterval, startTimestamp));
             return consensusMethodCallList;
         }
 
@@ -504,7 +503,7 @@ namespace AElf.Contracts.TestBase
             var blockAttachService = Application.ServiceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
+                DateTime.UtcNow.ToTimestamp(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
             
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
@@ -582,7 +581,7 @@ namespace AElf.Contracts.TestBase
                 {
                     BlockHash = preBlock.GetHash(),
                     BlockHeight = preBlock.Height
-                }, tx, DateTime.UtcNow);
+                }, tx, DateTime.UtcNow.ToTimestamp());
 
             return transactionTrace.ReturnValue;
         }
@@ -599,7 +598,7 @@ namespace AElf.Contracts.TestBase
             {
                 BlockHash = preBlock.GetHash(),
                 BlockHeight = preBlock.Height
-            }, tx, dateTime);
+            }, tx, dateTime.ToTimestamp());
 
             return transactionTrace.ReturnValue;
         }

@@ -155,13 +155,13 @@ namespace AElf.OS.Node.Application
         {
             var transactions = new List<Transaction>();
 
-            transactions.Add(GetTransactionForDeployment(dto.ChainId, dto.ZeroSmartContract, Hash.Empty,
+            transactions.Add(GetTransactionForDeployment(dto.ZeroSmartContract, Hash.Empty,
                 dto.SmartContractRunnerCategory));
 
             transactions.AddRange(dto.InitializationSmartContracts
                 .Select(p =>
                 {
-                    return GetTransactionForDeployment(dto.ChainId, p.Code, p.SystemSmartContractName, dto.SmartContractRunnerCategory,
+                    return GetTransactionForDeployment(p.Code, p.SystemSmartContractName, dto.SmartContractRunnerCategory,
                         p.TransactionMethodCallList);
                 }));
             // Add transaction for initialization
@@ -194,15 +194,15 @@ namespace AElf.OS.Node.Application
             return context;
         }
 
-        private Transaction GetTransactionForDeployment(int chainId, Type contractType, Hash systemContractName,
+        private Transaction GetTransactionForDeployment(Type contractType, Hash systemContractName,
             int category, SystemContractDeploymentInput.Types.SystemTransactionMethodCallList transactionMethodCallList = null)
         {
             var code = File.ReadAllBytes(contractType.Assembly.Location);
 
-            return GetTransactionForDeployment(chainId, code, systemContractName, category, transactionMethodCallList);
+            return GetTransactionForDeployment(code, systemContractName, category, transactionMethodCallList);
         }
 
-        private Transaction GetTransactionForDeployment(int chainId, byte[] code, Hash systemContractName,
+        private Transaction GetTransactionForDeployment(byte[] code, Hash systemContractName,
             int category, SystemContractDeploymentInput.Types.SystemTransactionMethodCallList transactionMethodCallList = null)
         {
             if (transactionMethodCallList == null)

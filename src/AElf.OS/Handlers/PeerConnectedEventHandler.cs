@@ -1,13 +1,17 @@
 using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.OS.Jobs;
+using AElf.OS.BlockSync.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
@@ -17,60 +21,92 @@ namespace AElf.OS.Handlers
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
 
         private readonly IBlockchainService _blockchainService;
-
         private readonly ITaskQueueManager _taskQueueManager;
+        private readonly IBlockSyncService _blockSyncService;
+        private readonly NetworkOptions _networkOptions;
+        
+        private readonly Duration _blockSyncAnnouncementAgeLimit = new Duration {Seconds = 4};
+        private readonly Duration _blockSyncAttachBlockAgeLimit = new Duration {Seconds = 2};
 
-        private readonly BlockSyncJob _blockSyncJob;
-
-        public PeerConnectedEventHandler(IServiceProvider serviceProvider, ITaskQueueManager taskQueueManager,
-            IBlockchainService blockchainService)
+        public PeerConnectedEventHandler(ITaskQueueManager taskQueueManager,
+            IBlockchainService blockchainService,
+            IBlockSyncService blockSyncService,
+            IOptionsSnapshot<NetworkOptions> networkOptions)
         {
             _taskQueueManager = taskQueueManager;
-            _blockSyncJob = serviceProvider.GetRequiredService<BlockSyncJob>();
             _blockchainService = blockchainService;
+            _blockSyncService = blockSyncService;
+            _networkOptions = networkOptions.Value;
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
 
-        public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
+        public Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            await ProcessNewBlock(eventData, eventData.SenderPubKey);
+            ProcessNewBlockAsync(eventData, eventData.SenderPubKey);
+            return Task.CompletedTask;
         }
 
-        private async Task ProcessNewBlock(AnnouncementReceivedEventData header, string senderPubKey)
+        private async Task ProcessNewBlockAsync(AnnouncementReceivedEventData header, string senderPubKey)
         {
-            var blockHeight = header.Announce.BlockHeight;
-            var blockHash = header.Announce.BlockHash;
+            Logger.LogTrace($"Receive announcement and sync block {{ hash: {header.Announce.BlockHash}, height: {header.Announce.BlockHeight} }} from {senderPubKey}.");
 
-            Logger.LogTrace($"Receive header {{ hash: {blockHash}, height: {blockHeight} }} from {senderPubKey}.");
-
+            var announcementEnqueueTime = _blockSyncService.GetBlockSyncAnnouncementEnqueueTime();
+            if (announcementEnqueueTime != null &&
+                TimestampHelper.GetUtcNow() > announcementEnqueueTime + _blockSyncAnnouncementAgeLimit)
+            {
+                Logger.LogWarning(
+                    $"Block sync queue is too busy, enqueue timestamp: {announcementEnqueueTime.ToDateTime()}");
+                return;
+            }
+            
+            var blockSyncAttachBlockEnqueueTime = _blockSyncService.GetBlockSyncAttachBlockEnqueueTime();
+            if (blockSyncAttachBlockEnqueueTime != null &&
+                TimestampHelper.GetUtcNow() >
+                blockSyncAttachBlockEnqueueTime + _blockSyncAttachBlockAgeLimit)
+            {
+                Logger.LogWarning(
+                    $"Block sync attach queue is too busy, enqueue timestamp: {blockSyncAttachBlockEnqueueTime.ToDateTime()}");
+                return;
+            }
+            
             if (!VerifyAnnouncement(header.Announce))
             {
                 return;
             }
-
+            
             var chain = await _blockchainService.GetChainAsync();
-            if (blockHeight < chain.LastIrreversibleBlockHeight)
+            if (header.Announce.BlockHeight < chain.LastIrreversibleBlockHeight)
             {
-                Logger.LogTrace($"Receive lower header {{ hash: {blockHash}, height: {blockHeight} }} " +
+                Logger.LogTrace($"Receive lower header {{ hash: {header.Announce.BlockHash}, height: {header.Announce.BlockHeight} }} " +
                                 $"form {senderPubKey}, ignore.");
                 return;
             }
 
-            _taskQueueManager.Enqueue(async () =>
-            {
-                await _blockSyncJob.ExecuteAsync(new BlockSyncJobArgs
-                {
-                    SuggestedPeerPubKey = senderPubKey,
-                    BlockHash = blockHash,
-                    BlockHeight = blockHeight
-                });
-            }, OSConsts.BlockSyncQueueName);
+            EnqueueJob(header, senderPubKey);
         }
 
+        private void EnqueueJob(AnnouncementReceivedEventData header, string senderPubKey)
+        {
+            var enqueueTimestamp = TimestampHelper.GetUtcNow();
+            _taskQueueManager.Enqueue(async () =>
+            {
+                try
+                {
+                    _blockSyncService.SetBlockSyncAnnouncementEnqueueTime(enqueueTimestamp);
+                    await _blockSyncService.SyncBlockAsync(header.Announce.BlockHash, header.Announce.BlockHeight,
+                        _networkOptions.BlockIdRequestCount, senderPubKey);
+                }
+                finally
+                {
+                    _blockSyncService.SetBlockSyncAnnouncementEnqueueTime(null);
+                }
+            }, OSConsts.BlockSyncQueueName);
+        }
+        
         private bool VerifyAnnouncement(PeerNewBlockAnnouncement announcement)
         {
-            var allowedFutureBlockTime = DateTime.UtcNow + KernelConstants.AllowedFutureBlockTimeSpan;
-            if (allowedFutureBlockTime < announcement.BlockTime.ToDateTime())
+            var allowedFutureBlockTime = TimestampHelper.GetUtcNow() + KernelConstants.AllowedFutureBlockTimeSpan;
+            if (allowedFutureBlockTime < announcement.BlockTime)
             {
                 Logger.LogWarning($"Receive future block {announcement}");
                 return false;

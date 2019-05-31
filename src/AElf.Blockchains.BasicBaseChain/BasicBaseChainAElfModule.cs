@@ -4,6 +4,8 @@ using AElf.Contracts.Genesis;
 using AElf.CrossChain;
 using AElf.CrossChain.Grpc;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
@@ -31,8 +33,8 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
-        typeof(AEDPoSAElfModule),
         typeof(KernelAElfModule),
+        typeof(AEDPoSAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
@@ -51,6 +53,17 @@ namespace AElf.Blockchains.BasicBaseChain
     public class BasicBaseChainAElfModule : AElfModule<BasicBaseChainAElfModule>
     {
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
+
+        public override void PreConfigureServices(ServiceConfigurationContext context)
+        {
+            var configuration = context.Services.GetConfiguration();
+
+            var chainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
+            var netType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
+            context.Services.SetConfiguration(new ConfigurationBuilder().AddConfiguration(configuration)
+                .AddJsonFile($"appsettings.{chainType}.{netType}.json").SetBasePath(context.Services.GetHostingEnvironment().ContentRootPath)
+                .Build());
+        }
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -72,6 +85,8 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 option.ChainId =
                     ChainHelpers.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
+                option.ChainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
+                option.NetType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
             });
 
             Configure<HostSmartContractBridgeContextOptions>(options =>
