@@ -41,8 +41,7 @@ namespace AElf.OS.Consensus.DPos
             var an = new PeerNewBlockAnnouncement
             {
                 BlockHash = block.GetHash(),
-                BlockHeight = block.Height,
-                BlockTime = block.Header.Time
+                BlockHeight = block.Height
             };
             var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
             var announcementData = new AnnouncementReceivedEventData(an, sendKey);
@@ -57,8 +56,7 @@ namespace AElf.OS.Consensus.DPos
             var an = new PeerNewBlockAnnouncement
             {
                 BlockHash = block.GetHash(),
-                BlockHeight = block.Height,
-                BlockTime = block.Header.Time
+                BlockHeight = block.Height
             };
             var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
             var announcementData = new AnnouncementReceivedEventData(an, sendKey);
@@ -79,8 +77,7 @@ namespace AElf.OS.Consensus.DPos
                 grpcPeer.HandlerRemoteAnnounce(new PeerNewBlockAnnouncement
                 {
                     BlockHash = block.GetHash(),
-                    BlockHeight = block.Height,
-                    BlockTime = block.Header.Time
+                    BlockHeight = block.Height
                 });
             }
 

@@ -23,8 +23,7 @@ message HandshakeData {
 message PeerNewBlockAnnouncement {
     aelf.Hash BlockHash = 1;
     int64 BlockHeight = 2;
-    google.protobuf.Timestamp BlockTime = 3;
-    bool HasFork = 4;
+    bool HasFork = 3;
 }
 
 message BlockWithTransactions {
