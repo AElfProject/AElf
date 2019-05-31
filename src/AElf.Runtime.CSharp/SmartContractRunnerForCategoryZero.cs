@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -28,7 +29,7 @@ namespace AElf.Runtime.CSharp
             new ConcurrentDictionary<Hash, Type>();
 
         private readonly string _sdkDir;
-        private readonly AssemblyChecker _assemblyChecker;
+        private readonly ContractAuditor _contractAuditor;
 
         protected readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
         public SmartContractRunnerForCategoryZero(
@@ -39,7 +40,7 @@ namespace AElf.Runtime.CSharp
         {
             _sdkDir = Path.GetFullPath(sdkDir);
             _sdkStreamManager = new SdkStreamManager(_sdkDir);
-            _assemblyChecker = new AssemblyChecker(blackList, whiteList);
+            _contractAuditor = new ContractAuditor(blackList, whiteList);
             _executivePlugins = executivePlugins ?? ServiceContainerFactory<IExecutivePlugin>.Empty;
         }
 
@@ -85,7 +86,10 @@ namespace AElf.Runtime.CSharp
         /// <exception cref="InvalidCodeException">Thrown when issues are found in the code.</exception>
         public void CodeCheck(byte[] code, bool isPrivileged)
         {
-            _assemblyChecker.CodeCheck(code, isPrivileged);
+            #if !DEBUG
+            // TODO: Enable ContractAuditor in DEBUG mode until test cases timeout issue is solved
+            _contractAuditor.Audit(code, isPrivileged);
+            #endif
         }
 
         #region metadata extraction from contract code

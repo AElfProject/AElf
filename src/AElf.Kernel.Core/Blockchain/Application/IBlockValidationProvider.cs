@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.Account.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -124,7 +125,7 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             if (block.Header.Height != Constants.GenesisBlockHeight &&
-                block.Header.Time.ToDateTime() - DateTime.UtcNow > KernelConstants.AllowedFutureBlockTimeSpan)
+                block.Header.Time.ToDateTime() - TimestampHelper.GetUtcNow().ToDateTime() > KernelConstants.AllowedFutureBlockTimeSpan.ToTimeSpan())
             {
                 Logger.LogWarning($"Future block received {block}, {block.Header.Time.ToDateTime()}");
                 return false;

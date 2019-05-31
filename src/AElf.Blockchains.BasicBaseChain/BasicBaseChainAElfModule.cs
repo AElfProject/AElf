@@ -32,8 +32,8 @@ using Volo.Abp.Threading;
 namespace AElf.Blockchains.BasicBaseChain
 {
     [DependsOn(
-        typeof(AEDPoSAElfModule),
         typeof(KernelAElfModule),
+        typeof(AEDPoSAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
@@ -60,7 +60,7 @@ namespace AElf.Blockchains.BasicBaseChain
             var chainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
             var netType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
             context.Services.SetConfiguration(new ConfigurationBuilder().AddConfiguration(configuration)
-                .AddJsonFile($"appsettings.{chainType}.{netType}.json")
+                .AddJsonFile($"appsettings.{chainType}.{netType}.json").SetBasePath(context.Services.GetHostingEnvironment().ContentRootPath)
                 .Build());
         }
 

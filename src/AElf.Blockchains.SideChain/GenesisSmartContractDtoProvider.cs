@@ -92,7 +92,7 @@ namespace AElf.Blockchains.SideChain
                     IsSideChain = true
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
-                miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp.ToDateTime()));
+                miners.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval, timestamp));
             return consensusMethodCallList;
         }
 

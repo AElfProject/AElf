@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -38,12 +40,12 @@ namespace AElf.Kernel
             {
                 _taskQueueManager.Enqueue(async () =>
                 {
-                    if (eventData.BlockTime.ToTimestamp() > new Timestamp {Seconds = 3600} &&
-                        eventData.BlockTime.ToTimestamp() + eventData.BlockExecutionTime.ToDuration() <
-                        DateTime.UtcNow.ToTimestamp())
+                    if (eventData.BlockTime > new Timestamp {Seconds = 3600} &&
+                        eventData.BlockTime + eventData.BlockExecutionTime <
+                        TimestampHelper.GetUtcNow())
                     {
                         Logger.LogTrace(
-                            $"Will cancel mining due to timeout: Actual mining time: {eventData.BlockTime.ToTimestamp()}, execution limit: {eventData.BlockExecutionTime.TotalMilliseconds} ms.");
+                            $"Will cancel mining due to timeout: Actual mining time: {eventData.BlockTime}, execution limit: {eventData.BlockExecutionTime.Milliseconds()} ms.");
                         return;
                     }
 

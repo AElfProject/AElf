@@ -1,9 +1,5 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Types;
-using AElf.Kernel.Account.Application;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -43,7 +39,7 @@ namespace AElf.Kernel.Blockchain.Application
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync( block);
             validateResult.ShouldBeFalse();
 
-            block.Header.Time = DateTime.UtcNow.ToTimestamp();
+            block.Header.Time = TimestampHelper.GetUtcNow();
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
             validateResult.ShouldBeTrue();        

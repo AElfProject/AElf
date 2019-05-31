@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
@@ -15,6 +17,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly IIrreversibleBlockDiscoveryService _irreversibleBlockDiscoveryService;
 
         private readonly IBlockchainService _blockchainService;
+        
+        public ILogger<BestChainFoundEventHandler> Logger { get; set; }
 
         public BestChainFoundEventHandler(IIrreversibleBlockDiscoveryService irreversibleBlockDiscoveryService,
             ITaskQueueManager taskQueueManager, IBlockchainService blockchainService)
@@ -22,10 +26,14 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _irreversibleBlockDiscoveryService = irreversibleBlockDiscoveryService;
             _taskQueueManager = taskQueueManager;
             _blockchainService = blockchainService;
+            
+            Logger = NullLogger<BestChainFoundEventHandler>.Instance;
         }
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
+            Logger.LogDebug($"Handle best chain found for lib: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
+            
             var chain = await _blockchainService.GetChainAsync();
             var index = await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain,
                 eventData.ExecutedBlocks);
@@ -42,6 +50,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                         }
                     }, KernelConstants.UpdateChainQueueName);
             }
+            
+            Logger.LogDebug($"Finish handle best chain found for lib : BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
         }
     }
 }

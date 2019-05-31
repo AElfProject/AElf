@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Modularity;
@@ -25,9 +26,17 @@ namespace AElf.OS.Consensus.DPos
             var peerList = new List<IPeer>();
             for (int i = 0; i < 3; i++)
             {
-                var peer = new GrpcPeer(null, null, $"bp{i + 1}-pubkey", $"127.0.0.1:68{i + 1}0",
-                    KernelConstants.ProtocolVersion, DateTime.UtcNow.ToTimestamp().Seconds, 1);
-                peerList.Add(peer);
+                var connectionInfo = new GrpcPeerInfo
+                {
+                    PublicKey = $"bp{i + 1}-pubkey", 
+                    PeerIpAddress = $"127.0.0.1:68{i + 1}0",
+                    ProtocolVersion = KernelConstants.ProtocolVersion,
+                    ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                    StartHeight = 1,
+                    IsInbound = true
+                };
+                
+                peerList.Add(new GrpcPeer(null, null, connectionInfo));
             }
             
             services.AddTransient(o =>

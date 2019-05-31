@@ -1,5 +1,4 @@
 using Acs7;
-using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -37,6 +36,7 @@ namespace AElf.Contracts.CrossChain
         public Int32State ParentChainId { get; set; }
         public Int64State CreationHeightOnParentChain { get; set; }
         public MappedState<long, Hash> ParentChainTransactionStatusMerkleTreeRoot { get; set; }
+        
         #endregion
     }
 }

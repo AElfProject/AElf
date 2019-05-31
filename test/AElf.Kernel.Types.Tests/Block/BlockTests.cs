@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using AElf.Common;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -119,7 +120,7 @@ namespace AElf.Kernel.Types.Tests
 
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
-            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+            block.Header.Time = TimestampHelper.GetUtcNow();
             block.Header.Height = height;
             var transactionItems = GenerateFakeTransactions(3);
             block.Body.Transactions.AddRange(transactionItems.Item2);
