@@ -158,21 +158,18 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
         {
-            Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
-
             if (an?.BlockHash == null || an?.BlockTime == null)
             {
                 Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
                 return Task.FromResult(new VoidReply());
             }
+            
+            Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
 
             var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
             peerInPool?.HandlerRemoteAnnounce(an);
 
-            Logger.LogTrace("Publish event for announcement received..");
             _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
-
-            Logger.LogTrace("Finish event publish.");
             
             return Task.FromResult(new VoidReply());
         }
