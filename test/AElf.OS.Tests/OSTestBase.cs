@@ -10,11 +10,6 @@ namespace AElf.OS
         
     }
 
-    public class SyncTestBase : AElfIntegratedTest<SyncTestModule>
-    {
-        
-    }
-
     public class BlockSyncTestBase : AElfIntegratedTest<BlockSyncTestAElfModule>
     {
         
