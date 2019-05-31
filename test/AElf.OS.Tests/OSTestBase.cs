@@ -24,6 +24,11 @@ namespace AElf.OS
     {
         
     }
+    
+    public class BlockSyncTestBase : AElfIntegratedTest<BlockSyncTestAElfModule>
+    {
+        
+    }
 
     public class BlockSyncForkedTestBase : AElfIntegratedTest<BlockSyncForkedTestAElfModule>
     {

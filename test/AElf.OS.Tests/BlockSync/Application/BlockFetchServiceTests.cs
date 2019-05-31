@@ -7,7 +7,7 @@ using Xunit;
 
 namespace AElf.OS.BlockSync.Application
 {
-    public class BlockFetchServiceTests : BlockSyncForkedTestBase
+    public class BlockFetchServiceTests : BlockSyncTestBase
     {
         private readonly IBlockFetchService _blockFetchService;
         private readonly INetworkService _networkService;
@@ -24,7 +24,7 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task SyncBlock_Success()
+        public async Task FetchBlock_Success()
         {
             var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
 
@@ -41,7 +41,7 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task SyncBlock_AlreadyExist_Success()
+        public async Task FetchBlock_AlreadyExist_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
             var fetchResult = await _blockFetchService.FetchBlockAsync(chain.BestChainHash, chain.BestChainHeight, null);
@@ -51,7 +51,7 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task SyncBlock_ReturnNull_Failure()
+        public async Task FetchBlock_ReturnNull_Failure()
         {
             var fetchResult = await _blockFetchService.FetchBlockAsync(Hash.Empty, 0, null);
             _blockSyncTestHelper.DisposeQueue();

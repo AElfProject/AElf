@@ -9,7 +9,6 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -17,7 +16,7 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
-namespace AElf.OS.BlockSync
+namespace AElf.OS
 {
     [DependsOn(typeof(OSTestAElfModule))]
     public class BlockSyncForkedTestAElfModule : AElfModule
@@ -42,32 +41,6 @@ namespace AElf.OS.BlockSync
                     });
                 
                 return networkServiceMock.Object;
-            });
-            
-
-            context.Services.AddSingleton<IPeerPool>(o =>
-            {
-                Mock<IPeer> peerMock = new Mock<IPeer>();
-
-                peerMock.Setup(p => p.CurrentBlockHeight).Returns(15);
-                peerMock.Setup(p => p.PubKey).Returns("PubKey");
-                peerMock.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
-                    .Returns<Hash, int>((hash, cnt) => 
-                    {
-                        var requested = _blockList.FirstOrDefault(b => b.GetHash() == hash);
-                        
-                        if (requested == null)
-                            return Task.FromResult(new List<BlockWithTransactions>());
-                        
-                        var selection = _blockList.Where(b => b.Height > requested.Height).Select(b => new BlockWithTransactions {Header = b.Header}).OrderBy(b => b.Height).Take(cnt).ToList();
-                        return Task.FromResult(selection);
-                    });
-
-                Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
-                peerPoolMock.Setup(p => p.FindPeerByAddress(It.IsAny<string>())).Returns<string>(adr => peerMock.Object);
-                peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>())).Returns(new List<IPeer> { peerMock.Object });
-
-                return peerPoolMock.Object;
             });
         }
 
