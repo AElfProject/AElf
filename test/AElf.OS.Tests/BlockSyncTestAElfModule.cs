@@ -21,7 +21,7 @@ namespace AElf.OS
     [DependsOn(typeof(OSTestAElfModule))]
     public class BlockSyncTestAElfModule : AElfModule
     {
-        private readonly Dictionary<Hash,Block> _blockList = new Dictionary<Hash,Block>();
+        private readonly Dictionary<Hash,Block> _peerBlockList = new Dictionary<Hash,Block>();
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -35,7 +35,9 @@ namespace AElf.OS
                         BlockWithTransactions result = null;
                         if (hash != Hash.Empty)
                         {
-                            result = new BlockWithTransactions {Header = _blockList.Last().Value.Header};
+                            var blockchainService = context.Services.GetServiceLazy<IBlockchainService>().Value;
+                            var chain = AsyncHelper.RunSync(() => blockchainService.GetChainAsync());
+                            result = new BlockWithTransactions {Header = _peerBlockList[chain.BestChainHash].Header};
                         }
 
                         return Task.FromResult(result);
@@ -50,7 +52,7 @@ namespace AElf.OS
 
                         var hash = previousBlockHash;
                         
-                        while (result.Count < count && _blockList.TryGetValue(hash, out var block))
+                        while (result.Count < count && _peerBlockList.TryGetValue(hash, out var block))
                         {
                             result.Add(new BlockWithTransactions {Header = block.Header});
 
@@ -77,7 +79,7 @@ namespace AElf.OS
             
             foreach (var block in osTestHelper.BestBranchBlockList)
             {
-                _blockList.Add(block.Header.PreviousBlockHash,block);
+                _peerBlockList.Add(block.Header.PreviousBlockHash,block);
             }
             
             var bestBranchHeight = height;
@@ -97,7 +99,7 @@ namespace AElf.OS
                 previousBlockHash = newNewBlock.GetHash();
                 height++;
                         
-                _blockList.Add(newNewBlock.Header.PreviousBlockHash,newNewBlock);
+                _peerBlockList.Add(newNewBlock.Header.PreviousBlockHash,newNewBlock);
             }
         }
     }
