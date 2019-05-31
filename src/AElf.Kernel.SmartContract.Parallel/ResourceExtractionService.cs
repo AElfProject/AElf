@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -17,20 +19,26 @@ namespace AElf.Kernel.SmartContract.Parallel
             _smartContractExecutiveService = smartContractExecutiveService;
         }
 
-        public async Task<IEnumerable<TransactionResourceInfo>> GetResourcesAsync(IChainContext chainContext,
-            IEnumerable<Transaction> transactions)
+        public async Task<IEnumerable<(Transaction, TransactionResourceInfo)>> GetResourcesAsync(IChainContext chainContext,
+            IEnumerable<Transaction> transactions, CancellationToken ct)
         {
-            // TODO: Set timeout, maybe assume not parallelizable if timed out
-            var tasks = transactions.Select(t => GetResourcesForOneAsync(chainContext, t));
+            var tasks = transactions.Select(t => GetResourcesForOneAsync(chainContext, t, ct));
             return await Task.WhenAll(tasks);
         }
 
-        private async Task<TransactionResourceInfo> GetResourcesForOneAsync(IChainContext chainContext,
-            Transaction transaction)
+        private async Task<(Transaction, TransactionResourceInfo)> GetResourcesForOneAsync(IChainContext chainContext,
+            Transaction transaction, CancellationToken ct)
         {
             IExecutive executive = null;
             var address = transaction.To;
 
+            if (ct.IsCancellationRequested)
+                return (transaction, new TransactionResourceInfo()
+                {
+                    TransactionId = transaction.GetHash(),
+                    NonParallelizable = true
+                });
+            
             try
             {
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);

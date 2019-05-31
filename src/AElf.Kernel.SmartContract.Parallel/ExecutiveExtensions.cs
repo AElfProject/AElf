@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Acs2;
 using AElf.Common;
@@ -14,7 +15,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 {
     internal static class ExecutiveExtensions
     {
-        public static async Task<TransactionResourceInfo> GetTransactionResourceInfoAsync(this IExecutive executive,
+        public static async Task<(Transaction, TransactionResourceInfo)> GetTransactionResourceInfoAsync(this IExecutive executive,
             IChainContext chainContext, Transaction input)
         {
             var generatedTxn = new Transaction
@@ -29,7 +30,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var txId = input.GetHash();
             if (!IsParallelizable(executive))
             {
-                return NotParallelizable(txId);
+                return (input, NotParallelizable(txId));
             }
 
             var trace = new TransactionTrace
@@ -51,11 +52,11 @@ namespace AElf.Kernel.SmartContract.Parallel
             await executive.ApplyAsync(transactionContext);
             if (!trace.IsSuccessful())
             {
-                return NotParallelizable(txId);
+                return (input, NotParallelizable(txId));
             }
 
             var resourceInfo = ResourceInfo.Parser.ParseFrom(trace.ReturnValue);
-            return new TransactionResourceInfo
+            return (input, new TransactionResourceInfo
             {
                 TransactionId = txId,
                 Resources =
@@ -63,7 +64,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     resourceInfo.Reources
                 },
                 NonParallelizable = resourceInfo.NonParallelizable
-            };
+            });
         }
 
         private static bool IsParallelizable(this IExecutive executive)
