@@ -40,11 +40,11 @@ namespace AElf.OS
                 var netMock = new Mock<INetworkService>();
                 
                 netMock.Setup(ns =>
-                    ns.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("linkable")), It.IsAny<string>(), It.IsAny<bool>()))
+                    ns.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("linkable")), It.IsAny<string>()))
                     .Returns(Task.FromResult(block));
                 
                 netMock.Setup(ns =>
-                        ns.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("unlinkable")), It.IsAny<string>(), It.IsAny<bool>()))
+                        ns.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("unlinkable")), It.IsAny<string>()))
                     .Returns(Task.FromResult(block2));
                 
                 return netMock.Object;

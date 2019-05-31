@@ -27,7 +27,7 @@ namespace AElf.Contracts.Election
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
-        protected Timestamp StartTimestamp => DateTime.UtcNow.ToTimestamp();
+        protected Timestamp StartTimestamp => TimestampHelper.GetUtcNow();
 
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs[0];
 

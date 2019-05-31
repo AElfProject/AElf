@@ -60,7 +60,7 @@ namespace AElf.OS.Consensus.DPos
             var blocks = osTestHelper.BestBranchBlockList.GetRange(0, 6);
             foreach (var block in blocks)
             {
-                peerPool.AddRecentBlockHeightAndHash(block.Height,block.GetHash());
+                peerPool.AddRecentBlockHeightAndHash(block.Height,block.GetHash(),false);
             }
         }
     }

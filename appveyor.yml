@@ -24,5 +24,3 @@ build_script:
   - ps: dotnet build AElf.Console.sln
   - ps: dotnet build AElf.sln
   - ps: dotnet test AElf.sln
-  - ps: dotnet build AElf.Management.sln
-  - ps: dotnet test AElf.Management.sln
