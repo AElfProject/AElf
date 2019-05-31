@@ -9,6 +9,11 @@ namespace AElf.Kernel
 {
     public partial class TransactionTrace
     {
+        partial void OnConstruction()
+        {
+            StateSet = new TransactionExecutingStateSet();
+        }
+
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
 
