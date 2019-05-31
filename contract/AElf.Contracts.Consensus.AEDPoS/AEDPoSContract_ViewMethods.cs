@@ -147,81 +147,105 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return victories.PublicKeys.Any();
         }
 
-        private void ShareAndRecoverInValue(Round round, Round previousRound, Hash inValue, string publicKey)
+        private void ShareInValueOfCurrentRound(Round currentRound, Round previousRound, Hash inValue, string publicKey)
         {
-            var minersCount = round.RealTimeMinersInformation.Count;
-            var minimumCount = (int) (minersCount * 2m / 3);
+            var minersCount = currentRound.RealTimeMinersInformation.Count;
+            var minimumCount = minersCount.Mul(2).Div(3);
             minimumCount = minimumCount == 0 ? 1 : minimumCount;
 
             var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToHex(), minimumCount, minersCount);
-            foreach (var pair in round.RealTimeMinersInformation.OrderBy(m => m.Value.Order))
+            foreach (var pair in currentRound.RealTimeMinersInformation.OrderBy(m => m.Value.Order))
             {
-                var currentPublicKey = pair.Key;
+                var publicKeyOfAnotherMine = pair.Key;
 
-                if (!round.RealTimeMinersInformation.ContainsKey(publicKey))
+                if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
                 {
                     return;
                 }
 
-                if (currentPublicKey == publicKey)
+                if (publicKeyOfAnotherMine == publicKey)
                 {
                     continue;
                 }
 
+                // Share in value of current round:
                 // Encrypt every secret share with other miner's public key, then fill own EncryptedInValues field.
                 var plainMessage = Encoding.UTF8.GetBytes(secretShares[pair.Value.Order - 1]);
-                var receiverPublicKey = ByteArrayHelpers.FromHexString(currentPublicKey);
+                var receiverPublicKey = ByteArrayHelpers.FromHexString(publicKeyOfAnotherMine);
                 var encryptedInValue = Context.EncryptMessage(receiverPublicKey, plainMessage);
-                round.RealTimeMinersInformation[publicKey].EncryptedInValues
-                    .Add(currentPublicKey, ByteString.CopyFrom(encryptedInValue));
+                currentRound.RealTimeMinersInformation[publicKey].EncryptedInValues
+                    .Add(publicKeyOfAnotherMine, ByteString.CopyFrom(encryptedInValue));
 
-                if (previousRound.RoundId == 0 || round.TermNumber != previousRound.TermNumber)
+                if (IsFirstRoundOfCurrentTerm(out _))
                 {
+                    // First round of every term don't have previous in values.
                     continue;
                 }
 
-                if (!previousRound.RealTimeMinersInformation.ContainsKey(currentPublicKey))
+                if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKeyOfAnotherMine))
                 {
                     continue;
                 }
+                
+                if (currentRound.RealTimeMinersInformation[publicKeyOfAnotherMine].PreviousInValue != null)
+                {
+                    // No need to decrypt shares of miners who already revealed their previous in values.
+                    continue;
+                }
 
-                var encryptedInValues = previousRound.RealTimeMinersInformation[currentPublicKey].EncryptedInValues;
+                var encryptedInValues = previousRound.RealTimeMinersInformation[publicKeyOfAnotherMine].EncryptedInValues;
                 if (encryptedInValues.Any())
                 {
                     var interestingMessage = encryptedInValues[publicKey];
-                    var senderPublicKey = ByteArrayHelpers.FromHexString(currentPublicKey);
+                    var senderPublicKey = ByteArrayHelpers.FromHexString(publicKeyOfAnotherMine);
                     // Decrypt every miner's secret share then add a result to other miner's DecryptedInValues field.
                     var decryptedInValue = Context.DecryptMessage(senderPublicKey, interestingMessage.ToByteArray());
-                    round.RealTimeMinersInformation[pair.Key].DecryptedPreviousInValues
+                    currentRound.RealTimeMinersInformation[pair.Key].DecryptedPreviousInValues
                         .Add(publicKey, ByteString.CopyFrom(decryptedInValue));
                 }
+            }
+        }
 
-                if (pair.Value.DecryptedPreviousInValues.Count < minimumCount)
+        private void RevealSharedInValues(Round previousRound, string publicKey)
+        {
+            if (!TryToGetRoundInformation(previousRound.RoundNumber.Sub(1), out var round)) return;
+            var minersCount = previousRound.RealTimeMinersInformation.Count;
+            var minimumCount = minersCount.Mul(2).Div(3);
+            minimumCount = minimumCount == 0 ? 1 : minimumCount;
+            foreach (var pair in previousRound.RealTimeMinersInformation)
+            {
+                var publicKeyOfAnotherMine = pair.Key;
+
+                if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKey))
+                {
+                    return;
+                }
+                
+                if (publicKeyOfAnotherMine == publicKey)
                 {
                     continue;
                 }
-
-                // TODO: Know this before.
-                Context.LogDebug(() => "Now it's enough to recover previous in values.");
-
+                
                 // Try to recover others' previous in value.
                 var orders = pair.Value.DecryptedPreviousInValues.Select((t, i) =>
-                        previousRound.RealTimeMinersInformation.Values
+                        round.RealTimeMinersInformation.Values
                             .First(m => m.PublicKey == pair.Value.DecryptedPreviousInValues.Keys.ToList()[i]).Order)
                     .ToList();
 
-                var previousInValue = Hash.LoadHex(SecretSharingHelper.DecodeSecret(
+                var revealedInValue = Hash.LoadHex(SecretSharingHelper.DecodeSecret(
                     pair.Value.DecryptedPreviousInValues.Values.ToList()
                         .Select(s => Encoding.UTF8.GetString(s.ToByteArray())).ToList(),
                     orders, minimumCount));
-                if (round.RealTimeMinersInformation[pair.Key].PreviousInValue != null &&
-                    round.RealTimeMinersInformation[pair.Key].PreviousInValue != previousInValue)
+                if (previousRound.RealTimeMinersInformation[pair.Key].PreviousInValue != null &&
+                    previousRound.RealTimeMinersInformation[pair.Key].PreviousInValue != revealedInValue)
                 {
                     Context.LogDebug(() => $"Different previous in value: {pair.Key}");
                 }
 
-                round.RealTimeMinersInformation[pair.Key].PreviousInValue = previousInValue;
+                previousRound.RealTimeMinersInformation[pair.Key].PreviousInValue = revealedInValue;
             }
+
+            TryToUpdateRoundInformation(previousRound);
         }
 
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp currentBlockTime, out Round nextRound)

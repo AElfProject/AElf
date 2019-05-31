@@ -41,7 +41,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (GetExtraBlockProducerInformation().PublicKey == publicKey)
             {
-                var distance = (GetExtraBlockMiningTime() - dateTime).Milliseconds();
+                var distance = (GetExtraBlockMiningTime().AddMilliseconds(miningInterval) - dateTime).Milliseconds();
                 if (distance > 0)
                 {
                     return GetExtraBlockMiningTime();

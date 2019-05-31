@@ -43,7 +43,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var updatedRound = currentRound.ApplyNormalConsensusData(publicKey, previousInValue,
                 outValue, signature);
 
-            ShareAndRecoverInValue(updatedRound, previousRound, inValue, publicKey);
+            ShareInValueOfCurrentRound(updatedRound, previousRound, inValue, publicKey);
+
+            RevealSharedInValues(previousRound, publicKey);
 
             // To publish Out Value.
             return new AElfConsensusHeaderInformation
