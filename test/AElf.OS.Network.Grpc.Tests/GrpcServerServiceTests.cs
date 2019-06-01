@@ -108,7 +108,7 @@ namespace AElf.OS.Network
             tx.To = Address.Generate();
 
             var chain = await  _blockchainService.GetChainAsync();
-            tx.RefBlockNumber = chain.BestChainHeight + NetworkConsts.DefaultMinBlockGapBeforeSync + 1;
+            tx.RefBlockNumber = chain.BestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync + 1;
             
             await _service.SendTransaction(tx, BuildServerCallContext());
             
