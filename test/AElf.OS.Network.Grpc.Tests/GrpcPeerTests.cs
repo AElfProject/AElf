@@ -94,8 +94,7 @@ namespace AElf.OS.Network
             var header = new PeerNewBlockAnnouncement
             {
                 BlockHeight = 100,
-                BlockHash = Hash.Generate(),
-                BlockTime = TimestampHelper.GetUtcNow()
+                BlockHash = Hash.Generate()
             };
 
             await _grpcPeer.AnnounceAsync(header);
