@@ -151,6 +151,10 @@ namespace AElf.Kernel
                 Body = new BlockBody()
             };
             
+//            var newBlock = new Block(previousBlockHash);
+//            newBlock.Header.Height = previousBlockHeight + 1;
+//            newBlock.Header.Time = TimestampHelper.GetUtcNow();
+//            
             foreach (var transaction in transactions)
             {
                 newBlock.AddTransaction(transaction);

@@ -57,10 +57,10 @@ namespace AElf.Contracts.CrossChain
         public override SInt64Value GetParentChainHeight(Empty input)
         {            
             var parentChainHeight = State.CurrentParentChainHeight.Value;
-            return new SInt64Value()
+            return new SInt64Value
             {
-                Value = parentChainHeight == 0 ? State.CreationHeightOnParentChain.Value - 1 : parentChainHeight
-            }; // from parent chain height of creation
+                Value = parentChainHeight
+            };
         }
 
         public override SInt32Value GetParentChainId(Empty input)
@@ -102,11 +102,8 @@ namespace AElf.Contracts.CrossChain
 
             if (State.ParentChainId.Value == 0)
                 return dict;
-            var parentChainHeight = State.CurrentParentChainHeight.Value;
-
-            var lastParentChainHeight =
-                parentChainHeight == 0 ? State.CreationHeightOnParentChain.Value - 1 : parentChainHeight; // from parent chain height of creation
-            dict.IdHeightDict.Add(State.ParentChainId.Value, lastParentChainHeight); 
+            var parentChainHeight = GetParentChainHeight(new Empty()).Value;
+            dict.IdHeightDict.Add(State.ParentChainId.Value, parentChainHeight); 
             return dict;
         }
 

@@ -45,16 +45,14 @@ namespace AElf.Benchmark
         {
             var chain = await _blockchainService.GetChainAsync();
 
-            _block = new Block
+            _block = new Block(chain.BestChainHash)
             {
                 Header = new BlockHeader
                 {
                     ChainId = chain.Id,
                     Height = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash,
                     Time = TimestampHelper.GetUtcNow()
-                },
-                Body = new BlockBody()
+                }
             };
 
             _transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
