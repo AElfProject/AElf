@@ -161,22 +161,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new ValidationResult {Success = true};
         }
-
-        private bool ValidatePreviousInValue(AElfConsensusHeaderInformation extraData)
-        {
-            var publicKey = extraData.SenderPublicKey.ToHex();
-
-            if (!TryToGetPreviousRoundInformation(out var previousRound)) return true;
-
-            if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKey)) return true;
-
-            if (extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue == null) return true;
-
-            var previousOutValue = previousRound.RealTimeMinersInformation[publicKey].OutValue;
-            var previousInValue = extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue;
-            if (previousInValue == Hash.Empty) return true;
-
-            return Hash.FromMessage(previousInValue) == previousOutValue;
-        }
     }
 }

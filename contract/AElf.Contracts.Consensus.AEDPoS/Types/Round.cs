@@ -22,7 +22,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// Also, the mining interval shouldn't be 0.
         /// </summary>
         /// <returns></returns>
-        public ValidationResult CheckTimeSlots()
+        public ValidationResult CheckRoundTimeSlots()
         {
             var miners = RealTimeMinersInformation.Values.OrderBy(m => m.Order).ToList();
             if (miners.Count == 1)
@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (miners.Any(m => m.ExpectedMiningTime == null))
             {
-                return new ValidationResult {Success = false, Message = "Incorrect expected mining time."};
+                return new ValidationResult {Message = "Incorrect expected mining time."};
             }
 
             var baseMiningInterval =
@@ -51,7 +51,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     (miners[i + 1].ExpectedMiningTime - miners[i].ExpectedMiningTime).Milliseconds();
                 if (Math.Abs(miningInterval - baseMiningInterval) > baseMiningInterval)
                 {
-                    return new ValidationResult {Success = false, Message = "Time slots are so different."};
+                    return new ValidationResult {Message = "Time slots are so different."};
                 }
             }
 
