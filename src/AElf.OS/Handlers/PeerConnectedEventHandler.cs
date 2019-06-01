@@ -69,11 +69,6 @@ namespace AElf.OS.Handlers
                 return;
             }
             
-            if (!VerifyAnnouncement(header.Announce))
-            {
-                return;
-            }
-            
             var chain = await _blockchainService.GetChainAsync();
             if (header.Announce.BlockHeight < chain.LastIrreversibleBlockHeight)
             {
@@ -101,18 +96,6 @@ namespace AElf.OS.Handlers
                     _blockSyncService.SetBlockSyncAnnouncementEnqueueTime(null);
                 }
             }, OSConsts.BlockSyncQueueName);
-        }
-        
-        private bool VerifyAnnouncement(PeerNewBlockAnnouncement announcement)
-        {
-            var allowedFutureBlockTime = TimestampHelper.GetUtcNow() + KernelConstants.AllowedFutureBlockTimeSpan;
-            if (allowedFutureBlockTime < announcement.BlockTime)
-            {
-                Logger.LogWarning($"Receive future block {announcement}");
-                return false;
-            }
-
-            return true;
-        }
+        }        
     }
 }
