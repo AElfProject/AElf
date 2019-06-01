@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace AElf.OS.Network
@@ -8,21 +9,23 @@ namespace AElf.OS.Network
         /// Initial set of nodes.
         /// </summary>
         public List<string> BootNodes { get; set; }
+
+        /// <summary>
+        /// Indicates the types of peers that are authorized to connect to this node.
+        /// Use ProducersAndAllowed in conjunction with <see cref="AuthorizedKeys"/>.
+        /// </summary>
+        public AuthorizedPeers AuthorizedPeers { get; set; } = AuthorizedPeers.Any;
         
+        /// <summary>
+        /// A list of allowed public key that are allowed to connect to the node.
+        /// This will be used when <see cref="AuthorizedPeers"/> is set to MinersAndAuthorized.
+        /// </summary>
+        public List<string> AuthorizedKeys { get; set; }
+
         /// <summary>
         /// Node Server listening Port.
         /// </summary>
         public int ListeningPort { get; set; }
-        
-        /// <summary>
-        /// Value that determines which type of peers can connect to the node.
-        /// </summary>
-        public string NetAllowed { get; set; }
-        
-        /// <summary>
-        /// The white-listed public keys when NetAllowed = Listed.
-        /// </summary>
-        public List<string> NetWhitelist { get; set; }
 
         /// <summary>
         /// The maximum number of peers accepted by this node (0 for no limit).
@@ -43,5 +46,13 @@ namespace AElf.OS.Network
         /// Indicates if this node will compress blocks when a peer requests blocks.
         /// </summary>
         public bool CompressBlocksOnRequest { get; set; } = NetworkConstants.DefaultCompressBlocks;
+    }
+    
+    [Flags]
+    public enum AuthorizedPeers
+    {
+        Any,
+        MinersAndAuthorized,
+        MinersOnly,
     }
 }

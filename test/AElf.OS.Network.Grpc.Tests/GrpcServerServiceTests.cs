@@ -1,13 +1,10 @@
-using System;
-using System.Data;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
@@ -16,10 +13,11 @@ using AElf.OS.Network.Infrastructure;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
+using Microsoft.Extensions.Options;
+using Moq;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
@@ -34,6 +32,8 @@ namespace AElf.OS.Network
         private readonly IPeerPool _peerPool;
         private readonly ILocalEventBus _eventBus;
 
+        private readonly TestNodeCollection _testNodeCollection;
+
         public GrpcServerServiceTests()
         {
             _networkServer = GetRequiredService<IAElfNetworkServer>();
@@ -41,6 +41,8 @@ namespace AElf.OS.Network
             _blockchainService = GetRequiredService<IBlockchainService>();
             _peerPool = GetRequiredService<IPeerPool>();
             _eventBus = GetRequiredService<ILocalEventBus>();
+
+            _testNodeCollection = GetRequiredService<TestNodeCollection>();
         }
 
         private ServerCallContext BuildServerCallContext(Metadata metadata = null, string address = null)
@@ -236,7 +238,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Connect_Invalid()
         {
-            //invalid handshake
+            // invalid handshake
             {
                 var handshake = new Handshake();
                 var metadata = new Metadata
@@ -247,7 +249,7 @@ namespace AElf.OS.Network
                 connectReply.Err.ShouldBe(AuthError.InvalidHandshake);
             }
             
-            //wrong sig
+            // wrong sig
             {
                 var handshake = await _peerPool.GetHandshakeAsync();
                 handshake.HskData.PublicKey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey);
@@ -260,7 +262,7 @@ namespace AElf.OS.Network
                 connectReply.Err.ShouldBe(AuthError.WrongSig);
             }
             
-            //invalid peer
+            // invalid peer
             {
                 var handshake = await _peerPool.GetHandshakeAsync();
                 var metadata = new Metadata
@@ -270,6 +272,81 @@ namespace AElf.OS.Network
                 var connectReply = await _service.Connect(handshake, context);
                 connectReply.Err.ShouldBe(AuthError.InvalidPeer);
             }
+        }
+        
+        [Fact]
+        public async Task OnlyMiners_Test()
+        {
+            // get the service to be able to switch the options
+            var serverService = _service as GrpcServerService;
+            
+            // miners only options
+            var minersOnlyOptions = new NetworkOptions {
+                AuthorizedPeers = AuthorizedPeers.MinersOnly
+            };
+            
+            // change the options
+            serverService.NetworkOptionsSnapshot = CreateIOptionSnapshotMock(minersOnlyOptions);
+            
+            var context = BuildServerCallContext(null, "ipv4:127.0.0.1:2000");
+            
+            {
+                var minerKeyPair = _testNodeCollection.MinerNodes.First();
+
+                // handshake as BP
+                var handshake = CreateHandshake(minerKeyPair);
+                var connectReply = await _service.Connect(handshake, context);
+
+                connectReply.Err.ShouldBe(AuthError.None);
+            }
+
+            {
+                var nonMinerKeyPair = _testNodeCollection.OtherNodes.First();
+
+                // handshake as non miner
+                var handshake = CreateHandshake(nonMinerKeyPair);
+                var connectReply = await _service.Connect(handshake, context); 
+                
+                connectReply.Err.ShouldBe(AuthError.ConnectionRefused);
+            }
+        }
+
+        [Fact]
+        public async Task OnlyMinersAndAuthorized_Test()
+        {
+            // get the service to be able to switch the options
+            var serverService = _service as GrpcServerService;
+            
+            // miners only options
+            var minersOnlyOptions = new NetworkOptions {
+                AuthorizedPeers = AuthorizedPeers.MinersAndAuthorized,
+                AuthorizedKeys = new List<string> { /* empty */ }
+            };
+            
+            // change the options
+            serverService.NetworkOptionsSnapshot = CreateIOptionSnapshotMock(minersOnlyOptions);
+            
+            var nonMinerKeyPair = _testNodeCollection.OtherNodes.First();
+
+            var context = BuildServerCallContext(null, "ipv4:127.0.0.1:2000");
+            
+            // handshake as non miner
+            var handshake = CreateHandshake(nonMinerKeyPair);
+            
+            var connectReply = await _service.Connect(handshake, context); 
+            connectReply.Err.ShouldBe(AuthError.ConnectionRefused);
+            
+            minersOnlyOptions.AuthorizedKeys.Add(nonMinerKeyPair.PublicKey.ToHex());
+            
+            var connectReplyOk = await _service.Connect(handshake, context); 
+            connectReplyOk.Err.ShouldBe(AuthError.None);
+        }
+        
+        public static IOptionsSnapshot<T> CreateIOptionSnapshotMock<T>(T value) where T : class, new()
+        {
+            var mock = new Mock<IOptionsSnapshot<T>>();
+            mock.Setup(m => m.Value).Returns(value);
+            return mock.Object;
         }
         
         [Fact]

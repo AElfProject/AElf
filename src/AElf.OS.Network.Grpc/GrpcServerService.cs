@@ -1,23 +1,21 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Secp256k1Net;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
@@ -33,17 +31,20 @@ namespace AElf.OS.Network.Grpc
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
         
         private readonly IPeerPool _peerPool;
-        private readonly IBlockchainService _blockChainService;
+        private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
+        private readonly IAEDPoSInformationProvider _aedPoSInformationProvider;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockChainService, IAccountService accountService)
+        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService, 
+            IAEDPoSInformationProvider aedPoSInformationProvider)
         {
             _peerPool = peerPool;
-            _blockChainService = blockChainService;
+            _blockchainService = blockchainService;
             _accountService = accountService;
+            _aedPoSInformationProvider = aedPoSInformationProvider;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -72,7 +73,7 @@ namespace AElf.OS.Network.Grpc
                 return new ConnectReply { Err = AuthError.InvalidHandshake };
 
             // verify chain id
-            if (handshake.HskData.ChainId != _blockChainService.GetChainId())
+            if (handshake.HskData.ChainId != _blockchainService.GetChainId())
                 return new ConnectReply { Err = AuthError.ChainMismatch };
 
             // verify protocol
@@ -92,6 +93,32 @@ namespace AElf.OS.Network.Grpc
                 return new ConnectReply { Err = AuthError.InvalidPeer };
             
             var pubKey = handshake.HskData.PublicKey.ToHex();
+
+            if (NetworkOptions.AuthorizedPeers != AuthorizedPeers.Any)
+            {
+                var chain = await _blockchainService.GetChainAsync();
+                var chainContext = new ChainContext
+                    { BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight };
+                
+                var isMiner = await _aedPoSInformationProvider.IsInMinerList(chainContext, pubKey);
+
+                // The peer is not a miner and this node only accepts miners.
+                if (!isMiner && NetworkOptions.AuthorizedPeers == AuthorizedPeers.MinersOnly)
+                {
+                    Logger.LogDebug($"Peer {pubKey} is not a miner and authorized are only miners.");
+                    return new ConnectReply { Err = AuthError.ConnectionRefused };
+                }
+                
+                // This node accepts miners as well as specified nodes.
+                if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.MinersAndAuthorized)
+                {
+                    if (!isMiner && !NetworkOptions.AuthorizedKeys.Contains(pubKey))
+                    {
+                        Logger.LogDebug($"Peer {pubKey} is not a miner and not in the authorized list.");
+                        return new ConnectReply { Err = AuthError.ConnectionRefused };
+                    }
+                }
+            }
             
             var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
 
@@ -186,7 +213,7 @@ namespace AElf.OS.Network.Grpc
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested block {request.Hash}.");
 
-            var block = await _blockChainService.GetBlockWithTransactionsByHash(request.Hash);
+            var block = await _blockchainService.GetBlockWithTransactionsByHash(request.Hash);
             
             if (block == null)
                 Logger.LogDebug($"Could not find block {request.Hash} for {context.GetPeerInfo()}.");
@@ -203,7 +230,7 @@ namespace AElf.OS.Network.Grpc
 
             var blockList = new BlockList();
             
-            var blocks = await _blockChainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
+            var blocks = await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
 
             if (blocks == null)
                 return blockList;
