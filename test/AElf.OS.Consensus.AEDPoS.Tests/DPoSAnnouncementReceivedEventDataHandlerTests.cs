@@ -27,9 +27,8 @@ namespace AElf.OS.Consensus.DPos
         [Fact]
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_IsNull()
         {
-            var an = new PeerNewBlockAnnouncement { };
             var sendKey = string.Empty;
-            var announcementData = new AnnouncementReceivedEventData(an, sendKey);
+            var announcementData = new PreLibAnnouncementReceivedEventData(sendKey);
 
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);
         }
@@ -37,15 +36,8 @@ namespace AElf.OS.Consensus.DPos
         [Fact]
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_SureAmountNotEnough()
         {
-            var block = await GenerateNewBlockAndAnnouncementToPeers(1);
-            var an = new PeerNewBlockAnnouncement
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height,
-                BlockTime = block.Header.Time
-            };
             var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
-            var announcementData = new AnnouncementReceivedEventData(an, sendKey);
+            var announcementData = new PreLibAnnouncementReceivedEventData(sendKey);
 
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);
         }
@@ -53,15 +45,8 @@ namespace AElf.OS.Consensus.DPos
         [Fact]
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_SureAmountEnough()
         {
-            var block = await GenerateNewBlockAndAnnouncementToPeers(3);
-            var an = new PeerNewBlockAnnouncement
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height,
-                BlockTime = block.Header.Time
-            };
             var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
-            var announcementData = new AnnouncementReceivedEventData(an, sendKey);
+            var announcementData = new PreLibAnnouncementReceivedEventData(sendKey);
 
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);
         }
