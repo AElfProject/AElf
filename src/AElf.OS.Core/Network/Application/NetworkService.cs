@@ -54,7 +54,6 @@ namespace AElf.OS.Network.Application
             {
                 BlockHash = blockHeader.GetHash(),
                 BlockHeight = blockHeader.Height,
-                BlockTime = blockHeader.Time,
                 HasFork = hasFork
             };
             

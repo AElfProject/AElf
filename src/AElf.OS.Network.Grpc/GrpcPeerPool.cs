@@ -147,8 +147,7 @@ namespace AElf.OS.Network.Grpc
             _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(new PeerNewBlockAnnouncement
             {
                 BlockHash = connectReply.Handshake.Header.GetHash(),
-                BlockHeight = connectReply.Handshake.Header.Height,
-                BlockTime = connectReply.Handshake.Header.Time
+                BlockHeight = connectReply.Handshake.Header.Height
             }, pubKey));
 
             return true;

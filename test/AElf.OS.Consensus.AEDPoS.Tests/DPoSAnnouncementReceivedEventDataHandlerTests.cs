@@ -64,8 +64,7 @@ namespace AElf.OS.Consensus.DPos
                 grpcPeer.HandlerRemoteAnnounce(new PeerNewBlockAnnouncement
                 {
                     BlockHash = block.GetHash(),
-                    BlockHeight = block.Height,
-                    BlockTime = block.Header.Time
+                    BlockHeight = block.Height
                 });
             }
 
