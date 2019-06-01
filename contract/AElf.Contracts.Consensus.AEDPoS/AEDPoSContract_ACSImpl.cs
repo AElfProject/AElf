@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using Acs4;
-using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -20,12 +19,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (Context.CurrentHeight == 1) return GetInvalidConsensusCommand();
 
-            var publicKey = input.Value.ToHex();
+            if (!TryToGetCurrentRoundInformation(out var currentRound)) return GetInvalidConsensusCommand();
 
-            if (!TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                Assert(false, $"Failed to get current round information in height {Context.CurrentHeight}");
-            }
+            var publicKey = input.Value.ToHex();
 
             var behaviour = GetConsensusBehaviour(currentRound, publicKey);
 

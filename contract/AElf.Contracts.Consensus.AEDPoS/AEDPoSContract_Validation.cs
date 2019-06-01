@@ -55,7 +55,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool CheckMinerTimeSlot(Round round, string publicKey)
         {
-            if (round.RoundNumber == 1) return true;
+            if (IsFirstRoundOfCurrentTerm(out _)) return true;
             var minerInRound = round.RealTimeMinersInformation[publicKey];
             var latestActualMiningTime = minerInRound.ActualMiningTimes.LastOrDefault();
             if (latestActualMiningTime == null) return true;

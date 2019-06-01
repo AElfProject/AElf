@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Acs4;
 using AElf.Kernel;
@@ -23,7 +24,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             while (true)
             {
                 var currentBlockTime = Context.CurrentBlockTime;
-                var expectedMiningTime = TimestampHelper.GetMaxValue();
+                var expectedMiningTime = DateTime.MaxValue.ToUniversalTime().ToTimestamp();
                 var nextBlockMiningLeftMilliseconds = 0;
                 switch (behaviour)
                 {
@@ -248,7 +249,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private ConsensusCommand GetInvalidConsensusCommand() => new ConsensusCommand
         {
-            ExpectedMiningTime = TimestampHelper.GetMaxValue(),
+            ExpectedMiningTime = DateTime.MaxValue.ToUniversalTime().ToTimestamp(),
             Hint = ByteString.CopyFrom(new AElfConsensusHint
             {
                 Behaviour = AElfConsensusBehaviour.Nothing

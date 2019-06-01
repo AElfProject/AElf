@@ -24,15 +24,5 @@ namespace AElf.Kernel
         {
             return new Duration { Seconds = minutes * 60};
         }
-
-        public static Timestamp GetMaxValue()
-        {
-            return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
-        }
-        
-        public static Timestamp GetMinValue()
-        {
-            return DateTime.MinValue.ToUniversalTime().ToTimestamp();
-        }
     }
 }

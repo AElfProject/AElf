@@ -171,7 +171,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             return RealTimeMinersInformation.ContainsKey(publicKey)
                 ? RealTimeMinersInformation[publicKey].ExpectedMiningTime
-                : TimestampHelper.GetMaxValue();
+                : DateTime.MaxValue.ToUniversalTime().ToTimestamp();
         }
 
         public int GetMiningOrder(string publicKey)
