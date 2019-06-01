@@ -6,7 +6,7 @@ namespace AElf.CrossChain.Communication
     public interface ICrossChainClientProvider
     {
         ICrossChainClient CreateClientForChainInitializationData(int chainId);
-        void CreateAndCacheClient(ICrossChainClientDto crossChainClientDto);
+        void CreateAndCacheClient(CrossChainClientDto crossChainClientDto);
         Task<ICrossChainClient> GetClientAsync(int chainId);
         Task<T> RequestAsync<T>(ICrossChainClient client, Func<ICrossChainClient, Task<T>> requestFunc);
         Task RequestAsync(ICrossChainClient client, Func<ICrossChainClient, Task> requestFunc);
@@ -14,13 +14,13 @@ namespace AElf.CrossChain.Communication
         Task CloseClientsAsync();
     }
 
-    public interface ICrossChainClientDto
+    public class CrossChainClientDto
     {
-        string RemoteServerHost { get; set; }
-        int RemoteServerPort { get; set; }
-        int RemoteChainId { get; set; }
-        int LocalChainId { get; set; }
+        public string RemoteServerHost { get; set; }
+        public int RemoteServerPort { get; set; }
+        public int RemoteChainId { get; set; }
+        public int LocalChainId { get; set; }
 
-        bool IsClientToParentChain { get; set; }
+        public bool IsClientToParentChain { get; set; }
     }
 }

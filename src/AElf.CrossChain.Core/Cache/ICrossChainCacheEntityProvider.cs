@@ -13,7 +13,7 @@ namespace AElf.CrossChain.Cache
 
         bool ContainsChain(int remoteChainId);
         int Size { get; }
-        List<int> CachedChainIds { get; }
+        List<int> GetCachedChainIds();
     }
     
     public class CrossChainCacheEntityProvider : ICrossChainCacheEntityProvider, ISingletonDependency
@@ -27,7 +27,11 @@ namespace AElf.CrossChain.Cache
         }
 
         public int Size => _chainCacheEntities.Count;
-        public List<int> CachedChainIds => _chainCacheEntities.Keys.ToList();
+        
+        public List<int> GetCachedChainIds()
+        {
+            return _chainCacheEntities.Keys.ToList();
+        }
 
         public void AddChainCacheEntity(int remoteChainId, long initialTargetHeight)
         {

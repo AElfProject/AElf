@@ -38,7 +38,7 @@ namespace AElf.CrossChain.Communication.Grpc
         [Fact]
         public async Task CreateClientTest()
         {
-            var grpcCrossChainClientDto = new GrpcCrossChainClientDto()
+            var grpcCrossChainClientDto = new CrossChainClientDto()
             {
                 RemoteChainId = ChainHelpers.ConvertBase58ToChainId("AELF"),
                 RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,

@@ -26,11 +26,11 @@ namespace AElf.CrossChain.Communication.Grpc
             _localChainId = chainId;
             
             if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.RemoteParentChainServerHost)
-                || _grpcCrossChainConfigOption.LocalServerPort == 0)
+                || _grpcCrossChainConfigOption.RemoteParentChainServerPort == 0)
                 return Task.CompletedTask;
             Logger.LogTrace("Starting client to parent chain..");
 
-            _crossChainClientProvider.CreateAndCacheClient(new GrpcCrossChainClientDto
+            _crossChainClientProvider.CreateAndCacheClient(new CrossChainClientDto
             {
                 RemoteChainId = _crossChainConfigOption.ParentChainId,
                 RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
@@ -41,21 +41,13 @@ namespace AElf.CrossChain.Communication.Grpc
             return Task.CompletedTask;
         }
 
-        public Task CreateClientAsync(GrpcCrossChainClientDto grpcCrossChainClientDto)
+        public Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
         {
             Logger.LogTrace(
-                $"Handle cross chain request received event from chain {ChainHelpers.ConvertChainIdToBase58(grpcCrossChainClientDto.RemoteChainId)}..");
+                $"Handle cross chain request received event from chain {ChainHelpers.ConvertChainIdToBase58(crossChainClientDto.RemoteChainId)}..");
             
-            var grpcCrossChainCommunicationDto = new GrpcCrossChainClientDto
-            {
-                RemoteServerHost = grpcCrossChainClientDto.RemoteServerHost,
-                RemoteServerPort = grpcCrossChainClientDto.RemoteServerPort,
-                RemoteChainId = grpcCrossChainClientDto.RemoteChainId,
-                LocalChainId = _localChainId,
-                IsClientToParentChain = grpcCrossChainClientDto.RemoteChainId == _crossChainConfigOption.ParentChainId
-            };
 
-            _crossChainClientProvider.CreateAndCacheClient(grpcCrossChainCommunicationDto);
+            _crossChainClientProvider.CreateAndCacheClient(crossChainClientDto);
             return Task.CompletedTask;
         }
 

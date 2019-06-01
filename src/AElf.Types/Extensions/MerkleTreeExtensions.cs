@@ -31,7 +31,7 @@ namespace AElf
                 hashList.Add(hashList.Last());
             var nodeToAdd = hashList.Count / 2;
             var newAdded = 0;
-            var i = 0;
+            var i = 0; 
             while (i < hashList.Count - 1)
             {
                 var left = hashList[i++];

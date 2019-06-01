@@ -11,16 +11,16 @@ namespace AElf.CrossChain.Communication.Grpc
         public ILocalEventBus LocalEventBus { get; set; }
         public ILogger<GrpcBasicServerBase> Logger { get; set; }
         
-        public override async Task<HandShakeReply> CrossChainHandShakeAsync(HandShake request, ServerCallContext context)
+        public override Task<HandShakeReply> CrossChainHandShakeAsync(HandShake request, ServerCallContext context)
         {
             Logger.LogTrace($"Received shake from chain {ChainHelpers.ConvertChainIdToBase58(request.FromChainId)}.");
-            await PublishCrossChainRequestReceivedEvent(request.Host, request.ListeningPort, request.FromChainId);
-            return new HandShakeReply {Result = true};
+            _ = PublishCrossChainRequestReceivedEvent(request.Host, request.ListeningPort, request.FromChainId);
+            return Task.FromResult(new HandShakeReply {Result = true});
         }
         
-        private async Task PublishCrossChainRequestReceivedEvent(string host, int port, int chainId)
+        private Task PublishCrossChainRequestReceivedEvent(string host, int port, int chainId)
         {
-            await LocalEventBus.PublishAsync(new NewChainConnectionEvent
+            return LocalEventBus.PublishAsync(new NewChainConnectionEvent
             {
                 RemoteServerHost = host,
                 RemoteServerPort = port,

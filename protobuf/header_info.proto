@@ -13,10 +13,6 @@ message CrossChainRequest {
     int32 listeningPort = 3;
 }
 
-message MerklePath {
-    repeated aelf.Hash Path = 1;
-}
-
 message CrossChainExtraData{
     // Merkle tree root of side chain block headers
     aelf.Hash sideChainBlockHeadersRoot = 1;

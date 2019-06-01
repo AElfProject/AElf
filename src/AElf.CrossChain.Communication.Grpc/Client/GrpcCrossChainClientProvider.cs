@@ -50,7 +50,7 @@ namespace AElf.CrossChain.Communication.Grpc
             return client;
         }
 
-        public void CreateAndCacheClient(ICrossChainClientDto crossChainClientDto)
+        public void CreateAndCacheClient(CrossChainClientDto crossChainClientDto)
         {
             var chainId = crossChainClientDto.RemoteChainId;
             var uriStr = GetUriStr(crossChainClientDto.RemoteServerHost, crossChainClientDto.RemoteServerPort);

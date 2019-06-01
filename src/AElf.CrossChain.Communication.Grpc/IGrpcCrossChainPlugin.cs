@@ -10,7 +10,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
     public interface IGrpcClientPlugin : IGrpcCrossChainPlugin
     {
-        Task CreateClientAsync(GrpcCrossChainClientDto grpcCrossChainClientDto);
+        Task CreateClientAsync(CrossChainClientDto grpcCrossChainClientDto);
     }
 
     public interface IGrpcServePlugin : IGrpcCrossChainPlugin

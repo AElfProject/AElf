@@ -22,7 +22,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             Logger.LogTrace("Side Chain Server received IndexedInfo message.");
             var requestedHeight = crossChainRequest.NextHeight;
-            while (requestedHeight - crossChainRequest.NextHeight <= 64)
+            while (requestedHeight - crossChainRequest.NextHeight <= CrossChainCommunicationConstants.MaximalIndexingCount)
             {
                 var sideChainBlock = await _crossChainResponseService.ResponseSideChainBlockDataAsync(requestedHeight);
                 if (sideChainBlock == null)

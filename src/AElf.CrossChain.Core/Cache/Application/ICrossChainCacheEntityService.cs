@@ -37,7 +37,7 @@ namespace AElf.CrossChain.Cache.Application
 
         public List<int> GetCachedChainIds()
         {
-            return _crossChainCacheEntityProvider.CachedChainIds;
+            return _crossChainCacheEntityProvider.GetCachedChainIds();
         }
 
         public long GetTargetHeightForChainCacheEntity(int chainId)

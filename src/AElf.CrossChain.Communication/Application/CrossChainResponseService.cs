@@ -57,9 +57,9 @@ namespace AElf.CrossChain.Communication.Application
 
             var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockDataResult(block);
             var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, remoteSideChainId);
-            foreach (var (sideChainHeight, merklePath) in enumerableMerklePath)
+            foreach (var kv in enumerableMerklePath)
             {
-                parentChainBlockData.IndexedMerklePath.Add(sideChainHeight, merklePath);
+                parentChainBlockData.IndexedMerklePath.Add(kv.Key, kv.Value);
             }
             
             return parentChainBlockData;
@@ -99,7 +99,7 @@ namespace AElf.CrossChain.Communication.Application
                 .Select(m => SideChainBlockData.Parser.ParseFrom(m.ToByteString())).ToList();
         }
         
-        private IEnumerable<(long, MerklePath)> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 
+        private Dictionary<long, MerklePath> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 
             int sideChainId)
         {
             var binaryMerkleTree = new BinaryMerkleTree();
@@ -111,7 +111,7 @@ namespace AElf.CrossChain.Communication.Application
             binaryMerkleTree.ComputeRootHash();
             // This is to tell side chain the merkle path for one side chain block,
             // which could be removed with subsequent improvement.
-            var merklepathList = new List<(long, MerklePath)>();
+            var res = new Dictionary<long, MerklePath>();
             for (var i = 0; i < indexedSideChainBlockDataResult.Count; i++)
             {
                 var info = indexedSideChainBlockDataResult[i];
@@ -120,10 +120,10 @@ namespace AElf.CrossChain.Communication.Application
 
                 var merklePath = new MerklePath();
                 merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(i));
-                merklepathList.Add((info.Height, merklePath));
+                res.Add(info.Height, merklePath);
             }
             
-            return merklepathList;
+            return res;
         }
         
         private ByteString GetExtraDataFromHeader(BlockHeader header, string symbol)
