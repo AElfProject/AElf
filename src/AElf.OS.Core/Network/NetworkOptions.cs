@@ -12,12 +12,12 @@ namespace AElf.OS.Network
 
         /// <summary>
         /// Indicates the types of peers that are authorized to connect to this node.
-        /// Use ProducersAndAllowed in conjunction with <see cref="AuthorizedKeys"/>.
+        /// Use MinersAndAuthorized in conjunction with <see cref="AuthorizedKeys"/>.
         /// </summary>
         public AuthorizedPeers AuthorizedPeers { get; set; } = AuthorizedPeers.Any;
         
         /// <summary>
-        /// A list of allowed public key that are allowed to connect to the node.
+        /// A list of allowed public keys that are authorized to connect to the node.
         /// This will be used when <see cref="AuthorizedPeers"/> is set to MinersAndAuthorized.
         /// </summary>
         public List<string> AuthorizedKeys { get; set; }
@@ -51,8 +51,8 @@ namespace AElf.OS.Network
     [Flags]
     public enum AuthorizedPeers
     {
-        Any,
-        MinersAndAuthorized,
-        MinersOnly,
+        Any, // Any node can connect
+        MinersOnly, // Only peers that are currently miners 
+        MinersAndAuthorized // Miners and whitelisted peers
     }
 }
