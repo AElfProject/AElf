@@ -34,18 +34,15 @@ namespace AElf.OS.Network.Grpc
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
-        private readonly IAEDPoSInformationProvider _aedPoSInformationProvider;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService, 
-            IAEDPoSInformationProvider aedPoSInformationProvider)
+        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService)
         {
             _peerPool = peerPool;
             _blockchainService = blockchainService;
             _accountService = accountService;
-            _aedPoSInformationProvider = aedPoSInformationProvider;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -59,49 +56,28 @@ namespace AElf.OS.Network.Grpc
         public override async Task<ConnectReply> Connect(Handshake handshake, ServerCallContext context)
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection request.");
+            
+            var peer = GrpcUrl.Parse(context.Peer);
+            
+            if (peer == null)
+                return new ConnectReply { Err = AuthError.InvalidPeer };
 
             if (NetworkOptions.MaxPeers != 0)
             {
                 int peerCount = _peerPool.GetPeers(true).Count;
                 if (peerCount >= NetworkOptions.MaxPeers)
                 {
-                    Logger.LogWarning($"Cannot dial, there's currently {peerCount} peers (max. {NetworkOptions.MaxPeers}).");
+                    Logger.LogWarning($"Cannot add peer, there's currently {peerCount} peers (max. {NetworkOptions.MaxPeers}).");
                     return new ConnectReply { Err = AuthError.ConnectionRefused };
                 }
             }
 
-            if (handshake?.HskData == null)
-                return new ConnectReply { Err = AuthError.InvalidHandshake };
-
-            // verify chain id
-            if (handshake.HskData.ChainId != _blockchainService.GetChainId())
-                return new ConnectReply { Err = AuthError.ChainMismatch };
-
-            // verify protocol
-            if (handshake.HskData.Version != KernelConstants.ProtocolVersion)
-                return new ConnectReply { Err = AuthError.ProtocolMismatch };
-
-            // verify signature
-            var validData = CryptoHelpers.VerifySignature(handshake.Signature.ToByteArray(),
-                Hash.FromMessage(handshake.HskData).ToByteArray(), handshake.HskData.PublicKey.ToByteArray());
+            var error = ValidateHandshake(handshake);
             
-            if (!validData)
-                return new ConnectReply { Err = AuthError.WrongSig };
-            
-            var peer = GrpcUrl.Parse(context.Peer);
-            
-            if (peer == null)
-                return new ConnectReply { Err = AuthError.InvalidPeer };
+            if (error != AuthError.None)
+                return new ConnectReply {Err = error};
             
             var pubKey = handshake.HskData.PublicKey.ToHex();
-
-            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized 
-                && !NetworkOptions.AuthorizedKeys.Contains(pubKey))
-            {
-                Logger.LogDebug($"{pubKey} not in the authorized peers.");
-                return new ConnectReply { Err = AuthError.ConnectionRefused };
-            }
-            
             var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
 
             if (oldPeer != null)
@@ -112,6 +88,19 @@ namespace AElf.OS.Network.Grpc
 
             // TODO: find a URI type to use
             var peerAddress = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
+            var grpcPeer = DialPeer(peerAddress, handshake);
+
+            // send our credentials
+            var hsk = await _peerPool.GetHandshakeAsync();
+            
+            // If auth ok -> add it to our peers
+            _peerPool.AddPeer(grpcPeer);
+
+            return new ConnectReply { Handshake = hsk };
+        }
+
+        private GrpcPeer DialPeer(string peerAddress, Handshake handshake)
+        {
             Logger.LogDebug($"Attempting to create channel to {peerAddress}");
 
             Channel channel = new Channel(peerAddress, ChannelCredentials.Insecure, new List<ChannelOption>
@@ -131,6 +120,8 @@ namespace AElf.OS.Network.Grpc
                 var c = channel.WaitForStateChangedAsync(channel.State);
             }
 
+            var pubKey = handshake.HskData.PublicKey.ToHex();
+            
             var connectionInfo = new GrpcPeerInfo
             {
                 PublicKey = pubKey,
@@ -140,16 +131,40 @@ namespace AElf.OS.Network.Grpc
                 StartHeight = handshake.Header.Height,
                 IsInbound = true
             };
-            
-            var grpcPeer = new GrpcPeer(channel, client, connectionInfo);
 
-            // send our credentials
-            var hsk = await _peerPool.GetHandshakeAsync();
-            
-            // If auth ok -> add it to our peers
-            _peerPool.AddPeer(grpcPeer);
+            return new GrpcPeer(channel, client, connectionInfo);;
+        }
 
-            return new ConnectReply { Handshake = hsk };
+        private AuthError ValidateHandshake(Handshake handshake)
+        {
+            if (handshake?.HskData == null)
+                return AuthError.InvalidHandshake;
+
+            // verify chain id
+            if (handshake.HskData.ChainId != _blockchainService.GetChainId())
+                return AuthError.ChainMismatch;
+
+            // verify protocol
+            if (handshake.HskData.Version != KernelConstants.ProtocolVersion)
+                return AuthError.ProtocolMismatch;
+
+            // verify signature
+            var validData = CryptoHelpers.VerifySignature(handshake.Signature.ToByteArray(),
+                Hash.FromMessage(handshake.HskData).ToByteArray(), handshake.HskData.PublicKey.ToByteArray());
+            
+            if (!validData)
+                return AuthError.WrongSig;
+            
+            // verify authentication
+            var pubKey = handshake.HskData.PublicKey.ToHex();
+            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized
+                && !NetworkOptions.AuthorizedKeys.Contains(pubKey))
+            {
+                Logger.LogDebug($"{pubKey} not in the authorized peers.");
+                return AuthError.ConnectionRefused ;
+            }
+
+            return AuthError.None;
         }
 
         /// <summary>
