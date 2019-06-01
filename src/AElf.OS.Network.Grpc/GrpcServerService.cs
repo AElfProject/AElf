@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -134,7 +133,7 @@ namespace AElf.OS.Network.Grpc
                 IsInbound = true
             };
 
-            return new GrpcPeer(channel, client, connectionInfo);;
+            return new GrpcPeer(channel, client, connectionInfo);
         }
 
         private AuthError ValidateHandshake(Handshake handshake)
@@ -202,7 +201,7 @@ namespace AElf.OS.Network.Grpc
 
         /// <summary>
         /// This method returns a block. The parameter is a <see cref="BlockRequest"/> object, if the value
-        /// of <see cref="BlockRequest.Id"/> is not null, the request is by ID, otherwise it will be
+        /// of <see cref="BlockRequest.Hash"/> is not null, the request is by ID, otherwise it will be
         /// by height.
         /// </summary>
         public override async Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
