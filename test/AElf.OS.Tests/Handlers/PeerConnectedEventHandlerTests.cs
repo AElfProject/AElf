@@ -39,8 +39,7 @@ namespace AElf.OS.Handlers
             var announcement = new PeerNewBlockAnnouncement
             {
                 BlockHash = block.GetHash(),
-                BlockHeight = block.Header.Height,
-                BlockTime = TimestampHelper.GetUtcNow()
+                BlockHeight = block.Header.Height
             };
 
             // Sync one block to best chain
@@ -56,8 +55,7 @@ namespace AElf.OS.Handlers
             announcement = new PeerNewBlockAnnouncement
             {
                 BlockHash = block.GetHash(),
-                BlockHeight = block.Header.Height,
-                BlockTime = TimestampHelper.GetUtcNow()
+                BlockHeight = block.Header.Height
             };
 
             await _peerConnectedEventHandler.HandleEventAsync(
@@ -69,8 +67,7 @@ namespace AElf.OS.Handlers
             announcement = new PeerNewBlockAnnouncement
             {
                 BlockHash = block.GetHash(),
-                BlockHeight = block.Header.Height,
-                BlockTime = TimestampHelper.GetUtcNow()
+                BlockHeight = block.Header.Height
             };
 
             await _peerConnectedEventHandler.HandleEventAsync(
@@ -95,8 +92,7 @@ namespace AElf.OS.Handlers
             var announcement = new PeerNewBlockAnnouncement
             {
                 BlockHash = block.GetHash(),
-                BlockHeight = block.Header.Height,
-                BlockTime = TimestampHelper.GetUtcNow()
+                BlockHeight = block.Header.Height
             };
             
             _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = TimestampHelper.GetUtcNow().AddSeconds(-5);
@@ -121,8 +117,7 @@ namespace AElf.OS.Handlers
             var announcement = new PeerNewBlockAnnouncement
             {
                 BlockHash = block.GetHash(),
-                BlockHeight = block.Header.Height,
-                BlockTime = TimestampHelper.GetUtcNow()
+                BlockHeight = block.Header.Height
             };
             
             _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = TimestampHelper.GetUtcNow().AddSeconds(-3);
