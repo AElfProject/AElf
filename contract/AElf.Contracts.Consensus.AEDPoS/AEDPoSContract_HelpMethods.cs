@@ -53,24 +53,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return !previousRound.IsEmpty;
         }
 
-        private bool TryToGetRoundInformation(long roundNumber, out Round roundInformation)
+        private bool TryToGetRoundInformation(long roundNumber, out Round round)
         {
-            roundInformation = State.Rounds[roundNumber];
-            return roundInformation != null;
+            round = State.Rounds[roundNumber];
+            return !round.IsEmpty;
         }
 
-        private Transaction GenerateTransaction(string methodName, IMessage parameter)
+        private Transaction GenerateTransaction(string methodName, IMessage parameter) => new Transaction
         {
-            var tx = new Transaction
-            {
-                From = Context.Sender,
-                To = Context.Self,
-                MethodName = methodName,
-                Params = parameter.ToByteString()
-            };
-
-            return tx;
-        }
+            From = Context.Sender,
+            To = Context.Self,
+            MethodName = methodName,
+            Params = parameter.ToByteString()
+        };
 
         private void SetBlockchainStartTimestamp(Timestamp timestamp)
         {

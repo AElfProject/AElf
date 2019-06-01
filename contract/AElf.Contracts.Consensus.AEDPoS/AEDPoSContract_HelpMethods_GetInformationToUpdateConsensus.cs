@@ -45,7 +45,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             ShareInValueOfCurrentRound(updatedRound, previousRound, inValue, publicKey);
 
-            RevealSharedInValues(previousRound, publicKey);
+            RevealSharedInValues(updatedRound, previousRound, publicKey);
 
             // To publish Out Value.
             return new AElfConsensusHeaderInformation
