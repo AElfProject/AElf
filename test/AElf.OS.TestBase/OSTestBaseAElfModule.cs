@@ -1,4 +1,3 @@
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Modularity;
@@ -19,6 +18,7 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<OSTestHelper>();
+            //context.Services.AddSingleton<ISmartContractExecutiveService, TestingSmartContractExecutiveService>();
         }
     }
 }

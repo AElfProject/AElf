@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp
 {
@@ -37,7 +40,7 @@ namespace AElf.Sdk.CSharp
 
         public long CurrentHeight => _smartContractBridgeContextImplementation.CurrentHeight;
 
-        public DateTime CurrentBlockTime => _smartContractBridgeContextImplementation.CurrentBlockTime;
+        public Timestamp CurrentBlockTime => _smartContractBridgeContextImplementation.CurrentBlockTime;
 
         public Hash PreviousBlockHash => _smartContractBridgeContextImplementation.PreviousBlockHash;
 
@@ -48,9 +51,9 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.RecoverPublicKey();
         }
 
-        public IBlockBase GetPreviousBlock()
+        public List<Transaction> GetPreviousBlockTransactions()
         {
-            return _smartContractBridgeContextImplementation.GetPreviousBlock();
+            return _smartContractBridgeContextImplementation.GetPreviousBlockTransactions();
         }
 
         public bool VerifySignature(Transaction tx)
@@ -97,6 +100,11 @@ namespace AElf.Sdk.CSharp
         public Address GetZeroSmartContractAddress()
         {
             return _smartContractBridgeContextImplementation.GetZeroSmartContractAddress();
+        }
+
+        public Address GetContractAddressByName(Hash hash)
+        {
+            return _smartContractBridgeContextImplementation.GetContractAddressByName(hash);
         }
         
         public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)

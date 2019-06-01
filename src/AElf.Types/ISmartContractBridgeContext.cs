@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf
 {
@@ -36,12 +37,12 @@ namespace AElf
         
         long CurrentHeight { get; }
 
-        DateTime CurrentBlockTime { get; }
+        Timestamp CurrentBlockTime { get; }
         Hash PreviousBlockHash { get; }
 
         byte[] RecoverPublicKey();
-
-        IBlockBase GetPreviousBlock();
+        
+        List<Transaction> GetPreviousBlockTransactions();
 
         bool VerifySignature(Transaction tx);
 
@@ -63,6 +64,8 @@ namespace AElf
         Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
 
         Address GetZeroSmartContractAddress();
+
+        Address GetContractAddressByName(Hash hash);
 
         IStateProvider StateProvider { get; }
 

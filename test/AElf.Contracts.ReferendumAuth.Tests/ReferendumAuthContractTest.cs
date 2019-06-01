@@ -6,6 +6,8 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -30,10 +32,7 @@ namespace AElf.Contracts.ReferendumAuth
         public async Task ReferendumAuthContract_InitializeMultiTimes()
         {
             var transactionResult =
-                await ReferendumAuthContractStub.Initialize.SendAsync(new ReferendumAuthContractInitializationInput
-                {
-                    TokenContractSystemName = Hash.FromString("Test")
-                });
+                await ReferendumAuthContractStub.Initialize.SendAsync(new Empty());
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
@@ -91,7 +90,7 @@ namespace AElf.Contracts.ReferendumAuth
             {
                 ToAddress = Address.FromString("Test"),
                 Params = ByteString.CopyFromUtf8("Test"),
-                ExpiredTime = blockTime.AddDays(1).ToTimestamp(),
+                ExpiredTime = blockTime.AddDays(1),
                 OrganizationAddress =_organizationAddress
             };
             {
@@ -118,7 +117,7 @@ namespace AElf.Contracts.ReferendumAuth
             }
             {
                 //"Expired proposal."
-                _createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5).ToTimestamp();
+                _createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5);
                 Thread.Sleep(10);
                 
                 var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
@@ -127,7 +126,7 @@ namespace AElf.Contracts.ReferendumAuth
             }
             {
                 //"No registered organization."
-                _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1).ToTimestamp();
+                _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
                 _createProposalInput.OrganizationAddress = Address.FromString("NoRegisteredOrganizationAddress");
                 
                 var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
@@ -317,7 +316,7 @@ namespace AElf.Contracts.ReferendumAuth
                 ContractMethodName = nameof(TokenContract.Create),
                 ToAddress = TokenContractAddress,
                 Params = _createInput.ToByteString(),
-                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2).ToTimestamp(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
                 OrganizationAddress = _organizationAddress
             };
             var proposal = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);

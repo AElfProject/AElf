@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -10,20 +11,15 @@ namespace AElf.Kernel.SmartContract.Application
     {
         private readonly ISmartContractRunnerContainer _smartContractRunnerContainer;
 
-        private readonly IFunctionMetadataService _functionMetadataService;
-        private readonly IBlockchainService _chainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
 
         public SmartContractService(
             ISmartContractRunnerContainer smartContractRunnerContainer,
-            IFunctionMetadataService functionMetadataService, IBlockchainService chainService,
             ISmartContractAddressService smartContractAddressService,
             ISmartContractExecutiveService smartContractExecutiveService)
         {
             _smartContractRunnerContainer = smartContractRunnerContainer;
-            _functionMetadataService = functionMetadataService;
-            _chainService = chainService;
             _smartContractAddressService = smartContractAddressService;
             _smartContractExecutiveService = smartContractExecutiveService;
         }

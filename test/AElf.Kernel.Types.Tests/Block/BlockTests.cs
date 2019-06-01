@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using AElf.Common;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
@@ -39,7 +41,6 @@ namespace AElf.Kernel.Types.Tests
             var blockBody = new BlockBody()
             {
                 BlockHeader = blockHeader.GetHash(),
-                TransactionList = { transactionItems.Item1},
                 Transactions = { transactionItems.Item2},
                 BinaryMerkleTree = {
                     Nodes = { Hash.Generate(), Hash.Generate() },
@@ -124,26 +125,25 @@ namespace AElf.Kernel.Types.Tests
 
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
-            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+            block.Header.Time = TimestampHelper.GetUtcNow();
             block.Header.Height = height;
             block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
 
             block.Body.BlockHeader = block.Header.GetHash();
             block.Body.BinaryMerkleTree.Root = Hash.Empty;
             var transactionItems = GenerateFakeTransactions(3);
-            block.Body.TransactionList.AddRange(transactionItems.Item1);
             block.Body.Transactions.AddRange(transactionItems.Item2);
 
             return block;
         }
 
-        private (List<Kernel.Transaction>, List<Hash>) GenerateFakeTransactions(int count)
+        private (List<Transaction>, List<Hash>) GenerateFakeTransactions(int count)
         {
-            var transactions = new List<Kernel.Transaction>();
+            var transactions = new List<Transaction>();
             var transactionHashes = new List<Hash>();
             for (int i = 0; i < count; i++)
             {
-               var transaction = new Kernel.Transaction()
+               var transaction = new Transaction()
                {
                    From = Address.Generate(),
                    To = Address.Generate(),

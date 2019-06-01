@@ -17,39 +17,31 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1"/>
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Contracts.MultiToken.Tests\AElf.Contracts.MultiToken.Tests.csproj"/>
-        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj"/>
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj"/>
-        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj"/>
         <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj"/>
     </ItemGroup>
     <ItemGroup>
-        <None Include="..\..\protobuf\aelf_options.proto">
-            <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\acs1_plugin_test_contract.proto">
-            <Link>Protobuf/Proto/acs1_plugin_test_contract.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf/Proto/token_contract.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\common.proto">
-            <Link>Protobuf/Proto/common.proto</Link>
-        </None>
-        <None Include="..\..\protobuf\kernel.proto">
-            <Link>Protobuf/Proto/kernel.proto</Link>
-        </None>
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_stub.sh acs1.proto token_contract.proto acs1_plugin_test_contract.proto"/>
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_stub.bat acs1.proto token_contract.proto acs1_plugin_test_contract.proto"/>
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs"/>
-        </ItemGroup>
-    </Target>
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf/Proto/acs1.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf/Proto/token_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs1_plugin_test_contract.proto">
+            <Link>Protobuf/Proto/acs1_plugin_test_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
 </Project>

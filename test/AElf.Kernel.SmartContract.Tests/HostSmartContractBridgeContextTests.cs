@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
+using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Org.BouncyCastle.Security;
@@ -75,8 +78,10 @@ namespace AElf.Kernel.SmartContract
         }
 
         [Fact]
-        public void Get_GetPreviousBlock_Success()
+        public void Get_GetPreviousTransactions_Success()
         {
+            var transaction = GetNewTransaction();
+            
             var newBlock = new Block
             {
                 Height = 2,
@@ -84,14 +89,18 @@ namespace AElf.Kernel.SmartContract
                 {
                     PreviousBlockHash = Hash.Empty
                 },
-                Body = new BlockBody()
+                Body = new BlockBody { Transactions = { transaction.GetHash() }}
             };
+
+            _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             _blockchainService.AddBlockAsync(newBlock);
 
             _bridgeContext.TransactionContext.PreviousBlockHash = newBlock.GetHash();
 
-            var previousBlock = _bridgeContext.GetPreviousBlock();
-            previousBlock.GetHash().ShouldBe(newBlock.GetHash());
+            var previousBlockTransactions = _bridgeContext.GetPreviousBlockTransactions();
+            
+            previousBlockTransactions.ShouldNotBeNull();
+            previousBlockTransactions.ShouldContain(transaction);
         }
 
         [Fact]
@@ -230,7 +239,7 @@ namespace AElf.Kernel.SmartContract
                     RefBlockPrefix = ByteString.CopyFrom(new byte[4])
                 },
                 BlockHeight = 3,
-                CurrentBlockTime = DateTime.Now,
+                CurrentBlockTime = TimestampHelper.GetUtcNow(),
                 PreviousBlockHash = Hash.Empty,
                 Trace = new TransactionTrace(),
                 StateCache = new NullStateCache()

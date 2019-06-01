@@ -1,6 +1,7 @@
 using AElf.Contracts.CrossChain;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
@@ -22,7 +23,6 @@ namespace AElf.CrossChain.Grpc
 
         public CrossChainResponse GenerateResponse(Block block)
         {
-            var transactionStatusMerkleRoot = ExtractTransactionStatusMerkleTreeRoot(block.Header); 
             return new CrossChainResponse
             {
                 BlockData = new BlockData
@@ -33,16 +33,11 @@ namespace AElf.CrossChain.Grpc
                     {
                         SideChainHeight = block.Height,
                         BlockHeaderHash = block.GetHash(),
-                        TransactionMerkleTreeRoot = transactionStatusMerkleRoot,
+                        TransactionMerkleTreeRoot = block.Header.MerkleTreeRootOfTransactionStatus,
                         SideChainId = block.Header.ChainId
                     }.ToByteString()
                 }
             };
-        }
-        
-        private Hash ExtractTransactionStatusMerkleTreeRoot(BlockHeader header)
-        {
-            return Hash.Parser.ParseFrom(_blockExtraDataService.GetMerkleTreeRootExtraDataForTransactionStatus(header));
         }
     }
 }

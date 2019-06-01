@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -40,37 +43,58 @@ namespace AElf.OS.Network.Application
 
         public List<IPeer> GetPeers()
         {
-            return _peerPool.GetPeers(true).ToList();
+            return _peerPool.GetPeers(true).ToList(); 
         }
 
-        public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader)
+        public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader,bool hasFork)
         {
             int successfulBcasts = 0;
-
-            foreach (var peer in _peerPool.GetPeers())
+            
+            var announce = new PeerNewBlockAnnouncement
             {
-                try
-                {
-                    var announcement = new PeerNewBlockAnnouncement
-                    {
-                        BlockHash = blockHeader.GetHash(),
-                        BlockHeight = blockHeader.Height,
-                        BlockTime = blockHeader.Time
-                    };
-                    Logger.LogDebug($"PeerNewBlockAnnouncement: {announcement}");
-                    await peer.AnnounceAsync(announcement);
+                BlockHash = blockHeader.GetHash(),
+                BlockHeight = blockHeader.Height,
+                HasFork = hasFork
+            };
+            
+            var peers = _peerPool.GetPeers().ToList();
 
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash(), hasFork);
+            
+            Logger.LogDebug("About to broadcast to peers.");
+            
+            var tasks = peers.Select(peer => DoAnnounce(peer, announce)).ToList();
+            await Task.WhenAll(tasks);
+
+            foreach (var finishedTask in tasks.Where(t => t.IsCompleted))
+            {
+                if (finishedTask.Result)
                     successfulBcasts++;
-                }
-                catch (NetworkException e)
-                {
-                    Logger.LogError(e, "Error while sending block.");
-                }
             }
-
+            
+            Logger.LogDebug("Broadcast successful !");
+            
             return successfulBcasts;
         }
 
+        private async Task<bool> DoAnnounce(IPeer peer, PeerNewBlockAnnouncement announce)
+        {
+            try
+            {
+                Logger.LogDebug($"Before broadcast {announce.BlockHash} to {peer}.");
+                await peer.AnnounceAsync(announce);
+                Logger.LogDebug($"After broadcast {announce.BlockHash} to {peer}.");
+
+                return true;
+            }
+            catch (NetworkException e)
+            {
+                Logger.LogError(e, "Error while sending block.");
+            }
+
+            return false;
+        }
+        
         public async Task<int> BroadcastTransactionAsync(Transaction tx)
         {
             int successfulBcasts = 0;
@@ -80,6 +104,7 @@ namespace AElf.OS.Network.Application
                 try
                 {
                     await peer.SendTransactionAsync(tx);
+                    
                     successfulBcasts++;
                 }
                 catch (NetworkException e)
@@ -91,113 +116,141 @@ namespace AElf.OS.Network.Application
             return successfulBcasts;
         }
 
-        public async Task<List<Block>> GetBlocksAsync(Hash previousBlock, long previousHeight, int count, string peerPubKey = null, bool tryOthersIfFail = false)
+        public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 
+            string peerPubKey = null)
         {
-            // try get the block from the specified peer. 
-            if (!string.IsNullOrWhiteSpace(peerPubKey))
-            {
-                IPeer peer = _peerPool.FindPeerByPublicKey(peerPubKey);
+            var peers = SelectPeers(peerPubKey);
 
-                if (peer == null)
-                {
-                    // if the peer was specified but we can't find it 
-                    // we don't try any further.
-                    Logger.LogWarning($"Specified peer was not found.");
-                    return null;
-                }
+            var blocks = await RequestAsync(peers, p => p.GetBlocksAsync(previousBlock, count), 
+                blockList => blockList != null && blockList.Count > 0, 
+                peerPubKey);
 
-                var blocks = await RequestAsync(peer, p => p.GetBlocksAsync(previousBlock, count));
+            if (blocks != null && (blocks.Count == 0 || blocks.Count != count))
+                Logger.LogWarning($"Block count miss match, asked for {count} but got {blocks.Count}");
 
-                if (blocks != null && blocks.Count > 0)
-                    return blocks;
-
-                if (!tryOthersIfFail)
-                {
-                    Logger.LogWarning($"{peerPubKey} does not have blocks {nameof(tryOthersIfFail)} is false.");
-                    return null;
-                }
-            }
-            
-            // shuffle the peers that can give us the blocks
-            var shuffledPeers = _peerPool.GetPeers()
-                .Where(p => p.CurrentBlockHeight >= previousHeight)
-                .OrderBy(a => Guid.NewGuid());
-                
-            foreach (var peer in shuffledPeers)
-            {
-                var blocks = await RequestAsync(peer, p => p.GetBlocksAsync(previousBlock, count));
-
-                if (blocks != null)
-                    return blocks;
-            }
-
-            return null;
+            return blocks;
         }
+        
+        private List<IPeer> SelectPeers(string peerPubKey)
+        {
+            List<IPeer> peers = new List<IPeer>();
+            
+            // Get the suggested peer 
+            IPeer suggestedPeer = _peerPool.FindPeerByPublicKey(peerPubKey);
 
-        public async Task<Block> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
+            if (suggestedPeer == null)
+                Logger.LogWarning("Could not find suggested peer");
+            else
+                peers.Add(suggestedPeer);
+            
+            // Get our best peer
+            IPeer bestPeer = _peerPool.GetBestPeer();
+            
+            if (bestPeer == null)
+                Logger.LogWarning("No best peer.");
+            else if (bestPeer.PubKey != peerPubKey)
+                peers.Add(bestPeer);
+            
+            Random rnd = new Random();
+            
+            // Fill with random peers.
+            List<IPeer> randomPeers = _peerPool.GetPeers()
+                .Where(p => p.PubKey != peerPubKey && (bestPeer == null || p.PubKey != bestPeer.PubKey))
+                .OrderBy(x => rnd.Next())
+                .Take(NetworkConstants.DefaultMaxRandomPeersPerRequest)
+                .ToList();
+            
+            peers.AddRange(randomPeers);
+            
+            Logger.LogDebug($"Selected {peers.Count} for the request.");
+
+            return peers;
+        }
+        
+        public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null)
         {
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
-            return await GetBlockAsync(hash, peer, tryOthersIfSpecifiedFails);
+            
+            var peers = SelectPeers(peer);
+            return await RequestAsync(peers, p => p.RequestBlockAsync(hash), blockWithTransactions => blockWithTransactions != null, peer);
         }
 
-        private async Task<Block> GetBlockAsync(Hash hash, string peer = null, bool tryOthersIfSpecifiedFails = false)
-        {
-            if (tryOthersIfSpecifiedFails && string.IsNullOrWhiteSpace(peer))
-                throw new InvalidOperationException($"Parameter {nameof(tryOthersIfSpecifiedFails)} cannot be true, " +
-                                                    $"if no fallback peer is specified.");
-
-            // try get the block from the specified peer. 
-            if (!string.IsNullOrWhiteSpace(peer))
-            {
-                IPeer p = _peerPool.FindPeerByPublicKey(peer);
-
-                if (p == null)
-                {
-                    // if the peer was specified but we can't find it 
-                    // we don't try any further.
-                    Logger.LogWarning($"Specified peer was not found.");
-                    return null;
-                }
-
-                var block = await RequestBlockToAsync(hash, p);
-
-                if (block != null)
-                    return block;
-
-                if (!tryOthersIfSpecifiedFails)
-                {
-                    Logger.LogWarning($"{peer} does not have block {nameof(tryOthersIfSpecifiedFails)} is false.");
-                    return null;
-                }
-            }
-
-            foreach (var p in _peerPool.GetPeers())
-            {
-                Block block = await RequestBlockToAsync(hash, p);
-
-                if (block != null)
-                    return block;
-            }
-
-            return null;
-        }
-
-        private async Task<Block> RequestBlockToAsync(Hash hash, IPeer peer)
-        {
-            return await RequestAsync(peer, p => p.RequestBlockAsync(hash));
-        }
-
-        private async Task<T> RequestAsync<T>(IPeer peer, Func<IPeer, Task<T>> func) where T : class
+        private async Task<(IPeer, T)> DoRequest<T>(IPeer peer, Func<IPeer, Task<T>> func) where T : class
         {
             try
             {
-                return await func(peer);
+                Logger.LogDebug($"before request send to {peer.PeerIpAddress}.");
+                var res = await func(peer);
+                Logger.LogDebug($"request send to {peer.PeerIpAddress}.");
+                
+                return (peer, res);
             }
             catch (NetworkException e)
             {
                 Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
+            }
+            
+            return (peer, null);
+        }
+
+        private async Task<T> RequestAsync<T>(List<IPeer> peers, Func<IPeer, Task<T>> func,
+            Predicate<T> validationFunc, string suggested) where T : class
+        {
+            if (peers.Count <= 0)
+            {
+                Logger.LogWarning("Peer list is empty.");
                 return null;
             }
+            
+            var taskList = peers.Select(peer => DoRequest(peer, func)).ToList();
+            
+            Task<(IPeer, T)> finished = null;
+            
+            while (taskList.Count > 0)
+            {
+                var next = await Task.WhenAny(taskList);
+
+                if (validationFunc(next.Result.Item2))
+                {
+                    finished = next;
+                    break;
+                }
+
+                taskList.Remove(next);
+            }
+
+            if (finished == null)
+            {
+                Logger.LogDebug($"No peer succeeded.");
+                return null;
+            }
+
+            IPeer taskPeer = finished.Result.Item1;
+            T taskRes = finished.Result.Item2;
+            
+            UpdateBestPeer(taskPeer);
+            
+            if (suggested != taskPeer.PubKey)
+                Logger.LogWarning($"Suggested {suggested}, used {taskPeer.PubKey}");
+            
+            Logger.LogDebug($"First replied {taskRes} : {taskPeer}.");
+
+            return taskRes;
+        }
+
+        private void UpdateBestPeer(IPeer taskPeer)
+        {
+            if (taskPeer.IsBest) 
+                return;
+            
+            Logger.LogDebug($"New best peer found: {taskPeer}.");
+
+            foreach (var peerToReset in _peerPool.GetPeers(true))
+            {
+                peerToReset.IsBest = false;
+            }
+                
+            taskPeer.IsBest = true;
         }
 
         public Task<long> GetBestChainHeightAsync(string peerPubKey = null)
@@ -207,6 +260,5 @@ namespace AElf.OS.Network.Application
                 : _peerPool.GetPeers().OrderByDescending(p => p.CurrentBlockHeight).FirstOrDefault();
             return Task.FromResult(peer?.CurrentBlockHeight ?? 0);
         }
-
     }
 }

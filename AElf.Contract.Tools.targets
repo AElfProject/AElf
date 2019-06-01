@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProtoBaseDir>..\..\protobuf</ProtoBaseDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="$(ProtoBaseDir)\aelf\*">
+            <Link>Protobuf/Proto/aelf/*</Link>
+        </None>
+    </ItemGroup>
+
+    <Choose>
+        <When Condition="!$([MSBuild]::IsOsPlatform(Windows))">
+            <PropertyGroup>
+                <GenerateContractBaseCommand>../../scripts/generate_contract_base.sh</GenerateContractBaseCommand>
+                <GenerateContractCodeCommand>../../scripts/generate_contract_code.sh</GenerateContractCodeCommand>
+                <GenerateContractReferenceCommand>../../scripts/generate_contract_reference.sh</GenerateContractReferenceCommand>
+                <GenerateContractStubCommand>../../scripts/generate_contract_stub.sh</GenerateContractStubCommand>
+                <GenerateContractMessageCommand>../../scripts/generate_event_only.sh</GenerateContractMessageCommand>
+            </PropertyGroup>
+        </When>
+        <Otherwise>
+            <PropertyGroup>
+                <GenerateContractBaseCommand>..\..\scripts\generate_contract_base.bat</GenerateContractBaseCommand>
+                <GenerateContractCodeCommand>..\..\scripts\generate_contract_code.bat</GenerateContractCodeCommand>
+                <GenerateContractReferenceCommand>..\..\scripts\generate_contract_reference.bat</GenerateContractReferenceCommand>
+                <GenerateContractStubCommand>..\..\scripts\generate_contract_stub.bat</GenerateContractStubCommand>
+                <GenerateContractMessageCommand>..\..\scripts\generate_event_only.bat</GenerateContractMessageCommand>
+            </PropertyGroup>
+        </Otherwise>
+    </Choose>
+    <Target Name="GenerateProtobufCode" BeforeTargets="BeforeBuild;GetTargetPath">
+        <PropertyGroup>
+            <LocalProtobufDir>$(ProjectDir)/Protobuf</LocalProtobufDir>
+            <GenerateContractInternalCommand>protoc --proto_path=../../protobuf --csharp_out=internal_access:$(LocalProtobufDir)/Generated --csharp_opt=file_extension=.g.cs</GenerateContractInternalCommand>
+        </PropertyGroup>
+        <PropertyGroup>
+            <LocalProtobufDir>$(ProjectDir)/Protobuf</LocalProtobufDir>
+            <GenerateCommonMessageCommand>protoc --proto_path=../../protobuf --csharp_out=$(LocalProtobufDir)/Generated --csharp_opt=file_extension=.g.cs</GenerateCommonMessageCommand>
+        </PropertyGroup>
+
+        <RemoveDir Directories="Protobuf\Generated" />
+        
+        <MakeDir Condition="@(ContractInternal) != '' Or @(CommonMessage) != '' Or @(ContractBase) != '' Or @(ContractCode) != '' Or @(ContractReference) != '' Or @(ContractStub) != '' Or @(ContractMessage) != ''" Directories="$(LocalProtobufDir)/Generated"/>
+        <Exec Condition="@(ContractInternal) != ''" Command="$(GenerateContractInternalCommand) %(Identity)"/>
+        <Exec Condition="@(CommonMessage) != ''" Command="$(GenerateCommonMessageCommand) %(Identity)"/>
+        <Exec Condition="@(ContractBase) != ''" Command="$(GenerateContractBaseCommand) %(Identity)"/>
+        <Exec Condition="@(ContractCode) != ''" Command="$(GenerateContractCodeCommand) %(Identity)"/>
+        <Exec Condition="@(ContractReference) != ''" Command="$(GenerateContractReferenceCommand)  %(Identity)"/>
+        <Exec Condition="@(ContractStub) != ''" Command="$(GenerateContractStubCommand) %(Identity)"/>
+        <Exec Condition="@(ContractMessage) != ''" Command="$(GenerateContractMessageCommand) %(Identity)"/>
+        <ItemGroup>
+            <Compile Remove="Protobuf/Generated/*.cs"/>
+            <Compile Include="Protobuf/Generated/*.cs"/>
+        </ItemGroup>
+    </Target>
+    <Target Name="CopyNonInjectedContractDll" AfterTargets="AfterBuild">
+        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" SourceFiles="$(TargetDir)$(TargetName).dll" DestinationFolder="../../test/AElf.Runtime.CSharp.Tests/contracts" />
+    </Target>
+</Project>

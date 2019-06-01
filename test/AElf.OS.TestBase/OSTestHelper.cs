@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.Election;
+using Acs0;
+using AElf.Common;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -14,8 +14,8 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -23,6 +23,7 @@ using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
@@ -31,6 +32,15 @@ namespace AElf.OS
 {
     public class OSTestHelper
     {
+        private IReadOnlyDictionary<string, byte[]> _codes;
+
+        public IReadOnlyDictionary<string, byte[]> Codes =>
+            _codes ?? (_codes = ContractsDeployer.GetContractCodes<OSTestHelper>());
+        public byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
+        public byte[] ElectionContractCode => Codes.Single(kv => kv.Key.Contains("Election")).Value;
+        public byte[] TokenContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
+
         private readonly ChainOptions _chainOptions;
         
         private readonly IOsBlockchainNodeContextService _osBlockchainNodeContextService;
@@ -143,7 +153,7 @@ namespace AElf.OS
 
             var transaction = GenerateTransaction(accountAddress,
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
-                nameof(TokenContract.Transfer),
+                nameof(TokenContractContainer.TokenContractStub.Transfer),
                 new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
@@ -200,8 +210,9 @@ namespace AElf.OS
             }
 
             var block = await _minerService.MineAsync(previousBlockHash, previousBlockHeight,
-                DateTime.UtcNow, TimeSpan.FromMilliseconds(4000));
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromMilliseconds(4000));
 
+            await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
                 
             return block;
@@ -216,7 +227,7 @@ namespace AElf.OS
                     ChainId = _staticChainInformationProvider.ChainId,
                     Height = preBlockHeight + 1,
                     PreviousBlockHash = preBlockHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = TimestampHelper.GetUtcNow()
                 },
                 Body = new BlockBody()
             };
@@ -235,7 +246,7 @@ namespace AElf.OS
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
 
             var transaction = GenerateTransaction(Address.Generate(), basicContractZero,
-                nameof(ISmartContractZero.DeploySmartContract), new ContractDeploymentInput()
+                nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract), new ContractDeploymentInput()
                 {
                     Category = 0,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(T).Assembly.Location))
@@ -262,12 +273,13 @@ namespace AElf.OS
                 ChainId = _chainOptions.ChainId
             };
 
-            dto.InitializationSmartContracts.AddGenesisSmartContract<AEDPoSContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name);
 
             var ownAddress = await _accountService.GetAccountAsync();
             var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            callList.Add(nameof(TokenContract.CreateNativeToken), new CreateInput
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.CreateNativeToken), new CreateInput
             {
                 Symbol = "ELF",
                 TokenName = "ELF_Token",
@@ -276,7 +288,7 @@ namespace AElf.OS
                 Issuer =  ownAddress,
                 IsBurnable = true
             });
-            callList.Add(nameof(TokenContract.Issue), new IssueInput
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
                 Symbol = "ELF",
                 Amount = 1000_0000L,
@@ -284,9 +296,11 @@ namespace AElf.OS
                 Memo = "Issue"
             });
             
-            dto.InitializationSmartContracts.AddGenesisSmartContract<ElectionContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                ElectionContractCode,
                 ElectionSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract<TokenContract>(
+            dto.InitializationSmartContracts.AddGenesisSmartContract(
+                TokenContractCode,
                 TokenSmartContractAddressNameProvider.Name, callList);
 
             _blockchainNodeCtxt = await _osBlockchainNodeContextService.StartAsync(dto);

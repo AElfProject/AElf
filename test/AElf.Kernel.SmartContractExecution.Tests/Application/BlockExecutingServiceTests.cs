@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -31,7 +33,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 Height = 2,
                 PreviousBlockHash = Hash.Empty,
-                Time = DateTime.UtcNow.ToTimestamp()
+                Time = TimestampHelper.GetUtcNow()
             };
             var txs = BuildTransactions(5);
 
@@ -46,7 +48,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
 
             block.Body.Transactions.ShouldBe(allTxIds);
-            block.Body.TransactionList.ShouldBe(txs);
         }
 
         [Fact]
@@ -56,7 +57,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 Height = 2,
                 PreviousBlockHash = Hash.Empty,
-                Time = DateTime.UtcNow.ToTimestamp()
+                Time = TimestampHelper.GetUtcNow()
             };
             var nonCancellableTxs = BuildTransactions(5);
             var cancellableTxs = BuildTransactions(5);
@@ -85,7 +86,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
 
             block.Body.Transactions.ShouldBe(allTxIds);
-            block.Body.TransactionList.ShouldBe(allTxs);
         }
 
         private List<Transaction> BuildTransactions(int txCount)

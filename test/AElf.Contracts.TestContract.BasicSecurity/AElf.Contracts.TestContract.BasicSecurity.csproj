@@ -1,48 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.TestContract.BasicSecurity</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RootNamespace>AElf.Contracts.TestContract.BasicSecurity</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <Content Include="..\..\protobuf\common.proto">
-            <Link>Protobuf/Proto/common.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\kernel.proto">
-            <Link>Protobuf/Proto/kernel.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\aelf_options.proto">
-            <Link>Protobuf/Proto/aelf_options.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\test_basic.proto">
-            <Link>Protobuf/Proto/test_basic.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\test_basic_function_contract.proto">
-            <Link>Protobuf/Proto/test_basic_function_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\test_basic_security_contract.proto">
-            <Link>Protobuf/Proto/test_basic_security_contract.proto</Link>
-        </Content>
-        <Content Include="..\..\protobuf\basic_contract_zero.proto">
-            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-        </Content>
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\test_basic_function_contract.proto">
+            <Link>Protobuf\Proto\reference\test_basic_function_contract.proto</Link>
+        </ContractReference>
     </ItemGroup>
-
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto test_basic.proto test_basic_function_contract.proto ; ../../scripts/generate_contract_code.sh test_basic_security_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto test_basic.proto test_basic_function_contract.proto &amp; ..\..\scripts\generate_contract_code.bat test_basic_security_contract.proto" />
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs" />
-        </ItemGroup>
-    </Target>
-
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\test_basic_security_contract.proto">
+            <Link>Protobuf\Proto\test_basic_security_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
 </Project>

@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package acs4;
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/timestamp.proto";
+
+option (aelf.identity) = "acs4";
+
+service ConsensusContract {
+    rpc GetConsensusCommand (google.protobuf.BytesValue) returns (ConsensusCommand) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetInformationToUpdateConsensus (google.protobuf.BytesValue) returns (google.protobuf.BytesValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GenerateConsensusTransactions (google.protobuf.BytesValue) returns (TransactionList) {
+        option (aelf.is_view) = true;
+    }
+    rpc ValidateConsensusBeforeExecution (google.protobuf.BytesValue) returns (ValidationResult) {
+        option (aelf.is_view) = true;
+    }
+    rpc ValidateConsensusAfterExecution (google.protobuf.BytesValue) returns (ValidationResult) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message ConsensusCommand {
+    int32 NextBlockMiningLeftMilliseconds = 1;// How many milliseconds left to trigger the mining of next block.
+    int32 LimitMillisecondsOfMiningBlock = 2;// Time limit of mining next block.
+    bytes Hint = 3;// Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.
+    google.protobuf.Timestamp ExpectedMiningTime = 4;
+}
+
+message ValidationResult {
+    bool Success = 1;
+    string Message = 2;
+}
+
+message TransactionList {
+    repeated aelf.Transaction Transactions = 1;
+}

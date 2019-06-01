@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -24,17 +27,18 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     Height = Constants.GenesisBlockHeight,
                     PreviousBlockHash = Hash.Empty,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = TimestampHelper.GetUtcNow()
                 },
                 Body = new BlockBody()
             };
 
             var chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldBeNull();
+            
             var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.ShouldBeNull();
 
-            var createChainResult = await _fullBlockchainService.CreateChainAsync(block);
+            var createChainResult = await _fullBlockchainService.CreateChainAsync(block, new List<Transaction>());
 
             chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldNotBeNull();

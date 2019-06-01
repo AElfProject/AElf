@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Blockchain.Application
@@ -18,7 +19,5 @@ namespace AElf.Kernel.Blockchain.Application
 
         void FillMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader,
             IEnumerable<(Hash, TransactionResultStatus)> blockExecutionReturnSet);
-
-        ByteString GetMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader);
     }
 }

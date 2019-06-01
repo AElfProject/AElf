@@ -6,6 +6,7 @@ using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -124,7 +125,7 @@ namespace AElf.Contracts.Election
         {
             const int votersCount = 2;
             const long amount = 500;
-            const int lockTime = 100;
+            const int lockTime = 100 * 60 * 60 * 24;
 
             var candidatesKeyPairs = await ElectionContract_AnnounceElection();
             var candidateKeyPair = candidatesKeyPairs[0];
@@ -226,7 +227,7 @@ namespace AElf.Contracts.Election
         public async Task ElectionContract_Withdraw()
         {
             const int amount = 1000;
-            const int lockTime = 120;
+            const int lockTime = 120 * 60 * 60 * 24;
 
             var candidateKeyPair = FullNodesKeyPairs[0];
             await AnnounceElectionAsync(candidateKeyPair);
@@ -254,7 +255,7 @@ namespace AElf.Contracts.Election
 
             await NextTerm(InitialMinersKeyPairs[0]);
 
-            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddDays(lockTime + 1));
+            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddSeconds(lockTime + 1));
 
             // Withdraw
             {

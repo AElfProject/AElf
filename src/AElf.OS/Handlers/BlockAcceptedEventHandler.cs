@@ -12,9 +12,10 @@ namespace AElf.OS.Handlers
         {
             public INetworkService NetworkService { get; set; }
 
-            public async Task HandleEventAsync(BlockAcceptedEvent eventData)
+            public Task HandleEventAsync(BlockAcceptedEvent eventData)
             {
-                await NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader);
+                NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
+                return Task.CompletedTask;
             }
         }
     }

@@ -3,10 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -144,10 +146,11 @@ namespace AElf.Kernel
                 {
                     Height = previousBlockHeight + 1,
                     PreviousBlockHash = previousBlockHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = TimestampHelper.GetUtcNow()
                 },
                 Body = new BlockBody()
             };
+            
             foreach (var transaction in transactions)
             {
                 newBlock.AddTransaction(transaction);
@@ -204,6 +207,7 @@ namespace AElf.Kernel
             }
 
             await _blockchainService.AddBlockAsync(newBlock);
+            await _blockchainService.AddTransactionsAsync(transactions);
             var chain = await _blockchainService.GetChainAsync();
             await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
 
@@ -239,7 +243,9 @@ namespace AElf.Kernel
                 },
                 Body = new BlockBody()
             };
-            var chain = await _blockchainService.CreateChainAsync(genesisBlock);
+            
+            var chain = await _blockchainService.CreateChainAsync(genesisBlock, new List<Transaction>());
+            
             return chain;
         }
         

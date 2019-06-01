@@ -1,8 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
+using Acs0;
 using AElf.Contracts.Profit;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -12,7 +16,8 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
 
-            l.AddGenesisSmartContract<ProfitContract>(
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("Profit")).Value,
                 ProfitSmartContractAddressNameProvider.Name, GenerateProfitInitializationCallList());
 
             return l;
@@ -21,12 +26,9 @@ namespace AElf.Blockchains.MainChain
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
             var profitContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            profitContractMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),
-                new InitializeProfitContractInput
-                {
-                    // To handle tokens when release profit, add profits and receive profits.
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                });
+
+            profitContractMethodCallList.Add(nameof(ProfitContractContainer.ProfitContractStub.InitializeProfitContract),new Empty());
+
             return profitContractMethodCallList;
         }
     }

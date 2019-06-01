@@ -1,9 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
-using AElf.Kernel;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -37,10 +37,7 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task ParliamentAuthContract_InitializeMultiTimes()
         {
-            var transactionResult = (await ParliamentAuthContractStub.Initialize.SendAsync(new ParliamentAuthInitializationInput()
-            {
-                ConsensusContractSystemName = Hash.Generate(),
-            })).TransactionResult;
+            var transactionResult = (await ParliamentAuthContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
@@ -74,7 +71,7 @@ namespace AElf.Contracts.ParliamentAuth
             var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId);
             
             getProposal.Output.Proposer.ShouldBe(DefaultSender);
-            getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContract.Transfer));
+            getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContractStub.Transfer));
             getProposal.Output.ProposalId.ShouldBe(proposalId);
             getProposal.Output.OrganizationAddress.ShouldBe(_defaultOrganizationAddress);
             getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
@@ -120,7 +117,7 @@ namespace AElf.Contracts.ParliamentAuth
             {
                 ToAddress = Address.FromString("Test"),
                 Params = ByteString.CopyFromUtf8("Test"),
-                ExpiredTime = blockTime.AddDays(1).ToTimestamp(),
+                ExpiredTime = blockTime.AddDays(1),
                 OrganizationAddress =_defaultOrganizationAddress
             };
             //"Invalid proposal."
@@ -150,7 +147,7 @@ namespace AElf.Contracts.ParliamentAuth
             }
             //"Expired proposal."
             {
-                _createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5).ToTimestamp();
+                _createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5);
                 Thread.Sleep(10);
                 
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
@@ -159,7 +156,7 @@ namespace AElf.Contracts.ParliamentAuth
             }
             //"No registered organization."
             {
-                _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1).ToTimestamp();
+                _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
                 _createProposalInput.OrganizationAddress = Address.FromString("NoRegisteredOrganizationAddress");
                 
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
@@ -324,10 +321,10 @@ namespace AElf.Contracts.ParliamentAuth
             };
             _createProposalInput = new CreateProposalInput
             {
-                ContractMethodName = nameof(TokenContract.Transfer),
+                ContractMethodName = nameof(TokenContractStub.Transfer),
                 ToAddress = TokenContractAddress,
                 Params = _transferInput.ToByteString(),
-                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2).ToTimestamp(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
                 OrganizationAddress = organizationAddress
             };
             var proposal = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Types;
 using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -28,14 +29,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private ConcurrentDictionary<Hash, TransactionReceipt> _validated = new ConcurrentDictionary<Hash, TransactionReceipt>();
 
-        private ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
-            new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+        private ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
+            new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
 
-        private ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> _expiredByExpiryBlock =
-            new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+        private ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> _expiredByExpiryBlock =
+            new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
 
-        private ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> _futureByBlock =
-            new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+        private ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> _futureByBlock =
+            new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
 
         private long _bestChainHeight = Constants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
@@ -85,16 +86,16 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #region Private Static Methods
 
-        private static void AddToCollection(ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> collection,
+        private static void AddToCollection(ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> collection,
             TransactionReceipt receipt)
         {
             if (!collection.TryGetValue(receipt.Transaction.RefBlockNumber, out var receipts))
             {
-                receipts = new Dictionary<Hash, TransactionReceipt>();
+                receipts = new ConcurrentDictionary<Hash, TransactionReceipt>();
                 collection.TryAdd(receipt.Transaction.RefBlockNumber, receipts);
             }
 
-            receipts.Add(receipt.TransactionId, receipt);
+            receipts.TryAdd(receipt.TransactionId, receipt);
         }
 
         private static void CheckPrefixForOne(TransactionReceipt receipt, ByteString prefix, long bestChainHeight)
@@ -149,9 +150,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private void ResetCurrentCollections()
         {
-            _expiredByExpiryBlock = new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
-            _invalidatedByBlock = new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
-            _futureByBlock = new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+            _expiredByExpiryBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
+            _invalidatedByBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
+            _futureByBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
             _validated = new ConcurrentDictionary<Hash, TransactionReceipt>();
         }
 
@@ -248,6 +249,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
         {
+            Logger.LogDebug($"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
+            
             var heights = _allTransactions.Select(kv => kv.Value.Transaction.RefBlockNumber).Distinct();
             var prefixes = await GetPrefixesByHeightAsync(heights, eventData.BlockHash);
             ResetCurrentCollections();
@@ -260,6 +263,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             _bestChainHash = eventData.BlockHash;
             _bestChainHeight = eventData.BlockHeight;
+            
+            Logger.LogDebug($"Finish handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
         }
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)

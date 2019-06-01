@@ -1,8 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
+using Acs0;
 using AElf.Contracts.Vote;
-using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -12,7 +15,8 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
 
-            l.AddGenesisSmartContract<VoteContract>(
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("Vote")).Value,
                 VoteSmartContractAddressNameProvider.Name, GenerateVoteInitializationCallList());
 
             return l;
@@ -21,12 +25,9 @@ namespace AElf.Blockchains.MainChain
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
             var voteContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteContractMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
-                new InitialVoteContractInput
-                {
-                    // To Lock and Unlock tokens of voters.
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
-                });
+
+            voteContractMethodCallList.Add(nameof(VoteContractContainer.VoteContractStub.InitialVoteContract),new Empty());
+
             return voteContractMethodCallList;
         }
     }

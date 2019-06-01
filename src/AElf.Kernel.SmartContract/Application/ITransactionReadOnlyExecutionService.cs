@@ -4,15 +4,17 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContract.Application
 {
     public interface ITransactionReadOnlyExecutionService
     {
         Task<TransactionTrace> ExecuteAsync(IChainContext chainContext, Transaction transaction,
-            DateTime currentBlockTime);
+            Timestamp currentBlockTime);
 
         Task<byte[]> GetFileDescriptorSetAsync(IChainContext chainContext, Address address);
 
@@ -26,10 +28,9 @@ namespace AElf.Kernel.SmartContract.Application
         public static async Task<T> ExecuteAsync<T>(
             this ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             IChainContext chainContext, Transaction transaction,
-            DateTime currentBlockTime, bool failedThrowException) where T : class, IMessage<T>, new()
+            Timestamp currentBlockTime, bool failedThrowException) where T : class, IMessage<T>, new()
         {
-            var trace = await transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction,
-                currentBlockTime);
+            var trace = await transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, currentBlockTime);
             if (trace.IsSuccessful())
             {
                 var obj = new T();
@@ -48,7 +49,7 @@ namespace AElf.Kernel.SmartContract.Application
         public static async Task<T> ExecuteAsync<T>(
             this ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             IChainContext chainContext, Transaction transaction,
-            DateTime currentBlockTime) where T : class, IMessage<T>, new()
+            Timestamp currentBlockTime) where T : class, IMessage<T>, new()
         {
             return await ExecuteAsync<T>(transactionReadOnlyExecutionService, chainContext, transaction,
                 currentBlockTime,
@@ -96,7 +97,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         public async Task<TransactionTrace> ExecuteAsync(IChainContext chainContext, Transaction transaction,
-            DateTime currentBlockTime)
+            Timestamp currentBlockTime)
         {
             var trace = new TransactionTrace()
             {

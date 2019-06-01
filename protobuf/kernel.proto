@@ -1,10 +1,11 @@
 syntax = "proto3";
 
+package aelf;
+
 option csharp_namespace = "AElf.Kernel";
 
 import "google/protobuf/timestamp.proto";
-import "common.proto";
-import "core.proto";
+import "aelf/core.proto";
 
 //message Transaction {
 //    Address From = 1;
@@ -64,10 +65,6 @@ message StateChange {
     StatePath StatePath = 1;
     StateValue StateValue = 2;
 }
-
-//message TransactionList {
-//    repeated Transaction Transactions = 1;
-//}
 
 //enum TransactionResultStatus {
 //    NotExisted = 0;
@@ -163,6 +160,7 @@ message BlockHeader {
     int64 Height = 7;
     repeated bytes BlockExtraDatas = 8;
     google.protobuf.Timestamp Time = 9;
+    Hash MerkleTreeRootOfTransactionStatus = 10;
     bytes SignerPubkey = 9999;
     bytes Signature = 10000;
 }
@@ -170,7 +168,6 @@ message BlockHeader {
 message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
-    repeated Transaction TransactionList = 3;
 }
 
 message Block {
@@ -196,9 +193,9 @@ message BinaryMerkleTree {
     int32 LeafCount = 3;
 }
 
-//message MerklePath {
-//    repeated Hash Path = 1;
-//}
+message MerklePath {
+    repeated Hash Path = 1;
+}
 //
 //message StringList {
 //    repeated string Values = 1;

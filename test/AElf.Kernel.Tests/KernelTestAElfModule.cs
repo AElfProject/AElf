@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
@@ -11,6 +12,7 @@ using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool;
 using AElf.Modularity;
+using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -44,13 +46,13 @@ namespace AElf.Kernel
                 return acc.Object;
             });
 
-            var transactionList = new List<Transaction>()
+            var transactionList = new List<Transaction>
             {
                 new Transaction
                 {
                     From = Address.Generate(),
                     To = Address.Generate(),
-                    MethodName = ConsensusConsts.GenerateConsensusTransactions
+                    MethodName = "GenerateConsensusTransactions"
                 }
             };
             services.AddTransient(o =>
@@ -80,7 +82,7 @@ namespace AElf.Kernel
                     {
                         Body = new BlockBody()
                         {
-                            TransactionList = { transactionList }
+                            Transactions = { transactionList.Select(tx => tx.GetHash()) } 
                         },
                         Header = new BlockHeader(),
                         Height = 10

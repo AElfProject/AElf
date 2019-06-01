@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Google.Protobuf.WellKnownTypes;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Math;
 
 namespace AElf.Runtime.CSharp.Tests.BadContract
 {
@@ -56,6 +58,25 @@ namespace AElf.Runtime.CSharp.Tests.BadContract
                 writer.Write(input.FileContent);
             }
             
+            return new Empty();
+        }
+
+        public override Empty InitLargeArray(Empty input)
+        {
+            var arr = new int[1024 * 1024 * 1024]; // 
+
+            for (var i = 0; i < arr.Length; i++)
+            {
+                arr[i] = int.MaxValue;
+            }
+
+            return new Empty();
+        }
+
+        public override Empty InitLargeStringDynamic(InitLargeStringDynamicInput input)
+        {
+            var str = new String('A', input.StringSizeValue);
+
             return new Empty();
         }
 

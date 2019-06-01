@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Acs0;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -17,6 +17,7 @@ using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using AElf.Runtime.CSharp;
+using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -28,6 +29,14 @@ namespace AElf.WebApp.Application.Chain.Tests
 {
     public sealed class BlockChainAppServiceTest : WebAppTestBase
     {
+        private IReadOnlyDictionary<string, byte[]> _codes;
+
+        public IReadOnlyDictionary<string, byte[]> Codes =>
+            _codes ?? (_codes = ContractsDeployer.GetContractCodes<BlockChainAppServiceTest>());
+
+        public byte[] ConsensusContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
+        public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
@@ -35,6 +44,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
+        private readonly ITaskQueueManager _taskQueueManager;
 
         public BlockChainAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
@@ -45,6 +55,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
+            _taskQueueManager = GetRequiredService<ITaskQueueManager>();
         }
         
         [Fact]
@@ -60,7 +71,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 Params = ByteString.CopyFrom(new ContractDeploymentInput
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location))
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 }.ToByteArray()),
                 RefBlockNumber = chain.BestChainHeight,
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
@@ -104,7 +115,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         public async Task Call_Success()
         {
             // Generate a transaction
-            var transaction = await GenerateViewTransaction(nameof(TokenContract.GetTokenInfo), 
+            var transaction = await GenerateViewTransaction(nameof(TokenContractContainer.TokenContractStub.GetTokenInfo), 
                 new GetTokenInfoInput
                 {
                     Symbol = "ELF"
@@ -559,6 +570,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
             response.Header.ChainId.ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
             response.Header.Bloom.ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
+            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
             response.Body.TransactionsCount.ShouldBe(3);
 
             var responseTransactions = response.Body.Transactions;
@@ -590,6 +602,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
             response.Header.ChainId.ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
             response.Header.Bloom.ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
+            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
             response.Body.TransactionsCount.ShouldBe(3);
 
             var responseTransactions = response.Body.Transactions;
@@ -1022,6 +1035,33 @@ namespace AElf.WebApp.Application.Chain.Tests
             errorResponse.Error.Code.ShouldBe(Error.InvalidParams.ToString());
             errorResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
         }
+
+        [Fact]
+        public async Task GetTaskQueueStateInfos_Test()
+        {
+            var response =
+                await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
+            response.Count.ShouldBe(1);
+            
+            const string testQueueOneName = "testQueueOneName";
+            const string testQueueTwoName = "testQueueTwoName";
+            
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
+
+            response = await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
+            response.Count.ShouldBe(2);
+            response.Any(info=>info.Name == testQueueOneName).ShouldBeTrue();
+            response.First(info=>info.Name == testQueueOneName).Size.ShouldBe(1);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
+            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
+
+            response = await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
+            response.Count.ShouldBe(3);
+            response.First(info=>info.Name == testQueueTwoName).Size.ShouldBe(2);
+            response.Any(info=>info.Name == testQueueTwoName).ShouldBeTrue();
+        }
         
         private Task<List<Transaction>> GenerateTwoInitializeTransaction()
         {
@@ -1032,7 +1072,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             {
                 var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
-                    nameof(TokenContract.Create), new CreateInput
+                    nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
                     {
                         Symbol = "ELF",
                         TokenName= $"elf token {i}",

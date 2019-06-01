@@ -24,7 +24,7 @@ namespace AElf.OS.Consensus.DPos
             _peerPool = GetRequiredService<IPeerPool>();
         }
 
-        [Fact(Skip = "Module problem.")]
+        [Fact]
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_IsNull()
         {
             var an = new PeerNewBlockAnnouncement { };
@@ -34,15 +34,14 @@ namespace AElf.OS.Consensus.DPos
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);
         }
         
-        [Fact(Skip = "Module problem.")]
+        [Fact]
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_SureAmountNotEnough()
         {
             var block = await GenerateNewBlockAndAnnouncementToPeers(1);
             var an = new PeerNewBlockAnnouncement
             {
                 BlockHash = block.GetHash(),
-                BlockHeight = block.Height,
-                BlockTime = block.Header.Time
+                BlockHeight = block.Height
             };
             var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
             var announcementData = new AnnouncementReceivedEventData(an, sendKey);
@@ -50,15 +49,14 @@ namespace AElf.OS.Consensus.DPos
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);
         }
         
-        [Fact(Skip = "Module problem.")]
+        [Fact]
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_SureAmountEnough()
         {
             var block = await GenerateNewBlockAndAnnouncementToPeers(3);
             var an = new PeerNewBlockAnnouncement
             {
                 BlockHash = block.GetHash(),
-                BlockHeight = block.Height,
-                BlockTime = block.Header.Time
+                BlockHeight = block.Height
             };
             var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
             var announcementData = new AnnouncementReceivedEventData(an, sendKey);
@@ -79,8 +77,7 @@ namespace AElf.OS.Consensus.DPos
                 grpcPeer.HandlerRemoteAnnounce(new PeerNewBlockAnnouncement
                 {
                     BlockHash = block.GetHash(),
-                    BlockHeight = block.Height,
-                    BlockTime = block.Header.Time
+                    BlockHeight = block.Height
                 });
             }
 

@@ -1,45 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.TestContract.BasicUpdate</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RootNamespace>AElf.Contracts.TestContract.BasicUpdate</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\..\protobuf\aelf_options.proto">
-        <Link>Protobuf/Proto/aelf_options.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\basic_contract_zero.proto">
-        <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\common.proto">
-        <Link>Protobuf/Proto/common.proto</Link>
-      </Content>
-      <Content Include="..\..\protobuf\core.proto">
-        <Link>Protobuf/Proto/core.proto</Link>
-      </Content>
-        <Content Include="..\..\protobuf\test_basic.proto">
-            <Link>Protobuf/Proto/test_basic.proto</Link>
-        </Content>
-      <Content Include="..\..\protobuf\test_basic_update_contract.proto">
-        <Link>Protobuf/Proto/test_basic_update_contract.proto</Link>
-      </Content>
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
     </ItemGroup>
 
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_reference.sh basic_contract_zero.proto test_basic.proto ; ../../scripts/generate_contract_code.sh test_basic.proto test_basic_update_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_reference.bat basic_contract_zero.proto test_basic.proto &amp; ..\..\scripts\generate_contract_code.bat test_basic.proto test_basic_update_contract.proto" />
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs" />
-        </ItemGroup>
-    </Target>
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\test_basic_update_contract.proto">
+            <Link>Protobuf\Proto\test_basic_update_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
 
 </Project>

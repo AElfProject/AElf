@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
@@ -10,7 +11,9 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 
@@ -104,12 +107,7 @@ namespace AElf.Contracts.Profit
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
             var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),
-                new InitializeProfitContractInput
-                {
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                });
-
+            voteMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),new Empty());
             return voteMethodCallList;
         }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using AElf.BenchBase;
@@ -49,8 +50,11 @@ namespace AElf.Kernel.SmartContractExecution.Benches
 
                 _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
                 
+                await _blockchainService.AddTransactionsAsync(transactions);
                 await _blockchainService.AddBlockAsync(_block);
+                
                 chain = await _blockchainService.GetChainAsync();
+                
                 await _blockchainService.AttachBlockToChainAsync(chain, _block);
             });
         }

@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 
@@ -92,7 +93,7 @@ namespace AElf.Contracts.Vote
                 transactionResult3.Status.ShouldBe(TransactionResultStatus.Mined);
                 
                 var votingResult = await GetVotingResult(registerItem.VotingItemId, 2);
-                votingResult.VotersCount.ShouldBe(4);
+                votingResult.VotersCount.ShouldBe(7);
                 votingResult.Results.Count.ShouldBe(3);
                 votingResult.Results[options[0]].ShouldBe(100);
                 votingResult.Results[options[1]].ShouldBe(100);

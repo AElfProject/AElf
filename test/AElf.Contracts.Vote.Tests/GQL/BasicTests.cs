@@ -1,8 +1,11 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -11,16 +14,6 @@ namespace AElf.Contracts.Vote
 {
     public partial class VoteTests : VoteContractTestBase
     {
-        [Fact]
-        public async Task VoteContract_Initialize_NotByContractZero()
-        {
-            var transactionResult = (await VoteContractStub.InitialVoteContract.SendAsync(new InitialVoteContractInput
-            {
-                TokenContractSystemName = Hash.Generate(),
-            })).TransactionResult;
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Only zero contract can");
-        }
 
         [Fact]
         public async Task VoteContract_Register_Again()
@@ -43,12 +36,12 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_Register_CurrencyNotSupportVoting()
         {
-            var startTime = DateTime.UtcNow;
+            var startTime = TimestampHelper.GetUtcNow();
             var input = new VotingRegisterInput
             {
                 TotalSnapshotNumber = 5,
-                EndTimestamp = startTime.AddDays(100).ToTimestamp(),
-                StartTimestamp = startTime.ToTimestamp(),
+                EndTimestamp = startTime.AddDays(100),
+                StartTimestamp = startTime,
                 Options =
                 {
                     GenerateOptions(3)

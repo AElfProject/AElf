@@ -1,8 +1,9 @@
-using System.Threading.Tasks;
+/*using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Kernel;
 using AElf.Kernel.Token;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Contracts.MultiToken
@@ -18,9 +19,9 @@ namespace AElf.Contracts.MultiToken
         public static async Task TransferTokenAsync(this ContractTester<MultiTokenContractTestAElfModule> starter, Address to,
             long amount)
         {
-            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContract.Transfer), new TransferInput
+            await starter.ExecuteTokenContractMethodWithMiningAsync(nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
             {
-                Symbol = "ELF",
+                Symbol = "TELF",
                 Amount = amount,
                 To = to
             });
@@ -38,10 +39,10 @@ namespace AElf.Contracts.MultiToken
         {
             var balanceOutput =GetBalanceOutput.Parser.ParseFrom(
                 await contractTester.CallContractMethodAsync(contractTester.GetTokenContractAddress(),
-                nameof(TokenContract.GetBalance), new GetBalanceInput
+                nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
                 {
                     Owner = targetAddress,
-                    Symbol = "ELF"
+                    Symbol = "TELF"
                 }));
             return balanceOutput.Balance;
         }
@@ -55,13 +56,13 @@ namespace AElf.Contracts.MultiToken
             }
             
             return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetTokenContractAddress(),
-                nameof(TokenContract.Lock),
+                nameof(TokenContractContainer.TokenContractStub.Lock),
                 new LockInput
                 {
                     From = contractTester.GetCallOwnerAddress(),
                     To = lockToAddress,
                     Amount = amount,
-                    Symbol = "ELF",
+                    Symbol = "TELF",
                     LockId = lockId,
                     Usage = "Testing."
                 });
@@ -71,16 +72,16 @@ namespace AElf.Contracts.MultiToken
             Hash lockId)
         {
             return await contractTester.ExecuteContractWithMiningAsync(contractTester.GetTokenContractAddress(),
-                nameof(TokenContract.Unlock),
+                nameof(TokenContractContainer.TokenContractStub.Unlock),
                 new UnlockInput
                 {
                     From = contractTester.GetCallOwnerAddress(),
                     To = contractTester.GetConsensusContractAddress(),
                     Amount = amount,
-                    Symbol = "ELF",
+                    Symbol = "TELF",
                     LockId = lockId,
                     Usage = "Testing."
                 });
         }
     }
-}
+}*/

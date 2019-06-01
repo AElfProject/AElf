@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
@@ -8,8 +10,25 @@ namespace AElf.Launcher
 {
     class Program
     {
+        static void AddSameFolderLoader()
+        {
+            AppDomain currentDomain = AppDomain.CurrentDomain;
+
+            currentDomain.AssemblyResolve += LoadFromSameFolder;
+        }
+
+        static Assembly LoadFromSameFolder(object sender, ResolveEventArgs args)
+        {
+            string folderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string assemblyPath = Path.Combine(folderPath, new AssemblyName(args.Name).Name + ".dll");
+            if (!File.Exists(assemblyPath)) return null;
+            Assembly assembly = Assembly.LoadFrom(assemblyPath);
+            return assembly;
+        }
+
         public static void Main(string[] args)
         {
+            AddSameFolderLoader();
             ILogger<Program> logger = NullLogger<Program>.Instance;
             try
             {

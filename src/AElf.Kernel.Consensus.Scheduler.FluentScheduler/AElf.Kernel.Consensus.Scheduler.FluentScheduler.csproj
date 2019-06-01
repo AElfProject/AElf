@@ -8,7 +8,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler\AElf.Kernel.Consensus.Scheduler.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
       <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>

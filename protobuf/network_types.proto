@@ -3,14 +3,14 @@ syntax = "proto3";
 option csharp_namespace = "AElf.OS.Network";
 
 import "google/protobuf/timestamp.proto";
+import "aelf/core.proto";
 import "kernel.proto";
-import "common.proto";
 
 message Handshake {
     HandshakeData HskData = 1;
-    bytes Sig = 2;
+    bytes Signature = 2;
     bool Success = 3;
-    BlockHeader Header = 4;
+    aelf.BlockHeader Header = 4;
 }
 
 message HandshakeData {
@@ -21,7 +21,12 @@ message HandshakeData {
 }
 
 message PeerNewBlockAnnouncement {
-    Hash BlockHash = 1;
+    aelf.Hash BlockHash = 1;
     int64 BlockHeight = 2;
-    google.protobuf.Timestamp BlockTime = 3;
+    bool HasFork = 3;
+}
+
+message BlockWithTransactions {
+    aelf.BlockHeader Header = 1;
+    repeated aelf.Transaction Transactions = 2;
 }

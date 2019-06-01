@@ -4,6 +4,8 @@ using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -118,7 +120,7 @@ namespace AElf.Contracts.AssociationAuth
             {
                 ToAddress = Address.FromString("Test"),
                 Params = ByteString.CopyFromUtf8("Test"),
-                ExpiredTime = blockTime.AddDays(1).ToTimestamp(),
+                ExpiredTime = blockTime.AddDays(1),
                 OrganizationAddress = _organizationAddress
             };
             //"Invalid proposal."
@@ -148,7 +150,7 @@ namespace AElf.Contracts.AssociationAuth
             }
             //"Expired proposal."
             {
-                _createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5).ToTimestamp();
+                _createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5);
                 Thread.Sleep(10);
                 
                 var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
@@ -157,7 +159,7 @@ namespace AElf.Contracts.AssociationAuth
             }
             //"No registered organization."
             {
-                _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1).ToTimestamp();
+                _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
                 _createProposalInput.OrganizationAddress = Address.FromString("NoRegisteredOrganizationAddress");
                 
                 var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
@@ -346,7 +348,7 @@ namespace AElf.Contracts.AssociationAuth
                 ContractMethodName = nameof(TokenContract.Transfer),
                 ToAddress = TokenContractAddress,
                 Params = _transferInput.ToByteString(),
-                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2).ToTimestamp(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
                 OrganizationAddress = _organizationAddress
             };
             var proposal = await AssociationAuthContractStub.CreateProposal.SendAsync(_createProposalInput);

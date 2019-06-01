@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AElf.Contracts.AssociationAuth;
+using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.CrossChain;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -10,11 +12,13 @@ using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.ReferendumAuth;
 using AElf.Contracts.Resource.FeeReceiver;
+using AElf.Contracts.TokenConverter;
 using AElf.Runtime.CSharp.Validators;
 using AElf.Runtime.CSharp.Validators.Method;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
+using ValidationResult = AElf.Runtime.CSharp.Validators.ValidationResult;
 
 namespace AElf.Runtime.CSharp.Tests
 {
@@ -26,7 +30,7 @@ namespace AElf.Runtime.CSharp.Tests
 
         public ContractAuditorTests(ITestOutputHelper testOutputHelper)
         {
-            _auditor = new ContractAuditor();
+            _auditor = new ContractAuditor(null, null);
             
             Should.Throw<InvalidCodeException>(() =>
             {
@@ -46,19 +50,21 @@ namespace AElf.Runtime.CSharp.Tests
         #region Positive Cases
         
         [Fact]
-        public void CheckDefaultContracts_AllShouldPass()
+        public void CheckSystemContracts_AllShouldPass()
         {
-            // TODO: Add other contracts in contract security test once contract dependencies are simplified.
             var contracts = new[]
             {
-                //typeof(AssociationAuthContract).Module.ToString(),
-                //typeof(ElectionContract).Module.ToString(), // Failing due to TimeSpan / FloatOps
+                typeof(AssociationAuthContract).Module.ToString(),
+                typeof(AEDPoSContract).Module.ToString(),
+                typeof(CrossChainContract).Module.ToString(),
+                typeof(ElectionContract).Module.ToString(),
                 typeof(BasicContractZero).Module.ToString(),
                 typeof(TokenContract).Module.ToString(),
-                //typeof(ParliamentAuthContract).Module.ToString(),
-                //typeof(ProfitContract).Module.ToString(),
-                //typeof(ReferendumAuthContract).Module.ToString(),
-                //typeof(FeeReceiverContract).Module.ToString(),
+                typeof(ParliamentAuthContract).Module.ToString(),
+                typeof(ProfitContract).Module.ToString(),
+                typeof(ReferendumAuthContract).Module.ToString(),
+                typeof(FeeReceiverContract).Module.ToString(),
+                typeof(TokenConverterContract).Module.ToString(),
                 typeof(TestContract.TestContract).Module.ToString(),
             };
 
@@ -67,7 +73,33 @@ namespace AElf.Runtime.CSharp.Tests
             {
                 var contractDllPath = _contractDllDir + contract;
                 
-                Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), false));
+                Should.NotThrow(()=>_auditor.Audit(ReadCode(contractDllPath), true));
+            }
+        }
+        
+        [Fact]
+        public void CheckSystemContracts_Injected_AllShouldPass()
+        {
+            var injectedContracts = new[]
+            {
+                typeof(AssociationAuthContract).Assembly.Location,
+                typeof(AEDPoSContract).Assembly.Location,
+                typeof(CrossChainContract).Assembly.Location,
+                typeof(ElectionContract).Assembly.Location,
+                typeof(BasicContractZero).Assembly.Location,
+                typeof(TokenContract).Assembly.Location,
+                typeof(ParliamentAuthContract).Assembly.Location,
+                typeof(ProfitContract).Assembly.Location,
+                typeof(ReferendumAuthContract).Assembly.Location,
+                typeof(FeeReceiverContract).Assembly.Location,
+                typeof(TokenConverterContract).Assembly.Location,
+                typeof(TestContract.TestContract).Assembly.Location,
+            };
+
+            // Load the DLL's from contracts folder to prevent codecov injection
+            foreach (var contract in injectedContracts)
+            {
+                Should.NotThrow(()=>_auditor.Audit(ReadCode(contract), true));
             }
         }
         
@@ -140,6 +172,15 @@ namespace AElf.Runtime.CSharp.Tests
         }
 
         [Fact]
+        public void CheckBadContract_ForStringConstructorUsage()
+        {
+            LookFor(_findings, 
+                "InitLargeStringDynamic",
+                i => i.Namespace == "System" && i.Type == "String" && i.Member == ".ctor")
+                .ShouldNotBeNull();
+        }
+
+        [Fact]
         public void CheckBadContract_ForDeniedMemberUseInNestedClass()
         {
             LookFor(_findings, 
@@ -158,9 +199,16 @@ namespace AElf.Runtime.CSharp.Tests
         }
         
         [Fact]
+        public void CheckBadContract_ForLargeArrayInitialization()
+        {
+            _findings.FirstOrDefault(f => f is ArrayValidationResult && f.Info.ReferencingMethod == "InitLargeArray")
+                .ShouldNotBeNull();
+        }
+        
+        [Fact]
         public void CheckBadContract_ForFloatOperations()
         {
-            _findings.FirstOrDefault(f => f.GetType() == typeof(FloatOpsValidationResult))
+            _findings.FirstOrDefault(f => f is FloatOpsValidationResult)
                 .ShouldNotBeNull();
         }
         
@@ -170,7 +218,7 @@ namespace AElf.Runtime.CSharp.Tests
 
         private Info LookFor(IEnumerable<ValidationResult>  findings, string referencingMethod, Func<Info, bool> criteria)
         {
-            return findings.Select(f => f.Info).FirstOrDefault(i => i.ReferencingMethod == referencingMethod && criteria(i));
+            return findings.Select(f => f.Info).FirstOrDefault(i => i != null && i.ReferencingMethod == referencingMethod && criteria(i));
         }
 
         private byte[] ReadCode(string path)

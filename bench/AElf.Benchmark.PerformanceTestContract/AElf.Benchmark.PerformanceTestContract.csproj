@@ -9,23 +9,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Content Include="..\..\protobuf\performance_test_contract.proto">
+        <ContractCode Include="..\..\protobuf\performance_test_contract.proto">
             <Link>Protobuf/proto/performance_test_contract.proto</Link>
-        </Content>
+        </ContractCode>
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Protobuf\Generated" />
-    </ItemGroup>
-
-    <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="../../scripts/generate_contract_code.sh performance_test_contract.proto" />
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="..\..\scripts\generate_contract_code.bat performance_test_contract.proto" />
-    </Target>
-    <Target Name="UpdateGeneratedFiles" DependsOnTargets="Gen_proto" BeforeTargets="BeforeBuild">
-        <ItemGroup>
-            <Compile Include="./Protobuf/Generated/*.cs" />
-        </ItemGroup>
-    </Target>
 
 </Project>

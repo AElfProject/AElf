@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
 using AElf.CSharp.Core;
@@ -12,6 +13,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.Reflection;
 
 namespace AElf.Runtime.CSharp
@@ -110,7 +112,7 @@ namespace AElf.Runtime.CSharp
 
         public void Execute()
         {
-            var s = CurrentTransactionContext.Trace.StartTime = DateTime.UtcNow;
+            var s = CurrentTransactionContext.Trace.StartTime = TimestampHelper.GetUtcNow().ToDateTime();
             var methodName = CurrentTransactionContext.Transaction.MethodName;
 
             try
@@ -118,7 +120,9 @@ namespace AElf.Runtime.CSharp
                 if (!_callHandlers.TryGetValue(methodName, out var handler))
                 {
                     throw new RuntimeException(
-                        $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers.");
+                        $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: "+
+                        string.Join(", ", _callHandlers.Keys.OrderBy(k=>k))
+                        );
                 }
 
                 try
@@ -188,7 +192,7 @@ namespace AElf.Runtime.CSharp
                 Cleanup();
             }
 
-            var e = CurrentTransactionContext.Trace.EndTime = DateTime.UtcNow;
+            var e = CurrentTransactionContext.Trace.EndTime = TimestampHelper.GetUtcNow().ToDateTime();
             CurrentTransactionContext.Trace.Elapsed = (e - s).Ticks;
         }
 

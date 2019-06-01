@@ -5,6 +5,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -18,11 +19,7 @@ namespace AElf.Contracts.Election
         public async Task ElectionContract_InitializeTwice()
         {
             var transactionResult = (await ElectionContractStub.InitialElectionContract.SendAsync(
-                new InitialElectionContractInput
-                {
-                    TokenContractSystemName = Hash.Generate(),
-                    VoteContractSystemName = Hash.Generate()
-                })).TransactionResult;
+                new InitialElectionContractInput())).TransactionResult;
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
@@ -75,7 +72,7 @@ namespace AElf.Contracts.Election
             // candidateKeyPair not announced election yet.
             {
                 var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120, 100);
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, 100);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.ShouldContain("Candidate not found");
@@ -86,7 +83,7 @@ namespace AElf.Contracts.Election
             // Voter token not enough
             {
                 var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120, 100_000);
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, 100_000);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.ShouldContain("Insufficient balance");
@@ -95,7 +92,7 @@ namespace AElf.Contracts.Election
             // Lock time is less than 90 days
             {
                 var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 80, 1000);
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 80 * 86400, 1000);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.ShouldContain("lock time");
@@ -178,7 +175,7 @@ namespace AElf.Contracts.Election
 
             var validCandidates = FullNodesKeyPairs.Take(InitialMinersCount - 1).ToList();
             validCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100, amount));
+                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, amount));
 
             foreach (var votedFullNodeKeyPair in FullNodesKeyPairs.Take(InitialMinersCount - 1))
             {
@@ -216,7 +213,7 @@ namespace AElf.Contracts.Election
 
             var validCandidates = FullNodesKeyPairs.Take(InitialMinersCount).ToList();
             validCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100, 100));
+                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 100));
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
                 .Select(p => p.ToHex()).ToList();
@@ -242,11 +239,11 @@ namespace AElf.Contracts.Election
 
             var moreVotesCandidates = FullNodesKeyPairs.Take(InitialMinersCount).ToList();
             moreVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100, 2));
+                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
 
             var lessVotesCandidates = FullNodesKeyPairs.Skip(InitialMinersCount).Take(InitialMinersCount).ToList();
             lessVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100, 1));
+                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1));
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
                 .Select(p => p.ToHex()).ToList();

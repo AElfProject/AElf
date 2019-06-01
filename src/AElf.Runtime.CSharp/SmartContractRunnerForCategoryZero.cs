@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,6 +12,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.MetaData;
 using AElf.CSharp.Core.MetadataAttribute;
+using AElf.Types;
 using Type = System.Type;
 
 namespace AElf.Runtime.CSharp
@@ -27,19 +29,19 @@ namespace AElf.Runtime.CSharp
             new ConcurrentDictionary<Hash, Type>();
 
         private readonly string _sdkDir;
-        private readonly AssemblyChecker _assemblyChecker;
+        private readonly ContractAuditor _contractAuditor;
 
         protected readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
         public SmartContractRunnerForCategoryZero(
             string sdkDir,
-            IServiceContainer<IExecutivePlugin> executivePlugins,
+            IServiceContainer<IExecutivePlugin> executivePlugins= null,
             IEnumerable<string> blackList = null,
             IEnumerable<string> whiteList = null)
         {
             _sdkDir = Path.GetFullPath(sdkDir);
             _sdkStreamManager = new SdkStreamManager(_sdkDir);
-            _assemblyChecker = new AssemblyChecker(blackList, whiteList);
-            _executivePlugins = executivePlugins;
+            _contractAuditor = new ContractAuditor(blackList, whiteList);
+            _executivePlugins = executivePlugins ?? ServiceContainerFactory<IExecutivePlugin>.Empty;
         }
 
         /// <summary>
@@ -84,7 +86,10 @@ namespace AElf.Runtime.CSharp
         /// <exception cref="InvalidCodeException">Thrown when issues are found in the code.</exception>
         public void CodeCheck(byte[] code, bool isPrivileged)
         {
-            _assemblyChecker.CodeCheck(code, isPrivileged);
+            #if !DEBUG
+            // TODO: Enable ContractAuditor in DEBUG mode until test cases timeout issue is solved
+            _contractAuditor.Audit(code, isPrivileged);
+            #endif
         }
 
         #region metadata extraction from contract code

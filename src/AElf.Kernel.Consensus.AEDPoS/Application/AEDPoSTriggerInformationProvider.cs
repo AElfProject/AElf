@@ -1,108 +1,125 @@
+using System.Threading.Tasks;
+using Acs4;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Consensus.Infrastructure;
 using Google.Protobuf;
 using Volo.Abp.Threading;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.Application;
+using Google.Protobuf.WellKnownTypes;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
+    internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
     {
         private readonly IAccountService _accountService;
-        private readonly ConsensusControlInformation _controlInformation;
-
-        private Hash _latestRandomHash = Hash.Empty;
+        private readonly IRandomHashCacheService _randomHashCacheService;
+        private readonly IBlockchainService _blockchainService;
 
         private ByteString PublicKey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
 
-        private AElfConsensusHint Hint => AElfConsensusHint.Parser.ParseFrom(_controlInformation.ConsensusCommand.Hint);
-
-        public ILogger<AEDPoSInformationGenerationService> Logger { get; set; }
+        public ILogger<AEDPoSTriggerInformationProvider> Logger { get; set; }
 
         public AEDPoSTriggerInformationProvider(IAccountService accountService,
-            ConsensusControlInformation controlInformation)
+            IRandomHashCacheService randomHashCacheService, IBlockchainService blockchainService)
         {
             _accountService = accountService;
-            _controlInformation = controlInformation;
+            _randomHashCacheService = randomHashCacheService;
+            _blockchainService = blockchainService;
         }
 
-        public IMessage GetTriggerInformationToGetConsensusCommand()
+        public BytesValue GetTriggerInformationForConsensusCommand(BytesValue consensusCommandBytes)
         {
-            return new CommandInput {PublicKey = PublicKey};
+            return new BytesValue {Value = PublicKey};
         }
 
-        public IMessage GetTriggerInformationToGetExtraData()
+        public async Task<BytesValue> GetTriggerInformationForBlockHeaderExtraDataAsync(BytesValue consensusCommandBytes)
         {
-            if (_controlInformation.ConsensusCommand == null)
+            if (consensusCommandBytes == null)
             {
                 return new AElfConsensusTriggerInformation
                 {
                     PublicKey = PublicKey,
                     Behaviour = AElfConsensusBehaviour.UpdateValue
-                };
+                }.ToBytesValue();
             }
 
-            if (Hint.Behaviour == AElfConsensusBehaviour.UpdateValue ||
-                Hint.Behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
+            var command = consensusCommandBytes.ToConsensusCommand();
+            var behaviour = command.Hint.ToAElfConsensusHint().Behaviour;
+ 
+            if (behaviour == AElfConsensusBehaviour.UpdateValue ||
+                behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
             {
-                var trigger = new AElfConsensusTriggerInformation
+                var bestChainLastBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
+                var bestChainLastBlockHash = bestChainLastBlockHeader.GetHash();
+
+                _randomHashCacheService.SetGeneratedBlockPreviousBlockInformation(bestChainLastBlockHash,
+                    bestChainLastBlockHeader.Height);
+                
+                var newRandomHash = GetRandomHash(command);
+                _randomHashCacheService.SetRandomHash(bestChainLastBlockHash, newRandomHash);
+
+                return new AElfConsensusTriggerInformation
                 {
                     PublicKey = PublicKey,
-                    RandomHash = GetRandomHash(),
-                    PreviousRandomHash = _latestRandomHash,
-                    Behaviour = Hint.Behaviour
-                };
-
-                return trigger;
+                    RandomHash = newRandomHash,
+                    PreviousRandomHash = _randomHashCacheService.GetLatestGeneratedBlockRandomHash(),
+                    Behaviour = behaviour
+                }.ToBytesValue();
             }
 
             return new AElfConsensusTriggerInformation
             {
                 PublicKey = PublicKey,
-                Behaviour = Hint.Behaviour
-            };
+                Behaviour = behaviour
+            }.ToBytesValue();
         }
 
-        public IMessage GetTriggerInformationToGenerateConsensusTransactions()
+        public async Task<BytesValue> GetTriggerInformationForConsensusTransactionsAsync(BytesValue consensusCommandBytes)
         {
-            if (_controlInformation.ConsensusCommand == null)
+            if (consensusCommandBytes == null)
             {
                 return new AElfConsensusTriggerInformation
                 {
                     PublicKey = PublicKey,
                     Behaviour = AElfConsensusBehaviour.UpdateValue
-                };
+                }.ToBytesValue();
             }
 
-            if (Hint.Behaviour == AElfConsensusBehaviour.UpdateValue ||
-                Hint.Behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
+            var command = consensusCommandBytes.ToConsensusCommand();
+            var behaviour = command.Hint.ToAElfConsensusHint().Behaviour;
+            var bestChainLastBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
+
+            if (behaviour == AElfConsensusBehaviour.UpdateValue ||
+                behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
             {
                 var trigger = new AElfConsensusTriggerInformation
                 {
                     PublicKey = PublicKey,
-                    RandomHash = GetRandomHash(),
-                    PreviousRandomHash = _latestRandomHash,
-                    Behaviour = Hint.Behaviour
+                    RandomHash = _randomHashCacheService.GetRandomHash(bestChainLastBlockHeader.GetHash()),
+                    PreviousRandomHash = _randomHashCacheService.GetLatestGeneratedBlockRandomHash(),
+                    Behaviour = behaviour
                 };
 
-                var newRandomHash = GetRandomHash();
-                Logger.LogTrace($"Update lasted random hash to {newRandomHash.ToHex()}");
-                _latestRandomHash = newRandomHash;
-
-                return trigger;
+                return trigger.ToBytesValue();
             }
 
             return new AElfConsensusTriggerInformation
             {
                 PublicKey = PublicKey,
-                Behaviour = Hint.Behaviour
-            };
+                Behaviour = behaviour
+            }.ToBytesValue();
         }
 
-        private Hash GetRandomHash()
+        /// <summary>
+        /// For generating in_value.
+        /// </summary>
+        /// <returns></returns>
+        private Hash GetRandomHash(ConsensusCommand consensusCommand)
         {
-            var data = Hash.FromRawBytes(_controlInformation.ConsensusCommand.NextBlockMiningLeftMilliseconds
+            var data = Hash.FromRawBytes(consensusCommand.NextBlockMiningLeftMilliseconds
                 .DumpByteArray());
             var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.DumpByteArray()));
             return Hash.FromRawBytes(bytes);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -8,6 +9,7 @@ using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
+using AElf.Types;
 using BenchmarkDotNet.Attributes;
 using Google.Protobuf.WellKnownTypes;
 
@@ -50,7 +52,7 @@ namespace AElf.Benchmark
                     ChainId = chain.Id,
                     Height = chain.BestChainHeight + 1,
                     PreviousBlockHash = chain.BestChainHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = TimestampHelper.GetUtcNow()
                 },
                 Body = new BlockBody()
             };

@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Modularity;
+using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -40,7 +41,7 @@ namespace AElf.OS
 
                 o.InitialMiners = miners;
                 o.MiningInterval = 4000;
-                o.TimeEachTerm = 7;
+                o.TimeEachTerm = 604800;
             });
 
             context.Services.AddTransient<IAccountService>(o =>

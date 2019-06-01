@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
@@ -52,13 +53,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         private async Task<bool> ExecuteBlock(ChainBlockLink blockLink, Block block)
         {
-            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            var blockHash = block.GetHash();
+            
+            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHash);
             if (blockState != null)
                 return true;
-
-            var blockHash = block.GetHash();
-            var executedBlock =
-                await _blockExecutingService.ExecuteBlockAsync(block.Header, block.Body.TransactionList);
+            
+            var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionHashList);
+            var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
 
             return executedBlock.GetHash().Equals(blockHash);
         }
@@ -118,7 +120,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
                     await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                     {
-                        BlockHeader = linkedBlock.Header
+                        BlockHeader = linkedBlock.Header,
+                        HasFork = blockLink.Height == chain.BestChainHeight
                     });
                 }
             }

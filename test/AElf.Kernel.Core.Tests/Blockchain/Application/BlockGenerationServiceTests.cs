@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -35,7 +36,7 @@ namespace AElf.Kernel.Blockchain.Application
             block.Header.ChainId.ShouldBe(_staticChainInformationProvider.ChainId);
             block.Header.Height.ShouldBe(generateBlockDto.PreviousBlockHeight + 1);
             block.Header.PreviousBlockHash.ShouldBe(generateBlockDto.PreviousBlockHash);
-            block.Header.Time.ShouldBe(Timestamp.FromDateTime(generateBlockDto.BlockTime));
+            block.Header.Time.ShouldBe(generateBlockDto.BlockTime);
         }
     }
 }

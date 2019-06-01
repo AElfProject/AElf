@@ -1,8 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
+using Acs0;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -11,7 +15,10 @@ namespace AElf.Blockchains.MainChain
         private IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForParliament()
         {
             var l = new List<GenesisSmartContractDto>();
-            l.AddGenesisSmartContract<ParliamentAuthContract>(ParliamentAuthContractAddressNameProvider.Name,
+//            l.AddGenesisSmartContract<ParliamentAuthContract>(
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("ParliamentAuth")).Value,
+                ParliamentAuthContractAddressNameProvider.Name,
                 GenerateParliamentInitializationCallList());
 
             return l;
@@ -21,11 +28,7 @@ namespace AElf.Blockchains.MainChain
             GenerateParliamentInitializationCallList()
         {
             var parliamentInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentInitializationCallList.Add(nameof(ParliamentAuthContract.Initialize),
-                new ParliamentAuthInitializationInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
-                });
+            parliamentInitializationCallList.Add(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize), new Empty());
             return parliamentInitializationCallList;
         }
     }
