@@ -229,7 +229,7 @@ namespace AElf.OS.Network
                 var handshake = new Handshake();
                 var metadata = new Metadata
                     {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
-                var context = BuildServerCallContext(metadata);
+                var context = BuildServerCallContext(metadata, "ipv4:127.0.0.1:1000");
 
                 var connectReply = await _service.Connect(handshake, context);
                 connectReply.Err.ShouldBe(AuthError.InvalidHandshake);
@@ -253,7 +253,7 @@ namespace AElf.OS.Network
                 var handshake = await _peerPool.GetHandshakeAsync();
                 var metadata = new Metadata
                     {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
-                var context = BuildServerCallContext(metadata);
+                var context = BuildServerCallContext(metadata, "127.0.0.1:3000");
 
                 var connectReply = await _service.Connect(handshake, context);
                 connectReply.Err.ShouldBe(AuthError.InvalidPeer);
