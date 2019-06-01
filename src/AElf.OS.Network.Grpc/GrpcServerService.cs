@@ -5,7 +5,6 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
@@ -73,9 +72,12 @@ namespace AElf.OS.Network.Grpc
             }
 
             var error = ValidateHandshake(handshake);
-            
+
             if (error != AuthError.None)
+            {
+                Logger.LogWarning($"Handshake not valid: {error}");
                 return new ConnectReply {Err = error};
+            }
             
             var pubKey = handshake.HskData.PublicKey.ToHex();
             var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
