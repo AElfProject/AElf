@@ -25,7 +25,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (!RealTimeMinersInformation.ContainsKey(publicKey))
             {
-                return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
+                return new Timestamp {Seconds = long.MaxValue};
             }
 
             if (miningInterval == 0)
@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minerInRound = RealTimeMinersInformation[publicKey];
             if (!IsTimeSlotPassed(publicKey, dateTime) && minerInRound.OutValue == null)
             {
-                return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
+                return new Timestamp {Seconds = long.MaxValue};
             }
 
             if (GetExtraBlockProducerInformation().PublicKey == publicKey)
@@ -57,7 +57,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             // Never do the mining if this node has no privilege to mime or the mining interval is invalid.
-            return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
+            return new Timestamp {Seconds = long.MaxValue};
         }
 
         private MinerInRound GetExtraBlockProducerInformation()

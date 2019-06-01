@@ -1,7 +1,5 @@
-using System;
 using System.Linq;
 using Acs4;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -24,7 +22,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             while (true)
             {
                 var currentBlockTime = Context.CurrentBlockTime;
-                var expectedMiningTime = DateTime.MaxValue.ToUniversalTime().ToTimestamp();
+                var expectedMiningTime = new Timestamp {Seconds = long.MaxValue};
                 var nextBlockMiningLeftMilliseconds = 0;
                 switch (behaviour)
                 {
@@ -249,7 +247,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private ConsensusCommand GetInvalidConsensusCommand() => new ConsensusCommand
         {
-            ExpectedMiningTime = DateTime.MaxValue.ToUniversalTime().ToTimestamp(),
+            ExpectedMiningTime = new Timestamp {Seconds = long.MaxValue},
             Hint = ByteString.CopyFrom(new AElfConsensusHint
             {
                 Behaviour = AElfConsensusBehaviour.Nothing

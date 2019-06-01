@@ -231,7 +231,7 @@ namespace AElf.Contracts.TestBase
 
             if (startTimestamp == null)
             {
-                startTimestamp = DateTime.MinValue.ToUniversalTime().ToTimestamp();
+                startTimestamp = new Timestamp {Seconds = 0};
             }
             
             var osBlockchainNodeContextService =
