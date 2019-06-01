@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain;
-using AElf.CrossChain.Communication;
+using AElf.CrossChain.Communication.Grpc;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
@@ -43,7 +43,7 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(WalletRpcModule),
         typeof(NetRpcAElfModule),
         typeof(RuntimeSetupAElfModule),
-        typeof(CrossChainCommunicationModule),
+        typeof(GrpcCrossChainAElfModule),
 
         //web api module
         typeof(WebWebAppAElfModule)

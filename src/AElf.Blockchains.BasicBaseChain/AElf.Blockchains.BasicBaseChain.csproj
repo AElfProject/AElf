@@ -11,7 +11,7 @@
         <!--<ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />-->
         <!--<ProjectReference Include="..\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />-->
         <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
-        <ProjectReference Include="..\AElf.CrossChain.Communication\AElf.CrossChain.Communication.csproj" />
+        <ProjectReference Include="..\AElf.CrossChain.Communication.Grpc\AElf.CrossChain.Communication.Grpc.csproj" />
         <!--<ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />-->
         <!--<ProjectReference Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />-->
         <!--<ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />-->
