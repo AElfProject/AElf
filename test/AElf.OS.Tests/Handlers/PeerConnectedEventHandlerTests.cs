@@ -32,8 +32,7 @@ namespace AElf.OS.Handlers
             var announcement = new PeerNewBlockAnnouncement
             {
                 BlockHash = Hash.FromString("block"),
-                BlockHeight = 1,
-                BlockTime = TimestampHelper.GetUtcNow()
+                BlockHeight = 1
             };
             var exception = await Record.ExceptionAsync(async () =>
                 await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1")));
@@ -46,8 +45,7 @@ namespace AElf.OS.Handlers
             var announcement = new PeerNewBlockAnnouncement
             {
                 BlockHash = Hash.FromString("block"),
-                BlockHeight = 1,
-                BlockTime = TimestampHelper.GetUtcNow().AddSeconds(5)
+                BlockHeight = 1
             };
             var exception = await Record.ExceptionAsync(async () => 
                 await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1")));

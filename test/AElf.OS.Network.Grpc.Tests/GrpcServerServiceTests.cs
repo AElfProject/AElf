@@ -64,7 +64,7 @@ namespace AElf.OS.Network
             Hash hash = Hash.Generate();
             await _service.Announce(new PeerNewBlockAnnouncement
             {
-                BlockHeight = 10, BlockHash = hash, BlockTime = TimestampHelper.GetUtcNow()
+                BlockHeight = 10, BlockHash = hash
             }, BuildServerCallContext());
 
             Assert.NotNull(received);
