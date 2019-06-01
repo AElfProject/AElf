@@ -19,11 +19,5 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var minersWithRoundNumber = await _readerFactory.Create(chainContext).GetCurrentMinerList.CallAsync(new Empty());
             return minersWithRoundNumber.PublicKeys.Select(k => k.ToHex());
         }
-
-        public async Task<bool> IsInMinerList(ChainContext chainContext, string publicKey)
-        {
-            var currentMiners = await GetCurrentMinerList(chainContext);
-            return currentMiners.Contains(publicKey);
-        }
     }
 }

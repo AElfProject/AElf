@@ -95,30 +95,11 @@ namespace AElf.OS.Network.Grpc
             
             var pubKey = handshake.HskData.PublicKey.ToHex();
 
-            if (NetworkOptions.AuthorizedPeers != AuthorizedPeers.Any)
+            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized 
+                && !NetworkOptions.AuthorizedKeys.Contains(pubKey))
             {
-                var chain = await _blockchainService.GetChainAsync();
-                var chainContext = new ChainContext
-                    { BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight };
-                
-                var isMiner = await _aedPoSInformationProvider.IsInMinerList(chainContext, pubKey);
-
-                // The peer is not a miner and this node only accepts miners.
-                if (!isMiner && NetworkOptions.AuthorizedPeers == AuthorizedPeers.MinersOnly)
-                {
-                    Logger.LogDebug($"Peer {pubKey} is not a miner and authorized are only miners.");
-                    return new ConnectReply { Err = AuthError.ConnectionRefused };
-                }
-                
-                // This node accepts miners as well as specified nodes.
-                if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.MinersAndAuthorized)
-                {
-                    if (!isMiner && !NetworkOptions.AuthorizedKeys.Contains(pubKey))
-                    {
-                        Logger.LogDebug($"Peer {pubKey} is not a miner and not in the authorized list.");
-                        return new ConnectReply { Err = AuthError.ConnectionRefused };
-                    }
-                }
+                Logger.LogDebug($"{pubKey} not in the authorized peers.");
+                return new ConnectReply { Err = AuthError.ConnectionRefused };
             }
             
             var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);

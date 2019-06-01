@@ -32,8 +32,6 @@ namespace AElf.OS.Network
         private readonly IPeerPool _peerPool;
         private readonly ILocalEventBus _eventBus;
 
-        private readonly TestNodeCollection _testNodeCollection;
-
         public GrpcServerServiceTests()
         {
             _networkServer = GetRequiredService<IAElfNetworkServer>();
@@ -41,8 +39,6 @@ namespace AElf.OS.Network
             _blockchainService = GetRequiredService<IBlockchainService>();
             _peerPool = GetRequiredService<IPeerPool>();
             _eventBus = GetRequiredService<ILocalEventBus>();
-
-            _testNodeCollection = GetRequiredService<TestNodeCollection>();
         }
 
         private ServerCallContext BuildServerCallContext(Metadata metadata = null, string address = null)
@@ -265,14 +261,19 @@ namespace AElf.OS.Network
         }
         
         [Fact]
-        public async Task OnlyMiners_Test()
+        public async Task Only_Authorized_Test()
         {
             // get the service to be able to switch the options
             var serverService = _service as GrpcServerService;
             
+            // authorized 
+            ECKeyPair authorizedPeer = CryptoHelpers.GenerateKeyPair();
+            ECKeyPair nonAuthorizedPeer = CryptoHelpers.GenerateKeyPair();
+            
             // miners only options
             var minersOnlyOptions = new NetworkOptions {
-                AuthorizedPeers = AuthorizedPeers.MinersOnly
+                AuthorizedPeers = AuthorizedPeers.Authorized,
+                AuthorizedKeys = new List<string> { authorizedPeer.PublicKey.ToHex() }
             };
             
             // change the options
@@ -281,55 +282,38 @@ namespace AElf.OS.Network
             var context = BuildServerCallContext(null, "ipv4:127.0.0.1:2000");
             
             {
-                var minerKeyPair = _testNodeCollection.MinerNodes.First();
+                // handshake as non authorized
+                var handshake = CreateHandshake(nonAuthorizedPeer);
+                var connectReply = await _service.Connect(handshake, context);
 
-                // handshake as BP
-                var handshake = CreateHandshake(minerKeyPair);
+                connectReply.Err.ShouldBe(AuthError.ConnectionRefused);
+            }
+
+            {
+                // handshake as authorized
+                var handshake = CreateHandshake(authorizedPeer);
+                var connectReply = await _service.Connect(handshake, context); 
+                
+                connectReply.Err.ShouldBe(AuthError.None);
+            }
+
+            minersOnlyOptions.AuthorizedPeers = AuthorizedPeers.Any;
+
+            {
+                // handshake as non authorized
+                var handshake = CreateHandshake(nonAuthorizedPeer);
                 var connectReply = await _service.Connect(handshake, context);
 
                 connectReply.Err.ShouldBe(AuthError.None);
             }
-
+            
             {
-                var nonMinerKeyPair = _testNodeCollection.OtherNodes.First();
-
-                // handshake as non miner
-                var handshake = CreateHandshake(nonMinerKeyPair);
+                // handshake as authorized
+                var handshake = CreateHandshake(authorizedPeer);
                 var connectReply = await _service.Connect(handshake, context); 
                 
-                connectReply.Err.ShouldBe(AuthError.ConnectionRefused);
+                connectReply.Err.ShouldBe(AuthError.None);
             }
-        }
-
-        [Fact]
-        public async Task OnlyMinersAndAuthorized_Test()
-        {
-            // get the service to be able to switch the options
-            var serverService = _service as GrpcServerService;
-            
-            // miners only options
-            var minersOnlyOptions = new NetworkOptions {
-                AuthorizedPeers = AuthorizedPeers.MinersAndAuthorized,
-                AuthorizedKeys = new List<string> { /* empty */ }
-            };
-            
-            // change the options
-            serverService.NetworkOptionsSnapshot = CreateIOptionSnapshotMock(minersOnlyOptions);
-            
-            var nonMinerKeyPair = _testNodeCollection.OtherNodes.First();
-
-            var context = BuildServerCallContext(null, "ipv4:127.0.0.1:2000");
-            
-            // handshake as non miner
-            var handshake = CreateHandshake(nonMinerKeyPair);
-            
-            var connectReply = await _service.Connect(handshake, context); 
-            connectReply.Err.ShouldBe(AuthError.ConnectionRefused);
-            
-            minersOnlyOptions.AuthorizedKeys.Add(nonMinerKeyPair.PublicKey.ToHex());
-            
-            var connectReplyOk = await _service.Connect(handshake, context); 
-            connectReplyOk.Err.ShouldBe(AuthError.None);
         }
         
         public static IOptionsSnapshot<T> CreateIOptionSnapshotMock<T>(T value) where T : class, new()
