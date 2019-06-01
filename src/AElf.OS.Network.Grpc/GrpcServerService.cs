@@ -157,7 +157,7 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
 
-            if (an?.BlockHash == null || an?.BlockTime == null)
+            if (an?.BlockHash == null)
             {
                 Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
                 return Task.FromResult(new VoidReply());
