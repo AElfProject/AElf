@@ -181,21 +181,28 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        private void RevealSharedInValues(Round currentRound, Round previousRound, string publicKey)
+        private void RevealSharedInValues(Round currentRound, string publicKey)
         {
             if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey)) return;
+
+            if (!TryToGetPreviousRoundInformation(out var previousRound)) return;
 
             var minersCount = currentRound.RealTimeMinersInformation.Count;
             var minimumCount = minersCount.Mul(2).Div(3);
             minimumCount = minimumCount == 0 ? 1 : minimumCount;
 
-            foreach (var pair in previousRound.RealTimeMinersInformation.OrderBy(m => m.Value))
+            foreach (var pair in previousRound.RealTimeMinersInformation.OrderBy(m => m.Value.Order))
             {
                 // Skip himself.
                 if (pair.Key == publicKey) continue;
 
                 var publicKeyOfAnotherMiner = pair.Key;
                 var anotherMinerInPreviousRound = pair.Value;
+
+                if (anotherMinerInPreviousRound.EncryptedInValues == null)
+                {
+                    Context.LogDebug(() => "null!!!!!!!!!!!!!!!!!!");
+                }
 
                 if (!anotherMinerInPreviousRound.EncryptedInValues.Any()) continue;
                 if (!anotherMinerInPreviousRound.DecryptedPreviousInValues.Any()) continue;
