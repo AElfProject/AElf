@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -9,6 +10,7 @@ using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
 
@@ -52,7 +54,7 @@ namespace AElf.CrossChain
                 };
 
                 var trace =
-                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, DateTime.UtcNow);
+                    await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction, TimestampHelper.GetUtcNow());
 
                 if (trace.IsSuccessful())
                 {

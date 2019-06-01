@@ -36,7 +36,7 @@ namespace AElf.Runtime.CSharp.Validators.Method
                 {
                     errors.Add(
                         new FloatOpsValidationResult($"Method {method.Name} contains {instruction.OpCode} float OpCode.")
-                                 .WithInfo(method.Name, method.GetType().Namespace, method.GetType().Name, null));
+                                 .WithInfo(method.Name, method.DeclaringType.Namespace, method.DeclaringType.Name, null));
                 }
             }
 

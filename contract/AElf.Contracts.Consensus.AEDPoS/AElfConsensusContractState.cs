@@ -7,6 +7,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public BoolState Initialized { get; set; }
 
+        /// <summary>
+        /// Seconds.
+        /// </summary>
         public SingletonState<long> TimeEachTerm { get; set; }
 
         public SingletonState<long> CurrentRoundNumber { get; set; }

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
 using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
@@ -20,7 +21,7 @@ namespace AElf.OS.Consensus.DPos
         private readonly IPeerPool _peerPool;
         private readonly OSTestHelper _osTestHelper;
 
-        private readonly long _connectionTime = DateTime.UtcNow.ToTimestamp().Seconds;
+        private readonly long _connectionTime = TimestampHelper.GetUtcNow().Seconds;
 
         public AEDPoSLastLastIrreversibleBlockDiscoveryServiceTests_BP()
         {
@@ -71,9 +72,19 @@ namespace AElf.OS.Consensus.DPos
         private void AddPeer(string publicKey,int blockHeight)
         {
             var channel = new Channel(OSConsensusDPosTestConstants.FakeListeningPort, ChannelCredentials.Insecure);
-            var peer = new GrpcPeer(channel, new PeerService.PeerServiceClient(channel),publicKey,
-                OSConsensusDPosTestConstants.FakeListeningPort, KernelConstants.ProtocolVersion,
-                _connectionTime, 1);
+            
+            var connectionInfo = new GrpcPeerInfo
+            {
+                PublicKey = publicKey,
+                PeerIpAddress = OSConsensusDPosTestConstants.FakeListeningPort,
+                ProtocolVersion = KernelConstants.ProtocolVersion,
+                ConnectionTime = _connectionTime,
+                StartHeight = 1,
+                IsInbound = true
+            };
+            
+            var peer = new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), connectionInfo);
+            
             var blocks = _osTestHelper.BestBranchBlockList.GetRange(0, blockHeight);
             foreach (var block in blocks)
             {

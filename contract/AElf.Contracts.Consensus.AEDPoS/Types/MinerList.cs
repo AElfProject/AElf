@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -8,11 +9,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class MinerList
     {
-        public Round GenerateFirstRoundOfNewTerm(int miningInterval,
-            DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
+        internal Round GenerateFirstRoundOfNewTerm(int miningInterval,
+            Timestamp currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var sortedMiners =
-                (from obj in PublicKeys.Distinct()
+                (from obj in PublicKeys
                         .ToDictionary<ByteString, string, int>(miner => miner.ToHex(), miner => miner[0])
                     orderby obj.Value descending
                     select obj.Key).ToList();
@@ -32,8 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInRound.PublicKey = sortedMiners[i];
                 minerInRound.Order = i + 1;
                 minerInRound.ExpectedMiningTime =
-                    currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval).ToTimestamp();
-                minerInRound.PromisedTinyBlocks = 1;
+                    currentBlockTime.AddMilliseconds(i.Mul(miningInterval).Add(miningInterval));
                 // Should be careful during validation.
                 minerInRound.PreviousInValue = Hash.Empty;
 

@@ -1,22 +1,21 @@
+using System;
 using System.Collections.Generic;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.Consensus.Infrastructure;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
-using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
-using BestChainFoundEventHandler = AElf.Kernel.Consensus.Application.BestChainFoundEventHandler;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
     [DependsOn(
-        typeof(RxNetSchedulerAElfModule)
+        typeof(RxNetSchedulerAElfModule),
+        typeof(ConsensusAElfModule)
     )]
     // ReSharper disable once InconsistentNaming
     public class AEDPoSAElfModule : AElfModule
@@ -24,25 +23,21 @@ namespace AElf.Kernel.Consensus.AEDPoS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddAssemblyOf<AEDPoSAElfModule>();
-            context.Services.AddSingleton<IConsensusService, ConsensusService>();
-            context.Services.AddSingleton<ConsensusControlInformation>();
 
-            context.Services.AddScoped<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();
-            context.Services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
-
-            context.Services.AddTransient<IBlockExtraDataProvider, ConsensusExtraDataProvider>();
-            context.Services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
-            context.Services.AddSingleton<IConsensusInformationGenerationService, AEDPoSInformationGenerationService>();
             context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
             context.Services.AddSingleton<IAEDPoSInformationProvider, AEDPoSInformationProvider>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
-            context.Services.AddSingleton<BestChainFoundEventHandler>();
+            context.Services.AddSingleton<IRandomHashCacheService, RandomHashCacheService>();
+            context.Services.AddSingleton<Application.BestChainFoundEventHandler>();
 
             var configuration = context.Services.GetConfiguration();
 
             Configure<ConsensusOptions>(option =>
             {
-                configuration.GetSection("Consensus").Bind(option);
+                var consensusOptions = configuration.GetSection("Consensus");
+                consensusOptions.Bind(option);
+
+                option.StartTimestamp = new Timestamp {Seconds = long.Parse(consensusOptions["StartTimestamp"])};
 
                 if (option.InitialMiners == null || option.InitialMiners.Count == 0 ||
                     string.IsNullOrWhiteSpace(option.InitialMiners[0]))

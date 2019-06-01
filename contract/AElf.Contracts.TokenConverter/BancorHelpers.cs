@@ -146,7 +146,7 @@ namespace AElf.Contracts.TokenConverter
             */
             decimal x = 1 - a;
             if (Math.Abs(x) >= 1)
-                throw new Exception("must be 0 < a < 2");
+                throw new InvalidValueException("must be 0 < a < 2");
 
             decimal result = 0;
             uint iteration = _LOOPS;

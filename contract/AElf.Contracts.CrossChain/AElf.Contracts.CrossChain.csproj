@@ -3,6 +3,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.CrossChain</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <IsContract>true</IsContract>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,9 +16,6 @@
         <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
-        <!--<ContractBase Include="..\..\protobuf\acs4.proto">-->
-            <!--<Link>Protobuf\Proto\reference\acs4.proto</Link>-->
-        <!--</ContractBase>-->
         <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractReference>
@@ -31,5 +29,4 @@
             <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
-
 </Project>

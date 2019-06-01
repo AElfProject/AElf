@@ -4,8 +4,8 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.MultiToken</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <IsContract>true</IsContract>
     </PropertyGroup>
-
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
@@ -24,6 +24,9 @@
         <ContractBase Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractBase>
+    </ItemGroup>
+    
+    <ItemGroup>
         <ContractCode Include="..\..\protobuf\token_contract_impl.proto">
             <Link>Protobuf\Proto\token_contract_impl.proto</Link>
         </ContractCode>
@@ -32,4 +35,5 @@
         <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll ../../test/AElf.Runtime.CSharp.Tests/contracts" />
         <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll ..\..\test\AElf.Runtime.CSharp.Tests\contracts" />
     </Target>
+
 </Project>
