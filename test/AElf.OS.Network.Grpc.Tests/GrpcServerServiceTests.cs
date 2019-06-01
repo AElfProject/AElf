@@ -178,17 +178,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Connect_MaxPeersReached()
         {
-            var connectionInfo = new GrpcPeerInfo
-            {
-                PublicKey = GrpcTestConstants.FakePubKey,
-                PeerIpAddress = GrpcTestConstants.FakeListeningPort,
-                ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = 1,
-                IsInbound = true
-            };
-            
-            _peerPool.AddPeer(new GrpcPeer(null, null, connectionInfo));
+            _peerPool.AddPeer(GrpcTestHelper.CreateNewPeer("127.0.0.1:3000", false));
             
             ConnectReply connectReply = await _service.Connect(new Handshake(), BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
             
