@@ -24,21 +24,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Hash.FromTwoHashes(outValue, triggerInformation.RandomHash); // Just initial signature value.
             var previousInValue = Hash.Empty; // Just initial previous in value.
 
-            if (TryToGetPreviousRoundInformation(out var previousRound) && !IsJustChangedTerm(out _))
+            if (TryToGetPreviousRoundInformation(out var previousRound) && !IsFirstRoundOfCurrentTerm(out _))
             {
                 signature = previousRound.CalculateSignature(inValue);
                 if (triggerInformation.PreviousRandomHash != Hash.Empty)
                 {
                     // If PreviousRandomHash is Hash.Empty, it means the sender unable or unwilling to publish his previous in value.
                     previousInValue = previousRound.CalculateInValue(triggerInformation.PreviousRandomHash);
+                    // Self check.
+                    if (Hash.FromMessage(previousInValue) != previousRound.RealTimeMinersInformation[publicKey].OutValue)
+                    {
+                        Context.LogDebug(() => "Failed to produce block at previous round?");
+                        previousInValue = Hash.Empty;
+                    }
                 }
             }
 
             var updatedRound = currentRound.ApplyNormalConsensusData(publicKey, previousInValue,
                 outValue, signature);
 
-            ShareAndRecoverInValue(updatedRound, previousRound, inValue, publicKey);
-
+            ShareInValueOfCurrentRound(updatedRound, previousRound, inValue, publicKey);
+            
             // To publish Out Value.
             return new AElfConsensusHeaderInformation
             {
@@ -69,9 +75,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private AElfConsensusHeaderInformation GetInformationToUpdateConsensusForNextRound(Round currentRound,
             string publicKey, AElfConsensusTriggerInformation triggerInformation)
         {
-            Assert(
-                GenerateNextRoundInformation(currentRound, Context.CurrentBlockTime, out var nextRound),
-                "Failed to generate next round information.");
+            if (!GenerateNextRoundInformation(currentRound, Context.CurrentBlockTime, out var nextRound))
+            {
+                Assert(false, "Failed to generate next round information.");
+            }
+
+            RevealSharedInValues(currentRound, publicKey);
+
+            if (!TryToUpdateRoundInformation(currentRound))
+            {
+                Assert(false, "Failed to update current round information after revealing previous in values.");
+            }
+
             nextRound.RealTimeMinersInformation[publicKey].ProducedBlocks =
                 nextRound.RealTimeMinersInformation[publicKey].ProducedBlocks.Add(1);
             Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
