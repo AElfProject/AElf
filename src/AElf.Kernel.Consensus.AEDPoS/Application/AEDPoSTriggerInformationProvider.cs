@@ -10,6 +10,7 @@ using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
+
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
