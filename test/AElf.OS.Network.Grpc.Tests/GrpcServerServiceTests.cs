@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -73,10 +74,13 @@ namespace AElf.OS.Network
         [Fact]
         public async Task SendTx_ShouldPublishEvent()
         {
+            ManualResetEvent receivedSignal = new ManualResetEvent(false);
+            
             TransactionsReceivedEvent received = null;
             _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
             {
                 received = t;
+                receivedSignal.Set();
                 return Task.CompletedTask;
             });
             
@@ -85,6 +89,8 @@ namespace AElf.OS.Network
             tx.To = Address.Generate();
             
             await _service.SendTransaction(tx, BuildServerCallContext());
+
+            receivedSignal.WaitOne(3000);
             
             received?.Transactions.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);
