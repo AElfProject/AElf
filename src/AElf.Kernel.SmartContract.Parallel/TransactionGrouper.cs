@@ -15,7 +15,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 {
     public class GrouperOptions
     {
-        public int GroupingTimeOut { get; set; } = 300; // ms
+        public int GroupingTimeOut { get; set; } = 2000; // ms
         public int MaxTransactions { get; set; } = int.MaxValue;   // Maximum transactions to group
     }
 
@@ -61,8 +61,12 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             using (var cts = new CancellationTokenSource(_options.GroupingTimeOut))
             {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 var txsWithResources = await _resourceExtractionService.GetResourcesAsync(chainContext, toBeGrouped, cts.Token);
-
+                watch.Stop();
+                
+                Logger.LogDebug($"Resource extraction was done in {watch.ElapsedMilliseconds} ms.");
+                
                 foreach (var twr in txsWithResources)
                 {
                     // If timed out at this point, return all transactions as non-parallelizable
@@ -87,10 +91,16 @@ namespace AElf.Kernel.SmartContract.Parallel
                 
                     parallelizables.Add(twr);
                 }
-
+                
+                watch = System.Diagnostics.Stopwatch.StartNew();
                 var groupedTxs = GroupParallelizables(parallelizables);
+                watch.Stop();
+                Logger.LogDebug($"Grouping was completed in {watch.ElapsedMilliseconds} ms.");
+                
                 groups.AddRange(groupedTxs);
             }
+            
+            Logger.LogDebug($"Grouped {transactions.Count} to {groups.Count} groups and left {nonParallelizables.Count} as non-parallelizable.");
 
             return (groups, nonParallelizables);
         }
