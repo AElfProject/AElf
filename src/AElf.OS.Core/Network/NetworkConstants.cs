@@ -7,5 +7,6 @@ namespace AElf.OS.Network
         public const bool DefaultCompressBlocks = true;
         public const int DefaultMaxRequestRetryCount = 1;
         public const int DefaultMaxRandomPeersPerRequest = 2;
+        public const int DefaultMaxPeers = 25;
     }
 }

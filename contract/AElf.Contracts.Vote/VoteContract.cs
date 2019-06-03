@@ -31,7 +31,7 @@ namespace AElf.Contracts.Vote
             Assert(input.TotalSnapshotNumber > 0, "Total snapshot number must be greater than 0.");
             Assert(input.EndTimestamp > input.StartTimestamp, "Invalid active time.");
 
-            if (input.EndTimestamp == DateTime.MaxValue.ToUniversalTime().ToTimestamp())
+            if (input.EndTimestamp == new Timestamp {Seconds = long.MaxValue})
             {
                 Assert(input.TotalSnapshotNumber != 1, "Cannot created endless voting event.");
             }
