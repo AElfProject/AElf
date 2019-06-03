@@ -94,6 +94,9 @@ namespace AElf.Kernel.SmartContract.Parallel
                 
                 groups.AddRange(groupedTxs);
             }
+            
+            Logger.LogTrace($"From {transactions.Count} transactions, grouped into {groups.Count}, " +
+                            $"left {nonParallelizables.Count} as non-parallelizable.");
 
             return (groups, nonParallelizables);
         }
