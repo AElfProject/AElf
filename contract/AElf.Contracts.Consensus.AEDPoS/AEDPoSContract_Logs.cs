@@ -23,7 +23,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 if (extraBlockProducerTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
                 {
                     Context.LogDebug(() =>
-                        $"CONSENSUS WARNING: Previous extra block miner {extraBlockProducerOfPreviousRound} only produced {extraBlockProducerTinyBlocks} tiny blocks.");
+                        $"CONSENSUS WARNING: Previous extra block miner {extraBlockProducerOfPreviousRound} only produced {extraBlockProducerTinyBlocks} tiny blocks during round {currentRound.RoundNumber}.");
                 }
 
                 return;
@@ -38,7 +38,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                  previousTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber))
             {
                 Context.LogDebug(() =>
-                    $"CONSENSUS WARNING: Previous miner {previousMinerInRound.PublicKey} only produced {previousTinyBlocks} tiny blocks.");
+                    $"CONSENSUS WARNING: Previous miner {previousMinerInRound.PublicKey} only produced {previousTinyBlocks} tiny blocks during round {currentRound.RoundNumber}.");
             }
         }
     }

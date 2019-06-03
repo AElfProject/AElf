@@ -1,9 +1,7 @@
 ﻿using System.Linq;
 using AElf.Contracts.Election;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
