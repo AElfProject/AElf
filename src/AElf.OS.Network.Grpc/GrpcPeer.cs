@@ -255,7 +255,7 @@ namespace AElf.OS.Network.Grpc
                     }
                 });
             }
-            else if(exceptions.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Unknown)
+            else if(exceptions.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
             {
                 Task.Run(async () => 
                 {

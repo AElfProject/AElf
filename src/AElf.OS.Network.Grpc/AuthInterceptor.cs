@@ -22,7 +22,7 @@ namespace AElf.OS.Network.Grpc
                 var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
 
                 if (peer == null)
-                    throw new Exception("Unknown peer");
+                    return Task.FromResult<TResponse>(null);
                 
                 context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
             }
