@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
@@ -21,7 +22,7 @@ namespace AElf.OS.Network.Grpc
                 var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
 
                 if (peer == null)
-                    return Task.FromResult<TResponse>(null);
+                    throw new Exception("Unknown peer");
                 
                 context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
             }

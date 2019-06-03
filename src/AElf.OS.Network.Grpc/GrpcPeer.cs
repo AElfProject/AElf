@@ -255,6 +255,14 @@ namespace AElf.OS.Network.Grpc
                     }
                 });
             }
+            else if(exceptions.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Unknown)
+            {
+                Task.Run(async () => 
+                {
+                    await StopAsync();
+                    DisconnectionEvent?.Invoke(this, EventArgs.Empty);
+                });
+            }
             else
             {
                 throw new NetworkException($"Failed request to {this}: {errorMessage}", exceptions);
