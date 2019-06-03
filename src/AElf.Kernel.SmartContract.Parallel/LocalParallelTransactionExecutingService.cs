@@ -37,6 +37,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             CancellationToken cancellationToken,
             bool throwException = false, BlockStateSet partialBlockStateSet = null)
         {
+            Logger.LogTrace($"Entered parallel ExecuteAsync.");
             var transactions = transactionExecutingDto.Transactions.ToList();
             var blockHeader = transactionExecutingDto.BlockHeader;
             // TODO: Is it reasonable to allow throwing exception here
@@ -45,25 +46,22 @@ namespace AElf.Kernel.SmartContract.Parallel
 //                throw new NotSupportedException(
 //                    $"Throwing exception is not supported in {nameof(LocalParallelTransactionExecutingService)}.");
 //            }
-            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             var (parallelizable, nonParallizable) = await _grouper.GroupAsync(transactions);
             var tasks = parallelizable.Select(txns => ExecuteAndPreprocessResult(blockHeader, txns, cancellationToken,
                 throwException, partialBlockStateSet));
             var results = await Task.WhenAll(tasks);
-            watch.Stop();
-            Logger.LogDebug($"Parallelizables execution in {watch.ElapsedMilliseconds} ms.");
-
-            watch = System.Diagnostics.Stopwatch.StartNew();
+            
+            Logger.LogTrace($"Executed parallelizables.");
+            
             var returnSets = MergeResults(results, out var conflictingSets).Item1;
             var returnSetCollection = new ReturnSetCollection(returnSets);
 
             var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
             updatedPartialBlockStateSet.MergeFrom(partialBlockStateSet?.Clone() ?? new BlockStateSet());
             
-            watch.Stop();
-            Logger.LogDebug($"Returned sets from parallelizables merged in {watch.ElapsedMilliseconds} ms.");
-
-            watch = System.Diagnostics.Stopwatch.StartNew();
+            Logger.LogTrace($"Merged results from parallelizables.");
+            
             var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
                 {
@@ -71,8 +69,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                     Transactions = nonParallizable
                 },
                 cancellationToken, throwException, updatedPartialBlockStateSet);
-            watch.Stop();
-            Logger.LogDebug($"Non-parallelizables execution in {watch.ElapsedMilliseconds} ms.");
+            
+            Logger.LogTrace($"Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
             if (conflictingSets.Count > 0)
             {

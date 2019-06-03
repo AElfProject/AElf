@@ -1,7 +1,4 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -43,6 +40,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                 return (new List<List<Transaction>>(), transactions);
             }
             
+            Logger.LogTrace($"Entered GroupAsync");
+
             var groups = new List<List<Transaction>>();
             var parallelizables = new List<(Transaction, TransactionResourceInfo)>();
             var nonParallelizables = new List<Transaction>();
@@ -61,11 +60,9 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             using (var cts = new CancellationTokenSource(_options.GroupingTimeOut))
             {
-                var watch = System.Diagnostics.Stopwatch.StartNew();
+                Logger.LogTrace($"Extracting resources for transactions.");
                 var txsWithResources = await _resourceExtractionService.GetResourcesAsync(chainContext, toBeGrouped, cts.Token);
-                watch.Stop();
-                
-                Logger.LogDebug($"Resource extraction was done in {watch.ElapsedMilliseconds} ms.");
+                Logger.LogTrace($"Completed resource extraction.");
                 
                 foreach (var twr in txsWithResources)
                 {
@@ -92,15 +89,11 @@ namespace AElf.Kernel.SmartContract.Parallel
                     parallelizables.Add(twr);
                 }
                 
-                watch = System.Diagnostics.Stopwatch.StartNew();
                 var groupedTxs = GroupParallelizables(parallelizables);
-                watch.Stop();
-                Logger.LogDebug($"Grouping was completed in {watch.ElapsedMilliseconds} ms.");
+                Logger.LogTrace($"Completed transaction grouping.");
                 
                 groups.AddRange(groupedTxs);
             }
-            
-            Logger.LogDebug($"Grouped {transactions.Count} to {groups.Count} groups and left {nonParallelizables.Count} as non-parallelizable.");
 
             return (groups, nonParallelizables);
         }
