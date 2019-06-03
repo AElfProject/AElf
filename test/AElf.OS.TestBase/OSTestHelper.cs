@@ -244,8 +244,9 @@ namespace AElf.OS
         public async Task<Address> DeployContract<T>()
         {
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
-
-            var transaction = GenerateTransaction(Address.Generate(), basicContractZero,
+            var accountAddress = await _accountService.GetAccountAsync();
+            
+            var transaction = GenerateTransaction(accountAddress, basicContractZero,
                 nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract), new ContractDeploymentInput()
                 {
                     Category = 0,
