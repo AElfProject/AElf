@@ -27,7 +27,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 switch (behaviour)
                 {
                     case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
-                        GetNextBlockMiningLeftMillisecondsForUpdateValueWithoutPreviousInValue(currentRound, publicKey,
+                        GetScheduleForUpdateValueWithoutPreviousInValue(currentRound, publicKey,
                             out nextBlockMiningLeftMilliseconds, out expectedMiningTime);
                         break;
                     case AElfConsensusBehaviour.UpdateValue:
@@ -35,7 +35,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - currentBlockTime).Milliseconds();
                         break;
                     case AElfConsensusBehaviour.TinyBlock:
-                        GetNextBlockMiningLeftMillisecondsForTinyBlock(currentRound, publicKey,
+                        GetScheduleForTinyBlock(currentRound, publicKey,
                             out nextBlockMiningLeftMilliseconds, out expectedMiningTime);
                         if (nextBlockMiningLeftMilliseconds < 0)
                         {
@@ -47,7 +47,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                         break;
                     case AElfConsensusBehaviour.NextRound:
-                        GetNextBlockMiningLeftMillisecondsForNextRound(currentRound, publicKey,
+                        GetScheduleForNextRound(currentRound, publicKey,
                             out nextBlockMiningLeftMilliseconds, out expectedMiningTime);
                         break;
                     case AElfConsensusBehaviour.NextTerm:
@@ -81,10 +81,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         #region Get next block mining left milliseconds
 
-        private void GetNextBlockMiningLeftMillisecondsForUpdateValueWithoutPreviousInValue(Round currentRound,
+        private void GetScheduleForUpdateValueWithoutPreviousInValue(Round currentRound,
             string publicKey, out int nextBlockMiningLeftMilliseconds, out Timestamp expectedMiningTime)
         {
-            if (currentRound.RoundNumber == 1 && currentRound.FirstMiner().OutValue == null)
+            if (currentRound.RoundNumber == 1)
             {
                 // To avoid initial miners fork so fast at the very beginning of current chain.
                 nextBlockMiningLeftMilliseconds =
@@ -101,14 +101,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         /// <summary>
         /// We have 2 cases of producing tiny blocks:
-        /// 1. After publishing out value (producing normal block)
-        /// 2. After generating information of next round (producing extra block)
+        /// 1. After generating information of next round (producing extra block)
+        /// 2. After publishing out value (producing normal block)
         /// </summary>
         /// <param name="currentRound"></param>
         /// <param name="publicKey"></param>
         /// <param name="nextBlockMiningLeftMilliseconds"></param>
         /// <param name="expectedMiningTime"></param>
-        private void GetNextBlockMiningLeftMillisecondsForTinyBlock(Round currentRound, string publicKey,
+        private void GetScheduleForTinyBlock(Round currentRound, string publicKey,
             out int nextBlockMiningLeftMilliseconds, out Timestamp expectedMiningTime)
         {
             var minerInRound = currentRound.RealTimeMinersInformation[publicKey];
@@ -156,13 +156,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        private void GetNextBlockMiningLeftMillisecondsForNextRound(Round currentRound,
-            string publicKey, out int nextBlockMiningLeftMilliseconds, out Timestamp expectedMiningTime)
+        private void GetScheduleForNextRound(Round currentRound, string publicKey,
+            out int nextBlockMiningLeftMilliseconds, out Timestamp expectedMiningTime)
         {
             var minerInRound = currentRound.RealTimeMinersInformation[publicKey];
-            if (currentRound.RoundNumber == 1 && minerInRound.Order != 1)
+            if (currentRound.RoundNumber == 1)
             {
                 nextBlockMiningLeftMilliseconds = minerInRound.Order.Add(currentRound.RealTimeMinersInformation.Count)
+                    .Sub(1)
                     .Mul(currentRound.GetMiningInterval());
                 expectedMiningTime = Context.CurrentBlockTime.AddMilliseconds(nextBlockMiningLeftMilliseconds);
             }
