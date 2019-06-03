@@ -1,9 +1,7 @@
-using System;
 using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -19,6 +17,7 @@ namespace AElf.OS.Network
             Configure<NetworkOptions>(o=>
             {
                 o.ListeningPort = 2000;
+                o.MaxPeers = 2;
             });
         }
 
