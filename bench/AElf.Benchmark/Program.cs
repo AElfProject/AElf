@@ -11,7 +11,7 @@ namespace AElf.Benchmark
     {
         static void Main(string[] args)
         {
-            AddSameFolderLoader();
+            RegisterAssemblyResolveEvent();
             using (var application = AbpApplicationFactory.Create<BenchmarkAElfModule>(options =>
             {
                 options.UseAutofac();
@@ -21,15 +21,15 @@ namespace AElf.Benchmark
                 BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, new DebugInProcessConfig());          
             }
         }
-        
-        static void AddSameFolderLoader()
+
+        private static void RegisterAssemblyResolveEvent()
         {
             AppDomain currentDomain = AppDomain.CurrentDomain;
 
-            currentDomain.AssemblyResolve += LoadFromSameFolder;
+            currentDomain.AssemblyResolve += OnAssemblyResolve;
         }
 
-        static Assembly LoadFromSameFolder(object sender, ResolveEventArgs args)
+        private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
         {
             string folderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string assemblyPath = Path.Combine(folderPath, new AssemblyName(args.Name).Name + ".dll");
