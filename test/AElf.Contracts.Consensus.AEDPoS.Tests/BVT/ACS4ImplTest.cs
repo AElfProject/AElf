@@ -128,7 +128,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var consensusCommand = await AEDPoSContractStub.GetConsensusCommand.CallAsync(triggerForCommand);
 
-            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(AEDPoSContractTestConstants.MiningInterval);
+            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(AEDPoSContractTestConstants.MiningInterval.Mul(2));
             consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants
                 .SmallBlockMiningInterval);
             var hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue}
@@ -136,7 +136,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             consensusCommand.Hint.ShouldBe(hint);
             consensusCommand.ExpectedMiningTime.ShouldBe(BlockchainStartTimestamp + new Duration
             {
-                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(2).Div(1000)
+                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(3).Div(1000)
             });
 
             return consensusCommand;
