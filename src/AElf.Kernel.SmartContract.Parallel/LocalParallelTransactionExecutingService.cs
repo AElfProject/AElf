@@ -7,6 +7,8 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -16,6 +18,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly ITransactionGrouper _grouper;
         private readonly ITransactionExecutingService _plainExecutingService;
+        public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
 
         public ILocalEventBus EventBus { get; set; }
 
@@ -27,6 +30,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             _plainExecutingService =
                 new TransactionExecutingService(transactionResultService, smartContractExecutiveService, plugins);
             EventBus = NullLocalEventBus.Instance;
+            Logger = NullLogger<LocalParallelTransactionExecutingService>.Instance;
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
@@ -41,18 +45,25 @@ namespace AElf.Kernel.SmartContract.Parallel
 //                throw new NotSupportedException(
 //                    $"Throwing exception is not supported in {nameof(LocalParallelTransactionExecutingService)}.");
 //            }
-
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             var (parallelizable, nonParallizable) = await _grouper.GroupAsync(transactions);
             var tasks = parallelizable.Select(txns => ExecuteAndPreprocessResult(blockHeader, txns, cancellationToken,
                 throwException, partialBlockStateSet));
             var results = await Task.WhenAll(tasks);
+            watch.Stop();
+            Logger.LogDebug($"Parallelizables execution in {watch.ElapsedMilliseconds} ms.");
 
+            watch = System.Diagnostics.Stopwatch.StartNew();
             var returnSets = MergeResults(results, out var conflictingSets).Item1;
             var returnSetCollection = new ReturnSetCollection(returnSets);
 
             var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
             updatedPartialBlockStateSet.MergeFrom(partialBlockStateSet?.Clone() ?? new BlockStateSet());
+            
+            watch.Stop();
+            Logger.LogDebug($"Returned sets from parallelizables merged in {watch.ElapsedMilliseconds} ms.");
 
+            watch = System.Diagnostics.Stopwatch.StartNew();
             var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
                 {
@@ -60,6 +71,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                     Transactions = nonParallizable
                 },
                 cancellationToken, throwException, updatedPartialBlockStateSet);
+            watch.Stop();
+            Logger.LogDebug($"Non-parallelizables execution in {watch.ElapsedMilliseconds} ms.");
             returnSets.AddRange(nonParallelizableReturnSets);
             if (conflictingSets.Count > 0)
             {
