@@ -15,38 +15,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override ConsensusCommand GetConsensusCommand(BytesValue input)
         {
-            // Query state to determine whether produce tiny block.
             Assert(input.Value.Any(), "Invalid public key.");
 
-            TryToGetCurrentRoundInformation(out var currentRound);
+            if (Context.CurrentHeight == 1) return GetInvalidConsensusCommand();
 
-            if (currentRound == null || currentRound.RoundId == 0)
-            {
-                return new ConsensusCommand
-                {
-                    ExpectedMiningTime = DateTime.MaxValue.ToUniversalTime().ToTimestamp(),
-                    LimitMillisecondsOfMiningBlock = int.MaxValue, NextBlockMiningLeftMilliseconds = int.MaxValue
-                };
-            }
+            if (!TryToGetCurrentRoundInformation(out var currentRound)) return GetInvalidConsensusCommand();
 
-            var behaviour = GetBehaviour(currentRound, input.Value.ToHex());
+            var publicKey = input.Value.ToHex();
 
-            if (behaviour == AElfConsensusBehaviour.Nothing)
-            {
-                return new ConsensusCommand
-                {
-                    ExpectedMiningTime = DateTime.MaxValue.ToUniversalTime().ToTimestamp(),
-                    Hint = ByteString.CopyFrom(new AElfConsensusHint {Behaviour = behaviour}.ToByteArray()),
-                    LimitMillisecondsOfMiningBlock = int.MaxValue, NextBlockMiningLeftMilliseconds = int.MaxValue
-                };
-            }
+            var behaviour = GetConsensusBehaviour(currentRound, publicKey);
 
-            var command = GetConsensusCommand(behaviour, currentRound, input.Value.ToHex());
+            Context.LogDebug(() => currentRound.GetLogs(publicKey, behaviour));
 
-            Context.LogDebug(() =>
-                currentRound.GetLogs(input.Value.ToHex(), AElfConsensusHint.Parser.ParseFrom(command.Hint).Behaviour));
-
-            return command;
+            return behaviour == AElfConsensusBehaviour.Nothing
+                ? GetInvalidConsensusCommand() // Handle this situation previously.
+                : GetConsensusCommand(behaviour, currentRound, publicKey);
         }
 
         public override BytesValue GetInformationToUpdateConsensus(BytesValue input)
@@ -150,76 +133,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input)
         {
             var extraData = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value.ToByteArray());
-            var publicKey = extraData.SenderPublicKey;
-
-            // Validate the sender.
-            if (TryToGetCurrentRoundInformation(out var currentRound) &&
-                !currentRound.RealTimeMinersInformation.ContainsKey(publicKey.ToHex()))
-            {
-                return new ValidationResult {Success = false, Message = $"Sender {publicKey.ToHex()} is not a miner."};
-            }
-
-            // Validate the time slots.
-            var timeSlotsCheckResult = extraData.Round.CheckTimeSlots();
-            if (!timeSlotsCheckResult.Success)
-            {
-                return timeSlotsCheckResult;
-            }
-
-            var behaviour = extraData.Behaviour;
-
-            // Try to get current round information (for further validation).
-            if (currentRound == null)
-            {
-                return new ValidationResult
-                    {Success = false, Message = "Failed to get current round information."};
-            }
-
-            if (extraData.Round.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound > 0).Distinct()
-                    .Count() !=
-                extraData.Round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null))
-            {
-                return new ValidationResult
-                    {Success = false, Message = "Invalid FinalOrderOfNextRound."};
-            }
-
-            switch (behaviour)
-            {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
-                case AElfConsensusBehaviour.UpdateValue:
-                    // Need to check round id when updating current round information.
-                    // This can tell the miner current block 
-                    if (!RoundIdMatched(extraData.Round))
-                    {
-                        return new ValidationResult {Success = false, Message = "Round Id not match."};
-                    }
-
-                    // Only one Out Value should be filled.
-                    if (!NewOutValueFilled(extraData.Round.RealTimeMinersInformation.Values))
-                    {
-                        return new ValidationResult {Success = false, Message = "Incorrect new Out Value."};
-                    }
-
-                    break;
-                case AElfConsensusBehaviour.NextRound:
-                    // None of in values should be filled.
-                    if (extraData.Round.RealTimeMinersInformation.Values.Any(m => m.InValue != null))
-                    {
-                        return new ValidationResult {Success = false, Message = "Incorrect in values."};
-                    }
-
-                    break;
-                case AElfConsensusBehaviour.NextTerm:
-                    break;
-                case AElfConsensusBehaviour.Nothing:
-                    return new ValidationResult {Success = false, Message = "Invalid behaviour"};
-                case AElfConsensusBehaviour.TinyBlock:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            return new ValidationResult {Success = true};
+            return ValidateBeforeExecution(extraData);
         }
 
         public override ValidationResult ValidateConsensusAfterExecution(BytesValue input1)
