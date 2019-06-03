@@ -30,14 +30,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var consensusCommand = await AEDPoSContractStub.GetConsensusCommand.CallAsync(triggerForCommand);
 
             consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(AEDPoSContractTestConstants.MiningInterval);
-            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants.SmallBlockMiningInterval);
-            var hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue}
-                .ToByteString();
-            consensusCommand.Hint.ShouldBe(hint);
-            consensusCommand.ExpectedMiningTime.ShouldBe(BlockchainStartTimestamp + new Duration
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants
+                .SmallBlockMiningInterval);
+            var hint = new AElfConsensusHint
             {
-                Seconds = AEDPoSContractTestConstants.MiningInterval.Div(1000)
-            });
+                Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue
+            }.ToByteString();
+            consensusCommand.Hint.ShouldBe(hint);
 
             return consensusCommand;
         }
@@ -55,12 +54,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var triggerForCommand =
                 await TriggerInformationProvider
                     .GetTriggerInformationForBlockHeaderExtraDataAsync(consensusCommand.ToBytesValue());
-            
+
             var extraDataBytes = await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggerForCommand);
 
             var extraData = extraDataBytes.ToConsensusHeaderInformation();
 
-            extraData.Round.RoundId.ShouldBeGreaterThan(1);
+            extraData.Round.RoundId.ShouldNotBe(0);
             extraData.Round.RoundNumber.ShouldBe(1);
             extraData.Round.RealTimeMinersInformation.Count.ShouldBe(InitialMiners.Count);
             extraData.Round.RealTimeMinersInformation[BootMinerKeyPair.PublicKey.ToHex()].OutValue
@@ -76,7 +75,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Div(1000)
             }).ToDateTime());
-            
+
             var triggerForCommand =
                 await TriggerInformationProvider
                     .GetTriggerInformationForConsensusTransactionsAsync(consensusCommand.ToBytesValue());
@@ -130,7 +129,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var consensusCommand = await AEDPoSContractStub.GetConsensusCommand.CallAsync(triggerForCommand);
 
             consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(AEDPoSContractTestConstants.MiningInterval);
-            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants.SmallBlockMiningInterval);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants
+                .SmallBlockMiningInterval);
             var hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue}
                 .ToByteString();
             consensusCommand.Hint.ShouldBe(hint);
@@ -149,7 +149,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             KeyPairProvider.SetKeyPair(usingKeyPair);
 
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_SecondMiner();
-            
+
             BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(2).Div(1000)
@@ -158,17 +158,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var triggerForCommand =
                 await TriggerInformationProvider
                     .GetTriggerInformationForBlockHeaderExtraDataAsync(consensusCommand.ToBytesValue());
-            
+
             var extraDataBytes = await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggerForCommand);
 
             var extraData = extraDataBytes.ToConsensusHeaderInformation();
 
-            extraData.Round.RoundId.ShouldBeGreaterThan(1);
+            extraData.Round.RoundId.ShouldNotBe(0);
             extraData.Round.RoundNumber.ShouldBe(1);
             extraData.Round.RealTimeMinersInformation[usingKeyPair.PublicKey.ToHex()].OutValue
                 .ShouldNotBeNull();
         }
-        
+
         [Fact]
         internal async Task<TransactionList> AEDPoSContract_GenerateConsensusTransactions_FirstRound_SecondMiner()
         {
@@ -193,7 +193,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return transactionList;
         }
-        
+
         [Fact]
         public async Task AEDPoSContract_FirstRound_SecondMiner()
         {
@@ -240,7 +240,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(
                 AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount - 1));
-            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants.SmallBlockMiningInterval);
+            consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants
+                .SmallBlockMiningInterval);
             var hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextRound}
                 .ToByteString();
             consensusCommand.Hint.ShouldBe(hint);
@@ -256,21 +257,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
             KeyPairProvider.SetKeyPair(usingKeyPair);
 
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner();
-            
+
             BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
             {
-                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount).Div(1000)
+                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
+                    .Div(1000)
             }).ToDateTime());
 
             var triggerForCommand =
                 await TriggerInformationProvider
                     .GetTriggerInformationForBlockHeaderExtraDataAsync(consensusCommand.ToBytesValue());
-            
+
             var extraDataBytes = await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggerForCommand);
 
             var extraData = extraDataBytes.ToConsensusHeaderInformation();
 
-            extraData.Round.RoundId.ShouldBeGreaterThan(1);
+            extraData.Round.RoundId.ShouldNotBe(0);
             extraData.Round.RoundNumber.ShouldBe(2);
         }
 
@@ -284,7 +286,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
             {
-                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount).Div(1000)
+                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
+                    .Div(1000)
             }).ToDateTime());
 
             var triggerForCommand =
@@ -298,7 +301,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return transactionList;
         }
-        
+
         [Fact]
         public async Task AEDPoSContract_FirstRound_Terminate()
         {
@@ -307,7 +310,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
             {
-                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount).Div(1000)
+                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
+                    .Div(1000)
             }).ToDateTime());
 
             var nextRound = new Round();

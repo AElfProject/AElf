@@ -10,14 +10,14 @@ namespace AElf.Launcher
 {
     class Program
     {
-        static void AddSameFolderLoader()
+        private static void RegisterAssemblyResolveEvent()
         {
             AppDomain currentDomain = AppDomain.CurrentDomain;
 
-            currentDomain.AssemblyResolve += LoadFromSameFolder;
+            currentDomain.AssemblyResolve += OnAssemblyResolve;
         }
 
-        static Assembly LoadFromSameFolder(object sender, ResolveEventArgs args)
+        private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
         {
             string folderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string assemblyPath = Path.Combine(folderPath, new AssemblyName(args.Name).Name + ".dll");
@@ -28,7 +28,7 @@ namespace AElf.Launcher
 
         public static void Main(string[] args)
         {
-            AddSameFolderLoader();
+            RegisterAssemblyResolveEvent();
             ILogger<Program> logger = NullLogger<Program>.Instance;
             try
             {
