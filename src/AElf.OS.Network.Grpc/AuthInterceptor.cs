@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
