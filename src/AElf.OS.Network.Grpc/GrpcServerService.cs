@@ -173,7 +173,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
-            var chain = await _blockChainService.GetChainAsync();
+            var chain = await _blockchainService.GetChainAsync();
             
             // if this transaction's ref block is a lot higher than our chain 
             // then don't participate in p2p network
