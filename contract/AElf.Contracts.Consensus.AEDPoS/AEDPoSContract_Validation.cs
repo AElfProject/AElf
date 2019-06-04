@@ -18,6 +18,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (TryToGetCurrentRoundInformation(out var currentRound) &&
                 !currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
             {
+                Context.LogDebug(() => "Sender is not a miner.");
                 return new ValidationResult {Success = false, Message = $"Sender {publicKey} is not a miner."};
             }
 
@@ -25,13 +26,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var timeSlotsCheckResult = updatedRound.CheckRoundTimeSlots();
             if (!timeSlotsCheckResult.Success)
             {
+                Context.LogDebug(() => $"Round time slots incorrect: {timeSlotsCheckResult.Message}");
                 return timeSlotsCheckResult;
             }
             
             // Validate whether this miner abide by his time slot.
             // Maybe failing due to using too much time handle things after mining.
-            if (updatedRound.RoundId == currentRound.RoundId && !CheckMinerTimeSlot(currentRound, publicKey))
+            if (updatedRound.RoundId == currentRound.RoundId && !CheckMinerTimeSlot(updatedRound, publicKey))
             {
+                Context.LogDebug(() => "Time slot already passed before execution.");
                 return new ValidationResult {Message = "Time slot already passed before execution."};
             }
 
@@ -56,9 +59,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool CheckMinerTimeSlot(Round round, string publicKey)
         {
             if (IsFirstRoundOfCurrentTerm(out _)) return true;
+            Context.LogDebug(() => "Start checking miner time slot.");
             var minerInRound = round.RealTimeMinersInformation[publicKey];
-            var latestActualMiningTime = minerInRound.ActualMiningTimes.OrderBy(t => t).LastOrDefault();
+            var latestActualMiningTime = minerInRound.ActualMiningTimes.OrderBy(t => t.ToDateTime()).LastOrDefault();
             if (latestActualMiningTime == null) return true;
+            Context.LogDebug(() => "Keep on checking miner time slot.");
             var expectedMiningTime = minerInRound.ExpectedMiningTime;
             var endOfExpectedTimeSlot = expectedMiningTime.AddMilliseconds(round.GetMiningInterval());
             if (latestActualMiningTime < expectedMiningTime)
