@@ -239,13 +239,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var consensusCommand = await AEDPoSContractStub.GetConsensusCommand.CallAsync(triggerForCommand);
 
             consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(
-                AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount - 1));
+                AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount));
             consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants
                 .SmallBlockMiningInterval);
             var hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextRound}
                 .ToByteString();
             consensusCommand.Hint.ShouldBe(hint);
-            consensusCommand.ExpectedMiningTime.ShouldBe(currentRound.GetExtraBlockMiningTime().ToTimestamp());
 
             return consensusCommand;
         }
