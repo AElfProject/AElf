@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -103,7 +104,9 @@ namespace AElf.Kernel.SmartContract.Parallel
             var resourceUnionSet = new Dictionary<int, UnionFindNode>();
             var txResourceHandle = new Dictionary<Transaction, int>();
             var groups = new List<List<Transaction>>();
-            
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             foreach (var txWithResource in txsWithResources)
             {
                 UnionFindNode first = null;
@@ -130,9 +133,13 @@ namespace AElf.Kernel.SmartContract.Parallel
                     }
                 }
             }
+            stopwatch.Stop();
+            Logger.LogTrace($"## Union resource time: {stopwatch.ElapsedMilliseconds} ms");
 
             var grouped = new Dictionary<int, List<Transaction>>();
 
+            stopwatch.Reset();
+            stopwatch.Start();
             foreach (var txWithResource in txsWithResources)
             {
                 var transaction = txWithResource.Item1;
@@ -153,7 +160,10 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
 
             groups.AddRange(grouped.Values);
-
+            
+            stopwatch.Stop();
+            Logger.LogTrace($"## Group resource time: {stopwatch.ElapsedMilliseconds} ms");
+            
             return groups;
         }
 
