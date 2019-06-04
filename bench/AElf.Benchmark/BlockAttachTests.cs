@@ -50,6 +50,7 @@ namespace AElf.Benchmark
         public async Task IterationSetup()
         {
             var transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
+            await _blockchainService.AddTransactionsAsync(transactions);
             _block = _osTestHelper.GenerateBlock(_chain.BestChainHash, _chain.BestChainHeight, transactions);
             
             await _blockchainService.AddBlockAsync(_block);

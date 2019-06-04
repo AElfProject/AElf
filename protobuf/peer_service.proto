@@ -37,6 +37,7 @@ enum AuthError {
     InvalidPeer = 5;
     ChainMismatch = 6;
     ProtocolMismatch = 7;
+    ConnectionRefused = 8;
 }
 
 // **** Blocks *****

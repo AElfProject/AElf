@@ -58,10 +58,11 @@ namespace AElf.OS.Network.Grpc
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
+
         public IReadOnlyDictionary<long, Hash> PreLibBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _preLibBlockHeightAndHashMappings;
         
-        public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTime { get; }
+        public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
@@ -83,7 +84,7 @@ namespace AElf.OS.Network.Grpc
             PreLibBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_preLibBlockHeightAndHashMappings);
             
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
-            RecentRequestsRoundtripTime = new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
+            RecentRequestsRoundtripTimes = new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
 
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());

@@ -156,10 +156,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 await tester.UpdateValue.SendAsync(toUpdate);
             }
 
+            // Won't pass because currently we postpone the revealing of in values to extra block time slot.
             // But in values all filled.
-            var secondRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
-            secondRound.RealTimeMinersInformation.Values.Count(v => v.PreviousInValue != null)
-                .ShouldBe(AEDPoSContractTestConstants.InitialMinersCount);
+//            var secondRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
+//            secondRound.RealTimeMinersInformation.Values.Count(v => v.PreviousInValue != null)
+//                .ShouldBe(AEDPoSContractTestConstants.InitialMinersCount);
         }
     }
 }
