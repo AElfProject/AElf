@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         public async Task<IEnumerable<(Transaction, TransactionResourceInfo)>> GetResourcesAsync(IChainContext chainContext,
             IEnumerable<Transaction> transactions, CancellationToken ct)
         {
-            var tasks = transactions.Select(t => GetResourcesForOneAsync(chainContext, t, ct));
+            var tasks = transactions.AsParallel().Select(t => GetResourcesForOneAsync(chainContext, t, ct));
             return await Task.WhenAll(tasks);
         }
 
