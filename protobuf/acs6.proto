@@ -16,5 +16,5 @@ service RandomNumberProviderContract {
 
 message RandomNumberOrder {
     sint64 block_height = 1;// Orderer can get a random number after this height.
-    aelf.Hash token = 2;
+    aelf.Hash token_hash = 2;
 }

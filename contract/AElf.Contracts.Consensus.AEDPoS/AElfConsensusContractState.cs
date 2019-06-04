@@ -33,6 +33,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public SingletonState<bool> IsMainChain { get; set; }
 
-        public MappedState<Hash, long> RandomNumberRoundMap { get; set; }
+        public MappedState<Hash, RandomNumberRequestInformation> RandomNumberInformationMap { get; set; }
     }
 }
