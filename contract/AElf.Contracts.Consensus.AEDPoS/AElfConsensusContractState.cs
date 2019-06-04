@@ -1,4 +1,5 @@
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -31,5 +32,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public SingletonState<MinerList> MainChainCurrentMiners { get; set; }
 
         public SingletonState<bool> IsMainChain { get; set; }
+
+        public MappedState<Hash, long> RandomNumberRoundMap { get; set; }
     }
 }

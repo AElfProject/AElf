@@ -181,7 +181,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 : int.MaxValue;
         }
 
-    /// <summary>
+        public Hash GetRandomHash()
+        {
+            var shownUpMiners = RealTimeMinersInformation.Values.Where(i => i.PreviousInValue != null);
+            var usefulReveals = shownUpMiners.Select(i => i.PreviousInValue).ToList();
+            var randomHash = usefulReveals.First();
+            randomHash = usefulReveals.Skip(1).Aggregate(randomHash, Hash.FromTwoHashes);
+            return randomHash;
+        }
+
+        /// <summary>
         /// If daysEachTerm == 7:
         /// 1, 1, 1 => 0 != 1 - 1 => false
         /// 1, 2, 1 => 0 != 1 - 1 => false

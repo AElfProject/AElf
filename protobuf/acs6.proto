@@ -8,7 +8,7 @@ import "google/protobuf/empty.proto";
 option (aelf.identity) = "acs6";
 
 service RandomNumberProviderContract {
-    rpc PlaceOrder (aelf.Hash) returns (RandomNumberOrder) {
+    rpc RequestRandomNumber (google.protobuf.Empty) returns (RandomNumberOrder) {
     }
     rpc GetRandomNumber (aelf.Hash) returns (aelf.Hash) {
     }
@@ -16,5 +16,5 @@ service RandomNumberProviderContract {
 
 message RandomNumberOrder {
     sint64 block_height = 1;// Orderer can get a random number after this height.
-    repeated sint32 orders = 2;
+    aelf.Hash token = 2;
 }
