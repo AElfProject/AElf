@@ -185,10 +185,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     transactionValid
                 });
                 
-                TransactionPoolSizeShouldBe(3);
+                TransactionPoolSizeShouldBe(2);
                 TransactionShouldInPool(transactionHeight100);
                 TransactionShouldInPool(transactionValid);
-                TransactionShouldInPool(transactionInvalid);
             }
 
             {
@@ -220,8 +219,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                 ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
                 
-                TransactionPoolSizeShouldBe(1);
-                TransactionShouldInPool(transactionHeight100);
+                TransactionPoolSizeShouldBe(0);
             }
         }
 
