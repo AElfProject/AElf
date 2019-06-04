@@ -164,7 +164,7 @@ namespace AElf.OS
             return transaction;
         }
 
-        public async Task<(List<Transaction>, List<ECKeyPair>)> PrepareTokenForParallel(int count)
+        public async Task<(List<Transaction>, List<ECKeyPair>)> PrepareTokenForParallel(int count, long tokenAmount = 10)
         {
             var transactions = new List<Transaction>();
             var keyPairs = new List<ECKeyPair>();
@@ -176,7 +176,7 @@ namespace AElf.OS
                 var transaction = GenerateTransaction(accountAddress,
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                     nameof(TokenContractContainer.TokenContractStub.Transfer),
-                    new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
+                    new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = tokenAmount, Symbol = "ELF"});
 
                 var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
@@ -188,22 +188,25 @@ namespace AElf.OS
             return (transactions, keyPairs);
         }
 
-        public async Task<List<Transaction>> GenerateTransactionsWithoutConflict(List<ECKeyPair> keyPairs)
+        public async Task<List<Transaction>> GenerateTransactionsWithoutConflict(List<ECKeyPair> keyPairs, int count = 1)
         {
             var transactions = new List<Transaction>();
             foreach (var keyPair in keyPairs)
             {
                 var from = Address.FromPublicKey(keyPair.PublicKey);
-                var to = CryptoHelpers.GenerateKeyPair();
-                var transaction = GenerateTransaction(from,
-                    _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
-                    nameof(TokenContractContainer.TokenContractStub.Transfer),
-                    new TransferInput {To = Address.FromPublicKey(to.PublicKey), Amount = 5, Symbol = "ELF"});
+                for (var i = 0; i < count; i++)
+                {
+                    var to = CryptoHelpers.GenerateKeyPair();
+                    var transaction = GenerateTransaction(from,
+                        _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
+                        nameof(TokenContractContainer.TokenContractStub.Transfer),
+                        new TransferInput {To = Address.FromPublicKey(to.PublicKey), Amount = 1, Symbol = "ELF"});
 
-                var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
-                transaction.Signature = ByteString.CopyFrom(signature);
+                    var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+                    transaction.Signature = ByteString.CopyFrom(signature);
 
-                transactions.Add(transaction);
+                    transactions.Add(transaction);
+                }
             }
 
             return transactions;
