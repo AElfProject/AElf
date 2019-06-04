@@ -109,7 +109,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var keys = new HashSet<string>(
                 executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateAccesses.Keys)));
             stopwatch.Stop();
-            Logger.LogTrace($"### group execute time {stopwatch.ElapsedMilliseconds} ms");
+            Logger.LogTrace($"### group execute {transactions.Count} txs in {stopwatch.ElapsedMilliseconds} ms");
             return (executionReturnSets, keys);
         }
 
