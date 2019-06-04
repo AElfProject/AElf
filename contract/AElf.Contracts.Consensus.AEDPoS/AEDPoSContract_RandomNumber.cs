@@ -96,6 +96,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         Assert(false, "Still preparing random number, try later.");
                     }
                 }
+                
+                // Now we can delete this token_hash from RandomNumberInformationMap
+                // TODO: Set null if deleting key supported.
+                State.RandomNumberInformationMap[input] = new RandomNumberRequestInformation();
 
                 var inValues = participators.Select(i => i.PreviousInValue).ToList();
                 var randomHash = inValues.First();
