@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             stopwatch.Start();
             var (parallelizable, nonParallizable) = await _grouper.GroupAsync(transactions);
             stopwatch.Stop();
-            Logger.LogTrace($"##: group time: {stopwatch.ElapsedMilliseconds} ms");
+            Logger.LogTrace($"##: group {transactions} txs with: {stopwatch.ElapsedMilliseconds} ms");
             
             stopwatch.Reset();
             stopwatch.Start();
