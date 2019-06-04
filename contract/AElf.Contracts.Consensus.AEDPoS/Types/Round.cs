@@ -180,7 +180,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 : int.MaxValue;
         }
 
-    /// <summary>
+        /// <summary>
         /// If daysEachTerm == 7:
         /// 1, 1, 1 => 0 != 1 - 1 => false
         /// 1, 2, 1 => 0 != 1 - 1 => false
