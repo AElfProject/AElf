@@ -48,7 +48,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 //            }
 
             var (parallelizable, nonParallizable) = await _grouper.GroupAsync(transactions);
-            var tasks = parallelizable.Select(txns => ExecuteAndPreprocessResult(blockHeader, txns, cancellationToken,
+            var tasks = parallelizable.AsParallel().Select(txns => ExecuteAndPreprocessResult(blockHeader, txns, cancellationToken,
                 throwException, partialBlockStateSet));
             var results = await Task.WhenAll(tasks);
             
