@@ -1,10 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Contracts.CrossChain;
+using Acs7;
 using AElf.CrossChain.Cache;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
-using Google.Protobuf;
 using Xunit;
 
 namespace AElf.CrossChain
@@ -33,12 +31,12 @@ namespace AElf.CrossChain
         public async Task GetSideChainBlock_WithoutEnoughCache()
         {
             int chainId = 123;
-            var fakeCache = new Dictionary<int, List<BlockCacheEntity>>
+            var fakeCache = new Dictionary<int, List<IBlockCacheEntity>>
             {
                 {
-                    chainId, new List<BlockCacheEntity>
+                    chainId, new List<IBlockCacheEntity>
                     {
-                        new BlockCacheEntity()
+                        new SideChainBlockData()
                         {
                             ChainId = 1
                         }
@@ -55,27 +53,23 @@ namespace AElf.CrossChain
         public async Task GetSideChainBlock_WithEnoughCache()
         {
             int chainId = 123;
-            var blockInfoCache = new List<BlockCacheEntity>();
+            var blockInfoCache = new List<IBlockCacheEntity>();
             for (int i = 0; i <= CrossChainConstants.MinimalBlockCacheEntityCount; i++)
             {
                 var sideChainBlockData = new SideChainBlockData
                 {
-                    SideChainId = chainId,
-                    SideChainHeight = i + 1,
+                    ChainId = chainId,
+                    Height = i + 1,
                 };
-                blockInfoCache.Add(new BlockCacheEntity
-                {
-                    Height = sideChainBlockData.SideChainHeight,
-                    ChainId = sideChainBlockData.SideChainId,
-                    Payload = sideChainBlockData.ToByteString()
-                });
+                blockInfoCache.Add(sideChainBlockData);
             }
-            var fakeCache = new Dictionary<int, List<BlockCacheEntity>> {{chainId, blockInfoCache}};
+            
+            var fakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
             var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(Hash.Empty, 1);
             Assert.True(res.Count == 1);
-            Assert.Equal(blockInfoCache[0].Height, res[0].SideChainHeight);
+            Assert.Equal(blockInfoCache[0].Height, res[0].Height);
         }
 
 //        [Fact]

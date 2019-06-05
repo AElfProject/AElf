@@ -5,22 +5,17 @@ namespace AElf.Kernel
 {
     public static class BlockBodyExtensions
     {
-
         /// <summary>
-        /// Calculate merkle tree root of transaction and side chain block info. 
+        /// Calculate merkle tree root of transaction.
         /// </summary>
         /// <returns></returns>
-        public static Hash CalculateMerkleTreeRoots(this BlockBody blockBody)
+        public static Hash CalculateMerkleTreeRoot(this BlockBody blockBody)
         {
-            // side chain info
             if (blockBody.TransactionsCount == 0)
                 return Hash.Empty;
-            if (blockBody.BinaryMerkleTree.Root != null)
-                return blockBody.BinaryMerkleTree.Root;
-            blockBody.BinaryMerkleTree.AddNodes(blockBody.Transactions);
-            blockBody.BinaryMerkleTree.ComputeRootHash();
+            var merkleTreeRoot = blockBody.Transactions.ComputeBinaryMerkleTreeRootWithLeafNodes();
 
-            return blockBody.BinaryMerkleTree.Root;
+            return merkleTreeRoot;
         }
 
         public static bool AddTransaction(this BlockBody blockBody, Transaction tx)

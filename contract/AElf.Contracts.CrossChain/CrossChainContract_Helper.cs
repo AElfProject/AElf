@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs3;
+using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp.State;
@@ -36,7 +37,7 @@ namespace AElf.Contracts.CrossChain
 
         private Hash ComputeRootWithMultiHash(IEnumerable<Hash> nodes)
         {
-            return nodes.ComputeRootHash();
+            return nodes.ComputeBinaryMerkleTreeRootWithLeafNodes();
         }
         
         /// <summary>
