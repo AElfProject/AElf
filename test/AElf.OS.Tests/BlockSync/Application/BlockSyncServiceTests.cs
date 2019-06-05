@@ -15,7 +15,6 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockSyncService _blockSyncService;
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
-        private readonly BlockSyncTestHelper _blockSyncTestHelper;
         private readonly IAnnouncementCacheProvider _announcementCacheProvider;
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
         
@@ -24,7 +23,6 @@ namespace AElf.OS.BlockSync.Application
             _blockSyncService = GetRequiredService<IBlockSyncService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _networkService = GetRequiredService<INetworkService>();
-            _blockSyncTestHelper = GetRequiredService<BlockSyncTestHelper>();
             _announcementCacheProvider = GetRequiredService<IAnnouncementCacheProvider>();
             _blockSyncStateProvider = GetRequiredService<IBlockSyncStateProvider>();
         }
@@ -38,7 +36,6 @@ namespace AElf.OS.BlockSync.Application
             block.ShouldBeNull();
 
             await _blockSyncService.SyncBlockAsync(peerBlock.GetHash(), peerBlock.Height, 5, null);
-            _blockSyncTestHelper.DisposeQueue();
 
             block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
             block.GetHash().ShouldBe(peerBlock.GetHash());
@@ -58,7 +55,6 @@ namespace AElf.OS.BlockSync.Application
             var bestChainHeight = chain.BestChainHeight;
             
             await _blockSyncService.SyncBlockAsync(Hash.Empty, 15, 5, null);
-            _blockSyncTestHelper.DisposeQueue();
 
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHash.ShouldBe(bestChainHash);
@@ -76,9 +72,7 @@ namespace AElf.OS.BlockSync.Application
             var peerBlockHeight = chain.BestChainHeight + 8;
 
             await _blockSyncService.SyncBlockAsync(peerBlockHash, peerBlockHeight, 5, null);
-
-            _blockSyncTestHelper.DisposeQueue();
-
+            
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(21);
 
@@ -93,8 +87,7 @@ namespace AElf.OS.BlockSync.Application
             var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
 
             await _blockSyncService.SyncBlockAsync(peerBlock.GetHash(), peerBlock.Height, 5, null);
-            _blockSyncTestHelper.DisposeQueue();
-
+            
             var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
             block.ShouldBeNull();
 
@@ -108,7 +101,6 @@ namespace AElf.OS.BlockSync.Application
             _announcementCacheProvider.CacheAnnouncement(peerBlock.GetHash(), peerBlock.Height);
 
             await _blockSyncService.SyncBlockAsync(peerBlock.GetHash(), peerBlock.Height, 5, null);
-            _blockSyncTestHelper.DisposeQueue();
 
             var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
             block.ShouldBeNull();

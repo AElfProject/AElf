@@ -14,7 +14,6 @@ namespace AElf.OS.BlockSync.Application
     {
         private readonly IBlockchainService _blockChainService;
         private readonly IBlockSyncService _blockSyncService;
-        private readonly BlockSyncTestHelper _blockSyncTestHelper;
         private readonly IAnnouncementCacheProvider _announcementCacheProvider;
         private readonly INetworkService _networkService;
 
@@ -22,7 +21,6 @@ namespace AElf.OS.BlockSync.Application
         {
             _blockChainService = GetRequiredService<IBlockchainService>();
             _blockSyncService = GetRequiredService<IBlockSyncService>();
-            _blockSyncTestHelper = GetRequiredService<BlockSyncTestHelper>();
             _announcementCacheProvider = GetRequiredService<IAnnouncementCacheProvider>();
             _networkService = GetRequiredService<INetworkService>();
         }
@@ -40,9 +38,7 @@ namespace AElf.OS.BlockSync.Application
             var peerBlockHeight = peerBlock.Header.Height;
             
             await _blockSyncService.SyncBlockAsync(peerBlockHash, peerBlockHeight, 5, null);
-
-            _blockSyncTestHelper.DisposeQueue();
-
+            
             chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(20);
             chain.BestChainHash.ShouldBe(peerBlockHash);

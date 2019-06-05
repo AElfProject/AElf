@@ -12,14 +12,12 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockFetchService _blockFetchService;
         private readonly INetworkService _networkService;
         private readonly ITaskQueueManager _taskQueueManager;
-        private readonly BlockSyncTestHelper _blockSyncTestHelper;
         private readonly IBlockchainService _blockchainService;
 
         public BlockFetchServiceTests()
         {
             _blockFetchService = GetRequiredService<IBlockFetchService>();
             _networkService = GetRequiredService<INetworkService>();
-            _blockSyncTestHelper = GetRequiredService<BlockSyncTestHelper>();
             _blockchainService = GetRequiredService<IBlockchainService>();
         }
 
@@ -32,7 +30,6 @@ namespace AElf.OS.BlockSync.Application
             block.ShouldBeNull();
 
             var fetchResult = await _blockFetchService.FetchBlockAsync(peerBlock.GetHash(), peerBlock.Height, null);
-            _blockSyncTestHelper.DisposeQueue();
             
             fetchResult.ShouldBeTrue();
             
@@ -45,7 +42,6 @@ namespace AElf.OS.BlockSync.Application
         {
             var chain = await _blockchainService.GetChainAsync();
             var fetchResult = await _blockFetchService.FetchBlockAsync(chain.BestChainHash, chain.BestChainHeight, null);
-            _blockSyncTestHelper.DisposeQueue();
             
             fetchResult.ShouldBeTrue();
         }
@@ -54,7 +50,6 @@ namespace AElf.OS.BlockSync.Application
         public async Task FetchBlock_ReturnNull_Failure()
         {
             var fetchResult = await _blockFetchService.FetchBlockAsync(Hash.Empty, 0, null);
-            _blockSyncTestHelper.DisposeQueue();
             
             fetchResult.ShouldBeFalse();
         }

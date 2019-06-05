@@ -7,6 +7,7 @@ using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 
@@ -15,18 +16,18 @@ namespace AElf.OS.Handlers
     public class PeerConnectedEventHandlerTests : BlockSyncTestBase
     {
         private readonly PeerConnectedEventHandler _peerConnectedEventHandler;
-        private readonly BlockSyncTestHelper _blockSyncTestHelper;
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
+        private readonly OSTestHelper _osTestHelper;
 
         public PeerConnectedEventHandlerTests()
         {
             _peerConnectedEventHandler = GetRequiredService<PeerConnectedEventHandler>();
-            _blockSyncTestHelper = GetRequiredService<BlockSyncTestHelper>();
             _blockSyncStateProvider = GetRequiredService<IBlockSyncStateProvider>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _networkService = GetRequiredService<INetworkService>();
+            _osTestHelper = GetRequiredService<OSTestHelper>();
         }
 
         [Fact]
@@ -42,41 +43,55 @@ namespace AElf.OS.Handlers
                 BlockHeight = block.Header.Height
             };
 
-            // Sync one block to best chain
-            await _peerConnectedEventHandler.HandleEventAsync(
-                new AnnouncementReceivedEventData(announcement, null));
-
-            // Handle the same announcement again
-            await _peerConnectedEventHandler.HandleEventAsync(
-                new AnnouncementReceivedEventData(announcement, null));
-
-            // Sync one block to best chain
-            block = peerBlocks[1];
-            announcement = new PeerNewBlockAnnouncement
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Header.Height
-            };
+                // Sync one block to best chain
+                // BestChainHeight: 12
+                await _peerConnectedEventHandler.HandleEventAsync(
+                    new AnnouncementReceivedEventData(announcement, null));
+                chain = await _blockchainService.GetChainAsync();
+                chain.BestChainHash.ShouldBe(peerBlocks[0].GetHash());
+                chain.BestChainHeight.ShouldBe(12);
+            }
 
-            await _peerConnectedEventHandler.HandleEventAsync(
-                new AnnouncementReceivedEventData(announcement, null));
-
-            // Sync higher block
-            // BestChainHeight: 26
-            block = peerBlocks[9];
-            announcement = new PeerNewBlockAnnouncement
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Header.Height
-            };
+                // Handle the same announcement again
+                // BestChainHeight: 12
+                await _peerConnectedEventHandler.HandleEventAsync(
+                    new AnnouncementReceivedEventData(announcement, null));
+                chain = await _blockchainService.GetChainAsync();
+                chain.BestChainHash.ShouldBe(peerBlocks[0].GetHash());
+                chain.BestChainHeight.ShouldBe(12);
+            }
 
-            await _peerConnectedEventHandler.HandleEventAsync(
-                new AnnouncementReceivedEventData(announcement, null));
-            _blockSyncTestHelper.DisposeQueue();
+            Hash forkedBlockHash;
+            {
+                // Mined one block, and fork
+                _osTestHelper.MinedOneBlock();
+                chain = await _blockchainService.GetChainAsync();
+                chain.BestChainHeight.ShouldBe(13);
+                forkedBlockHash = chain.BestChainHash;
+            }
 
-            chain = await _blockchainService.GetChainAsync();
-            chain.BestChainHash.ShouldBe(peerBlocks.Last().GetHash());
-            chain.BestChainHeight.ShouldBe(21);
+            {
+                // Receive a higher fork block, sync from the lib
+                // BestChainHeight: 21
+                block = peerBlocks[9];
+                announcement = new PeerNewBlockAnnouncement
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Header.Height
+                };
+
+                await _peerConnectedEventHandler.HandleEventAsync(
+                    new AnnouncementReceivedEventData(announcement, null));
+
+                chain = await _blockchainService.GetChainAsync();
+                chain.BestChainHash.ShouldBe(peerBlocks.Last().GetHash());
+                chain.BestChainHeight.ShouldBe(21);
+
+                var block13 = await _blockchainService.GetBlockByHeightInBestChainBranchAsync(13);
+                block13.GetHash().ShouldNotBe(forkedBlockHash);
+            }
         }
 
         [Fact]
@@ -97,7 +112,6 @@ namespace AElf.OS.Handlers
             
             _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = TimestampHelper.GetUtcNow().AddSeconds(-5);
             await _peerConnectedEventHandler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, null));
-            _blockSyncTestHelper.DisposeQueue();
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHash.ShouldBe(bestChainHash);
@@ -122,7 +136,6 @@ namespace AElf.OS.Handlers
             
             _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = TimestampHelper.GetUtcNow().AddSeconds(-3);
             await _peerConnectedEventHandler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, null));
-            _blockSyncTestHelper.DisposeQueue();
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHash.ShouldBe(bestChainHash);

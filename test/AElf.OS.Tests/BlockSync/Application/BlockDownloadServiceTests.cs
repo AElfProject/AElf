@@ -10,13 +10,11 @@ namespace AElf.OS.BlockSync.Application
     {
         private readonly IBlockDownloadService _blockDownloadService;
         private readonly IBlockchainService _blockchainService;
-        private readonly BlockSyncTestHelper _blockSyncTestHelper;
 
         public BlockDownloadServiceTests()
         {
             _blockDownloadService = GetRequiredService<IBlockDownloadService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
-            _blockSyncTestHelper = GetRequiredService<BlockSyncTestHelper>();
         }
 
         [Fact]
@@ -28,8 +26,6 @@ namespace AElf.OS.BlockSync.Application
                 .BestChainHeight, 5, null);
 
             downloadResult.ShouldBe(10);
-
-            _blockSyncTestHelper.DisposeQueue();
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(21);
@@ -43,8 +39,6 @@ namespace AElf.OS.BlockSync.Application
             var downloadResult = await _blockDownloadService.DownloadBlocksAsync(Hash.FromString("MoreThanLimit"), 62, 5, null);
 
             downloadResult.ShouldBe(0);
-
-            _blockSyncTestHelper.DisposeQueue();
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(11);
@@ -58,8 +52,6 @@ namespace AElf.OS.BlockSync.Application
             var downloadResult = await _blockDownloadService.DownloadBlocksAsync(Hash.FromString("NoBlockReturn"), 15, 5, null);
 
             downloadResult.ShouldBe(0);
-
-            _blockSyncTestHelper.DisposeQueue();
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(11);
