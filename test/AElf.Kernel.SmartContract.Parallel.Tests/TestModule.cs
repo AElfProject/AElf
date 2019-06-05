@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Runtime.CSharp;
@@ -24,6 +25,16 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 (InternalConstants.Acs2, GetAcs2Executive())
             );
             services.AddSingleton(executiveService);
+            context.Services.AddSingleton<IBlockchainService>(
+                _ =>
+                {
+                    var mock = new Mock<IBlockchainService>();
+                    mock.Setup(s => s.GetChainAsync()).Returns(Task.FromResult<Chain>(new Chain()
+                    {
+                        BestChainHash = Hash.Empty
+                    }));
+                    return mock.Object;
+                });
         }
 
         #region Mocks
