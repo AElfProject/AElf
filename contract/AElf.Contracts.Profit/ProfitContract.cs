@@ -28,9 +28,9 @@ namespace AElf.Contracts.Profit
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-            if (input.ExpiredPeriodNumber == 0)
+            if (input.ProfitReceivingDuePeriodCount == 0)
             {
-                input.ExpiredPeriodNumber = ProfitContractConsts.DefaultExpiredPeriodNumber;
+                input.ProfitReceivingDuePeriodCount = ProfitContractConsts.DefaultProfitReceivingDuePeriodCount;
             }
 
             var profitId = Context.TransactionId;
@@ -44,9 +44,9 @@ namespace AElf.Contracts.Profit
             {
                 VirtualAddress = Context.ConvertVirtualAddressToContractAddress(profitId),
                 Creator = Context.Sender,
-                ExpiredPeriodNumber = input.ExpiredPeriodNumber,
+                ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
                 CurrentPeriod = 1,
-                ReleaseAllIfAmountIsZero = input.ReleaseAllIfAmountIsZero
+                IsReleaseAllBalanceEverytimeByDefault = input.IsReleaseAllBalanceEverytimeByDefault
             };
 
             var createdProfitItems = State.CreatedProfitItemsMap[Context.Sender];
@@ -204,7 +204,7 @@ namespace AElf.Contracts.Profit
             // Remove details too old.
             foreach (var detail in currentProfitDetails.Details.Where(
                 d => d.EndPeriod != long.MaxValue && d.LastProfitPeriod >= d.EndPeriod &&
-                     d.EndPeriod.Add(profitItem.ExpiredPeriodNumber) < profitItem.CurrentPeriod))
+                     d.EndPeriod.Add(profitItem.ProfitReceivingDuePeriodCount) < profitItem.CurrentPeriod))
             {
                 currentProfitDetails.Details.Remove(detail);
             }
@@ -322,7 +322,7 @@ namespace AElf.Contracts.Profit
 
             Assert(input.Amount <= balance, "Insufficient profits amount.");
 
-            if (profitItem.ReleaseAllIfAmountIsZero && input.Amount == 0)
+            if (profitItem.IsReleaseAllBalanceEverytimeByDefault && input.Amount == 0)
             {
                 input.Amount = balance;
             }
@@ -557,7 +557,7 @@ namespace AElf.Contracts.Profit
             var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod != profitItem.CurrentPeriod)
                 .ToList();
 
-            for (var i = 0; i < Math.Min(ProfitContractConsts.ProfitLimit, availableDetails.Count); i++)
+            for (var i = 0; i < Math.Min(ProfitContractConsts.ProfitReceivingLimitForEachTime, availableDetails.Count); i++)
             {
                 var profitDetail = availableDetails[i];
                 if (profitDetail.LastProfitPeriod == 0)

@@ -20,6 +20,9 @@
         <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
+        <ContractReference Include="..\..\protobuf\profit_contract.proto">
+            <Link>Protobuf\Proto\reference\profit_contract.proto</Link>
+        </ContractReference>
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\test_profit_sharing_contract.proto">

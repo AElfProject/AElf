@@ -75,7 +75,7 @@ namespace AElf.Contracts.Profit
         {
             await ProfitContractStub.CreateProfitItem.SendAsync(new CreateProfitItemInput
             {
-                ExpiredPeriodNumber = 100,
+                ProfitReceivingDuePeriodCount = 100,
             });
             TreasuryHash = ProfitContractStub.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput
             {

@@ -65,7 +65,7 @@ namespace AElf.Contracts.Profit
 
             profitItem.Creator.ShouldBe(creatorAddress);
             profitItem.CurrentPeriod.ShouldBe(1);
-            profitItem.ExpiredPeriodNumber.ShouldBe(ProfitContractConsts.DefaultExpiredPeriodNumber);
+            profitItem.ProfitReceivingDuePeriodCount.ShouldBe(ProfitContractConsts.DefaultProfitReceivingDuePeriodCount);
             profitItem.TotalWeight.ShouldBe(0);
             profitItem.TotalAmounts.Count.ShouldBe(0);
 
@@ -1209,14 +1209,14 @@ namespace AElf.Contracts.Profit
         }
 
         private async Task<Hash> CreateProfitItem(int returnIndex = 0,
-            long expiredPeriodNumber = ProfitContractConsts.DefaultExpiredPeriodNumber)
+            long profitReceivingDuePeriodCount = ProfitContractConsts.DefaultProfitReceivingDuePeriodCount)
         {
             var creator = Creators[0];
             var creatorAddress = Address.FromPublicKey(CreatorMinerKeyPair[0].PublicKey);
 
             await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
             {
-                ExpiredPeriodNumber = expiredPeriodNumber
+                ProfitReceivingDuePeriodCount = profitReceivingDuePeriodCount
             });
 
             var createdProfitIds = (await creator.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput

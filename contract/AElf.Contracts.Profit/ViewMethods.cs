@@ -68,7 +68,7 @@ namespace AElf.Contracts.Profit
 
             var amount = 0L;
 
-            for (var i = 0; i < Math.Min(ProfitContractConsts.ProfitLimit, availableDetails.Count); i++)
+            for (var i = 0; i < Math.Min(ProfitContractConsts.ProfitReceivingLimitForEachTime, availableDetails.Count); i++)
             {
                 var profitDetail = availableDetails[i];
                 if (profitDetail.LastProfitPeriod == 0)

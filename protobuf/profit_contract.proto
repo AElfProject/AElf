@@ -61,9 +61,8 @@ service ProfitContract {
 }
 
 message CreateProfitItemInput {
-    sint64 total_weight = 1;
-    sint64 expired_period_number = 3;
-    bool release_all_if_amount_is_zero = 4;
+    sint64 profit_receiving_due_period_count = 1;
+    bool is_release_all_balance_everytime_by_default = 2;
 }
 
 message ProfitItem {
@@ -73,8 +72,8 @@ message ProfitItem {
     sint64 current_period = 4;
     repeated SubProfitItem sub_profit_items = 7;
     aelf.Address creator = 8;
-    sint64 expired_period_number = 9;
-    bool release_all_if_amount_is_zero = 10;
+    sint64 profit_receiving_due_period_count = 9;
+    bool is_release_all_balance_everytime_by_default = 10;
     bool is_treasury_profit_item = 11;
 }
 
