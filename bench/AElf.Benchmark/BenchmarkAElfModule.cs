@@ -1,5 +1,6 @@
 using AElf.Database;
 using AElf.Kernel.Infrastructure;
+using AElf.Kernel.SmartContract.Parallel;
 using AElf.Modularity;
 using AElf.OS;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +9,8 @@ using Volo.Abp.Modularity;
 namespace AElf.Benchmark
 {
     [DependsOn(
-        typeof(OSCoreWithChainTestAElfModule)
+        typeof(OSCoreWithChainTestAElfModule),
+        typeof(ParallelExecutionModule)
     )]
     public class BenchmarkAElfModule : AElfModule
     {
