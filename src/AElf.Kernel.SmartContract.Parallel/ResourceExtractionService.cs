@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
@@ -64,9 +62,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             {
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
                 var resourceInfo = await executive.GetTransactionResourceInfoAsync(chainContext, transaction);
-                
-                _resourceCache.TryAdd(transaction.GetHash(), resourceInfo);
-                
+                // Try storing in cache here
                 return resourceInfo;
             }
             finally
@@ -83,13 +79,13 @@ namespace AElf.Kernel.SmartContract.Parallel
         public async Task HandleTxResourcesNeededAsync(TxResourcesNeededEvent eventData)
         {
             var chainContext = await GetChainContextAsync();
+            
+            foreach (var tx in eventData.Transactions)
+            {
+                _resourceCache.TryAdd(tx.GetHash(), await GetResourcesForOneAsync(chainContext, tx, CancellationToken.None));
+            }
 
-            var tasks = eventData.Transactions.Select(
-                tx => GetResourcesForOneAsync(chainContext, tx, CancellationToken.None));
-            
-            await Task.WhenAll(tasks);
-            
-            Logger.LogTrace($"Resource cache size: {_resourceCache.Count}");
+            Logger.LogTrace($"Resource cache size current: {_resourceCache.Count}");
         }
 
         public async Task HandleTxResourcesNoLongerNeededAsync(TxResourcesNoLongerNeededEvent eventData)
@@ -98,6 +94,8 @@ namespace AElf.Kernel.SmartContract.Parallel
             {
                 _resourceCache.TryRemove(txId, out _);
             }
+            
+            Logger.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
         }
         #endregion
         
