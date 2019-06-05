@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.SmartContract.Parallel;
 using AElf.Types;
 using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
@@ -23,6 +24,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
+        private readonly IResourceExtractionService _resourceExtractionService;
 
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTransactions =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
@@ -44,11 +46,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public ILocalEventBus LocalEventBus { get; set; }
 
         public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService, 
-            IOptionsSnapshot<TransactionOptions> transactionOptions)
+            IResourceExtractionService resourceExtractionService, IOptionsSnapshot<TransactionOptions> transactionOptions)
         {
             Logger = NullLogger<TxHub>.Instance;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
+            _resourceExtractionService = resourceExtractionService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
         }
@@ -181,6 +184,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
         {
+            var executableTransactions = new List<Transaction>();
             foreach (var transaction in eventData.Transactions)
             {
                 if (!transaction.VerifySignature())
@@ -219,6 +223,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 }
 
                 await _transactionManager.AddTransactionAsync(transaction);
+                executableTransactions.Add(transaction);
 
                 if (_bestChainHash == Hash.Empty)
                 {
@@ -236,6 +241,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     });
                 }
             }
+            await LocalEventBus.PublishAsync(new ExecutableTransactionsReceivedEvent()
+            {
+                Transactions = executableTransactions
+            });
         }
 
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
@@ -244,6 +253,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             foreach (var txId in block.Body.Transactions)
             {
                 _allTransactions.TryRemove(txId, out _);
+                await _resourceExtractionService.ClearResourceCacheForTransaction(txId);
             }
         }
 
@@ -274,6 +284,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 foreach (var txId in txIds.Value.Keys)
                 {
                     _allTransactions.TryRemove(txId, out _);
+                    await _resourceExtractionService.ClearResourceCacheForTransaction(txId);
                 }
             }
 
@@ -285,6 +296,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             foreach (var txId in eventData.Transactions)
             {
                 _allTransactions.TryRemove(txId, out _);
+                await _resourceExtractionService.ClearResourceCacheForTransaction(txId);
             }
             await Task.CompletedTask;
         }

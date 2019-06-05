@@ -18,8 +18,8 @@ namespace AElf.Kernel.SmartContract.Parallel
 
     public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
     {
-        private IBlockchainService _blockchainService;
-        private IResourceExtractionService _resourceExtractionService;
+        private readonly IBlockchainService _blockchainService;
+        private readonly IResourceExtractionService _resourceExtractionService;
         private GrouperOptions _options;
         public ILogger<TransactionGrouper> Logger { get; set; }
 
