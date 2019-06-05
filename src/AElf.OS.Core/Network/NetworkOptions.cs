@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace AElf.OS.Network
@@ -8,21 +9,28 @@ namespace AElf.OS.Network
         /// Initial set of nodes.
         /// </summary>
         public List<string> BootNodes { get; set; }
+
+        /// <summary>
+        /// Indicates the types of peers that are authorized to connect to this node.
+        /// Use Authorized in conjunction with <see cref="AuthorizedKeys"/>.
+        /// </summary>
+        public AuthorizedPeers AuthorizedPeers { get; set; } = AuthorizedPeers.Any;
         
+        /// <summary>
+        /// A list of allowed public keys that are authorized to connect to the node.
+        /// This will be used when <see cref="AuthorizedPeers"/> is set to Authorized.
+        /// </summary>
+        public List<string> AuthorizedKeys { get; set; }
+
         /// <summary>
         /// Node Server listening Port.
         /// </summary>
         public int ListeningPort { get; set; }
-        
+
         /// <summary>
-        /// Value that determines which type of peers can connect to the node.
+        /// The maximum number of peers accepted by this node (0 for no limit).
         /// </summary>
-        public string NetAllowed { get; set; }
-        
-        /// <summary>
-        /// The white-listed public keys when NetAllowed = Listed.
-        /// </summary>
-        public List<string> NetWhitelist { get; set; }
+        public int MaxPeers { get; set; } = NetworkConstants.DefaultMaxPeers;
 
         /// <summary>
         /// Timeout used when trying to connect to another peer.
@@ -40,5 +48,12 @@ namespace AElf.OS.Network
         public bool CompressBlocksOnRequest { get; set; } = NetworkConstants.DefaultCompressBlocks;
 
         public int MinBlockGapBeforeSync { get; set; } = NetworkConstants.DefaultMinBlockGapBeforeSync;
+    }
+    
+    [Flags]
+    public enum AuthorizedPeers
+    {
+        Any, // Any node can connect
+        Authorized // Only whitelisted peers can connect
     }
 }

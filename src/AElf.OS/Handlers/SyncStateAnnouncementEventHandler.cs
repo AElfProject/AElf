@@ -51,9 +51,15 @@ namespace AElf.OS.Handlers
 
         private async Task UpdateSyncState(AnnouncementReceivedEventData eventData)
         {
+            if (eventData.IsFromConnection)
+            {
+                Logger?.LogWarning("Ignoring connection announcement.");
+                return;
+            }
+            
             if (eventData?.Announce == null)
             {
-                Logger?.LogWarning("Null announcement received.");
+                Logger.LogWarning("Null announcement received.");
                 return;
             }
 
@@ -78,12 +84,18 @@ namespace AElf.OS.Handlers
                 if (blockHeight > chain.BestChainHeight + _networkOptions.MinBlockGapBeforeSync)
                 {
                     if (_blockChainNodeStateService.SetSyncing(true))
+                    {
                         Logger.LogDebug($"Starting a sync phase, best chain height: {chain.BestChainHeight}.");
+                        // todo call service
+                    }
                 }
                 else
                 {
                     if (_blockChainNodeStateService.SetSyncing(false))
+                    {
                         Logger.LogDebug($"Finished a sync phase, best chain height: {chain.BestChainHeight}.");
+                        // todo call service
+                    }
                 }
             }
         }
