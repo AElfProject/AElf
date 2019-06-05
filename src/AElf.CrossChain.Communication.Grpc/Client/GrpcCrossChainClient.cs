@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Cache;
+using AElf.Kernel;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 
@@ -110,6 +111,11 @@ namespace AElf.CrossChain.Communication.Grpc
             }
         }
 
+        protected CallOptions CreateOption()
+        {
+            new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().ToDateTime().AddSeconds(DialTimeout));
+        }
+
         public abstract Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
 
         protected abstract AsyncServerStreamingCall<TData> RequestIndexing(CrossChainRequest crossChainRequest);
@@ -131,8 +137,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         protected override AsyncServerStreamingCall<SideChainBlockData> RequestIndexing(CrossChainRequest crossChainRequest)
         {
-            return GrpcClient.RequestIndexingFromSideChainAsync(crossChainRequest,
-                new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
+            return GrpcClient.RequestIndexingFromSideChainAsync(crossChainRequest, CreateOption());
         }
     }
     
@@ -147,8 +152,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         protected override AsyncServerStreamingCall<ParentChainBlockData> RequestIndexing(CrossChainRequest crossChainRequest)
         {
-            return GrpcClient.RequestIndexingFromParentChainAsync(crossChainRequest,
-                new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
+            return GrpcClient.RequestIndexingFromParentChainAsync(crossChainRequest, CreateOption());
         }
 
         public override Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
@@ -157,7 +161,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 new SideChainInitializationRequest
                 {
                     ChainId = chainId
-                }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
+                }, CreateOption());
             return Task.FromResult(sideChainInitializationResponse);
         }
     }
