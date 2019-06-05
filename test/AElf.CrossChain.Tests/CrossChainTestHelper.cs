@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Contracts.CrossChain;
+using Acs7;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
@@ -95,6 +95,22 @@ namespace AElf.CrossChain
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
                 return new CrossChainBlockData().ToByteArray();
             }
+
+            if (methodName == nameof(CrossChainContractMethodNames.GetSideChainIndexingInformationList))
+            {
+                var sideChainIndexingInformationList = new SideChainIndexingInformationList();
+                foreach (var kv in _sideChainIdHeights)
+                {
+                    sideChainIndexingInformationList.IndexingInformationList.Add(new SideChainIndexingInformation
+                    {
+                        ChainId = kv.Key,
+                        IndexedHeight = kv.Value,
+                        ToBeIndexedCount = long.MaxValue
+                    });
+                }
+                
+                return sideChainIndexingInformationList.ToByteArray();
+            }
             
             return new byte[0];
         }
@@ -112,7 +128,7 @@ namespace AElf.CrossChain
             GetSideChainIdAndHeight,
             GetAllChainsIdAndHeight,
             GetIndexedCrossChainBlockDataByHeight,
-            GetChainInitializationContext
+            GetSideChainIndexingInformationList
         }
     }
 }
