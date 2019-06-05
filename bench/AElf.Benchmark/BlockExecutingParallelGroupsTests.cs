@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -25,8 +26,9 @@ namespace AElf.Benchmark
         private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
         private OSTestHelper _osTestHelper;
 
+        private List<Transaction> _systemTransactions;
         private List<Transaction> _prepareTransactions;
-        private List<Transaction> _transactions;
+        private List<Transaction> _cancellableTransactions;
         private List<ECKeyPair> _keyPairs;
         private Block _block;
 
@@ -47,7 +49,8 @@ namespace AElf.Benchmark
             _osTestHelper = GetRequiredService<OSTestHelper>();
             
             _prepareTransactions = new List<Transaction>();
-            _transactions = new List<Transaction>();
+            _systemTransactions = new List<Transaction>();
+            _cancellableTransactions = new List<Transaction>();
             _keyPairs = new List<ECKeyPair>();
         }
 
@@ -74,20 +77,22 @@ namespace AElf.Benchmark
             _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
                 TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
             
-            _transactions = await _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs, tokenAmount);
+            _systemTransactions = await _osTestHelper.GenerateTransferTransactions(1);
+            _cancellableTransactions = await _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs, tokenAmount);
         }
         
         [Benchmark]
         public async Task ExecuteBlock()
         {
-            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, _transactions);
+            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, 
+                _systemTransactions, _cancellableTransactions, CancellationToken.None);
         }
 
         [IterationCleanup]
         public async Task IterationCleanup()
         {
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            foreach (var transaction in _transactions.Concat(_prepareTransactions))
+            foreach (var transaction in _cancellableTransactions.Concat(_prepareTransactions).Concat(_systemTransactions))
             {
                 await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
                 await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),
