@@ -78,15 +78,9 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
         }
 
-        public async Task ClearResourceCacheForTransaction(Hash txId)
-        {
-            // Not clearing via event since this is very quick
-            _resourceCache.TryRemove(txId, out _);
-        }
-
         #region Event Handler Methods
         
-        public async Task HandleExecutableTransactionsReceivedAsync(ExecutableTransactionsReceivedEvent eventData)
+        public async Task HandleTxResourcesNeededAsync(TxResourcesNeededEvent eventData)
         {
             var chainContext = await GetChainContextAsync();
 
@@ -98,6 +92,13 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger.LogTrace($"Resource cache size: {_resourceCache.Count}");
         }
 
+        public async Task HandleTxResourcesNoLongerNeededAsync(TxResourcesNoLongerNeededEvent eventData)
+        {
+            foreach (var txId in eventData.TxIds)
+            {
+                _resourceCache.TryRemove(txId, out _);
+            }
+        }
         #endregion
         
         private async Task<ChainContext> GetChainContextAsync()

@@ -24,7 +24,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
-        private readonly IResourceExtractionService _resourceExtractionService;
 
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTransactions =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
@@ -46,12 +45,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public ILocalEventBus LocalEventBus { get; set; }
 
         public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService, 
-            IResourceExtractionService resourceExtractionService, IOptionsSnapshot<TransactionOptions> transactionOptions)
+            IOptionsSnapshot<TransactionOptions> transactionOptions)
         {
             Logger = NullLogger<TxHub>.Instance;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
-            _resourceExtractionService = resourceExtractionService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
         }
@@ -241,7 +239,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     });
                 }
             }
-            await LocalEventBus.PublishAsync(new ExecutableTransactionsReceivedEvent()
+            await LocalEventBus.PublishAsync(new TxResourcesNeededEvent()
             {
                 Transactions = executableTransactions
             });
@@ -253,8 +251,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             foreach (var txId in block.Body.Transactions)
             {
                 _allTransactions.TryRemove(txId, out _);
-                await _resourceExtractionService.ClearResourceCacheForTransaction(txId);
             }
+            
+            await LocalEventBus.PublishAsync(new TxResourcesNoLongerNeededEvent()
+            {
+                TxIds = block.Body.Transactions
+            });
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
@@ -279,14 +281,20 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
+            var removedTxIds = new List<Hash>();
             foreach (var txIds in _expiredByExpiryBlock.Where(kv => kv.Key <= eventData.BlockHeight))
             {
                 foreach (var txId in txIds.Value.Keys)
                 {
                     _allTransactions.TryRemove(txId, out _);
-                    await _resourceExtractionService.ClearResourceCacheForTransaction(txId);
+                    removedTxIds.Add(txId);
                 }
             }
+            
+            await LocalEventBus.PublishAsync(new TxResourcesNoLongerNeededEvent()
+            {
+                TxIds = removedTxIds
+            });
 
             await Task.CompletedTask;
         }
@@ -296,8 +304,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             foreach (var txId in eventData.Transactions)
             {
                 _allTransactions.TryRemove(txId, out _);
-                await _resourceExtractionService.ClearResourceCacheForTransaction(txId);
             }
+            
+            await LocalEventBus.PublishAsync(new TxResourcesNoLongerNeededEvent()
+            {
+                TxIds = eventData.Transactions
+            });
+            
             await Task.CompletedTask;
         }
         #endregion
