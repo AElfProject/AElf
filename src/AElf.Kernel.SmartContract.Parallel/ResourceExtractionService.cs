@@ -9,6 +9,7 @@ using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Parallel
@@ -17,6 +18,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+        public ILogger<TransactionGrouper> Logger { get; set; }
 
         private readonly ConcurrentDictionary<Hash, TransactionResourceInfo> _resourceCache = 
             new ConcurrentDictionary<Hash, TransactionResourceInfo>();
@@ -88,8 +90,12 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             var chainContext = await GetChainContextAsync();
 
-            _ = eventData.Transactions.AsParallel().Select(
+            var tasks = eventData.Transactions.Select(
                 tx => GetResourcesForOneAsync(chainContext, tx, CancellationToken.None));
+            
+            await Task.WhenAll(tasks);
+            
+            Logger.LogTrace($"Resource cache size: {_resourceCache.Count}");
         }
 
         #endregion
