@@ -29,6 +29,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
             context.Services.AddSingleton<IRandomHashCacheService, RandomHashCacheService>();
             context.Services.AddSingleton<Application.BestChainFoundEventHandler>();
+            context.Services.AddSingleton<ConsensusValidationFailedEventHandler>();
 
             var configuration = context.Services.GetConfiguration();
 

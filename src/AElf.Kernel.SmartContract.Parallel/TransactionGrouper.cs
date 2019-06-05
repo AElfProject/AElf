@@ -19,8 +19,8 @@ namespace AElf.Kernel.SmartContract.Parallel
 
     public class TransactionGrouper : ITransactionGrouper, ISingletonDependency
     {
-        private IBlockchainService _blockchainService;
-        private IResourceExtractionService _resourceExtractionService;
+        private readonly IBlockchainService _blockchainService;
+        private readonly IResourceExtractionService _resourceExtractionService;
         private GrouperOptions _options;
         public ILogger<TransactionGrouper> Logger { get; set; }
 
@@ -95,6 +95,9 @@ namespace AElf.Kernel.SmartContract.Parallel
                 
                 groups.AddRange(groupedTxs);
             }
+            
+            Logger.LogTrace($"From {transactions.Count} transactions, grouped into {groups.Count}, " +
+                            $"left {nonParallelizables.Count} as non-parallelizable.");
 
             return (groups, nonParallelizables);
         }

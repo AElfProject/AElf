@@ -30,7 +30,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             
             // Validate whether this miner abide by his time slot.
             // Maybe failing due to using too much time handle things after mining.
-            if (!CheckMinerTimeSlot(currentRound, publicKey))
+            if (updatedRound.RoundId == currentRound.RoundId && !CheckMinerTimeSlot(currentRound, publicKey))
             {
                 return new ValidationResult {Message = "Time slot already passed before execution."};
             }
@@ -57,7 +57,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (IsFirstRoundOfCurrentTerm(out _)) return true;
             var minerInRound = round.RealTimeMinersInformation[publicKey];
-            var latestActualMiningTime = minerInRound.ActualMiningTimes.LastOrDefault();
+            var latestActualMiningTime = minerInRound.ActualMiningTimes.OrderBy(t => t).LastOrDefault();
             if (latestActualMiningTime == null) return true;
             var expectedMiningTime = minerInRound.ExpectedMiningTime;
             var endOfExpectedTimeSlot = expectedMiningTime.AddMilliseconds(round.GetMiningInterval());

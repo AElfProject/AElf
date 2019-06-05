@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.SmartContract.Parallel;
 using AElf.Types;
 using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
@@ -181,6 +182,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
         {
+            var executableTransactions = new List<Transaction>();
             foreach (var transaction in eventData.Transactions)
             {
                 if (!transaction.VerifySignature())
@@ -219,6 +221,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 }
 
                 await _transactionManager.AddTransactionAsync(transaction);
+                executableTransactions.Add(transaction);
 
                 if (_bestChainHash == Hash.Empty)
                 {
@@ -236,6 +239,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     });
                 }
             }
+            await LocalEventBus.PublishAsync(new TxResourcesNeededEvent()
+            {
+                Transactions = executableTransactions
+            });
         }
 
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
@@ -245,6 +252,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 _allTransactions.TryRemove(txId, out _);
             }
+            
+            await LocalEventBus.PublishAsync(new TxResourcesNoLongerNeededEvent()
+            {
+                TxIds = block.Body.Transactions
+            });
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
@@ -269,13 +281,20 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
+            var removedTxIds = new List<Hash>();
             foreach (var txIds in _expiredByExpiryBlock.Where(kv => kv.Key <= eventData.BlockHeight))
             {
                 foreach (var txId in txIds.Value.Keys)
                 {
                     _allTransactions.TryRemove(txId, out _);
+                    removedTxIds.Add(txId);
                 }
             }
+            
+            await LocalEventBus.PublishAsync(new TxResourcesNoLongerNeededEvent()
+            {
+                TxIds = removedTxIds
+            });
 
             await Task.CompletedTask;
         }
@@ -286,6 +305,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 _allTransactions.TryRemove(txId, out _);
             }
+            
+            await LocalEventBus.PublishAsync(new TxResourcesNoLongerNeededEvent()
+            {
+                TxIds = eventData.Transactions
+            });
+            
             await Task.CompletedTask;
         }
         #endregion
