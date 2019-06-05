@@ -36,6 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 RandomHash = randomHashes[i]
             }).ToDictionary(t => t.PublicKey.ToHex(), t => t);
 
+            // Exactly one round except extra block time slot.
             foreach (var minerInRound in currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
             {
                 var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
@@ -62,9 +63,27 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     });
                 }
             }
+            
+            // Not enough.
+            {
+                var transactionResult = (await AEDPoSContractStub.GetRandomNumber.SendAsync(tokenHash)).TransactionResult;
+                transactionResult.Error.ShouldContain("Still preparing random number.");
+            }
 
-            var randomNumber = (await AEDPoSContractStub.GetRandomNumber.SendAsync(tokenHash)).Output;
-            randomNumber.ShouldNotBeNull();
+            // In test framework, the execution of every transaction will generate a new block no matter the execution succeeded.
+            await AEDPoSContractStub.GetRandomNumber.SendAsync(tokenHash);
+
+            // Now it's enough.
+            {
+                var randomNumber = (await AEDPoSContractStub.GetRandomNumber.SendAsync(tokenHash)).Output;
+                randomNumber.Value.ShouldNotBeEmpty();
+            }
+            
+            // Then this order deleted from state.
+            {
+                var randomNumber = (await AEDPoSContractStub.GetRandomNumber.SendAsync(tokenHash)).Output;
+                randomNumber.Value.ShouldBeEmpty();
+            }
         }
     }
 }

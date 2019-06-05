@@ -60,7 +60,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return Hash.Empty;
             }
 
-            if (roundNumberRequestInformation.ExpectedBlockHeight < Context.CurrentHeight)
+            if (roundNumberRequestInformation.ExpectedBlockHeight > Context.CurrentHeight)
             {
                 Assert(false, "Still preparing random number.");
             }
@@ -82,14 +82,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         var newParticipators = round.RealTimeMinersInformation.Values.OrderBy(i => i.Order)
                             .Where(i => i.PreviousInValue != null).ToList();
                         var stillNeed = neededParticipatorCount - participators.Count;
-                        if (newParticipators.Count > stillNeed)
-                        {
-                            participators.AddRange(newParticipators.Take(stillNeed));
-                        }
-                        else
-                        {
-                            participators.AddRange(newParticipators);
-                        }
+                        participators.AddRange(newParticipators.Count > stillNeed
+                            ? newParticipators.Take(stillNeed)
+                            : newParticipators);
                     }
                     else
                     {
