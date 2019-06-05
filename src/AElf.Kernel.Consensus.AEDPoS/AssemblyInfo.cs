@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
 
-#if DEBUG
 [assembly: InternalsVisibleTo("AElf.Kernel.Tests")]
-#endif
+[assembly: InternalsVisibleTo("AElf.Contracts.Consensus.AEDPoS.Tests")]

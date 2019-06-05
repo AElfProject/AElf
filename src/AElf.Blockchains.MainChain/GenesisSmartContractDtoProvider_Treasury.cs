@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
-using AElf.Contracts.treasury;
+using AElf.Contracts.Treasury;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
 using AElf.Types;

@@ -7,12 +7,12 @@ namespace AElf.Contracts.TestContract.ProfitSharing
     {
         public override Empty InitializeProfitSharingContract(InitializeProfitSharingContractInput input)
         {
-            Token
+            return new Empty();
         }
 
         public override Empty CreateProfitItem(CreateProfitItemInput input)
         {
-            return base.CreateProfitItem(input);
+            return new Empty();
         }
     }
 }

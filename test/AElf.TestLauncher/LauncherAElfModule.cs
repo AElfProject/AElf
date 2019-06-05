@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Kernel;
+using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Modularity;

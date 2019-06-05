@@ -1,4 +1,5 @@
 using System;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
 {
@@ -11,7 +12,8 @@ namespace AElf.Kernel
         public const int CodeCoverageRunnerCategory = 30;
         public const string MergeBlockStateQueueName = "MergeBlockStateQueue";
         public const string UpdateChainQueueName = "UpdateChainQueue";
+        public const string ConsensusRequestMiningQueueName = "ConsensusRequestMiningQueue";
         public const string StorageKeySeparator = ",";
-        public static TimeSpan AllowedFutureBlockTimeSpan = TimeSpan.FromSeconds(4);
+        public static Duration AllowedFutureBlockTimeSpan = new Duration() { Seconds = 4 };
     }
 }

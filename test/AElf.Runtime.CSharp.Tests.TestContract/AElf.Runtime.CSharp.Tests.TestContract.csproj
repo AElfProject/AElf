@@ -4,6 +4,7 @@
       <TargetFramework>netstandard2.0</TargetFramework>
       <AssemblyName>AElf.Runtime.CSharp.Tests.TestContract</AssemblyName>
       <RootNamespace>AElf.Runtime.CSharp.Tests.TestContract</RootNamespace>
+        <IsContract>true</IsContract>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,8 +16,4 @@
         <Link>Protobuf/proto/test_contract.proto</Link>
       </ContractCode>
     </ItemGroup>
-    <Target Name="CopyContractDll" AfterTargets="AfterBuild">
-        <Exec Condition="!$([MSBuild]::IsOsPlatform(Windows))" Command="cp $(TargetDir)$(TargetName).dll ../../test/AElf.Runtime.CSharp.Tests/contracts"/>
-        <Exec Condition="$([MSBuild]::IsOsPlatform(Windows))" Command="copy /b/y $(TargetDir)$(TargetName).dll ..\..\test\AElf.Runtime.CSharp.Tests\contracts"/>
-    </Target>
 </Project>

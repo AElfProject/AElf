@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Acs4;
 using AElf.Kernel;
+using AElf.Runtime.CSharp.Validators;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -14,50 +16,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public long RoundId =>
             RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
-
-        public bool IsEmpty => RoundId == 0;
-
-        /// <summary>
-        /// Check the equality of time slots of miners.
-        /// Also, the mining interval shouldn't be 0.
-        /// </summary>
-        /// <returns></returns>
-        public ValidationResult CheckTimeSlots()
-        {
-            var miners = RealTimeMinersInformation.Values.OrderBy(m => m.Order).ToList();
-            if (miners.Count == 1)
-            {
-                // No need to check single node.
-                return new ValidationResult {Success = true};
-            }
-
-            if (miners.Any(m => m.ExpectedMiningTime == null))
-            {
-                return new ValidationResult {Success = false, Message = "Incorrect expected mining time."};
-            }
-
-            var baseMiningInterval =
-                (miners[1].ExpectedMiningTime.ToDateTime() - miners[0].ExpectedMiningTime.ToDateTime())
-                .TotalMilliseconds;
-
-            if (baseMiningInterval <= 0)
-            {
-                return new ValidationResult {Success = false, Message = $"Mining interval must greater than 0.\n{this}"};
-            }
-
-            for (var i = 1; i < miners.Count - 1; i++)
-            {
-                var miningInterval =
-                    (miners[i + 1].ExpectedMiningTime.ToDateTime() - miners[i].ExpectedMiningTime.ToDateTime())
-                    .TotalMilliseconds;
-                if (Math.Abs(miningInterval - baseMiningInterval) > baseMiningInterval)
-                {
-                    return new ValidationResult {Success = false, Message = "Time slots are so different."};
-                }
-            }
-
-            return new ValidationResult {Success = true};
-        }
 
         public Hash GetHash(bool isContainPreviousInValue = true)
         {
@@ -113,7 +71,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (!RealTimeMinersInformation.ContainsKey(publicKey))
             {
-                return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
+                return new Timestamp {Seconds = long.MaxValue};;
             }
 
             if (miningInterval == 0)
@@ -123,7 +81,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (!IsTimeSlotPassed(publicKey, dateTime, out var minerInRound) && minerInRound.OutValue == null)
             {
-                return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
+                return new Timestamp {Seconds = long.MaxValue};;
             }
 
             if (GetExtraBlockProducerInformation().PublicKey == publicKey)
@@ -144,7 +102,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             // Never do the mining if this node has no privilege to mime or the mining interval is invalid.
-            return DateTime.MaxValue.ToUniversalTime().ToTimestamp();
+            return new Timestamp {Seconds = long.MaxValue};;
         }
         
         /// <summary>
@@ -267,7 +225,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return RealTimeMinersInformation.Count * miningInterval + miningInterval;
         }
         
-        internal MinerInRound GetExtraBlockProducerInformation()
+        public MinerInRound GetExtraBlockProducerInformation()
         {
             return RealTimeMinersInformation.First(bp => bp.Value.IsExtraBlockProducer).Value;
         }
@@ -285,7 +243,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <param name="publicKey"></param>
         /// <returns></returns>
-        internal UpdateValueInput ExtractInformationToUpdateConsensus(string publicKey)
+        public UpdateValueInput ExtractInformationToUpdateConsensus(string publicKey)
         {
             if (!RealTimeMinersInformation.ContainsKey(publicKey))
             {
@@ -312,9 +270,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Signature = minerInRound.Signature,
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = RoundId,
-                PromiseTinyBlocks = minerInRound.PromisedTinyBlocks,
                 ProducedBlocks = minerInRound.ProducedBlocks,
-                ActualMiningTime = minerInRound.ActualMiningTime,
+                ActualMiningTime = minerInRound.ActualMiningTimes.First(),
                 SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,
                 TuneOrderInformation = {tuneOrderInformation},
                 EncryptedInValues = {minerInRound.EncryptedInValues},
@@ -332,9 +289,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             long termNumber, long timeEachTerm)
         {
             var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
-            var minimumCount = ((int) ((minersCount * 2d) / 3)) + 1;
-            var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTime != null)
-                .Select(m => m.ActualMiningTime)
+            var minimumCount = minersCount.Mul(2).Div(3).Add(1);
+            var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTimes.Any())
+                .Select(m => m.ActualMiningTimes.Last())
                 .Count(actualMiningTimestamp =>
                     IsTimeToChangeTerm(blockchainStartTimestamp, actualMiningTimestamp, termNumber, timeEachTerm));
             return approvalsCount >= minimumCount;
@@ -366,7 +323,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var checkableMinerInRound = minerInRound.Value.Clone();
                 checkableMinerInRound.EncryptedInValues.Clear();
-                checkableMinerInRound.ActualMiningTime = null;
+                checkableMinerInRound.ActualMiningTimes.Clear();
                 if (!isContainPreviousInValue)
                 {
                     checkableMinerInRound.PreviousInValue = Hash.Empty;

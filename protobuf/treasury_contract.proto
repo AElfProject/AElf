@@ -6,7 +6,7 @@ import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 
-option csharp_namespace = "AElf.Contracts.treasury";
+option csharp_namespace = "AElf.Contracts.Treasury";
 
 service TreasuryContract {
     option (aelf.csharp_state) = "AElf.Contracts.Treasury.TreasuryContractState";

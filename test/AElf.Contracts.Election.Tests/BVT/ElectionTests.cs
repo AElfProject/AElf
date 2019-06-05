@@ -33,7 +33,7 @@ namespace AElf.Contracts.Election
             electionVotingItem.TotalSnapshotNumber.ShouldBe(long.MaxValue);
             electionVotingItem.CurrentSnapshotNumber.ShouldBe(1);
             electionVotingItem.IsLockToken.ShouldBe(false);
-            electionVotingItem.EndTimestamp.ShouldBe(DateTime.MaxValue.ToUniversalTime().ToTimestamp());
+            electionVotingItem.EndTimestamp.ShouldBe(new Timestamp {Seconds = long.MaxValue});
             electionVotingItem.AcceptedCurrency.ShouldBe(ElectionContractTestConstants.NativeTokenSymbol);
         }
 
@@ -245,13 +245,6 @@ namespace AElf.Contracts.Election
             var voteId =
                 (await ElectionContractStub.GetElectorVote.CallAsync(new StringInput
                     {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotingRecordIds.First();
-
-            await ElectionContractStub.ReleaseTreasuryProfits.CallAsync(new ReleaseTreasuryProfitsInput
-            {
-                MinedBlocks = 1,
-                RoundNumber = 10,
-                TermNumber = 1
-            });
 
             await NextTerm(InitialMinersKeyPairs[0]);
 

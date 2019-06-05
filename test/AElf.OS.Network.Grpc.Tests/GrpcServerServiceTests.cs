@@ -1,23 +1,23 @@
-using System;
-using System.Data;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
+using Microsoft.Extensions.Options;
+using Moq;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Xunit;
@@ -43,7 +43,7 @@ namespace AElf.OS.Network
 
         private ServerCallContext BuildServerCallContext(Metadata metadata = null, string address = null)
         {
-            return TestServerCallContext.Create("mock", null, DateTime.UtcNow.AddHours(1), metadata ?? new Metadata(), CancellationToken.None, 
+            return TestServerCallContext.Create("mock", null, TimestampHelper.GetUtcNow().AddHours(1).ToDateTime(), metadata ?? new Metadata(), CancellationToken.None, 
                 address ?? "127.0.0.1", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
         }
 
@@ -62,7 +62,7 @@ namespace AElf.OS.Network
             Hash hash = Hash.Generate();
             await _service.Announce(new PeerNewBlockAnnouncement
             {
-                BlockHeight = 10, BlockHash = hash, BlockTime = DateTime.UtcNow.ToTimestamp()
+                BlockHeight = 10, BlockHash = hash
             }, BuildServerCallContext());
 
             Assert.NotNull(received);
@@ -72,6 +72,49 @@ namespace AElf.OS.Network
 
         [Fact]
         public async Task SendTx_ShouldPublishEvent()
+        {
+            TransactionsReceivedEvent received = null;
+            _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
+            {
+                received = t;
+                return Task.CompletedTask;
+            });
+            
+            Transaction tx = new Transaction();
+            tx.From = Address.Generate();
+            tx.To = Address.Generate();
+            
+            await _service.SendTransaction(tx, BuildServerCallContext());
+            
+            received?.Transactions.ShouldNotBeNull();
+            received.Transactions.Count().ShouldBe(1);
+            received.Transactions.First().From.ShouldBe(tx.From);
+        }
+        
+        [Fact]
+        public async Task SendTx_WithHighTxRef_ShouldNotPublishEvent()
+        {
+            TransactionsReceivedEvent received = null;
+            _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
+            {
+                received = t;
+                return Task.CompletedTask;
+            });
+            
+            Transaction tx = new Transaction();
+            tx.From = Address.Generate();
+            tx.To = Address.Generate();
+
+            var chain = await  _blockchainService.GetChainAsync();
+            tx.RefBlockNumber = chain.BestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync + 1;
+            
+            await _service.SendTransaction(tx, BuildServerCallContext());
+            
+            received.ShouldBeNull();
+        }
+        
+        [Fact]
+        public async Task SendTx_ToHigh_ShouldPublishEvent()
         {
             TransactionsReceivedEvent received = null;
             _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
@@ -163,7 +206,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Disconnect_ShouldRemovePeer()
         {
-            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConsts.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}}));
+            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}}));
             Assert.Empty(_peerPool.GetPeers(true));
         }
         
@@ -171,6 +214,16 @@ namespace AElf.OS.Network
 
         #region Other tests
 
+        [Fact]
+        public async Task Connect_MaxPeersReached()
+        {
+            _peerPool.AddPeer(GrpcTestHelper.CreateNewPeer("127.0.0.1:3000", false));
+            
+            ConnectReply connectReply = await _service.Connect(new Handshake(), BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
+            
+            connectReply.Err.ShouldBe(AuthError.ConnectionRefused);
+        }
+        
         [Fact]
         public async Task Connect_Cleanup_Test()
         {
@@ -214,40 +267,103 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Connect_Invalid()
         {
-            //invalid handshake
+            // invalid handshake
             {
                 var handshake = new Handshake();
                 var metadata = new Metadata
-                    {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
-                var context = BuildServerCallContext(metadata);
+                    {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
+                var context = BuildServerCallContext(metadata, "ipv4:127.0.0.1:1000");
 
                 var connectReply = await _service.Connect(handshake, context);
                 connectReply.Err.ShouldBe(AuthError.InvalidHandshake);
             }
             
-            //wrong sig
+            // wrong sig
             {
                 var handshake = await _peerPool.GetHandshakeAsync();
                 handshake.HskData.PublicKey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey);
                 var metadata = new Metadata
-                    {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
-                var context = TestServerCallContext.Create("mock", "127.0.0.1", DateTime.UtcNow.AddHours(1), metadata, CancellationToken.None, 
+                    {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
+                var context = TestServerCallContext.Create("mock", "127.0.0.1", TimestampHelper.GetUtcNow().AddHours(1).ToDateTime(), metadata, CancellationToken.None, 
                     "ipv4:127.0.0.1:2000", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
                 
                 var connectReply = await _service.Connect(handshake, context);
                 connectReply.Err.ShouldBe(AuthError.WrongSig);
             }
             
-            //invalid peer
+            // invalid peer
             {
                 var handshake = await _peerPool.GetHandshakeAsync();
                 var metadata = new Metadata
-                    {{GrpcConsts.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
-                var context = BuildServerCallContext(metadata);
+                    {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
+                var context = BuildServerCallContext(metadata, "127.0.0.1:3000");
 
                 var connectReply = await _service.Connect(handshake, context);
                 connectReply.Err.ShouldBe(AuthError.InvalidPeer);
             }
+        }
+        
+        [Fact]
+        public async Task Only_Authorized_Test()
+        {
+            // get the service to be able to switch the options
+            var serverService = _service as GrpcServerService;
+            
+            // authorized 
+            ECKeyPair authorizedPeer = CryptoHelpers.GenerateKeyPair();
+            ECKeyPair nonAuthorizedPeer = CryptoHelpers.GenerateKeyPair();
+            
+            // miners only options
+            var minersOnlyOptions = new NetworkOptions {
+                AuthorizedPeers = AuthorizedPeers.Authorized,
+                AuthorizedKeys = new List<string> { authorizedPeer.PublicKey.ToHex() }
+            };
+            
+            // change the options
+            serverService.NetworkOptionsSnapshot = CreateIOptionSnapshotMock(minersOnlyOptions);
+            
+            var context = BuildServerCallContext(null, "ipv4:127.0.0.1:2000");
+            
+            {
+                // handshake as non authorized
+                var handshake = CreateHandshake(nonAuthorizedPeer);
+                var connectReply = await _service.Connect(handshake, context);
+
+                connectReply.Err.ShouldBe(AuthError.ConnectionRefused);
+            }
+
+            {
+                // handshake as authorized
+                var handshake = CreateHandshake(authorizedPeer);
+                var connectReply = await _service.Connect(handshake, context); 
+                
+                connectReply.Err.ShouldBe(AuthError.None);
+            }
+
+            minersOnlyOptions.AuthorizedPeers = AuthorizedPeers.Any;
+
+            {
+                // handshake as non authorized
+                var handshake = CreateHandshake(nonAuthorizedPeer);
+                var connectReply = await _service.Connect(handshake, context);
+
+                connectReply.Err.ShouldBe(AuthError.None);
+            }
+            
+            {
+                // handshake as authorized
+                var handshake = CreateHandshake(authorizedPeer);
+                var connectReply = await _service.Connect(handshake, context); 
+                
+                connectReply.Err.ShouldBe(AuthError.None);
+            }
+        }
+        
+        public static IOptionsSnapshot<T> CreateIOptionSnapshotMock<T>(T value) where T : class, new()
+        {
+            var mock = new Mock<IOptionsSnapshot<T>>();
+            mock.Setup(m => m.Value).Returns(value);
+            return mock.Object;
         }
         
         [Fact]
@@ -295,7 +411,7 @@ namespace AElf.OS.Network
             
             var continuation = new UnaryServerMethod<string, string>((s, y) => Task.FromResult(s));
             var metadata = new Metadata
-                {{GrpcConsts.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}};
+                {{GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}};
             var context = BuildServerCallContext(metadata);
             var headerCount = context.RequestHeaders.Count;
             var result = await authInterceptor.UnaryServerHandler("test", context, continuation);

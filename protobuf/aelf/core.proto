@@ -65,10 +65,6 @@ message ScopedStatePath {
 //    StateValue StateValue = 2;
 //}
 
-//message TransactionList {
-//    repeated Transaction Transactions = 1;
-//}
-
 enum TransactionResultStatus {
     NotExisted = 0;
     Pending = 1;
@@ -201,24 +197,10 @@ message SmartContractRegistration {
 //    int32 LeafCount = 3;
 //}
 
-//message MerklePath {
-//    repeated Hash Path = 1;
-//}
-
-//message StringList {
-//    repeated string Values = 1;
-//    string Remark = 2;
-//}
-
 message HashList {
     repeated Hash Values = 1;
 }
 
-//message LongList {
-//    repeated int64 Values = 1;
-//    string Remark = 2;
-//}
-//
 //message BlockAbstract {
 //    string MinerPublicKey = 1;
 //    google.protobuf.Timestamp Time = 2;
@@ -363,24 +345,6 @@ message ActionResult {
 //    Address newOwner = 2;
 //}
 
-// Consensus
-
-// message ConsensusCommand {
-//     int32 NextBlockMiningLeftMilliseconds = 1;// How many milliseconds left to trigger the mining of next block.
-//     int32 LimitMillisecondsOfMiningBlock = 2;// Time limit of mining next block.
-//     bytes Hint = 3;// Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.
-//     google.protobuf.Timestamp ExpectedMiningTime = 4;
-// }
-
-// message ValidationResult {
-//     bool Success = 1;
-//     string Message = 2;
-// }
-
-// message ConsensusInformation {
-//     bytes Bytes = 1;
-// }
-
 // Common
 
 message Address
@@ -401,11 +365,4 @@ message SInt32Value
 message SInt64Value
 {
     sint64 Value = 1;
-}
-
-enum TimeUnit {
-    Days = 0;
-    Months = 1;
-    Minutes = 2;
-    Hours = 3;
 }

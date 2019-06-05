@@ -1,8 +1,5 @@
-//using AElf.Contracts.Consensus.DPoS;
-
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;

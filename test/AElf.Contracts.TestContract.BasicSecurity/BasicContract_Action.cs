@@ -134,14 +134,14 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             var tradeMessage = State.Complex4Info[input.From][input.PairA][input.To][input.PairB];
             if (tradeMessage == null)
             {
-                input.TradeDetails.Timestamp = Context.CurrentBlockTime.ToTimestamp();
+                input.TradeDetails.Timestamp = Context.CurrentBlockTime;
                 State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = input.TradeDetails;
             }
             else
             {
                 tradeMessage.FromAmount = tradeMessage.FromAmount.Add(input.TradeDetails.FromAmount);
                 tradeMessage.ToAmount = tradeMessage.ToAmount.Add(input.TradeDetails.ToAmount);
-                tradeMessage.Timestamp = Context.CurrentBlockTime.ToTimestamp();
+                tradeMessage.Timestamp = Context.CurrentBlockTime;
 
                 State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = tradeMessage;
             }

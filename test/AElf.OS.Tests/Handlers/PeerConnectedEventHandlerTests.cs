@@ -1,7 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Common;
+using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
@@ -29,8 +32,7 @@ namespace AElf.OS.Handlers
             var announcement = new PeerNewBlockAnnouncement
             {
                 BlockHash = Hash.FromString("block"),
-                BlockHeight = 1,
-                BlockTime = DateTime.UtcNow.ToTimestamp()
+                BlockHeight = 1
             };
             var exception = await Record.ExceptionAsync(async () =>
                 await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1")));
@@ -43,8 +45,7 @@ namespace AElf.OS.Handlers
             var announcement = new PeerNewBlockAnnouncement
             {
                 BlockHash = Hash.FromString("block"),
-                BlockHeight = 1,
-                BlockTime = (DateTime.UtcNow + TimeSpan.FromSeconds(5)).ToTimestamp()
+                BlockHeight = 1
             };
             var exception = await Record.ExceptionAsync(async () => 
                 await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, "bp1")));
