@@ -34,5 +34,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public SingletonState<bool> IsMainChain { get; set; }
 
         public MappedState<Hash, RandomNumberRequestInformation> RandomNumberInformationMap { get; set; }
+
+        /// <summary>
+        /// Round Number -> Random Number Token Hashes.
+        /// Used for deleting due token hashes.
+        /// </summary>
+        public MappedState<long, HashList> RandomNumberTokenMap { get; set; }
     }
 }

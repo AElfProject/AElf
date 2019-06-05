@@ -7,5 +7,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public const int LimitBlockExecutionTimeTotalWeight = 5;
         public const int LimitBlockExecutionTimeWeight = 3;
         public const int RandomNumberRequestMinersCount = 5;
+        public const int RandomNumberDueRoundCount = 5;
     }
 }

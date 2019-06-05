@@ -195,6 +195,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
             TryToFindLastIrreversibleBlock();
 
+            ClearTimeoutRandomNumberTokens();
+
             return new Empty();
         }
 

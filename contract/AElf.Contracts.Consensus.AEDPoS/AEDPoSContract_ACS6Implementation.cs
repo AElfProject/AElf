@@ -34,6 +34,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Order = lastMinedBlockSlotOrder,
                     ExpectedBlockHeight = expectedBlockHeight
                 };
+                if (State.RandomNumberTokenMap[currentRound.RoundNumber] == null)
+                {
+                    State.RandomNumberTokenMap[currentRound.RoundNumber] = new HashList {Values = {tokenHash}};
+                }
+                else
+                {
+                    State.RandomNumberTokenMap[currentRound.RoundNumber].Values.Add(tokenHash);
+                }
                 return new RandomNumberOrder
                 {
                     BlockHeight = expectedBlockHeight,
@@ -53,7 +61,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Hash GetRandomNumber(Hash input)
         {
             var roundNumberRequestInformation = State.RandomNumberInformationMap[input];
-            if (roundNumberRequestInformation == null)
+            if (roundNumberRequestInformation == null || roundNumberRequestInformation.RoundNumber == 0)
             {
                 Assert(false, "Random number token not found.");
                 // Won't reach here.
@@ -92,10 +100,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     }
                 }
                 
-                // Now we can delete this token_hash from RandomNumberInformationMap
-                // TODO: Set null if deleting key supported.
-                State.RandomNumberInformationMap[input] = new RandomNumberRequestInformation();
-
                 var inValues = participators.Select(i => i.PreviousInValue).ToList();
                 var randomHash = inValues.First();
                 randomHash = inValues.Skip(1).Aggregate(randomHash, Hash.FromTwoHashes);
@@ -106,6 +110,29 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Won't reach here.
             return Hash.Empty;
+        }
+
+        private void ClearTimeoutRandomNumberTokens()
+        {
+            if (!TryToGetCurrentRoundInformation(out var currentRound)) return;
+
+            if (currentRound.RoundNumber <= AEDPoSContractConstants.RandomNumberDueRoundCount)
+            {
+                return;
+            }
+
+            var targetRoundNumber = currentRound.RoundNumber.Sub(AEDPoSContractConstants.RandomNumberDueRoundCount);
+            var tokens = State.RandomNumberTokenMap[targetRoundNumber];
+            if (tokens == null || !tokens.Values.Any()) return;
+
+            foreach (var token in tokens.Values)
+            {
+                // TODO: Set to null.
+                State.RandomNumberInformationMap[token] = new RandomNumberRequestInformation();
+            }
+
+            // TODO: Set to null.
+            State.RandomNumberTokenMap[targetRoundNumber] = new HashList();
         }
     }
 }
