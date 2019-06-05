@@ -36,7 +36,7 @@ namespace AElf.Contracts.Election
             electionVotingItem.TotalSnapshotNumber.ShouldBe(long.MaxValue);
             electionVotingItem.CurrentSnapshotNumber.ShouldBe(1);
             electionVotingItem.IsLockToken.ShouldBe(false);
-            electionVotingItem.EndTimestamp.ShouldBe(DateTime.MaxValue.ToUniversalTime().ToTimestamp());
+            electionVotingItem.EndTimestamp.ShouldBe(new Timestamp {Seconds = long.MaxValue});
             electionVotingItem.AcceptedCurrency.ShouldBe(ElectionContractTestConstants.NativeTokenSymbol);
         }
 

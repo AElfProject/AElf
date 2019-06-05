@@ -71,8 +71,8 @@ namespace AElf.Contracts.Election
                 IsLockToken = false,
                 AcceptedCurrency = Context.Variables.NativeSymbol,
                 TotalSnapshotNumber = long.MaxValue,
-                StartTimestamp = DateTime.MinValue.ToUniversalTime().ToTimestamp(),
-                EndTimestamp = DateTime.MaxValue.ToUniversalTime().ToTimestamp()
+                StartTimestamp = new Timestamp {Seconds = 0},
+                EndTimestamp = new Timestamp {Seconds = long.MaxValue}
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
