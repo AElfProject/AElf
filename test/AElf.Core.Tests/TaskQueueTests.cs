@@ -145,24 +145,5 @@ namespace AElf
                 })
             );
         }
-        
-        [Fact]
-        public async Task Test_Dispose_OneTask()
-        {
-            var result = 1;
-
-            var testQueue = _taskQueueManager.GetQueue("TestQueue");
-
-            testQueue.Enqueue(async () =>
-            {
-                var value = result;
-                await Task.Delay(100);
-                result = value + 1;
-            });
-            await Task.Delay(50);
-            testQueue.Dispose();
-
-            result.ShouldBe(2);
-        }
     }
 }

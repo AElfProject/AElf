@@ -26,8 +26,6 @@ namespace AElf
 
         private CancellationTokenSource _cancellationTokenSource;
 
-        private bool _isRunning;
-
         public ILogger<TaskQueue> Logger { get; set; }
 
         public int Size => _queue.Count;
@@ -46,7 +44,7 @@ namespace AElf
                     _cancellationTokenSource.Cancel();
                 }
 
-                if (_queue.Count > 0 || _isRunning)
+                if (_queue.Count > 0)
                     Task.WaitAny(_queue.Completion);
                 _cancellationTokenSource.Dispose();
             }
@@ -70,17 +68,12 @@ namespace AElf
             {
                 try
                 {
-                    _isRunning = true;
                     var func = await _queue.ReceiveAsync();
                     await func();
                 }
                 catch (Exception ex)
                 {
                     Logger.LogException(ex, LogLevel.Warning);
-                }
-                finally
-                {
-                    _isRunning = false;
                 }
 
                 if (_cancellationTokenSource.Token.IsCancellationRequested)
