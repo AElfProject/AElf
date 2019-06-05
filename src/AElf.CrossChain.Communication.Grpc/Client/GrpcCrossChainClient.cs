@@ -113,7 +113,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         protected CallOptions CreateOption()
         {
-            new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().ToDateTime().AddSeconds(DialTimeout));
+            return new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().ToDateTime().AddSeconds(DialTimeout));
         }
 
         public abstract Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
