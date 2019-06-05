@@ -16,6 +16,16 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 (tx, TransactionResourceInfo.Parser.ParseFrom(tx.Params))));
         }
 
+        public Task HandleTxResourcesNeededAsync(TxResourcesNeededEvent eventData)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task HandleTxResourcesNoLongerNeededAsync(TxResourcesNoLongerNeededEvent eventData)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public static Transaction GetTransactionContainingResources(TransactionResourceInfo resourceInfo)
         {
             return new Transaction
