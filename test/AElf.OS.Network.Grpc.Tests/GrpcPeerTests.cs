@@ -38,13 +38,13 @@ namespace AElf.OS.Network
             _eventBus = GetRequiredService<ILocalEventBus>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             
-            _grpcPeer = CreateNewPeer();
+            _grpcPeer = GrpcTestHelper.CreateNewPeer();
             _pool.AddPeer(_grpcPeer);
         }
 
         public override void Dispose()
         {
-            AsyncHelper.RunSync(()=> _networkServer.StopAsync(false));
+            AsyncHelper.RunSync(() => _networkServer.StopAsync(false));
         }
 
         [Fact]
@@ -61,7 +61,7 @@ namespace AElf.OS.Network
         [Fact(Skip="Improve the logic of this test.")]
         public async Task RequestBlockAsync_Failed()
         {
-            _grpcPeer = CreateNewPeer("127.0.0.1:3000", false);
+            _grpcPeer = GrpcTestHelper.CreateNewPeer("127.0.0.1:3000", false);
             _pool.AddPeer(_grpcPeer);
             
             var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
@@ -129,34 +129,6 @@ namespace AElf.OS.Network
             await _grpcPeer.SendDisconnectAsync();
             peers = _pool.GetPeers();
             peers.Count.ShouldBe(1);
-        }
-
-        private GrpcPeer CreateNewPeer(string ipAddress = "127.0.0.1:2000", bool isValid = true)
-        {
-            var channel = new Channel(ipAddress, ChannelCredentials.Insecure);
-            
-            PeerService.PeerServiceClient client;
-            
-            if(isValid)
-                client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
-                {
-                    metadata.Add(GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubKey);
-                    return metadata;
-                }));
-            else
-                client = new PeerService.PeerServiceClient(channel);
-            
-            var connectionInfo = new GrpcPeerInfo
-            {
-                PublicKey = GrpcTestConstants.FakePubKey,
-                PeerIpAddress = ipAddress,
-                ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = 1,
-                IsInbound = true
-            };
-
-            return new GrpcPeer(channel, client, connectionInfo);
         }
 
         private async Task RestartNetworkServer()

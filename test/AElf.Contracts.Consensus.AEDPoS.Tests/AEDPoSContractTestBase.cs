@@ -87,7 +87,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private byte[] ElectionContractCode => Codes.Single(kv => kv.Key.Contains("Election")).Value;
         private byte[] ProfitContractCode => Codes.Single(kv => kv.Key.Contains("Profit")).Value;
         private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;
-        protected Timestamp BlockchainStartTimestamp => DateTime.Parse("2019-01-01 00:00:00.000").ToUniversalTime().ToTimestamp();
+        protected Timestamp BlockchainStartTimestamp => new Timestamp {Seconds = 0};
 
         protected void InitializeContracts()
         {
