@@ -19,19 +19,14 @@ namespace AElf.CrossChain
             context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
             context.Services.AddTransient<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
             context.Services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
-            var crossChainConfiguration = context.Services.GetConfiguration().GetSection("CrossChain");
             Configure<CrossChainConfigOption>(option =>
             {
+                var crossChainConfiguration = context.Services.GetConfiguration().GetSection("CrossChain");
+                crossChainConfiguration.Bind(option);
                 var parentChainIdString = crossChainConfiguration.GetValue<string>("ParentChainId");
                 option.ParentChainId = parentChainIdString.IsNullOrEmpty()
                     ? 0
                     : ChainHelpers.ConvertBase58ToChainId(parentChainIdString);
-                option.MaximalCountForIndexingSideChainBlock =
-                    crossChainConfiguration.GetValue("MaximalCountForIndexingSideChainBlock",
-                        CrossChainConstants.DefaultCountLimitForOnceIndexing);
-                option.MaximalCountForIndexingParentChainBlock =
-                    crossChainConfiguration.GetValue("MaximalCountForIndexingParentChainBlock",
-                        CrossChainConstants.DefaultCountLimitForOnceIndexing);
             });
         }
     }
