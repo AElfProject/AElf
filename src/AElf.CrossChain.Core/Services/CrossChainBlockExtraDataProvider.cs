@@ -1,11 +1,10 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.CrossChain;
+using Acs7;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
@@ -33,8 +32,8 @@ namespace AElf.CrossChain
             if (newCrossChainBlockData == null || newCrossChainBlockData.SideChainBlockData.Count == 0)
                 return ByteString.Empty;
             
-            var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot);
-            var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
+            var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot).ToList();
+            var calculatedSideChainTransactionsRoot = txRootHashList.ComputeBinaryMerkleTreeRootWithLeafNodes();
 
             return new CrossChainExtraData {SideChainTransactionsRoot = calculatedSideChainTransactionsRoot}
                 .ToByteString();

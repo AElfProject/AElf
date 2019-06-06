@@ -1,7 +1,6 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.CrossChain;
+using Acs7;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
@@ -10,12 +9,12 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain
 {
-    internal class CrossChainValidationProvider : IBlockValidationProvider
+    public class CrossChainValidationProvider : IBlockValidationProvider
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IBlockExtraDataService _blockExtraDataService;
         public ILocalEventBus LocalEventBus { get; set; }
-
+        
         public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataService blockExtraDataService)
         {
             _crossChainDataProvider = crossChainDataProvider;
@@ -65,7 +64,7 @@ namespace AElf.CrossChain
             CrossChainExtraData extraData, IBlock block)
         {
             var txRootHashList = crossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot).ToList();
-            var calculatedSideChainTransactionsRoot = new BinaryMerkleTree().AddNodes(txRootHashList).ComputeRootHash();
+            var calculatedSideChainTransactionsRoot = txRootHashList.ComputeBinaryMerkleTreeRootWithLeafNodes();
             
             // first check identity with the root in header
             if (extraData != null && !calculatedSideChainTransactionsRoot.Equals(extraData.SideChainTransactionsRoot) ||
