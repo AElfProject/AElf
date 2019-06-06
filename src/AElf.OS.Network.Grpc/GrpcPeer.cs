@@ -250,23 +250,24 @@ namespace AElf.OS.Network.Grpc
                     // Either we connected again or the state change wait timed out.
                     if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
                     {
-                        await StopAsync();
-                        DisconnectionEvent?.Invoke(this, EventArgs.Empty);
+                        await StopAndRemove();
                     }
                 });
             }
             else if(exceptions.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
             {
-                Task.Run(async () => 
-                {
-                    await StopAsync();
-                    DisconnectionEvent?.Invoke(this, EventArgs.Empty);
-                });
+                _ = StopAndRemove();
             }
             else
             {
                 throw new NetworkException($"Failed request to {this}: {errorMessage}", exceptions);
             }
+        }
+
+        private async Task StopAndRemove()
+        {
+            await StopAsync();
+            DisconnectionEvent?.Invoke(this, EventArgs.Empty);
         }
 
         public async Task StopAsync()
