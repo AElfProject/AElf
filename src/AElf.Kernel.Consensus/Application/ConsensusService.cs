@@ -10,6 +10,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Consensus.Application
 {
@@ -20,6 +21,7 @@ namespace AElf.Kernel.Consensus.Application
         private readonly IConsensusReaderFactory _readerFactory;
         private readonly ITriggerInformationProvider _triggerInformationProvider;
         private readonly IBlockTimeProvider _blockTimeProvider;
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public ILogger<ConsensusService> Logger { get; set; }
 
@@ -36,6 +38,7 @@ namespace AElf.Kernel.Consensus.Application
             _consensusScheduler = consensusScheduler;
 
             Logger = NullLogger<ConsensusService>.Instance;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public async Task TriggerConsensusAsync(ChainContext chainContext)
@@ -84,6 +87,10 @@ namespace AElf.Kernel.Consensus.Application
             if (!validationResult.Success)
             {
                 Logger.LogError($"Consensus validating before execution failed: {validationResult.Message}");
+                await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
+                {
+                    ValidationResultMessage = validationResult.Message
+                });
             }
 
             return validationResult.Success;
@@ -103,6 +110,10 @@ namespace AElf.Kernel.Consensus.Application
             if (!validationResult.Success)
             {
                 Logger.LogError($"Consensus validating after execution failed: {validationResult.Message}");
+                await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
+                {
+                    ValidationResultMessage = validationResult.Message
+                });
             }
 
             return validationResult.Success;

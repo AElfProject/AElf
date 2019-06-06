@@ -21,6 +21,9 @@
         <ContractBase Include="..\..\protobuf\acs2.proto">
             <Link>Protobuf\Proto\acs2.proto</Link>
         </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs7.proto">
+            <Link>Protobuf\Proto\acs2.proto</Link>
+        </ContractBase>
         <ContractBase Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractBase>
