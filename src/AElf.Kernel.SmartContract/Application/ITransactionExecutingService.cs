@@ -57,12 +57,12 @@ namespace AElf.Kernel.SmartContract.Application
                     transactionExecutingDto.BlockHeader.Time,
                     cancellationToken);
                 
+                // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
+                Logger.LogTrace(transaction.MethodName);
+                Logger.LogTrace(trace.StateSet.Writes.Values.Select(v => v.ToBase64().CalculateHash().ToHex()).JoinAsString("\n"));
+                
                 if (!trace.IsSuccessful())
                 {
-                    // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
-                    Logger.LogTrace(transaction.MethodName);
-                    Logger.LogTrace(trace.StateSet.Writes.Values.Select(v => v.ToBase64().CalculateHash().ToHex()).JoinAsString("\n"));
-                    
                     if (throwException)
                     {
                         Logger.LogError(trace.StdErr);
