@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs7;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
 using AElf.Kernel;
@@ -50,23 +51,19 @@ namespace AElf.CrossChain
         {
             int chainId1 = 123;
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId1, 0);
-            var fakeParentChainBlockDataList = new List<BlockCacheEntity>();
+            var fakeParentChainBlockDataList = new List<IBlockCacheEntity>();
 
             for (int i = 0; i < CrossChainConstants.MinimalBlockCacheEntityCount + 1; i++)
             {
-                fakeParentChainBlockDataList.Add(new BlockCacheEntity()
-                {
-                    ChainId = chainId1,
-                    Height = i + 1,
-                    Payload = new ParentChainBlockData()
+                fakeParentChainBlockDataList.Add(new ParentChainBlockData()
                     {
-                        ParentChainHeight = i + 1,
-                        ParentChainId = chainId1
-                    }.ToByteString()
-                });
+                        Height = i + 1,
+                        ChainId = chainId1
+                    }
+                );
             }
 
-            AddFakeCacheData(new Dictionary<int, List<BlockCacheEntity>>
+            AddFakeCacheData(new Dictionary<int, List<IBlockCacheEntity>>
             {
                 {chainId1, fakeParentChainBlockDataList}
             });
