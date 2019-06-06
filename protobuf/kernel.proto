@@ -194,9 +194,6 @@ message BinaryMerkleTree {
     int32 LeafCount = 3;
 }
 
-message MerklePath {
-    repeated Hash Path = 1;
-}
 //
 //message StringList {
 //    repeated string Values = 1;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
@@ -16,6 +17,8 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContractTests : ElectionContractTestBase
     {
+        public const int CandidatesCount = 7;
+        
         [Fact]
         public async Task ElectionContract_RegisterElectionVotingEvent()
         {
@@ -44,8 +47,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task<List<ECKeyPair>> ElectionContract_AnnounceElection()
         {
-            const int candidatesCount = 7;
-            var candidatesKeyPairs = FullNodesKeyPairs.Take(candidatesCount).ToList();
+            var candidatesKeyPairs = FullNodesKeyPairs.Take(CandidatesCount).ToList();
 
             var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPairs[0].PublicKey);
             balanceBeforeAnnouncing.ShouldBeGreaterThan(ElectionContractConstants.LockTokenForElection);
@@ -62,7 +64,7 @@ namespace AElf.Contracts.Election
             {
                 VotingItemId = MinerElectionVotingItemId
             });
-            votingItem.Options.Count.ShouldBe(candidatesCount);
+            votingItem.Options.Count.ShouldBe(CandidatesCount);
             foreach (var candidateKeyPair in candidatesKeyPairs)
             {
                 votingItem.Options.ShouldContain(candidateKeyPair.PublicKey.ToHex());
@@ -71,6 +73,24 @@ namespace AElf.Contracts.Election
             return candidatesKeyPairs;
         }
 
+        [Fact]
+        public async Task ElectionContract_AnnounceElectionAgain()
+        {
+            await ElectionContract_QuiteElection();
+            
+            var candidatesKeyPair = FullNodesKeyPairs.First();
+
+            var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
+            balanceBeforeAnnouncing.ShouldBeGreaterThan(ElectionContractConstants.LockTokenForElection);
+
+            await AnnounceElectionAsync(candidatesKeyPair);
+
+            var balanceAfterAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
+
+            // Check balance after announcing election.
+            balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
+        }
+        
         [Fact]
         public async Task ElectionContract_QuiteElection()
         {
@@ -311,6 +331,31 @@ namespace AElf.Contracts.Election
             });
 
             information.PublicKey.ShouldBe(minerKeyPair.PublicKey.ToHex());
+        }
+
+        [Fact]
+        public async Task ElectionContract_MarkCandidateAsEvilNode()
+        {
+            await ElectionContract_AnnounceElection();
+
+            var publicKey = FullNodesKeyPairs.First().PublicKey.ToHex();
+            var transactionResult = (await ElectionContractStub.UpdateCandidateInformation.SendAsync(new UpdateCandidateInformationInput
+            {
+                IsEvilNode = true,
+                PublicKey = publicKey,
+                RecentlyProducedBlocks = 10,
+                RecentlyMissedTimeSlots = 100
+            })).TransactionResult;
+            
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            //get candidate information
+            var candidateInformation = await ElectionContractStub.GetCandidateInformation.CallAsync(new StringInput
+            {
+                Value = publicKey
+            });
+            
+            candidateInformation.ShouldBe(new CandidateInformation());
         }
     }
 }

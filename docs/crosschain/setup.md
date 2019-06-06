@@ -23,11 +23,11 @@ Keep ```ParentChainId``` empty as main chain doesn't have parent chain.
 "ChainType":"MainChain",
 "CrossChain": {
     "Grpc": {
-        "LocalServerPort":5000,
-        "LocalServerIP":"127.0.0.1",
-    }
-},
-"ParentChainId":"",
+      "LocalServerPort": 5000,
+      "LocalServerHost": "127.0.0.1"
+    },
+    "ParentChainId":"",
+}
 ```
 
 ### Side chain:
@@ -36,18 +36,17 @@ Keep ```ParentChainId``` empty as main chain doesn't have parent chain.
 "ChainId":"AELF2",
 "ChainType":"SideChain",
 "CrossChain":{
-    "Grpc":{
-        "RemoteParentChainNodePort":5000,
-        "RemoteParentChainNodeIp":"127.0.0.1",
-        "LocalServerPort":5010,
-        "LocalServerIP":"127.0.0.1",
+    "Grpc": {
+      "RemoteParentChainServerPort": 5000,
+      "LocalServerHost": "127.0.0.1",
+      "LocalServerPort": 5010,
+      "RemoteParentChainServerHost": "127.0.0.1"
     },
+    "ParentChainId":"AELF",
 }
-"ParentChainId":"AELF",
-},
 ```
 
-RemoteParentChainNodePort/NodeIP are the listening port/IP.
+ServerPort/ServerHost are the listening port/IP.
 
 
 
