@@ -51,17 +51,6 @@ namespace AElf.OS
             });
 
             context.Services.AddTransient<AccountService>();
-            
-            context.Services.AddTransient<ITaskQueue>(o =>
-            {
-                var taskQueue = new Mock<ITaskQueue>();
-                taskQueue.Setup(t => t.Enqueue(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async task =>
-                {
-                    await task();
-                });
-
-                return taskQueue.Object;
-            });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
