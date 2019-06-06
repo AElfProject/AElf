@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 {
     public class GrouperOptions
     {
-        public int GroupingTimeOut { get; set; } = 2000; // ms
+        public int GroupingTimeOut { get; set; } = 500; // ms
         public int MaxTransactions { get; set; } = int.MaxValue;   // Maximum transactions to group
     }
 
@@ -105,7 +105,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         private List<List<Transaction>> GroupParallelizables(List<(Transaction, TransactionResourceInfo)> txsWithResources)
         {
             var resourceUnionSet = new Dictionary<int, UnionFindNode>();
-            var txResourceHandle = new Dictionary<Transaction, int>();
+            var transactionResourceHandle = new Dictionary<Transaction, int>();
             var groups = new List<List<Transaction>>();
 
             var stopwatch = new Stopwatch();
@@ -114,10 +114,10 @@ namespace AElf.Kernel.SmartContract.Parallel
             {
                 UnionFindNode first = null;
                 var transaction = txWithResource.Item1;
-                var txResourceInfo = txWithResource.Item2;
+                var transactionResourceInfo = txWithResource.Item2;
 
                 // Add resources to disjoint-set, later each resource will be connected to a node id, which will be our group id
-                foreach (var resource in txResourceInfo.Resources)
+                foreach (var resource in transactionResourceInfo.Resources)
                 {
                     if (!resourceUnionSet.TryGetValue(resource, out var node))
                     {
@@ -128,7 +128,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     if (first == null)
                     {
                         first = node;
-                        txResourceHandle.Add(transaction, resource);
+                        transactionResourceHandle.Add(transaction, resource);
                     }
                     else
                     {
@@ -146,7 +146,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             foreach (var txWithResource in txsWithResources)
             {
                 var transaction = txWithResource.Item1;
-                if (!txResourceHandle.TryGetValue(transaction, out var firstResource))
+                if (!transactionResourceHandle.TryGetValue(transaction, out var firstResource))
                     continue;
 
                 // Node Id will be our group id

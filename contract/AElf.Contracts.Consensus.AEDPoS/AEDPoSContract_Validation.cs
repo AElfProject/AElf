@@ -18,6 +18,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (TryToGetCurrentRoundInformation(out var currentRound) &&
                 !currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
             {
+                Context.LogDebug(() => "Sender is not a miner.");
                 return new ValidationResult {Success = false, Message = $"Sender {publicKey} is not a miner."};
             }
 
@@ -25,13 +26,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var timeSlotsCheckResult = updatedRound.CheckRoundTimeSlots();
             if (!timeSlotsCheckResult.Success)
             {
+                Context.LogDebug(() => $"Round time slots incorrect: {timeSlotsCheckResult.Message}");
                 return timeSlotsCheckResult;
             }
             
             // Validate whether this miner abide by his time slot.
-            // Maybe failing due to using too much time handle things after mining.
-            if (updatedRound.RoundId == currentRound.RoundId && !CheckMinerTimeSlot(currentRound, publicKey))
+            // Maybe failing due to using too much time producing previous tiny blocks.
+            if (updatedRound.RoundId == currentRound.RoundId && !CheckMinerTimeSlot(updatedRound, publicKey))
             {
+                Context.LogDebug(() => "Time slot already passed before execution.");
                 return new ValidationResult {Message = "Time slot already passed before execution."};
             }
 
@@ -64,9 +67,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (latestActualMiningTime < expectedMiningTime)
             {
                 // Which means this miner is producing tiny blocks for previous extra block slot.
+                Context.LogDebug(() =>
+                    $"latest actual mining time: {latestActualMiningTime}, round start time: {round.GetStartTime()}");
                 return latestActualMiningTime < round.GetStartTime();
             }
 
+            Context.LogDebug(() =>
+                $"latest actual mining time: {latestActualMiningTime}, end of expected mining time: {endOfExpectedTimeSlot}");
             return latestActualMiningTime < endOfExpectedTimeSlot;
         }
 

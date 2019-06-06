@@ -5,26 +5,19 @@ namespace AElf.CrossChain.Cache
 {
     public class ChainCacheEntityProviderTest : CrossChainTestBase
     {
-        private readonly IChainCacheEntityProvider _chainCacheEntityProvider;
+        private readonly ICrossChainCacheEntityProvider _crossChainCacheEntityProvider;
 
         public ChainCacheEntityProviderTest()
         {
-            _chainCacheEntityProvider = GetRequiredService<IChainCacheEntityProvider>();
-        }
-        
-        [Fact]
-        public void TryAdd_NULL()
-        {
-            int chainId = 123;
-            Assert.Throws<ArgumentNullException>(() => _chainCacheEntityProvider.AddChainCacheEntity(chainId, null));
+            _crossChainCacheEntityProvider = GetRequiredService<ICrossChainCacheEntityProvider>();
         }
         
         [Fact]
         public void TryAdd_New()
         {
             int chainId = 123;
-            _chainCacheEntityProvider.AddChainCacheEntity(chainId, new ChainCacheEntity(1));
-            Assert.True(_chainCacheEntityProvider.Size == 1);
+            _crossChainCacheEntityProvider.AddChainCacheEntity(chainId, 1);
+            Assert.True(_crossChainCacheEntityProvider.Size == 1);
         }
         
         [Fact]
@@ -32,7 +25,7 @@ namespace AElf.CrossChain.Cache
         {
             int chainId = 123;
             
-            var actualBlockInfoCache = _chainCacheEntityProvider.GetChainCacheEntity(chainId);
+            var actualBlockInfoCache = _crossChainCacheEntityProvider.GetChainCacheEntity(chainId);
             Assert.Null(actualBlockInfoCache);
         }
         
@@ -41,24 +34,10 @@ namespace AElf.CrossChain.Cache
         {
             int chainId = 123;
             
-            var blockInfoCache = new ChainCacheEntity(1);
-            _chainCacheEntityProvider.AddChainCacheEntity(chainId, blockInfoCache);
+            _crossChainCacheEntityProvider.AddChainCacheEntity(chainId, 1);
 
-            var actualBlockInfoCache = _chainCacheEntityProvider.GetChainCacheEntity(chainId);
-            Assert.Equal(blockInfoCache, actualBlockInfoCache);
-        }
-        
-        [Fact]
-        public void TryAdd_Twice_With_SameChainId_SameValue()
-        {
-            int chainId = 123;
-            
-            var blockInfoCache = new ChainCacheEntity(1);
-            _chainCacheEntityProvider.AddChainCacheEntity(chainId, blockInfoCache);
-            _chainCacheEntityProvider.AddChainCacheEntity(chainId, blockInfoCache);
-            Assert.True(_chainCacheEntityProvider.Size == 1);
-            var actualBlockInfoCache = _chainCacheEntityProvider.GetChainCacheEntity(chainId);
-            Assert.Equal(blockInfoCache, actualBlockInfoCache);
+            var actualBlockInfoCache = _crossChainCacheEntityProvider.GetChainCacheEntity(chainId);
+            Assert.Equal(1, actualBlockInfoCache.TargetChainHeight());
         }
         
         [Fact]
@@ -66,13 +45,12 @@ namespace AElf.CrossChain.Cache
         {
             int chainId = 123;
             
-            var blockInfoCache1 = new ChainCacheEntity(1);
-            _chainCacheEntityProvider.AddChainCacheEntity(chainId, blockInfoCache1);
-            var blockInfoCache2 = new ChainCacheEntity(2);
-            _chainCacheEntityProvider.AddChainCacheEntity(chainId, blockInfoCache2);
-            Assert.True(_chainCacheEntityProvider.Size == 1);
-            var actualBlockInfoCache = _chainCacheEntityProvider.GetChainCacheEntity(chainId);
-            Assert.Equal(blockInfoCache1, actualBlockInfoCache);
+            _crossChainCacheEntityProvider.AddChainCacheEntity(chainId, 1);
+            _crossChainCacheEntityProvider.AddChainCacheEntity(chainId, 2);
+//            var blockInfoCache2 = new BlockCacheEntityProvider(2);
+            Assert.True(_crossChainCacheEntityProvider.Size == 1);
+            var actualBlockInfoCache = _crossChainCacheEntityProvider.GetChainCacheEntity(chainId);
+            Assert.Equal(1, actualBlockInfoCache.TargetChainHeight());
         }
     }
 }

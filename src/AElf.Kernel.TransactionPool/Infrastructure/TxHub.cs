@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.SmartContract.Parallel;
 using AElf.Types;
 using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
@@ -239,7 +238,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     });
                 }
             }
-            await LocalEventBus.PublishAsync(new TxResourcesNeededEvent()
+            await LocalEventBus.PublishAsync(new TransactionResourcesNeededEvent()
             {
                 Transactions = executableTransactions
             });
@@ -253,7 +252,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 _allTransactions.TryRemove(txId, out _);
             }
             
-            await LocalEventBus.PublishAsync(new TxResourcesNoLongerNeededEvent()
+            await LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
             {
                 TxIds = block.Body.Transactions
             });
@@ -291,7 +290,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 }
             }
             
-            await LocalEventBus.PublishAsync(new TxResourcesNoLongerNeededEvent()
+            await LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
             {
                 TxIds = removedTxIds
             });
@@ -306,7 +305,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 _allTransactions.TryRemove(txId, out _);
             }
             
-            await LocalEventBus.PublishAsync(new TxResourcesNoLongerNeededEvent()
+            await LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
             {
                 TxIds = eventData.Transactions
             });

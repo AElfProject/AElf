@@ -1,6 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-using AElf.Kernel;
+using System;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
@@ -11,26 +9,25 @@ using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain
 {
-     [DependsOn(typeof(SmartContractAElfModule))]
-     public class CrossChainAElfModule : AElfModule
-     {
-         public override void ConfigureServices(ServiceConfigurationContext context)
-         {
-             context.Services.AddTransient<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
-             context.Services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
-             context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
-             context.Services.AddTransient<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
-             context.Services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
-             var services = context.Services;
-             var configuration = services.GetConfiguration();
-             var crossChainConfiguration =
-                 configuration.GetChildren().FirstOrDefault(child => child.Key.Equals("CrossChain"));
-             if (crossChainConfiguration == null)
-                 return;
-             Configure<CrossChainConfigOption>(option =>
-             {
-                 option.ParentChainId = ChainHelpers.ConvertBase58ToChainId(crossChainConfiguration["ParentChainId"]);
-             });
-         }
-     }
- }
+    [DependsOn(typeof(SmartContractAElfModule))]
+    public class CrossChainAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddTransient<IBlockExtraDataProvider, CrossChainBlockExtraDataProvider>();
+            context.Services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
+            context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
+            context.Services.AddTransient<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
+            context.Services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
+            Configure<CrossChainConfigOption>(option =>
+            {
+                var crossChainConfiguration = context.Services.GetConfiguration().GetSection("CrossChain");
+                crossChainConfiguration.Bind(option);
+                var parentChainIdString = crossChainConfiguration.GetValue<string>("ParentChain");
+                option.ParentChainId = parentChainIdString.IsNullOrEmpty()
+                    ? 0
+                    : ChainHelpers.ConvertBase58ToChainId(parentChainIdString);
+            });
+        }
+    }
+}

@@ -8,7 +8,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContractExecution\AElf.Kernel.SmartContractExecution.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>

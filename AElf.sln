@@ -138,7 +138,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Common.Tests", "test\A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Sdk.Abstracts", "src\AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj", "{35636A23-C51F-4B05-8F1B-AFA435332C46}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Grpc", "src\AElf.CrossChain.Grpc\AElf.CrossChain.Grpc.csproj", "{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Communication.Grpc", "src\AElf.CrossChain.Communication.Grpc\AElf.CrossChain.Communication.Grpc.csproj", "{A2B97AF5-E03F-4C37-B44B-3B73C489BF89}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Tests", "test\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj", "{DE4395E2-AFC4-415E-A51D-526E472337BF}"
 EndProject
@@ -166,7 +166,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AElf.Blockchains", "AElf.Bl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.TestBase", "test\AElf.OS.TestBase\AElf.OS.TestBase.csproj", "{BB775A9A-6822-439F-8D03-23F6B6FCF5DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Grpc.Tests", "test\AElf.CrossChain.Grpc.Tests\AElf.CrossChain.Grpc.Tests.csproj", "{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Communication.Grpc.Tests", "test\AElf.CrossChain.Communication.Grpc.Tests\AElf.CrossChain.Communication.Grpc.Tests.csproj", "{FB8D7DC0-3F5E-466B-95B4-D2420F7F7BF5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.OS.Network.Grpc.Tests", "test\AElf.OS.Network.Grpc.Tests\AElf.OS.Network.Grpc.Tests.csproj", "{F3B93EF4-C324-44B1-BA33-8F4899131664}"
 EndProject
@@ -283,6 +283,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Parallel", "src\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj", "{CF33B86C-3056-49D1-BF23-96E69564337C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Consensus.AEDPoS.Tests", "test\AElf.Kernel.Consensus.AEDPoS.Tests\AElf.Kernel.Consensus.AEDPoS.Tests.csproj", "{57F6A337-4B6D-420E-A0FC-62AC057F661C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.CrossChain.Communication", "src\AElf.CrossChain.Communication\AElf.CrossChain.Communication.csproj", "{A7829691-3FEF-4621-8339-2415AC4AC24C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.Parallel.Tests", "test\AElf.Kernel.SmartContract.Parallel.Tests\AElf.Kernel.SmartContract.Parallel.Tests.csproj", "{380A3025-5888-498D-8359-0F63961E7C4C}"
 EndProject
@@ -807,6 +809,10 @@ Global
 		{E770800E-64BC-46A3-A3BA-C9910BB5771C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E770800E-64BC-46A3-A3BA-C9910BB5771C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E770800E-64BC-46A3-A3BA-C9910BB5771C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7829691-3FEF-4621-8339-2415AC4AC24C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7829691-3FEF-4621-8339-2415AC4AC24C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7829691-3FEF-4621-8339-2415AC4AC24C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7829691-3FEF-4621-8339-2415AC4AC24C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{57F6A337-4B6D-420E-A0FC-62AC057F661C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{57F6A337-4B6D-420E-A0FC-62AC057F661C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57F6A337-4B6D-420E-A0FC-62AC057F661C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -968,6 +974,7 @@ Global
 		{BF408F9E-1A91-4C66-B466-A13743E91A6E} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{E770800E-64BC-46A3-A3BA-C9910BB5771C} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{57F6A337-4B6D-420E-A0FC-62AC057F661C} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{A7829691-3FEF-4621-8339-2415AC4AC24C} = {89AC0402-38F7-405C-B244-31C5F13FD364}
 		{CF33B86C-3056-49D1-BF23-96E69564337C} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{380A3025-5888-498D-8359-0F63961E7C4C} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{2968AA64-9848-4932-A571-39F160166FD7} = {4E54480A-D155-43ED-9736-1A5BE7957211}

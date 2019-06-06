@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -16,12 +17,12 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 (tx, TransactionResourceInfo.Parser.ParseFrom(tx.Params))));
         }
 
-        public Task HandleTxResourcesNeededAsync(TxResourcesNeededEvent eventData)
+        public Task HandleTransactionResourcesNeededAsync(TransactionResourcesNeededEvent eventData)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task HandleTxResourcesNoLongerNeededAsync(TxResourcesNoLongerNeededEvent eventData)
+        public Task HandleTransactionResourcesNoLongerNeededAsync(TransactionResourcesNoLongerNeededEvent eventData)
         {
             throw new System.NotImplementedException();
         }

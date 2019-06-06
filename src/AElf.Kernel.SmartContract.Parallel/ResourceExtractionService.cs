@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
@@ -76,7 +77,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         #region Event Handler Methods
         
-        public async Task HandleTxResourcesNeededAsync(TxResourcesNeededEvent eventData)
+        public async Task HandleTransactionResourcesNeededAsync(TransactionResourcesNeededEvent eventData)
         {
             var chainContext = await GetChainContextAsync();
             
@@ -88,7 +89,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger.LogTrace($"Resource cache size current: {_resourceCache.Count}");
         }
 
-        public async Task HandleTxResourcesNoLongerNeededAsync(TxResourcesNoLongerNeededEvent eventData)
+        public async Task HandleTransactionResourcesNoLongerNeededAsync(TransactionResourcesNoLongerNeededEvent eventData)
         {
             foreach (var txId in eventData.TxIds)
             {

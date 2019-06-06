@@ -286,7 +286,7 @@ namespace AElf.OS
                 block.AddTransaction(transaction);
             }
 
-            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
+            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
 
             return block;
         }
