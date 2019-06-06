@@ -27,7 +27,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public void SetRandomHash(Hash bestChainBlockHash, Hash randomHash)
         {
             _randomHashes.RemoveAll(p => !_blockHashes.Values.Contains(p.Key));
-            _randomHashes.Add(bestChainBlockHash, randomHash);
+            _randomHashes[bestChainBlockHash] = randomHash;
 
             {
                 var log = new StringBuilder("\n");
@@ -64,7 +64,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 _blockHashes.RemoveAll(p => p.Key < highestHeight);
             }
 
-            _blockHashes.Add(blockHeight, blockHash);
+            _blockHashes[blockHeight] = blockHash;
         }
 
         public Hash GetLatestGeneratedBlockRandomHash()
