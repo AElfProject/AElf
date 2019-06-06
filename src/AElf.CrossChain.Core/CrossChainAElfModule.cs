@@ -23,7 +23,7 @@ namespace AElf.CrossChain
             {
                 var crossChainConfiguration = context.Services.GetConfiguration().GetSection("CrossChain");
                 crossChainConfiguration.Bind(option);
-                var parentChainIdString = crossChainConfiguration.GetValue<string>("ParentChainId");
+                var parentChainIdString = crossChainConfiguration.GetValue<string>("ParentChain");
                 option.ParentChainId = parentChainIdString.IsNullOrEmpty()
                     ? 0
                     : ChainHelpers.ConvertBase58ToChainId(parentChainIdString);
