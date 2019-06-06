@@ -180,7 +180,7 @@ namespace AElf.OS.Network.Grpc
             if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync)
                 return new VoidReply();
             
-            _ = Task.Run(() => EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} }));
+            _ = Task.Run(async () => await EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} }));
 
             return new VoidReply();
         }
