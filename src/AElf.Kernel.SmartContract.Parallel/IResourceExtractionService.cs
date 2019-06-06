@@ -15,14 +15,4 @@ namespace AElf.Kernel.SmartContract.Parallel
         
         Task HandleTxResourcesNoLongerNeededAsync(TxResourcesNoLongerNeededEvent eventData);
     }
-    
-    public class TxResourcesNeededEvent
-    {
-        public IEnumerable<Transaction> Transactions { get; set; }
-    }
-    
-    public class TxResourcesNoLongerNeededEvent
-    {
-        public IEnumerable<Hash> TxIds { get; set; }
-    }
 }

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Events;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.SmartContract.Parallel;
 using AElf.Types;
 using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
