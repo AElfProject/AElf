@@ -18,7 +18,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.OS
 {
-    [DependsOn(typeof(OSTestAElfModule))]
+    [DependsOn(typeof(BlockSyncTestBaseAElfModule))]
     public class BlockSyncTestAElfModule : AElfModule
     {
         private readonly Dictionary<Hash,Block> _peerBlockList = new Dictionary<Hash,Block>();
