@@ -12,9 +12,6 @@ namespace AElf.CrossChain.Communication
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var crossChainConfiguration = context.Services.GetConfiguration().GetSection("CrossChain");
-            if (!crossChainConfiguration.Exists())
-                return;
             context.Services.AddSingleton<IChainInitializationDataPlugin, CrossChainPlugin>();
             context.Services.AddTransient<INodePlugin, CrossChainPlugin>();
         }
