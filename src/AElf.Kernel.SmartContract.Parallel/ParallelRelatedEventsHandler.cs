@@ -5,8 +5,8 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.SmartContract.Parallel
 {
-    public class ParallelRelatedEventsHandler : ILocalEventHandler<TxResourcesNeededEvent>,
-        ILocalEventHandler<TxResourcesNoLongerNeededEvent>,
+    public class ParallelRelatedEventsHandler : ILocalEventHandler<TransactionResourcesNeededEvent>,
+        ILocalEventHandler<TransactionResourcesNoLongerNeededEvent>,
         ITransientDependency
     {
         private readonly IResourceExtractionService _resourceExtractionService;
@@ -16,14 +16,14 @@ namespace AElf.Kernel.SmartContract.Parallel
             _resourceExtractionService = resourceExtractionService;
         }
 
-        public async Task HandleEventAsync(TxResourcesNeededEvent eventData)
+        public async Task HandleEventAsync(TransactionResourcesNeededEvent eventData)
         {
-            await _resourceExtractionService.HandleTxResourcesNeededAsync(eventData);
+            await _resourceExtractionService.HandleTransactionResourcesNeededAsync(eventData);
         }
         
-        public async Task HandleEventAsync(TxResourcesNoLongerNeededEvent eventData)
+        public async Task HandleEventAsync(TransactionResourcesNoLongerNeededEvent eventData)
         {
-            await _resourceExtractionService.HandleTxResourcesNoLongerNeededAsync(eventData);
+            await _resourceExtractionService.HandleTransactionResourcesNoLongerNeededAsync(eventData);
         }
     }
 }

@@ -17,12 +17,12 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 (tx, TransactionResourceInfo.Parser.ParseFrom(tx.Params))));
         }
 
-        public Task HandleTxResourcesNeededAsync(TxResourcesNeededEvent eventData)
+        public Task HandleTransactionResourcesNeededAsync(TransactionResourcesNeededEvent eventData)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task HandleTxResourcesNoLongerNeededAsync(TxResourcesNoLongerNeededEvent eventData)
+        public Task HandleTransactionResourcesNoLongerNeededAsync(TransactionResourcesNoLongerNeededEvent eventData)
         {
             throw new System.NotImplementedException();
         }

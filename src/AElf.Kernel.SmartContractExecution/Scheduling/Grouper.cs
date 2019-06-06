@@ -26,7 +26,7 @@ namespace AElf.Kernel.SmartContractExecution.Scheduling
         //TODO: for testnet we only have a single chain, thus grouper only take care of txList in one chain (hence Process has chainId as parameter)
         public async Task<Tuple<List<List<Transaction>>, Dictionary<Transaction, Exception>>> ProcessNaive(int chainId, List<Transaction> transactions)
         {
-            var txResourceHandle = new Dictionary<Transaction, string>();
+            var transactionResourceHandle = new Dictionary<Transaction, string>();
             var failedTxs = new Dictionary<Transaction, Exception>();
             if (transactions.Count == 0)
             {
@@ -61,7 +61,7 @@ namespace AElf.Kernel.SmartContractExecution.Scheduling
                     if (first == null)
                     {
                         first = node;
-                        txResourceHandle.Add(tx, resource);
+                        transactionResourceHandle.Add(tx, resource);
                     }
                     else
                     {
@@ -75,7 +75,7 @@ namespace AElf.Kernel.SmartContractExecution.Scheduling
 
             foreach (var tx in transactions)
             {
-                if (txResourceHandle.TryGetValue(tx, out var firstResource))
+                if (transactionResourceHandle.TryGetValue(tx, out var firstResource))
                 {
                     int nodeId = resourceUnionSet[firstResource].Find().NodeId;
                     if (!grouped.TryGetValue(nodeId, out var group))

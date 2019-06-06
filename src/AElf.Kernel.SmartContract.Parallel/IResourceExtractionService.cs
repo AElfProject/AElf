@@ -11,8 +11,8 @@ namespace AElf.Kernel.SmartContract.Parallel
         Task<IEnumerable<(Transaction, TransactionResourceInfo)>> GetResourcesAsync(IChainContext chainContext,
             IEnumerable<Transaction> transactions, CancellationToken ct);
 
-        Task HandleTxResourcesNeededAsync(TxResourcesNeededEvent eventData);
+        Task HandleTransactionResourcesNeededAsync(TransactionResourcesNeededEvent eventData);
         
-        Task HandleTxResourcesNoLongerNeededAsync(TxResourcesNoLongerNeededEvent eventData);
+        Task HandleTransactionResourcesNoLongerNeededAsync(TransactionResourcesNoLongerNeededEvent eventData);
     }
 }
