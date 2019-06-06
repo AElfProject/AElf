@@ -69,6 +69,35 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);
+            blockHeader.MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
+            blockHeader.MerkleTreeRootOfTransactionStatus =
+                CalculateTransactionStatusMerkleTreeRoot(blockExecutionReturnSet);
+            
+            var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
+            blockHeader.MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
+            
+            var blockHash = blockHeader.GetHash();
+            var blockBody = new BlockBody
+            {
+                BlockHeader = blockHash
+            };
+            blockBody.Transactions.AddRange(allExecutedTransactionIds);
+            
+            var block = new Block
+            {
+                Header = blockHeader,
+                Body = blockBody
+            };
+            blockBody.BlockHeader = blockHash;
+            blockStateSet.BlockHash = blockHash;
+
+            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
+
+            return block;
+        }
+
+        private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
+        {
             Hash merkleTreeRootOfWorldState;
             var byteArrays = GetDeterministicByteArrays(blockStateSet);
             using (var hashAlgorithm = SHA256.Create())
@@ -81,32 +110,8 @@ namespace AElf.Kernel.Blockchain.Application
                 hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
                 merkleTreeRootOfWorldState = Hash.LoadByteArray(hashAlgorithm.Hash);
             }
-            blockHeader.MerkleTreeRootOfWorldState = merkleTreeRootOfWorldState;
-            
-            var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
-            var bmt = new BinaryMerkleTree();
-            bmt.AddNodes(allExecutedTransactionIds);
-            blockHeader.MerkleTreeRootOfTransactions = bmt.ComputeRootHash();
 
-            _blockExtraDataService.FillMerkleTreeRootExtraDataForTransactionStatus(blockHeader,
-                blockExecutionReturnSet.Select(executionReturn =>
-                    (executionReturn.TransactionId, executionReturn.Status)));
-            
-            var blockBody = new BlockBody();
-            blockBody.Transactions.AddRange(allExecutedTransactionIds);
-            
-            var block = new Block
-            {
-                Header = blockHeader,
-                Body = blockBody
-            };
-            
-            blockBody.BlockHeader = blockHeader.GetHash();
-            blockStateSet.BlockHash = blockHeader.GetHash();
-
-            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
-
-            return block;
+            return merkleTreeRootOfWorldState;
         }
         
         private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)
@@ -117,6 +122,33 @@ namespace AElf.Kernel.Blockchain.Application
                 yield return Encoding.UTF8.GetBytes(k);
                 yield return blockStateSet.Changes[k].ToByteArray();
             }
+        }
+        
+        private Hash CalculateTransactionStatusMerkleTreeRoot(List<ExecutionReturnSet> blockExecutionReturnSet)
+        {
+            var executionReturnSet = blockExecutionReturnSet.Select(executionReturn =>
+                (executionReturn.TransactionId, executionReturn.Status));
+            var nodes = new List<Hash>();
+            foreach (var (transactionId, status) in executionReturnSet)
+            {
+                nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
+            }
+
+            return nodes.ComputeBinaryMerkleTreeRootWithLeafNodes();
+        }
+
+        private Hash CalculateTransactionMerkleTreeRoot(IEnumerable<Hash> transactionIds)
+        {
+            return transactionIds.ComputeBinaryMerkleTreeRootWithLeafNodes();
+        }
+        
+        private Hash GetHashCombiningTransactionAndStatus(Hash txId,
+            TransactionResultStatus executionReturnStatus)
+        {
+            // combine tx result status
+            var rawBytes = txId.DumpByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
+                .ToArray();
+            return Hash.FromRawBytes(rawBytes);
         }
     }
 }

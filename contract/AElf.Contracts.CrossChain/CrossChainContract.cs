@@ -3,6 +3,7 @@ using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Acs7;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -20,6 +21,7 @@ namespace AElf.Contracts.CrossChain
             State.Initialized.Value = true;
             State.ParentChainId.Value = input.ParentChainId;
             State.CreationHeightOnParentChain.Value = input.CreationHeightOnParentChain;
+            State.CurrentParentChainHeight.Value = input.CreationHeightOnParentChain - 1;
             return new Empty();
         }
 
@@ -236,17 +238,18 @@ namespace AElf.Contracts.CrossChain
         {
             // only miner can do this.
             //Api.IsMiner("Not authorized to do this.");
-            Assert(parentChainBlockData.Length <= 256, "Beyond maximal capacity for once indexing.");
+//            Assert(parentChainBlockData.Length <= 256, "Beyond maximal capacity for once indexing.");
             var parentChainId = State.ParentChainId.Value;
+            var currentHeight = State.CurrentParentChainHeight.Value;
+            
             for (var i = 0; i < parentChainBlockData.Length; i++)
             {
                 var blockInfo = parentChainBlockData[i];
-                Assert(parentChainId == blockInfo.ParentChainId, "Wrong parent chain id.");
-                long parentChainHeight = blockInfo.ParentChainHeight;
-                var currentHeight = State.CurrentParentChainHeight.Value;
-                var target = currentHeight != 0 ? currentHeight + 1 : State.CreationHeightOnParentChain.Value;
-                Assert(target == parentChainHeight,
-                    $"Parent chain block info at height {target} is needed, not {parentChainHeight}");
+                Assert(parentChainId == blockInfo.ChainId, "Wrong parent chain id.");
+                long parentChainHeight = blockInfo.Height;
+                var targetHeight = currentHeight + 1;
+                Assert(targetHeight == parentChainHeight,
+                    $"Parent chain block info at height {targetHeight} is needed, not {parentChainHeight}");
                 Assert(blockInfo.TransactionStatusMerkleRoot != null,
                     "Parent chain transaction status merkle tree root needed.");
                 State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight] = blockInfo.TransactionStatusMerkleRoot;
@@ -257,17 +260,20 @@ namespace AElf.Contracts.CrossChain
                 }
 
                 // send consensus data shared from main chain  
-                if (blockInfo.ExtraData.TryGetValue("Consensus", out var bytes))
+                if (i == parentChainBlockData.Length - 1 && blockInfo.ExtraData.TryGetValue("Consensus", out var bytes))
                 {
+                    Context.LogDebug(() => "Updating consensus information..");
                     UpdateCurrentMiners(bytes);
                 }
-
-                State.CurrentParentChainHeight.Value = parentChainHeight;
                 
                 if (blockInfo.CrossChainExtraData != null)
                     State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
                         blockInfo.CrossChainExtraData.SideChainTransactionsRoot;
+
+                currentHeight = targetHeight;
             }
+
+            State.CurrentParentChainHeight.Value = currentHeight;
         }
 
         /// <summary>
@@ -284,7 +290,7 @@ namespace AElf.Contracts.CrossChain
             for (var i = 0; i < sideChainBlockData.Length; i++)
             {
                 var blockInfo = sideChainBlockData[i];
-                var chainId = blockInfo.SideChainId;
+                var chainId = blockInfo.ChainId;
                 var info = State.SideChainInfos[chainId];
                 if (info == null || info.SideChainStatus != SideChainStatus.Active)
                     continue;
@@ -293,7 +299,7 @@ namespace AElf.Contracts.CrossChain
                 var target = currentSideChainHeight != 0
                     ? currentSideChainHeight + 1
                     : Constants.GenesisBlockHeight;
-                long sideChainHeight = blockInfo.SideChainHeight;
+                long sideChainHeight = blockInfo.Height;
                 if (target != sideChainHeight)
                     continue;
 
@@ -308,6 +314,7 @@ namespace AElf.Contracts.CrossChain
                 {
                     info.SideChainStatus = SideChainStatus.InsufficientBalance;
                 }
+                
                 State.SideChainInfos[chainId] = info;
 
                 Transfer(new TransferInput

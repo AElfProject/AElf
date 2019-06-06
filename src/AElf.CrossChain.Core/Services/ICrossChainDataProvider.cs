@@ -1,17 +1,16 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Contracts.CrossChain;
+using Acs7;
 using AElf.Types;
 using AElf.Kernel;
-using Google.Protobuf;
 
 namespace AElf.CrossChain
 {
-    internal interface ICrossChainDataProvider
+    public interface ICrossChainDataProvider
     {
         Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
-        Task<ChainInitializationInformation> GetChainInitializationContextAsync(int chainId, Hash blockHash, long blockHeight);
+        Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId, Hash blockHash, long blockHeight);
 
         Task<List<SideChainBlockData>> GetSideChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight);
 
