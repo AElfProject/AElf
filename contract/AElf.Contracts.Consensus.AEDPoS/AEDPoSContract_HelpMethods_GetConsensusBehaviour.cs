@@ -12,7 +12,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private AElfConsensusBehaviour GetConsensusBehaviour(Round currentRound, string publicKey)
         {
-            if (!IsCurrentMiner(currentRound, publicKey)) return AElfConsensusBehaviour.Nothing;
+            if (!IsInCurrentMinerList(currentRound, publicKey)) return AElfConsensusBehaviour.Nothing;
 
             var isFirstRoundOfCurrentTerm = IsFirstRoundOfCurrentTerm(out var termNumber);
             var isTimeSlotPassed = currentRound.IsTimeSlotPassed(publicKey, Context.CurrentBlockTime);
@@ -35,17 +35,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     return behaviour;
                 }
             }
-            else if (!isTimeSlotPassed &&
-                     minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
+            else if (!isTimeSlotPassed)
             {
-                return AElfConsensusBehaviour.TinyBlock;
-            }
-            else if (!isTimeSlotPassed &&
-                     currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
-                     !isFirstRoundOfCurrentTerm &&
-                     minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber.Mul(2))
-            {
-                return AElfConsensusBehaviour.TinyBlock;
+                if (minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
+                {
+                    return AElfConsensusBehaviour.TinyBlock;
+                }
+
+                if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
+                    !isFirstRoundOfCurrentTerm &&
+                    minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber.Mul(2))
+                {
+                    return AElfConsensusBehaviour.TinyBlock;
+                }
             }
 
             // Side chain will go next round directly.
@@ -77,7 +79,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey && // If this miner is extra block producer of previous round,
                 Context.CurrentBlockTime < currentRound.GetStartTime() && // and currently the time is ahead of current round,
                 minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber // make this miner produce some tiny blocks.
-            ) 
+            )
             {
                 return AElfConsensusBehaviour.TinyBlock;
             }
@@ -120,7 +122,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 : AElfConsensusBehaviour.NextRound;
         }
         
-        private bool IsCurrentMiner(Round currentRound, string publicKey)
+        private bool IsInCurrentMinerList(Round currentRound, string publicKey)
         {
             return currentRound.RealTimeMinersInformation.ContainsKey(publicKey);
         }
