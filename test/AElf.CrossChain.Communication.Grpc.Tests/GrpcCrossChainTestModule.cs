@@ -35,7 +35,7 @@ namespace AElf.CrossChain.Communication.Grpc
             
             services.AddTransient<IGrpcClientPlugin, GrpcCrossChainClientNodePlugin>();
             services.AddTransient<IGrpcServePlugin, GrpcCrossChainServerNodePlugin>();
-            services.AddSingleton<IGrpcCrossChainServer, GrpcGrpcCrossChainServer>();
+            services.AddSingleton<IGrpcCrossChainServer, GrpcCrossChainServer>();
             services.AddSingleton<GrpcCrossChainClientNodePlugin>();
 
             context.Services.AddSingleton(provider =>

@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
@@ -20,30 +19,14 @@ namespace AElf.CrossChain
             context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
             context.Services.AddTransient<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
             context.Services.AddSingleton<ICrossChainDataProvider, CrossChainDataProvider>();
-            var services = context.Services;
-            var configuration = services.GetConfiguration();
-            var crossChainConfiguration =
-                configuration.GetChildren().FirstOrDefault(child => child.Key.Equals("CrossChain"));
-            if (crossChainConfiguration == null)
-                return;
             Configure<CrossChainConfigOption>(option =>
             {
-                var parentChainIdString = crossChainConfiguration["ParentChainId"];
-                option.ParentChainId = parentChainIdString.IsNullOrEmpty() ? 0 : ChainHelpers.ConvertBase58ToChainId(parentChainIdString);
-                var maximalCountForIndexingParentChainBlockConfiguration =
-                    crossChainConfiguration.GetSection("MaximalCountForIndexingParentChainBlock");
-                if (maximalCountForIndexingParentChainBlockConfiguration.Exists())
-                {
-                    option.MaximalCountForIndexingParentChainBlock = int.Parse(maximalCountForIndexingParentChainBlockConfiguration.Value);
-                }
-
-                var maximalCountForIndexingSideChainBlockConfiguration =
-                    crossChainConfiguration.GetSection("MaximalCountForIndexingSideChainBlock");
-                if (maximalCountForIndexingSideChainBlockConfiguration.Exists())
-                {
-                    option.MaximalCountForIndexingSideChainBlock =
-                        int.Parse(maximalCountForIndexingSideChainBlockConfiguration.Value);
-                }
+                var crossChainConfiguration = context.Services.GetConfiguration().GetSection("CrossChain");
+                crossChainConfiguration.Bind(option);
+                var parentChainIdString = crossChainConfiguration.GetValue<string>("ParentChain");
+                option.ParentChainId = parentChainIdString.IsNullOrEmpty()
+                    ? 0
+                    : ChainHelpers.ConvertBase58ToChainId(parentChainIdString);
             });
         }
     }
