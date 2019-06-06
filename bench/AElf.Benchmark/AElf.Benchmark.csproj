@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj" />
       <ProjectReference Include="..\..\test\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
       <ProjectReference Include="..\AElf.Benchmark.PerformanceTestContract\AElf.Benchmark.PerformanceTestContract.csproj" />
     </ItemGroup>
