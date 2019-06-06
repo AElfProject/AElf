@@ -171,11 +171,18 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// This method is called when another peer broadcasts a transaction.
         /// </summary>
-        public override Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
+        public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
-            Task.Run(() => EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} }));
+            var chain = await _blockchainService.GetChainAsync();
+            
+            // if this transaction's ref block is a lot higher than our chain 
+            // then don't participate in p2p network
+            if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync)
+                return new VoidReply();
+            
+            var publish = Task.Run(() => EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} }));
 
-            return Task.FromResult(new VoidReply());
+            return new VoidReply();
         }
 
         /// <summary>

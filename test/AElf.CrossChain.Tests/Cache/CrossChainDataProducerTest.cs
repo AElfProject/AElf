@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Acs7;
+using AElf.CrossChain.Cache.Application;
 using Xunit;
 
 namespace AElf.CrossChain.Cache
@@ -23,7 +25,7 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_NotExistChain()
         {
             int chainId = 123;
-            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new BlockCacheEntity
+            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
             {
                 ChainId = chainId
             });
@@ -34,14 +36,14 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_ExistChain_WrongIndex()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, ChainCacheEntity>
+            var dict = new Dictionary<int, BlockCacheEntityProvider>
             {
                 {
-                    chainId, new ChainCacheEntity(1)
+                    chainId, new BlockCacheEntityProvider(1)
                 }
             };
             CreateFakeCache(dict);
-            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new BlockCacheEntity
+            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
             {
                 ChainId = chainId,
                 Height = 2
@@ -53,14 +55,14 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_ExistChain_CorrectIndex()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, ChainCacheEntity>
+            var dict = new Dictionary<int, BlockCacheEntityProvider>
             {
                 {
-                    chainId, new ChainCacheEntity(1)
+                    chainId, new BlockCacheEntityProvider(1)
                 }
             };
             CreateFakeCache(dict);
-            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new BlockCacheEntity
+            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
             {
                 ChainId = chainId,
                 Height = 1

@@ -118,7 +118,7 @@ namespace AElf.Kernel.Blockchain.Application
                 return false;
             }
 
-            if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
+            if (block.Body.CalculateMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions)
             {
                 Logger.LogWarning($"Block merkle tree root mismatch {block}");
                 return false;
