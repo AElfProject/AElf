@@ -90,7 +90,7 @@ namespace AElf.OS.Network
             
             await _service.SendTransaction(tx, BuildServerCallContext());
 
-            receivedSignal.WaitOne(3000);
+            receivedSignal.WaitOne();
             
             received?.Transactions.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);
