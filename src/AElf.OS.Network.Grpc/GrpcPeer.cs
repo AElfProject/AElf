@@ -250,13 +250,13 @@ namespace AElf.OS.Network.Grpc
                     // Either we connected again or the state change wait timed out.
                     if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
                     {
-                        await StopAndRemove();
+                        await StopAndRemoveAsync();
                     }
                 });
             }
             else if(exceptions.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
             {
-                _ = StopAndRemove();
+                _ = StopAndRemoveAsync();
             }
             else
             {
@@ -264,7 +264,7 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        private async Task StopAndRemove()
+        private async Task StopAndRemoveAsync()
         {
             await StopAsync();
             DisconnectionEvent?.Invoke(this, EventArgs.Empty);
