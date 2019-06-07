@@ -1,6 +1,6 @@
 namespace AElf.CrossChain
 {
-    public class CrossChainConfigOption
+    public class CrossChainConfigOptions
     {
         public int ParentChainId { get; set; }
 
