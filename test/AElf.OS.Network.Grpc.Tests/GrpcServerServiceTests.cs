@@ -122,10 +122,13 @@ namespace AElf.OS.Network
         [Fact]
         public async Task SendTx_ToHigh_ShouldPublishEvent()
         {
+            ManualResetEvent receivedSignal = new ManualResetEvent(false);
+
             TransactionsReceivedEvent received = null;
             _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
             {
                 received = t;
+                receivedSignal.Set();
                 return Task.CompletedTask;
             });
             
@@ -135,6 +138,8 @@ namespace AElf.OS.Network
             
             await _service.SendTransaction(tx, BuildServerCallContext());
             
+            receivedSignal.WaitOne();
+
             received?.Transactions.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);
             received.Transactions.First().From.ShouldBe(tx.From);
