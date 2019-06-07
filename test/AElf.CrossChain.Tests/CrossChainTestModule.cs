@@ -1,8 +1,6 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using Google.Protobuf.WellKnownTypes;
@@ -17,7 +15,7 @@ namespace AElf.CrossChain
         typeof(CoreKernelAElfModule),
         typeof(CrossChainAElfModule),
         typeof(KernelCoreTestAElfModule)
-        )]
+    )]
     public class CrossChainTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

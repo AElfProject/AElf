@@ -1,6 +1,5 @@
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
-using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +15,6 @@ namespace AElf.CrossChain.Communication.Grpc
     )]
     public class GrpcCrossChainTestModule : AElfModule
     {
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
