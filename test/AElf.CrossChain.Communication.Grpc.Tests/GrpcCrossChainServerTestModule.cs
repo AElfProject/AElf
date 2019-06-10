@@ -16,10 +16,6 @@ namespace AElf.CrossChain.Communication.Grpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             base.ConfigureServices(context);
-            Configure<CrossChainConfigOption>(option =>
-            {
-                option.ParentChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
-            });
 
             var services = context.Services;
             services.AddTransient(o =>

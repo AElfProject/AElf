@@ -6,14 +6,14 @@ using Volo.Abp.Threading;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcGrpcCrossChainServer : IGrpcCrossChainServer
+    public class GrpcCrossChainServer : IGrpcCrossChainServer
     {
         private Server _server;
         private readonly GrpcParentChainServerBase _grpcParentChainServerBase;
         private readonly GrpcSideChainServerBase _grpcSideChainServerBase;
         private readonly GrpcBasicServerBase _grpcBasicServerBase;
 
-        public GrpcGrpcCrossChainServer(GrpcParentChainServerBase grpcParentChainServerBase, 
+        public GrpcCrossChainServer(GrpcParentChainServerBase grpcParentChainServerBase, 
             GrpcSideChainServerBase grpcSideChainServerBase, GrpcBasicServerBase grpcBasicServerBase)
         {
             _grpcParentChainServerBase = grpcParentChainServerBase;
@@ -21,7 +21,7 @@ namespace AElf.CrossChain.Communication.Grpc
             _grpcBasicServerBase = grpcBasicServerBase;
         }
 
-        public ILogger<GrpcGrpcCrossChainServer> Logger { get; set; }
+        public ILogger<GrpcCrossChainServer> Logger { get; set; }
         
         public async Task StartAsync(string localServerHost, int localServerPort)
         {
