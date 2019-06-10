@@ -38,6 +38,10 @@ namespace AElf.OS.Network.Grpc
         
         public IReadOnlyDictionary<long, Hash> PreLibBlockHeightAndHashMappings { get; }
         
+        public long ForkHeight => _forkHeight;
+
+        private long _forkHeight { get; set; }
+
         private readonly ConcurrentDictionary<long, Hash> _preLibBlockHeightAndHashMappings;
 
         public ILogger<GrpcPeerPool> Logger { get; set; }
@@ -287,6 +291,7 @@ namespace AElf.OS.Network.Grpc
             if (hasFork)
             {
                 _recentBlockHeightAndHashMappings.Clear();
+                if (blockHeight > _forkHeight) _forkHeight = blockHeight;
                 return;
             }
             _recentBlockHeightAndHashMappings[blockHeight] = blockHash;

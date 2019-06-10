@@ -54,6 +54,7 @@ namespace AElf.OS.Handlers
 
             foreach (var block in orderedBlocks)
             {
+                if (block.Key <= _peerPool.ForkHeight) return;
                 var peersHadBlockAmount = peers.Where(p =>
                 {
                     p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);

@@ -121,7 +121,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                     {
                         BlockHeader = linkedBlock.Header,
-                        HasFork = blockLink.Height == chain.BestChainHeight
+                        HasFork = blockLink.Height <= chain.BestChainHeight
                     });
                 }
             }
