@@ -45,8 +45,8 @@ namespace AElf.Kernel
                         TimestampHelper.GetUtcNow())
                     {
                         Logger.LogTrace(
-                            $"Will cancel mining due to timeout: Actual mining time: {eventData.BlockTime}, execution limit: {eventData.BlockExecutionTime.Milliseconds()} ms.");
-                        return;
+                            $"Will cancel mining due to timeout: Actual mining time: {eventData.BlockTime}, " +
+                            $"execution limit: {eventData.BlockExecutionTime.Milliseconds()} ms.");
                     }
 
                     var block = await _minerService.MineAsync(eventData.PreviousBlockHash,
