@@ -25,7 +25,7 @@ namespace AElf.CrossChain
         private readonly Dictionary<Hash, CrossChainBlockData> _indexedCrossChainBlockData =
             new Dictionary<Hash, CrossChainBlockData>();
 
-        public IOptionsSnapshot<CrossChainConfigOption> CrossChainOption { get; set; }
+        public IOptionsSnapshot<CrossChainConfigOptions> CrossChainOptions { get; set; }
         
         public CrossChainDataProvider(IReaderFactory readerFactory, IBlockCacheEntityConsumer blockCacheEntityConsumer)
         {
@@ -41,7 +41,7 @@ namespace AElf.CrossChain
             foreach (var sideChainIndexingInformation in sideChainIndexingInformationList.IndexingInformationList)
             {
                 var targetHeight = sideChainIndexingInformation.IndexedHeight + 1;
-                var toBeIndexedCount = Math.Min(CrossChainOption.Value.MaximalCountForIndexingSideChainBlock,
+                var toBeIndexedCount = Math.Min(CrossChainOptions.Value.MaximalCountForIndexingSideChainBlock,
                     sideChainIndexingInformation.ToBeIndexedCount);
 
                 Logger.LogTrace(
@@ -132,7 +132,7 @@ namespace AElf.CrossChain
                 return parentChainBlockDataList;
             }
                 
-            int length = CrossChainOption.Value.MaximalCountForIndexingParentChainBlock;
+            int length = CrossChainOptions.Value.MaximalCountForIndexingParentChainBlock;
             var heightInState = (await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetParentChainHeight
                 .CallAsync(new Empty())).Value;
             
