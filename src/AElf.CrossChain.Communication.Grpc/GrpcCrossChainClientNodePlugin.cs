@@ -8,17 +8,17 @@ namespace AElf.CrossChain.Communication.Grpc
     {
         private readonly ICrossChainClientProvider _crossChainClientProvider;
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
-        private readonly CrossChainConfigOption _crossChainConfigOption;
+        private readonly CrossChainConfigOptions _crossChainConfigOptions;
         private int _localChainId;
 
         public ILogger<GrpcCrossChainClientNodePlugin> Logger { get; set; }
 
         public GrpcCrossChainClientNodePlugin(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption,
-            IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOption, ICrossChainClientProvider crossChainClientProvider)
+            IOptionsSnapshot<CrossChainConfigOptions> crossChainConfigOption, ICrossChainClientProvider crossChainClientProvider)
         {
             _crossChainClientProvider = crossChainClientProvider;
             _grpcCrossChainConfigOption = grpcCrossChainConfigOption.Value;
-            _crossChainConfigOption = crossChainConfigOption.Value;
+            _crossChainConfigOptions = crossChainConfigOption.Value;
         }
 
         public Task StartAsync(int chainId)
@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
             _crossChainClientProvider.CreateAndCacheClient(new CrossChainClientDto
             {
-                RemoteChainId = _crossChainConfigOption.ParentChainId,
+                RemoteChainId = _crossChainConfigOptions.ParentChainId,
                 RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
                 RemoteServerPort = _grpcCrossChainConfigOption.RemoteParentChainServerPort,
                 LocalChainId = chainId,

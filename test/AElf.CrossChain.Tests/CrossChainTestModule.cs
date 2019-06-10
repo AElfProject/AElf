@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -13,9 +12,10 @@ using Volo.Abp.Modularity;
 namespace AElf.CrossChain
 {
     [DependsOn(
+        typeof(CoreKernelAElfModule),
         typeof(CrossChainAElfModule),
         typeof(KernelCoreTestAElfModule)
-        )]
+    )]
     public class CrossChainTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
