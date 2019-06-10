@@ -175,6 +175,18 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
+        private void CleanTransactions(ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>
+            collection, long blockHeight)
+        {
+            foreach (var txIds in collection.Where(kv => kv.Key <= blockHeight))
+            {
+                foreach (var txId in txIds.Value.Keys)
+                {
+                    _allTransactions.TryRemove(txId, out _);
+                }
+            }
+        }
+
         #endregion
 
         #region Event Handler Methods
@@ -269,13 +281,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            foreach (var txIds in _expiredByExpiryBlock.Where(kv => kv.Key <= eventData.BlockHeight))
-            {
-                foreach (var txId in txIds.Value.Keys)
-                {
-                    _allTransactions.TryRemove(txId, out _);
-                }
-            }
+            CleanTransactions(_expiredByExpiryBlock, eventData.BlockHeight);
+            CleanTransactions(_invalidatedByBlock, eventData.BlockHeight);
 
             await Task.CompletedTask;
         }
