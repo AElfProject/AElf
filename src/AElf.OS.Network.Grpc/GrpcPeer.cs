@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
@@ -63,7 +64,8 @@ namespace AElf.OS.Network.Grpc
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
         
-        private TaskQueue _outQueue;
+        //private TaskQueue _outQueue;
+        private BufferBlock<Transaction> _outTransactions;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
         {
@@ -87,10 +89,16 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
             
-            _outQueue = new TaskQueue();
+            
+            _outTransactions = new BufferBlock<Transaction>();
+            
+//            _outQueue = new TaskQueue();
+//
+//            AsyncHelper.RunSync(() =>
+//                Task.Factory.StartNew(() => _outQueue.StartAsync(), TaskCreationOptions.LongRunning));
 
             AsyncHelper.RunSync(() =>
-                Task.Factory.StartNew(() => _outQueue.StartAsync(), TaskCreationOptions.LongRunning));
+                Task.Factory.StartNew(StartDequeuingTransactionsAsync, TaskCreationOptions.LongRunning));
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -177,14 +185,44 @@ namespace AElf.OS.Network.Grpc
             {
                 {GrpcConstants.TimeoutMetadataKey, TransactionBroadcastTimeout.ToString()}
             };
+
+            _outTransactions.Post(tx);
             
-            _outQueue.Enqueue(async () =>
-            {
-                await RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
-            });
+//            async () =>
+//            {
+//                await RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
+//            });
             
             //return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
             return Task.CompletedTask;
+        }
+        
+        public async Task StartDequeuingTransactionsAsync()
+        {
+            while (await _outTransactions.OutputAvailableAsync())
+            {
+                try
+                {
+                    GrpcRequest request = new GrpcRequest {   ErrorMessage = $"Broadcast transaction failed." };
+                    Metadata data = new Metadata {{GrpcConstants.TimeoutMetadataKey, TransactionBroadcastTimeout.ToString()}};
+
+                    if (_outTransactions.TryReceiveAll(out IList<Transaction> toSend))
+                    {
+                        var txList = new TransactionList();
+                        txList.Transactions.AddRange(toSend);
+                        
+                        await RequestAsync(_client, c => c.SendTransactionAsync(txList, data), request);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Could not get transactions to send.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
