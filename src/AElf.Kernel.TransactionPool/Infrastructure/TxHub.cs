@@ -178,19 +178,22 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private void CleanTransactions(ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>
             collection, long blockHeight)
         {
-            var removedTransactionIds = new List<Hash>();
             foreach (var txIds in collection.Where(kv => kv.Key <= blockHeight))
             {
-                foreach (var txId in txIds.Value.Keys)
-                {
-                    _allTransactions.TryRemove(txId, out _);
-                    removedTransactionIds.Add(txId);
-                }
+                CleanTransactions(txIds.Value.Keys.ToList());
             }
+        }
 
+        private void CleanTransactions(List<Hash> transactionIds)
+        {
+            foreach (var transactionId in transactionIds)
+            {
+                _allTransactions.TryRemove(transactionId, out _);
+            }
+            
             LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
             {
-                TransactionIds = removedTransactionIds
+                TransactionIds = transactionIds
             });
         }
 
@@ -266,15 +269,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            foreach (var txId in block.Body.Transactions)
-            {
-                _allTransactions.TryRemove(txId, out _);
-            }
-            
-            await LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
-            {
-                TransactionIds = block.Body.Transactions
-            });
+            CleanTransactions(block.Body.Transactions.ToList());
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
@@ -307,16 +302,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
         {
-            foreach (var txId in eventData.Transactions)
-            {
-                _allTransactions.TryRemove(txId, out _);
-            }
-            
-            await LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
-            {
-                TransactionIds = eventData.Transactions
-            });
-            
+            CleanTransactions(eventData.Transactions);
+
             await Task.CompletedTask;
         }
         #endregion
