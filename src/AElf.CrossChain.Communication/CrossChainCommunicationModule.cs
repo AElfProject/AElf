@@ -1,7 +1,5 @@
-using System.Linq;
 using AElf.Kernel.Node.Infrastructure;
 using AElf.Modularity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 

@@ -175,6 +175,25 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
+        private void CleanTransactions(ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>
+            collection, long blockHeight)
+        {
+            var removedTransactionIds = new List<Hash>();
+            foreach (var txIds in collection.Where(kv => kv.Key <= blockHeight))
+            {
+                foreach (var txId in txIds.Value.Keys)
+                {
+                    _allTransactions.TryRemove(txId, out _);
+                    removedTransactionIds.Add(txId);
+                }
+            }
+
+            await LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
+            {
+                TxIds = removedTransactionIds
+            });
+        }
+
         #endregion
 
         #region Event Handler Methods
@@ -280,20 +299,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            var removedTxIds = new List<Hash>();
-            foreach (var txIds in _expiredByExpiryBlock.Where(kv => kv.Key <= eventData.BlockHeight))
-            {
-                foreach (var txId in txIds.Value.Keys)
-                {
-                    _allTransactions.TryRemove(txId, out _);
-                    removedTxIds.Add(txId);
-                }
-            }
-            
-            await LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
-            {
-                TxIds = removedTxIds
-            });
+            CleanTransactions(_expiredByExpiryBlock, eventData.BlockHeight);
+            CleanTransactions(_invalidatedByBlock, eventData.BlockHeight);
 
             await Task.CompletedTask;
         }
