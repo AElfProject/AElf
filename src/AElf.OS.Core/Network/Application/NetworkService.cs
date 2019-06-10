@@ -103,8 +103,7 @@ namespace AElf.OS.Network.Application
             {
                 try
                 {
-                    await peer.SendTransactionAsync(tx);
-                    
+                    peer.SendTransactionAsync(tx);
                     successfulBcasts++;
                 }
                 catch (NetworkException e)

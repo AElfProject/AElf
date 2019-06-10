@@ -11,6 +11,7 @@ using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -22,6 +23,8 @@ namespace AElf.OS.Network.Grpc
         private const int BlockRequestTimeout = 300;
         private const int TransactionBroadcastTimeout = 300;
         private const int BlocksRequestTimeout = 500;
+        
+        
         
         private enum MetricNames
         {
@@ -59,6 +62,8 @@ namespace AElf.OS.Network.Grpc
         
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
+        
+        private TaskQueue _outQueue;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
         {
@@ -81,6 +86,11 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
+            
+            _outQueue = new TaskQueue();
+
+            AsyncHelper.RunSync(() =>
+                Task.Factory.StartNew(() => _outQueue.StartAsync(), TaskCreationOptions.LongRunning));
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -168,7 +178,13 @@ namespace AElf.OS.Network.Grpc
                 {GrpcConstants.TimeoutMetadataKey, TransactionBroadcastTimeout.ToString()}
             };
             
-            return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
+            _outQueue.Enqueue(async () =>
+            {
+                await RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
+            });
+            
+            //return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
+            return Task.CompletedTask;
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
