@@ -291,9 +291,7 @@ namespace AElf.Contracts.Profit
         }
 
         /// <summary>
-        /// Higher level profit item has already released.
-        /// Otherwise this profit item maybe has nothing to release.
-        /// This pre-condition must be met before calling this method.
+        /// Will burn/destroy a certain amount of profits if `input.Period` is less than 0.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -308,6 +306,7 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
+            // Normally `input.TotalWeigh` should be 0, except the situation releasing of profits delayed for some reason.
             var totalWeight = input.TotalWeight == 0 ? profitItem.TotalWeight : input.TotalWeight;
 
             Assert(Context.Sender == profitItem.Creator, "Only creator can release profits.");
@@ -329,34 +328,7 @@ namespace AElf.Contracts.Profit
 
             if (input.Period < 0 || totalWeight <= 0)
             {
-                profitItem.CurrentPeriod = input.Period > 0 ? input.Period.Add(1) : profitItem.CurrentPeriod;
-
-                // Release to an address no one can receive profits.
-                if (input.Amount <= 0)
-                {
-                    State.ProfitItemsMap[input.ProfitId] = profitItem;
-                    return new Empty();
-                }
-
-                if (input.Period >= 0)
-                {
-                    input.Period = -1;
-                }
-
-                // Which means the creator gonna burn this amount of profits.
-                var profitsBurningVirtualAddress =
-                    GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, input.Period);
-                State.TokenContract.TransferFrom.Send(new TransferFromInput
-                {
-                    From = profitVirtualAddress,
-                    To = profitsBurningVirtualAddress,
-                    Amount = input.Amount,
-                    Symbol = Context.Variables.NativeSymbol
-                });
-                profitItem.TotalAmounts[Context.Variables.NativeSymbol] =
-                    profitItem.TotalAmounts[Context.Variables.NativeSymbol].Sub(input.Amount);
-                State.ProfitItemsMap[input.ProfitId] = profitItem;
-                return new Empty();
+                return BurnProfits(input, profitItem, profitVirtualAddress);
             }
 
             // Update current_period.
@@ -453,6 +425,38 @@ namespace AElf.Contracts.Profit
                 profitItem.TotalAmounts[Context.Variables.NativeSymbol].Sub(input.Amount);
             State.ProfitItemsMap[input.ProfitId] = profitItem;
 
+            return new Empty();
+        }
+
+        private Empty BurnProfits(ReleaseProfitInput input, ProfitItem profitItem, Address profitVirtualAddress)
+        {
+            profitItem.CurrentPeriod = input.Period > 0 ? input.Period.Add(1) : profitItem.CurrentPeriod;
+
+            // Release to an address that no one can receive this amount of profits.
+            if (input.Amount <= 0)
+            {
+                State.ProfitItemsMap[input.ProfitId] = profitItem;
+                return new Empty();
+            }
+
+            if (input.Period >= 0)
+            {
+                input.Period = -1;
+            }
+
+            // Which means the creator gonna burn this amount of profits.
+            var profitsBurningVirtualAddress =
+                GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, input.Period);
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = profitVirtualAddress,
+                To = profitsBurningVirtualAddress,
+                Amount = input.Amount,
+                Symbol = Context.Variables.NativeSymbol
+            });
+            profitItem.TotalAmounts[Context.Variables.NativeSymbol] =
+                profitItem.TotalAmounts[Context.Variables.NativeSymbol].Sub(input.Amount);
+            State.ProfitItemsMap[input.ProfitId] = profitItem;
             return new Empty();
         }
 
