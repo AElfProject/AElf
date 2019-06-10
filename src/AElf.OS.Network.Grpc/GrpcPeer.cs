@@ -7,10 +7,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -30,10 +32,10 @@ namespace AElf.OS.Network.Grpc
             GetBlock
         };
         
-        public event EventHandler DisconnectionEvent;
-
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
+        
+        public ILocalEventBus LocalEventBus { get; set; }
 
         /// <summary>
         /// Property that describes a valid state. Valid here means that the peer is ready to be used for communication.
@@ -81,6 +83,8 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
+            
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -236,7 +240,7 @@ namespace AElf.OS.Network.Grpc
             // If channel has been shutdown (unrecoverable state) remove it.
             if (_channel.State == ChannelState.Shutdown)
             {
-                DisconnectionEvent?.Invoke(this, EventArgs.Empty);
+                LocalEventBus.PublishAsync(new PeerDisconnectionEvent(this));
                 return;
             }
 
@@ -267,7 +271,7 @@ namespace AElf.OS.Network.Grpc
         private async Task StopAndRemoveAsync()
         {
             await StopAsync();
-            DisconnectionEvent?.Invoke(this, EventArgs.Empty);
+            await LocalEventBus.PublishAsync(new PeerDisconnectionEvent(this));
         }
 
         public async Task StopAsync()

@@ -132,8 +132,8 @@ namespace AElf.OS.Network.Grpc
                 StartHeight = handshake.Header.Height,
                 IsInbound = true
             };
-
-            return new GrpcPeer(channel, client, connectionInfo);
+            
+            return new GrpcPeer(channel, client, connectionInfo) { LocalEventBus = EventBus };
         }
 
         private AuthError ValidateHandshake(Handshake handshake)

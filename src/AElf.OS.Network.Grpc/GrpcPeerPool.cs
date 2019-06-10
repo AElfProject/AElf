@@ -17,12 +17,13 @@ using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class GrpcPeerPool : IPeerPool
+    public class GrpcPeerPool : IPeerPool, ILocalEventHandler<PeerDisconnectionEvent>
     {
         private readonly NetworkOptions _networkOptions;
 
@@ -125,7 +126,7 @@ namespace AElf.OS.Network.Grpc
                 IsInbound = false
             };
 
-            var peer = new GrpcPeer(channel, client, connectionInfo);
+            var peer = new GrpcPeer(channel, client, connectionInfo) { LocalEventBus = EventBus };
 
             if (!_authenticatedPeers.TryAdd(pubKey, peer))
             {
@@ -133,8 +134,6 @@ namespace AElf.OS.Network.Grpc
                 await channel.ShutdownAsync();
                 return false;
             }
-
-            peer.DisconnectionEvent += PeerOnDisconnectionEvent;
             
             Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
 
@@ -195,9 +194,7 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogWarning($"Could not add peer {peer.PubKey} ({peer.PeerIpAddress})");
                 return false;
             }
-
-            p.DisconnectionEvent += PeerOnDisconnectionEvent;
-
+            
             return true;
         }
 
@@ -240,9 +237,9 @@ namespace AElf.OS.Network.Grpc
             return false;
         }
         
-        private async void PeerOnDisconnectionEvent(object sender, EventArgs e)
+        public async Task HandleEventAsync(PeerDisconnectionEvent eventData)
         {
-            if (sender is GrpcPeer p)
+            if (eventData.Peer is GrpcPeer p)
                 await RemovePeerAsync(p.PubKey, false);
         }
 
@@ -250,8 +247,6 @@ namespace AElf.OS.Network.Grpc
         {
             if (_authenticatedPeers.TryRemove(publicKey, out GrpcPeer removed))
             {
-                removed.DisconnectionEvent -= PeerOnDisconnectionEvent;
-                
                 if (sendDisconnect)
                 {
                     try
