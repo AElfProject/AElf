@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <AssemblyName>AElf.CrossChain.Communication</AssemblyName>
+        <RootNamespace>AElf.CrossChain.Communication</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Grpc" Version="1.19.0" />
+        <PackageReference Include="Grpc.Tools" Version="1.19.0" />
+    </ItemGroup>
+</Project>
