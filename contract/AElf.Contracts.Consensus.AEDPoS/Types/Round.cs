@@ -41,8 +41,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (baseMiningInterval <= 0)
             {
-                return new ValidationResult
-                    {Success = false, Message = $"Mining interval must greater than 0.\n{this}"};
+                return new ValidationResult {Message = $"Mining interval must greater than 0.\n{this}"};
             }
 
             for (var i = 1; i < miners.Count - 1; i++)

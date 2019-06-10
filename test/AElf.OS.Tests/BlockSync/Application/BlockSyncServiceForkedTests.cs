@@ -1,41 +1,53 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.BlockSync.Infrastructure;
+using AElf.OS.Network.Application;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 
 namespace AElf.OS.BlockSync.Application
 {
-    // TODO: Need more test for block sync
-    public sealed class BlockSyncServiceForkedTests : SyncForkedTestBase
+    public sealed class BlockSyncServiceForkedTests : BlockSyncForkedTestBase
     {
         private readonly IBlockchainService _blockChainService;
         private readonly IBlockSyncService _blockSyncService;
-        private readonly ITaskQueueManager _taskQueueManager;
+        private readonly IAnnouncementCacheProvider _announcementCacheProvider;
+        private readonly INetworkService _networkService;
 
         public BlockSyncServiceForkedTests()
         {
             _blockChainService = GetRequiredService<IBlockchainService>();
             _blockSyncService = GetRequiredService<IBlockSyncService>();
-            _taskQueueManager = GetRequiredService<ITaskQueueManager>();
+            _announcementCacheProvider = GetRequiredService<IAnnouncementCacheProvider>();
+            _networkService = GetRequiredService<INetworkService>();
         }
 
         [Fact]
-        public async Task SyncBlock_ShouldSyncChain()
+        public async Task SyncBlock_FromLIB_Success()
         {
-            await _blockSyncService.SyncBlockAsync(null, 12, 10, null);
-
-            DisposeQueue();
-                
             var chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(15);
-        }
+            var originalBestChainHash = chain.BestChainHash;
+            var originalBestChainHeight = chain.BestChainHeight;
+            var peerBlocks = await _networkService.GetBlocksAsync(chain.LastIrreversibleBlockHash, 20);
 
-        private void DisposeQueue()
-        {
-            _taskQueueManager.GetQueue(OSConsts.BlockSyncQueueName).Dispose();
-            _taskQueueManager.GetQueue(OSConsts.BlockSyncAttachQueueName).Dispose();
-            _taskQueueManager.GetQueue(KernelConstants.UpdateChainQueueName).Dispose();
+            var peerBlock = peerBlocks.Last();
+            var peerBlockHash = peerBlock.GetHash();
+            var peerBlockHeight = peerBlock.Header.Height;
+            
+            await _blockSyncService.SyncBlockAsync(peerBlockHash, peerBlockHeight, 5, null);
+            
+            chain = await _blockChainService.GetChainAsync();
+            chain.BestChainHeight.ShouldBe(20);
+            chain.BestChainHash.ShouldBe(peerBlockHash);
+
+            var block = await _blockChainService.GetBlockByHeightInBestChainBranchAsync(originalBestChainHeight);
+            block.GetHash().ShouldNotBe(originalBestChainHash);
+            
+            _announcementCacheProvider.ContainsAnnouncement(peerBlockHash,peerBlockHeight).ShouldBeTrue();
         }
+        
     }
 }

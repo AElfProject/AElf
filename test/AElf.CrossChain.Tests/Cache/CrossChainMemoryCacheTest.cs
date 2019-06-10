@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Contracts.CrossChain;
+using Acs7;
 using Xunit;
 
 namespace AElf.CrossChain.Cache
@@ -11,8 +11,8 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_SingleThread_Success()
         {
             var height = 1;         
-            var blockInfoCache = new ChainCacheEntity(1);
-            var res = blockInfoCache.TryAdd(new BlockCacheEntity()
+            var blockInfoCache = new BlockCacheEntityProvider(1);
+            var res = blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = height
             });
@@ -25,8 +25,8 @@ namespace AElf.CrossChain.Cache
         {
             var height = 2;
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
-            var res = blockInfoCache.TryAdd(new BlockCacheEntity
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
+            var res = blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = height
             });
@@ -38,12 +38,12 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_Twice_SingleThread_Success()
         {
             var height = 1;         
-            var blockInfoCache = new ChainCacheEntity(1);
-            blockInfoCache.TryAdd(new BlockCacheEntity
+            var blockInfoCache = new BlockCacheEntityProvider(1);
+            blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = height++
             });
-            var res = blockInfoCache.TryAdd(new BlockCacheEntity
+            var res = blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = height
             });
@@ -55,13 +55,13 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_MultiThreads_WithDifferentData()
         {
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
             var i = 0;
             var taskList = new List<Task>();
             while (i < 5)
             {
                 var j = i;
-                var t = Task.Run(() => blockInfoCache.TryAdd(new BlockCacheEntity
+                var t = Task.Run(() => blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = 2 * j + 1
                 }));
@@ -77,11 +77,11 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_DataContinuous()
         {
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
             var i = 0;
             while (i < 5)
             {
-                blockInfoCache.TryAdd(new BlockCacheEntity
+                blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = i++
                 });
@@ -93,18 +93,18 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_DataNotContinuous()
         {
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
-            blockInfoCache.TryAdd(new BlockCacheEntity
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
+            blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = 1
             });
-            blockInfoCache.TryAdd(new BlockCacheEntity
+            blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = 2
             });
             
             // 3 is absent.
-            blockInfoCache.TryAdd(new BlockCacheEntity
+            blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = 4
             });
@@ -115,12 +115,12 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_MultiThreads_WithSameData()
         {
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
             var i = 0;
             var taskList = new List<Task>();
             while (i++ < 5)
             {
-                var t = Task.Run(() => blockInfoCache.TryAdd(new BlockCacheEntity
+                var t = Task.Run(() => blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = initTarget
                 }));
@@ -135,7 +135,7 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WithoutCache()
         {
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
             var res = blockInfoCache.TryTake(initTarget, out var blockInfo, false);
             Assert.False(res);
         }
@@ -144,15 +144,16 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WithoutEnoughCache()
         {
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
             int i = 0;
             while (i++ < CrossChainConstants.MinimalBlockCacheEntityCount)
             {
-                var t = blockInfoCache.TryAdd(new BlockCacheEntity
+                var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = i
                 });
             }
+            
             var res = blockInfoCache.TryTake(initTarget, out var blockInfo, true);
             Assert.False(res);
         }
@@ -161,15 +162,16 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WithSizeLimit()
         {
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
             int i = 0;
             while (i++ <= CrossChainConstants.MinimalBlockCacheEntityCount)
             {
-                var t = blockInfoCache.TryAdd(new BlockCacheEntity
+                var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = i
                 });
             }
+            
             var res = blockInfoCache.TryTake(initTarget, out var blockInfo, true);
             Assert.True(res);
             Assert.True(blockInfo.Height == initTarget);
@@ -179,8 +181,8 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WithoutSizeLimit()
         {
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
-            blockInfoCache.TryAdd(new BlockCacheEntity
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
+            blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = 1
             });
@@ -193,15 +195,16 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WithClearCacheNeeded()
         {
             var initTarget = 2;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
             int i = 0;
             while (i++ < (int)initTarget +  CrossChainConstants.MinimalBlockCacheEntityCount)
             {
-                var t = blockInfoCache.TryAdd(new BlockCacheEntity
+                var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = i
                 });
             }
+            
             var res = blockInfoCache.TryTake(initTarget, out var blockInfo, true);
             Assert.True(res);
             Assert.True(blockInfo.Height == initTarget);
@@ -211,11 +214,11 @@ namespace AElf.CrossChain.Cache
         public void TryTake_Twice()
         {
             var initTarget = 2;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
             int i = 0;
             while (i++ < initTarget + CrossChainConstants.MinimalBlockCacheEntityCount)
             {
-                var t = blockInfoCache.TryAdd(new BlockCacheEntity
+                var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = i
                 });
@@ -232,11 +235,11 @@ namespace AElf.CrossChain.Cache
         public void TryTake_OutDatedData()
         {
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
             int i = 0;
             while (i++ < initTarget + CrossChainConstants.MinimalBlockCacheEntityCount)
             {
-                var t = blockInfoCache.TryAdd(new BlockCacheEntity
+                var t = blockInfoCache.TryAdd(new SideChainBlockData
                 {
                     Height = i
                 });
@@ -252,12 +255,12 @@ namespace AElf.CrossChain.Cache
         public void TargetHeight_WithEmptyQueue()
         {
             var initTarget = 1;
-            var blockInfoCache = new ChainCacheEntity(initTarget);
-            blockInfoCache.TryAdd(new BlockCacheEntity
+            var blockInfoCache = new BlockCacheEntityProvider(initTarget);
+            blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = 1
             });
-            blockInfoCache.TryAdd(new BlockCacheEntity
+            blockInfoCache.TryAdd(new SideChainBlockData
             {
                 Height = 2
             });
