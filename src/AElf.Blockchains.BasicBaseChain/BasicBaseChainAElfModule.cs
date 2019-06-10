@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain;
-using AElf.CrossChain.Grpc;
+using AElf.CrossChain.Communication.Grpc;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;

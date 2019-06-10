@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
-using AElf.Common;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Shouldly;
 
@@ -41,14 +38,9 @@ namespace AElf.Kernel.Types.Tests
             var blockBody = new BlockBody()
             {
                 BlockHeader = blockHeader.GetHash(),
-                Transactions = { transactionItems.Item2},
-                BinaryMerkleTree = {
-                    Nodes = { Hash.Generate(), Hash.Generate() },
-                    LeafCount = 2
-                }
+                Transactions = {transactionItems.Item2}
             };
             blockBody.TransactionsCount.ShouldBe(3);
-            blockBody.BinaryMerkleTree.ShouldNotBe(null);
         }
 
         [Fact]
@@ -63,18 +55,6 @@ namespace AElf.Kernel.Types.Tests
             blockIndex.ToString().ShouldBe(blockIndex1.ToString());
             blockIndex.ToString().Contains(Hash.Empty.ToString()).ShouldBeTrue();
             blockIndex.ToString().Contains("1").ShouldBeTrue();
-        }
-
-        [Fact]
-        public void BlockBody_Hash_Test()
-        {
-            var block = CreateBlock(Hash.Generate(), 0, 10);
-            var hash = block.Body.GetHashWithoutCache();
-            hash.ShouldNotBeNull();
-
-            var hash1 = block.Body.GetHashWithoutCache();
-            hash.ShouldNotBeNull();
-            hash.ShouldBe(hash1);
         }
         
         [Fact]
@@ -127,12 +107,11 @@ namespace AElf.Kernel.Types.Tests
             block.Header.ChainId = chainId;
             block.Header.Time = TimestampHelper.GetUtcNow();
             block.Header.Height = height;
-            block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
-
-            block.Body.BlockHeader = block.Header.GetHash();
-            block.Body.BinaryMerkleTree.Root = Hash.Empty;
             var transactionItems = GenerateFakeTransactions(3);
             block.Body.Transactions.AddRange(transactionItems.Item2);
+            
+            block.Header.MerkleTreeRootOfTransactions = block.Body.Transactions.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            block.Body.BlockHeader = block.Header.GetHash();           
 
             return block;
         }
