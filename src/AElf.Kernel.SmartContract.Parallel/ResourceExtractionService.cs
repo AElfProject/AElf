@@ -91,7 +91,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public async Task HandleTransactionResourcesNoLongerNeededAsync(TransactionResourcesNoLongerNeededEvent eventData)
         {
-            foreach (var txId in eventData.TxIds)
+            foreach (var txId in eventData.TransactionIds)
             {
                 _resourceCache.TryRemove(txId, out _);
             }

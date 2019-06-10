@@ -10,6 +10,6 @@ namespace AElf.Kernel.Blockchain.Events
     
     public class TransactionResourcesNoLongerNeededEvent
     {
-        public IEnumerable<Hash> TxIds { get; set; }
+        public IEnumerable<Hash> TransactionIds { get; set; }
     }
 }

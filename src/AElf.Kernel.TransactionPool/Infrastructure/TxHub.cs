@@ -188,9 +188,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 }
             }
 
-            await LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
+            LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
             {
-                TxIds = removedTransactionIds
+                TransactionIds = removedTransactionIds
             });
         }
 
@@ -273,7 +273,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             
             await LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
             {
-                TxIds = block.Body.Transactions
+                TransactionIds = block.Body.Transactions
             });
         }
 
@@ -314,7 +314,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             
             await LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
             {
-                TxIds = eventData.Transactions
+                TransactionIds = eventData.Transactions
             });
             
             await Task.CompletedTask;
