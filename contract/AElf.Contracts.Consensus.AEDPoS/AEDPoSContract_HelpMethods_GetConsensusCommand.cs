@@ -24,14 +24,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var isAlone = CheckLonelyMiner(publicKey);
                 if (behaviour == AElfConsensusBehaviour.TinyBlock && isAlone)
                 {
-                    behaviour = currentRound.RealTimeMinersInformation[publicKey].OutValue == null
-                        ? AElfConsensusBehaviour.UpdateValue
-                        : AElfConsensusBehaviour.NextRound;
+                    behaviour = AElfConsensusBehaviour.Nothing;
                 }
 
                 var currentBlockTime = Context.CurrentBlockTime;
-                var expectedMiningTime = new Timestamp {Seconds = long.MaxValue};
-                var nextBlockMiningLeftMilliseconds = 0;
+                Timestamp expectedMiningTime;
+                int nextBlockMiningLeftMilliseconds;
 
                 switch (behaviour)
                 {
@@ -64,8 +62,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - currentBlockTime).Milliseconds();
                         break;
                     case AElfConsensusBehaviour.Nothing:
-                        // Handled before.
-                        break;
+                        return GetInvalidConsensusCommand();
                     default:
                         return GetInvalidConsensusCommand();
                 }
@@ -73,7 +70,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 AdjustLimitMillisecondsOfMiningBlock(currentRound, publicKey, nextBlockMiningLeftMilliseconds,
                     out var limitMillisecondsOfMiningBlock);
 
-                Context.LogDebug(() => $"NextBlockMiningLeftMilliseconds: {nextBlockMiningLeftMilliseconds}");
+                var milliseconds = nextBlockMiningLeftMilliseconds;
+                Context.LogDebug(() => $"NextBlockMiningLeftMilliseconds: {milliseconds}");
 
                 var miningInterval = currentRound.GetMiningInterval();
                 // Produce tiny blocks as fast as one can.
