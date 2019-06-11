@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -18,12 +19,37 @@ namespace AElf.OS.Network.Application
         private readonly IPeerPool _peerPool;
 
         public ILogger<NetworkService> Logger { get; set; }
+        
+        private BlockingCollection<KeyValuePair<int, Func<Task>>> _outgoingMessages { get; set; }
 
         public NetworkService(IPeerPool peerPool)
         {
             _peerPool = peerPool;
 
             Logger = NullLogger<NetworkService>.Instance;
+            
+            var queue = new SimplePriorityQueue<int, Func<Task>>(2);
+            _outgoingMessages = new BlockingCollection<KeyValuePair<int, Func<Task>>>(queue);
+
+            for (int i = 0; i < 4; i++)
+            {
+                Task.Factory.StartNew(async () =>
+                {
+                    while (true)
+                    {
+                        var funcKvp = _outgoingMessages.Take();
+                        var func = funcKvp.Value;
+                        try
+                        {
+                            await func();
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.LogDebug(e, "Error while dQeuing.");
+                        }
+                    }
+                });
+            }
         }
 
         public async Task<bool> AddPeerAsync(string address)
@@ -103,7 +129,12 @@ namespace AElf.OS.Network.Application
             {
                 try
                 {
-                    peer.SendTransactionAsync(tx);
+                    _outgoingMessages.TryAdd(new KeyValuePair<int, Func<Task>>(0, async () =>
+                    {
+                        await peer.SendTransactionAsync(tx);
+                    }));
+                    
+                    //peer.SendTransactionAsync(tx);
                     successfulBcasts++;
                 }
                 catch (NetworkException e)

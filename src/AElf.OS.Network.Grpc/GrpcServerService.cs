@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -5,6 +6,7 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
@@ -16,6 +18,7 @@ using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
@@ -33,15 +36,18 @@ namespace AElf.OS.Network.Grpc
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
+        private readonly ITaskQueueManager _taskQueueManager;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService)
+        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService,
+            ITaskQueueManager taskQueueManager)
         {
             _peerPool = peerPool;
             _blockchainService = blockchainService;
             _accountService = accountService;
+            _taskQueueManager = taskQueueManager;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -168,11 +174,24 @@ namespace AElf.OS.Network.Grpc
 
             return AuthError.None;
         }
+        
+        public async Task HandleEventAsync(BlockAcceptedEvent eventData)
+        {
+            var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
+            
+            foreach (var txId in block.Body.Transactions)
+            {
+                _allTransactions.TryRemove(txId, out _);
+            }
+        }
 
+        private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTransactions =
+            new ConcurrentDictionary<Hash, TransactionReceipt>();
+        
         /// <summary>
         /// This method is called when another peer broadcasts a transaction.
         /// </summary>
-        public override async Task<VoidReply> SendTransaction(TransactionList tx, ServerCallContext context)
+        public override async Task<VoidReply> SendTransaction(TransactionList transactionList, ServerCallContext context)
         {
             var chain = await _blockchainService.GetChainAsync();
             
@@ -181,12 +200,27 @@ namespace AElf.OS.Network.Grpc
 //            if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync)
 //                return new VoidReply();
 
-            Logger.LogDebug($"Received tx {tx.Transactions.Count} from {context.GetPeerInfo()}.");
+            //Logger.LogDebug($"Received tx {transactionList.Transactions.Count} from {context.GetPeerInfo()}.");
+
+//            List<Transaction> toAdd = new List<Transaction>();
+//            foreach (var tx in transactionList.Transactions)
+//            {
+//                var receipt = new TransactionReceipt(tx);
+//                if (!_allTransactions.ContainsKey(receipt.TransactionId))
+//                {
+//                    toAdd.Add(tx);
+//                }
+//            }
             
-            _ = Task.Run(async () => await EventBus.PublishAsync(new TransactionsReceivedEvent
+            _taskQueueManager.Enqueue(async () => await EventBus.PublishAsync(new TransactionsReceivedEvent
             {
-                Transactions = tx.Transactions.ToList()
-            }));
+                Transactions = transactionList.Transactions
+            }), "p2ptx");
+            
+//            _ = Task.Run(async () => await EventBus.PublishAsync(new TransactionsReceivedEvent
+//            {
+//                Transactions = transactionList.Transactions.ToList()
+//            }));
 
             return new VoidReply();
         }
@@ -214,7 +248,7 @@ namespace AElf.OS.Network.Grpc
 
         /// <summary>
         /// This method returns a block. The parameter is a <see cref="BlockRequest"/> object, if the value
-        /// of <see cref="BlockRequest.Hash"/> is not null, the request is by ID, otherwise it will be
+        /// of <see cref="Hash"/> is not null, the request is by ID, otherwise it will be
         /// by height.
         /// </summary>
         public override async Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)

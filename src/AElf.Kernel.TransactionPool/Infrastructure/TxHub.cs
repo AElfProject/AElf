@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -195,15 +196,15 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             foreach (var transaction in eventData.Transactions)
             {
-                if (!transaction.VerifySignature())
-                    continue;
-
                 var receipt = new TransactionReceipt(transaction);
                 if (_allTransactions.ContainsKey(receipt.TransactionId))
                 {
                     //Logger.LogWarning($"Transaction already exists in TxStore");
                     continue;
                 }
+                
+                if (!transaction.VerifySignature())
+                    continue;
 
                 if (_allTransactions.Count > _transactionOptions.PoolLimit)
                 {
@@ -250,12 +251,19 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
+        private int missed = 0;
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
             foreach (var txId in block.Body.Transactions)
             {
-                _allTransactions.TryRemove(txId, out _);
+                if (!_allTransactions.TryRemove(txId, out _))
+                {
+                    Interlocked.Increment(ref missed);
+                    
+                    if (missed % 10 == 0)
+                        Logger.LogDebug($"Current missed {missed} transactions.");
+                }
             }
         }
 

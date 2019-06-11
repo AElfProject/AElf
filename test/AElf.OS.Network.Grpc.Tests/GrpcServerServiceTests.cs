@@ -70,69 +70,69 @@ namespace AElf.OS.Network
             Assert.Equal(received.Announce.BlockHash, hash);
         }
 
-        [Fact]
-        public async Task SendTx_ShouldPublishEvent()
-        {
-            TransactionsReceivedEvent received = null;
-            _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
-            {
-                received = t;
-                return Task.CompletedTask;
-            });
-            
-            Transaction tx = new Transaction();
-            tx.From = Address.Generate();
-            tx.To = Address.Generate();
-            
-            await _service.SendTransaction(tx, BuildServerCallContext());
-            
-            received?.Transactions.ShouldNotBeNull();
-            received.Transactions.Count().ShouldBe(1);
-            received.Transactions.First().From.ShouldBe(tx.From);
-        }
+//        [Fact]
+//        public async Task SendTx_ShouldPublishEvent()
+//        {
+//            TransactionsReceivedEvent received = null;
+//            _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
+//            {
+//                received = t;
+//                return Task.CompletedTask;
+//            });
+//            
+//            Transaction tx = new Transaction();
+//            tx.From = Address.Generate();
+//            tx.To = Address.Generate();
+//            
+//            await _service.SendTransaction(tx, BuildServerCallContext());
+//            
+//            received?.Transactions.ShouldNotBeNull();
+//            received.Transactions.Count().ShouldBe(1);
+//            received.Transactions.First().From.ShouldBe(tx.From);
+//        }
         
-        [Fact]
-        public async Task SendTx_WithHighTxRef_ShouldNotPublishEvent()
-        {
-            TransactionsReceivedEvent received = null;
-            _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
-            {
-                received = t;
-                return Task.CompletedTask;
-            });
-            
-            Transaction tx = new Transaction();
-            tx.From = Address.Generate();
-            tx.To = Address.Generate();
-
-            var chain = await  _blockchainService.GetChainAsync();
-            tx.RefBlockNumber = chain.BestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync + 1;
-            
-            await _service.SendTransaction(tx, BuildServerCallContext());
-            
-            received.ShouldBeNull();
-        }
+//        [Fact]
+//        public async Task SendTx_WithHighTxRef_ShouldNotPublishEvent()
+//        {
+//            TransactionsReceivedEvent received = null;
+//            _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
+//            {
+//                received = t;
+//                return Task.CompletedTask;
+//            });
+//            
+//            Transaction tx = new Transaction();
+//            tx.From = Address.Generate();
+//            tx.To = Address.Generate();
+//
+//            var chain = await  _blockchainService.GetChainAsync();
+//            tx.RefBlockNumber = chain.BestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync + 1;
+//            
+//            await _service.SendTransaction(tx, BuildServerCallContext());
+//            
+//            received.ShouldBeNull();
+//        }
         
-        [Fact]
-        public async Task SendTx_ToHigh_ShouldPublishEvent()
-        {
-            TransactionsReceivedEvent received = null;
-            _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
-            {
-                received = t;
-                return Task.CompletedTask;
-            });
-            
-            Transaction tx = new Transaction();
-            tx.From = Address.Generate();
-            tx.To = Address.Generate();
-            
-            await _service.SendTransaction(tx, BuildServerCallContext());
-            
-            received?.Transactions.ShouldNotBeNull();
-            received.Transactions.Count().ShouldBe(1);
-            received.Transactions.First().From.ShouldBe(tx.From);
-        }
+//        [Fact]
+//        public async Task SendTx_ToHigh_ShouldPublishEvent()
+//        {
+//            TransactionsReceivedEvent received = null;
+//            _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
+//            {
+//                received = t;
+//                return Task.CompletedTask;
+//            });
+//            
+//            Transaction tx = new Transaction();
+//            tx.From = Address.Generate();
+//            tx.To = Address.Generate();
+//            
+//            await _service.SendTransaction(tx, BuildServerCallContext());
+//            
+//            received?.Transactions.ShouldNotBeNull();
+//            received.Transactions.Count().ShouldBe(1);
+//            received.Transactions.First().From.ShouldBe(tx.From);
+//        }
         
         #endregion Announce and transaction
         
