@@ -26,6 +26,8 @@ namespace AElf.WebApp.Application.Chain
     public interface IBlockChainAppService : IApplicationService
     {
         Task<string> Call(CallInput input);
+        
+        Task<string> CallRawTransaction(CallRawTransactionDto input);
 
         Task<byte[]> GetContractFileDescriptorSet(string address);
 
@@ -116,6 +118,29 @@ namespace AElf.WebApp.Application.Chain
 
                 var response = await CallReadOnly(transaction);
                 return response?.ToHex();
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                    Error.InvalidTransaction.ToString());
+            }
+        }
+
+        public async Task<string> CallRawTransaction(CallRawTransactionDto input)
+        {
+            try
+            {
+                var hexString = ByteArrayHelpers.FromHexString(input.RawTransaction);
+                var transaction = Transaction.Parser.ParseFrom(hexString);
+                transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
+                if (!transaction.VerifySignature())
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                        Error.InvalidTransaction.ToString());
+                }
+
+                var response = await CallReadOnlyReturnReadableValue(transaction);
+                return response;
             }
             catch
             {
@@ -711,6 +736,18 @@ namespace AElf.WebApp.Application.Chain
                 throw new Exception(trace.StdErr);
 
             return trace.ReturnValue.ToByteArray();
+        }
+        
+        private async Task<string> CallReadOnlyReturnReadableValue(Transaction tx)
+        {
+            var chainContext = await GetChainContextAsync();
+
+            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow.ToTimestamp());
+
+            if (!string.IsNullOrEmpty(trace.StdErr))
+                throw new Exception(trace.StdErr);
+
+            return trace.ReadableReturnValue;
         }
         
         private async Task<ChainContext> GetChainContextAsync()

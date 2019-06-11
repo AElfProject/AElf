@@ -20,6 +20,7 @@ using AElf.Runtime.CSharp;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
+using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities.Encoders;
 using Shouldly;
 using Xunit;
@@ -143,6 +144,88 @@ namespace AElf.WebApp.Application.Chain.Tests
             
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
+        }
+
+        [Fact]
+        public async Task CallRawTransaction_Success()
+        {
+            const string methodName = "GetBalance";
+            var contractAddress =
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            var chain = await _blockchainService.GetChainAsync();
+            var accountAddress = await _accountService.GetAccountAsync();
+            var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
+            var parameters = new Dictionary<string,string>
+            {
+                {"From",accountAddress.GetFormatted()},
+                {"To",contractAddress.GetFormatted()},
+                {"RefBlockNumber",chain.BestChainHeight.ToString()},
+                {"RefBlockHash",chain.BestChainHash.ToHex()},
+                {"MethodName",methodName},
+                {"Params","{\"owner\":{ \"Value\": \""+toAddress+"\" },\"symbol\":\"ELF\"}"}
+            };
+            var createTransactionResponse =
+                await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
+                    parameters);
+            var transactionHash = Hash.FromRawBytes(ByteArrayHelpers.FromHexString(createTransactionResponse.RawTransaction));
+
+            var signature = await _accountService.SignAsync(transactionHash.DumpByteArray());
+            parameters = new Dictionary<string, string>
+            {
+                {"RawTransaction", createTransactionResponse.RawTransaction},
+                {"Signature", signature.ToHex()}
+            };
+            var sendTransactionResponse =
+                await PostResponseAsObjectAsync<string>("/api/blockChain/callRawTransaction",
+                    parameters);
+            var jObject = JObject.Parse(sendTransactionResponse);
+            jObject["owner"].ShouldBe(accountAddress.GetFormatted());
+            jObject["symbol"].ShouldBe("ELF");
+            jObject.Value<long>("balance").ShouldBe(9999900);
+        }
+
+        [Fact]
+        public async Task CallRawTransaction_Failed()
+        {
+            var parameters = new Dictionary<string, string>
+            {
+                {"RawTransaction", "wrongTransaction"}
+            };
+            var wrongTransactionResponse =
+                await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/callRawTransaction",
+                    parameters, expectedStatusCode: HttpStatusCode.Forbidden);
+            wrongTransactionResponse.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
+            wrongTransactionResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
+            
+            const string methodName = "GetBalance";
+            var contractAddress =
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            var chain = await _blockchainService.GetChainAsync();
+            var accountAddress = await _accountService.GetAccountAsync();
+            var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
+            parameters = new Dictionary<string,string>
+            {
+                {"From",accountAddress.GetFormatted()},
+                {"To",contractAddress.GetFormatted()},
+                {"RefBlockNumber",chain.BestChainHeight.ToString()},
+                {"RefBlockHash",chain.BestChainHash.ToHex()},
+                {"MethodName",methodName},
+                {"Params","{\"owner\":{ \"Value\": \""+toAddress+"\" },\"symbol\":\"ELF\"}"}
+            };
+            var createTransactionResponse =
+                await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
+                    parameters);
+
+            parameters = new Dictionary<string, string>
+            {
+                {"RawTransaction", createTransactionResponse.RawTransaction},
+                {"Signature", "wrongSignature"}
+            };
+            var wrongSignatureResponse =
+                await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/callRawTransaction",
+                    parameters, expectedStatusCode: HttpStatusCode.Forbidden);
+            wrongSignatureResponse.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
+            wrongSignatureResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
         }
         
         [Fact]
