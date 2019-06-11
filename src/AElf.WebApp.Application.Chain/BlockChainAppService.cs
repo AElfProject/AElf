@@ -33,9 +33,9 @@ namespace AElf.WebApp.Application.Chain
         
         Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input);
 
-        Task<BroadcastTransactionOutput> BroadcastTransaction(BroadcastTransactionInput input);
+        Task<SendTransactionOutput> SendTransaction(SendTransactionInput input);
 
-        Task<string[]> BroadcastTransactions(BroadcastTransactionsInput input);
+        Task<string[]> SendTransactions(SendTransactionsInput input);
 
         Task<TransactionResultDto> GetTransactionResult(string transactionId);
 
@@ -214,10 +214,10 @@ namespace AElf.WebApp.Application.Chain
         /// Broadcast a transaction
         /// </summary>
         /// <returns></returns>
-        public async Task<BroadcastTransactionOutput> BroadcastTransaction(BroadcastTransactionInput input)
+        public async Task<SendTransactionOutput> SendTransaction(SendTransactionInput input)
         {
             var txIds = await PublishTransactionsAsync(new[] {input.RawTransaction});
-            return new BroadcastTransactionOutput
+            return new SendTransactionOutput
             {
                 TransactionId = txIds[0]
             };
@@ -228,7 +228,7 @@ namespace AElf.WebApp.Application.Chain
         /// Broadcast multiple transactions
         /// </summary>
         /// <returns></returns>
-        public async Task<string[]> BroadcastTransactions(BroadcastTransactionsInput input)
+        public async Task<string[]> SendTransactions(SendTransactionsInput input)
         {
             var txIds = await PublishTransactionsAsync(input.RawTransactions.Split(","));
             

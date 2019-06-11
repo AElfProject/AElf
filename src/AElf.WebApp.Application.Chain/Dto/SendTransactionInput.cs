@@ -1,6 +1,6 @@
 namespace AElf.WebApp.Application.Chain.Dto
 {
-    public class BroadcastTransactionInput
+    public class SendTransactionInput
     {
         /// <summary>
         /// raw transaction
