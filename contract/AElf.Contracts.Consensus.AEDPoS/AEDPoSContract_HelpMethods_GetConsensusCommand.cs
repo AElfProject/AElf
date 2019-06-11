@@ -21,8 +21,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             while (true)
             {
-                var alone = CheckLonelyMiner(publicKey);
-                if (behaviour == AElfConsensusBehaviour.TinyBlock && alone)
+                var isAlone = CheckLonelyMiner(publicKey);
+                if (behaviour == AElfConsensusBehaviour.TinyBlock && isAlone)
                 {
                     behaviour = currentRound.RealTimeMinersInformation[publicKey].OutValue == null
                         ? AElfConsensusBehaviour.UpdateValue
@@ -79,7 +79,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // Produce tiny blocks as fast as one can.
                 if (behaviour == AElfConsensusBehaviour.TinyBlock)
                 {
-                    nextBlockMiningLeftMilliseconds = 0;
+                    nextBlockMiningLeftMilliseconds = AEDPoSContractConstants.TimeForNetwork;
                 }
 
                 return new ConsensusCommand
@@ -87,7 +87,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ExpectedMiningTime = expectedMiningTime,
                     NextBlockMiningLeftMilliseconds =
                         nextBlockMiningLeftMilliseconds < 0 ? 0 : nextBlockMiningLeftMilliseconds,
-                    LimitMillisecondsOfMiningBlock = alone
+                    LimitMillisecondsOfMiningBlock = isAlone
                         ? currentRound.GetMiningInterval()
                         : behaviour == AElfConsensusBehaviour.NextTerm
                             ? miningInterval.Div(2)
