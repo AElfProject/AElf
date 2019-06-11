@@ -172,7 +172,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //         BestChainHeight: 12
                 // TxHub:
                 //         BestChainHeight: 12
-                //          AllTransaction: 3
+                //          AllTransaction: 2
                 //   ExecutableTransaction: 1
                 await _txHub.HandleNewIrreversibleBlockFoundAsync(new NewIrreversibleBlockFoundEvent
                 {
@@ -185,19 +185,18 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     transactionValid
                 });
                 
-                TransactionPoolSizeShouldBe(3);
+                TransactionPoolSizeShouldBe(2);
                 TransactionShouldInPool(transactionHeight100);
                 TransactionShouldInPool(transactionValid);
-                TransactionShouldInPool(transactionInvalid);
             }
 
             {
-                // After 65 blocks
+                // After 513 blocks
                 // Chain:
-                //         BestChainHeight: 78
+                //         BestChainHeight: 525
                 // TxHub:
-                //         BestChainHeight: 78
-                //          AllTransaction: 1
+                //         BestChainHeight: 525
+                //          AllTransaction: 0
                 //   ExecutableTransaction: 0
                 var chain = await _blockchainService.GetChainAsync();
                 var bestChainHeight = chain.BestChainHeight;
@@ -220,8 +219,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                 ExecutableTransactionShouldBe(chain.BestChainHash, chain.BestChainHeight);
                 
-                TransactionPoolSizeShouldBe(1);
-                TransactionShouldInPool(transactionHeight100);
+                TransactionPoolSizeShouldBe(0);
             }
         }
 

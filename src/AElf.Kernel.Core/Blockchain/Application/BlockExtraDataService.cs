@@ -11,6 +11,7 @@ namespace AElf.Kernel.Blockchain.Application
     public class BlockExtraDataService : IBlockExtraDataService
     {
         private readonly List<IBlockExtraDataProvider> _blockExtraDataProviders;
+        
         public BlockExtraDataService(IServiceContainer<IBlockExtraDataProvider> blockExtraDataProviders)
         {
             _blockExtraDataProviders = blockExtraDataProviders.ToList();
@@ -42,28 +43,8 @@ namespace AElf.Kernel.Blockchain.Application
                     return blockHeader.BlockExtraDatas[i];
                 }
             }
+            
             return null;
-        }
-
-        public void FillMerkleTreeRootExtraDataForTransactionStatus(BlockHeader blockHeader,
-            IEnumerable<(Hash, TransactionResultStatus)> blockExecutionReturnSet)
-        {
-            var nodes = new List<Hash>();
-            foreach (var (transactionId, status) in blockExecutionReturnSet)
-            {
-                nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
-            }
-
-            blockHeader.MerkleTreeRootOfTransactionStatus = new BinaryMerkleTree().AddNodes(nodes).ComputeRootHash();
-        }
-
-        private Hash GetHashCombiningTransactionAndStatus(Hash txId,
-            TransactionResultStatus executionReturnStatus)
-        {
-            // combine tx result status
-            var rawBytes = txId.DumpByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
-                .ToArray();
-            return Hash.FromRawBytes(rawBytes);
         }
     }
 }
