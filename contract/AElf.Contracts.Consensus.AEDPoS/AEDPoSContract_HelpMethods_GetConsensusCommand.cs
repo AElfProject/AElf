@@ -21,9 +21,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             while (true)
             {
+                var alone = CheckLonelyMiner(publicKey);
+                if (behaviour == AElfConsensusBehaviour.TinyBlock && alone)
+                {
+                    behaviour = currentRound.RealTimeMinersInformation[publicKey].OutValue == null
+                        ? AElfConsensusBehaviour.UpdateValue
+                        : AElfConsensusBehaviour.NextRound;
+                }
                 var currentBlockTime = Context.CurrentBlockTime;
                 var expectedMiningTime = new Timestamp {Seconds = long.MaxValue};
                 var nextBlockMiningLeftMilliseconds = 0;
+                
                 switch (behaviour)
                 {
                     case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
@@ -71,9 +79,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ExpectedMiningTime = expectedMiningTime,
                     NextBlockMiningLeftMilliseconds =
                         nextBlockMiningLeftMilliseconds < 0 ? 0 : nextBlockMiningLeftMilliseconds,
-                    LimitMillisecondsOfMiningBlock = behaviour == AElfConsensusBehaviour.NextTerm
-                        ? currentRound.GetMiningInterval().Div(2)
-                        : limitMillisecondsOfMiningBlock,
+                    LimitMillisecondsOfMiningBlock = alone
+                        ? currentRound.GetMiningInterval()
+                        : behaviour == AElfConsensusBehaviour.NextTerm
+                            ? currentRound.GetMiningInterval().Div(2)
+                            : limitMillisecondsOfMiningBlock,
                     Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString()
                 };
             }
@@ -256,5 +266,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
             LimitMillisecondsOfMiningBlock = 0,
             NextBlockMiningLeftMilliseconds = int.MaxValue
         };
+
+        private bool CheckLonelyMiner(string publicKey)
+        {
+            if (TryToGetPreviousRoundInformation(out var previousRound))
+            {
+                var minedMiners = previousRound.GetMinedMiners();
+                return minedMiners.Count == 1 &&
+                       minedMiners.Select(m => m.PublicKey).Contains(publicKey);
+            }
+
+            return false;
+        }
     }
 }
