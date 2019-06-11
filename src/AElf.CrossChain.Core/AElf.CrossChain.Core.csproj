@@ -2,9 +2,9 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <RootNamespace>AElf.CrossChain</RootNamespace>
         <PackageId>AElf.CrossChain.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <RootNamespace>AElf.CrossChain</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,6 +16,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs7.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractBase>
       <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
         <Link>Protobuf/Proto/cross_chain_contract.proto</Link>
       </ContractStub>

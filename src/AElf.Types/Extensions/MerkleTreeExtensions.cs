@@ -6,7 +6,7 @@ namespace AElf
 {
     public static class MerkleTreeExtensions
     {
-        public static Hash ComputeParentWith(this Hash left, Hash right)
+        public static Hash ComputeParentNodeWith(this Hash left, Hash right)
         {
             var res = new[] {left, right}.OrderBy(b => b).Select(h => h.DumpByteArray())
                 .Aggregate(new byte[0], (rawBytes, bytes) => rawBytes.Concat(bytes).ToArray());
@@ -14,24 +14,29 @@ namespace AElf
             return Hash.FromRawBytes(res);
         }
 
-        public static Hash ComputeRootHash(this IEnumerable<Hash> hashList)
+        public static Hash ComputeBinaryMerkleTreeRootWithLeafNodes(this IEnumerable<Hash> hashList)
         {
-            var nodes = hashList.ToList();
-            if (!nodes.Any())
+            var treeNodeHashes = GenerateBinaryMerkleTreeNodesWithLeafNodes(hashList.ToList());
+            return treeNodeHashes.Any() ? treeNodeHashes.Last() : Hash.Empty;
+        }
+
+        public static List<Hash> GenerateBinaryMerkleTreeNodesWithLeafNodes(this IList<Hash> hashList)
+        {
+            if (!hashList.Any())
             {
-                return Hash.Empty;
+                return hashList.ToList();
             }
 
-            if (nodes.Count % 2 == 1)
-                nodes.Add(nodes.Last());
-            var nodeToAdd = nodes.Count / 2;
+            if (hashList.Count % 2 == 1)
+                hashList.Add(hashList.Last());
+            var nodeToAdd = hashList.Count / 2;
             var newAdded = 0;
-            var i = 0;
-            while (i < nodes.Count - 1)
+            var i = 0; 
+            while (i < hashList.Count - 1)
             {
-                var left = nodes[i++];
-                var right = nodes[i++];
-                nodes.Add(left.ComputeParentWith(right));
+                var left = hashList[i++];
+                var right = hashList[i++];
+                hashList.Add(left.ComputeParentNodeWith(right));
                 if (++newAdded != nodeToAdd)
                     continue;
 
@@ -39,7 +44,7 @@ namespace AElf
                 if (nodeToAdd % 2 == 1 && nodeToAdd != 1)
                 {
                     nodeToAdd++;
-                    nodes.Add(nodes.Last());
+                    hashList.Add(hashList.Last());
                 }
 
                 // start a new row
@@ -47,7 +52,12 @@ namespace AElf
                 newAdded = 0;
             }
 
-            return nodes.Last();
+            return hashList.ToList();
+        }
+
+        public static Hash ComputeBinaryMerkleTreeRootWithPathAndLeafNode(this IList<Hash> hashList, Hash leaf)
+        {
+            return hashList.Aggregate(leaf, (current, node) => current.ComputeParentNodeWith(node));
         }
     }
 }
