@@ -15,7 +15,6 @@ namespace AElf.Blockchains.MainChain
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForToken(Address zeroContractAddress)
         {
             var l = new List<GenesisSmartContractDto>();
-//            l.AddGenesisSmartContract<TokenContract>(
             l.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("MultiToken")).Value,
                 TokenSmartContractAddressNameProvider.Name,

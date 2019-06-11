@@ -64,28 +64,40 @@ namespace AElf.Contracts.TokenConverter
         /// <returns></returns>
         public override Empty Initialize(InitializeInput input)
         {
-            Assert(input.TokenContractAddress != null, "Token contract address required.");
-            Assert(input.FeeReceiverAddress != null, "Fee receiver address required.");
+            //Assert(input.TokenContractAddress != null, "Token contract address required.");
+            //Assert(input.FeeReceiverAddress != null, "Fee receiver address required.");
             Assert(IsValidSymbol(input.BaseTokenSymbol), "Base token symbol is invalid.");
             Assert(State.TokenContract.Value == null, "Already initialized.");
-            State.TokenContract.Value = input.TokenContractAddress;
-            State.FeeReceiverAddress.Value = input.FeeReceiverAddress;
-            State.BaseTokenSymbol.Value = input.BaseTokenSymbol;
-            State.ManagerAddress.Value = input.ManagerAddress;
+            State.TokenContract.Value = input.TokenContractAddress != null
+                ? input.TokenContractAddress
+                : Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+
+            State.FeeReceiverAddress.Value = input.FeeReceiverAddress != null
+                ? input.FeeReceiverAddress
+                : Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+
+            State.BaseTokenSymbol.Value = input.BaseTokenSymbol != string.Empty
+                ? input.BaseTokenSymbol
+                : Context.Variables.NativeSymbol;
+
+            State.ManagerAddress.Value = input.ManagerAddress != null
+                ? input.ManagerAddress
+                : Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+
             var feeRate = AssertedDecimal(input.FeeRate);
             Assert(IsBetweenZeroAndOne(feeRate), "Fee rate has to be a decimal between 0 and 1.");
             State.FeeRate.Value = feeRate.ToString(CultureInfo.InvariantCulture);
 
-            var index = State.ConnectorCount.Value;
+            var count = State.ConnectorCount.Value;
             foreach (var connector in input.Connectors)
             {
                 AssertValidConnectorAndNormalizeWeight(connector);
-                State.ConnectorSymbols[index] = connector.Symbol;
+                State.ConnectorSymbols[count] = connector.Symbol;
                 State.Connectors[connector.Symbol] = connector;
-                index = index.Add(1);
+                count = count.Add(1);
             }
 
-            State.ConnectorCount.Value = index;
+            State.ConnectorCount.Value = count;
             return new Empty();
         }
 
@@ -103,7 +115,6 @@ namespace AElf.Contracts.TokenConverter
             State.Connectors[input.Symbol] = input;
             return new Empty();
         }
-
 
         public override Empty Buy(BuyInput input)
         {
