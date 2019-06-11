@@ -202,19 +202,19 @@ namespace AElf.OS.Network.Grpc
 
             //Logger.LogDebug($"Received tx {transactionList.Transactions.Count} from {context.GetPeerInfo()}.");
 
-//            List<Transaction> toAdd = new List<Transaction>();
-//            foreach (var tx in transactionList.Transactions)
-//            {
-//                var receipt = new TransactionReceipt(tx);
-//                if (!_allTransactions.ContainsKey(receipt.TransactionId))
-//                {
-//                    toAdd.Add(tx);
-//                }
-//            }
+            List<Transaction> toAdd = new List<Transaction>();
+            foreach (var tx in transactionList.Transactions)
+            {
+                var receipt = new TransactionReceipt(tx);
+                if (!_allTransactions.ContainsKey(receipt.TransactionId))
+                {
+                    toAdd.Add(tx);
+                }
+            }
             
             _taskQueueManager.Enqueue(async () => await EventBus.PublishAsync(new TransactionsReceivedEvent
             {
-                Transactions = transactionList.Transactions
+                Transactions = toAdd
             }), "p2ptx");
             
 //            _ = Task.Run(async () => await EventBus.PublishAsync(new TransactionsReceivedEvent

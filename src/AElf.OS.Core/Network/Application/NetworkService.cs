@@ -83,20 +83,27 @@ namespace AElf.OS.Network.Application
                 HasFork = hasFork
             };
             
-            var peers = _peerPool.GetPeers().ToList();
+            //var peers = _peerPool.GetPeers().ToList();
 
             _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash(), hasFork);
             
             Logger.LogDebug("About to broadcast to peers.");
             
-            var tasks = peers.Select(peer => DoAnnounce(peer, announce)).ToList();
-            await Task.WhenAll(tasks);
+//            var tasks = peers.Select(peer => DoAnnounce(peer, announce)).ToList();
+//            await Task.WhenAll(tasks);
 
-            foreach (var finishedTask in tasks.Where(t => t.IsCompleted))
+            foreach (var peer in _peerPool.GetPeers())
             {
-                if (finishedTask.Result)
-                    successfulBcasts++;
+                _outgoingMessages.TryAdd(new KeyValuePair<int, Func<Task>>(0, async () =>
+                {
+                    await peer.AnnounceAsync(announce);
+                }));
             }
+//            foreach (var finishedTask in tasks.Where(t => t.IsCompleted))
+//            {
+//                if (finishedTask.Result)
+//                    successfulBcasts++;
+//            }
             
             Logger.LogDebug("Broadcast successful !");
             
@@ -129,7 +136,7 @@ namespace AElf.OS.Network.Application
             {
                 try
                 {
-                    _outgoingMessages.TryAdd(new KeyValuePair<int, Func<Task>>(0, async () =>
+                    _outgoingMessages.TryAdd(new KeyValuePair<int, Func<Task>>(1, async () =>
                     {
                         await peer.SendTransactionAsync(tx);
                     }));

@@ -18,8 +18,8 @@ namespace AElf.OS.Handlers
             {
                 NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
                 
-//                if (Service is GrpcServerService s)
-//                    s.HandleEventAsync(eventData);
+                if (Service is GrpcServerService s)
+                    s.HandleEventAsync(eventData);
                 
                 return Task.CompletedTask;
             }
