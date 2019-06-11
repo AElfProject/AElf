@@ -28,10 +28,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         ? AElfConsensusBehaviour.UpdateValue
                         : AElfConsensusBehaviour.NextRound;
                 }
+
                 var currentBlockTime = Context.CurrentBlockTime;
                 var expectedMiningTime = new Timestamp {Seconds = long.MaxValue};
                 var nextBlockMiningLeftMilliseconds = 0;
-                
+
                 switch (behaviour)
                 {
                     case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
@@ -74,6 +75,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 Context.LogDebug(() => $"NextBlockMiningLeftMilliseconds: {nextBlockMiningLeftMilliseconds}");
 
+                var miningInterval = currentRound.GetMiningInterval();
+                // Produce tiny blocks as fast as one can.
+                if (behaviour == AElfConsensusBehaviour.TinyBlock)
+                {
+                    nextBlockMiningLeftMilliseconds = 0;
+                }
+
                 return new ConsensusCommand
                 {
                     ExpectedMiningTime = expectedMiningTime,
@@ -82,7 +90,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     LimitMillisecondsOfMiningBlock = alone
                         ? currentRound.GetMiningInterval()
                         : behaviour == AElfConsensusBehaviour.NextTerm
-                            ? currentRound.GetMiningInterval().Div(2)
+                            ? miningInterval.Div(2)
                             : limitMillisecondsOfMiningBlock,
                     Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString()
                 };
