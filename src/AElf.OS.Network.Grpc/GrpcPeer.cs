@@ -304,6 +304,7 @@ namespace AElf.OS.Network.Grpc
             if (peerNewBlockAnnouncement.HasFork)
             {
                 _recentBlockHeightAndHashMappings.Clear();
+                _preLibBlockHeightAndHashMappings.Clear();
                 return;
             }
             

@@ -291,6 +291,7 @@ namespace AElf.OS.Network.Grpc
             if (hasFork)
             {
                 _recentBlockHeightAndHashMappings.Clear();
+                _preLibBlockHeightAndHashMappings.Clear();
                 if (blockHeight > _forkHeight) _forkHeight = blockHeight;
                 return;
             }
