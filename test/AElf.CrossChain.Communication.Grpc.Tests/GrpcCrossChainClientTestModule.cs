@@ -17,7 +17,7 @@ namespace AElf.CrossChain.Communication.Grpc
             base.ConfigureServices(context);
             
             var services = context.Services;
-            services.AddSingleton<IGrpcCrossChainServer, GrpcGrpcCrossChainServer>();
+            services.AddSingleton<IGrpcCrossChainServer, GrpcCrossChainServer>();
             
             services.AddTransient(o =>
             {
