@@ -1,14 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.TokenConverter;
-using AElf.Kernel.Consensus;
 using AElf.OS.Node.Application;
-using AElf.Types;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {

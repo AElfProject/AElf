@@ -20,6 +20,8 @@ service TreasuryContract {
     }
     rpc Release (ReleaseInput) returns (google.protobuf.Empty) {
     }
+    rpc Register (RegisterInput) returns (google.protobuf.Empty) {
+    }
 
     // View
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
@@ -43,6 +45,14 @@ message DonateInput {
 
 message ReleaseInput {
     sint64 term_number = 1;
+}
+
+message RegisterInput {
+    string token_symbol = 1;
+    string token_name = 2;
+    sint64 total_supply = 3;
+    sint32 decimals = 4;
+    string connector_weight = 5;
 }
 
 message GetWelfareRewardAmountSampleInput {

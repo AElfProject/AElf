@@ -7,7 +7,6 @@ namespace AElf.Contracts.Treasury
     public partial class TreasuryContractState : ContractState
     {
         public SingletonState<Address> TreasuryVirtualAddress { get; set; }
-        public SingletonState<Hash> TreasuryProfitId { get; set; }
 
         public SingletonState<bool> Initialized { get; set; }
 
@@ -23,5 +22,7 @@ namespace AElf.Contracts.Treasury
         public SingletonState<Hash> ReElectionRewardHash { get; set; }
 
         public SingletonState<long> CachedWelfareWeight { get; set; }
+
+        public MappedState<Address, string> ContractSymbols { get; set; }
     }
 }

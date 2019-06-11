@@ -72,7 +72,7 @@ namespace AElf.Contracts.Treasury
             var releasingPeriodNumber = input.TermNumber - 1;
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
-                ProfitId = State.TreasuryProfitId.Value,
+                ProfitId = State.TreasuryHash.Value,
                 Amount = totalReleasedAmount,
                 Period = releasingPeriodNumber
             });
@@ -103,6 +103,44 @@ namespace AElf.Contracts.Treasury
                 });
             }
 
+            return new Empty();
+        }
+
+        /// <summary>
+        /// Help the contract developer to create Smart Token for that contract,
+        /// and set corresponding connector.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty Register(RegisterInput input)
+        {
+            var sender = Context.Sender;
+            Assert(State.ContractSymbols[sender] == null,
+                $"Token for contract {sender} already created.");
+
+            // Create Smart Token
+            State.TokenContract.Create.Send(new CreateInput
+            {
+                Symbol = input.TokenSymbol,
+                TokenName = input.TokenName,
+                Decimals = input.Decimals,
+                Issuer = Context.Sender,
+                IsBurnable = true,
+                TotalSupply = input.TotalSupply
+            });
+            
+            // Set bancor connector.
+            State.TokenConverterContract.SetConnector.Send(new Connector
+            {
+                Symbol = input.TokenSymbol,
+                Weight = input.ConnectorWeight,
+                IsPurchaseEnabled = true,
+                IsVirtualBalanceEnabled = true,
+                VirtualBalance = 0
+            });
+
+            State.ContractSymbols[sender] = input.TokenSymbol;
+            
             return new Empty();
         }
 
