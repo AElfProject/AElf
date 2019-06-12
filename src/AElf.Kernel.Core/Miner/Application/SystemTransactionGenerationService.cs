@@ -21,7 +21,6 @@ namespace AElf.Kernel.Miner.Application
             foreach (var generator in _systemTransactionGenerators)
             {
                 generator.GenerateTransactions(@from, preBlockHeight, preBlockHash, ref generatedTxns);
-                Logger.LogDebug($"[Mine] Generated system transaction from {generator.GetType().Name}");
             }
 
             return generatedTxns;
