@@ -153,6 +153,8 @@ namespace AElf.Kernel.SmartContract.Application
                             if (!preTrace.IsSuccessful())
                             {
                                 trace.ExecutionStatus = ExecutionStatus.Prefailed;
+                                preTrace.SurfaceUpError();
+                                trace.StdErr += preTrace.StdErr;
                                 return trace;
                             }
 
