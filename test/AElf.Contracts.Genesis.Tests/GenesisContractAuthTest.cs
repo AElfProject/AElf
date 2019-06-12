@@ -16,7 +16,7 @@ namespace AElf.Contracts.Genesis
         public async Task Initialize_AlreadyExist()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.Initialize), (new ContractZeroInitializationInput
+                nameof(ACS0Container.ACS0Stub.InitializeContractZeroOwner), (new ContractZeroOwnerInitializationInput
                 {
                     ContractDeploymentAuthorityRequired = true
                 }));

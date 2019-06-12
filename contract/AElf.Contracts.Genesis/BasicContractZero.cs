@@ -78,6 +78,7 @@ namespace AElf.Contracts.Genesis
 
         private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code)
         {
+            // hash name is needed when deploy contract
             Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
 
             var serialNumber = State.ContractSerialNumber.Value;
@@ -186,18 +187,21 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
-        public override Empty Initialize(ContractZeroInitializationInput input)
+        public override Empty InitializeContractZeroOwner(ContractZeroOwnerInitializationInput input)
         {
             Assert(!State.Initialized.Value, "Contract zero already initialized");
             State.Initialized.Value = true;
             Assert(Context.Sender.Equals(Context.Self), "Unauthorized to initialize contract zero.");
             State.ContractDeploymentAuthorityRequired.Value = input.ContractDeploymentAuthorityRequired;
-            if (string.IsNullOrEmpty(input.ZeroOwnerAddressGenerationMethodName))
+            if (!input.ContractDeploymentAuthorityRequired) 
                 return new Empty();
+            Assert(!string.IsNullOrEmpty(input.ZeroOwnerAddressGenerationMethodName), "Invalid input.");
             var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             var ownerAddress =
                 Context.Call<Address>(address, input.ZeroOwnerAddressGenerationMethodName, new Empty());
+            Assert(ownerAddress != null, "Invalid owner.");
             State.ContractZeroOwner.Value = ownerAddress;
+
             return new Empty();
         }
 

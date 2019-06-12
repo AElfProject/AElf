@@ -31,5 +31,10 @@ namespace AElf.Blockchains.MainChain
             parliamentInitializationCallList.Add(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize), new Empty());
             return parliamentInitializationCallList;
         }
+
+        private string GetMethodNameForZeroOwnerAddress()
+        {
+            return nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress);
+        }
     }
 }

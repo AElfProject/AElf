@@ -34,7 +34,7 @@ namespace AElf.OS.Node.Application
     public interface IGenesisSmartContractDtoProvider
     {
         IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress);
-        ContractZeroInitializationInput GetContractZeroInitializationInput();
+        ContractZeroOwnerInitializationInput GetContractZeroOwnerInitializationInput();
     }
 
     public class OsBlockchainNodeContextStartDto
@@ -50,7 +50,7 @@ namespace AElf.OS.Node.Application
 
         public int SmartContractRunnerCategory { get; set; } = KernelConstants.DefaultRunnerCategory;
         
-        public ContractZeroInitializationInput ContractZeroInitializationInput { get; set; }
+        public ContractZeroOwnerInitializationInput ContractZeroOwnerInitializationInput { get; set; }
     }
 
     public static class GenesisSmartContractDtoExtensions
@@ -165,7 +165,7 @@ namespace AElf.OS.Node.Application
                         p.TransactionMethodCallList);
                 }));
             // Add transaction for initialization
-            transactions.Add(GetTransactionForContractZeroInitialization(dto.ContractZeroInitializationInput));
+            transactions.Add(GetTransactionForContractZeroInitialization(dto.ContractZeroOwnerInitializationInput));
 
             if (dto.InitializationTransactions != null)
                 transactions.AddRange(dto.InitializationTransactions);
@@ -225,15 +225,15 @@ namespace AElf.OS.Node.Application
             };
         }
 
-        private Transaction GetTransactionForContractZeroInitialization(ContractZeroInitializationInput contractZeroInitializationInput)
+        private Transaction GetTransactionForContractZeroInitialization(ContractZeroOwnerInitializationInput contractZeroOwnerInitializationInput)
         {
             var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             return new Transaction
             {
                 From = zeroAddress,
                 To = zeroAddress,
-                MethodName = nameof(BasicContractZero.Initialize),
-                Params = contractZeroInitializationInput.ToByteString()
+                MethodName = nameof(BasicContractZero.InitializeContractZeroOwner),
+                Params = contractZeroOwnerInitializationInput.ToByteString()
             };
         }
         

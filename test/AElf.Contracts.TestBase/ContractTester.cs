@@ -209,9 +209,7 @@ namespace AElf.Contracts.TestBase
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-                ContractZeroInitializationInput = new ContractZeroInitializationInput
-                {
-                }
+                ContractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput()
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract(
@@ -235,7 +233,7 @@ namespace AElf.Contracts.TestBase
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-                ContractZeroInitializationInput = new ContractZeroInitializationInput
+                ContractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
                 {
                     ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
                     ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress)
@@ -274,7 +272,7 @@ namespace AElf.Contracts.TestBase
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-                ContractZeroInitializationInput = new ContractZeroInitializationInput
+                ContractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
                 {
                     ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
                     ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress)

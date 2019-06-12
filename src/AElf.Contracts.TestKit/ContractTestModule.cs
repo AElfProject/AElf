@@ -120,7 +120,7 @@ namespace AElf.Contracts.TestKit
                 ChainId = ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-                ContractZeroInitializationInput = new ContractZeroInitializationInput
+                ContractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
                 {
                     ContractDeploymentAuthorityRequired = context.ServiceProvider
                         .GetService<IOptionsSnapshot<ContractOptions>>().Value.ContractDeploymentAuthorityRequired

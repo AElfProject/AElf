@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Acs0;
 using AElf.Contracts.Deployer;
-using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.OS.Node.Application;
 using AElf.Types;
@@ -20,16 +18,13 @@ namespace AElf.Blockchains.MainChain
         private readonly ConsensusOptions _consensusOptions;
         private readonly TokenInitialOptions _tokenInitialOptions;
         private readonly ContractOptions _contractOptions;
-        private readonly ChainOptions _chainOptions;
 
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> dposOptions,
-            IOptionsSnapshot<TokenInitialOptions> tokenInitialOptions, IOptionsSnapshot<ContractOptions> contractOptions,
-            IOptionsSnapshot<ChainOptions> chainOptions)
+            IOptionsSnapshot<TokenInitialOptions> tokenInitialOptions, IOptionsSnapshot<ContractOptions> contractOptions)
         {
             _consensusOptions = dposOptions.Value;
             _tokenInitialOptions = tokenInitialOptions.Value;
             _contractOptions = contractOptions.Value;
-            _chainOptions = chainOptions.Value;
         }
 
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
@@ -48,17 +43,15 @@ namespace AElf.Blockchains.MainChain
             }.SelectMany(x => x);
         }
 
-        public ContractZeroInitializationInput GetContractZeroInitializationInput()
+        public ContractZeroOwnerInitializationInput GetContractZeroOwnerInitializationInput()
         {
-            var contractZeroInitializationInput = new ContractZeroInitializationInput
+            var contractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
             {
-                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub
-                    .GetDefaultOwnerAddress),
-                ContractDeploymentAuthorityRequired = _chainOptions.NetType == NetType.MainNet ||
-                                                      _contractOptions.ContractDeploymentAuthorityRequired
+                ZeroOwnerAddressGenerationMethodName = GetMethodNameForZeroOwnerAddress(),
+                ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
             };
             
-            return contractZeroInitializationInput;
+            return contractZeroOwnerInitializationInput;
         }
     }
 }
