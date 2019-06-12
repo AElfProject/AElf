@@ -31,7 +31,7 @@ namespace AElf.Benchmark
         private List<ECKeyPair> _keyPairs;
         private Block _block;
 
-        [Params(1, 10, 100, 1000, 3000)] 
+        [Params(1, 10, 100, 1000, 3000, 5000)] 
         public int TransactionCount;
 
         [GlobalSetup]
@@ -64,7 +64,6 @@ namespace AElf.Benchmark
                     PreviousBlockHash = chain.BestChainHash,
                     Time = TimestampHelper.GetUtcNow()
                 },
-                Body = new BlockBody()
             };
 
             (_prepareTransactions, _keyPairs) = await _osTestHelper.PrepareTokenForParallel(TransactionCount);
@@ -75,6 +74,17 @@ namespace AElf.Benchmark
             
             _systemTransactions = await _osTestHelper.GenerateTransferTransactions(1);
             _cancellableTransactions = await _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs);
+            chain = await _blockchainService.GetChainAsync();
+            _block = new Block
+            {
+                Header = new BlockHeader
+                {
+                    ChainId = chain.Id,
+                    Height = chain.BestChainHeight + 1,
+                    PreviousBlockHash = chain.BestChainHash,
+                    Time = TimestampHelper.GetUtcNow()
+                },
+            };
         }
         
         [Benchmark]
@@ -88,7 +98,7 @@ namespace AElf.Benchmark
         public async Task IterationCleanup()
         {
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            foreach (var transaction in _systemTransactions.Concat(_prepareTransactions).Concat(_cancellableTransactions))
+            foreach (var transaction in _systemTransactions.Concat(_cancellableTransactions))
             {
                 await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
                 await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),

@@ -54,7 +54,7 @@ namespace AElf.Benchmark
                     Time = TimestampHelper.GetUtcNow()
                 }
             };
-
+            
             _transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
         }
 
