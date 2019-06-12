@@ -18,59 +18,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         private static int MinimumCount => AEDPoSContractTestConstants.InitialMinersCount.Mul(2).Div(3);
 
-        [Fact]
-        internal async Task<Dictionary<string, AElfConsensusTriggerInformation>> GenerateEncryptedMessagesTest()
-        {
-            var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
-
-            var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount)
-                .Select(_ => Hash.Generate()).ToList();
-            var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i =>
-                new AElfConsensusTriggerInformation
-                {
-                    PublicKey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
-                    RandomHash = randomHashes[i]
-                }).ToDictionary(t => t.PublicKey.ToHex(), t => t);
-
-            foreach (var minerInRound in firstRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
-            {
-                var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
-
-                KeyPairProvider.SetKeyPair(currentKeyPair);
-
-                BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
-
-                var tester = GetAEDPoSContractStub(currentKeyPair);
-                var headerInformation = new AElfConsensusHeaderInformation();
-                headerInformation.MergeFrom(
-                    (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]
-                        .ToBytesValue())).Value);
-                var encryptedInValues = headerInformation.Round.RealTimeMinersInformation[minerInRound.PublicKey]
-                    .EncryptedInValues;
-
-                // Won't pass due to clear related data from extra data.
-//                encryptedInValues.Count.ShouldBe(AEDPoSContractTestConstants.InitialMinersCount - 1);
-//                foreach (var (key, value) in encryptedInValues)
-//                {
-//                    InitialMinersKeyPairs.Select(p => p.PublicKey.ToHex()).ShouldContain(key);
-//                    value.ShouldNotBeEmpty();
-//                }
-
-                // Update consensus information.
-                var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.PublicKey);
-                await tester.UpdateValue.SendAsync(toUpdate);
-            }
-
-            var updatedRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
-
-            foreach (var minerInRound in updatedRound.RealTimeMinersInformation.Values)
-            {
-                //minerInRound.EncryptedInValues.Count.ShouldBe(AEDPoSContractTestConstants.InitialMinersCount - 1);
-            }
-
-            return triggers;
-        }
-
         /// <summary>
         /// Test the correctness of basic logic of secret sharing.
         /// </summary>
@@ -121,7 +68,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public async Task DecryptMessageTest()
         {
-            var previousTriggers = await GenerateEncryptedMessagesTest();
+            var previousTriggers = await GenerateEncryptedMessages();
 
             await BootMinerChangeRoundAsync();
 
@@ -162,6 +109,45 @@ namespace AElf.Contracts.Consensus.AEDPoS
 //            var secondRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 //            secondRound.RealTimeMinersInformation.Values.Count(v => v.PreviousInValue != null)
 //                .ShouldBe(AEDPoSContractTestConstants.InitialMinersCount);
+        }
+
+        /// <summary>
+        /// Generate encrypted messages and put them to round information.
+        /// </summary>
+        /// <returns></returns>
+        private async Task<Dictionary<string, AElfConsensusTriggerInformation>> GenerateEncryptedMessages()
+        {
+            var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
+
+            var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount)
+                .Select(_ => Hash.Generate()).ToList();
+            var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i =>
+                new AElfConsensusTriggerInformation
+                {
+                    PublicKey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
+                    RandomHash = randomHashes[i]
+                }).ToDictionary(t => t.PublicKey.ToHex(), t => t);
+
+            foreach (var minerInRound in firstRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
+            {
+                var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
+
+                KeyPairProvider.SetKeyPair(currentKeyPair);
+
+                BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
+
+                var tester = GetAEDPoSContractStub(currentKeyPair);
+                var headerInformation = new AElfConsensusHeaderInformation();
+                headerInformation.MergeFrom(
+                    (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]
+                        .ToBytesValue())).Value);
+
+                // Update consensus information.
+                var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.PublicKey);
+                await tester.UpdateValue.SendAsync(toUpdate);
+            }
+
+            return triggers;
         }
     }
 }
