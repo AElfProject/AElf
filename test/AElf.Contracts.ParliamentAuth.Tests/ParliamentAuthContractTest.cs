@@ -45,7 +45,7 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Get_Organization()
         {
-            _organizationAddress = await Create_Organization();
+            _organizationAddress = await CreateOrganizationAsync();
             var getOrganization = await ParliamentAuthContractStub.GetOrganization.CallAsync(_organizationAddress);
             
             getOrganization.OrganizationAddress.ShouldBe(_organizationAddress);
@@ -66,8 +66,8 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Get_Proposal()
         {
-            _defaultOrganizationAddress = await Get_DefaultOrganizationAddress();
-            var proposalId = await Create_Proposal(_defaultOrganizationAddress);
+            _defaultOrganizationAddress = await GetDefaultOrganizationAddressAsync();
+            var proposalId = await CreateProposalAsync(_defaultOrganizationAddress);
             var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId);
             
             getProposal.Output.Proposer.ShouldBe(DefaultSender);
@@ -111,7 +111,7 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Create_ProposalFailed()
         {
-            _defaultOrganizationAddress = await Get_DefaultOrganizationAddress();
+            _defaultOrganizationAddress = await GetDefaultOrganizationAddressAsync();
             var blockTime = BlockTimeProvider.GetBlockTime();
             _createProposalInput = new CreateProposalInput
             {
@@ -189,8 +189,8 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Approve_Proposal_NotAuthorizedApproval()
         {
-            _defaultOrganizationAddress = await Get_DefaultOrganizationAddress();
-            var proposalId = await Create_Proposal(_defaultOrganizationAddress);
+            _defaultOrganizationAddress = await GetDefaultOrganizationAddressAsync();
+            var proposalId = await CreateProposalAsync(_defaultOrganizationAddress);
             
             ParliamentAuthContractStub = GetParliamentAuthContractTester(TesterKeyPair);
             var transactionResult = await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput
@@ -204,8 +204,8 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Approve_Proposal_ExpiredTime()
         {
-            _defaultOrganizationAddress = await Get_DefaultOrganizationAddress();
-            var proposalId = await Create_Proposal(_defaultOrganizationAddress);
+            _defaultOrganizationAddress = await GetDefaultOrganizationAddressAsync();
+            var proposalId = await CreateProposalAsync(_defaultOrganizationAddress);
             
             ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);
             BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
@@ -219,8 +219,8 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Approve_Proposal_ApprovalAlreadyExists()
         {
-            _defaultOrganizationAddress = await Get_DefaultOrganizationAddress();
-            var proposalId = await Create_Proposal(_defaultOrganizationAddress);
+            _defaultOrganizationAddress = await GetDefaultOrganizationAddressAsync();
+            var proposalId = await CreateProposalAsync(_defaultOrganizationAddress);
             
             ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);            
             var transactionResult1 = await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
@@ -236,8 +236,8 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Approve_And_ReleaseProposal_1()
         {
-            _defaultOrganizationAddress = await Get_DefaultOrganizationAddress();
-            var proposalId = await Create_Proposal(_defaultOrganizationAddress);
+            _defaultOrganizationAddress = await GetDefaultOrganizationAddressAsync();
+            var proposalId = await CreateProposalAsync(_defaultOrganizationAddress);
             await TransferForOrganizationAddressAsync(_defaultOrganizationAddress);
             ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);
             
@@ -266,8 +266,8 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Approve_And_ReleaseProposal_2()
         {
-            _organizationAddress = await Create_Organization();
-            var proposalId = await Create_Proposal(_organizationAddress);
+            _organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(_organizationAddress);
             await TransferForOrganizationAddressAsync(_organizationAddress);
             ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);
             var transactionResult = await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
@@ -291,8 +291,8 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Approve_And_ReleaseProposalFailed()
         {
-            _organizationAddress = await Create_Organization();
-            var proposalId = await Create_Proposal(_organizationAddress);
+            _organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(_organizationAddress);
             ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);
             var transactionResult = await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -310,7 +310,7 @@ namespace AElf.Contracts.ParliamentAuth
             getBalance.ShouldBe(0);
         }
        
-        public async Task<Hash> Create_Proposal(Address organizationAddress)
+        private async Task<Hash> CreateProposalAsync(Address organizationAddress)
         {            
             _transferInput = new TransferInput()
             {
@@ -332,7 +332,7 @@ namespace AElf.Contracts.ParliamentAuth
             return proposal.Output;
         }
         
-        public async Task<Address> Create_Organization()
+        private async Task<Address> CreateOrganizationAsync()
         {           
             _createOrganizationInput = new CreateOrganizationInput
             {
@@ -345,7 +345,7 @@ namespace AElf.Contracts.ParliamentAuth
             return transactionResult.Output;
         }
 
-        public async Task<Address> Get_DefaultOrganizationAddress()
+        private async Task<Address> GetDefaultOrganizationAddressAsync()
         {
             _defaultOrganizationAddress =
                 await ParliamentAuthContractStub.GetDefaultOwnerAddress.CallAsync(new Empty());
