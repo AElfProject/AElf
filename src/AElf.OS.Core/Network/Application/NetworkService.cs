@@ -20,7 +20,8 @@ namespace AElf.OS.Network.Application
 
         public ILogger<NetworkService> Logger { get; set; }
         
-        private BlockingCollection<KeyValuePair<int, Func<Task>>> _outgoingMessages { get; set; }
+        private BlockingCollection<Func<Task>> _announcementQueue { get; set; }
+        private BlockingCollection<Func<Task>> _transactionQueue { get; set; }
 
         public NetworkService(IPeerPool peerPool)
         {
@@ -28,27 +29,29 @@ namespace AElf.OS.Network.Application
 
             Logger = NullLogger<NetworkService>.Instance;
             
-            var queue = new SimplePriorityQueue<int, Func<Task>>(2);
-            _outgoingMessages = new BlockingCollection<KeyValuePair<int, Func<Task>>>(queue);
+            _announcementQueue = new BlockingCollection<Func<Task>>();
+            _transactionQueue = new BlockingCollection<Func<Task>>();
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 2; i++)
             {
-                Task.Factory.StartNew(async () =>
+                Task.Factory.StartNew(() => BroadcastLoop(_announcementQueue));
+                Task.Factory.StartNew(() => BroadcastLoop(_transactionQueue));
+            }
+        }
+
+        private async Task BroadcastLoop(BlockingCollection<Func<Task>> queue)
+        {
+            while (true)
+            {
+                var func = queue.Take();
+                try
                 {
-                    while (true)
-                    {
-                        var funcKvp = _outgoingMessages.Take();
-                        var func = funcKvp.Value;
-                        try
-                        {
-                            await func();
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.LogDebug(e, "Error while dQeuing.");
-                        }
-                    }
-                });
+                    await func();
+                }
+                catch (Exception e)
+                {
+                    Logger.LogDebug(e, "Error while dequeuing.");
+                }
             }
         }
 
@@ -94,10 +97,10 @@ namespace AElf.OS.Network.Application
 
             foreach (var peer in _peerPool.GetPeers())
             {
-                _outgoingMessages.TryAdd(new KeyValuePair<int, Func<Task>>(0, async () =>
+                _announcementQueue.TryAdd(async () =>
                 {
                     await peer.AnnounceAsync(announce);
-                }));
+                });
             }
 //            foreach (var finishedTask in tasks.Where(t => t.IsCompleted))
 //            {
@@ -136,10 +139,10 @@ namespace AElf.OS.Network.Application
             {
                 try
                 {
-                    _outgoingMessages.TryAdd(new KeyValuePair<int, Func<Task>>(1, async () =>
+                    _announcementQueue.TryAdd(async () =>
                     {
                         await peer.SendTransactionAsync(tx);
-                    }));
+                    });
                     
                     //peer.SendTransactionAsync(tx);
                     successfulBcasts++;
