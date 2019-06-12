@@ -104,7 +104,8 @@ namespace AElf.Kernel.SmartContract.Application
                 return new TransactionTrace
                 {
                     TransactionId = transaction.GetHash(),
-                    ExecutionStatus = ExecutionStatus.Canceled
+                    ExecutionStatus = ExecutionStatus.Canceled,
+                    StdErr = "Execution cancelled"
                 };
             }
 
