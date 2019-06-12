@@ -110,7 +110,7 @@ namespace AElf.OS
         ///        Fork Branch:                    (e)-> q -> r -> s -> t -> u
         ///    Unlinked Branch:                                              v  -> w  -> x  -> y  -> z
         /// </returns>
-        public async Task MockChain()
+        public async Task MockChainAsync()
         {
             await StartNodeAsync();
             var chain = await _blockchainService.GetChainAsync();

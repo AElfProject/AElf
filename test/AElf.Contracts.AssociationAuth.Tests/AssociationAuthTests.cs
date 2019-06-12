@@ -27,7 +27,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Get_Organization()
         {
-            _organizationAddress = await Create_Organization();
+            _organizationAddress = await CreateOrganizationAsync();
             var getOrganization = await AssociationAuthContractStub.GetOrganization.CallAsync(_organizationAddress);
             
             getOrganization.OrganizationAddress.ShouldBe(_organizationAddress);
@@ -50,7 +50,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Get_Proposal()
         {
-            var proposalId = await Create_Proposal();
+            var proposalId = await CreateProposalAsync();
             var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId);
             
             getProposal.Output.Proposer.ShouldBe(Reviewer2);
@@ -113,7 +113,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Create_ProposalFailed()
         {
-            _organizationAddress = await Create_Organization();
+            _organizationAddress = await CreateOrganizationAsync();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
             var blockTime = BlockTimeProvider.GetBlockTime();
             _createProposalInput = new CreateProposalInput
@@ -210,7 +210,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Approve_Proposal_NotAuthorizedApproval()
         {
-            var proposalId = await Create_Proposal();
+            var proposalId = await CreateProposalAsync();
             AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
             var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput
             {
@@ -223,7 +223,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Approve_Proposal_ExpiredTime()
         {
-            var proposalId = await Create_Proposal();
+            var proposalId = await CreateProposalAsync();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
             BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
             var transactionResult = await AssociationAuthContractStub.Approve.CallAsync(new ApproveInput
@@ -236,7 +236,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Approve_Proposal_ApprovalAlreadyExists()
         {
-            var proposalId = await Create_Proposal();
+            var proposalId = await CreateProposalAsync();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
             
             var transactionResult1 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
@@ -252,7 +252,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Approve_And_ReleaseProposal_1()
         {
-            var proposalId = await Create_Proposal();
+            var proposalId = await CreateProposalAsync();
             await TransferToOrganizationAddressAsync();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
             
@@ -289,7 +289,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Approve_And_ReleaseProposal_2()
         {
-            var proposalId = await Create_Proposal();
+            var proposalId = await CreateProposalAsync();
             await TransferToOrganizationAddressAsync();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer3KeyPair);
             var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
@@ -312,7 +312,7 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Approve_And_ReleaseProposalFailed()
         {
-            var proposalId = await Create_Proposal();
+            var proposalId = await CreateProposalAsync();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer3KeyPair);
             var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -331,9 +331,9 @@ namespace AElf.Contracts.AssociationAuth
         }
 
 
-        public async Task<Hash> Create_Proposal()
+        private async Task<Hash> CreateProposalAsync()
         {
-            _organizationAddress = await Create_Organization();
+            _organizationAddress = await CreateOrganizationAsync();
             
             _transferInput = new TransferInput()
             {
@@ -355,7 +355,7 @@ namespace AElf.Contracts.AssociationAuth
             return proposal.Output;
         }
 
-        public async Task<Address> Create_Organization()
+        private async Task<Address> CreateOrganizationAsync()
         {
             var reviewer1 = new Reviewer{Address = Reviewer1,Weight = 1};
             var reviewer2 = new Reviewer{Address = Reviewer2,Weight = 2};

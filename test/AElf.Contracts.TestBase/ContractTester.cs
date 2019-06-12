@@ -223,7 +223,7 @@ namespace AElf.Contracts.TestBase
             return await osBlockchainNodeContextService.StartAsync(dto);
         }
         
-        public async Task<OsBlockchainNodeContext> InitialChainAsyncWithAuth(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
+        public async Task<OsBlockchainNodeContext> InitialChainAsyncWithAuthAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
         {
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
