@@ -11,7 +11,7 @@ service PeerService {
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
     
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
-    rpc SendTransaction (TransactionList) returns (VoidReply) {}
+    rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
 
     rpc Connect (Handshake) returns (ConnectReply) {}
     
@@ -37,11 +37,6 @@ enum AuthError {
     ChainMismatch = 6;
     ProtocolMismatch = 7;
     ConnectionRefused = 8;
-}
-
-message TransactionList
-{
-    repeated aelf.Transaction Transactions = 1;
 }
 
 // **** Blocks *****

@@ -21,6 +21,7 @@ namespace AElf.OS.Network.Grpc
         
         private readonly NetworkOptions _networkOptions;
 
+        private readonly INetworkQueueManager _queueManager;
         private readonly PeerService.PeerServiceBase _serverService;
         private readonly AuthInterceptor _authInterceptor;
 
@@ -29,9 +30,10 @@ namespace AElf.OS.Network.Grpc
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
-        public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, PeerService.PeerServiceBase serverService,
+        public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, INetworkQueueManager queueManager, PeerService.PeerServiceBase serverService,
             IPeerPool peerPool, AuthInterceptor authInterceptor)
         {
+            _queueManager = queueManager;
             _serverService = serverService;
             _authInterceptor = authInterceptor;
             _peerPool = peerPool;
@@ -43,6 +45,9 @@ namespace AElf.OS.Network.Grpc
 
         public async Task StartAsync()
         {
+            _queueManager.CreateQueue(NetworkConstants.AnnouncementQueueName, NetworkConstants.DefaultQueueWorkerCount);
+            _queueManager.CreateQueue(NetworkConstants.TransactionQueueName, NetworkConstants.DefaultQueueWorkerCount);
+                
             ServerServiceDefinition serviceDefinition = PeerService.BindService(_serverService);
 
             if (_authInterceptor != null)

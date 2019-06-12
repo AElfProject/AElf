@@ -17,42 +17,16 @@ namespace AElf.OS.Network.Application
     public class NetworkService : INetworkService, ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
+        private readonly INetworkQueueManager _queueManager;
 
         public ILogger<NetworkService> Logger { get; set; }
-        
-        private BlockingCollection<Func<Task>> _announcementQueue { get; set; }
-        private BlockingCollection<Func<Task>> _transactionQueue { get; set; }
 
-        public NetworkService(IPeerPool peerPool)
+        public NetworkService(IPeerPool peerPool, INetworkQueueManager queueManager)
         {
             _peerPool = peerPool;
+            _queueManager = queueManager;
 
             Logger = NullLogger<NetworkService>.Instance;
-            
-            _announcementQueue = new BlockingCollection<Func<Task>>();
-            _transactionQueue = new BlockingCollection<Func<Task>>();
-
-            for (int i = 0; i < 2; i++)
-            {
-                Task.Factory.StartNew(() => BroadcastLoop(_announcementQueue));
-                Task.Factory.StartNew(() => BroadcastLoop(_transactionQueue));
-            }
-        }
-
-        private async Task BroadcastLoop(BlockingCollection<Func<Task>> queue)
-        {
-            while (true)
-            {
-                var func = queue.Take();
-                try
-                {
-                    await func();
-                }
-                catch (Exception e)
-                {
-                    Logger.LogDebug(e, "Error while dequeuing.");
-                }
-            }
         }
 
         public async Task<bool> AddPeerAsync(string address)
@@ -86,49 +60,18 @@ namespace AElf.OS.Network.Application
                 HasFork = hasFork
             };
             
-            //var peers = _peerPool.GetPeers().ToList();
-
             _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash(), hasFork);
-            
-            Logger.LogDebug("About to broadcast to peers.");
-            
-//            var tasks = peers.Select(peer => DoAnnounce(peer, announce)).ToList();
-//            await Task.WhenAll(tasks);
 
             foreach (var peer in _peerPool.GetPeers())
             {
-                _announcementQueue.TryAdd(async () =>
+                var transactionQueue = _queueManager.GetQueue(NetworkConstants.AnnouncementQueueName);
+                await transactionQueue.EnqueueAsync(async () =>
                 {
                     await peer.AnnounceAsync(announce);
                 });
             }
-//            foreach (var finishedTask in tasks.Where(t => t.IsCompleted))
-//            {
-//                if (finishedTask.Result)
-//                    successfulBcasts++;
-//            }
-            
-            Logger.LogDebug("Broadcast successful !");
             
             return successfulBcasts;
-        }
-
-        private async Task<bool> DoAnnounce(IPeer peer, PeerNewBlockAnnouncement announce)
-        {
-            try
-            {
-                Logger.LogDebug($"Before broadcast {announce.BlockHash} to {peer}.");
-                await peer.AnnounceAsync(announce);
-                Logger.LogDebug($"After broadcast {announce.BlockHash} to {peer}.");
-
-                return true;
-            }
-            catch (NetworkException e)
-            {
-                Logger.LogError(e, "Error while sending block.");
-            }
-
-            return false;
         }
         
         public async Task<int> BroadcastTransactionAsync(Transaction tx)
@@ -137,20 +80,11 @@ namespace AElf.OS.Network.Application
             
             foreach (var peer in _peerPool.GetPeers())
             {
-                try
+                var transactionQueue = _queueManager.GetQueue(NetworkConstants.TransactionQueueName);
+                await transactionQueue.EnqueueAsync(async () =>
                 {
-                    _announcementQueue.TryAdd(async () =>
-                    {
-                        await peer.SendTransactionAsync(tx);
-                    });
-                    
-                    //peer.SendTransactionAsync(tx);
-                    successfulBcasts++;
-                }
-                catch (NetworkException e)
-                {
-                    Logger.LogError(e, "Error while sending transaction.");
-                }
+                    await peer.SendTransactionAsync(tx);
+                });
             }
             
             return successfulBcasts;

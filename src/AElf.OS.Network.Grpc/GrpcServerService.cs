@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -174,53 +175,27 @@ namespace AElf.OS.Network.Grpc
 
             return AuthError.None;
         }
-        
-        public async Task HandleEventAsync(BlockAcceptedEvent eventData)
-        {
-            var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            
-            foreach (var txId in block.Body.Transactions)
-            {
-                _allTransactions.TryRemove(txId, out _);
-            }
-        }
 
-        private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTransactions =
-            new ConcurrentDictionary<Hash, TransactionReceipt>();
-        
         /// <summary>
         /// This method is called when another peer broadcasts a transaction.
         /// </summary>
-        public override async Task<VoidReply> SendTransaction(TransactionList transactionList, ServerCallContext context)
+        public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
             var chain = await _blockchainService.GetChainAsync();
             
             // if this transaction's ref block is a lot higher than our chain 
             // then don't participate in p2p network
-//            if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync)
-//                return new VoidReply();
-
-            //Logger.LogDebug($"Received tx {transactionList.Transactions.Count} from {context.GetPeerInfo()}.");
-
-            List<Transaction> toAdd = new List<Transaction>();
-            foreach (var tx in transactionList.Transactions)
+            if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync)
+                return new VoidReply();
+            
+            _taskQueueManager.Enqueue(async () =>
             {
-                var receipt = new TransactionReceipt(tx);
-                if (!_allTransactions.ContainsKey(receipt.TransactionId))
+                await EventBus.PublishAsync(new TransactionsReceivedEvent
                 {
-                    toAdd.Add(tx);
-                }
-            }
-            
-            _taskQueueManager.Enqueue(async () => await EventBus.PublishAsync(new TransactionsReceivedEvent
-            {
-                Transactions = toAdd
-            }), "p2ptx");
-            
-//            _ = Task.Run(async () => await EventBus.PublishAsync(new TransactionsReceivedEvent
-//            {
-//                Transactions = transactionList.Transactions.ToList()
-//            }));
+                    Transactions = new List<Transaction> {tx}
+                });
+                
+            }, NetworkConstants.ReceivedTransactionsQueueName);
 
             return new VoidReply();
         }
@@ -237,11 +212,15 @@ namespace AElf.OS.Network.Grpc
             }
             
             Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
+            
+            _taskQueueManager.Enqueue(async () =>
+            {
+                var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+                peerInPool?.HandlerRemoteAnnounce(an);
 
-            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
-            peerInPool?.HandlerRemoteAnnounce(an);
-
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
+                await EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
+                
+            }, NetworkConstants.ReceivedAnnouncementsQueueName);
             
             return Task.FromResult(new VoidReply());
         }
