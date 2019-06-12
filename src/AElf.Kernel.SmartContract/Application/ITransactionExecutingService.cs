@@ -68,6 +68,11 @@ namespace AElf.Kernel.SmartContract.Application
                         Logger.LogError(trace.StdErr);
                     }
 
+                    if (trace.ExecutionStatus == ExecutionStatus.Canceled)
+                    {
+                        break;
+                    }
+
                     trace.SurfaceUpError();
                 }
                 else
