@@ -25,9 +25,9 @@ namespace AElf.WebApp.Application.Chain
 {
     public interface IBlockChainAppService : IApplicationService
     {
-        Task<string> Call(CallInput input);
+        Task<string> ExecuteTransaction(ExecuteTransactionDto input);
         
-        Task<string> CallRawTransaction(CallRawTransactionDto input);
+        Task<string> ExecuteRawTransaction(ExecuteRawTransactionDto input);
 
         Task<byte[]> GetContractFileDescriptorSet(string address);
 
@@ -104,7 +104,7 @@ namespace AElf.WebApp.Application.Chain
         /// Call a read-only method on a contract.
         /// </summary>
         /// <returns></returns>
-        public async Task<string> Call(CallInput input)
+        public async Task<string> ExecuteTransaction(ExecuteTransactionDto input)
         {
             try
             {
@@ -126,7 +126,7 @@ namespace AElf.WebApp.Application.Chain
             }
         }
 
-        public async Task<string> CallRawTransaction(CallRawTransactionDto input)
+        public async Task<string> ExecuteRawTransaction(ExecuteRawTransactionDto input)
         {
             try
             {

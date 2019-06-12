@@ -1,6 +1,6 @@
 namespace AElf.WebApp.Application.Chain.Dto
 {
-    public class CallInput
+    public class ExecuteTransactionDto
     {
         /// <summary>
         /// raw transaction
