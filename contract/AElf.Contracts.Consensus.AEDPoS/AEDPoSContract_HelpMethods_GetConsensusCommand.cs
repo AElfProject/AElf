@@ -22,7 +22,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             while (true)
             {
                 var isAlone = CheckLonelyMiner(publicKey);
-                if (behaviour == AElfConsensusBehaviour.TinyBlock && isAlone)
+                if (behaviour == AElfConsensusBehaviour.TinyBlock && isAlone && 
+                    currentRound.RealTimeMinersInformation.Count > 2 // There are more than 1 miner possible to save him.
+                    )
                 {
                     behaviour = AElfConsensusBehaviour.Nothing;
                 }
