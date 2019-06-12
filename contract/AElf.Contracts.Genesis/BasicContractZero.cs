@@ -192,9 +192,9 @@ namespace AElf.Contracts.Genesis
             State.Initialized.Value = true;
             Assert(Context.Sender.Equals(Context.Self), "Unauthorized to initialize contract zero.");
             State.ContractDeploymentAuthorityRequired.Value = input.ContractDeploymentAuthorityRequired;
-            if (input.ZeroOwnerAddressGenerationContractHashName == null || string.IsNullOrEmpty(input.ZeroOwnerAddressGenerationMethodName))
+            if (string.IsNullOrEmpty(input.ZeroOwnerAddressGenerationMethodName))
                 return new Empty();
-            var address = GetContractAddressByName(input.ZeroOwnerAddressGenerationContractHashName);
+            var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             var ownerAddress =
                 Context.Call<Address>(address, input.ZeroOwnerAddressGenerationMethodName, new Empty());
             State.ContractZeroOwner.Value = ownerAddress;

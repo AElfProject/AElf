@@ -26,7 +26,6 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Types;
-using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -239,7 +238,6 @@ namespace AElf.Contracts.TestBase
                 ContractZeroInitializationInput = new ContractZeroInitializationInput
                 {
                     ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
-                    ZeroOwnerAddressGenerationContractHashName = ParliamentAuthContractAddressNameProvider.Name,
                     ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress)
                 }
             };
@@ -279,7 +277,6 @@ namespace AElf.Contracts.TestBase
                 ContractZeroInitializationInput = new ContractZeroInitializationInput
                 {
                     ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
-                    ZeroOwnerAddressGenerationContractHashName = ParliamentAuthContractAddressNameProvider.Name,
                     ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress)
                 }
             };

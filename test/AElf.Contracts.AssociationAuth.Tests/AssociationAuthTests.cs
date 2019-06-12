@@ -253,7 +253,7 @@ namespace AElf.Contracts.AssociationAuth
         public async Task Approve_And_ReleaseProposal_1()
         {
             var proposalId = await Create_Proposal();
-            await TransferForOrganizationAddress();
+            await TransferToOrganizationAddressAsync();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
             
             var transactionResult1 = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
@@ -290,7 +290,7 @@ namespace AElf.Contracts.AssociationAuth
         public async Task Approve_And_ReleaseProposal_2()
         {
             var proposalId = await Create_Proposal();
-            await TransferForOrganizationAddress();
+            await TransferToOrganizationAddressAsync();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer3KeyPair);
             var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -374,7 +374,7 @@ namespace AElf.Contracts.AssociationAuth
             return transactionResult.Output;
         }
 
-        private async Task TransferForOrganizationAddress()
+        private async Task TransferToOrganizationAddressAsync()
         {
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {

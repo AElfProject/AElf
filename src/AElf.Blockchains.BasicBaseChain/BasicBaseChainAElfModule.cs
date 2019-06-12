@@ -92,6 +92,8 @@ namespace AElf.Blockchains.BasicBaseChain
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
                     .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
             });
+            
+            Configure<ContractOptions>(configuration.GetSection("Contract"));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

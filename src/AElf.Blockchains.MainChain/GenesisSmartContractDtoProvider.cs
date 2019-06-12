@@ -5,6 +5,7 @@ using AElf.Contracts.Deployer;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Microsoft.Extensions.Options;
@@ -18,12 +19,17 @@ namespace AElf.Blockchains.MainChain
         
         private readonly ConsensusOptions _consensusOptions;
         private readonly TokenInitialOptions _tokenInitialOptions;
+        private readonly ContractOptions _contractOptions;
+        private readonly ChainOptions _chainOptions;
 
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> dposOptions,
-            IOptionsSnapshot<TokenInitialOptions> tokenInitialOptions)
+            IOptionsSnapshot<TokenInitialOptions> tokenInitialOptions, IOptionsSnapshot<ContractOptions> contractOptions,
+            IOptionsSnapshot<ChainOptions> chainOptions)
         {
             _consensusOptions = dposOptions.Value;
             _tokenInitialOptions = tokenInitialOptions.Value;
+            _contractOptions = contractOptions.Value;
+            _chainOptions = chainOptions.Value;
         }
 
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
@@ -46,9 +52,10 @@ namespace AElf.Blockchains.MainChain
         {
             var contractZeroInitializationInput = new ContractZeroInitializationInput
             {
-                ZeroOwnerAddressGenerationContractHashName = ParliamentAuthContractAddressNameProvider.Name,
-                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress),
-                ContractDeploymentAuthorityRequired = true
+                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub
+                    .GetDefaultOwnerAddress),
+                ContractDeploymentAuthorityRequired = _chainOptions.NetType == NetType.MainNet ||
+                                                      _contractOptions.ContractDeploymentAuthorityRequired
             };
             
             return contractZeroInitializationInput;

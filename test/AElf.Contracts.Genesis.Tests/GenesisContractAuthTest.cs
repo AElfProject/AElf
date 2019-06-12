@@ -18,9 +18,7 @@ namespace AElf.Contracts.Genesis
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(ACS0Container.ACS0Stub.Initialize), (new ContractZeroInitializationInput
                 {
-                    ContractDeploymentAuthorityRequired = true,
-                    ZeroOwnerAddressGenerationMethodName = "",
-                    ZeroOwnerAddressGenerationContractHashName = Hash.FromString("")
+                    ContractDeploymentAuthorityRequired = true
                 }));
 
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);

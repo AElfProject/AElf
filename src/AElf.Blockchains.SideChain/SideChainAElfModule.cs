@@ -1,5 +1,4 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
-using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,8 +24,6 @@ namespace AElf.Blockchains.SideChain
         {
             base.ConfigureServices(context);
             context.Services.AddTransient<IGenesisSmartContractDtoProvider, GenesisSmartContractDtoProvider>();
-            var configuration = context.Services.GetConfiguration();
-            Configure<ContractOptions>(configuration.GetSection("Contract"));
         }
     }
 }

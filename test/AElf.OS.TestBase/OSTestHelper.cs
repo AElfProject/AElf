@@ -112,7 +112,7 @@ namespace AElf.OS
         /// </returns>
         public async Task MockChain()
         {
-            await StartNode();
+            await StartNodeAsync();
             var chain = await _blockchainService.GetChainAsync();
 
             if (chain.BestChainHeight == 1)
@@ -265,7 +265,7 @@ namespace AElf.OS
 
         #region private methods
 
-        private async Task StartNode()
+        private async Task StartNodeAsync()
         {
             var dto = new OsBlockchainNodeContextStartDto
             {

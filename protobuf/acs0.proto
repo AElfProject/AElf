@@ -83,9 +83,8 @@ message ChangeContractOwnerInput {
 }
 
 message ContractZeroInitializationInput{
-    aelf.Hash zeroOwnerAddressGenerationContractHashName = 1;
-    string zeroOwnerAddressGenerationMethodName = 2;
-    bool contractDeploymentAuthorityRequired = 3;
+    string zeroOwnerAddressGenerationMethodName = 1;
+    bool contractDeploymentAuthorityRequired = 2;
 }
 
 // Events

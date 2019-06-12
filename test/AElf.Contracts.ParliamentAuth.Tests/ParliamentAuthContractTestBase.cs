@@ -70,7 +70,7 @@ namespace AElf.Contracts.ParliamentAuth
                     DefaultSenderKeyPair
                 ));
             ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
-            AsyncHelper.RunSync(async () => await InitializationParliamentAuth());
+            AsyncHelper.RunSync(async () => await InitializationParliamentAuthAsync());
 
             var otherParliamentAuthContractAddress = AsyncHelper.RunSync(() =>
                 DeployContractAsync(
@@ -83,13 +83,12 @@ namespace AElf.Contracts.ParliamentAuth
             //deploy token contract
             TokenContractAddress = AsyncHelper.RunSync(() =>
                 DeploySystemSmartContract(
-
                     KernelConstants.CodeCoverageRunnerCategory,
                     TokenContractCoe,
                     TokenSmartContractAddressNameProvider.Name,
                     DefaultSenderKeyPair));
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
-            AsyncHelper.RunSync(async () => await InitializeToken());
+            AsyncHelper.RunSync(async () => await InitializeTokenAsync());
 
             ConsensusContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
@@ -97,7 +96,7 @@ namespace AElf.Contracts.ParliamentAuth
                 ConsensusSmartContractAddressNameProvider.Name,
                 DefaultSenderKeyPair));
             ConsensusContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
-            AsyncHelper.RunSync(async () => await InitializeConsensus());
+            AsyncHelper.RunSync(async () => await InitializeConsensusAsync());
         }
         
         
@@ -123,12 +122,12 @@ namespace AElf.Contracts.ParliamentAuth
                 keyPair);
         }
 
-        private async Task InitializationParliamentAuth()
+        private async Task InitializationParliamentAuthAsync()
         {
             await ParliamentAuthContractStub.Initialize.SendAsync(new Empty());
         }
 
-        private async Task InitializeToken()
+        private async Task InitializeTokenAsync()
         {
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
@@ -150,7 +149,7 @@ namespace AElf.Contracts.ParliamentAuth
             });
         }
 
-        private async Task InitializeConsensus()
+        private async Task InitializeConsensusAsync()
         {
             await ConsensusContractStub.InitialAElfConsensusContract.SendAsync(new InitialAElfConsensusContractInput
             {

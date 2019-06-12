@@ -72,7 +72,6 @@ namespace AElf.Blockchains.SideChain
         {
             var contractZeroInitializationInput = new ContractZeroInitializationInput
             {
-                ZeroOwnerAddressGenerationContractHashName = ParliamentAuthContractAddressNameProvider.Name,
                 ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress),
                 ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
             };
