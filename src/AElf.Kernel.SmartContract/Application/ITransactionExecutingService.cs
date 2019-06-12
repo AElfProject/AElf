@@ -68,7 +68,8 @@ namespace AElf.Kernel.SmartContract.Application
                         Logger.LogError(trace.StdErr);
                     }
 
-                    if (trace.ExecutionStatus == ExecutionStatus.Canceled)
+                    // Do not package this transaction if any of his inline transactions canceled.
+                    if (IsTransactionCanceled(trace))
                     {
                         break;
                     }
@@ -99,6 +100,12 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             return returnSets;
+        }
+
+        private bool IsTransactionCanceled(TransactionTrace trace)
+        {
+            return trace.ExecutionStatus == ExecutionStatus.Canceled ||
+                   trace.InlineTraces.ToList().Any(IsTransactionCanceled);
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, IChainContext chainContext,
