@@ -235,7 +235,7 @@ namespace AElf.OS
                 block.AddTransaction(transaction);
             }
 
-            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoots();
+            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
 
             return block;
         }
@@ -243,8 +243,9 @@ namespace AElf.OS
         public async Task<Address> DeployContract<T>()
         {
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
-
-            var transaction = GenerateTransaction(Address.Generate(), basicContractZero,
+            var accountAddress = await _accountService.GetAccountAsync();
+            
+            var transaction = GenerateTransaction(accountAddress, basicContractZero,
                 nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract), new ContractDeploymentInput()
                 {
                     Category = 0,
