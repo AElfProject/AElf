@@ -1,6 +1,6 @@
 using AElf.Cryptography.Certificate;
 using AElf.Kernel;
-using AElf.Kernel.Node.Infrastructure;
+using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -10,11 +10,11 @@ namespace AElf.CrossChain.Communication.Grpc
 {
     [DependsOn(
         typeof(GrpcCrossChainAElfModule),
-        typeof(KernelCoreTestAElfModule)
+        typeof(KernelCoreTestAElfModule),
+        typeof(SmartContractAElfModule)
     )]
     public class GrpcCrossChainTestModule : AElfModule
     {
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
@@ -30,8 +30,6 @@ namespace AElf.CrossChain.Communication.Grpc
             {
                 option.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF");
             });
-            
-            Configure<CrossChainConfigOption>(option=>option.ParentChainId = ChainHelpers.ConvertBase58ToChainId("AELF"));
             
             services.AddTransient<IGrpcClientPlugin, GrpcCrossChainClientNodePlugin>();
             services.AddTransient<IGrpcServePlugin, GrpcCrossChainServerNodePlugin>();

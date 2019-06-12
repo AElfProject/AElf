@@ -26,11 +26,11 @@ namespace AElf.Blockchains.SideChain
         
         private readonly ChainOptions _chainOptions;
         private readonly ConsensusOptions _consensusOptions;
-        private readonly CrossChainConfigOption _crossChainConfigOptions;
+        private readonly CrossChainConfigOptions _crossChainConfigOptions;
         private readonly IChainInitializationDataPlugin _chainInitializationDataPlugin;
 
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ChainOptions> chainOptions,
-            IOptionsSnapshot<ConsensusOptions> consensusOptions, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOptions,
+            IOptionsSnapshot<ConsensusOptions> consensusOptions, IOptionsSnapshot<CrossChainConfigOptions> crossChainConfigOptions,
             IChainInitializationDataPlugin chainInitializationDataPlugin)
         {
             _chainOptions = chainOptions.Value;
