@@ -1,13 +1,9 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
@@ -19,7 +15,6 @@ using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
