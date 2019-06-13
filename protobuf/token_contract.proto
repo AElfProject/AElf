@@ -44,6 +44,8 @@ service TokenContract {
     }
     rpc SetFeePoolAddress (aelf.Hash) returns (google.protobuf.Empty) {
     }
+    rpc ChargeMethodProfits (ChargeMethodProfitsInput) returns (google.protobuf.Empty) {
+    }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -154,8 +156,16 @@ message BurnInput {
 }
 
 message ChargeTransactionFeesInput {
-    string symbol = 1;
-    sint64 amount = 2;
+    string base_symbol = 1;
+    sint64 base_amount = 2;
+    repeated string available_symbols = 3;
+}
+
+message ChargeMethodProfitsInput {
+    string base_symbol = 1;
+    sint64 base_amount = 2;
+    repeated string available_symbols = 3;
+    aelf.Address profit_virtual_address = 4;
 }
 
 message ClaimTransactionFeesInput {

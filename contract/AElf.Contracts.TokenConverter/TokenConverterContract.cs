@@ -172,6 +172,26 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
+        public override StringValue GetExchangeRate(GetExchangeRateInput input)
+        {
+            Assert(IsValidSymbol(input.FromSymbol), "Invalid from symbol.");
+            Assert(IsValidSymbol(input.ToSymbol), "Invalid to symbol.");
+            var fromConnector = State.Connectors[input.FromSymbol];
+            Assert(fromConnector != null, "Can't find connector.");
+            var fromTokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            {
+                Symbol = input.FromSymbol
+            });
+            var toConnector = State.Connectors[State.BaseTokenSymbol.Value];
+            return new StringValue
+            {
+                Value = BancorHelpers.GetReturnFromPaid(
+                    GetSelfBalance(fromConnector), GetWeight(fromConnector),
+                    GetSelfBalance(toConnector), GetWeight(toConnector),
+                    (long) Math.Pow(10, fromTokenInfo.Decimals)
+                ).ToString()
+            };
+        }
 
         public override Empty Sell(SellInput input)
         {
@@ -278,7 +298,6 @@ namespace AElf.Contracts.TokenConverter
             return decimal.Parse(State.FeeRate.Value);
         }
 
-
         private long GetSelfBalance(Connector connector)
         {
             var realBalance = State.TokenContract.GetBalance.Call(
@@ -289,7 +308,7 @@ namespace AElf.Contracts.TokenConverter
                 }).Balance;
             if (connector.IsVirtualBalanceEnabled)
             {
-                return connector.VirtualBalance + realBalance;
+                return connector.VirtualBalance.Add(realBalance);
             }
 
             return realBalance;

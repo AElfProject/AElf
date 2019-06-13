@@ -2,6 +2,7 @@ using Acs0;
 using Acs1;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -23,6 +24,8 @@ namespace AElf.Contracts.MultiToken
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
-        internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContractReferenceState { get; set; }
+        internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
+
+        internal TokenConverterContractContainer.TokenConverterContractReferenceState TokenConverterContract { get; set; }
     }
 }

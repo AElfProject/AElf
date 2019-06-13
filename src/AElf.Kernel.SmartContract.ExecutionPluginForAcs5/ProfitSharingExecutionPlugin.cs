@@ -9,6 +9,7 @@ using AElf.Kernel.SmartContract.ExecutionPluginForAcs6;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
@@ -21,12 +22,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
         {
             _contextService = contextService;
         }
+
         private static bool IsAcs5(IReadOnlyList<ServiceDescriptor> descriptors)
         {
             return descriptors.Any(service => service.File.GetIndentity() == "acs5");
         }
 
-        public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
+        public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
+            IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
             if (!IsAcs5(descriptors))
             {
@@ -40,34 +43,38 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
                 __factory = new MethodStubFactory(context)
             };
 
-            var profit = await selfStub.GetProfitReceivers.CallAsync(new MethodName()
+            var profit = await selfStub.GetMethodIncomeFee.CallAsync(new StringValue
             {
-                Name = context.TransactionContext.Transaction.MethodName
+                Value = context.TransactionContext.Transaction.MethodName
             });
             var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
-            var tokenStub = new TokenContractContainer.TokenContractStub()
+            var tokenStub = new TokenContractContainer.TokenContractStub
             {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory()
+                __factory = new TransactionGeneratingOnlyMethodStubFactory
                 {
                     Sender = transactionContext.Transaction.From,
                     ContractAddress = tokenContractAddress
                 }
             };
             if (transactionContext.Transaction.To == tokenContractAddress &&
-                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeTransactionFees))
+                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeMethodProfits))
             {
-                // Skip ChargeTransactionFees itself 
+                // Skip ChargeMethodProfits itself 
                 return new List<Transaction>();
             }
-            
-            var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
+
+            var profitVirtualAddress = await selfStub.GetProfitVirtualAddress.CallAsync(new Empty());
+
+            var chargeProfitTransaction = (await tokenStub.ChargeMethodProfits.SendAsync(new ChargeMethodProfitsInput
             {
-                Amount = profit.BaseAmount,
-                Symbol = profit.BaseSymbol
+                BaseAmount = profit.BaseAmount,
+                BaseSymbol = profit.BaseSymbol,
+                AvailableSymbols = {profit.AvailableSymbols},
+                ProfitVirtualAddress = profitVirtualAddress
             })).Transaction;
-            return new List<Transaction>()
+            return new List<Transaction>
             {
-                chargeFeeTransaction
+                chargeProfitTransaction
             };
         }
     }

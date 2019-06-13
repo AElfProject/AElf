@@ -40,7 +40,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 __factory = new MethodStubFactory(context)
             };
 
-            var fee = await selfStub.GetMethodFee.CallAsync(new MethodName()
+            var fee = await selfStub.GetMethodFee.CallAsync(new MethodName
             {
                 Name = context.TransactionContext.Transaction.MethodName
             });
@@ -59,13 +59,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 // Skip ChargeTransactionFees itself 
                 return new List<Transaction>();
             }
-            
+
             var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
             {
-                Amount = fee.BaseAmount,
-                Symbol = fee.BaseSymbol
+                BaseAmount = fee.BaseAmount,
+                BaseSymbol = fee.BaseSymbol,
+                AvailableSymbols = {fee.AvailableSymbols}
             })).Transaction;
-            return new List<Transaction>()
+            return new List<Transaction>
             {
                 chargeFeeTransaction
             };

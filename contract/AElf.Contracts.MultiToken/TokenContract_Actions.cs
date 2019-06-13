@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TokenConverter;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -126,8 +127,8 @@ namespace AElf.Contracts.MultiToken
 
             Assert(transferSender.Equals(Context.Sender) && targetChainId == Context.ChainId,
                 "Unable to claim cross chain token.");
-            if (State.CrossChainContractReferenceState.Value == null)
-                State.CrossChainContractReferenceState.Value =
+            if (State.CrossChainContract.Value == null)
+                State.CrossChainContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
             var verificationInput = new VerifyTransactionInput
             {
@@ -136,11 +137,11 @@ namespace AElf.Contracts.MultiToken
                 VerifiedChainId = input.FromChainId
             };
             verificationInput.Path.AddRange(input.MerklePath);
-            if (State.CrossChainContractReferenceState.Value == null)
-                State.CrossChainContractReferenceState.Value =
+            if (State.CrossChainContract.Value == null)
+                State.CrossChainContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
             var verificationResult =
-                State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
+                State.CrossChainContract.VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Verification failed.");
 
             // Create token if it doesnt exist.
@@ -256,14 +257,33 @@ namespace AElf.Contracts.MultiToken
                 return new Empty();
             }
 
-            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
-            Assert(tokenInfo.Symbol == State.NativeTokenSymbol.Value, "The paid fee is not in native token.");
             var fromAddress = Context.Sender;
-            var existingBalance = State.Balances[fromAddress][input.Symbol];
-            Assert(existingBalance >= input.Amount, "Insufficient balance.");
-            State.Balances[fromAddress][input.Symbol] = existingBalance.Sub(input.Amount);
-            State.ChargedFees[fromAddress][input.Symbol] =
-                State.ChargedFees[fromAddress][input.Symbol].Add(input.Amount);
+
+            // Traverse available token symbols, check balance one by one
+            // until there's balance of one certain token is enough to pay the fee.
+            var symbol = Context.Variables.NativeSymbol;
+            var existingBalance = 0L;
+            var feeAmount = 0L;
+            foreach (var availableSymbol in input.AvailableSymbols)
+            {
+                existingBalance = State.Balances[fromAddress][availableSymbol];
+                var exchangeRate = State.TokenConverterContract.GetExchangeRate.Call(new GetExchangeRateInput
+                {
+                    FromSymbol = availableSymbol,
+                    ToSymbol = Context.Variables.NativeSymbol
+                });
+                var rate = long.Parse(exchangeRate.Value);
+                feeAmount = input.BaseAmount.Mul(rate);
+                if (existingBalance >= feeAmount)
+                {
+                    break;
+                }
+            }
+
+            Assert(existingBalance >= feeAmount, "Insufficient balance.");
+            State.Balances[fromAddress][symbol] = existingBalance.Sub(feeAmount);
+            State.ChargedFees[fromAddress][symbol] =
+                State.ChargedFees[fromAddress][symbol].Add(feeAmount);
             return new Empty();
         }
 

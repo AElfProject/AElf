@@ -13,6 +13,9 @@
         <ContractReference Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\reference\cross_chain_contract.proto</Link>
         </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf\Proto\reference\token_converter_contract.proto</Link>
+        </ContractReference>
     </ItemGroup>
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">

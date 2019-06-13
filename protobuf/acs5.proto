@@ -5,6 +5,7 @@ package acs5;
 import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 option (aelf.identity) = "acs5";
 
@@ -16,6 +17,16 @@ service ProfitSharingContract {
     rpc ReceiveProfits (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc GetProfitReceivers (google.protobuf.Empty) returns (ProfitReceivers) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetMethodIncomeFee (google.protobuf.StringValue) returns (MethodIncomeFee) {
+        option (aelf.is_view) = true;
+    }
+    rpc SetMethodIncomeFee (MethodIncomeFee) returns (google.protobuf.Empty) {
+    }
+
+    // Views
+    rpc GetProfitVirtualAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
 }
@@ -31,4 +42,10 @@ message ProfitReceiverInformation {
 
 message ProfitReceivers {
     repeated ProfitReceiverInformation Value = 1;
+}
+
+message MethodIncomeFee {
+    string base_symbol = 1;
+    sint64 base_amount = 2;
+    repeated string available_symbols = 3;
 }

@@ -43,6 +43,9 @@ service TokenConverterContract {
     rpc GetBaseTokenSymbol (google.protobuf.Empty) returns (TokenSymbol) {
         option (aelf.is_view) = true;
     }
+    rpc GetExchangeRate (GetExchangeRateInput) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message Connector {
@@ -76,6 +79,11 @@ message SellInput {
     string symbol = 1;
     sint64 amount = 2;
     sint64 receive_limit = 3; // No sell if receiving less than this, 0 if no limit
+}
+
+message GetExchangeRateInput {
+    string from_symbol = 1;
+    string to_symbol = 2;
 }
 
 // Events
