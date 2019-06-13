@@ -291,8 +291,8 @@ namespace AElf.Kernel.Blockchain.Application
             if (!success) return;
             // TODO: move to background job, it will slow down our system
             // Clean last branches and not linked
-            var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, chain.LastIrreversibleBlockHash,
-                chain.LastIrreversibleBlockHeight);
+            var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, eventDataToPublish.PreviousIrreversibleBlockHash,
+                eventDataToPublish.PreviousIrreversibleBlockHeight);
             await RemoveBlocksAsync(toCleanBlocks);
 
             await LocalEventBus.PublishAsync(eventDataToPublish);
