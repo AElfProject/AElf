@@ -22,21 +22,5 @@ namespace AElf.Contracts.TestContract.ProfitSharing
             
             return new Empty();
         }
-
-        public override Empty CreateProfitItem(CreateProfitItemInput input)
-        {
-            State.ProfitContract.CreateTreasuryProfitItem.Send(new Profit.CreateProfitItemInput
-            {
-                
-            });
-            return new Empty();
-        }
-
-        public override Empty SetProfitReceivers(ProfitReceivers input)
-        {
-            return new Empty();
-        }
-        
-        
     }
 }

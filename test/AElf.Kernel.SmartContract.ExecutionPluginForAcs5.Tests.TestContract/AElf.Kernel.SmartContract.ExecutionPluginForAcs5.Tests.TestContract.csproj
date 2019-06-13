@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\profit_contract.proto">
+            <Link>Protobuf/Proto/profit_contract.proto</Link>
+        </ContractReference>
+        <ContractBase Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf/Proto/acs5.proto</Link>
+        </ContractBase>
+        <ContractCode Include="..\..\protobuf\acs5_plugin_test_contract.proto">
+            <Link>Protobuf/Proto/acs5_plugin_test_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>
