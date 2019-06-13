@@ -108,15 +108,15 @@ namespace AElf.WebApp.Application.Chain
         {
             try
             {
-                var hexString = ByteArrayHelpers.FromHexString(input.RawTransaction);
-                var transaction = Transaction.Parser.ParseFrom(hexString);
+                var byteArray = ByteArrayHelpers.FromHexString(input.RawTransaction);
+                var transaction = Transaction.Parser.ParseFrom(byteArray);
                 if (!transaction.VerifySignature())
                 {
                     throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
                         Error.InvalidTransaction.ToString());
                 }
 
-                var response = await CallReadOnly(transaction);
+                var response = await CallReadOnlyAsync(transaction);
                 return response?.ToHex();
             }
             catch
@@ -130,8 +130,8 @@ namespace AElf.WebApp.Application.Chain
         {
             try
             {
-                var hexString = ByteArrayHelpers.FromHexString(input.RawTransaction);
-                var transaction = Transaction.Parser.ParseFrom(hexString);
+                var byteArray = ByteArrayHelpers.FromHexString(input.RawTransaction);
+                var transaction = Transaction.Parser.ParseFrom(byteArray);
                 transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
                 if (!transaction.VerifySignature())
                 {
@@ -139,7 +139,7 @@ namespace AElf.WebApp.Application.Chain
                         Error.InvalidTransaction.ToString());
                 }
 
-                var response = await CallReadOnlyReturnReadableValue(transaction);
+                var response = await CallReadOnlyReturnReadableValueAsync(transaction);
                 return response;
             }
             catch
@@ -278,13 +278,13 @@ namespace AElf.WebApp.Application.Chain
                     Error.InvalidTransactionId.ToString());
             }
 
-            var transactionResult = await GetTransactionResult(transactionHash);
+            var transactionResult = await GetTransactionResultAsync(transactionHash);
             var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
 
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
-                var block = await GetBlockAtHeight(transactionResult.BlockNumber);
+                var block = await GetBlockAtHeightAsync(transactionResult.BlockNumber);
                 output.BlockHash = block.GetHash().ToHex();
             }
 
@@ -338,7 +338,7 @@ namespace AElf.WebApp.Application.Chain
                     Error.InvalidBlockHash.ToString());
             }
 
-            var block = await GetBlock(realBlockHash);
+            var block = await GetBlockAsync(realBlockHash);
             if (block == null)
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
@@ -351,7 +351,7 @@ namespace AElf.WebApp.Application.Chain
                 var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, limit);
                 foreach (var hash in transactionHashes)
                 {
-                    var transactionResult = await GetTransactionResult(hash);
+                    var transactionResult = await GetTransactionResultAsync(hash);
                     var transactionResultDto =
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
                     var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
@@ -405,7 +405,7 @@ namespace AElf.WebApp.Application.Chain
                     Error.InvalidBlockHash.ToString());
             }
 
-            var block = await GetBlock(realBlockHash);
+            var block = await GetBlockAsync(realBlockHash);
             
             if (block == null)
             {
@@ -459,7 +459,7 @@ namespace AElf.WebApp.Application.Chain
         {
             if (blockHeight == 0)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-            var blockInfo = await GetBlockAtHeight(blockHeight);
+            var blockInfo = await GetBlockAtHeightAsync(blockHeight);
             
             if (blockInfo == null)
             {
@@ -530,7 +530,7 @@ namespace AElf.WebApp.Application.Chain
 
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
             {
-                var block = await GetBlock(Hash.LoadBase64(notLinkedBlock.Value));
+                var block = await GetBlockAsync(Hash.LoadBase64(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new NotLinkedBlockDto
                     {
                         BlockHash = block.GetHash().ToHex(),
@@ -612,17 +612,17 @@ namespace AElf.WebApp.Application.Chain
             };
         }
 
-        private async Task<Block> GetBlock(Hash blockHash)
+        private async Task<Block> GetBlockAsync(Hash blockHash)
         {
             return await _blockchainService.GetBlockByHashAsync(blockHash);
         }
         
-        private async Task<Block> GetBlockAtHeight(long height)
+        private async Task<Block> GetBlockAtHeightAsync(long height)
         {
             return await _blockchainService.GetBlockByHeightInBestChainBranchAsync(height);
         }
         
-        private async Task<TransactionResult> GetTransactionResult(Hash txHash)
+        private async Task<TransactionResult> GetTransactionResultAsync(Hash txHash)
         {
             // in storage
             var res = await _transactionResultQueryService.GetTransactionResultAsync(txHash);
@@ -726,7 +726,7 @@ namespace AElf.WebApp.Application.Chain
             return await _transactionReadOnlyExecutionService.GetFileDescriptorsAsync(chainContext, address);
         }
         
-        private async Task<byte[]> CallReadOnly(Transaction tx)
+        private async Task<byte[]> CallReadOnlyAsync(Transaction tx)
         {
             var chainContext = await GetChainContextAsync();
 
@@ -738,7 +738,7 @@ namespace AElf.WebApp.Application.Chain
             return trace.ReturnValue.ToByteArray();
         }
         
-        private async Task<string> CallReadOnlyReturnReadableValue(Transaction tx)
+        private async Task<string> CallReadOnlyReturnReadableValueAsync(Transaction tx)
         {
             var chainContext = await GetChainContextAsync();
 
