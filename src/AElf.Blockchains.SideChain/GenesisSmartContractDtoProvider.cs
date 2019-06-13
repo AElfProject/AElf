@@ -68,15 +68,19 @@ namespace AElf.Blockchains.SideChain
             return l;
         }
 
-        public ContractZeroOwnerInitializationInput GetContractZeroOwnerInitializationInput()
+        public ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto()
         {
             var contractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
             {
-                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetContractZeroOwnerAddress),
+                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub
+                    .GetContractZeroOwnerAddress),
                 ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
             };
-            
-            return contractZeroOwnerInitializationInput;
+
+            return new ContractZeroOwnerInitializationDto
+            {
+                ContractZeroOwnerInitializationInput = contractZeroOwnerInitializationInput
+            };
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
