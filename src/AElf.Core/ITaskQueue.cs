@@ -15,20 +15,44 @@ namespace AElf
     public interface ITaskQueue : IDisposable
     {
         void Enqueue(Func<Task> task);
-        Task StartAsync();
-        Task StopAsync();
         int Size { get; }
+
+        int MaxDegreeOfParallelism { get; }
+
+        void Start(int maxDegreeOfParallelism = 1);
     }
 
     public class TaskQueue : ITaskQueue, ITransientDependency
     {
-        private BufferBlock<Func<Task>> _queue = new BufferBlock<Func<Task>>();
-
-        private CancellationTokenSource _cancellationTokenSource;
+        private ActionBlock<Func<Task>> _actionBlock;
 
         public ILogger<TaskQueue> Logger { get; set; }
 
-        public int Size => _queue.Count;
+        public int Size => _actionBlock.InputCount;
+        public int MaxDegreeOfParallelism { get; private set; } = 1;
+
+        public void Start(int maxDegreeOfParallelism = 1)
+        {
+            if (_actionBlock != null)
+                throw new InvalidOperationException("already started");
+
+            MaxDegreeOfParallelism = maxDegreeOfParallelism;
+
+            _actionBlock = new ActionBlock<Func<Task>>(async func =>
+            {
+                try
+                {
+                    await func();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogException(ex, LogLevel.Warning);
+                }
+            }, new ExecutionDataflowBlockOptions()
+            {
+                MaxDegreeOfParallelism = MaxDegreeOfParallelism
+            });
+        }
 
         public TaskQueue()
         {
@@ -37,56 +61,15 @@ namespace AElf
 
         public void Dispose()
         {
-            if (_cancellationTokenSource != null)
-            {
-                if (!_cancellationTokenSource.IsCancellationRequested)
-                {
-                    _cancellationTokenSource.Cancel();
-                }
+            _actionBlock.Complete();
 
-                if (_queue.Count > 0)
-                    Task.WaitAny(_queue.Completion);
-                _cancellationTokenSource.Dispose();
-            }
+            _actionBlock.Completion.Wait();
         }
 
         public void Enqueue(Func<Task> task)
         {
-            if (_cancellationTokenSource.Token.IsCancellationRequested)
-                throw new InvalidOperationException("cannot enqueue into a stopped queue");
-            _queue.Post(task);
-        }
-
-        public async Task StartAsync()
-        {
-            if (_cancellationTokenSource != null)
-                throw new InvalidOperationException("Already started");
-
-            _cancellationTokenSource = new CancellationTokenSource();
-
-            while (await _queue.OutputAvailableAsync())
-            {
-                try
-                {
-                    var func = await _queue.ReceiveAsync();
-                    await func();
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogException(ex, LogLevel.Warning);
-                }
-
-                if (_cancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    if (_queue.Count == 0)
-                        _queue.Complete();
-                }
-            }
-        }
-
-        public async Task StopAsync()
-        {
-            _cancellationTokenSource.Cancel();
+            if (!_actionBlock.Post(task))
+                throw new InvalidOperationException("unable to enqueue a task");
         }
     }
 
@@ -94,6 +77,9 @@ namespace AElf
     public interface ITaskQueueManager : IDisposable
     {
         ITaskQueue GetQueue(string name = null);
+
+        ITaskQueue CreateQueue(string name, int maxDegreeOfParallelism = 1);
+
         List<TaskQueueInfo> GetQueueStatus();
     }
 
@@ -109,18 +95,17 @@ namespace AElf
     {
         private readonly IServiceProvider _serviceProvider;
 
-        private ITaskQueue _defaultTaskQueue;
+        private readonly ITaskQueue _defaultTaskQueue;
 
-        private ConcurrentDictionary<string, ITaskQueue> _taskQueues = new ConcurrentDictionary<string, ITaskQueue>();
+        private readonly ConcurrentDictionary<string, ITaskQueue> _taskQueues =
+            new ConcurrentDictionary<string, ITaskQueue>();
 
         public TaskQueueManager(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
 
             _defaultTaskQueue = _serviceProvider.GetService<ITaskQueue>();
-
-            AsyncHelper.RunSync(() =>
-                Task.Factory.StartNew(() => _defaultTaskQueue.StartAsync(), TaskCreationOptions.LongRunning));
+            _defaultTaskQueue.Start();
         }
 
         public void Dispose()
@@ -137,18 +122,21 @@ namespace AElf
             if (name == null)
                 return _defaultTaskQueue;
 
-            if (_taskQueues.TryGetValue(name, out var queue))
+            _taskQueues.TryGetValue(name, out var queue);
+            return queue;
+        }
+
+        public ITaskQueue CreateQueue(string name, int maxDegreeOfParallelism)
+        {
+            var q = _serviceProvider.GetService<ITaskQueue>();
+            q.Start(maxDegreeOfParallelism);
+
+            if (!_taskQueues.TryAdd(name, q))
             {
-                return queue;
+                throw new InvalidOperationException("queue already created");
             }
 
-            return _taskQueues.GetOrAdd(name, _ =>
-            {
-                var q = _serviceProvider.GetService<ITaskQueue>();
-                AsyncHelper.RunSync(() => Task.Factory.StartNew(() => q.StartAsync(), TaskCreationOptions
-                    .LongRunning));
-                return q;
-            });
+            return q;
         }
 
         public List<TaskQueueInfo> GetQueueStatus()
