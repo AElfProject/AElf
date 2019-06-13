@@ -21,17 +21,38 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void TryToFindLastIrreversibleBlock()
         {
             if (!CalculateLastIrreversibleBlock(out var offset)) return;
+            offset = offset.Mul(AEDPoSContractConstants.TinyBlocksNumber);
             Context.LogDebug(() => $"LIB found, offset is {offset}");
             Context.Fire(new IrreversibleBlockFound
             {
-                Offset = offset.Mul(AEDPoSContractConstants.TinyBlocksNumber)
+                Offset = offset
             });
         }
 
         private bool CalculateLastIrreversibleBlock(out long offset)
         {
             offset = 0;
+            if (!TryToGetCurrentRoundInformation(out var currentRound) || currentRound.RoundNumber <= 2 ||
+                !IsMinersOnSameBranchEnough(out var publicKeys, out var isCurrentRoundEnough)) return false;
+            var minersCount = currentRound.RealTimeMinersInformation.Count;
+            offset = isCurrentRoundEnough ? minersCount.Mul(2) : minersCount.Mul(3);
+            return isCurrentRoundEnough
+                ? AreMinersOnSameBranchInCertainRound(publicKeys, currentRound.RoundNumber.Sub(1))
+                : AreMinersOnSameBranchInCertainRound(publicKeys, currentRound.RoundNumber.Sub(2));
+        }
 
+        private bool AreMinersOnSameBranchInCertainRound(IEnumerable<string> publicKeys, long roundNumber)
+        {
+            if (!TryToGetRoundInformation(roundNumber, out var round)) return false;
+            var validMiners = round.RealTimeMinersInformation.Values.Where(i => i.OutValue != null).Select(i => i.PublicKey);
+            return publicKeys.All(k => validMiners.Contains(k));
+        }
+
+        private bool IsMinersOnSameBranchEnough(out HashSet<string> publicKeys, out bool isCurrentRoundEnough)
+        {
+            publicKeys = new HashSet<string>();
+            isCurrentRoundEnough = true;
+            
             if (!TryToGetCurrentRoundInformation(out var currentRound)) return false;
 
             var currentRoundMiners = currentRound.RealTimeMinersInformation;
@@ -43,7 +64,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (minersCount == 1)
             {
                 // Single node will set every previous block as LIB.
-                offset = 1;
                 return true;
             }
 
@@ -52,13 +72,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (validMinersCountOfCurrentRound >= minimumCount)
             {
-                offset = minimumCount;
                 return true;
             }
 
             // Current round is not enough to find LIB.
-
-            var publicKeys = new HashSet<string>(validMinersOfCurrentRound.Select(m => m.PublicKey));
+            isCurrentRoundEnough = false;
+            publicKeys = new HashSet<string>(validMinersOfCurrentRound.Select(m => m.PublicKey));
 
             if (TryToGetPreviousRoundInformation(out var previousRound))
             {
@@ -84,7 +103,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                     if (publicKeys.Count >= minimumCount)
                     {
-                        offset = minimumCount;
                         return true;
                     }
                 }
