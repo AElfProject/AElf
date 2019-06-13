@@ -59,7 +59,7 @@ namespace AElf.Contracts.Genesis
         }
 
 
-        protected async Task<TransactionResult> ApproveWithMiners(Hash proposalId)
+        protected async Task<TransactionResult> ApproveWithMinersAsync(Hash proposalId)
         {
             var tester0 = Tester.CreateNewContractTester(Tester.InitialMinerList[0]);
             await tester0.ExecuteContractWithMiningAsync(ParliamentAddress,
@@ -77,7 +77,7 @@ namespace AElf.Contracts.Genesis
             return txResult;
         }
 
-        protected async Task<Hash> CreateProposal(string methodName, IMessage input)
+        protected async Task<Hash> CreateProposalAsync(string methodName, IMessage input)
         {
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,

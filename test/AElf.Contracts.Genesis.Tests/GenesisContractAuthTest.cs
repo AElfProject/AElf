@@ -36,9 +36,9 @@ namespace AElf.Contracts.Genesis
             };
             string methodName = "DeploySmartContract";
             //create proposal to deploy
-            var proposalId = CreateProposal(methodName, contractDeploymentInput);
+            var proposalId = CreateProposalAsync(methodName, contractDeploymentInput);
             //approve and release
-            var txResult = await ApproveWithMiners(proposalId.Result);
+            var txResult = await ApproveWithMinersAsync(proposalId.Result);
 
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -53,9 +53,9 @@ namespace AElf.Contracts.Genesis
             };
             string methodName = "UpdateSmartContract";
             //create proposal to update
-            var proposalId = CreateProposal(methodName, contractUpdateInput);
+            var proposalId = CreateProposalAsync(methodName, contractUpdateInput);
             //approve and release
-            var txResult = await ApproveWithMiners(proposalId.Result);
+            var txResult = await ApproveWithMinersAsync(proposalId.Result);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
@@ -65,9 +65,9 @@ namespace AElf.Contracts.Genesis
             var address = Tester.GetCallOwnerAddress();
             var methodName = "ChangeContractZeroOwner";
             //create proposal to update
-            var proposalId = CreateProposal(methodName, address);
+            var proposalId = CreateProposalAsync(methodName, address);
             //approve and release
-            var txResult = await ApproveWithMiners(proposalId.Result);
+            var txResult = await ApproveWithMinersAsync(proposalId.Result);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             //check the address
