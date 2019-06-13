@@ -110,7 +110,8 @@ namespace AElf.Blockchains.BasicBaseChain
             var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
 
             dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos(zeroContractAddress).ToList();
-            dto.ContractZeroOwnerInitializationInput = dtoProvider.GetContractZeroOwnerInitializationInput();
+            dto.ContractZeroOwnerInitializationInput = dtoProvider.GetContractZeroOwnerInitializationDto()
+                .ContractZeroOwnerInitializationInput;
             
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;

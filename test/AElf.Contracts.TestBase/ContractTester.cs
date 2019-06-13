@@ -236,7 +236,7 @@ namespace AElf.Contracts.TestBase
                 ContractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
                 {
                     ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
-                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress)
+                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetContractZeroOwnerAddress)
                 }
             };
 
@@ -275,7 +275,7 @@ namespace AElf.Contracts.TestBase
                 ContractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
                 {
                     ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
-                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress)
+                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetContractZeroOwnerAddress)
                 }
             };
 

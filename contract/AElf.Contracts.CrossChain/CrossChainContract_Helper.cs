@@ -179,7 +179,7 @@ namespace AElf.Contracts.CrossChain
             if (State.Owner.Value != null) 
                 return State.Owner.Value;
             ValidateContractState(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
-            Address organizationAddress = State.ParliamentAuthContract.GetDefaultOwnerAddress.Call(new Empty());
+            Address organizationAddress = State.ParliamentAuthContract.GetContractZeroOwnerAddress.Call(new Empty());
             State.Owner.Value = organizationAddress;
 
             return State.Owner.Value;

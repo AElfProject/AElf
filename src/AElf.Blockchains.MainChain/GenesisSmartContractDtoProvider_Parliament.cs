@@ -34,7 +34,7 @@ namespace AElf.Blockchains.MainChain
 
         private string GetMethodNameForZeroOwnerAddress()
         {
-            return nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress);
+            return nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetContractZeroOwnerAddress);
         }
     }
 }

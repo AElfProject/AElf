@@ -43,15 +43,18 @@ namespace AElf.Blockchains.MainChain
             }.SelectMany(x => x);
         }
 
-        public ContractZeroOwnerInitializationInput GetContractZeroOwnerInitializationInput()
+        public ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto()
         {
             var contractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
             {
                 ZeroOwnerAddressGenerationMethodName = GetMethodNameForZeroOwnerAddress(),
                 ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
             };
-            
-            return contractZeroOwnerInitializationInput;
+
+            return new ContractZeroOwnerInitializationDto
+            {
+                ContractZeroOwnerInitializationInput = contractZeroOwnerInitializationInput
+            };
         }
     }
 }

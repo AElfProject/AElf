@@ -81,7 +81,7 @@ namespace AElf.Contracts.Genesis
         {
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOwnerAddress),
+                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetContractZeroOwnerAddress),
                     new Empty()))
                 .ReturnValue);
             var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,

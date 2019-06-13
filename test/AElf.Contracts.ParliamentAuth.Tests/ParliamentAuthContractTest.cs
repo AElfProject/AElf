@@ -29,7 +29,7 @@ namespace AElf.Contracts.ParliamentAuth
         public async Task Get_DefaultOrganizationAddressFailed()
         {
             var transactionResult =
-                await OtherParliamentAuthContractStub.GetDefaultOwnerAddress.SendAsync(new Empty());
+                await OtherParliamentAuthContractStub.GetContractZeroOwnerAddress.SendAsync(new Empty());
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Not initialized.").ShouldBeTrue();
         }
@@ -348,7 +348,7 @@ namespace AElf.Contracts.ParliamentAuth
         private async Task<Address> GetDefaultOrganizationAddressAsync()
         {
             _defaultOrganizationAddress =
-                await ParliamentAuthContractStub.GetDefaultOwnerAddress.CallAsync(new Empty());
+                await ParliamentAuthContractStub.GetContractZeroOwnerAddress.CallAsync(new Empty());
 
             return _defaultOrganizationAddress;
         }

@@ -26,6 +26,11 @@ namespace AElf.OS.Node.Application
             new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
     }
 
+    public class ContractZeroOwnerInitializationDto
+    {
+        public ContractZeroOwnerInitializationInput ContractZeroOwnerInitializationInput { get; set; }
+    }
+
     public interface IGenesisDeploymentsProvider
     {
         IEnumerable<SystemContractDeploymentInput> GetDeployments();
@@ -34,7 +39,7 @@ namespace AElf.OS.Node.Application
     public interface IGenesisSmartContractDtoProvider
     {
         IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress);
-        ContractZeroOwnerInitializationInput GetContractZeroOwnerInitializationInput();
+        ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto();
     }
 
     public class OsBlockchainNodeContextStartDto

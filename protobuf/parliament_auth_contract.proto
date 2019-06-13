@@ -19,7 +19,7 @@ service ParliamentAuthContract {
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
-    rpc GetDefaultOwnerAddress (google.protobuf.Empty) returns (aelf.Address){
+    rpc GetContractZeroOwnerAddress (google.protobuf.Empty) returns (aelf.Address){
         option (aelf.is_view) = true;
     }
 }
