@@ -9,9 +9,6 @@
         <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Remove="IResourcePath.cs" />
-    </ItemGroup>
-    <ItemGroup>
         <CommonMessage Include="..\..\protobuf\kernel.proto">
             <Link>Protobuf/Proto/kernel.proto</Link>
         </CommonMessage>

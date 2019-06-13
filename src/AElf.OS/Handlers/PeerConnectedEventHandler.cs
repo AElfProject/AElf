@@ -36,11 +36,14 @@ namespace AElf.OS.Handlers
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
 
+        //TODO: need to directly test ProcessNewBlockAsync, or unit test cannot catch exceptions of ProcessNewBlockAsync
+
         public Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            ProcessNewBlockAsync(eventData, eventData.SenderPubKey);
+            var _ = ProcessNewBlockAsync(eventData, eventData.SenderPubKey);
             return Task.CompletedTask;
         }
+
 
         private async Task ProcessNewBlockAsync(AnnouncementReceivedEventData header, string senderPubKey)
         {

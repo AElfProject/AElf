@@ -49,8 +49,8 @@ namespace AElf.OS.Handlers
                 await _peerConnectedEventHandler.HandleEventAsync(
                     new AnnouncementReceivedEventData(announcement, null));
                 chain = await _blockchainService.GetChainAsync();
-                chain.BestChainHash.ShouldBe(peerBlocks[0].GetHash());
                 chain.BestChainHeight.ShouldBe(12);
+                chain.BestChainHash.ShouldBe(peerBlocks[0].GetHash());
             }
 
             {
