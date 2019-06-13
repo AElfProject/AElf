@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Node.Application;
+using AElf.OS.BlockSync.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
@@ -11,11 +12,10 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class SyncStateAnnouncementEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>, 
-        ILocalEventHandler<IsolatedNodeEventData>
+    public class SyncStateAnnouncementEventHandler : ILocalEventHandler<PeerConnectionProcessFinished>
     {
         private readonly IPeerPool _peerPool;
-        private readonly IBlockChainNodeStateService _blockChainNodeStateService;
+        private readonly ISyncStateService _syncStateService;
         private readonly IBlockchainService _blockchainService;
         
         private readonly NetworkOptions _networkOptions;
@@ -23,22 +23,30 @@ namespace AElf.OS.Handlers
         public ILogger<SyncStateAnnouncementEventHandler> Logger { get; set; }
 
         public SyncStateAnnouncementEventHandler(IOptionsSnapshot<NetworkOptions> networkOptions, IPeerPool peerPool, 
-            IBlockChainNodeStateService blockChainNodeStateService,
+            ISyncStateService syncStateService,
             IBlockchainService blockchainService)
         {
             _peerPool = peerPool;
-            _blockChainNodeStateService = blockChainNodeStateService;
+            _syncStateService = syncStateService;
             _blockchainService = blockchainService;
 
             _networkOptions = networkOptions.Value;
         }
         
-        public Task HandleEventAsync(IsolatedNodeEventData eventData)
+        public Task HandleEventAsync(PeerConnectionProcessFinished eventData)
         {
-            if (_peerPool.GetPeers().Count == 0)
+            var peers = _peerPool.GetPeers().Where(p => p.LastKnowLIBHeight > 0).ToList();
+            
+            // if no peers at all or none have an LIB to sync to, stop the sync.
+            if (peers.Count == 0)
             {
-                if (_blockChainNodeStateService.SetSyncing(false))
-                    Logger.LogDebug($"Finished a sync phase, no peers available.");
+                // stop the sync
+                
+            }
+            else
+            {
+                var minLib = peers.Min(p => p.LastKnowLIBHeight);
+                // set the target
             }
 
             return Task.CompletedTask;
@@ -83,7 +91,7 @@ namespace AElf.OS.Handlers
 
                 if (blockHeight > chain.BestChainHeight + _networkOptions.MinBlockGapBeforeSync)
                 {
-                    if (_blockChainNodeStateService.SetSyncing(true))
+                    if (_syncStateService.SetSyncing(true))
                     {
                         Logger.LogDebug($"Starting a sync phase, best chain height: {chain.BestChainHeight}.");
                         // todo call service
@@ -91,7 +99,7 @@ namespace AElf.OS.Handlers
                 }
                 else
                 {
-                    if (_blockChainNodeStateService.SetSyncing(false))
+                    if (_syncStateService.SetSyncing(false))
                     {
                         Logger.LogDebug($"Finished a sync phase, best chain height: {chain.BestChainHeight}.");
                         // todo call service

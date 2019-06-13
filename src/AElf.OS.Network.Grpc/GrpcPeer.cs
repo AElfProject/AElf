@@ -42,6 +42,8 @@ namespace AElf.OS.Network.Grpc
         {
             get { return _channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready; }
         }
+        
+        public long LastKnowLIBHeight { get; }
 
         public bool IsBest { get; set; }
         public Hash CurrentBlockHash { get; private set; }

@@ -33,7 +33,7 @@ namespace AElf.OS.Network.Grpc
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
-        private readonly IBlockChainNodeStateService _blockChainNodeStateService;
+        //private readonly IBlockChainNodeStateService _blockChainNodeStateService;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
@@ -43,7 +43,7 @@ namespace AElf.OS.Network.Grpc
             _peerPool = peerPool;
             _blockchainService = blockchainService;
             _accountService = accountService;
-            _blockChainNodeStateService = blockChainNodeStateService;
+            //_blockChainNodeStateService = blockChainNodeStateService;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -231,7 +231,9 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null || request.PreviousBlockHash == null || _blockChainNodeStateService.IsNodeSyncing()) 
+        //todo
+        //|| _blockChainNodeStateService.IsNodeSyncing()
+            if (request == null || request.PreviousBlockHash == null) 
                 return new BlockList();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");

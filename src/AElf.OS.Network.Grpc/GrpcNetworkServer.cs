@@ -35,6 +35,7 @@ namespace AElf.OS.Network.Grpc
         {
             _serverService = serverService;
             _authInterceptor = authInterceptor;
+            _syncStateService = syncStateService;
             _peerPool = peerPool;
             _networkOptions = options.Value;
 
@@ -75,8 +76,9 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogWarning("Boot nodes list is empty.");
             }
             
-            if (_peerPool.GetPeers().Count == 0)
-                _ = EventBus.PublishAsync(new IsolatedNodeEventData());
+            // hook for components needing to be notified we've connected to 
+            // the boot nodes
+            await EventBus.PublishAsync(new PeerConnectionProcessFinished());
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)

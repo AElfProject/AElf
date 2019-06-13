@@ -9,6 +9,7 @@ namespace AElf.OS.Network.Infrastructure
         bool IsBest { get; set; }
         Hash CurrentBlockHash { get; }
         long CurrentBlockHeight { get; }
+        long LastKnowLIBHeight { get; }
         
         string PeerIpAddress { get; }
         string PubKey { get; }

@@ -1,6 +1,6 @@
 namespace AElf.OS.Network.Events
 {
-    public class IsolatedNodeEventData
+    public class PeerConnectionProcessFinished
     {
     }
 }

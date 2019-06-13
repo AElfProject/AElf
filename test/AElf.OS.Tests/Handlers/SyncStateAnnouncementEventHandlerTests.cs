@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Node.Application;
+using AElf.OS.BlockSync.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
@@ -17,24 +18,24 @@ namespace AElf.OS.Handlers
         private SyncStateAnnouncementEventHandler _handler;
         
         private IPeerPool _peerPool;
-        private IBlockChainNodeStateService _blockChainNodeStateService;
+        private ISyncStateService _syncStateService;
 
         public SyncStateAnnouncementEventHandlerTests()
         {
             _handler = GetRequiredService<SyncStateAnnouncementEventHandler>();
             
             _peerPool = GetRequiredService<IPeerPool>();
-            _blockChainNodeStateService = GetRequiredService<IBlockChainNodeStateService>();
+            _syncStateService = GetRequiredService<ISyncStateService>();
         }
 
         [Fact]
         public async Task NullAnnounceShouldNotChangeState()
         {
-            _blockChainNodeStateService.SetSyncing(false);
+            _syncStateService.SetSyncing(false);
             
             await _handler.HandleEventAsync(new AnnouncementReceivedEventData(null, null));
             
-            var isSyncing = _blockChainNodeStateService.IsNodeSyncing();
+            var isSyncing = _syncStateService.IsSyncing();
             isSyncing.ShouldBeFalse();
         }
 
@@ -52,7 +53,7 @@ namespace AElf.OS.Handlers
             var blockAnnounce = new AnnouncementReceivedEventData(announce, "b1");
             await _handler.HandleEventAsync(blockAnnounce);
             
-            _blockChainNodeStateService.IsNodeSyncing().ShouldBeTrue();
+            _syncStateService.IsSyncing().ShouldBeTrue();
         }
         
         [Fact]
@@ -68,7 +69,7 @@ namespace AElf.OS.Handlers
             _peerPool.AddPeer(bp2);
             _peerPool.AddPeer(bp3);
             
-            _blockChainNodeStateService.SetSyncing(false);
+            _syncStateService.SetSyncing(false);
             
             // b1 announces the block1
             bp1.HandlerRemoteAnnounce(announce);
@@ -76,20 +77,20 @@ namespace AElf.OS.Handlers
             await _handler.HandleEventAsync(blockAnnounceBp1);
             
             // one is not enough
-            _blockChainNodeStateService.IsNodeSyncing().ShouldBeFalse();
+            _syncStateService.IsSyncing().ShouldBeFalse();
             
             // b2 announces the block1
             bp2.HandlerRemoteAnnounce(announce);
             var blockAnnounceBp2 = new AnnouncementReceivedEventData(announce, "b2");
             await _handler.HandleEventAsync(blockAnnounceBp2);
             
-            _blockChainNodeStateService.IsNodeSyncing().ShouldBeTrue();
+            _syncStateService.IsSyncing().ShouldBeTrue();
         }
         
         [Fact]
         public async Task EnoughAnnouncements_OutSideGap_ShouldFinishSync()
         {
-            _blockChainNodeStateService.SetSyncing(true);
+            _syncStateService.SetSyncing(true);
             
             var announce = new PeerNewBlockAnnouncement { BlockHash = Hash.FromString("block1"), BlockHeight = 11 };
 
@@ -107,7 +108,7 @@ namespace AElf.OS.Handlers
 
             await _handler.HandleEventAsync(new AnnouncementReceivedEventData(announce, "b1"));
             
-            _blockChainNodeStateService.IsNodeSyncing().ShouldBeFalse();
+            _syncStateService.IsSyncing().ShouldBeFalse();
         }
 
         private GrpcPeer CreatePeer(string publicKey)
