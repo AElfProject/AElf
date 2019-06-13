@@ -10,13 +10,4 @@
     <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="BlockExecution\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Remove="BlockExecution\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="BlockExecution\**" />
-  </ItemGroup>
 </Project>
