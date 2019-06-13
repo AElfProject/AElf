@@ -148,22 +148,14 @@ namespace AElf.Kernel.Miner.Application
         public async Task<Block> MineAsync(RequestMiningDto requestMiningDto, List<Transaction> transactions,
             Timestamp blockTime)
         {
-            Logger.LogDebug("[Mine] Entered MineAsync");
             using (var cts = new CancellationTokenSource())
             {
                 cts.CancelAfter((int) requestMiningDto.BlockExecutionTime.Milliseconds());
 
-                Logger.LogDebug("[Mine] Set timeout");
-
                 var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
                     requestMiningDto.PreviousBlockHeight, blockTime);
-                
-                Logger.LogDebug("[Mine] Generated empty block");
-
                 var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
                     requestMiningDto.PreviousBlockHeight);
-
-                Logger.LogDebug("[Mine] Generated all system transactions, start execute block.");
 
                 var pending = transactions;
 
