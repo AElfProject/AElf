@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
@@ -17,11 +14,11 @@ namespace AElf.OS.Network.Application
     public class NetworkService : INetworkService, ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
-        private readonly INetworkQueueManager _queueManager;
+        private readonly ITaskQueueManager _queueManager;
 
         public ILogger<NetworkService> Logger { get; set; }
 
-        public NetworkService(IPeerPool peerPool, INetworkQueueManager queueManager)
+        public NetworkService(IPeerPool peerPool, ITaskQueueManager queueManager)
         {
             _peerPool = peerPool;
             _queueManager = queueManager;
@@ -64,11 +61,10 @@ namespace AElf.OS.Network.Application
 
             foreach (var peer in _peerPool.GetPeers())
             {
-                var transactionQueue = _queueManager.GetQueue(NetworkConstants.AnnouncementQueueName);
-                await transactionQueue.EnqueueAsync(async () =>
+                _queueManager.Enqueue(async () =>
                 {
                     await peer.AnnounceAsync(announce);
-                });
+                }, NetworkConstants.AnnouncementQueueName);
             }
             
             return successfulBcasts;
@@ -80,11 +76,10 @@ namespace AElf.OS.Network.Application
             
             foreach (var peer in _peerPool.GetPeers())
             {
-                var transactionQueue = _queueManager.GetQueue(NetworkConstants.TransactionQueueName);
-                await transactionQueue.EnqueueAsync(async () =>
+                _queueManager.Enqueue(async () =>
                 {
                     await peer.SendTransactionAsync(tx);
-                });
+                }, NetworkConstants.TransactionQueueName);
             }
             
             return successfulBcasts;
