@@ -50,6 +50,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
+                    KernelConstants.ExecutionTimeout = true;
                     break;
                 }
 

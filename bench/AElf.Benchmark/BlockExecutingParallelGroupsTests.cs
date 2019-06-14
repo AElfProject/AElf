@@ -36,7 +36,7 @@ namespace AElf.Benchmark
         [Params(1, 2, 5, 10, 50, 100)]
         public int GroupCount;
 
-        public int TransactionCount = 500;
+        public int TransactionCount = 200;
 
         [GlobalSetup]
         public async Task GlobalSetup()

@@ -75,6 +75,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions =
                 nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
+            //adopt selection count
+            if (allExecutedTransactions.Count >= KernelConstants.SelectionMaxTransactionCount && KernelConstants.ExecutionTimeout == false)
+            {
+                KernelConstants.SelectionMaxTransactionCount += 5;
+                Logger.LogTrace($"## SelectionMaxTransactionCount number will be: {KernelConstants.SelectionMaxTransactionCount}");
+            }
+            KernelConstants.ExecutionTimeout = false;
+            
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
                 returnSetCollection.Executed);
 
