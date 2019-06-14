@@ -1,11 +1,6 @@
-using System;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContractExecution.Application;
-using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Extensions;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

@@ -10,6 +10,7 @@ using AElf.OS.Network.Grpc;
 using AElf.Types;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
@@ -62,6 +63,14 @@ namespace AElf.OS
                     });
                 }
             });
+        }
+        
+        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();
+
+            taskQueueManager.CreateQueue(OSConsts.BlockSyncAttachQueueName);
+            taskQueueManager.CreateQueue(OSConsts.BlockSyncQueueName);
         }
     }
 }

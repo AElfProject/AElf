@@ -34,15 +34,5 @@ namespace AElf.Sdk.CSharp
         {
             return duration.Seconds.Mul(1000).Add(duration.Nanos.Div(1000000));
         }
-
-        public static Timestamp GetMaxValue(this Timestamp timestamp)
-        {
-            return new Timestamp {Seconds = long.MaxValue};
-        }
-
-        public static Timestamp GetMinValue(this Timestamp timestamp)
-        {
-            return new Timestamp {Seconds = 0};
-        }
     }
 }

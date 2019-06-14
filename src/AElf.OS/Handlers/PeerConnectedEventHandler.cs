@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -40,11 +36,14 @@ namespace AElf.OS.Handlers
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
 
+        //TODO: need to directly test ProcessNewBlockAsync, or unit test cannot catch exceptions of ProcessNewBlockAsync
+
         public Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            ProcessNewBlockAsync(eventData, eventData.SenderPubKey);
+            var _ = ProcessNewBlockAsync(eventData, eventData.SenderPubKey);
             return Task.CompletedTask;
         }
+
 
         private async Task ProcessNewBlockAsync(AnnouncementReceivedEventData header, string senderPubKey)
         {

@@ -1,3 +1,4 @@
+using AElf.OS.BlockSync;
 using AElf.TestBase;
 
 namespace AElf.OS
@@ -7,18 +8,13 @@ namespace AElf.OS
     {
         
     }
-    
-    public class SyncNotForkedTestBase : AElfIntegratedTest<SyncNotForkedTestAElfModule>
-    {
-        
-    }
-    
-    public class SyncTestBase : AElfIntegratedTest<SyncTestModule>
+
+    public class BlockSyncTestBase : AElfIntegratedTest<BlockSyncTestAElfModule>
     {
         
     }
 
-    public class SyncForkedTestBase : AElfIntegratedTest<SyncForkedTestAElfModule>
+    public class BlockSyncForkedTestBase : AElfIntegratedTest<BlockSyncForkedTestAElfModule>
     {
         
     }

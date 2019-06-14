@@ -29,6 +29,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
             context.Services.AddSingleton<IRandomHashCacheService, RandomHashCacheService>();
             context.Services.AddSingleton<Application.BestChainFoundEventHandler>();
+            context.Services.AddSingleton<ConsensusValidationFailedEventHandler>();
 
             var configuration = context.Services.GetConfiguration();
 
@@ -37,7 +38,9 @@ namespace AElf.Kernel.Consensus.AEDPoS
                 var consensusOptions = configuration.GetSection("Consensus");
                 consensusOptions.Bind(option);
 
-                option.StartTimestamp = new Timestamp {Seconds = long.Parse(consensusOptions["StartTimestamp"])};
+                var startTimeStamp = consensusOptions["StartTimestamp"];
+                option.StartTimestamp = new Timestamp
+                    {Seconds = string.IsNullOrEmpty(startTimeStamp) ? 0 : long.Parse(startTimeStamp)};
 
                 if (option.InitialMiners == null || option.InitialMiners.Count == 0 ||
                     string.IsNullOrWhiteSpace(option.InitialMiners[0]))
