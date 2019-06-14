@@ -32,7 +32,7 @@ namespace AElf.OS.Handlers
         [Fact]
         public async Task NullAnnounceShouldNotChangeState()
         {
-            _syncStateService.SetSyncing(false);
+            _syncStateService.SetSyncTarget(false);
             
             await _handler.HandleEventAsync(new AnnouncementReceivedEventData(null, null));
             
@@ -70,7 +70,7 @@ namespace AElf.OS.Handlers
             _peerPool.AddPeer(bp2);
             _peerPool.AddPeer(bp3);
             
-            _syncStateService.SetSyncing(false);
+            _syncStateService.SetSyncTarget(false);
             
             // b1 announces the block1
             bp1.HandlerRemoteAnnounce(announce);
@@ -91,7 +91,7 @@ namespace AElf.OS.Handlers
         [Fact]
         public async Task EnoughAnnouncements_OutSideGap_ShouldFinishSync()
         {
-            _syncStateService.SetSyncing(true);
+            _syncStateService.SetSyncTarget(true);
             
             var announce = new PeerNewBlockAnnouncement { BlockHash = Hash.FromString("block1"), BlockHeight = 11 };
 

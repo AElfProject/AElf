@@ -9,7 +9,8 @@ namespace AElf.OS.Network.Application
     public interface ISyncStateService
     {
         bool IsSyncing();
-        void SetSyncing(long value);
+        void SetSyncTarget(long value);
+        void SetSyncAsFinished();
         Task UpdateSyncState();
     }
 
@@ -30,8 +31,13 @@ namespace AElf.OS.Network.Application
         }
         
         public bool IsSyncing() => _syncStateProvider.IsNodeSyncing();
-        public void SetSyncing(long value) => _syncStateProvider.SetSyncing(value);
-        
+        public void SetSyncTarget(long value) => _syncStateProvider.SetSyncTarget(value);
+        public void SetSyncAsFinished()
+        {
+            _syncStateProvider.SetSyncTarget(-1);
+            _blockchainNodeContextService.FinishSync();
+        }
+
         public async Task UpdateSyncState()
         {
             var chain = await _blockchainService.GetChainAsync();
@@ -39,9 +45,7 @@ namespace AElf.OS.Network.Application
             if (chain.BestChainHeight >= _syncStateProvider.SyncTarget)
             {
                 // stop sync
-                _syncStateProvider.SetSyncing(-1);
-                _blockchainNodeContextService.FinishSync();
-                
+                SetSyncAsFinished();
                 Logger.LogDebug($"Initial sync finished at {chain.BestChainHeight}.");
             }
         }

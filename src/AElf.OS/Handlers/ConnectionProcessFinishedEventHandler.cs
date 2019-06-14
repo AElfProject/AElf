@@ -37,7 +37,7 @@ namespace AElf.OS.Handlers
             if (peers.Count == 0)
             {
                 // no peer has a LIB to sync to, stop the sync.
-                _syncStateService.SetSyncing(-1);
+                _syncStateService.SetSyncAsFinished();
                 Logger.LogDebug($"Finishing sync, no peer has as a LIB.");
             }
             else
@@ -49,12 +49,12 @@ namespace AElf.OS.Handlers
                 
                 if (chain.LastIrreversibleBlockHeight + NetworkConstants.DefaultInitialSyncOffset < minLib)
                 {
-                    _syncStateService.SetSyncing(minLib);
+                    _syncStateService.SetSyncTarget(minLib);
                     Logger.LogDebug($"Set sync target to {minLib}.");
                 }
                 else
                 {
-                    _syncStateService.SetSyncing(-1);
+                    _syncStateService.SetSyncAsFinished();
                     Logger.LogDebug("Finishing sync, no peer has as a LIB high enough.");
                 }
                 
