@@ -3,6 +3,7 @@ using AElf.Kernel;
 using AElf.Kernel.Node.Application;
 using AElf.OS.BlockSync.Application;
 using AElf.OS.Network;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
@@ -15,14 +16,14 @@ namespace AElf.OS.Handlers
 {
     public class SyncStateAnnouncementEventHandlerTests : SyncTestBase 
     {
-        private SyncStateAnnouncementEventHandler _handler;
+        private ConnectionProcessFinishedEventHandler _handler;
         
         private IPeerPool _peerPool;
         private ISyncStateService _syncStateService;
 
         public SyncStateAnnouncementEventHandlerTests()
         {
-            _handler = GetRequiredService<SyncStateAnnouncementEventHandler>();
+            _handler = GetRequiredService<ConnectionProcessFinishedEventHandler>();
             
             _peerPool = GetRequiredService<IPeerPool>();
             _syncStateService = GetRequiredService<ISyncStateService>();

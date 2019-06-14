@@ -43,7 +43,7 @@ namespace AElf.OS.Network.Grpc
             get { return _channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready; }
         }
         
-        public long LastKnowLIBHeight { get; }
+        public long LastKnowLIBHeight { get; private set; }
 
         public bool IsBest { get; set; }
         public Hash CurrentBlockHash { get; private set; }
@@ -73,6 +73,7 @@ namespace AElf.OS.Network.Grpc
             ConnectionTime = peerInfo.ConnectionTime;
             Inbound = peerInfo.IsInbound;
             StartHeight = peerInfo.StartHeight;
+            LastKnowLIBHeight = peerInfo.LibHeightAtHandshake;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);

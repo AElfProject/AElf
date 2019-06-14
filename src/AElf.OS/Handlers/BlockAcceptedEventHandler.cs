@@ -13,17 +13,14 @@ namespace AElf.OS.Handlers
         public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>, ITransientDependency
         {
             public INetworkService NetworkService { get; set; }
-            public IInitialSyncService InitialSyncService { get; set; }
             public ISyncStateService SyncStateService { get; set; }
 
             public Task HandleEventAsync(BlockAcceptedEvent eventData)
             {
                 NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
 
-                if (SyncStateService.IsNodeSyncing())
-                {
-                    InitialSyncService.UpdateSyncState();
-                }
+                if (SyncStateService.IsSyncing())
+                    SyncStateService.UpdateSyncState();
                 
                 return Task.CompletedTask;
             }

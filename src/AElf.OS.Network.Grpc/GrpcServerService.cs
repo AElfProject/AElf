@@ -6,6 +6,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
 using AElf.OS.Network.Infrastructure;
@@ -29,21 +30,21 @@ namespace AElf.OS.Network.Grpc
     {
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-        
+
+        private readonly ISyncStateService _syncStateService;
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
-        //private readonly IBlockChainNodeStateService _blockChainNodeStateService;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(IBlockChainNodeStateService blockChainNodeStateService, IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService)
+        public GrpcServerService(ISyncStateService syncStateService, IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService)
         {
+            _syncStateService = syncStateService;
             _peerPool = peerPool;
             _blockchainService = blockchainService;
             _accountService = accountService;
-            //_blockChainNodeStateService = blockChainNodeStateService;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -133,7 +134,8 @@ namespace AElf.OS.Network.Grpc
                 ProtocolVersion = handshake.HskData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = handshake.Header.Height,
-                IsInbound = true
+                IsInbound = true,
+                LibHeightAtHandshake = handshake.LibBlockHeight
             };
 
             return new GrpcPeer(channel, client, connectionInfo);
@@ -231,9 +233,7 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-        //todo
-        //|| _blockChainNodeStateService.IsNodeSyncing()
-            if (request == null || request.PreviousBlockHash == null) 
+            if (request == null || request.PreviousBlockHash == null || _syncStateService.IsSyncing()) 
                 return new BlockList();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");

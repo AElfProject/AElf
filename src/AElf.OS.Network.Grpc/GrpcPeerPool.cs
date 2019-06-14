@@ -122,7 +122,8 @@ namespace AElf.OS.Network.Grpc
                 ProtocolVersion = connectReply.Handshake.HskData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = connectReply.Handshake.Header.Height,
-                IsInbound = false
+                IsInbound = false,
+                LibHeightAtHandshake = connectReply.Handshake.LibBlockHeight
             };
 
             var peer = new GrpcPeer(channel, client, connectionInfo);
@@ -218,11 +219,14 @@ namespace AElf.OS.Network.Grpc
 
             byte[] sig = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
 
+            var chain = await _blockchainService.GetChainAsync();
+                
             var hsk = new Handshake
             {
                 HskData = nd,
                 Signature = ByteString.CopyFrom(sig),
-                Header = await _blockchainService.GetBestChainLastBlockHeaderAsync()
+                Header = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
+                LibBlockHeight = chain?.LastIrreversibleBlockHeight ?? 0
             };
 
             return hsk;

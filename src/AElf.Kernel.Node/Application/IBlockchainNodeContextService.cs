@@ -4,10 +4,12 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Node.Domain;
+using AElf.Kernel.Node.Events;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Node.Application
 {
@@ -25,6 +27,8 @@ namespace AElf.Kernel.Node.Application
         Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto);
 
         Task StopAsync(BlockchainNodeContext blockchainNodeContext);
+
+        void FinishSync();
     }
 
 
@@ -37,6 +41,8 @@ namespace AElf.Kernel.Node.Application
         private readonly ISmartContractAddressUpdateService _smartContractAddressUpdateService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly IConsensusService _consensusService;
+        
+        public ILocalEventBus EventBus { get; set; }
 
         public BlockchainNodeContextService(
             IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
@@ -49,6 +55,8 @@ namespace AElf.Kernel.Node.Application
             _smartContractAddressUpdateService = smartContractAddressUpdateService;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _consensusService = consensusService;
+            
+            EventBus = NullLocalEventBus.Instance;
         }
 
         public async Task<BlockchainNodeContext> StartAsync(BlockchainNodeContextStartDto dto)
@@ -73,6 +81,11 @@ namespace AElf.Kernel.Node.Application
             });
 
             return context;
+        }
+
+        public void FinishSync()
+        {
+            EventBus.PublishAsync(new SyncFinishedEvent());
         }
 
         public async Task StopAsync(BlockchainNodeContext blockchainNodeContext)

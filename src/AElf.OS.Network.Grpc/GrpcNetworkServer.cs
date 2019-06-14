@@ -35,7 +35,6 @@ namespace AElf.OS.Network.Grpc
         {
             _serverService = serverService;
             _authInterceptor = authInterceptor;
-            _syncStateService = syncStateService;
             _peerPool = peerPool;
             _networkOptions = options.Value;
 
