@@ -1,4 +1,5 @@
 using System;
+using Acs0;
 using Acs3;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -36,20 +37,25 @@ namespace AElf.Contracts.ParliamentAuth
             return result;
         }
 
-        public override Address GetContractZeroOwnerAddress(Empty input)
+        public override Address GetGenesisOwnerAddress(Empty input)
         {
             Assert(State.Initialized.Value, "Not initialized.");
-            return State.ContractZeroOwnerAddress.Value;
+            return State.GenesisOwnerAddress.Value;
         }
 
         #endregion view
         
-        public override Empty Initialize(Empty input)
+        public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.Initialized.Value = true;
-            State.ContractZeroOwnerAddress.Value =
-                CreateOrganization(new CreateOrganizationInput {ReleaseThreshold = _defaultOrganizationReleaseThreshold});
+            State.GenesisOwnerAddress.Value =
+                CreateOrganization(new CreateOrganizationInput {ReleaseThreshold = input.GenesisOwnerReleaseThreshold});
+            State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
+            State.GenesisContract.InitializeGenesisOwner.Send(new InitializeGenesisOwnerInput
+            {
+                GenesisOwner = State.GenesisOwnerAddress.Value
+            });
             return new Empty();
         }
         

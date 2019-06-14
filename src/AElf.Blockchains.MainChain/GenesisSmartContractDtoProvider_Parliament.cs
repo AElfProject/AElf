@@ -3,10 +3,7 @@ using System.Linq;
 using Acs0;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -28,13 +25,13 @@ namespace AElf.Blockchains.MainChain
             GenerateParliamentInitializationCallList()
         {
             var parliamentInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentInitializationCallList.Add(nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize), new Empty());
+            parliamentInitializationCallList.Add(
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize),
+                new Contracts.ParliamentAuth.InitializeInput
+                {
+                    GenesisOwnerReleaseThreshold = _contractOptions.GenesisOwnerReleaseThreshold
+                });
             return parliamentInitializationCallList;
-        }
-
-        private string GetMethodNameForZeroOwnerAddress()
-        {
-            return nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetContractZeroOwnerAddress);
         }
     }
 }

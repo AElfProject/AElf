@@ -74,20 +74,20 @@ namespace AElf.Blockchains.SideChain
             return l;
         }
 
-        public ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto()
-        {
-            var contractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
-            {
-                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub
-                    .GetContractZeroOwnerAddress),
-                ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
-            };
-
-            return new ContractZeroOwnerInitializationDto
-            {
-                ContractZeroOwnerInitializationInput = contractZeroOwnerInitializationInput
-            };
-        }
+//        public ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto()
+//        {
+//            var contractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
+//            {
+//                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub
+//                    .GetContractZeroOwnerAddress),
+//                ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
+//            };
+//
+//            return new ContractZeroOwnerInitializationDto
+//            {
+//                ContractZeroOwnerInitializationInput = contractZeroOwnerInitializationInput
+//            };
+//        }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateTokenInitializationCallList()
@@ -126,7 +126,11 @@ namespace AElf.Blockchains.SideChain
         {
             var parliamentInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             parliamentInitializationCallList.Add(
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize), new Empty());
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize),
+                new Contracts.ParliamentAuth.InitializeInput
+                {
+                    GenesisOwnerReleaseThreshold = _contractOptions.GenesisOwnerReleaseThreshold
+                });
             return parliamentInitializationCallList;
         }
         

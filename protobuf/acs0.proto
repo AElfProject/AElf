@@ -17,9 +17,11 @@ service ACS0 {
     }
     rpc ChangeContractOwner (ChangeContractOwnerInput) returns (google.protobuf.Empty) {
     }
-    rpc InitializeContractZeroOwner (ContractZeroOwnerInitializationInput) returns (google.protobuf.Empty) {
+    rpc InitializeGenesisOwner (InitializeGenesisOwnerInput) returns (google.protobuf.Empty) {
     }
-    rpc ChangeContractZeroOwner (aelf.Address) returns (google.protobuf.Empty) {
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty) {
     }
     // Views
     rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {
@@ -82,9 +84,12 @@ message ChangeContractOwnerInput {
     aelf.Address newOwner = 2;
 }
 
-message ContractZeroOwnerInitializationInput{
-     string zeroOwnerAddressGenerationMethodName = 1;
-     bool contractDeploymentAuthorityRequired = 2;
+message InitializeInput{
+    bool contractDeploymentAuthorityRequired = 1;
+}
+
+message InitializeGenesisOwnerInput{
+    aelf.Address GenesisOwner = 1; 
 }
 
 // Events

@@ -29,7 +29,7 @@ namespace AElf.Contracts.ParliamentAuth
         public async Task Get_DefaultOrganizationAddressFailed()
         {
             var transactionResult =
-                await OtherParliamentAuthContractStub.GetContractZeroOwnerAddress.SendAsync(new Empty());
+                await OtherParliamentAuthContractStub.GetGenesisOwnerAddress.SendAsync(new Empty());
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("Not initialized.").ShouldBeTrue();
         }
@@ -37,7 +37,9 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task ParliamentAuthContract_InitializeMultiTimes()
         {
-            var transactionResult = (await ParliamentAuthContractStub.Initialize.SendAsync(new Empty())).TransactionResult;
+            var transactionResult =
+                (await ParliamentAuthContractStub.Initialize.SendAsync(new InitializeInput
+                    {GenesisOwnerReleaseThreshold = 6666})).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
@@ -319,7 +321,7 @@ namespace AElf.Contracts.ParliamentAuth
                 To = Tester,
                 Memo = "Transfer"
             };
-            _createProposalInput = new CreateProposalInput
+            var createProposalInput = new CreateProposalInput
             {
                 ContractMethodName = nameof(TokenContractStub.Transfer),
                 ToAddress = TokenContractAddress,
@@ -327,7 +329,7 @@ namespace AElf.Contracts.ParliamentAuth
                 ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
                 OrganizationAddress = organizationAddress
             };
-            var proposal = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
+            var proposal = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
             proposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             return proposal.Output;
         }
@@ -348,7 +350,7 @@ namespace AElf.Contracts.ParliamentAuth
         private async Task<Address> GetDefaultOrganizationAddressAsync()
         {
             _defaultOrganizationAddress =
-                await ParliamentAuthContractStub.GetContractZeroOwnerAddress.CallAsync(new Empty());
+                await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
 
             return _defaultOrganizationAddress;
         }

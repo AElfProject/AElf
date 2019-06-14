@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
@@ -43,18 +42,18 @@ namespace AElf.Blockchains.MainChain
             }.SelectMany(x => x);
         }
 
-        public ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto()
-        {
-            var contractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
-            {
-                ZeroOwnerAddressGenerationMethodName = GetMethodNameForZeroOwnerAddress(),
-                ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
-            };
-
-            return new ContractZeroOwnerInitializationDto
-            {
-                ContractZeroOwnerInitializationInput = contractZeroOwnerInitializationInput
-            };
-        }
+//        public ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto()
+//        {
+//            var contractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
+//            {
+//                ZeroOwnerAddressGenerationMethodName = GetMethodNameForZeroOwnerAddress(),
+//                ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
+//            };
+//
+//            return new ContractZeroOwnerInitializationDto
+//            {
+//                ContractZeroOwnerInitializationInput = contractZeroOwnerInitializationInput
+//            };
+//        }
     }
 }

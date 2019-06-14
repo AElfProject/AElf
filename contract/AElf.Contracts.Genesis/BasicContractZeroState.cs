@@ -15,10 +15,11 @@ namespace AElf.Contracts.Genesis
 
         public MappedState<Hash, Address> NameAddressMapping { get; set; }
         
-        public SingletonState<Address> ContractZeroOwner { get; set; }
+        public SingletonState<Address> GenesisOwner { get; set; }
         
         public SingletonState<bool> ContractDeploymentAuthorityRequired { get; set; }
         
+//        public SingletonState<string> ZeroOwnerAddressGenerationMethodName { get; set; }
         public SingletonState<bool> Initialized { get; set; }
     }
 }

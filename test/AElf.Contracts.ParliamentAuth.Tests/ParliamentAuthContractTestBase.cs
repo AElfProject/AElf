@@ -124,7 +124,8 @@ namespace AElf.Contracts.ParliamentAuth
 
         private async Task InitializationParliamentAuthAsync()
         {
-            await ParliamentAuthContractStub.Initialize.SendAsync(new Empty());
+            await ParliamentAuthContractStub.Initialize.SendAsync(
+                new InitializeInput {GenesisOwnerReleaseThreshold = 6666});
         }
 
         private async Task InitializeTokenAsync()

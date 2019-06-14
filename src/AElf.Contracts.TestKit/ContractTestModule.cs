@@ -120,12 +120,9 @@ namespace AElf.Contracts.TestKit
                 ChainId = ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-                ContractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
-                {
-                    ContractDeploymentAuthorityRequired = context.ServiceProvider
-                        .GetService<IOptionsSnapshot<ContractOptions>>().Value.ContractDeploymentAuthorityRequired
-                }
-            };
+            };            
+            var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
+            dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });

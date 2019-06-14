@@ -26,10 +26,10 @@ namespace AElf.OS.Node.Application
             new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
     }
 
-    public class ContractZeroOwnerInitializationDto
-    {
-        public ContractZeroOwnerInitializationInput ContractZeroOwnerInitializationInput { get; set; }
-    }
+//    public class ContractZeroOwnerInitializationDto
+//    {
+//        public ContractZeroOwnerInitializationInput ContractZeroOwnerInitializationInput { get; set; }
+//    }
 
     public interface IGenesisDeploymentsProvider
     {
@@ -39,7 +39,7 @@ namespace AElf.OS.Node.Application
     public interface IGenesisSmartContractDtoProvider
     {
         IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress);
-        ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto();
+//        ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto();
     }
 
     public class OsBlockchainNodeContextStartDto
@@ -55,7 +55,7 @@ namespace AElf.OS.Node.Application
 
         public int SmartContractRunnerCategory { get; set; } = KernelConstants.DefaultRunnerCategory;
         
-        public ContractZeroOwnerInitializationInput ContractZeroOwnerInitializationInput { get; set; }
+        public bool ContractDeploymentAuthorityRequired { get; set; }
     }
 
     public static class GenesisSmartContractDtoExtensions
@@ -129,7 +129,6 @@ namespace AElf.OS.Node.Application
 //
 //            genesisSmartContracts.AddGenesisSmartContract<T>(name, systemTransactionMethodCallList);
 //        }
-
     }
 
     public interface IOsBlockchainNodeContextService
@@ -169,12 +168,12 @@ namespace AElf.OS.Node.Application
                     return GetTransactionForDeployment(p.Code, p.SystemSmartContractName, dto.SmartContractRunnerCategory,
                         p.TransactionMethodCallList);
                 }));
-            // Add transaction for initialization
-            transactions.Add(GetTransactionForContractZeroInitialization(dto.ContractZeroOwnerInitializationInput));
-
             if (dto.InitializationTransactions != null)
                 transactions.AddRange(dto.InitializationTransactions);
 
+            // Add transaction for initialization
+            transactions.Add(GetTransactionForContractZeroInitialization(dto));
+            
             var blockchainNodeContextStartDto = new BlockchainNodeContextStartDto()
             {
                 ChainId = dto.ChainId,
@@ -230,15 +229,16 @@ namespace AElf.OS.Node.Application
             };
         }
 
-        private Transaction GetTransactionForContractZeroInitialization(ContractZeroOwnerInitializationInput contractZeroOwnerInitializationInput)
+        private Transaction GetTransactionForContractZeroInitialization(OsBlockchainNodeContextStartDto dto)
         {
             var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             return new Transaction
             {
                 From = zeroAddress,
                 To = zeroAddress,
-                MethodName = nameof(BasicContractZero.InitializeContractZeroOwner),
-                Params = contractZeroOwnerInitializationInput.ToByteString()
+                MethodName = nameof(BasicContractZero.Initialize),
+                Params = new InitializeInput
+                    {ContractDeploymentAuthorityRequired = dto.ContractDeploymentAuthorityRequired}.ToByteString()
             };
         }
         

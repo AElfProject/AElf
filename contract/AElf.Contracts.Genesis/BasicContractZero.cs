@@ -61,7 +61,7 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
-            CheckContractDeploymentAuthority();
+            RequireAuthority();
             var name = input.Name;
             var category = input.Category;
             var code = input.Code.ToByteArray();
@@ -125,7 +125,7 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
-            CheckContractDeploymentAuthority();
+            RequireAuthority();
             var address = PrivateDeploySystemSmartContract(input.Name, input.Category, input.Code.ToByteArray());
             return address;
         }
@@ -137,7 +137,7 @@ namespace AElf.Contracts.Genesis
             var info = State.ContractInfos[contractAddress];
 
             Assert(info != null, "Contract does not exist.");
-            CheckContractUpdateAuthority(info.Owner);
+            RequireAuthority(info.Owner);
 
             var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
@@ -187,72 +187,120 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
-        public override Empty InitializeContractZeroOwner(ContractZeroOwnerInitializationInput input)
+        public override Empty Initialize(InitializeInput input)
         {
-            Assert(!State.Initialized.Value, "Contract zero already initialized");
-            State.Initialized.Value = true;
-            Assert(Context.Sender.Equals(Context.Self), "Unauthorized to initialize contract zero.");
+            Assert(!State.Initialized.Value, "Contract zero already initialized.");
+            Assert(Context.Sender.Equals(Context.Self), "Unable to initialize.");
             State.ContractDeploymentAuthorityRequired.Value = input.ContractDeploymentAuthorityRequired;
-            if (!input.ContractDeploymentAuthorityRequired) 
-                return new Empty();
-            Assert(!string.IsNullOrEmpty(input.ZeroOwnerAddressGenerationMethodName), "Invalid input.");
-            var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-            var ownerAddress =
-                Context.Call<Address>(address, input.ZeroOwnerAddressGenerationMethodName, new Empty());
-            Assert(ownerAddress != null, "Invalid owner.");
-            State.ContractZeroOwner.Value = ownerAddress;
-
+            State.Initialized.Value = true;
             return new Empty();
         }
 
-        public override Empty ChangeContractZeroOwner(Address newOwnerAddress)
+        public override Empty InitializeGenesisOwner(InitializeGenesisOwnerInput input)
         {
-            Assert(State.Initialized.Value, "Contract zero not initialized");
-            CheckContractUpdateAuthority(Context.Self);
-            State.ContractZeroOwner.Value = newOwnerAddress;
+            Assert(State.GenesisOwner.Value == null, "Genesis owner already initialized");
+            var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
+            Assert(input.GenesisOwner != null, "Genesis Owner should not be null."); 
+            State.GenesisOwner.Value = input.GenesisOwner;
             return new Empty();
         }
 
-        private void CheckContractUpdateAuthority(Address ownerAddress)
+        public override Empty ChangeGenesisOwner(Address newOwnerAddress)
+        {
+            Assert(State.Initialized.Value, "Contract zero not initialized.");
+            Assert(State.GenesisOwner.Value != null, "Genesis owner not initialized");
+            RequireAuthority(Context.Self);
+            State.GenesisOwner.Value = newOwnerAddress;
+            return new Empty();
+        }
+
+        #endregion Actions
+        
+        private void RequireAuthority(Address ownerAddress)
         {
             var sender = Context.Sender;
             var self = Context.Self;
             var contractDeploymentAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
-            if (State.Initialized.Value)
+            var genesisOwner = State.GenesisOwner.Value;
+            
+            if (!State.Initialized.Value)
             {
-                // check ContractZeroOwner authority
+                // only contract zero is permitted before initialization
+                Assert(sender.Equals(self), "Unauthorized to do this."); 
+            }
+            else if (ownerAddress.Equals(Context.Self) || contractDeploymentAuthorityRequired)
+            {
                 // if it is deployed by contract zero
                 // or if ContractDeploymentAuthorityRequired is true
-                if (ownerAddress.Equals(Context.Self) || contractDeploymentAuthorityRequired)
-                {
-                    Assert(sender.Equals(State.ContractZeroOwner.Value), "Unauthorized to do this.");
-                }
-                else
-                {
-                    // otherwise only check original owner
-                    Assert(sender.Equals(ownerAddress));
-                }
+                Assert(genesisOwner != null && sender.Equals(genesisOwner), "Unauthorized to do this.");
             }
             else
-                Assert(sender.Equals(self), "Unauthorized to do this."); // only contract zero deploys system contracts before initialized
+            {
+                // otherwise only check original owner authority
+                Assert(sender.Equals(ownerAddress));
+            }
+            
+//            if (genesisOwner != null)
+//            {
+//                // if it is deployed by contract zero
+//                // or if ContractDeploymentAuthorityRequired is true
+//                if (ownerAddress.Equals(Context.Self) || contractDeploymentAuthorityRequired)
+//                {
+//                    // check GenesisOwner authority
+//                    Assert(sender.Equals(genesisOwner), "Unauthorized to do this.");
+//                }
+//                else
+//                {
+//                    // otherwise only check original owner authority
+//                    Assert(sender.Equals(ownerAddress));
+//                }
+//            }
+//            else
+//                Assert(sender.Equals(self), "Unauthorized to do this."); // only contract zero deploys system contracts before initialized
         }
 
-        private void CheckContractDeploymentAuthority()
+        private void RequireAuthority()
         {
             var sender = Context.Sender;
             var self = Context.Self;
-            if (State.Initialized.Value)
+            var genesisOwner = State.GenesisOwner.Value;
+            var contractDeploymentAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
+            if (!State.Initialized.Value)
             {
-                // check authority if already initialized.
-                var contractDeploymentAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
-                Assert(!contractDeploymentAuthorityRequired || sender.Equals(State.ContractZeroOwner.Value),
-                    "Unauthorized to do this.");
+                // only contract zero is permitted before initialization
+                Assert(sender.Equals(self), "Unauthorized to do this."); 
             }
-            else
-                Assert(sender.Equals(self), "Unauthorized to do this."); // only contract zero deploys system contracts before initialized
+            else if (contractDeploymentAuthorityRequired)
+            {
+                // genesis owner authority check is required
+                Assert(genesisOwner != null && sender.Equals(genesisOwner), "Unauthorized to do this.");
+            }
+//            else if (genesisOwner == null)
+//            {
+//                Assert(sender.Equals(self), "Unauthorized to do this."); // only contract zero is permitted before genesis owner set
+////                if (genesisOwner != null)
+////                {
+////                    // check authority if already initialized.
+////                    Assert(sender.Equals(genesisOwner), "Unauthorized to do this.");
+////                }
+////                else
+////                    Assert(sender.Equals(self), "Unauthorized to do this."); // only contract zero is permitted before genesis owner set
+//             }
         }
 
-        #endregion Actions
+//        private Address GetContractZeroOwner()
+//        {
+//            if (State.GenesisContractOwner.Value != null)
+//                return State.GenesisContractOwner.Value;
+//            
+//            var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+//            var contractZeroOwnerAddress =
+//                Context.Call<Address>(address, State.ZeroOwnerAddressGenerationMethodName.Value, new Empty());
+//            Assert(contractZeroOwnerAddress != null, "Invalid owner.");
+//            State.GenesisContractOwner.Value = contractZeroOwnerAddress;
+//            return contractZeroOwnerAddress;
+//        }
     }
 
     public static class AddressHelper

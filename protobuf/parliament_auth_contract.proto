@@ -12,14 +12,14 @@ service ParliamentAuthContract {
     option (aelf.csharp_state) = "AElf.Contracts.ParliamentAuth.ParliamentAuthState";
     option (aelf.base) = "acs3.proto";
     // Actions
-    rpc Initialize(google.protobuf.Empty) returns (google.protobuf.Empty){
+    rpc Initialize(InitializeInput) returns (google.protobuf.Empty){
     }
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
     }
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
-    rpc GetContractZeroOwnerAddress (google.protobuf.Empty) returns (aelf.Address){
+    rpc GetGenesisOwnerAddress (google.protobuf.Empty) returns (aelf.Address){
         option (aelf.is_view) = true;
     }
 }
@@ -43,4 +43,8 @@ message ProposalInfo {
     aelf.Address proposer = 6;
     aelf.Address organizationAddress =7;
     repeated aelf.Address approvedRepresentatives = 8;
+}
+
+message InitializeInput{
+    int32 genesisOwnerReleaseThreshold = 1;
 }

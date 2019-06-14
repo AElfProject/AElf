@@ -16,13 +16,10 @@ namespace AElf.Contracts.Genesis
         public async Task Initialize_AlreadyExist()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.InitializeContractZeroOwner), (new ContractZeroOwnerInitializationInput
-                {
-                    ContractDeploymentAuthorityRequired = true
-                }));
+                nameof(ACS0Container.ACS0Stub.InitializeGenesisOwner), new InitializeGenesisOwnerInput());
 
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            txResult.Error.Contains("Contract zero already initialized").ShouldBeTrue();
+            txResult.Error.Contains("Genesis owner already initialized").ShouldBeTrue();
         }
 
         [Fact]
@@ -63,7 +60,7 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeContractZeroOwner()
         {
             var address = Tester.GetCallOwnerAddress();
-            var methodName = "ChangeContractZeroOwner";
+            var methodName = "ChangeGenesisOwner";
             //create proposal to update
             var proposalId = CreateProposalAsync(methodName, address);
             //approve and release
@@ -114,7 +111,7 @@ namespace AElf.Contracts.Genesis
         public async Task ChangeContractZeroOwner_WithoutAuth()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.ChangeContractZeroOwner), Tester.GetCallOwnerAddress());
+                nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), Tester.GetCallOwnerAddress());
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Unauthorized to do this.").ShouldBeTrue();
         }

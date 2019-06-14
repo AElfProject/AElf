@@ -271,7 +271,6 @@ namespace AElf.OS
             {
                 ZeroSmartContract = typeof(BasicContractZero),
                 ChainId = _chainOptions.ChainId,
-                ContractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput()
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract(
