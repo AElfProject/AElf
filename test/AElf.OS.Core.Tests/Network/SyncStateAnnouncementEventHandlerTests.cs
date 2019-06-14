@@ -14,7 +14,7 @@ using Xunit;
 
 namespace AElf.OS.Handlers
 {
-    public class SyncStateAnnouncementEventHandlerTests : SyncTestBase 
+    public class SyncStateAnnouncementEventHandlerTests //: SyncTestBase 
     {
         private ConnectionProcessFinishedEventHandler _handler;
         
