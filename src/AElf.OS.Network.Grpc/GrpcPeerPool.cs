@@ -143,7 +143,7 @@ namespace AElf.OS.Network.Grpc
             {
                 BlockHash = connectReply.Handshake.Header.GetHash(),
                 BlockHeight = connectReply.Handshake.Header.Height
-            }, pubKey, true));
+            }, pubKey));
 
             return true;
         }

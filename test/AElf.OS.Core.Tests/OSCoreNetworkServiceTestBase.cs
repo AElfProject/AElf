@@ -6,4 +6,9 @@ namespace AElf.OS
     {
     
     }
+
+    public class SyncStateTestBase : AElfIntegratedTest<OSCoreTestAElfModule>
+    {
+        
+    }
 }
