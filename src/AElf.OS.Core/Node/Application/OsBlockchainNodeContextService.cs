@@ -18,9 +18,9 @@ namespace AElf.OS.Node.Application
 {
     public class OsBlockchainNodeContextService : IOsBlockchainNodeContextService, ITransientDependency
     {
-        private IBlockchainNodeContextService _blockchainNodeContextService;
-        private IAElfNetworkServer _networkServer;
-        private ISmartContractAddressService _smartContractAddressService;
+        private readonly IBlockchainNodeContextService _blockchainNodeContextService;
+        private readonly IAElfNetworkServer _networkServer;
+        private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IServiceContainer<INodePlugin> _nodePlugins;
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
@@ -41,11 +41,9 @@ namespace AElf.OS.Node.Application
                 dto.SmartContractRunnerCategory));
 
             transactions.AddRange(dto.InitializationSmartContracts
-                .Select(p =>
-                {
-                    return GetTransactionForDeployment((byte[]) p.Code, p.SystemSmartContractName, dto.SmartContractRunnerCategory,
-                        p.TransactionMethodCallList);
-                }));
+                .Select(p => GetTransactionForDeployment(p.Code, p.SystemSmartContractName,
+                    dto.SmartContractRunnerCategory,
+                    p.TransactionMethodCallList)));
 
             if (dto.InitializationTransactions != null)
                 transactions.AddRange(dto.InitializationTransactions);
@@ -75,7 +73,8 @@ namespace AElf.OS.Node.Application
         }
 
         private Transaction GetTransactionForDeployment(Type contractType, Hash systemContractName,
-            int category, SystemContractDeploymentInput.Types.SystemTransactionMethodCallList transactionMethodCallList = null)
+            int category,
+            SystemContractDeploymentInput.Types.SystemTransactionMethodCallList transactionMethodCallList = null)
         {
             var code = File.ReadAllBytes(contractType.Assembly.Location);
 
@@ -83,7 +82,8 @@ namespace AElf.OS.Node.Application
         }
 
         private Transaction GetTransactionForDeployment(byte[] code, Hash systemContractName,
-            int category, SystemContractDeploymentInput.Types.SystemTransactionMethodCallList transactionMethodCallList = null)
+            int category,
+            SystemContractDeploymentInput.Types.SystemTransactionMethodCallList transactionMethodCallList = null)
         {
             if (transactionMethodCallList == null)
                 transactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
@@ -112,7 +112,7 @@ namespace AElf.OS.Node.Application
 
             foreach (var nodePlugin in _nodePlugins)
             {
-                var task = nodePlugin.ShutdownAsync();
+                var _ = nodePlugin.ShutdownAsync();
             }
         }
     }
