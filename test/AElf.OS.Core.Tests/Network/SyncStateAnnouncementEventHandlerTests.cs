@@ -1,39 +1,34 @@
-//using System.Threading.Tasks;
-//using AElf.Kernel;
-//using AElf.OS.Network;
-//using AElf.OS.Network.Application;
-//using AElf.OS.Network.Events;
-//using AElf.OS.Network.Grpc;
-//using AElf.OS.Network.Infrastructure;
-//using AElf.Types;
-//using Grpc.Core;
-//using Shouldly;
-//using Xunit;
-//
-//namespace AElf.OS.Handlers
-//{
-//    public class SyncStateAnnouncementEventHandlerTests : SyncStateTestBase 
-//    {
-//        private IPeerPool _peerPool;
-//        private ISyncStateService _syncStateService;
-//
-//        public SyncStateAnnouncementEventHandlerTests()
-//        {
-//            _peerPool = GetRequiredService<IPeerPool>();
-//            _syncStateService = GetRequiredService<ISyncStateService>();
-//        }
-//
-//        [Fact]
-//        public async Task NullAnnounceShouldNotChangeState()
-//        {
-//            _syncStateService.SetSyncTarget(false);
-//            
-//            await _handler.HandleEventAsync(new AnnouncementReceivedEventData(null, null));
-//            
-//            var isSyncing = _syncStateService.IsSyncing();
-//            isSyncing.ShouldBeFalse();
-//        }
-//
+using System.Threading.Tasks;
+using AElf.Kernel;
+using AElf.OS.Network;
+using AElf.OS.Network.Application;
+using AElf.OS.Network.Events;
+using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Infrastructure;
+using AElf.Types;
+using Grpc.Core;
+using Shouldly;
+using Xunit;
+
+namespace AElf.OS.Handlers
+{
+    public class SyncStateAnnouncementEventHandlerTests : SyncStateTestBase 
+    {
+        private IPeerPool _peerPool;
+        private ISyncStateService _syncStateService;
+
+        public SyncStateAnnouncementEventHandlerTests()
+        {
+            _peerPool = GetRequiredService<IPeerPool>();
+            _syncStateService = GetRequiredService<ISyncStateService>();
+        }
+        
+        #region Sync state
+        
+        
+        
+        #endregion
+
 //        [Fact]
 //        public async Task OnePeer_InGap_ShouldTriggerSync()
 //        {
@@ -105,20 +100,20 @@
 //            
 //            _syncStateService.IsSyncing().ShouldBeFalse();
 //        }
-//
-//        private GrpcPeer CreatePeer(string publicKey)
-//        {
-//            var connectionInfo = new GrpcPeerInfo
-//            {
-//                PublicKey = publicKey,
-//                PeerIpAddress = "127.0.0.1:5000",
-//                ProtocolVersion = 1,
-//                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-//                StartHeight = 1,
-//                IsInbound = true
-//            };
-//            
-//            return new GrpcPeer(new Channel("127.0.0.1:5000", ChannelCredentials.Insecure), null, connectionInfo);
-//        }
-//    }
-//}
+
+        private GrpcPeer CreatePeer(string publicKey)
+        {
+            var connectionInfo = new GrpcPeerInfo
+            {
+                PublicKey = publicKey,
+                PeerIpAddress = "127.0.0.1:5000",
+                ProtocolVersion = 1,
+                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                StartHeight = 1,
+                IsInbound = true
+            };
+            
+            return new GrpcPeer(new Channel("127.0.0.1:5000", ChannelCredentials.Insecure), null, connectionInfo);
+        }
+    }
+}

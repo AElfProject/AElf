@@ -31,7 +31,6 @@ namespace AElf.OS
             context.Services.AddAssemblyOf<OSAElfModule>();
 
             context.Services.AddSingleton<PeerConnectedEventHandler>();
-            context.Services.AddSingleton<ConnectionProcessFinishedEventHandler>();
 
             //TODO: make ApplicationHelper as a provider, inject it into key store
             var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
@@ -20,8 +21,10 @@ namespace AElf.OS.Network.Grpc
     {
         private readonly IPeerPool _peerPool;
         
-        private readonly NetworkOptions _networkOptions;
+        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
+        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
+        private readonly ISyncStateService _syncStateService;
         private readonly PeerService.PeerServiceBase _serverService;
         private readonly AuthInterceptor _authInterceptor;
 
@@ -30,13 +33,13 @@ namespace AElf.OS.Network.Grpc
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
-        public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, PeerService.PeerServiceBase serverService,
+        public GrpcNetworkServer(ISyncStateService syncStateService, PeerService.PeerServiceBase serverService,
             IPeerPool peerPool, AuthInterceptor authInterceptor)
         {
+            _syncStateService = syncStateService;
             _serverService = serverService;
             _authInterceptor = authInterceptor;
             _peerPool = peerPool;
-            _networkOptions = options.Value;
 
             Logger = NullLogger<GrpcNetworkServer>.Instance;
             EventBus = NullLocalEventBus.Instance;
@@ -58,16 +61,16 @@ namespace AElf.OS.Network.Grpc
                 Services = {serviceDefinition},
                 Ports =
                 {
-                    new ServerPort(IPAddress.Any.ToString(), _networkOptions.ListeningPort, ServerCredentials.Insecure)
+                    new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, ServerCredentials.Insecure)
                 }
             };
 
             await Task.Run(() => _server.Start());
 
             // Add the provided boot nodes
-            if (_networkOptions.BootNodes != null && _networkOptions.BootNodes.Any())
+            if (NetworkOptions.BootNodes != null && NetworkOptions.BootNodes.Any())
             {
-                List<Task<bool>> taskList = _networkOptions.BootNodes.Select(_peerPool.AddPeerAsync).ToList();
+                List<Task<bool>> taskList = NetworkOptions.BootNodes.Select(_peerPool.AddPeerAsync).ToList();
                 await Task.WhenAll(taskList.ToArray<Task>());
             }
             else
@@ -75,9 +78,7 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogWarning("Boot nodes list is empty.");
             }
             
-            // hook for components needing to be notified we've connected to 
-            // the boot nodes
-            await EventBus.PublishAsync(new PeerConnectionProcessFinished());
+            await _syncStateService.TryFindSyncTarget();
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)
