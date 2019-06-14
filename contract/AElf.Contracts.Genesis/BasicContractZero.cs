@@ -61,7 +61,7 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
-            RequireAuthority();
+            RequireAuthority(Context.Self);
             var name = input.Name;
             var category = input.Category;
             var code = input.Code.ToByteArray();
