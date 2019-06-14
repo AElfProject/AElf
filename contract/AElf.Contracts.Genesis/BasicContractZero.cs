@@ -39,6 +39,11 @@ namespace AElf.Contracts.Genesis
             return info?.CodeHash;
         }
 
+        public override Address GetGenesisOwner(Empty input)
+        {
+            return State.GenesisOwner.Value;
+        }
+
         public override Address GetContractAddressByName(Hash input)
         {
             return State.NameAddressMapping[input];
