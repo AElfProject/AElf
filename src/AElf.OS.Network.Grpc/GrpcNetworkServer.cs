@@ -78,7 +78,7 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogWarning("Boot nodes list is empty.");
             }
             
-            await _syncStateService.TryFindSyncTarget();
+            await _syncStateService.TryFindSyncTargetAsync();
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)

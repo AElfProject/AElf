@@ -19,8 +19,8 @@ namespace AElf.OS.Handlers
             {
                 NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
 
-                if (SyncStateService.IsSyncing())
-                    SyncStateService.UpdateSyncState();
+                if (SyncStateService.IsSyncing)
+                    SyncStateService.UpdateSyncStateAsync();
                 
                 return Task.CompletedTask;
             }

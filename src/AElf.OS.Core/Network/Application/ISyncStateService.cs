@@ -4,17 +4,19 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Node.Application;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Application
 {
     public interface ISyncStateService
     {
-        bool IsSyncing();
-        Task TryFindSyncTarget();
-        Task UpdateSyncState();
+        bool IsSyncing { get; }
+        long CurrentSyncTarget { get; }
+        Task TryFindSyncTargetAsync();
+        Task UpdateSyncStateAsync();
     }
 
-    public class SyncStateService : ISyncStateService
+    public class SyncStateService : ISyncStateService, ISingletonDependency
     {
         private readonly INodeSyncStateProvider _syncStateProvider;
         private readonly IBlockchainService _blockchainService;
@@ -32,7 +34,9 @@ namespace AElf.OS.Network.Application
             _peerPool = peerPool;
         }
         
-        public bool IsSyncing() => _syncStateProvider.IsNodeSyncing();
+        public bool IsSyncing => _syncStateProvider.IsNodeSyncing();
+        public long CurrentSyncTarget => _syncStateProvider.SyncTarget;
+        
         private void SetSyncTarget(long value) => _syncStateProvider.SetSyncTarget(value);
         
         private void SetSyncAsFinished()
@@ -41,7 +45,7 @@ namespace AElf.OS.Network.Application
             _blockchainNodeContextService.FinishSync();
         }
 
-        public async Task UpdateSyncState()
+        public async Task UpdateSyncStateAsync()
         {
             var chain = await _blockchainService.GetChainAsync();
             
@@ -53,7 +57,7 @@ namespace AElf.OS.Network.Application
             }
         }
 
-        public async Task TryFindSyncTarget()
+        public async Task TryFindSyncTargetAsync()
         {
             // determine if we need to sync or not, based on the peers LIB.
             var peers = _peerPool.GetPeers().Where(p => p.LastKnowLIBHeight > 0).ToList();
@@ -62,7 +66,7 @@ namespace AElf.OS.Network.Application
             {
                 // no peer has a LIB to sync to, stop the sync.
                 SetSyncAsFinished();
-                Logger.LogDebug($"Finishing sync, no peer has as a LIB.");
+                Logger.LogDebug("Finishing sync, no peer has as a LIB.");
             }
             else
             {
