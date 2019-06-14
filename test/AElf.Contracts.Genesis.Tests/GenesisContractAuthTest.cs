@@ -90,7 +90,7 @@ namespace AElf.Contracts.Genesis
                     Name = Hash.FromString("MultiToken")
                 }));
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            txResult.Error.Contains("Unauthorized to do this.").ShouldBeTrue();
+            txResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
         }
 
         [Fact]
@@ -104,7 +104,7 @@ namespace AElf.Contracts.Genesis
                         Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value)
                     }));
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("Unauthorized to do this.").ShouldBeTrue();
+            result.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
         }
 
         [Fact]
@@ -113,7 +113,7 @@ namespace AElf.Contracts.Genesis
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), Tester.GetCallOwnerAddress());
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("Unauthorized to do this.").ShouldBeTrue();
+            result.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
         }
     }
 }

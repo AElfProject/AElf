@@ -74,21 +74,6 @@ namespace AElf.Blockchains.SideChain
             return l;
         }
 
-//        public ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto()
-//        {
-//            var contractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
-//            {
-//                ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub
-//                    .GetContractZeroOwnerAddress),
-//                ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
-//            };
-//
-//            return new ContractZeroOwnerInitializationDto
-//            {
-//                ContractZeroOwnerInitializationInput = contractZeroOwnerInitializationInput
-//            };
-//        }
-
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateTokenInitializationCallList()
         {

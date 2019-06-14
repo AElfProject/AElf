@@ -208,8 +208,7 @@ namespace AElf.Contracts.TestBase
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-//                ContractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput()
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract(
@@ -232,12 +231,7 @@ namespace AElf.Contracts.TestBase
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-//                ContractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
-//                {
-//                    ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
-//                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetContractZeroOwnerAddress)
-//                }
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
             dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
             dto.InitializationSmartContracts.AddGenesisSmartContract(
@@ -265,18 +259,12 @@ namespace AElf.Contracts.TestBase
             
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
-//            var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = chainOptions.ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-//                ContractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
-//                {
-//                    ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired,
-//                    ZeroOwnerAddressGenerationMethodName = nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetContractZeroOwnerAddress)
-//                }
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract(
@@ -682,12 +670,7 @@ namespace AElf.Contracts.TestBase
                 TokenName = "elf token",
                 TotalSupply = TokenTotalSupply
             });
-//            tokenContractCallList.Add(nameof(TokenContract.IssueNativeToken), new IssueNativeTokenInput
-//            {
-//                Symbol = "ELF",
-//                Amount = InitialTreasuryAmount,
-//                ToSystemContractName = ElectionSmartContractAddressNameProvider.Name
-//            });
+            
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = "ELF",

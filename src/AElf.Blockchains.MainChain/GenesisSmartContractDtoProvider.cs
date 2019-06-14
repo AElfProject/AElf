@@ -41,19 +41,5 @@ namespace AElf.Blockchains.MainChain
                 GetGenesisSmartContractDtosForConsensus(zeroContractAddress),
             }.SelectMany(x => x);
         }
-
-//        public ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto()
-//        {
-//            var contractZeroOwnerInitializationInput = new ContractZeroOwnerInitializationInput
-//            {
-//                ZeroOwnerAddressGenerationMethodName = GetMethodNameForZeroOwnerAddress(),
-//                ContractDeploymentAuthorityRequired = _contractOptions.ContractDeploymentAuthorityRequired
-//            };
-//
-//            return new ContractZeroOwnerInitializationDto
-//            {
-//                ContractZeroOwnerInitializationInput = contractZeroOwnerInitializationInput
-//            };
-//        }
     }
 }
