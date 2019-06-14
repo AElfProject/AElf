@@ -61,7 +61,7 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
-            CheckAuthority();
+            CheckContractDeploymentAuthority();
             var name = input.Name;
             var category = input.Category;
             var code = input.Code.ToByteArray();
@@ -125,19 +125,19 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
-            CheckAuthority();
+            CheckContractDeploymentAuthority();
             var address = PrivateDeploySystemSmartContract(input.Name, input.Category, input.Code.ToByteArray());
             return address;
         }
 
         public override Address UpdateSmartContract(ContractUpdateInput input)
         {
-            CheckAuthority();
             var contractAddress = input.Address;
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
 
             Assert(info != null, "Contract does not exist.");
+            CheckContractUpdateAuthority(info.Owner);
 
             var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
@@ -208,12 +208,36 @@ namespace AElf.Contracts.Genesis
         public override Empty ChangeContractZeroOwner(Address newOwnerAddress)
         {
             Assert(State.Initialized.Value, "Contract zero not initialized");
-            CheckAuthority();
+            CheckContractUpdateAuthority(Context.Self);
             State.ContractZeroOwner.Value = newOwnerAddress;
             return new Empty();
         }
 
-        private void CheckAuthority()
+        private void CheckContractUpdateAuthority(Address ownerAddress)
+        {
+            var sender = Context.Sender;
+            var self = Context.Self;
+            var contractDeploymentAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
+            if (State.Initialized.Value)
+            {
+                // check ContractZeroOwner authority
+                // if it is deployed by contract zero
+                // or if ContractDeploymentAuthorityRequired is true
+                if (ownerAddress.Equals(Context.Self) || contractDeploymentAuthorityRequired)
+                {
+                    Assert(sender.Equals(State.ContractZeroOwner.Value), "Unauthorized to do this.");
+                }
+                else
+                {
+                    // otherwise only check original owner
+                    Assert(sender.Equals(ownerAddress));
+                }
+            }
+            else
+                Assert(sender.Equals(self), "Unauthorized to do this."); // only contract zero deploys system contracts before initialized
+        }
+
+        private void CheckContractDeploymentAuthority()
         {
             var sender = Context.Sender;
             var self = Context.Self;

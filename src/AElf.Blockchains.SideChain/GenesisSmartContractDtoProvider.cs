@@ -15,6 +15,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -65,6 +66,11 @@ namespace AElf.Blockchains.SideChain
                 CrossChainSmartContractAddressNameProvider.Name,
                 GenerateCrossChainInitializationCallList(chainInitializationData));
 
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("ParliamentAuth")).Value,
+                ParliamentAuthContractAddressNameProvider.Name,
+                GenerateParliamentInitializationCallList());
+            
             return l;
         }
 
@@ -115,6 +121,15 @@ namespace AElf.Blockchains.SideChain
             return consensusMethodCallList;
         }
 
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateParliamentInitializationCallList()
+        {
+            var parliamentInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            parliamentInitializationCallList.Add(
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize), new Empty());
+            return parliamentInitializationCallList;
+        }
+        
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateCrossChainInitializationCallList(ChainInitializationData chainInitializationData)
         {
