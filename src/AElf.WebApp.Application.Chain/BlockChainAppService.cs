@@ -601,19 +601,13 @@ namespace AElf.WebApp.Application.Chain
         private async Task<TransactionResult> GetTransactionResult(Hash txHash)
         {
             // in storage
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
             var res = await _transactionResultQueryService.GetTransactionResultAsync(txHash);
             if (res != null)
             {
                 return res;
             }
-            stopwatch.Stop();
-            Logger.LogTrace($"## query transaction result from storage in: {stopwatch.ElapsedMilliseconds}");
 
             // in tx pool
-            stopwatch.Reset();
-            stopwatch.Start();
             var receipt = await _txHub.GetTransactionReceiptAsync(txHash);
             if (receipt != null)
             {
@@ -623,8 +617,6 @@ namespace AElf.WebApp.Application.Chain
                     Status = TransactionResultStatus.Pending
                 };
             }
-            stopwatch.Stop();
-            Logger.LogTrace($"## query transaction result from tx pool in: {stopwatch.ElapsedMilliseconds}");
             
             // not existed
             return new TransactionResult
