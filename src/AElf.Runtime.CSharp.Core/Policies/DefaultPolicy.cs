@@ -34,7 +34,14 @@ namespace AElf.Runtime.CSharp.Policies
         {
             Whitelist
                 .Assembly(Assembly.Load("netstandard"), Trust.Partial)
+                .Assembly(Assembly.Load("System.Runtime"), Trust.Partial)
+                .Assembly(Assembly.Load("System.Runtime.Extensions"), Trust.Partial)
+                .Assembly(Assembly.Load("System.Private.CoreLib"), Trust.Partial)
+                .Assembly(Assembly.Load("System.ObjectModel"), Trust.Partial)
+                .Assembly(Assembly.Load("System.Linq"), Trust.Full)
+                .Assembly(Assembly.Load("System.Collections"), Trust.Full)
                 .Assembly(Assembly.Load("Google.Protobuf"), Trust.Full)
+                
                 .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
                 .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
                 .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core

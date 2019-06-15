@@ -6,15 +6,12 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
-using AElf.CSharp.Core;
 using AElf.Runtime.CSharp.Validators;
-using AElf.Sdk.CSharp;
-using Google.Protobuf.Reflection;
 using ILVerify;
 
 namespace AElf.Runtime.CSharp
 {
-    public class AssemblyVerifier : ResolverBase
+    public class ILVerifier : ResolverBase
     {
         private readonly AssemblyName _systemModule = new AssemblyName("netstandard");
         
@@ -22,44 +19,13 @@ namespace AElf.Runtime.CSharp
 
         private Verifier _verifier;
 
-        public AssemblyVerifier()
+        public ILVerifier(IEnumerable<string> assemblyReferences)
         {
-            // .NET path
-            var netcorePath = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
-            var netCoreReferences = new[]
+            foreach (var assemblyReference in assemblyReferences)
             {
-                "netstandard",
-                "System.Collections",
-                "System.Linq",
-                "System.Runtime",
-                "System.Runtime.Extensions",
-                "System.Private.CoreLib",
-            };
-            
-            foreach (var systemReference in netCoreReferences)
-            {
-                AddReferenceAssemblyByName(netcorePath, systemReference);
+                _refAssemblies.Add(assemblyReference, new PEReader(new MemoryStream(
+                    File.ReadAllBytes(Assembly.Load(assemblyReference).Location))));
             }
-
-            // Google.Protobuf
-            AddReferenceAssemblyByType(typeof(MessageDescriptor));
-            
-            // Add AElf related reference libraries
-            AddReferenceAssemblyByType(typeof(ISmartContract));      // AElf.Types
-            AddReferenceAssemblyByType(typeof(ContractStubBase));    // AElf.CSharp.Core
-            AddReferenceAssemblyByType(typeof(CSharpSmartContract)); // AElf.Sdk.CSharp
-        }
-
-        private void AddReferenceAssemblyByType(Type type)
-        {
-            var assembly = type.Assembly;
-            _refAssemblies.Add(assembly.GetName().Name, new PEReader(new MemoryStream(File.ReadAllBytes(assembly.Location))));
-        }
-
-        private void AddReferenceAssemblyByName(string path, string assemblyName)
-        {
-            _refAssemblies.Add(assemblyName, new PEReader(new MemoryStream(
-                File.ReadAllBytes($"{path}/{assemblyName}.dll"))));
         }
 
         protected override PEReader ResolveCore(string simpleName)
