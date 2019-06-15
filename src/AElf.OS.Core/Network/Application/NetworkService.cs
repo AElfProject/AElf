@@ -78,7 +78,13 @@ namespace AElf.OS.Network.Application
             {
                 _queueManager.Enqueue(async () =>
                 {
+                    if (peer.KnowsTransaction(tx))
+                        return;
+
+                    peer.AddKnownTransaction(tx);
+                    
                     await peer.SendTransactionAsync(tx);
+                    
                 }, NetworkConstants.TransactionQueueName);
             }
             

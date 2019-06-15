@@ -186,6 +186,9 @@ namespace AElf.OS.Network.Grpc
             
             _taskQueueManager.Enqueue(async () =>
             {
+                var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+                peerInPool?.AddKnownTransaction(tx);
+                
                 await EventBus.PublishAsync(new TransactionsReceivedEvent
                 {
                     Transactions = new List<Transaction> {tx}
@@ -201,8 +204,6 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
         {
-            Stopwatch sw = Stopwatch.StartNew();
-            
             if (an?.BlockHash == null)
             {
                 Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
@@ -210,13 +211,6 @@ namespace AElf.OS.Network.Grpc
             }
             
             Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
-            
-            Stopwatch eqsw = Stopwatch.StartNew();
-            
-            int qSize = _taskQueueManager.GetQueue(NetworkConstants.ReceivedAnnouncementsQueueName).Size;
-            
-            if (qSize > 10)
-                Logger.LogDebug($"Queue size before announcement {qSize}.");
             
             _taskQueueManager.Enqueue(async () =>
             {
@@ -226,12 +220,6 @@ namespace AElf.OS.Network.Grpc
                 await EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
                 
             }, NetworkConstants.ReceivedAnnouncementsQueueName);
-            
-            eqsw.Stop();
-            sw.Stop();
-            
-            if (sw.ElapsedMilliseconds > 50)
-                Logger.LogDebug($"Time in announcement: {sw.ElapsedMilliseconds}, time enqueing: {eqsw.ElapsedMilliseconds}");
             
             return Task.FromResult(new VoidReply());
         }

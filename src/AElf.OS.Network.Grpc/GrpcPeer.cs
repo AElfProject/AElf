@@ -16,6 +16,8 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcPeer : IPeer
     {
+        private const int MaxRecentTransactionCount = 200;
+        
         private const int MaxMetricsPerMethod = 100;
         
         private const int AnnouncementTimeout = 300;
@@ -53,10 +55,11 @@ namespace AElf.OS.Network.Grpc
         public long ConnectionTime { get; }
         public bool Inbound { get; }
         public long StartHeight { get; }
+        
+        private readonly ConcurrentDictionary<Hash, long> _recentTransactions;
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
-        
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
 
@@ -74,6 +77,8 @@ namespace AElf.OS.Network.Grpc
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
+            
+            _recentTransactions = new ConcurrentDictionary<Hash, long>();
             
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
             RecentRequestsRoundtripTimes = new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
@@ -288,6 +293,22 @@ namespace AElf.OS.Network.Grpc
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
             }
+        }
+        
+        public void AddKnownTransaction(Transaction transaction)
+        {
+            if (!_recentTransactions.TryAdd(transaction.GetHash(), transaction.RefBlockNumber)) 
+                return;
+
+            while (_recentTransactions.Count > MaxRecentTransactionCount)
+            {
+                _recentTransactions.TryRemove(_recentBlockHeightAndHashMappings.Values.Min(), out _);
+            }
+        }
+
+        public bool KnowsTransaction(Transaction transaction)
+        {
+            return _recentTransactions.TryGetValue(transaction.GetHash(), out _);
         }
 
         public async Task SendDisconnectAsync()

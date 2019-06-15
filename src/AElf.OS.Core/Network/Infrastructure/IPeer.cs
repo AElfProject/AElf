@@ -22,6 +22,8 @@ namespace AElf.OS.Network.Infrastructure
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
 
         void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement);
+        void AddKnownTransaction(Transaction transaction);
+        bool KnowsTransaction(Transaction transaction);
 
         Task SendDisconnectAsync();
         Task StopAsync();
