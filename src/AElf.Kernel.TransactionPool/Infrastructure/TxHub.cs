@@ -195,9 +195,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             foreach (var transaction in eventData.Transactions)
             {
-                if (!transaction.VerifySignature())
-                    continue;
-
                 var receipt = new TransactionReceipt(transaction);
                 if (_allTransactions.ContainsKey(receipt.TransactionId))
                 {
@@ -223,6 +220,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     //Logger.LogWarning($"Transaction already exists in TxStore");
                     continue;
                 }
+                
+                if (!transaction.VerifySignature())
+                    continue;
 
                 var success = _allTransactions.TryAdd(receipt.TransactionId, receipt);
                 if (!success)
