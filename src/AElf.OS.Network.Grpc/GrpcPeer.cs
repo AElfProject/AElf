@@ -34,8 +34,6 @@ namespace AElf.OS.Network.Grpc
         
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
-        
-        public ILocalEventBus LocalEventBus { get; set; }
 
         /// <summary>
         /// Property that describes a valid state. Valid here means that the peer is ready to be used for communication.
