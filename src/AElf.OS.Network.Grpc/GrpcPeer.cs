@@ -230,7 +230,7 @@ namespace AElf.OS.Network.Grpc
                 RoundTripTime = elapsedMilliseconds
             });
         }
-        
+
         /// <summary>
         /// This method handles the case where the peer is potentially down. If the Rpc call
         /// put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
@@ -238,40 +238,38 @@ namespace AElf.OS.Network.Grpc
         private void HandleFailure(AggregateException exceptions, string errorMessage)
         {
             // If channel has been shutdown (unrecoverable state) remove it.
+            string message = $"Failed request to {this}: {errorMessage}";
+            NetworkExceptionType type = NetworkExceptionType.Rpc;
+            
             if (_channel.State == ChannelState.Shutdown)
             {
-                LocalEventBus.PublishAsync(new PeerDisconnectionEvent(this));
-                return;
+                message = $"Peer is shutdown - {this}: {errorMessage}";
+                type = NetworkExceptionType.Unrecoverable;
             }
-
-            if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
+            else if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
             {
-                Task.Run(async () =>
-                {
-                    await _channel.TryWaitForStateChangedAsync(_channel.State,
-                        DateTime.UtcNow.AddSeconds(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds));
-
-                    // Either we connected again or the state change wait timed out.
-                    if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
-                    {
-                        await StopAndRemoveAsync();
-                    }
-                });
+                message = $"Failed request to {this}: {errorMessage}";
+                type = NetworkExceptionType.PeerUnstable;
             }
-            else if(exceptions.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
+            else if (exceptions.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
             {
-                _ = StopAndRemoveAsync();
+                message = $"Failed request to {this}: {errorMessage}";
+                type = NetworkExceptionType.Unrecoverable;
             }
-            else
-            {
-                throw new NetworkException($"Failed request to {this}: {errorMessage}", exceptions);
-            }
+            
+            throw new NetworkException(message, exceptions, type);
         }
 
-        private async Task StopAndRemoveAsync()
+        public async Task<bool> TryWaitForStateChangedAsync()
         {
-            await StopAsync();
-            await LocalEventBus.PublishAsync(new PeerDisconnectionEvent(this));
+            await _channel.TryWaitForStateChangedAsync(_channel.State,
+                DateTime.UtcNow.AddSeconds(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds));
+
+            // Either we connected again or the state change wait timed out.
+            if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
+                return false;
+
+            return true;
         }
 
         public async Task StopAsync()

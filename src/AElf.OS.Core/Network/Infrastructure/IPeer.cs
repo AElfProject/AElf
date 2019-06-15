@@ -23,6 +23,8 @@ namespace AElf.OS.Network.Infrastructure
 
         void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement);
 
+        Task<bool> TryWaitForStateChangedAsync();
+        
         Task SendDisconnectAsync();
         Task StopAsync();
 

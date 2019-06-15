@@ -16,12 +16,14 @@ namespace AElf.OS.Network.Application
     public class NetworkService : INetworkService, ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
+        private readonly ITaskQueueManager _taskQueueManager;
 
         public ILogger<NetworkService> Logger { get; set; }
 
-        public NetworkService(IPeerPool peerPool)
+        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager)
         {
             _peerPool = peerPool;
+            _taskQueueManager = taskQueueManager;
 
             Logger = NullLogger<NetworkService>.Instance;
         }
@@ -188,9 +190,31 @@ namespace AElf.OS.Network.Application
             catch (NetworkException e)
             {
                 Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
+
+                if (e.ExceptionType == NetworkExceptionType.Unrecoverable)
+                {
+                    await _peerPool.RemovePeerAsync(peer.PubKey, false);
+                }
+                else if (e.ExceptionType == NetworkExceptionType.PeerUnstable)
+                {
+                    Logger.LogError(e, $"Queuing for reconnection {peer.PeerIpAddress}.");
+                    QueueConnectionWait(peer);
+                }
             }
             
             return (peer, null);
+        }
+
+        private void QueueConnectionWait(IPeer peer)
+        {
+            _taskQueueManager.Enqueue(async () => 
+            {
+                var success = await peer.TryWaitForStateChangedAsync();
+
+                if (!success)
+                    await _peerPool.RemovePeerAsync(peer.PubKey, false);
+                
+            }, NetworkConstants.PeerReconnectionQueueName);
         }
 
         private async Task<T> RequestAsync<T>(List<IPeer> peers, Func<IPeer, Task<T>> func,
