@@ -85,7 +85,6 @@ namespace AElf.Kernel
                             Transactions = { transactionList.Select(tx => tx.GetHash()) } 
                         },
                         Header = new BlockHeader(),
-                        Height = 10
                     }));
                 return mockService.Object;
             });
