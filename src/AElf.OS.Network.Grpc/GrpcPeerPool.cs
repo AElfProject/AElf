@@ -126,7 +126,7 @@ namespace AElf.OS.Network.Grpc
                 IsInbound = false
             };
 
-            var peer = new GrpcPeer(channel, client, connectionInfo) { LocalEventBus = EventBus };
+            var peer = new GrpcPeer(channel, client, connectionInfo);
 
             if (!_authenticatedPeers.TryAdd(pubKey, peer))
             {

@@ -133,7 +133,7 @@ namespace AElf.OS.Network.Grpc
                 IsInbound = true
             };
             
-            return new GrpcPeer(channel, client, connectionInfo) { LocalEventBus = EventBus };
+            return new GrpcPeer(channel, client, connectionInfo);
         }
 
         private AuthError ValidateHandshake(Handshake handshake)
