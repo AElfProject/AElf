@@ -94,6 +94,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             minerInRound.OutValue = input.OutValue;
             minerInRound.SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             minerInRound.FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
+            minerInRound.ImpliedIrreversibleBlockHeight = input.ImpliedIrreversibleBlockHeight;
 
             minerInRound.EncryptedInValues.Add(input.EncryptedInValues);
             foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
@@ -136,7 +137,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
 
-            TryToFindLastIrreversibleBlock();
+            //TryToFindLastIrreversibleBlock();
+
+            var irreversibleBlockHeight = CalculateLastIrreversibleBlockHeight();
+            if (irreversibleBlockHeight != 0)
+            {
+                Context.Fire(new IrreversibleBlockFound
+                {
+                    IrreversibleBlockHeight = irreversibleBlockHeight
+                });
+            }
 
             return new Empty();
         }
@@ -193,7 +203,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
-            TryToFindLastIrreversibleBlock();
+            //TryToFindLastIrreversibleBlock();
 
             return new Empty();
         }

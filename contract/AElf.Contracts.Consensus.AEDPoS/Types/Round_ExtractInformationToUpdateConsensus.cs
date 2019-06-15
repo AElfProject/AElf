@@ -45,7 +45,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 TuneOrderInformation = {tuneOrderInformation},
                 EncryptedInValues = {minerInRound.EncryptedInValues},
                 DecryptedPreviousInValues = {decryptedPreviousInValues},
-                MinersPreviousInValues = {minersPreviousInValues}
+                MinersPreviousInValues = {minersPreviousInValues},
+                ImpliedIrreversibleBlockHeight = minerInRound.ImpliedIrreversibleBlockHeight
             };
         }
     }
