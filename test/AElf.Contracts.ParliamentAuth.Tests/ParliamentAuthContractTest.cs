@@ -15,11 +15,6 @@ namespace AElf.Contracts.ParliamentAuth
 {
     public class ParliamentAuthContractTest : ParliamentAuthContractTestBase
     {
-        public ParliamentAuthContractTest()
-        {
-            InitializeContracts();
-        }
-
         [Fact]
         public async Task ParliamentAuthContract_InitializeMultiTimes()
         {

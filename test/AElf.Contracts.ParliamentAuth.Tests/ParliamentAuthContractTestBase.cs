@@ -30,14 +30,5 @@ namespace AElf.Contracts.ParliamentAuth
             otherTester = Tester.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
             minerTester = Tester.CreateNewContractTester(Tester.InitialMinerList[0]);
         }
-        
-        protected async void InitializeContracts()
-        {
-            await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize), new InitializeInput
-                {
-                    GenesisOwnerReleaseThreshold = 6666
-                });
-        }
     }
 }
