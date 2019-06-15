@@ -4,9 +4,9 @@ namespace AElf.OS.Network.Infrastructure
 {
     public interface INodeSyncStateProvider
     {
+        long SyncTarget { get; }
         bool IsNodeSyncing();
         void SetSyncTarget(long target);
-        long SyncTarget { get; }
     }
     
     public class NodeSyncStateProvider : INodeSyncStateProvider, ISingletonDependency
