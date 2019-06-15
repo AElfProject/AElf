@@ -65,31 +65,11 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogTrace($"Attempting to reach {ipAddress}.");
 
-            Channel channel = new Channel(ipAddress, ChannelCredentials.Insecure, new List<ChannelOption>
-            {
-                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
-                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
-            });
-            
-            var client = new PeerService.PeerServiceClient(channel
-                .Intercept(metadata =>
-                    {
-                        metadata.Add(GrpcConstants.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
-                        return metadata;
-                    })
-                .Intercept(new RetryInterceptor()));
-            
+            var (channel, client) = await CreateClientAsync(ipAddress);
             var hsk = await BuildHandshakeAsync();
 
-            if (channel.State == ChannelState.TransientFailure)
-            {
-                // if failing give it some time to recover
-                await channel.TryWaitForStateChangedAsync(channel.State,
-                    DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeoutInMilliSeconds));
-            }
-
             ConnectReply connectReply;
-            
+
             try
             {
                 Metadata data = new Metadata
@@ -144,6 +124,32 @@ namespace AElf.OS.Network.Grpc
             }, pubKey));
 
             return true;
+        }
+
+        private async Task<(Channel, PeerService.PeerServiceClient)> CreateClientAsync(string ipAddress)
+        {
+            Channel channel = new Channel(ipAddress, ChannelCredentials.Insecure, new List<ChannelOption>
+            {
+                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
+                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
+            });
+            
+            var client = new PeerService.PeerServiceClient(channel
+                .Intercept(metadata =>
+                {
+                    metadata.Add(GrpcConstants.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
+                    return metadata;
+                })
+                .Intercept(new RetryInterceptor()));
+            
+            if (channel.State == ChannelState.TransientFailure)
+            {
+                // if failing give it some time to recover
+                await channel.TryWaitForStateChangedAsync(channel.State,
+                    DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeoutInMilliSeconds));
+            }
+
+            return (channel, client);
         }
 
         public List<IPeer> GetPeers(bool includeFailing = false)
