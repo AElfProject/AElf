@@ -47,19 +47,15 @@ namespace AElf.Kernel.SmartContract.Parallel
 //                    $"Throwing exception is not supported in {nameof(LocalParallelTransactionExecutingService)}.");
 //            }
 
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
             var (parallelizable, nonParallizable) = await _grouper.GroupAsync(transactions);
-            stopwatch.Stop();
-            Logger.LogTrace($"##: group {transactions.Count} txs with: {stopwatch.ElapsedMilliseconds} ms");
             
-            stopwatch.Reset();
+            var stopwatch = new Stopwatch();
             stopwatch.Start();
             var tasks = parallelizable.AsParallel().Select(txns => ExecuteAndPreprocessResult(blockHeader, txns, cancellationToken,
                 throwException, partialBlockStateSet));
             var results = await Task.WhenAll(tasks);
             stopwatch.Stop();
-            Logger.LogTrace($"##: total execute time: {stopwatch.ElapsedMilliseconds} ms");
+            
             
             Logger.LogTrace($"Executed parallelizables.");
             
@@ -81,6 +77,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             
             Logger.LogTrace($"Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
+            Logger.LogTrace($"##: Total transactions: {returnSets.Count}, execute time: {stopwatch.ElapsedMilliseconds} ms");
             if (conflictingSets.Count > 0)
             {
                 // TODO: Add event handler somewhere
@@ -97,8 +94,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             BlockHeader blockHeader, List<Transaction> transactions, CancellationToken cancellationToken,
             bool throwException = false, BlockStateSet partialBlockStateSet = null)
         {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
             var executionReturnSets = await _plainExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
                 {
@@ -109,8 +104,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 partialBlockStateSet);
             var keys = new HashSet<string>(
                 executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateAccesses.Keys)));
-            stopwatch.Stop();
-            Logger.LogTrace($"### group execute {transactions.Count} txs in {stopwatch.ElapsedMilliseconds} ms");
+            
             return (executionReturnSets, keys);
         }
 
