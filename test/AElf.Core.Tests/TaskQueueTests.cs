@@ -17,22 +17,12 @@ namespace AElf
             _taskQueueManager = GetRequiredService<ITaskQueueManager>();
         }
 
-        [Fact]
-        public void Test_StartAsync()
-        {
-            var testQueue = _taskQueueManager.GetQueue("TestQueue");
-
-            testQueue.StartAsync().ShouldThrow<InvalidOperationException>();
-
-            testQueue.StopAsync();
-            Assert.Throws<InvalidOperationException>(() => testQueue.Enqueue(async () => { }));
-        }
 
         [Fact]
         public async Task Test_Enqueue()
         {
             var result = 1;
-            var testQueue = _taskQueueManager.GetQueue("TestQueue");
+            var testQueue = _taskQueueManager.CreateQueue("TestQueue");
             Parallel.For(0, 100, i =>
             {
                 testQueue.Enqueue(async () =>
@@ -51,9 +41,9 @@ namespace AElf
         public async Task Test_Many_Enqueue()
         {
             var testData = new int[3];
-            var testQueueA = _taskQueueManager.GetQueue("TestQueueA");
-            var testQueueB = _taskQueueManager.GetQueue("TestQueueB");
-            var testQueueC = _taskQueueManager.GetQueue("TestQueueC");
+            var testQueueA = _taskQueueManager.CreateQueue("TestQueueA");
+            var testQueueB = _taskQueueManager.CreateQueue("TestQueueB");
+            var testQueueC = _taskQueueManager.CreateQueue("TestQueueC");
 
             Parallel.For(0, 100, i =>
             {
@@ -76,7 +66,7 @@ namespace AElf
         {
             var result = 1;
 
-            var testQueue = _taskQueueManager.GetQueue("TestQueue");
+            var testQueue = _taskQueueManager.CreateQueue("TestQueue");
 
             Parallel.For(0, 3, i =>
             {
@@ -91,7 +81,7 @@ namespace AElf
 
             result.ShouldBe(4);
 
-            Assert.Throws<ObjectDisposedException>(() => testQueue.Enqueue(async () => { result++; }));
+            Assert.Throws<InvalidOperationException>(() => testQueue.Enqueue(async () => { result++; }));
         }
 
         [Fact]
@@ -101,32 +91,16 @@ namespace AElf
             var defaultQueueB = _taskQueueManager.GetQueue();
             defaultQueueA.ShouldBe(defaultQueueB);
 
-            var testQueueA1 = _taskQueueManager.GetQueue("TestQueueA");
+            var testQueueA1 = _taskQueueManager.CreateQueue("TestQueueA");
             var testQueueA2 = _taskQueueManager.GetQueue("TestQueueA");
             testQueueA1.ShouldBe(testQueueA2);
             testQueueA1.ShouldNotBe(defaultQueueA);
 
-            var testQueueB1 = _taskQueueManager.GetQueue("TestQueueB");
+            var testQueueB1 = _taskQueueManager.CreateQueue("TestQueueB");
             var testQueueB2 = _taskQueueManager.GetQueue("TestQueueB");
             testQueueB1.ShouldBe(testQueueB2);
             testQueueB1.ShouldNotBe(defaultQueueA);
             testQueueB1.ShouldNotBe(testQueueA1);
-        }
-
-        [Fact]
-        public async Task Test_TaskQueue_StopAsync()
-        {
-            var testQueue = _taskQueueManager.GetQueue("TestQueue");
-            await testQueue.StopAsync();
-
-            var result = 1;
-            Should.Throw<InvalidOperationException>(() =>
-                testQueue.Enqueue(async () =>
-                {
-                    var value = result;
-                    result = value + 1;
-                })
-            );
         }
 
         [Fact]
@@ -137,7 +111,7 @@ namespace AElf
             var testQueue = _taskQueueManager.GetQueue();
 
             var result = 1;
-            Should.Throw<ObjectDisposedException>(() =>
+            Should.Throw<InvalidOperationException>(() =>
                 testQueue.Enqueue(async () =>
                 {
                     var value = result;
