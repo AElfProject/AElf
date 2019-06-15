@@ -10,6 +10,9 @@ namespace AElf.OS.Network
         public const int DefaultMinBlockGapBeforeSync = 1024;
         public const int DefaultMaxPeers = 25;
         
+        public const int DefaultAnnouncementQueueWorkerCount = 20;
+        public const int DefaultTransactionQueueWorkerCount = 4;
+        
         public const int DefaultQueueWorkerCount = 10;
 
         public const string AnnouncementQueueName = "AnnouncementQueue";

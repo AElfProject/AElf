@@ -25,10 +25,13 @@ namespace AElf.OS
         {
             var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();
 
-            taskQueueManager.CreateQueue(NetworkConstants.AnnouncementQueueName, NetworkConstants.DefaultQueueWorkerCount);
-            taskQueueManager.CreateQueue(NetworkConstants.TransactionQueueName, NetworkConstants.DefaultQueueWorkerCount);
-            taskQueueManager.CreateQueue(NetworkConstants.ReceivedAnnouncementsQueueName, NetworkConstants.DefaultQueueWorkerCount);
-            taskQueueManager.CreateQueue(NetworkConstants.ReceivedTransactionsQueueName, NetworkConstants.DefaultQueueWorkerCount);
+            var networkOptions = context.ServiceProvider.GetService<IOptionsSnapshot<NetworkOptions>>().Value;
+
+            taskQueueManager.CreateQueue(NetworkConstants.AnnouncementQueueName, networkOptions.AnnouncementQueueWorkerCount);
+            taskQueueManager.CreateQueue(NetworkConstants.TransactionQueueName, networkOptions.TransactionQueueWorkerCount);
+            
+            taskQueueManager.CreateQueue(NetworkConstants.ReceivedAnnouncementsQueueName);
+            taskQueueManager.CreateQueue(NetworkConstants.ReceivedTransactionsQueueName);
         }
     }
 }

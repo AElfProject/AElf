@@ -46,6 +46,16 @@ namespace AElf.OS.Network
         /// Indicates if this node will compress blocks when a peer requests blocks.
         /// </summary>
         public bool CompressBlocksOnRequest { get; set; } = NetworkConstants.DefaultCompressBlocks;
+        
+        /// <summary>
+        /// Maximum number of threads sending announcements.
+        /// </summary>
+        public int AnnouncementQueueWorkerCount { get; set; } = NetworkConstants.DefaultAnnouncementQueueWorkerCount;
+
+        /// <summary>
+        /// Maximum number of threads sending transactions. 
+        /// </summary>
+        public int TransactionQueueWorkerCount { get; set; } = NetworkConstants.DefaultTransactionQueueWorkerCount;
     }
     
     [Flags]
