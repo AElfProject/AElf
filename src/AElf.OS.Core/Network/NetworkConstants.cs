@@ -20,5 +20,8 @@ namespace AElf.OS.Network
         
         public const string ReceivedAnnouncementsQueueName = "ReceivedAnnouncements";
         public const string ReceivedTransactionsQueueName = "ReceivedTransactions";
+        
+        public const int AnnouncementQueueJobTimeout = 500;
+        public const int TransactionQueueJobTimeout = 500;
     }
 }

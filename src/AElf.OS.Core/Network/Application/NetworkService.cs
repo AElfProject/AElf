@@ -61,8 +61,14 @@ namespace AElf.OS.Network.Application
 
             foreach (var peer in _peerPool.GetPeers())
             {
+                var beforeEnqueue = TimestampHelper.GetUtcNow();
                 _queueManager.Enqueue(async () =>
                 {
+                    var execTime = TimestampHelper.GetUtcNow();
+                    if (execTime > beforeEnqueue +
+                        TimestampHelper.DurationFromMilliseconds(NetworkConstants.AnnouncementQueueJobTimeout))
+                        return;
+                    
                     await peer.AnnounceAsync(announce);
                 }, NetworkConstants.AnnouncementQueueName);
             }
@@ -76,8 +82,14 @@ namespace AElf.OS.Network.Application
             
             foreach (var peer in _peerPool.GetPeers())
             {
+                var beforeEnqueue = TimestampHelper.GetUtcNow();
                 _queueManager.Enqueue(async () =>
                 {
+                    var execTime = TimestampHelper.GetUtcNow();
+                    if (execTime > beforeEnqueue +
+                        TimestampHelper.DurationFromMilliseconds(NetworkConstants.TransactionQueueJobTimeout))
+                        return;
+                    
                     if (peer.KnowsTransaction(tx))
                         return;
 
