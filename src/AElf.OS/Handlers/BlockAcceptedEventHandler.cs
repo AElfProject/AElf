@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
 using AElf.OS.Network.Application;
@@ -14,6 +15,7 @@ namespace AElf.OS.Handlers
 
             public Task HandleEventAsync(BlockAcceptedEvent eventData)
             {
+                Console.WriteLine($"## BlockAcceptedEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)}");
                 NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
                 return Task.CompletedTask;
             }
