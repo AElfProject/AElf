@@ -1,9 +1,12 @@
+using System;
+using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -18,6 +21,17 @@ namespace AElf.OS.Network
             {
                 o.ListeningPort = 2000;
                 o.MaxPeers = 2;
+            });
+            
+            context.Services.AddTransient<ITaskQueue>(o =>
+            {
+                var taskQueue = new Mock<ITaskQueue>();
+                taskQueue.Setup(t => t.Enqueue(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async task =>
+                {
+                    await task();
+                });
+
+                return taskQueue.Object;
             });
         }
 
