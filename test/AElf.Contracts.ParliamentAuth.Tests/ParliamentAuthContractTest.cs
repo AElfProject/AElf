@@ -2,7 +2,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -15,81 +14,96 @@ namespace AElf.Contracts.ParliamentAuth
 {
     public class ParliamentAuthContractTest : ParliamentAuthContractTestBase
     {
+        public ParliamentAuthContractTest()
+        {
+            InitializeContracts();
+        }
+
         [Fact]
-        public async Task ParliamentAuthContract_InitializeMultiTimes()
+        public async Task Get_DefaultOrganizationAddressFailed()
         {
             var transactionResult =
-                (await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize), new InitializeInput
-                        {GenesisOwnerReleaseThreshold = 6666}));
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
+                await OtherParliamentAuthContractStub.GetGenesisOwnerAddress.SendAsync(new Empty());
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.TransactionResult.Error.Contains("Not initialized.").ShouldBeTrue();
         }
+
+        [Fact]
+        public async Task ParliamentAuthContract_Initialize()
+        {
+            var result = await ParliamentAuthContractStub.Initialize.SendAsync(
+                new InitializeInput {GenesisOwnerReleaseThreshold = 6666});
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        [Fact]
+        public async Task ParliamentAuthContract_InitializeTwice()
+        {
+            await ParliamentAuthContract_Initialize();
+
+            var result = await ParliamentAuthContractStub.Initialize.SendAsync(
+                new InitializeInput {GenesisOwnerReleaseThreshold = 6666});
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.TransactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
+        }
+
 
         [Fact]
         public async Task Get_Organization()
         {
             var createOrganizationInput = new CreateOrganizationInput
             {
-                ReleaseThreshold = 10000 / Tester.InitialMinerList.Count
+                ReleaseThreshold = 10000 / MinersCount
             };
+            var transactionResult =
+                await ParliamentAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+            var organizationAddress = transactionResult.Output;
+            var getOrganization = await ParliamentAuthContractStub.GetOrganization.CallAsync(organizationAddress);
 
-            var organizationAddress = await CreateOrganizationAsync();
-            var transactionResult = await Tester.CallContractMethodAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetOrganization),
-                organizationAddress);
-            var getOrganization = Organization.Parser.ParseFrom(transactionResult);
 
             getOrganization.OrganizationAddress.ShouldBe(organizationAddress);
-            getOrganization.ReleaseThreshold.ShouldBe(10000 / Tester.InitialMinerList.Count);
+            getOrganization.ReleaseThreshold.ShouldBe(10000 / MinersCount);
             getOrganization.OrganizationHash.ShouldBe(Hash.FromTwoHashes(
-                Hash.FromMessage(ParliamentAddress), Hash.FromMessage(createOrganizationInput)));
+                Hash.FromMessage(ParliamentAuthContractAddress), Hash.FromMessage(createOrganizationInput)));
         }
 
         [Fact]
         public async Task Get_OrganizationFailed()
         {
             var transactionResult =
-                await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetOrganization),
-                    Address.FromString("Test"));
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
+                await ParliamentAuthContractStub.GetOrganization.SendAsync(Address.FromString("Test"));
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
         }
 
         [Fact]
         public async Task Get_Proposal()
         {
+            var organizationAddress = await CreateOrganizationAsync();
             var transferInput = new TransferInput()
             {
                 Symbol = "ELF",
                 Amount = 100,
-                To = otherTester.GetCallOwnerAddress(),
+                To = Tester,
                 Memo = "Transfer"
             };
+            var proposalId = await CreateProposalAsync(organizationAddress);
+            var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId);
 
-            var defaultOrganizationAddress = await GetDefaultOrganizationAddressAsync();
-            var proposalId = await CreateProposalAsync(defaultOrganizationAddress);
-            var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetProposal), proposalId);
-            var getProposal = ProposalOutput.Parser.ParseFrom(transactionResult.ReturnValue);
-
-            getProposal.Proposer.ShouldBe(Tester.GetCallOwnerAddress());
-            getProposal.ContractMethodName.ShouldBe(nameof(TokenContractContainer.TokenContractStub.Transfer));
-            getProposal.ProposalId.ShouldBe(proposalId);
-            getProposal.OrganizationAddress.ShouldBe(defaultOrganizationAddress);
-            getProposal.ToAddress.ShouldBe(TokenContractAddress);
-            getProposal.Params.ShouldBe(transferInput.ToByteString());
+            getProposal.Output.Proposer.ShouldBe(DefaultSender);
+            getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContractStub.Transfer));
+            getProposal.Output.ProposalId.ShouldBe(proposalId);
+            getProposal.Output.OrganizationAddress.ShouldBe(organizationAddress);
+            getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
+            getProposal.Output.Params.ShouldBe(transferInput.ToByteString());
         }
 
         [Fact]
         public async Task Get_ProposalFailed()
         {
-            var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetProposal),
-                Hash.FromString("Test"));
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
+            var transactionResult = await ParliamentAuthContractStub.GetProposal.SendAsync(Hash.FromString("Test"));
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
         }
 
         [Fact]
@@ -101,278 +115,239 @@ namespace AElf.Contracts.ParliamentAuth
             };
             {
                 var transactionResult =
-                    await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                        nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateOrganization),
-                        createOrganizationInput);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
+                    await ParliamentAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
             {
                 createOrganizationInput.ReleaseThreshold = 100000;
                 var transactionResult =
-                    await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                        nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateOrganization),
-                        createOrganizationInput);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
+                    await ParliamentAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid organization.").ShouldBeTrue();
             }
         }
 
         [Fact]
         public async Task Create_ProposalFailed()
         {
-            var defaultOrganizationAddress = await GetDefaultOrganizationAddressAsync();
-
+            var organizationAddress = await CreateOrganizationAsync();
+            var blockTime = BlockTimeProvider.GetBlockTime();
             var createProposalInput = new CreateProposalInput
             {
                 ToAddress = Address.FromString("Test"),
                 Params = ByteString.CopyFromUtf8("Test"),
-                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                OrganizationAddress = defaultOrganizationAddress
+                ExpiredTime = blockTime.AddDays(1),
+                OrganizationAddress = organizationAddress
             };
             //"Invalid proposal."
             //ContractMethodName is null or white space
             {
-                var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
-                    createProposalInput);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
+                var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
             //ToAddress is null
             {
                 createProposalInput.ContractMethodName = "Test";
                 createProposalInput.ToAddress = null;
 
-                var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
-                    createProposalInput);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
+                var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
             //ExpiredTime is null
             {
                 createProposalInput.ExpiredTime = null;
                 createProposalInput.ToAddress = Address.FromString("Test");
 
-                var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
-                    createProposalInput);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
+                var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
             //"Expired proposal."
             {
-                createProposalInput.ExpiredTime = TimestampHelper.GetUtcNow();
-                Thread.Sleep(100);
+                createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5);
+                Thread.Sleep(10);
 
-                var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
-                    createProposalInput);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Expired proposal.").ShouldBeTrue();
+                var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("Expired proposal.").ShouldBeTrue();
             }
             //"No registered organization."
             {
-                createProposalInput.ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1);
+                createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
                 createProposalInput.OrganizationAddress = Address.FromString("NoRegisteredOrganizationAddress");
 
-                var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
-                    createProposalInput);
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
+                var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
             }
             //"Proposal already exists."
             {
-                createProposalInput.OrganizationAddress = defaultOrganizationAddress;
-                var transactionResult1 = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
-                    createProposalInput);
-                transactionResult1.Status.ShouldBe(TransactionResultStatus.Mined);
+                createProposalInput.OrganizationAddress = organizationAddress;
+                var transactionResult1 = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                var transactionResult2 = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
-                    createProposalInput);
-                transactionResult2.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult2.Error.Contains("Proposal already exists.").ShouldBeTrue();
+                var transactionResult2 = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult2.TransactionResult.Error.Contains("Proposal already exists.").ShouldBeTrue();
             }
         }
 
         [Fact]
         public async Task Approve_Proposal_NotFoundProposal()
         {
-            var transactionResult = await minerTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), new ApproveInput
-                {
-                    ProposalId = Hash.FromString("Test")
-                });
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
+            var transactionResult = await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput
+            {
+                ProposalId = Hash.FromString("Test")
+            });
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
         }
 
         [Fact]
         public async Task Approve_Proposal_NotAuthorizedApproval()
         {
-            var defaultOrganizationAddress = await GetDefaultOrganizationAddressAsync();
-            var proposalId = await CreateProposalAsync(defaultOrganizationAddress);
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(organizationAddress);
 
-            var transactionResult = await otherTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), new ApproveInput
-                {
-                    ProposalId = proposalId
-                });
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Not authorized approval.").ShouldBeTrue();
+            ParliamentAuthContractStub = GetParliamentAuthContractTester(TesterKeyPair);
+            var transactionResult = await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput
+            {
+                ProposalId = proposalId
+            });
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.TransactionResult.Error.Contains("Not authorized approval.").ShouldBeTrue();
         }
 
         [Fact]
         public async Task Approve_Proposal_ExpiredTime()
         {
-            var transferInput = new TransferInput()
-            {
-                Symbol = "ELF",
-                Amount = 100,
-                To = otherTester.GetCallOwnerAddress(),
-                Memo = "Transfer"
-            };
-
             var organizationAddress = await CreateOrganizationAsync();
-            var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
-                new CreateProposalInput
-                {
-                    ContractMethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddMilliseconds(100),
-                    Params = transferInput.ToByteString(),
-                    ToAddress = TokenContractAddress,
-                    OrganizationAddress = organizationAddress
-                });
-            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+            var proposalId = await CreateProposalAsync(organizationAddress);
 
-            Thread.Sleep(500);
-            var transactionResult = await minerTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), new ApproveInput
-                {
-                    ProposalId = proposalId
-                });
-
-            transactionResult.ReadableReturnValue.ShouldBe("false");
+            ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);
+            BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
+            var transactionResult = await ParliamentAuthContractStub.Approve.CallAsync(new ApproveInput
+            {
+                ProposalId = proposalId
+            });
+            transactionResult.Value.ShouldBe(false);
         }
 
         [Fact]
         public async Task Approve_Proposal_ApprovalAlreadyExists()
         {
-            var defaultOrganizationAddress = await GetDefaultOrganizationAddressAsync();
-            var proposalId = await CreateProposalAsync(defaultOrganizationAddress);
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(organizationAddress);
 
-            var transactionResult1 = await minerTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), new ApproveInput
-                {
-                    ProposalId = proposalId
-                });
-            transactionResult1.Status.ShouldBe(TransactionResultStatus.Mined);
-            transactionResult1.ReadableReturnValue.ShouldBe("true");
+            ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);
+            var transactionResult1 =
+                await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult1.Output.Value.ShouldBe(true);
 
             Thread.Sleep(100);
-            var transactionResult2 = await minerTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), new ApproveInput
-                {
-                    ProposalId = proposalId
-                });
-            transactionResult2.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult2.Error.Contains("Approval already existed.").ShouldBeTrue();
+            var transactionResult2 =
+                await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+            transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult2.TransactionResult.Error.Contains("Approval already existed.").ShouldBeTrue();
         }
 
         [Fact]
         public async Task Approve_And_ReleaseProposal_1()
         {
-            var defaultOrganizationAddress = await GetDefaultOrganizationAddressAsync();
-            var proposalId = await CreateProposalAsync(defaultOrganizationAddress);
-            await TransferForOrganizationAddressAsync(defaultOrganizationAddress);
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(organizationAddress);
+            await TransferForOrganizationAddressAsync(organizationAddress);
+            ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);
 
-            var transactionResult1 = await minerTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), new ApproveInput
-                {
-                    ProposalId = proposalId
-                });
-            transactionResult1.Status.ShouldBe(TransactionResultStatus.Mined);
-            transactionResult1.ReadableReturnValue.ShouldBe("true");
+            var transactionResult1 =
+                await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+            transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult1.Output.Value.ShouldBe(true);
 
-            var minerTester2 = Tester.CreateNewContractTester(Tester.InitialMinerList[1]);
-            var transactionResult2 = await minerTester2.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), new ApproveInput
-                {
-                    ProposalId = proposalId
-                });
-            transactionResult2.Status.ShouldBe(TransactionResultStatus.Mined);
-            transactionResult2.ReadableReturnValue.ShouldBe("true");
+            ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[1]);
+            var transactionResult2 =
+                await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+            transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult2.Output.Value.ShouldBe(true);
 
 //            After release,the proposal will be deleted
 //            var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId.Result);
 //            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
 //            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
 
-            var transactionResult = Tester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
-                {
-                    Symbol = "ELF",
-                    Owner = otherTester.GetCallOwnerAddress(),
-                });
-            GetBalanceOutput.Parser.ParseFrom(transactionResult.Result).Balance.ShouldBe(100);
+            var getBalance = TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = "ELF",
+                Owner = Tester
+            }).Result.Balance;
+            getBalance.ShouldBe(100);
         }
 
         [Fact]
         public async Task Approve_And_ReleaseProposal_2()
         {
-            var organizationAddress = await CreateOrganizationAsync();
+            var createOrganizationInput = new CreateOrganizationInput
+            {
+                ReleaseThreshold = 10000 / MinersCount
+            };
+            var transactionResult =
+                await ParliamentAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+            var organizationAddress = transactionResult.Output;
+
             var proposalId = await CreateProposalAsync(organizationAddress);
             await TransferForOrganizationAddressAsync(organizationAddress);
 
-            var transactionResult = await minerTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), new ApproveInput
-                {
-                    ProposalId = proposalId
-                });
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            transactionResult.ReadableReturnValue.ShouldBe("true");
+            ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);
+            var txResult =
+                await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            txResult.Output.Value.ShouldBe(true);
 
 //            After release,the proposal will be deleted
 //            var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId.Result);
 //            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
 //            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
 
-            var getBalanceResult = Tester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
-                {
-                    Symbol = "ELF",
-                    Owner = otherTester.GetCallOwnerAddress(),
-                });
-            GetBalanceOutput.Parser.ParseFrom(getBalanceResult.Result).Balance.ShouldBe(100);
+
+            var getBalance = TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = "ELF",
+                Owner = Tester
+            }).Result.Balance;
+            getBalance.ShouldBe(100);
         }
 
         [Fact]
         public async Task Approve_And_ReleaseProposalFailed()
         {
-            var organizationAddress = await CreateOrganizationAsync();
+            var createOrganizationInput = new CreateOrganizationInput
+            {
+                ReleaseThreshold = 10000 / MinersCount
+            };
+            var transactionResult =
+                await ParliamentAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+            var organizationAddress = transactionResult.Output;
             var proposalId = await CreateProposalAsync(organizationAddress);
-            var transactionResult = await minerTester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve),
-                new ApproveInput {ProposalId = proposalId});
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            ParliamentAuthContractStub = GetParliamentAuthContractTester(InitialMinersKeyPairs[0]);
+            var txResult =
+                await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+            txResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
 
 //            After release,the proposal will be deleted
 //            var getProposal = await ParliamentAuthContractStub.GetProposal.SendAsync(proposalId.Result);
 //            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
 //            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
 
-            var getBalanceResult = Tester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
-                {
-                    Symbol = "ELF",
-                    Owner = otherTester.GetCallOwnerAddress()
-                });
-            GetBalanceOutput.Parser.ParseFrom(getBalanceResult.Result).Balance.ShouldBe(0);
+            var getBalance = TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Symbol = "ELF",
+                Owner = Tester
+            }).Result.Balance;
+            getBalance.ShouldBe(0);
         }
 
         private async Task<Hash> CreateProposalAsync(Address organizationAddress)
@@ -381,60 +356,44 @@ namespace AElf.Contracts.ParliamentAuth
             {
                 Symbol = "ELF",
                 Amount = 100,
-                To = otherTester.GetCallOwnerAddress(),
+                To = Tester,
                 Memo = "Transfer"
             };
-
-            var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
-                new CreateProposalInput
-                {
-                    ContractMethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                    Params = transferInput.ToByteString(),
-                    ToAddress = TokenContractAddress,
-                    OrganizationAddress = organizationAddress
-                });
-            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
-            return proposalId;
+            var createProposalInput = new CreateProposalInput
+            {
+                ContractMethodName = nameof(TokenContractStub.Transfer),
+                ToAddress = TokenContractAddress,
+                Params = transferInput.ToByteString(),
+                ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
+                OrganizationAddress = organizationAddress
+            };
+            var proposal = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+            proposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            return proposal.Output;
         }
 
         private async Task<Address> CreateOrganizationAsync()
         {
             var createOrganizationInput = new CreateOrganizationInput
             {
-                ReleaseThreshold = 10000 / Tester.InitialMinerList.Count
+                ReleaseThreshold = 20000 / MinersCount
             };
             var transactionResult =
-                await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateOrganization),
-                    createOrganizationInput);
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                await ParliamentAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var organizationAddress = Address.Parser.ParseFrom(transactionResult.ReturnValue);
-            return organizationAddress;
-        }
-
-        private async Task<Address> GetDefaultOrganizationAddressAsync()
-        {
-            var transactionResult =
-                await Tester.CallContractMethodAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
-                    new Empty());
-            var defaultOrganizationAddress = Address.Parser.ParseFrom(transactionResult);
-            return defaultOrganizationAddress;
+            return transactionResult.Output;
         }
 
         private async Task TransferForOrganizationAddressAsync(Address to)
         {
-            await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
-                {
-                    Symbol = "ELF",
-                    Amount = 200,
-                    To = to,
-                    Memo = "transfer organization address"
-                });
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                Symbol = "ELF",
+                Amount = 200,
+                To = to,
+                Memo = "transfer organization address"
+            });
         }
     }
 }
