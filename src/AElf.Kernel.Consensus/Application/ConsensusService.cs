@@ -89,7 +89,8 @@ namespace AElf.Kernel.Consensus.Application
                 Logger.LogError($"Consensus validating before execution failed: {validationResult.Message}");
                 await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
                 {
-                    ValidationResultMessage = validationResult.Message
+                    ValidationResultMessage = validationResult.Message,
+                    CreateTime = DateTime.Now
                 });
             }
 
@@ -112,7 +113,8 @@ namespace AElf.Kernel.Consensus.Application
                 Logger.LogError($"Consensus validating after execution failed: {validationResult.Message}");
                 await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
                 {
-                    ValidationResultMessage = validationResult.Message
+                    ValidationResultMessage = validationResult.Message,
+                    CreateTime = DateTime.Now
                 });
             }
 

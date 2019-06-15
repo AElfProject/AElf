@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Common;
+using AElf.Cryptography;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Miner.Application;
@@ -36,6 +37,7 @@ namespace AElf.Kernel
 
         public async Task HandleEventAsync(ConsensusRequestMiningEventData eventData)
         {
+            Logger.LogTrace($"## ConsensusRequestMiningEventData: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             try
             {
                 _taskQueueManager.Enqueue(async () =>

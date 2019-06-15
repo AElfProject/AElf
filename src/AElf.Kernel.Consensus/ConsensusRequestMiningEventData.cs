@@ -10,6 +10,8 @@ namespace AElf.Kernel.Consensus
         public long PreviousBlockHeight { get; }
         public Duration BlockExecutionTime { get; }
         public Timestamp BlockTime { get; }
+        
+        public DateTime CreateTime { get; set; }
 
         public ConsensusRequestMiningEventData(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
             Duration blockExecutionTime)
@@ -18,6 +20,7 @@ namespace AElf.Kernel.Consensus
             PreviousBlockHeight = previousBlockHeight;
             BlockTime = blockTime;
             BlockExecutionTime = blockExecutionTime;
+            CreateTime = DateTime.Now;
         }
     }
 }

@@ -40,5 +40,10 @@ namespace AElf
 
             return BitConverter.ToInt32(bytes, 0);
         }
+
+        public static double GetEventReceivedTimeSpan(DateTime time)
+        {
+            return DateTime.Now.Subtract(time).TotalMilliseconds;
+        }
     }
 }

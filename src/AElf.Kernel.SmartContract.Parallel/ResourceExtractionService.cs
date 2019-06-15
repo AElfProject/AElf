@@ -79,6 +79,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         
         public async Task HandleTransactionResourcesNeededAsync(TransactionResourcesNeededEvent eventData)
         {
+            Logger.LogTrace($"## TransactionResourcesNeededEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             var chainContext = await GetChainContextAsync();
             
             foreach (var tx in eventData.Transactions)
@@ -91,6 +92,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public async Task HandleTransactionResourcesNoLongerNeededAsync(TransactionResourcesNoLongerNeededEvent eventData)
         {
+            Logger.LogTrace($"## TransactionResourcesNoLongerNeededEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             foreach (var txId in eventData.TransactionIds)
             {
                 _resourceCache.TryRemove(txId, out _);

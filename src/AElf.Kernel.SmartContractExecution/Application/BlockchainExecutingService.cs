@@ -105,7 +105,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
                     await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                     {
-                        BlockHeader = linkedBlock.Header
+                        BlockHeader = linkedBlock.Header,
+                        CreateTime = DateTime.Now
                     });
                 }
             }
@@ -128,7 +129,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 {
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight,
-                    ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList()
+                    ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList(),
+                    CreateTime = DateTime.Now
                 });
             }
 

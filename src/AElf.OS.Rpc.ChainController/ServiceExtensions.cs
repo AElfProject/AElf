@@ -52,7 +52,8 @@ namespace AElf.OS.Rpc.ChainController
 
             await s.LocalEventBus.PublishAsync(new TransactionsReceivedEvent()
             {
-                Transactions = transactions
+                Transactions = transactions,
+                CreateTime = DateTime.Now
             });
             return txIds;
         }

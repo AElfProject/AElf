@@ -1,3 +1,5 @@
+using System;
+
 namespace AElf.Kernel.Blockchain.Events
 {
     public class BlockAcceptedEvent
@@ -5,5 +7,7 @@ namespace AElf.Kernel.Blockchain.Events
         public BlockHeader BlockHeader { get; set; }
         
         public bool HasFork { get; set; }
+        
+        public DateTime CreateTime { get; set; }
     }
 }

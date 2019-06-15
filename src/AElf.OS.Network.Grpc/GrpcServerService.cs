@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -180,7 +181,12 @@ namespace AElf.OS.Network.Grpc
             if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync)
                 return new VoidReply();
             
-            _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
+            _ = EventBus.PublishAsync(new TransactionsReceivedEvent
+            {
+                Transactions = new List<Transaction> {tx},
+                CreateTime = DateTime.Now
+                
+            });
 
             return new VoidReply();
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,8 @@ namespace AElf.CrossChain.Communication.Grpc
             {
                 RemoteServerHost = host,
                 RemoteServerPort = port,
-                RemoteChainId = chainId
+                RemoteChainId = chainId,
+                CreateTime = DateTime.Now
             });
         }
     }
