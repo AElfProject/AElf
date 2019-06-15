@@ -118,8 +118,7 @@ namespace AElf.CrossChain.Communication.Application
                 if (!info.ChainId.Equals(sideChainId))
                     continue;
 
-                var merklePath = new MerklePath();
-                merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(i));
+                var merklePath = binaryMerkleTree.GenerateMerklePath(i);
                 res.Add(info.Height, merklePath);
             }
             

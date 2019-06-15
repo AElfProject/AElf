@@ -203,7 +203,7 @@ message CrossChainReceiveTokenInput {
     int32 fromChainId = 1;
     int64 parentChainHeight = 2;
     bytes transferTransactionBytes = 3;
-    repeated aelf.Hash merklePath = 4;
+    aelf.MerklePath merklePath = 4;
 }
 
 // EventsCreateInput

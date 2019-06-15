@@ -133,9 +133,9 @@ namespace AElf.Contracts.MultiToken
             {
                 TransactionId = transferTransactionHash,
                 ParentChainHeight = input.ParentChainHeight,
-                VerifiedChainId = input.FromChainId
+                VerifiedChainId = input.FromChainId,
+                Path = input.MerklePath
             };
-            verificationInput.Path.AddRange(input.MerklePath);
             if (State.CrossChainContractReferenceState.Value == null)
                 State.CrossChainContractReferenceState.Value =
                     Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);

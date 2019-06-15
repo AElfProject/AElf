@@ -75,7 +75,7 @@ message RechargeInput {
 
 message VerifyTransactionInput {
     aelf.Hash transactionId = 1;
-    repeated aelf.Hash path = 2;
+    aelf.MerklePath path = 2;
     sint64 parentChainHeight = 3;
     int32 verifiedChainId = 4;
 }

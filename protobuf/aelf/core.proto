@@ -366,3 +366,12 @@ message SInt64Value
 {
     sint64 Value = 1;
 }
+
+message MerklePath {
+    repeated MerklePathNode merklePathNodes = 1;
+}
+
+message MerklePathNode{
+    Hash hash = 1;
+    bool isLeftChildNode = 2;
+}

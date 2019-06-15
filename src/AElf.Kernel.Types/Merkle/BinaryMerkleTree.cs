@@ -66,16 +66,36 @@ namespace AElf.Kernel
         ///  0-1  2-3  4-5
         /// For leaf [4], the returned path is {5, 9, 10}.
         /// </example>
-        public List<Hash> GenerateMerklePath(int index)
+        public MerklePath GenerateMerklePath(int index)
         {
             if (Root == null || index >= LeafCount)
                 return null;
-            List<Hash> path = new List<Hash>();
+            MerklePath path = new MerklePath();
             int firstInRow = 0;
             int rowcount = LeafCount;
             while (index < Nodes.Count - 1)
             {
-                path.Add(index % 2 == 0 ? Nodes[index + 1].Clone() : Nodes[index - 1].Clone());
+                Hash neighbor;
+                bool isLeftNeighbor;
+                if (index % 2 == 0)
+                {
+                    // add right neighbor node
+                    neighbor = Nodes[index + 1];
+                    isLeftNeighbor = false;
+                }
+                else
+                {
+                    // add left neighbor node
+                    neighbor = Nodes[index - 1];
+                    isLeftNeighbor = true;
+                }
+                
+                path.MerklePathNodes.Add(new MerklePathNode
+                {
+                    Hash = Hash.LoadByteArray(neighbor.DumpByteArray()),
+                    IsLeftChildNode = isLeftNeighbor
+                });
+//                path.Add(index % 2 == 0 ? Nodes[index + 1].Clone() : Nodes[index - 1].Clone());
                 rowcount = rowcount % 2 == 0 ? rowcount : rowcount + 1;
                 int shift = (index - firstInRow) / 2;
                 firstInRow += rowcount;

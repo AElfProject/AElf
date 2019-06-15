@@ -8,9 +8,7 @@ namespace AElf
     {
         public static Hash ComputeParentNodeWith(this Hash left, Hash right)
         {
-            var res = new[] {left, right}.OrderBy(b => b).Select(h => h.DumpByteArray())
-                .Aggregate(new byte[0], (rawBytes, bytes) => rawBytes.Concat(bytes).ToArray());
-
+            var res = left.DumpByteArray().Concat(right.DumpByteArray()).ToArray();
             return Hash.FromRawBytes(res);
         }
 
@@ -55,9 +53,11 @@ namespace AElf
             return hashList.ToList();
         }
 
-        public static Hash ComputeBinaryMerkleTreeRootWithPathAndLeafNode(this IList<Hash> hashList, Hash leaf)
+        public static Hash ComputeBinaryMerkleTreeRootWithPathAndLeafNode(this MerklePath path, Hash leaf)
         {
-            return hashList.Aggregate(leaf, (current, node) => current.ComputeParentNodeWith(node));
+            return path.MerklePathNodes.Aggregate(leaf, (current, node) => node.IsLeftChildNode
+                ? node.Hash.ComputeParentNodeWith(current)
+                : current.ComputeParentNodeWith(node.Hash));
         }
     }
 }
