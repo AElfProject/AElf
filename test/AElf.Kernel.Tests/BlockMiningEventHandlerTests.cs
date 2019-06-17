@@ -27,7 +27,7 @@ namespace AElf.Kernel
             var hash = chain.BestChainHash;
             var height = chain.BestChainHeight;
             var eventData =
-                new ConsensusRequestMiningEventData(hash, height, TimestampHelper.GetUtcNow(),
+                new ConsensusRequestMiningEvent(hash, height, TimestampHelper.GetUtcNow(),
                     TimestampHelper.DurationFromSeconds(60));
 
             await _miningEventHandler.HandleEventAsync(eventData);

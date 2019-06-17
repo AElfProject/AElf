@@ -25,12 +25,12 @@ namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
             Logger = NullLogger<FluentSchedulerScheduler>.Instance;
         }
 
-        public void NewEvent(int countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
+        public void NewEvent(int countingMilliseconds, ConsensusRequestMiningEvent consensusRequestMiningEvent)
         {
             JobManager.UseUtcTime();
 
             var registry = new Registry();
-            registry.Schedule(() => LocalEventBus.PublishAsync(consensusRequestMiningEventData))
+            registry.Schedule(() => LocalEventBus.PublishAsync(consensusRequestMiningEvent))
                 .ToRunOnceAt(TimestampHelper.GetUtcNow().AddMilliseconds(countingMilliseconds).ToDateTime());
             JobManager.Initialize(registry);
         }

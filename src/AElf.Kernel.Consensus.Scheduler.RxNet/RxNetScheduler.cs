@@ -11,7 +11,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Consensus.Scheduler.RxNet
 {
-    public class RxNetScheduler : IConsensusScheduler, IObserver<ConsensusRequestMiningEventData>, ISingletonDependency
+    public class RxNetScheduler : IConsensusScheduler, IObserver<ConsensusRequestMiningEvent>, ISingletonDependency
     {
         private IDisposable _observables;
 
@@ -26,9 +26,9 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
             Logger = NullLogger<RxNetScheduler>.Instance;
         }
 
-        public void NewEvent(int countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
+        public void NewEvent(int countingMilliseconds, ConsensusRequestMiningEvent consensusRequestMiningEvent)
         {
-            _observables = Subscribe(countingMilliseconds, consensusRequestMiningEventData);
+            _observables = Subscribe(countingMilliseconds, consensusRequestMiningEvent);
         }
 
         public void CancelCurrentEvent()
@@ -36,13 +36,13 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
             Logger.LogDebug("Disposed previous consensus event.");
             _observables?.Dispose();
         }
-        public IDisposable Subscribe(int countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
+        public IDisposable Subscribe(int countingMilliseconds, ConsensusRequestMiningEvent consensusRequestMiningEvent)
         {
             Logger.LogDebug($"Will produce block after {countingMilliseconds} ms - " +
                             $"{TimestampHelper.GetUtcNow().AddMilliseconds(countingMilliseconds).ToDateTime():yyyy-MM-dd HH.mm.ss,fff}");
 
             return Observable.Timer(TimeSpan.FromMilliseconds(countingMilliseconds))
-                .Select(_ => consensusRequestMiningEventData).Subscribe(this);
+                .Select(_ => consensusRequestMiningEvent).Subscribe(this);
         }
 
         public void OnCompleted()
@@ -54,7 +54,7 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
         }
 
         // This is the callback.
-        public void OnNext(ConsensusRequestMiningEventData value)
+        public void OnNext(ConsensusRequestMiningEvent value)
         {
             Logger.LogDebug($"Published block mining event. Current block height: {value.PreviousBlockHeight}");
             LocalEventBus.PublishAsync(value);

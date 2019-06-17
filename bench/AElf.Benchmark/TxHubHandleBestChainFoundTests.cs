@@ -70,7 +70,7 @@ namespace AElf.Benchmark
         [Benchmark]
         public async Task HandleBestChainFoundTest()
         {
-            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEvent
             {
                 BlockHash = _block.GetHash(),
                 BlockHeight = _block.Height
@@ -85,7 +85,7 @@ namespace AElf.Benchmark
                 BlockHeader = _block.Header
             });
             
-            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEvent
             {
                 BlockHash = _chain.BestChainHash,
                 BlockHeight = _chain.BestChainHeight

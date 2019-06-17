@@ -2,7 +2,7 @@ using System;
 
 namespace AElf.Kernel.Consensus
 {
-    public class ConsensusValidationFailedEventData
+    public class ConsensusValidationFailedEvent
     {
         public string ValidationResultMessage { get; set; }
         

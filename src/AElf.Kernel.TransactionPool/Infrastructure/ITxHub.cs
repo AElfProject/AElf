@@ -18,7 +18,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync();
         Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData);
         Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData);
-        Task HandleBestChainFoundAsync(BestChainFoundEventData eventData);
+        Task HandleBestChainFoundAsync(BestChainFoundEvent eventData);
         Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData);
         Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData);
         Task<TransactionReceipt> GetTransactionReceiptAsync(Hash transactionId);

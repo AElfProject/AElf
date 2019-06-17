@@ -136,7 +136,7 @@ namespace AElf.OS
                     BestBranchBlockList[4].GetHash());
             }
 
-            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEvent
             {
                  BlockHash = chain.BestChainHash,
                  BlockHeight = chain.BestChainHeight

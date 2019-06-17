@@ -47,7 +47,7 @@ namespace AElf.OS.Handlers
                 // Sync one block to best chain
                 // BestChainHeight: 12
                 await _peerConnectedEventHandler.HandleEventAsync(
-                    new AnnouncementReceivedEventData(announcement, null));
+                    new AnnouncementReceivedEvent(announcement, null));
                 chain = await _blockchainService.GetChainAsync();
                 chain.BestChainHash.ShouldBe(peerBlocks[0].GetHash());
                 chain.BestChainHeight.ShouldBe(12);
@@ -57,7 +57,7 @@ namespace AElf.OS.Handlers
                 // Handle the same announcement again
                 // BestChainHeight: 12
                 await _peerConnectedEventHandler.HandleEventAsync(
-                    new AnnouncementReceivedEventData(announcement, null));
+                    new AnnouncementReceivedEvent(announcement, null));
                 chain = await _blockchainService.GetChainAsync();
                 chain.BestChainHash.ShouldBe(peerBlocks[0].GetHash());
                 chain.BestChainHeight.ShouldBe(12);
@@ -83,7 +83,7 @@ namespace AElf.OS.Handlers
                 };
 
                 await _peerConnectedEventHandler.HandleEventAsync(
-                    new AnnouncementReceivedEventData(announcement, null));
+                    new AnnouncementReceivedEvent(announcement, null));
 
                 chain = await _blockchainService.GetChainAsync();
                 chain.BestChainHash.ShouldBe(peerBlocks.Last().GetHash());
@@ -111,7 +111,7 @@ namespace AElf.OS.Handlers
             };
             
             _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = TimestampHelper.GetUtcNow().AddSeconds(-5);
-            await _peerConnectedEventHandler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, null));
+            await _peerConnectedEventHandler.HandleEventAsync(new AnnouncementReceivedEvent(announcement, null));
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHash.ShouldBe(bestChainHash);
@@ -135,7 +135,7 @@ namespace AElf.OS.Handlers
             };
             
             _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = TimestampHelper.GetUtcNow().AddSeconds(-3);
-            await _peerConnectedEventHandler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, null));
+            await _peerConnectedEventHandler.HandleEventAsync(new AnnouncementReceivedEvent(announcement, null));
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHash.ShouldBe(bestChainHash);

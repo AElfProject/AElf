@@ -58,7 +58,7 @@ namespace AElf.Kernel.TransactionPool.Benches
             AsyncHelper.RunSync(async () =>
             {
                 var chain = await _blockchainService.GetChainAsync();
-                await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+                await _txHub.HandleBestChainFoundAsync(new BestChainFoundEvent
                 {
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight

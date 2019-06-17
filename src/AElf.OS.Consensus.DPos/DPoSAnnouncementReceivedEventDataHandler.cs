@@ -13,7 +13,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Consensus.DPos
 {
-    public class DPoSAnnouncementReceivedEventDataHandler : ILocalEventHandler<AnnouncementReceivedEventData>
+    public class DPoSAnnouncementReceivedEventDataHandler : ILocalEventHandler<AnnouncementReceivedEvent>
     {
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IAEDPoSLastLastIrreversibleBlockDiscoveryService _idpoSLastLastIrreversibleBlockDiscoveryService;
@@ -28,7 +28,7 @@ namespace AElf.OS.Consensus.DPos
             _blockchainService = blockchainService;
         }
 
-        public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
+        public async Task HandleEventAsync(AnnouncementReceivedEvent eventData)
         {
             //Disable network lib
             return;

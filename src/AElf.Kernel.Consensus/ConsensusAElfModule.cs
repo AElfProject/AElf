@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
@@ -5,6 +6,7 @@ using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
+[assembly: InternalsVisibleTo("AElf.Kernel.Consensus.Tests")]
 namespace AElf.Kernel.Consensus
 {
     public class ConsensusAElfModule : AElfModule

@@ -77,7 +77,7 @@ namespace AElf.Kernel.Benches
                 await _blockchainService.AddBlockAsync(_block);
                 await _blockAttachService.AttachBlockAsync(_block);
                 var chain = await _blockchainService.GetChainAsync();
-                await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+                await _txHub.HandleBestChainFoundAsync(new BestChainFoundEvent
                 {
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight

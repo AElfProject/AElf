@@ -124,7 +124,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 //   ExecutableTransaction: 0
                 var chain = await _blockchainService.GetChainAsync();
 
-                await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+                await _txHub.HandleBestChainFoundAsync(new BestChainFoundEvent
                 {
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
@@ -205,7 +205,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     var transaction = _kernelTestHelper.GenerateTransaction(bestChainHeight + i);
                     await _kernelTestHelper.AttachBlockToBestChain(new List<Transaction> {transaction});
                     chain = await _blockchainService.GetChainAsync();
-                    await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+                    await _txHub.HandleBestChainFoundAsync(new BestChainFoundEvent
                     {
                         BlockHash = chain.BestChainHash,
                         BlockHeight = chain.BestChainHeight

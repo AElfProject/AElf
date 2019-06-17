@@ -207,7 +207,7 @@ namespace AElf.OS.Network.Grpc
             var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
             peerInPool?.HandlerRemoteAnnounce(an);
 
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEvent(an, context.GetPublicKey()));
             
             return Task.FromResult(new VoidReply());
         }

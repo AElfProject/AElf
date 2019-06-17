@@ -4,7 +4,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.Blockchain.Events
 {
-    public class BestChainFoundEventData
+    public class BestChainFoundEvent
     {
         public Hash BlockHash { get; set; }
         public long BlockHeight { get; set; }

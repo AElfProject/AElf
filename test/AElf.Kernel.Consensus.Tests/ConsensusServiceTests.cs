@@ -1,8 +1,11 @@
+using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.Consensus
@@ -27,8 +30,13 @@ namespace AElf.Kernel.Consensus
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-
+            
             await _consensusService.TriggerConsensusAsync(chainContext);
+            if (_consensusService is ConsensusService cs)
+            {
+                var command = await cs.GetConsensusCommand();
+                command.ExpectedMiningTime.ShouldBeGreaterThan(TimestampHelper.GetUtcNow());
+            }
         }
     }
 }

@@ -132,7 +132,7 @@ namespace AElf.Benchmark
                 await _blockManager.RemoveBlockAsync(block.GetHash());
             }
             
-            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEvent
             {
                 BlockHash = _chain.BestChainHash,
                 BlockHeight = _chain.BestChainHeight

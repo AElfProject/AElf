@@ -11,7 +11,7 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     public class TxPoolInterestedEventsHandler : ILocalEventHandler<TransactionsReceivedEvent>,
         ILocalEventHandler<BlockAcceptedEvent>,
-        ILocalEventHandler<BestChainFoundEventData>,
+        ILocalEventHandler<BestChainFoundEvent>,
         ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
         ILocalEventHandler<UnexecutableTransactionsFoundEvent>,
         ITransientDependency
@@ -38,9 +38,9 @@ namespace AElf.Kernel.TransactionPool.Application
             await _txHub.HandleBlockAcceptedAsync(eventData);
         }
 
-        public async Task HandleEventAsync(BestChainFoundEventData eventData)
+        public async Task HandleEventAsync(BestChainFoundEvent eventData)
         {
-            Logger.LogTrace($"## BestChainFoundEventData: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
+            Logger.LogTrace($"## BestChainFoundEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             await _txHub.HandleBestChainFoundAsync(eventData);
         }
 

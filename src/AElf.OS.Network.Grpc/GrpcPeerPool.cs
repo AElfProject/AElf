@@ -138,7 +138,7 @@ namespace AElf.OS.Network.Grpc
             
             Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
 
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(new PeerNewBlockAnnouncement
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEvent(new PeerNewBlockAnnouncement
             {
                 BlockHash = connectReply.Handshake.Header.GetHash(),
                 BlockHeight = connectReply.Handshake.Header.Height

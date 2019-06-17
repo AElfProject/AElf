@@ -100,6 +100,11 @@ namespace AElf.Kernel.SmartContract.Parallel
             
             Logger?.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
         }
+        
+        public async Task<int> GetResourceCacheCount()
+        {
+            return await Task.FromResult(_resourceCache.Count);
+        }
         #endregion
         
         private async Task<ChainContext> GetChainContextAsync()

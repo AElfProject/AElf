@@ -8,7 +8,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class ConsensusValidationFailedEventHandler : ILocalEventHandler<ConsensusValidationFailedEventData>, ITransientDependency
+    public class ConsensusValidationFailedEventHandler : ILocalEventHandler<ConsensusValidationFailedEvent>, ITransientDependency
     {
         private readonly IConsensusService _consensusService;
         private readonly IBlockchainService _blockchainService;
@@ -21,9 +21,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<ConsensusValidationFailedEventHandler>.Instance;
         }
 
-        public async Task HandleEventAsync(ConsensusValidationFailedEventData eventData)
+        public async Task HandleEventAsync(ConsensusValidationFailedEvent eventData)
         {
-            Logger.LogTrace($"## ConsensusValidationFailedEventData: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
+            Logger.LogTrace($"## ConsensusValidationFailedEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             var chain = await _blockchainService.GetChainAsync();
             if (eventData.ValidationResultMessage == "Time slot already passed before execution.")
             {

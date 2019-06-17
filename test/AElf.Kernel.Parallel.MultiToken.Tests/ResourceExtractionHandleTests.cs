@@ -7,6 +7,7 @@ using AElf.OS;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
+using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
 
@@ -14,9 +15,6 @@ namespace AElf.Kernel.Parallel.MultiToken.Tests
 {
     public class ResourceExtractionHandleTests : ParallelMultiTokenTestBase
     {
-        private IResourceExtractionService Service =>
-            Application.ServiceProvider.GetRequiredService<IResourceExtractionService>();
-
         private IResourceExtractionService _iResourceExtractionService;
         private OSTestHelper _osTestHelper;
 
@@ -37,6 +35,11 @@ namespace AElf.Kernel.Parallel.MultiToken.Tests
             };
             
             await _iResourceExtractionService.HandleTransactionResourcesNeededAsync(eventData);
+            if (_iResourceExtractionService is ResourceExtractionService res)
+            {
+                var cacheCount = await res.GetResourceCacheCount();
+                cacheCount.ShouldBe(transactions.Count());
+            }
         }
 
         [Fact]
@@ -56,6 +59,11 @@ namespace AElf.Kernel.Parallel.MultiToken.Tests
                 TransactionIds = new []{transactions.First().GetHash()}
             };
             await _iResourceExtractionService.HandleTransactionResourcesNoLongerNeededAsync(eventData1);
+            if (_iResourceExtractionService is ResourceExtractionService res)
+            {
+                var cacheCount = await res.GetResourceCacheCount();
+                cacheCount.ShouldBe(transactions.Count() - 1);
+            }
         }
 
         private IEnumerable<Transaction> GenerateTransactions(int count)

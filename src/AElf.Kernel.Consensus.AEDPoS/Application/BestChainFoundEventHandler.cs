@@ -11,7 +11,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     /// <summary>
     /// Discover LIB from consensus contract then set LIB.
     /// </summary>
-    public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
+    public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEvent>, ITransientDependency
     {
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IIrreversibleBlockDiscoveryService _irreversibleBlockDiscoveryService;
@@ -30,7 +30,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<BestChainFoundEventHandler>.Instance;
         }
 
-        public async Task HandleEventAsync(BestChainFoundEventData eventData)
+        public async Task HandleEventAsync(BestChainFoundEvent eventData)
         {
             Logger.LogTrace($"## TransactionResourcesNeededEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             Logger.LogDebug($"Handle best chain found for lib: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");

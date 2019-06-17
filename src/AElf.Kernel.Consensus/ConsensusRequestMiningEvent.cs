@@ -4,7 +4,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.Consensus
 {
-    public class ConsensusRequestMiningEventData
+    public class ConsensusRequestMiningEvent
     {
         public Hash PreviousBlockHash { get; }
         public long PreviousBlockHeight { get; }
@@ -13,7 +13,7 @@ namespace AElf.Kernel.Consensus
         
         public DateTime CreateTime { get; set; }
 
-        public ConsensusRequestMiningEventData(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
+        public ConsensusRequestMiningEvent(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
             Duration blockExecutionTime)
         {
             PreviousBlockHash = previousBlockHash;

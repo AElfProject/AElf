@@ -29,7 +29,7 @@ namespace AElf.OS.Consensus.DPos
         {
             var an = new PeerNewBlockAnnouncement { };
             var sendKey = string.Empty;
-            var announcementData = new AnnouncementReceivedEventData(an, sendKey);
+            var announcementData = new AnnouncementReceivedEvent(an, sendKey);
 
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);
         }
@@ -44,7 +44,7 @@ namespace AElf.OS.Consensus.DPos
                 BlockHeight = block.Height
             };
             var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
-            var announcementData = new AnnouncementReceivedEventData(an, sendKey);
+            var announcementData = new AnnouncementReceivedEvent(an, sendKey);
 
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);
         }
@@ -59,7 +59,7 @@ namespace AElf.OS.Consensus.DPos
                 BlockHeight = block.Height
             };
             var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
-            var announcementData = new AnnouncementReceivedEventData(an, sendKey);
+            var announcementData = new AnnouncementReceivedEvent(an, sendKey);
 
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);
         }

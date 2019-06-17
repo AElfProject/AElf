@@ -82,7 +82,7 @@ namespace AElf.Benchmark
             await _txHub.HandleUnexecutableTransactionsFoundAsync(new UnexecutableTransactionsFoundEvent
                 (null, _transactions.Select(t => t.GetHash()).ToList()));
             
-            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
+            await _txHub.HandleBestChainFoundAsync(new BestChainFoundEvent
             {
                 BlockHash = _chain.BestChainHash,
                 BlockHeight = _chain.BestChainHeight

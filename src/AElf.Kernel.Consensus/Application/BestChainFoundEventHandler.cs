@@ -7,7 +7,7 @@ namespace AElf.Kernel.Consensus.Application
     /// <summary>
     /// Trigger consensus to update mining scheduler.
     /// </summary>
-    public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>
+    public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEvent>
     {
         private readonly IConsensusService _consensusService;
 
@@ -16,7 +16,7 @@ namespace AElf.Kernel.Consensus.Application
             _consensusService = consensusService;
         }
 
-        public async Task HandleEventAsync(BestChainFoundEventData eventData)
+        public async Task HandleEventAsync(BestChainFoundEvent eventData)
         {
             await _consensusService.TriggerConsensusAsync(new ChainContext
             {

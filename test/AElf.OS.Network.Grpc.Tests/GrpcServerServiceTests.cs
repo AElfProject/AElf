@@ -52,8 +52,8 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Announce_ShouldPublishEvent()
         {
-            AnnouncementReceivedEventData received = null;
-            _eventBus.Subscribe<AnnouncementReceivedEventData>(a =>
+            AnnouncementReceivedEvent received = null;
+            _eventBus.Subscribe<AnnouncementReceivedEvent>(a =>
             {
                 received = a;
                 return Task.CompletedTask;

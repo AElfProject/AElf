@@ -62,7 +62,7 @@ namespace AElf.Kernel.Consensus.Application
                     .NextBlockMiningLeftMilliseconds);
 
             // Initial consensus scheduler.
-            var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
+            var blockMiningEventData = new ConsensusRequestMiningEvent(chainContext.BlockHash,
                 chainContext.BlockHeight,
                 _nextMiningTime, 
                 TimestampHelper.DurationFromMilliseconds(_consensusCommand.LimitMillisecondsOfMiningBlock));
@@ -87,7 +87,7 @@ namespace AElf.Kernel.Consensus.Application
             if (!validationResult.Success)
             {
                 Logger.LogError($"Consensus validating before execution failed: {validationResult.Message}");
-                await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
+                await LocalEventBus.PublishAsync(new ConsensusValidationFailedEvent
                 {
                     ValidationResultMessage = validationResult.Message,
                     CreateTime = DateTime.Now
@@ -111,7 +111,7 @@ namespace AElf.Kernel.Consensus.Application
             if (!validationResult.Success)
             {
                 Logger.LogError($"Consensus validating after execution failed: {validationResult.Message}");
-                await LocalEventBus.PublishAsync(new ConsensusValidationFailedEventData
+                await LocalEventBus.PublishAsync(new ConsensusValidationFailedEvent
                 {
                     ValidationResultMessage = validationResult.Message,
                     CreateTime = DateTime.Now
@@ -161,6 +161,11 @@ namespace AElf.Kernel.Consensus.Application
             }
 
             return generatedTransactions;
+        }
+
+        public async Task<ConsensusCommand> GetConsensusCommand()
+        {
+            return await Task.FromResult(_consensusCommand);
         }
     }
 }

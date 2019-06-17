@@ -125,7 +125,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 var blockLink = successLinks.Last();
                 await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
-                await LocalEventBus.PublishAsync(new BestChainFoundEventData
+                await LocalEventBus.PublishAsync(new BestChainFoundEvent
                 {
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight,

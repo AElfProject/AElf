@@ -279,9 +279,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             CleanTransactions(block.Body.Transactions.ToList());
         }
 
-        public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
+        public async Task HandleBestChainFoundAsync(BestChainFoundEvent eventData)
         {
-            Logger.LogTrace($"## BestChainFoundEventData: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
+            Logger.LogTrace($"## BestChainFoundEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             Logger.LogDebug($"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
             
             var heights = _allTransactions.Select(kv => kv.Value.Transaction.RefBlockNumber).Distinct();

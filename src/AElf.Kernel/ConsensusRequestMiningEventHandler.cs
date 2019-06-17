@@ -15,7 +15,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel
 {
-    public class ConsensusRequestMiningEventHandler : ILocalEventHandler<ConsensusRequestMiningEventData>,
+    public class ConsensusRequestMiningEventHandler : ILocalEventHandler<ConsensusRequestMiningEvent>,
         ITransientDependency
     {
         private readonly IMinerService _minerService;
@@ -35,9 +35,9 @@ namespace AElf.Kernel
             Logger = NullLogger<ConsensusRequestMiningEventHandler>.Instance;
         }
 
-        public async Task HandleEventAsync(ConsensusRequestMiningEventData eventData)
+        public async Task HandleEventAsync(ConsensusRequestMiningEvent eventData)
         {
-            Logger.LogTrace($"## ConsensusRequestMiningEventData: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
+            Logger.LogTrace($"## ConsensusRequestMiningEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             try
             {
                 _taskQueueManager.Enqueue(async () =>
