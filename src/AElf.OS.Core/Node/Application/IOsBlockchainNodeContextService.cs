@@ -26,11 +26,6 @@ namespace AElf.OS.Node.Application
             new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
     }
 
-//    public class ContractZeroOwnerInitializationDto
-//    {
-//        public ContractZeroOwnerInitializationInput ContractZeroOwnerInitializationInput { get; set; }
-//    }
-
     public interface IGenesisDeploymentsProvider
     {
         IEnumerable<SystemContractDeploymentInput> GetDeployments();
@@ -39,7 +34,6 @@ namespace AElf.OS.Node.Application
     public interface IGenesisSmartContractDtoProvider
     {
         IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress);
-//        ContractZeroOwnerInitializationDto GetContractZeroOwnerInitializationDto();
     }
 
     public class OsBlockchainNodeContextStartDto
@@ -119,16 +113,6 @@ namespace AElf.OS.Node.Application
 
             genesisSmartContracts.AddGenesisSmartContract(code, name, systemTransactionMethodCallList);
         }
-
-//        public static void AddGenesisSmartContract<T>(this List<GenesisSmartContractDto> genesisSmartContracts,
-//            Hash name, Action<SystemContractDeploymentInput.Types.SystemTransactionMethodCallList> action)
-//        {
-//            SystemContractDeploymentInput.Types.SystemTransactionMethodCallList systemTransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//
-//            action?.Invoke(systemTransactionMethodCallList);
-//
-//            genesisSmartContracts.AddGenesisSmartContract<T>(name, systemTransactionMethodCallList);
-//        }
     }
 
     public interface IOsBlockchainNodeContextService
@@ -172,7 +156,7 @@ namespace AElf.OS.Node.Application
                 transactions.AddRange(dto.InitializationTransactions);
 
             // Add transaction for initialization
-            transactions.Add(GetTransactionForContractZeroInitialization(dto));
+            transactions.Add(GetTransactionForGenesisOwnerInitialization(dto));
             
             var blockchainNodeContextStartDto = new BlockchainNodeContextStartDto()
             {
@@ -229,7 +213,7 @@ namespace AElf.OS.Node.Application
             };
         }
 
-        private Transaction GetTransactionForContractZeroInitialization(OsBlockchainNodeContextStartDto dto)
+        private Transaction GetTransactionForGenesisOwnerInitialization(OsBlockchainNodeContextStartDto dto)
         {
             var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
             return new Transaction

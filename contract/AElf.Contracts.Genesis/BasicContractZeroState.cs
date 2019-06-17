@@ -19,7 +19,6 @@ namespace AElf.Contracts.Genesis
         
         public SingletonState<bool> ContractDeploymentAuthorityRequired { get; set; }
         
-//        public SingletonState<string> ZeroOwnerAddressGenerationMethodName { get; set; }
         public SingletonState<bool> Initialized { get; set; }
     }
 }
