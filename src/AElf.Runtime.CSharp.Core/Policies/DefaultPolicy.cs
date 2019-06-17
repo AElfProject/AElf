@@ -38,7 +38,6 @@ namespace AElf.Runtime.CSharp.Policies
                 .Assembly(Assembly.Load("System.Runtime.Extensions"), Trust.Partial)
                 .Assembly(Assembly.Load("System.Private.CoreLib"), Trust.Partial)
                 .Assembly(Assembly.Load("System.ObjectModel"), Trust.Partial)
-                .Assembly(Assembly.Load("System.Threading"), Trust.Partial)
                 .Assembly(Assembly.Load("System.Linq"), Trust.Full)
                 .Assembly(Assembly.Load("System.Collections"), Trust.Full)
                 .Assembly(Assembly.Load("Google.Protobuf"), Trust.Full)
@@ -47,6 +46,12 @@ namespace AElf.Runtime.CSharp.Policies
                 .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
                 .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
                 .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Full) // AElf.Cryptography
+                
+                #if DEBUG
+                // Dependencies for coverlet injected codes
+                .Assembly(Assembly.Load("System.Threading"), Trust.Partial)
+                .Assembly(Assembly.Load("System.IO.MemoryMappedFiles"), Trust.Partial)
+                #endif
                 ;
         }
 
