@@ -66,44 +66,24 @@ namespace AElf.OS.Network.Grpc
             Logger.LogTrace($"Attempting to reach {ipAddress}.");
 
             var (channel, client) = await CreateClientAsync(ipAddress);
-            var hsk = await BuildHandshakeAsync();
 
-            ConnectReply connectReply;
+            ConnectReply connectReply = await TryConnectAsync(client, ipAddress);
 
-            try
+            if (connectReply == null)
             {
-                Metadata data = new Metadata
-                {
-                    {GrpcConstants.TimeoutMetadataKey, _networkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
-                };
-                connectReply = await client.ConnectAsync(hsk, data);
-            }
-            catch (AggregateException e)
-            {
-                await channel.ShutdownAsync();
-                Logger.LogError(e, $"Could not connect to {ipAddress}.");
-                return false;
-            }
-
-            // todo refactor so that connect returns the handshake and we'll check here 
-            // todo if not correct we kill the channel.
-            if (connectReply?.Handshake?.HskData == null || connectReply.Err != AuthError.None)
-            {
-                Logger.LogWarning($"Incorrect handshake for {ipAddress}, {connectReply?.Err}.");
                 await channel.ShutdownAsync();
                 return false;
             }
-
+            
             var pubKey = connectReply.Handshake.HskData.PublicKey.ToHex();
             
-            var connectionInfo = new GrpcPeerInfo
-            {
-                PublicKey = pubKey,
+            var connectionInfo = new GrpcPeerInfo 
+            { 
+                PublicKey = pubKey, 
                 PeerIpAddress = ipAddress,
                 ProtocolVersion = connectReply.Handshake.HskData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = connectReply.Handshake.Header.Height,
-                IsInbound = false
+                StartHeight = connectReply.Handshake.Header.Height
             };
 
             var peer = new GrpcPeer(channel, client, connectionInfo);
@@ -116,14 +96,47 @@ namespace AElf.OS.Network.Grpc
             }
             
             Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
+            
+            FireConnectionEvent(connectReply, pubKey);
 
+            return true;
+        }
+
+        private void FireConnectionEvent(ConnectReply connectReply, string pubKey)
+        {
             _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(new PeerNewBlockAnnouncement
             {
                 BlockHash = connectReply.Handshake.Header.GetHash(),
                 BlockHeight = connectReply.Handshake.Header.Height
             }, pubKey));
+        }
+        
+        private async Task<ConnectReply> TryConnectAsync(PeerService.PeerServiceClient client, string ipAddress)
+        {
+            ConnectReply connectReply;
+            
+            try
+            {
+                Metadata data = new Metadata {
+                    {GrpcConstants.TimeoutMetadataKey, _networkOptions.PeerDialTimeoutInMilliSeconds.ToString()}};
+                
+                var hsk = await BuildHandshakeAsync();
+                
+                connectReply = await client.ConnectAsync(hsk, data);
+            }
+            catch (AggregateException e)
+            {
+                Logger.LogError(e, $"Could not connect to {ipAddress}.");
+                return null;
+            }
+            
+            if (connectReply?.Handshake?.HskData == null || connectReply.Err != AuthError.None)
+            {
+                Logger.LogWarning($"Incorrect handshake for {ipAddress}, {connectReply?.Err}.");
+                return null;
+            }
 
-            return true;
+            return connectReply;
         }
 
         private async Task<(Channel, PeerService.PeerServiceClient)> CreateClientAsync(string ipAddress)
