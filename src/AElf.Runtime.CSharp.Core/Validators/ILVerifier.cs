@@ -41,9 +41,9 @@ namespace AElf.Runtime.CSharp
             return VerifyAssembly(new PEReader(new MemoryStream(assemblyContext)));
         }
 
-        private IEnumerable<AssemblyVerifierResult> VerifyAssembly(PEReader peReader)
+        private IEnumerable<ILVerifierResult> VerifyAssembly(PEReader peReader)
         {
-            var errors = new List<AssemblyVerifierResult>();
+            var errors = new List<ILVerifierResult>();
             
             errors.AddRange(VerifyMethods(peReader));
             errors.AddRange(VerifyTypes(peReader));
@@ -51,9 +51,9 @@ namespace AElf.Runtime.CSharp
             return errors;
         }
 
-        private IEnumerable<AssemblyVerifierResult> VerifyMethods(PEReader peReader)
+        private IEnumerable<ILVerifierResult> VerifyMethods(PEReader peReader)
         {
-            var errors = new List<AssemblyVerifierResult>();
+            var errors = new List<ILVerifierResult>();
             var metadataReader = peReader.GetMetadataReader();
             
             foreach (var methodHandle in metadataReader.MethodDefinitions)
@@ -61,15 +61,15 @@ namespace AElf.Runtime.CSharp
                 var methodName = GetQualifiedMethodName(metadataReader, methodHandle);
                 
                 var results = _verifier.Verify(peReader, methodHandle);
-                errors.AddRange(results.Select(result => new AssemblyVerifierResult(result.Message)));
+                errors.AddRange(results.Select(result => new ILVerifierResult(result.Message)));
             }
 
             return errors;
         }
         
-        private IEnumerable<AssemblyVerifierResult> VerifyTypes(PEReader peReader)
+        private IEnumerable<ILVerifierResult> VerifyTypes(PEReader peReader)
         {
-            var errors = new List<AssemblyVerifierResult>();
+            var errors = new List<ILVerifierResult>();
             var metadataReader = peReader.GetMetadataReader();
 
             foreach (var typeHandle in metadataReader.TypeDefinitions)
@@ -77,7 +77,7 @@ namespace AElf.Runtime.CSharp
                 var className = GetQualifiedClassName(metadataReader, typeHandle);
 
                 var results = _verifier.Verify(peReader, typeHandle);
-                errors.AddRange(results.Select(result => new AssemblyVerifierResult(result.Message)));
+                errors.AddRange(results.Select(result => new ILVerifierResult(result.Message)));
             }
             
             return errors;
@@ -120,9 +120,9 @@ namespace AElf.Runtime.CSharp
         }
     }
     
-    public class AssemblyVerifierResult : ValidationResult
+    public class ILVerifierResult : ValidationResult
     {
-        public AssemblyVerifierResult(string message) : base(message)
+        public ILVerifierResult(string message) : base(message)
         {
         }
     }
