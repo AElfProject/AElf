@@ -7,7 +7,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         private long CalculateLastIrreversibleBlockHeight()
         {
-            Context.LogDebug(() => "Entered CalculateLastIrreversibleBlockHeight.");
             if (TryToGetCurrentRoundInformation(out var currentRound) &&
                 TryToGetPreviousRoundInformation(out var previousRound))
             {

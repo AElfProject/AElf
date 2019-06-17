@@ -24,8 +24,6 @@ service AEDPoSContract {
     rpc UpdateTinyBlockInformation (TinyBlockInput) returns (google.protobuf.Empty) {
     }
     
-    rpc GetLIBOffset (google.protobuf.Empty) returns (aelf.SInt64Value) {
-    }
     rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
     }
 

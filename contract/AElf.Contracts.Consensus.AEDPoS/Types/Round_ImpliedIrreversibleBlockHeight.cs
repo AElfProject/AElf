@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public int GetMinimumMinersCount()
         {
-            return RealTimeMinersInformation.Count.Mul(2).Div(3); //.Add(1);
+            return RealTimeMinersInformation.Count.Mul(2).Div(3).Add(1);
         }
     }
 }

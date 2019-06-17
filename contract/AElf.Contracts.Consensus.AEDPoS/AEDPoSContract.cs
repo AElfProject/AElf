@@ -137,8 +137,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
 
-            //TryToFindLastIrreversibleBlock();
-
             var irreversibleBlockHeight = CalculateLastIrreversibleBlockHeight();
             if (irreversibleBlockHeight != 0)
             {
@@ -203,7 +201,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
-            //TryToFindLastIrreversibleBlock();
 
             return new Empty();
         }
