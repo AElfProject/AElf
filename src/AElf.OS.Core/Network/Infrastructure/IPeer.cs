@@ -9,7 +9,7 @@ namespace AElf.OS.Network.Infrastructure
         bool IsBest { get; set; }
         Hash CurrentBlockHash { get; }
         long CurrentBlockHeight { get; }
-        long LastKnowLIBHeight { get; }
+        long LastKnowLibHeight { get; }
         
         string PeerIpAddress { get; }
         string PubKey { get; }
@@ -24,6 +24,7 @@ namespace AElf.OS.Network.Infrastructure
 
         void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement);
 
+        Task UpdateHandshakeAsync();
         Task SendDisconnectAsync();
         Task StopAsync();
 

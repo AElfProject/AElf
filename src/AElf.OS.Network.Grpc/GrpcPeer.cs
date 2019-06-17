@@ -43,7 +43,7 @@ namespace AElf.OS.Network.Grpc
             get { return _channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready; }
         }
         
-        public long LastKnowLIBHeight { get; private set; }
+        public long LastKnowLibHeight { get; private set; }
 
         public bool IsBest { get; set; }
         public Hash CurrentBlockHash { get; private set; }
@@ -73,7 +73,7 @@ namespace AElf.OS.Network.Grpc
             ConnectionTime = peerInfo.ConnectionTime;
             Inbound = peerInfo.IsInbound;
             StartHeight = peerInfo.StartHeight;
-            LastKnowLIBHeight = peerInfo.LibHeightAtHandshake;
+            LastKnowLibHeight = peerInfo.LibHeightAtHandshake;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
@@ -172,6 +172,24 @@ namespace AElf.OS.Network.Grpc
             };
             
             return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
+        }
+
+        public async Task UpdateHandshakeAsync()
+        {
+            GrpcRequest request = new GrpcRequest
+            {
+                ErrorMessage = $"Error while updating handshake."
+            };
+            
+            Metadata data = new Metadata
+            {
+                {GrpcConstants.TimeoutMetadataKey, TransactionBroadcastTimeout.ToString()}
+            };
+            
+             var handshake = await RequestAsync(_client, c => c.UpdateHandshakeAsync(new UpdateHandshakeRequest(), data), request);
+             
+             if (handshake != null)
+                LastKnowLibHeight = handshake.LibBlockHeight;
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,

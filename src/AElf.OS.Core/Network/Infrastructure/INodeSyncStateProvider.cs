@@ -5,7 +5,7 @@ namespace AElf.OS.Network.Infrastructure
     public interface INodeSyncStateProvider
     {
         long SyncTarget { get; }
-        bool IsNodeSyncing();
+        bool GetSyncTarget();
         void SetSyncTarget(long target);
     }
     
@@ -18,7 +18,7 @@ namespace AElf.OS.Network.Infrastructure
         /// </summary>
         public long SyncTarget { get; private set; } = 0;
         
-        public bool IsNodeSyncing()
+        public bool GetSyncTarget()
         {
             return SyncTarget != -1;
         }

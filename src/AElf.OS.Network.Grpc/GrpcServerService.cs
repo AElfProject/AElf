@@ -233,7 +233,7 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null || request.PreviousBlockHash == null || _syncStateService.IsSyncing) 
+            if (request == null || request.PreviousBlockHash == null || _syncStateService.IsSyncFinished) 
                 return new BlockList();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");
@@ -257,6 +257,13 @@ namespace AElf.OS.Network.Grpc
             }
             
             return blockList;
+        }
+
+        public override async Task<Handshake> UpdateHandshake(UpdateHandshakeRequest request, ServerCallContext context)
+        {
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested handshake data.");
+            
+            return await _peerPool.GetHandshakeAsync();
         }
 
         /// <summary>

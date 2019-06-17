@@ -24,6 +24,7 @@ namespace AElf.OS.Network.Grpc
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
+        private readonly ITaskQueueManager _taskQueueManager;
         private readonly ISyncStateService _syncStateService;
         private readonly PeerService.PeerServiceBase _serverService;
         private readonly AuthInterceptor _authInterceptor;
@@ -33,9 +34,10 @@ namespace AElf.OS.Network.Grpc
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
-        public GrpcNetworkServer(ISyncStateService syncStateService, PeerService.PeerServiceBase serverService,
-            IPeerPool peerPool, AuthInterceptor authInterceptor)
+        public GrpcNetworkServer(ITaskQueueManager taskQueueManager, ISyncStateService syncStateService, 
+            PeerService.PeerServiceBase serverService, IPeerPool peerPool, AuthInterceptor authInterceptor)
         {
+            _taskQueueManager = taskQueueManager;
             _syncStateService = syncStateService;
             _serverService = serverService;
             _authInterceptor = authInterceptor;
@@ -77,8 +79,6 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogWarning("Boot nodes list is empty.");
             }
-            
-            await _syncStateService.TryFindSyncTargetAsync();
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)

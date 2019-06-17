@@ -14,13 +14,18 @@ namespace AElf.OS.Handlers
         {
             public INetworkService NetworkService { get; set; }
             public ISyncStateService SyncStateService { get; set; }
+            public ITaskQueueManager TaskQueueManager { get; set; }
 
             public Task HandleEventAsync(BlockAcceptedEvent eventData)
             {
                 NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
 
-                if (SyncStateService.IsSyncing)
-                    SyncStateService.UpdateSyncStateAsync();
+                if (!SyncStateService.IsSyncFinished)
+                {
+                    TaskQueueManager.Enqueue(async () => {
+                        await SyncStateService.UpdateSyncStateAsync();
+                    }, OSConsts.InitialSyncQueueName);
+                }
                 
                 return Task.CompletedTask;
             }

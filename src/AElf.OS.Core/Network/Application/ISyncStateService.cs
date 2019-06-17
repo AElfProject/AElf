@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -10,9 +11,8 @@ namespace AElf.OS.Network.Application
 {
     public interface ISyncStateService
     {
-        bool IsSyncing { get; }
+        bool IsSyncFinished { get; }
         long CurrentSyncTarget { get; }
-        Task TryFindSyncTargetAsync();
         Task UpdateSyncStateAsync();
     }
 
@@ -34,35 +34,64 @@ namespace AElf.OS.Network.Application
             _peerPool = peerPool;
         }
         
-        public bool IsSyncing => _syncStateProvider.IsNodeSyncing();
+        public bool IsSyncFinished => _syncStateProvider.SyncTarget == -1;
         public long CurrentSyncTarget => _syncStateProvider.SyncTarget;
-        
         private void SetSyncTarget(long value) => _syncStateProvider.SetSyncTarget(value);
-        
-        private void SetSyncAsFinished()
-        {
-            _syncStateProvider.SetSyncTarget(-1);
-            _blockchainNodeContextService.FinishSync();
-        }
 
+        /// <summary>
+        /// Updates the current target for the initial sync. For now this method will
+        /// not have any effect if the sync is already finished.
+        /// </summary>
+        /// <returns></returns>
         public async Task UpdateSyncStateAsync()
         {
+            if (IsSyncFinished)
+                return;
+                
             var chain = await _blockchainService.GetChainAsync();
             
-            if (chain.BestChainHeight >= _syncStateProvider.SyncTarget)
+            // if the current LIB is higher than the recorded target, update
+            // the peers current LIB height. Note that this condition will 
+            // also be true when the node starts.
+            if (chain.LastIrreversibleBlockHeight >= _syncStateProvider.SyncTarget)
             {
-                // stop sync
-                SetSyncAsFinished();
-                Logger.LogDebug($"Initial sync finished at {chain.BestChainHeight}.");
+                // Update handshake information of all our peers
+                var tasks = _peerPool.GetPeers().Select(async peer =>
+                {
+                    try
+                    {
+                        await peer.UpdateHandshakeAsync();
+                    }
+                    catch (NetworkException e)
+                    {
+                        Logger.LogError(e, "Error while updating the lib.");
+                    }
+                }).ToList();
+                
+                await Task.WhenAll(tasks);
+                await TryFindSyncTargetAsync();
             }
         }
 
-        public async Task TryFindSyncTargetAsync()
+        /// <summary>
+        /// Based on the given list of peer, will update the target.
+        /// </summary>
+        /// <returns></returns>
+        private async Task TryFindSyncTargetAsync()
         {
-            // determine if we need to sync or not, based on the peers LIB.
-            var peers = _peerPool.GetPeers().Where(p => p.LastKnowLIBHeight > 0).ToList();
+            // set the target to the lowest LIB
+            var chain = await _blockchainService.GetChainAsync();
+            var peers = _peerPool.GetPeers().ToList();
             
-            if (peers.Count == 0)
+            long minSyncTarget = chain.LastIrreversibleBlockHeight + NetworkConstants.DefaultInitialSyncOffset;
+            
+            // determine the peers that are high enough to sync to
+            var candidates = peers
+                .Where(p => p.LastKnowLibHeight >= minSyncTarget)
+                .OrderBy(p => p.LastKnowLibHeight)
+                .ToList();
+
+            if (candidates.Count == 0)
             {
                 // no peer has a LIB to sync to, stop the sync.
                 SetSyncAsFinished();
@@ -70,12 +99,11 @@ namespace AElf.OS.Network.Application
             }
             else
             {
-                // set the target to the lowest LIB
+                // If there's more than 2/3 of the nodes that we can 
+                // sync to, take the lowest of them as target.
+                var minLib = candidates.First().LastKnowLibHeight;
                 
-                var chain = await _blockchainService.GetChainAsync();
-                var minLib = peers.Min(p => p.LastKnowLIBHeight);
-                
-                if (chain.LastIrreversibleBlockHeight + NetworkConstants.DefaultInitialSyncOffset < minLib)
+                if (candidates.Count >= Math.Ceiling(2d/3 * peers.Count))
                 {
                     SetSyncTarget(minLib);
                     Logger.LogDebug($"Set sync target to {minLib}.");
@@ -86,6 +114,16 @@ namespace AElf.OS.Network.Application
                     Logger.LogDebug("Finishing sync, no peer has as a LIB high enough.");
                 }
             }
+        }
+        
+        /// <summary>
+        /// Finalizes the sync by changing the target to -1 and launching the
+        /// notifying the Kernel of this change.
+        /// </summary>
+        private void SetSyncAsFinished()
+        {
+            _syncStateProvider.SetSyncTarget(-1);
+            _blockchainNodeContextService.FinishSync();
         }
     }
 }

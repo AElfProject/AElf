@@ -70,6 +70,7 @@ namespace AElf.OS
 
             taskQueueManager.CreateQueue(OSConsts.BlockSyncAttachQueueName);
             taskQueueManager.CreateQueue(OSConsts.BlockSyncQueueName);
+            taskQueueManager.CreateQueue(OSConsts.InitialSyncQueueName);
         }
     }
 }
