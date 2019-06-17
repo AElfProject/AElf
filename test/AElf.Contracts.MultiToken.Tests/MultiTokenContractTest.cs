@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken.Messages;
@@ -358,8 +359,7 @@ namespace AElf.Contracts.MultiToken
 
             var result = (await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
             {
-                Amount = 10L,
-                Symbol = DefaultSymbol
+                SymbolToAmount = {new Dictionary<string, long> {{DefaultSymbol, 10L}}}
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Mined);
             await TokenContractStub.Transfer.SendAsync(new TransferInput
@@ -402,14 +402,13 @@ namespace AElf.Contracts.MultiToken
                     {
                         Name = nameof(TokenContractContainer.TokenContractStub.Transfer)
                     });
-                fee.BaseAmount.ShouldBe(0L);
+                fee.SymbolToAmount.Keys.ShouldNotContain(DefaultSymbol);
             }
 
             var resultSet = (await feeChargerStub.SetMethodFee.SendAsync(new SetMethodFeeInput
             {
                 Method = nameof(TokenContractContainer.TokenContractStub.Transfer),
-                BaseSymbol = DefaultSymbol,
-                BaseAmount = 10L
+                SymbolToAmount = {new Dictionary<string, long> {{DefaultSymbol, 10L}}}
             })).TransactionResult; 
             resultSet.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -419,7 +418,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         Name = nameof(TokenContractContainer.TokenContractStub.Transfer)
                     });
-                fee.BaseAmount.ShouldBe(10L);
+                fee.SymbolToAmount[DefaultSymbol].ShouldBe(10L);
             }
         }
 

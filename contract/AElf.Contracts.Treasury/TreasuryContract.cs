@@ -69,7 +69,7 @@ namespace AElf.Contracts.Treasury
                 Symbol = Context.Variables.NativeSymbol
             }).Balance;
 
-            var releasingPeriodNumber = input.TermNumber - 1;
+            var releasingPeriodNumber = input.TermNumber.Sub(1);
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.TreasuryHash.Value,

@@ -98,7 +98,23 @@ namespace AElf.Contracts.TokenConverter
             }
 
             State.ConnectorCount.Value = count;
+
+            CreateToken();
+
             return new Empty();
+        }
+
+        private void CreateToken()
+        {
+            State.TokenContract.Create.Send(new CreateInput
+            {
+                Symbol = TokenConverterContractConstants.TokenSymbol,
+                TokenName = "AElf Token Converter Contract Token",
+                Issuer = Context.Self,
+                TotalSupply = TokenConverterContractConstants.TotalSupply,
+                Decimals = 2,
+                IsBurnable = true
+            });
         }
 
         public override Empty SetConnector(Connector input)

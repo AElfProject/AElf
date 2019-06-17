@@ -12,15 +12,17 @@ namespace AElf.Contracts.MultiToken
         {
             return State.MethodFees[input.Name];
         }
-        
+
         public override Empty SetMethodFee(SetMethodFeeInput input)
         {
-            AssertValidTokens(input.AvailableSymbols.Append(input.BaseSymbol), input.BaseAmount);
+            foreach (var symbolToAmount in input.SymbolToAmount)
+            {
+                AssertValidToken(symbolToAmount.Key, symbolToAmount.Value);
+            }
+
             State.MethodFees[input.Method] = new TokenAmount
             {
-                BaseSymbol = input.BaseSymbol,
-                AvailableSymbols = { input.AvailableSymbols},
-                BaseAmount = input.BaseAmount
+                SymbolToAmount = {input.SymbolToAmount}
             };
             return new Empty();
         }
