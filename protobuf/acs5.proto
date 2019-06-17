@@ -48,9 +48,7 @@ message ProfitReceivers {
 }
 
 message MethodProfitFee {
-    string base_symbol = 1;
-    sint64 base_amount = 2;
-    repeated string available_symbols = 3;
+    map<string, sint64> symbol_to_amount = 1;// The order matters.
 }
 
 message SetMethodProfitFeeInput {

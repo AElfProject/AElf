@@ -156,16 +156,12 @@ message BurnInput {
 }
 
 message ChargeTransactionFeesInput {
-    string base_symbol = 1;
-    sint64 base_amount = 2;
-    repeated string available_symbols = 3;
+    map<string, sint64> symbol_to_amount = 1;
 }
 
 message ChargeMethodProfitsInput {
-    string base_symbol = 1;
-    sint64 base_amount = 2;
-    repeated string available_symbols = 3;
-    aelf.Address profit_virtual_address = 4;
+    map<string, sint64> symbol_to_amount = 1;
+    aelf.Address profit_virtual_address = 2;
 }
 
 message ClaimTransactionFeesInput {

@@ -263,33 +263,38 @@ namespace AElf.Contracts.MultiToken
             // until there's balance of one certain token is enough to pay the fee.
             var symbol = Context.Variables.NativeSymbol;
             var existingBalance = 0L;
-            var feeAmount = 0L;
-            foreach (var availableSymbol in input.AvailableSymbols)
+            var amount = 0L;
+            foreach (var symbolToAmount in input.SymbolToAmount)
             {
-                existingBalance = State.Balances[fromAddress][availableSymbol];
-                var exchangeRate = State.TokenConverterContract.GetExchangeRate.Call(new GetExchangeRateInput
-                {
-                    FromSymbol = availableSymbol,
-                    ToSymbol = Context.Variables.NativeSymbol
-                });
-                var rate = long.Parse(exchangeRate.Value);
-                feeAmount = input.BaseAmount.Mul(rate);
-                if (existingBalance >= feeAmount)
+                existingBalance = State.Balances[fromAddress][symbolToAmount.Key];
+                symbol = symbolToAmount.Key;
+                amount = symbolToAmount.Value;
+                if (existingBalance >= amount)
                 {
                     break;
                 }
             }
 
-            Assert(existingBalance >= feeAmount, "Insufficient balance.");
-            State.Balances[fromAddress][symbol] = existingBalance.Sub(feeAmount);
+            // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
+            Assert(existingBalance >= amount, "Insufficient balance.");
+
+            State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
             State.ChargedFees[fromAddress][symbol] =
-                State.ChargedFees[fromAddress][symbol].Add(feeAmount);
+                State.ChargedFees[fromAddress][symbol].Add(amount);
+            return new Empty();
+        }
+
+        public override Empty ChargeMethodProfits(ChargeMethodProfitsInput input)
+        {
+            
             return new Empty();
         }
 
         public override Empty ClaimTransactionFees(ClaimTransactionFeesInput input)
         {
-            Assert(input.Symbol == State.NativeTokenSymbol.Value, "The specified token is not the native token.");
+            var tokenInfo = State.TokenInfos[input.Symbol];
+            Assert(tokenInfo != null, "Invalid token.");
+
             var feePoolAddressNotSet =
                 State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
             Assert(!feePoolAddressNotSet, "Fee pool address is not set.");

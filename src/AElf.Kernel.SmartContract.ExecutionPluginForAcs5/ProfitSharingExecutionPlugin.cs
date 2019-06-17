@@ -43,7 +43,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
                 __factory = new MethodStubFactory(context)
             };
 
-            var profit = await selfStub.GetMethodIncomeFee.CallAsync(new StringValue
+            var profit = await selfStub.GetMethodProfitFee.CallAsync(new StringValue
             {
                 Value = context.TransactionContext.Transaction.MethodName
             });
@@ -67,9 +67,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 
             var chargeProfitTransaction = (await tokenStub.ChargeMethodProfits.SendAsync(new ChargeMethodProfitsInput
             {
-                BaseAmount = profit.BaseAmount,
-                BaseSymbol = profit.BaseSymbol,
-                AvailableSymbols = {profit.AvailableSymbols},
+                SymbolToAmount = {profit.SymbolToAmount},
                 ProfitVirtualAddress = profitVirtualAddress
             })).Transaction;
             return new List<Transaction>

@@ -15,9 +15,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract
         {
             State.MethodFees[input.Method] = new TokenAmount
             {
-                BaseSymbol = input.BaseSymbol,
-                BaseAmount = input.BaseAmount,
-                AvailableSymbols = { input.AvailableSymbols}
+                SymbolToAmount = {input.SymbolToAmount}
             };
             return new Empty();
         }
