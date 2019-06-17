@@ -17,7 +17,7 @@ namespace AElf.Cryptography.SecretSharing
             // Polynomial construction.
             var coefficients = new BigInteger[threshold];
             // Set p(0) = secret message.
-            coefficients[0] = secretMessage.ToBigInteger();
+            coefficients[0] = new BigInteger(secretMessage);
             for (var i = 1; i < threshold; i++)
             {
                 var foo = new byte[32];
