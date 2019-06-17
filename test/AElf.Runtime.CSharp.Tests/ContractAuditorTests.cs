@@ -13,8 +13,10 @@ using AElf.Contracts.Profit;
 using AElf.Contracts.ReferendumAuth;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.TokenConverter;
+using AElf.Runtime.CSharp.Helpers;
 using AElf.Runtime.CSharp.Validators;
 using AElf.Runtime.CSharp.Validators.Method;
+using Mono.Cecil.Cil;
 using Shouldly;
 using Xunit;
 using ValidationResult = AElf.Runtime.CSharp.Validators.ValidationResult;
@@ -177,6 +179,49 @@ namespace AElf.Runtime.CSharp.Tests
             // Float operations
             findings.FirstOrDefault(f => f is FloatOpsValidationResult)
                 .ShouldNotBeNull();
+        }
+        
+        [Fact]
+        public void CheckILVerifier_IsFunctional()
+        { 
+            const string dummyCode =  @"using System;
+
+                                        public class DummyClass
+                                        {
+                                            public int SimpleAdd()
+                                            {
+                                                var a = 2;
+                                                var b = 3;
+                                                return a + b;
+                                            }
+                                        }";
+            
+            var validAssembly = new MemoryStream();
+            var dummyAssembly = AssemblyCompiler.Compile("DummyLib", dummyCode);
+            dummyAssembly.Write(validAssembly);
+
+            var typ = dummyAssembly.MainModule.GetType("DummyClass");
+
+            var testMethod = typ.Methods.FirstOrDefault(m => m.Name == "SimpleAdd");
+
+            if (testMethod != null)
+            {
+                var processor = testMethod.Body.GetILProcessor();
+                
+                // Break IL codes by injecting a line that loads string to stack while adding 2 integers
+                processor.Body.Instructions.Insert(2, processor.Create(OpCodes.Ldstr, "AElf"));
+            }
+            
+            var invalidAssembly = new MemoryStream();
+
+            dummyAssembly.Write(invalidAssembly);
+            
+            // Ensure contract auditor doesn't throw any exception
+            Should.NotThrow(()=>_auditorFixture.Audit(validAssembly.ToArray()));
+            
+            // Ensure ILVerifier is doing its job
+            Should.Throw<InvalidCodeException>(()=>_auditorFixture.Audit(invalidAssembly.ToArray()))
+                .Message.ShouldContain("[ILVerifierResult]");
         }
 
         #endregion
