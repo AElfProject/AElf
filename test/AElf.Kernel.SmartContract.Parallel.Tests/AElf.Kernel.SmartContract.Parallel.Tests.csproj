@@ -10,6 +10,7 @@
       <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj" />
       <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract\AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract.csproj" />
+      <ProjectReference Include="..\AElf.OS.TestBase\AElf.OS.TestBase.csproj" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />

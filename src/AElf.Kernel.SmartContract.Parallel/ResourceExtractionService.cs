@@ -79,7 +79,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         
         public async Task HandleTransactionResourcesNeededAsync(TransactionResourcesNeededEvent eventData)
         {
-            Logger.LogTrace($"## TransactionResourcesNeededEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
+            Logger?.LogTrace($"## TransactionResourcesNeededEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             var chainContext = await GetChainContextAsync();
             
             foreach (var tx in eventData.Transactions)
@@ -87,18 +87,18 @@ namespace AElf.Kernel.SmartContract.Parallel
                 _resourceCache.TryAdd(tx.GetHash(), await GetResourcesForOneAsync(chainContext, tx, CancellationToken.None));
             }
 
-            Logger.LogTrace($"Resource cache size current: {_resourceCache.Count}");
+            Logger?.LogTrace($"Resource cache size current: {_resourceCache.Count}");
         }
 
         public async Task HandleTransactionResourcesNoLongerNeededAsync(TransactionResourcesNoLongerNeededEvent eventData)
         {
-            Logger.LogTrace($"## TransactionResourcesNoLongerNeededEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
+            Logger?.LogTrace($"## TransactionResourcesNoLongerNeededEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             foreach (var txId in eventData.TransactionIds)
             {
                 _resourceCache.TryRemove(txId, out _);
             }
             
-            Logger.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
+            Logger?.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
         }
         #endregion
         
