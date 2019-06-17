@@ -74,7 +74,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 FromChainId = _localChainId,
                 ListeningPort = _localListeningPort,
                 Host = _host
-            }, new CallOptions().WithDeadline(DateTime.UtcNow.AddSeconds(DialTimeout)));
+            }, CreateOption());
             var res = reply != null && reply.Result;
             
             return Task.FromResult(res);
@@ -113,7 +113,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         protected CallOptions CreateOption()
         {
-            return new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().ToDateTime().AddSeconds(DialTimeout));
+            return new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().ToDateTime().AddMilliseconds(DialTimeout));
         }
 
         public abstract Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);

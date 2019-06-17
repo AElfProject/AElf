@@ -13,7 +13,7 @@ namespace AElf.CrossChain.Communication.Grpc
         
         public string RemoteParentChainServerHost { get; set; }
         public int RemoteParentChainServerPort { get; set; }
-        public int ConnectionTimeout { get; set; } = 3;
+        public int ConnectionTimeout { get; set; } = 500;
 
         #endregion
     }
