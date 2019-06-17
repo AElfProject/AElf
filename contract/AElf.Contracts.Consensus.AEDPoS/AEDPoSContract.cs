@@ -216,7 +216,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Context.LogDebug(() => $"Shared miner list of round {consensusInformation.Round.RoundNumber}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
-            State.MainChainCurrentMiners.Value = new MinerList
+            State.MainChainCurrentMinerList.Value = new MinerList
             {
                 PublicKeys = {minersKeys.Select(k => k.ToByteString())}
             };
