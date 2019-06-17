@@ -233,7 +233,7 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null || request.PreviousBlockHash == null || _syncStateService.IsSyncFinished) 
+            if (request == null || request.PreviousBlockHash == null || !_syncStateService.IsSyncFinished) 
                 return new BlockList();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");

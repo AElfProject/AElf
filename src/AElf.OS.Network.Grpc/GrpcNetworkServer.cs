@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using AElf.OS.Network.Application;
-using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
 using Grpc.Core;
@@ -24,8 +22,6 @@ namespace AElf.OS.Network.Grpc
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
-        private readonly ITaskQueueManager _taskQueueManager;
-        private readonly ISyncStateService _syncStateService;
         private readonly PeerService.PeerServiceBase _serverService;
         private readonly AuthInterceptor _authInterceptor;
 
@@ -34,11 +30,9 @@ namespace AElf.OS.Network.Grpc
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
-        public GrpcNetworkServer(ITaskQueueManager taskQueueManager, ISyncStateService syncStateService, 
-            PeerService.PeerServiceBase serverService, IPeerPool peerPool, AuthInterceptor authInterceptor)
+        public GrpcNetworkServer(PeerService.PeerServiceBase serverService, IPeerPool peerPool, 
+            AuthInterceptor authInterceptor)
         {
-            _taskQueueManager = taskQueueManager;
-            _syncStateService = syncStateService;
             _serverService = serverService;
             _authInterceptor = authInterceptor;
             _peerPool = peerPool;
