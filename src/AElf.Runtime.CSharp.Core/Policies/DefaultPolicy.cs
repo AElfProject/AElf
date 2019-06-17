@@ -38,6 +38,7 @@ namespace AElf.Runtime.CSharp.Policies
                 .Assembly(Assembly.Load("System.Runtime.Extensions"), Trust.Partial)
                 .Assembly(Assembly.Load("System.Private.CoreLib"), Trust.Partial)
                 .Assembly(Assembly.Load("System.ObjectModel"), Trust.Partial)
+                .Assembly(Assembly.Load("System.Threading"), Trust.Partial)
                 .Assembly(Assembly.Load("System.Linq"), Trust.Full)
                 .Assembly(Assembly.Load("System.Collections"), Trust.Full)
                 .Assembly(Assembly.Load("Google.Protobuf"), Trust.Full)
