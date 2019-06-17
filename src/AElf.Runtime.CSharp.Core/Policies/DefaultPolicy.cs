@@ -51,6 +51,7 @@ namespace AElf.Runtime.CSharp.Policies
                 // Dependencies for coverlet injected codes
                 .Assembly(Assembly.Load("System.Threading"), Trust.Partial)
                 .Assembly(Assembly.Load("System.IO.MemoryMappedFiles"), Trust.Partial)
+                .Assembly(Assembly.Load("System.Runtime.InteropServices"), Trust.Partial)
                 #endif
                 ;
         }
