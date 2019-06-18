@@ -139,7 +139,7 @@ namespace AElf.Runtime.CSharp
                 }
                 catch (TargetInvocationException ex)
                 {
-                    CurrentTransactionContext.Trace.StdErr += ex.InnerException;
+                    CurrentTransactionContext.Trace.StdErr += ex;
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 }
                 catch (AssertionException ex)
