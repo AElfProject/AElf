@@ -27,7 +27,7 @@ message ConnectReply {
 
 enum AuthError {
     NONE = 0;
-    UNKNOWN_ERROR = 1;
+    UNKNOWN = 1;
     WRONG_SIGNATURE = 2;
     INVALID_HANDSHAKE = 3;
     INVALID_PEER = 4;
