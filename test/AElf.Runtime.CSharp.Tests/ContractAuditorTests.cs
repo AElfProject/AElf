@@ -87,20 +87,9 @@ namespace AElf.Runtime.CSharp.Tests
         [Fact]
         public void CheckBadContract_ForFindings()
         {
-            List<ValidationResult> findings = null;
-            
-            Should.Throw<InvalidCodeException>(() =>
-            {
-                try
-                {
-                    _auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module));
-                }
-                catch (InvalidCodeException ex)
-                {
-                    findings = ex.Findings;
-                    throw ex;
-                }
-            });
+            var findings = Should.Throw<InvalidCodeException>(
+                ()=>_auditorFixture.Audit(ReadCode(_contractDllDir + typeof(BadContract.BadContract).Module)))
+                .Findings;
             
             // Random usage
             LookFor(findings, 
@@ -211,7 +200,7 @@ namespace AElf.Runtime.CSharp.Tests
             
             // Ensure ILVerifier is doing its job
             Should.Throw<InvalidCodeException>(()=>_auditorFixture.Audit(invalidAssembly.ToArray()))
-                .Message.ShouldContain("[ILVerifierResult]");
+                .Findings.FirstOrDefault(f => f is ILVerifierResult).ShouldNotBeNull();
         }
 
         #endregion
