@@ -15,8 +15,6 @@ namespace AElf.OS.Network.Infrastructure
         
         IReadOnlyDictionary<long, Hash> PreLibBlockHeightAndHashMappings { get; }
         
-        long ForkHeight { get; }
-        
         IPeer FindPeerByAddress(string peerIpAddress);
         IPeer FindPeerByPublicKey(string remotePubKey);
 

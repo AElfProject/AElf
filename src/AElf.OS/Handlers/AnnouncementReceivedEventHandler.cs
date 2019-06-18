@@ -41,6 +41,7 @@ namespace AElf.OS.Handlers
                 return;
 
             var orderedBlocks = senderPeer.RecentBlockHeightAndHashMappings.OrderByDescending(p => p.Key).ToList();
+            if (orderedBlocks.Count == 0) return;
 
             var chain = await _blockchainService.GetChainAsync();
             var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
@@ -54,20 +55,21 @@ namespace AElf.OS.Handlers
 
             foreach (var block in orderedBlocks)
             {
-                if (block.Key <= _peerPool.ForkHeight) return;
+                var hasBlock = _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
+                               blockHash == block.Value;
+                if (!hasBlock) continue;
+                
                 var peersHadBlockAmount = peers.Where(p =>
                 {
                     p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
                     return hash == block.Value;
                 }).Count();
-                if (pubkeyList.Contains(pubKey) &&
-                    _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
-                    blockHash == block.Value)
+                if (pubkeyList.Contains(pubKey))
                     peersHadBlockAmount++;
 
                 var sureAmount = pubkeyList.Count.Mul(2).Div(3) + 1;
                 if (peersHadBlockAmount < sureAmount) continue;
-                await _networkService.BroadcastPreLibAnnounceAsync(block.Key, block.Value);
+                var _ = _networkService.BroadcastPreLibAnnounceAsync(block.Key, block.Value);
                 return;
             }
         }

@@ -80,6 +80,10 @@ namespace AElf.OS.Network.Application
         public async Task<int> BroadcastPreLibAnnounceAsync(long blockHeight, Hash blockHash)
         {
             int successfulBcasts = 0;
+            
+            var hasBlock = _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeight, out var hash) &&
+                           hash == blockHash;
+            if (!hasBlock) return successfulBcasts;
 
             var announce = new PeerPreLibAnnouncement
             {

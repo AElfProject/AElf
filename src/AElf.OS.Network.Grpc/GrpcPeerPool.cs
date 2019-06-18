@@ -11,7 +11,6 @@ using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
@@ -37,10 +36,6 @@ namespace AElf.OS.Network.Grpc
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
         public IReadOnlyDictionary<long, Hash> PreLibBlockHeightAndHashMappings { get; }
-        
-        public long ForkHeight => _forkHeight;
-
-        private long _forkHeight { get; set; }
 
         private readonly ConcurrentDictionary<long, Hash> _preLibBlockHeightAndHashMappings;
 
@@ -292,7 +287,6 @@ namespace AElf.OS.Network.Grpc
             {
                 _recentBlockHeightAndHashMappings.Clear();
                 _preLibBlockHeightAndHashMappings.Clear();
-                if (blockHeight > _forkHeight) _forkHeight = blockHeight;
                 return;
             }
             _recentBlockHeightAndHashMappings[blockHeight] = blockHash;

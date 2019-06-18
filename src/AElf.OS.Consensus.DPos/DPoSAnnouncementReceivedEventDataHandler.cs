@@ -87,6 +87,7 @@ namespace AElf.OS.Consensus.DPos
                 return null;
 
             var orderedBlocks = senderPeer.PreLibBlockHeightAndHashMappings.OrderByDescending(p => p.Key).ToList();
+            if (orderedBlocks.Count == 0) return null;
 
             var chain = await _blockchainService.GetChainAsync();
             var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
@@ -100,14 +101,20 @@ namespace AElf.OS.Consensus.DPos
 
             foreach (var block in orderedBlocks)
             {
+                var hasBlock = _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
+                               blockHash == block.Value;
+                if (!hasBlock) continue;
+
+                if (!_peerPool.PreLibBlockHeightAndHashMappings.TryGetValue(block.Key, out var preLibHash) ||
+                    preLibHash != block.Value)
+                    continue;
+                
                 var peersHadBlockAmount = peers.Where(p =>
                 {
                     p.PreLibBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
                     return hash == block.Value;
                 }).Count();
-                if (pubkeyList.Contains(pubKey) &&
-                    _peerPool.PreLibBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
-                    blockHash == block.Value)
+                if (pubkeyList.Contains(pubKey))
                     peersHadBlockAmount++;
 
                 var sureAmount = pubkeyList.Count.Mul(2).Div(3) + 1;
