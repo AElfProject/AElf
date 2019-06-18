@@ -9,7 +9,8 @@ import "google/protobuf/timestamp.proto";
 
 option (aelf.identity) = "acs7";
 
-service ACS7{
+service ACS7 {
+    
     rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
     }
     rpc RequestChainCreation (SideChainCreationRequest) returns (RequestChainCreationOutput) {

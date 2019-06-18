@@ -80,15 +80,13 @@ message VerifyTransactionInput {
 }
 
 // Events
-message CreationRequested
-{
+message CreationRequested {
     option (aelf.is_event) = true;
     aelf.Address creator = 1;
     int32 chainId = 2;
 }
 
-message Disposed
-{
+message Disposed {
     option (aelf.is_event) = true;
     int32 chain_id = 1;
 }
