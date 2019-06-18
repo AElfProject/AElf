@@ -28,7 +28,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Initial_State_Is_Syncing()
         {
-            _syncStateService.IsSyncFinished.ShouldBeFalse();
+            _syncStateService.IsSyncFinished().ShouldBeFalse();
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace AElf.OS.Network
             await _syncStateService.UpdateSyncStateAsync();
             await _syncStateService.UpdateSyncStateAsync();
             
-            _syncStateService.IsSyncFinished.ShouldBeTrue();
+            _syncStateService.IsSyncFinished().ShouldBeTrue();
         }
         
         [Fact]
@@ -59,7 +59,7 @@ namespace AElf.OS.Network
         public async Task No_Peers_Stops_Sync()
         {
             await _syncStateService.UpdateSyncStateAsync();
-            _syncStateService.IsSyncFinished.ShouldBeTrue();
+            _syncStateService.IsSyncFinished().ShouldBeTrue();
         }
         
         [Fact]
@@ -70,7 +70,7 @@ namespace AElf.OS.Network
             
             await _syncStateService.UpdateSyncStateAsync();
             
-            _syncStateService.IsSyncFinished.ShouldBeTrue();
+            _syncStateService.IsSyncFinished().ShouldBeTrue();
         }
         
         [Theory]
@@ -84,22 +84,9 @@ namespace AElf.OS.Network
             
             await _syncStateService.UpdateSyncStateAsync();
             
-            _syncStateService.IsSyncFinished.ShouldBe(expectedSyncState);
+            _syncStateService.IsSyncFinished().ShouldBe(expectedSyncState);
         }
-        
-        [Fact]
-        public async Task Peers_WithLib_Target_IsMin()
-        {
-            int minPeerLIB = 30;
-            _peerPool.AddPeer(CreatePeer(minPeerLIB));
-            _peerPool.AddPeer(CreatePeer(50));
-            
-            await _syncStateService.UpdateSyncStateAsync();
-            
-            _syncStateService.IsSyncFinished.ShouldBeFalse();
-            _syncStateService.CurrentSyncTarget.Equals(minPeerLIB);
-        }
-        
+
         private IPeer CreatePeer(long libHeight = 0)
         {
             Mock<IPeer> peerMock = new Mock<IPeer>();

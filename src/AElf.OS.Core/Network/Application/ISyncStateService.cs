@@ -11,8 +11,8 @@ namespace AElf.OS.Network.Application
 {
     public interface ISyncStateService
     {
-        bool IsSyncFinished { get; }
-        long CurrentSyncTarget { get; }
+        bool IsSyncFinished();
+        long GetCurrentSyncTarget();
         Task UpdateSyncStateAsync();
     }
 
@@ -34,8 +34,8 @@ namespace AElf.OS.Network.Application
             _peerPool = peerPool;
         }
         
-        public bool IsSyncFinished => _syncStateProvider.SyncTarget == -1;
-        public long CurrentSyncTarget => _syncStateProvider.SyncTarget;
+        public bool IsSyncFinished() => _syncStateProvider.SyncTarget == -1;
+        public long GetCurrentSyncTarget() => _syncStateProvider.SyncTarget;
         private void SetSyncTarget(long value) => _syncStateProvider.SetSyncTarget(value);
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace AElf.OS.Network.Application
         /// <returns></returns>
         public async Task UpdateSyncStateAsync()
         {
-            if (IsSyncFinished)
+            if (IsSyncFinished())
                 return;
                 
             var chain = await _blockchainService.GetChainAsync();
