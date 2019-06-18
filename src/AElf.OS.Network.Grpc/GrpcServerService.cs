@@ -129,7 +129,7 @@ namespace AElf.OS.Network.Grpc
                 PeerIpAddress = peerAddress,
                 ProtocolVersion = handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = handshake.Header.Height,
+                StartHeight = handshake.BestChainBlockHeader.Height,
                 IsInbound = true
             };
 

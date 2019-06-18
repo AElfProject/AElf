@@ -121,7 +121,7 @@ namespace AElf.OS.Network.Grpc
                 PeerIpAddress = ipAddress,
                 ProtocolVersion = connectReply.Handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = connectReply.Handshake.Header.Height,
+                StartHeight = connectReply.Handshake.BestChainBlockHeader.Height,
                 IsInbound = false
             };
 
@@ -140,8 +140,8 @@ namespace AElf.OS.Network.Grpc
 
             _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(new PeerNewBlockAnnouncement
             {
-                BlockHash = connectReply.Handshake.Header.GetHash(),
-                BlockHeight = connectReply.Handshake.Header.Height
+                BlockHash = connectReply.Handshake.BestChainBlockHeader.GetHash(),
+                BlockHeight = connectReply.Handshake.BestChainBlockHeader.Height
             }, pubKey));
 
             return true;
@@ -222,7 +222,7 @@ namespace AElf.OS.Network.Grpc
             {
                 HandshakeData = nd,
                 Signature = ByteString.CopyFrom(sig),
-                Header = await _blockchainService.GetBestChainLastBlockHeaderAsync()
+                BestChainBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync()
             };
 
             return hsk;

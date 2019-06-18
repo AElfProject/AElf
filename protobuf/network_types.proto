@@ -10,7 +10,7 @@ message Handshake {
     HandshakeData handshake_data = 1;
     bytes signature = 2;
     bool success = 3;
-    aelf.BlockHeader header = 4;
+    aelf.BlockHeader best_chain_block_header = 4;
 }
 
 message HandshakeData {

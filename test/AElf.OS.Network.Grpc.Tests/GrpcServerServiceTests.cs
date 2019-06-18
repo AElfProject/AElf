@@ -258,7 +258,7 @@ namespace AElf.OS.Network
             {
                 HandshakeData = nd,
                 Signature = ByteString.CopyFrom(sig),
-                Header = new BlockHeader()
+                BestChainBlockHeader = new BlockHeader()
             };
 
             return hsk;
