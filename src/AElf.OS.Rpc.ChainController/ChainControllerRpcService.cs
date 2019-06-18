@@ -135,6 +135,9 @@ namespace AElf.OS.Rpc.ChainController
             var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
             
             var response = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
+            response["TransactionId"] = transactionResult.TransactionId.ToHex();
+            response["Status"] = transactionResult.Status.ToString();
+            
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
                 var block = await this.GetBlockAtHeight(transactionResult.BlockNumber);
