@@ -72,6 +72,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             return RequestAsync(HandshakeAsync());
         }
+        
         public async Task CloseAsync()
         {
             await Channel.ShutdownAsync();
