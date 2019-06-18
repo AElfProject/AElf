@@ -46,13 +46,6 @@ namespace AElf.Runtime.CSharp.Policies
                 .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
                 .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
                 .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Full) // AElf.Cryptography
-                
-                #if DEBUG
-                // Dependencies for coverlet injected codes
-                .Assembly(Assembly.Load("System.Threading"), Trust.Partial)
-                .Assembly(Assembly.Load("System.IO.MemoryMappedFiles"), Trust.Partial)
-                .Assembly(Assembly.Load("System.Runtime.InteropServices"), Trust.Partial)
-                #endif
                 ;
         }
 
@@ -97,11 +90,6 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(typeof(string).Name, Permission.Allowed, member => member
                         .Constructor(Permission.Denied))
                     .Type(typeof(Byte[]).Name, Permission.Allowed)
-                    #if DEBUG
-                    // Allow coverlet injected codes
-                    .Type(typeof(AppDomain), Permission.Allowed)
-                    .Type(typeof(EventHandler), Permission.Allowed)
-                    #endif
                 );
         }
 
@@ -144,14 +132,6 @@ namespace AElf.Runtime.CSharp.Policies
                 // TODO: Allow System.Text only for system contracts
                 // Used for logging and other string operations, conversions
                 .Namespace("System.Text", Permission.Allowed)
-                
-                #if DEBUG
-                // Allow coverlet injected codes
-                .Namespace("System.IO.MemoryMappedFiles", Permission.Allowed)
-                .Namespace("System.Threading", Permission.Allowed)
-                .Namespace("System.Runtime.InteropServices", Permission.Allowed)
-                .Namespace("Microsoft.Win32.SafeHandles", Permission.Allowed)
-                #endif
                 ;
         }
 

@@ -47,7 +47,7 @@ namespace AElf.Runtime.CSharp.Tests
     {
         private readonly ContractAuditorFixture _auditorFixture;
         private readonly string _contractDllDir = "../../../contracts/";
-        private readonly Type[] contracts = {
+        private readonly Type[] _contracts = {
             typeof(AssociationAuthContract),
             typeof(AEDPoSContract),
             typeof(CrossChainContract),
@@ -74,22 +74,12 @@ namespace AElf.Runtime.CSharp.Tests
         public void CheckSystemContracts_AllShouldPass()
         {
             // Load the DLL's from contracts folder to prevent codecov injection
-            foreach (var contractPath in contracts.Select(c => _contractDllDir + c.Module.ToString()))
+            foreach (var contractPath in _contracts.Select(c => _contractDllDir + c.Module.ToString()))
             {
                 Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath)));
             }
         }
-        
-        [Fact]
-        public void CheckSystemContracts_Injected_AllShouldPass()
-        {
-            // Load codecov injected DLL's
-            foreach (var contractPath in contracts.Select(c => c.Assembly.Location))
-            {
-                Should.NotThrow(()=>_auditorFixture.Audit(ReadCode(contractPath)));
-            }
-        }
-        
+
         #endregion
         
         #region Negative Cases
