@@ -1,11 +1,14 @@
 using System.Collections.Generic;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Miner.Application
 {
     public class SystemTransactionGenerationService : ISystemTransactionGenerationService
     {
         private readonly IEnumerable<ISystemTransactionGenerator> _systemTransactionGenerators;
+
+        public ILogger<SystemTransactionGenerationService> Logger { get; set; }
 
         public SystemTransactionGenerationService(IEnumerable<ISystemTransactionGenerator> systemTransactionGenerators)
         {
