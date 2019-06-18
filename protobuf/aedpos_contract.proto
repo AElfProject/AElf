@@ -69,14 +69,14 @@ message InitialAElfConsensusContractInput {
 
 // Just used as parameter of consensus contract method.
 message UpdateValueInput {
-    aelf.Hash out_value = 1;// Calculated from current in value.
-    aelf.Hash signature = 2;// Calculated from current in value and signatures of previous round.
-    sint64 round_id = 3;// To ensure the values to update will be apply to correct round by comparing round id.
-    aelf.Hash previous_in_value = 5;// Publish previous in value for validation previous signature and previous out value.
+    aelf.Hash out_value = 1; // Calculated from current in value.
+    aelf.Hash signature = 2; // Calculated from current in value and signatures of previous round.
+    sint64 round_id = 3; // To ensure the values to update will be apply to correct round by comparing round id.
+    aelf.Hash previous_in_value = 5; // Publish previous in value for validation previous signature and previous out value.
     google.protobuf.Timestamp actual_mining_time = 6;
     sint32 supposed_order_of_next_round = 7;
     map<string, int32> tune_order_information = 8;
-    map<string, bytes> encrypted_in_values = 9;// For others to recover his in value of current round.
+    map<string, bytes> encrypted_in_values = 9; // For others to recover his in value of current round.
     map<string, bytes> decrypted_previous_in_values = 10;
     sint64 produced_blocks = 11;
     map<string, aelf.Hash> miners_previous_in_values = 12;

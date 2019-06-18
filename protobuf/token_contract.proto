@@ -11,6 +11,7 @@ import "google/protobuf/wrappers.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
 
 service TokenContract {
+    
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
@@ -44,6 +45,7 @@ service TokenContract {
     }
     rpc SetFeePoolAddress (aelf.Hash) returns (google.protobuf.Empty) {
     }
+    
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
