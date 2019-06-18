@@ -35,7 +35,7 @@ namespace AElf.CrossChain.Communication.Grpc
         private readonly string _host;
         
         public string TargetUriString => Channel.Target;
-        public bool IsConnected { get; set; }
+        public bool IsConnected { get; private set; }
         public int RemoteChainId { get; }
 
 
@@ -66,27 +66,18 @@ namespace AElf.CrossChain.Communication.Grpc
         private static Channel CreateChannel(string uriStr)
         {
             return new Channel(uriStr, ChannelCredentials.Insecure);
-        }      
-
-        public Task<bool> ConnectAsync()
-        {
-            var reply = _basicGrpcClient.CrossChainHandShakeAsync(new HandShake
-            {
-                FromChainId = _localChainId,
-                ListeningPort = _localListeningPort,
-                Host = _host
-            }, CreateOption());
-            var res = reply != null && reply.Result;
-            
-            return Task.FromResult(res);
         }
 
+        public Task ConnectAsync()
+        {
+            return RequestAsync(HandshakeAsync());
+        }
         public async Task CloseAsync()
         {
             await Channel.ShutdownAsync();
         }
         
-        public async Task RequestCrossChainDataAsync(long targetHeight)
+        public Task RequestCrossChainDataAsync(long targetHeight)
         {
             var requestData = new CrossChainRequest
             {
@@ -94,7 +85,12 @@ namespace AElf.CrossChain.Communication.Grpc
                 NextHeight = targetHeight
             };
 
-            using (var serverStream = RequestIndexing(requestData))
+            return RequestAsync(RequestCrossChainDataAsync(requestData));
+        }
+
+        private async Task RequestCrossChainDataAsync(CrossChainRequest crossChainRequest)
+        {
+            using (var serverStream = RequestIndexing(crossChainRequest))
             {
                 while (await serverStream.ResponseStream.MoveNext())
                 {
@@ -105,10 +101,34 @@ namespace AElf.CrossChain.Communication.Grpc
                     {
                         break;
                     }
-
-                    BlockCacheEntityProducer.Logger.LogTrace(
-                        $"Received response from chain {ChainHelpers.ConvertChainIdToBase58(response.ChainId)} at height {response.Height}");
                 }
+            }
+        }
+        
+        private Task HandshakeAsync()
+        {
+            var reply = _basicGrpcClient.CrossChainHandShakeAsync(new HandShake
+            {
+                FromChainId = _localChainId,
+                ListeningPort = _localListeningPort,
+                Host = _host
+            }, CreateOption());
+            var res = reply != null && reply.Result;
+            IsConnected = res;
+            return Task.FromResult(res);
+        }
+
+        
+        private async Task RequestAsync(Task requestFunc)
+        {
+            try
+            {
+                await requestFunc;
+            }
+            catch (RpcException)
+            {
+                IsConnected = false;
+                throw;
             }
         }
 

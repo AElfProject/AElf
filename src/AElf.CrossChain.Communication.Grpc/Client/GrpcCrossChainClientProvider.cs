@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache.Application;
-using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
@@ -57,6 +56,7 @@ namespace AElf.CrossChain.Communication.Grpc
             
             var localChainId = crossChainClientDto.LocalChainId;
             client = CreateGrpcClient(uriStr, localChainId, chainId, isClientToParentChain);
+            _grpcCrossChainClients.TryAdd(chainId, client);
             _ = TryConnectAndUpdateClientAsync(client);
             Logger.LogTrace("Create client finished.");
         }
@@ -73,9 +73,9 @@ namespace AElf.CrossChain.Communication.Grpc
             if (crossChainClient.IsConnected)
                 return crossChainClient;
             // try connect first 
-            var connectionResult = await TryConnectAndUpdateClientAsync(crossChainClient);
-                
-            return connectionResult ? crossChainClient : null;
+            await TryConnectAndUpdateClientAsync(crossChainClient);
+            
+            return crossChainClient.IsConnected ? crossChainClient : null;
         }
         
         /// <summary>
@@ -108,57 +108,15 @@ namespace AElf.CrossChain.Communication.Grpc
 
         #region Request
         
-        private async Task<bool> TryConnectAndUpdateClientAsync(ICrossChainClient client)
+        private Task TryConnectAndUpdateClientAsync(ICrossChainClient client)
         {
             Logger.LogTrace($"Try handshake with chain {ChainHelpers.ConvertChainIdToBase58(client.RemoteChainId)}");
-            var connectionResult = await RequestAsync(client, c => c.ConnectAsync());
-            if (connectionResult)
-            {
-                Logger.LogTrace($"Connected to chain {ChainHelpers.ConvertChainIdToBase58(client.RemoteChainId)}");
-                UpdateClient(client);
-            }
+            var task = client.ConnectAsync();
             
             Logger.LogTrace("Connect finished.");
-            return connectionResult;
+            return task;
         }
-
-        public async Task<T> RequestAsync<T>(ICrossChainClient client, Func<ICrossChainClient, Task<T>> requestFunc)
-        {
-            try
-            {
-                return await requestFunc(client);
-            }
-            catch (RpcException e)
-            {
-                HandleRpcException(client, e);
-                return default(T);
-            }
-        }
-
-        public async Task RequestAsync(ICrossChainClient client, Func<ICrossChainClient, Task> requestFunc)
-        {
-            try
-            {
-                await requestFunc(client);
-            }
-            catch (RpcException e)
-            {
-                HandleRpcException(client, e);
-            }
-        }
-
-        private void HandleRpcException(ICrossChainClient client, RpcException e)
-        {
-            Logger.LogWarning($"Cross chain grpc request failed with exception {e.Message}");
-            client.IsConnected = false;
-        }
-
-        private void UpdateClient(ICrossChainClient client)
-        {
-            client.IsConnected = true;
-            _grpcCrossChainClients.TryAdd(client.RemoteChainId, client);
-        }
-
+        
         #endregion      
         
         public async Task CloseClientsAsync()
