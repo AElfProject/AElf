@@ -49,14 +49,22 @@ namespace AElf.Kernel.SmartContract.Application
                 var trace = await ExecuteOneAsync(0, groupChainContext, transaction,
                     transactionExecutingDto.BlockHeader.Time,
                     cancellationToken);
+                
                 // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
                 //Logger.LogTrace(transaction.MethodName);
                 //Logger.LogTrace(trace.StateSet.Writes.Values.Select(v => v.ToBase64().CalculateHash().ToHex()).JoinAsString("\n"));
+                
                 if (!trace.IsSuccessful())
                 {
                     if (throwException)
                     {
                         Logger.LogError(trace.StdErr);
+                    }
+
+                    // Do not package this transaction if any of his inline transactions canceled.
+                    if (IsTransactionCanceled(trace))
+                    {
+                        break;
                     }
 
                     trace.SurfaceUpError();
@@ -87,6 +95,12 @@ namespace AElf.Kernel.SmartContract.Application
             return returnSets;
         }
 
+        private bool IsTransactionCanceled(TransactionTrace trace)
+        {
+            return trace.ExecutionStatus == ExecutionStatus.Canceled ||
+                   trace.InlineTraces.ToList().Any(IsTransactionCanceled);
+        }
+
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, IChainContext chainContext,
             Transaction transaction, Timestamp currentBlockTime, CancellationToken cancellationToken)
         {
@@ -95,7 +109,8 @@ namespace AElf.Kernel.SmartContract.Application
                 return new TransactionTrace
                 {
                     TransactionId = transaction.GetHash(),
-                    ExecutionStatus = ExecutionStatus.Canceled
+                    ExecutionStatus = ExecutionStatus.Canceled,
+                    StdErr = "Execution cancelled"
                 };
             }
 
@@ -144,6 +159,8 @@ namespace AElf.Kernel.SmartContract.Application
                             if (!preTrace.IsSuccessful())
                             {
                                 trace.ExecutionStatus = ExecutionStatus.Prefailed;
+                                preTrace.SurfaceUpError();
+                                trace.StdErr += preTrace.StdErr;
                                 return trace;
                             }
 

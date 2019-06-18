@@ -6,5 +6,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public const int TotalTinySlots = TinyBlocksNumber;
         public const int LimitBlockExecutionTimeTotalWeight = 5;
         public const int LimitBlockExecutionTimeWeight = 3;
+        public const int TimeForNetwork = 100;
     }
 }
