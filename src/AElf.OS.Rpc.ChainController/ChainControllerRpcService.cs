@@ -297,9 +297,16 @@ namespace AElf.OS.Rpc.ChainController
         {
             var stateStorageKey = Hash.LoadHex(blockHash).ToStorageKey();
             var blockState = await BlockStateSets.GetAsync(stateStorageKey);
+            
             if (blockState == null)
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
-            return JObject.FromObject(JsonConvert.DeserializeObject(blockState.ToString()));
+            
+            return new JObject
+            {
+                ["BlockHash"] = blockState.BlockHash.ToHex(),
+                ["BlockHeight"] = blockState.BlockHeight,
+                ["Changes"] = (JObject) JsonConvert.DeserializeObject(blockState.Changes.ToString())
+            };
         }
 
         /*
