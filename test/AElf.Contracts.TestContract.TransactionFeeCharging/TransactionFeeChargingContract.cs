@@ -1,3 +1,4 @@
+using Acs1;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -20,6 +21,17 @@ namespace AElf.Contracts.TestContract.TransactionFeeCharging
                 TotalSupply = 1_000_000_000
             });
             return new Empty();
+        }
+
+        public override Empty SetMethodFee(SetMethodFeeInput input)
+        {
+            State.TransactionFees[input.Method] = new TokenAmount {SymbolToAmount = {input.SymbolToAmount}};
+            return new Empty();
+        }
+
+        public override TokenAmount GetMethodFee(MethodName input)
+        {
+            return State.TransactionFees[input.Name];
         }
 
         public override Empty SendForFun(Empty input)

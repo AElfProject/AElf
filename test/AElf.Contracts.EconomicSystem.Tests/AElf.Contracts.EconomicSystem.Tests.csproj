@@ -50,11 +50,31 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.TestContract.TransactionFeeCharging\AElf.TestContract.TransactionFeeCharging.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.TestContract.ProfitSharing\AElf.TestContract.ProfitSharing.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf/Proto/acs1.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf/Proto/acs4.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf/Proto/acs5.proto</Link>
+        </ContractBase>
+
         <ContractStub Include="..\..\protobuf\kernel.proto">
             <Link>Protobuf/Proto/kernel.proto</Link>
         </ContractStub>
@@ -76,9 +96,6 @@
         <ContractStub Include="..\..\protobuf\election_contract.proto">
             <Link>Protobuf/Proto/election_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs4.proto">
-            <Link>Protobuf/Proto/acs4.proto</Link>
-        </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf/Proto/aedpos_contract.proto</Link>
         </ContractStub>
@@ -88,5 +105,13 @@
         <ContractStub Include="..\..\protobuf\treasury_contract.proto">
             <Link>Protobuf/Proto/treasury_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\test_transaction_fee_charging_contract.proto">
+            <Link>Protobuf/Proto/test_transaction_fee_charging_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\test_profit_sharing_contract.proto">
+            <Link>Protobuf/Proto/test_profit_sharing_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
+
+    <Import Project="..\..\test\AllContracts.props" />
 </Project>

@@ -7,6 +7,8 @@ using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
+using AElf.Contracts.TestContract.ProfitSharing;
+using AElf.Contracts.TestContract.TransactionFeeCharging;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
@@ -74,6 +76,8 @@ namespace AElf.Contracts.EconomicSystem.Tests
         protected Address ConsensusContractAddress { get; set; }
         protected Address TokenConverterContractAddress { get; set; }
         protected Address TreasuryContractAddress { get; set; }
+        protected Address TransactionFeeChargingContractAddress { get; set; }
+        protected Address ProfitSharingContractAddress { get; set; }
 
         // Will use BootMinerKeyPair.
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
@@ -85,13 +89,20 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
 
+        internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
+            TransactionFeeChargingContractStub { get; set; }
+
+        internal ProfitSharingContractContainer.ProfitSharingContractStub ProfitSharingContractStub { get; set; }
+
         private byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("AEDPoS")).Value;
         private byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         private byte[] TokenConverterContractCode => Codes.Single(kv => kv.Key.Contains("TokenConverter")).Value;
         private byte[] ElectionContractCode => Codes.Single(kv => kv.Key.Contains("Election")).Value;
-        private byte[] ProfitContractCode => Codes.Single(kv => kv.Key.Contains("Profit")).Value;
+        private byte[] ProfitContractCode => Codes.First(kv => kv.Key.Contains("Profit")).Value;
         private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;
         private byte[] TreasuryContractCode => Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
+        private byte[] ProfitSharingContractCode => Codes.Single(kv => kv.Key.Contains("ProfitSharing")).Value;
+        private byte[] TransactionFeeChargingContractCode => Codes.Single(kv => kv.Key.Contains("TransactionFee")).Value;
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
         {
@@ -106,7 +117,8 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal TokenConverterContractContainer.TokenConverterContractStub GetTokenConverterContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress, keyPair);
+            return GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                keyPair);
         }
 
         internal VoteContractContainer.VoteContractStub GetVoteContractTester(ECKeyPair keyPair)
@@ -132,6 +144,20 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal TreasuryContractContainer.TreasuryContractStub GetTreasuryContractStub(ECKeyPair keyPair)
         {
             return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
+        }
+
+        internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
+            GetTransactionFeeChargingContractStub(ECKeyPair keyPair)
+        {
+            return GetTester<TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub>(
+                TransactionFeeChargingContractAddress, keyPair);
+        }
+
+        internal ProfitSharingContractContainer.ProfitSharingContractStub GetProfitSharingContractStub(
+            ECKeyPair keyPair)
+        {
+            return GetTester<ProfitSharingContractContainer.ProfitSharingContractStub>(ProfitSharingContractAddress,
+                keyPair);
         }
 
         protected void InitializeContracts()
@@ -199,7 +225,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 BootMinerKeyPair));
             TreasuryContractStub = GetTreasuryContractStub(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeTreasuryConverter);
-            
+
             // Deploy AElf Consensus Contract.
             ConsensusContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
@@ -208,6 +234,21 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 BootMinerKeyPair));
             AEDPoSContractStub = GetAEDPoSContractStub(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeAElfConsensus);
+
+            // Deploy Contracts for testing.
+            TransactionFeeChargingContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                TransactionFeeChargingContractCode,
+                Hash.FromString("AElf.ContractNames.TransactionFeeCharging"),
+                BootMinerKeyPair));
+            TransactionFeeChargingContractStub = GetTransactionFeeChargingContractStub(BootMinerKeyPair);
+
+            TransactionFeeChargingContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                ProfitSharingContractCode,
+                Hash.FromString("AElf.ContractNames.ProfitSharing"),
+                BootMinerKeyPair));
+            ProfitSharingContractStub = GetProfitSharingContractStub(BootMinerKeyPair);
 
             var profitIds = AsyncHelper.RunSync(() =>
                 ProfitContractStub.GetCreatedProfitItems.CallAsync(
