@@ -7,7 +7,7 @@ import "aelf/core.proto";
 import "kernel.proto";
 
 message Handshake {
-    HandshakeData hsk_data = 1;
+    HandshakeData handshake_data = 1;
     bytes signature = 2;
     bool success = 3;
     aelf.BlockHeader header = 4;
@@ -17,7 +17,7 @@ message HandshakeData {
     int32 chain_id = 1;
     int32 version = 2;
     int64 listening_port = 3;
-    bytes public_key = 4;
+    bytes pubkey = 4;
 }
 
 message PeerNewBlockAnnouncement {

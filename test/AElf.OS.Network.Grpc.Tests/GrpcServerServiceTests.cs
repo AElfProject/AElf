@@ -247,7 +247,7 @@ namespace AElf.OS.Network
             var nd = new HandshakeData
             {
                 ListeningPort = 1234,
-                PublicKey = ByteString.CopyFrom(keyPair.PublicKey),
+                Pubkey = ByteString.CopyFrom(keyPair.PublicKey),
                 Version = KernelConstants.ProtocolVersion,
                 ChainId = _blockchainService.GetChainId()
             };
@@ -256,7 +256,7 @@ namespace AElf.OS.Network
 
             var hsk = new Handshake
             {
-                HskData = nd,
+                HandshakeData = nd,
                 Signature = ByteString.CopyFrom(sig),
                 Header = new BlockHeader()
             };
@@ -281,7 +281,7 @@ namespace AElf.OS.Network
             // wrong sig
             {
                 var handshake = await _peerPool.GetHandshakeAsync();
-                handshake.HskData.PublicKey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey);
+                handshake.HandshakeData.Pubkey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey);
                 var metadata = new Metadata
                     {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
                 var context = TestServerCallContext.Create("mock", "127.0.0.1", TimestampHelper.GetUtcNow().AddHours(1).ToDateTime(), metadata, CancellationToken.None, 

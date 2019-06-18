@@ -106,20 +106,20 @@ namespace AElf.OS.Network.Grpc
 
             // todo refactor so that connect returns the handshake and we'll check here 
             // todo if not correct we kill the channel.
-            if (connectReply?.Handshake?.HskData == null || connectReply.Err != AuthError.None)
+            if (connectReply?.Handshake?.HandshakeData == null || connectReply.Err != AuthError.None)
             {
                 Logger.LogWarning($"Incorrect handshake for {ipAddress}, {connectReply?.Err}.");
                 await channel.ShutdownAsync();
                 return false;
             }
 
-            var pubKey = connectReply.Handshake.HskData.PublicKey.ToHex();
+            var pubKey = connectReply.Handshake.HandshakeData.Pubkey.ToHex();
             
             var connectionInfo = new GrpcPeerInfo
             {
                 PublicKey = pubKey,
                 PeerIpAddress = ipAddress,
-                ProtocolVersion = connectReply.Handshake.HskData.Version,
+                ProtocolVersion = connectReply.Handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = connectReply.Handshake.Header.Height,
                 IsInbound = false
@@ -211,7 +211,7 @@ namespace AElf.OS.Network.Grpc
             var nd = new HandshakeData
             {
                 ListeningPort = _networkOptions.ListeningPort,
-                PublicKey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
+                Pubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
                 Version = KernelConstants.ProtocolVersion,
                 ChainId = _blockchainService.GetChainId()
             };
@@ -220,7 +220,7 @@ namespace AElf.OS.Network.Grpc
 
             var hsk = new Handshake
             {
-                HskData = nd,
+                HandshakeData = nd,
                 Signature = ByteString.CopyFrom(sig),
                 Header = await _blockchainService.GetBestChainLastBlockHeaderAsync()
             };

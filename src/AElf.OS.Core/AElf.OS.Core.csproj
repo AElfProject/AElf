@@ -22,4 +22,7 @@
             <Link>Protobuf/Proto/network_types.proto</Link>
         </CommonMessage>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Protobuf\Generated" />
+    </ItemGroup>
 </Project>
