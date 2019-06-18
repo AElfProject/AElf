@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Miner.Application
 {
