@@ -86,7 +86,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return order;
         }
 
-        private List<MinerInRound> GetMinedMiners()
+        public List<MinerInRound> GetMinedMiners()
         {
             // For now only this implementation can support test cases.
             return RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound != 0).ToList();

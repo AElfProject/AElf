@@ -37,8 +37,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return GetConsensusBlockExtraData(input);
         }
 
-        
-
         public override TransactionList GenerateConsensusTransactions(BytesValue input)
         {
             var triggerInformation = new AElfConsensusTriggerInformation();
@@ -112,7 +110,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             input.MergeFrom(input1.Value);
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                Context.LogDebug(() => $"Round information of block header:\n{input.Round}");
                 var isContainPreviousInValue =
                     input.Behaviour != AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue;
                 if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
