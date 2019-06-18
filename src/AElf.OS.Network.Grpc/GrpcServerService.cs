@@ -58,7 +58,7 @@ namespace AElf.OS.Network.Grpc
             var peer = GrpcUrl.Parse(context.Peer);
             
             if (peer == null)
-                return new ConnectReply { Err = AuthError.InvalidPeer };
+                return new ConnectReply { Error = AuthError.InvalidPeer };
 
             if (NetworkOptions.MaxPeers != 0)
             {
@@ -66,7 +66,7 @@ namespace AElf.OS.Network.Grpc
                 if (peerCount >= NetworkOptions.MaxPeers)
                 {
                     Logger.LogWarning($"Cannot add peer, there's currently {peerCount} peers (max. {NetworkOptions.MaxPeers}).");
-                    return new ConnectReply { Err = AuthError.ConnectionRefused };
+                    return new ConnectReply { Error = AuthError.ConnectionRefused };
                 }
             }
 
@@ -75,7 +75,7 @@ namespace AElf.OS.Network.Grpc
             if (error != AuthError.None)
             {
                 Logger.LogWarning($"Handshake not valid: {error}");
-                return new ConnectReply {Err = error};
+                return new ConnectReply {Error = error};
             }
             
             var pubKey = handshake.HandshakeData.Pubkey.ToHex();
@@ -154,7 +154,7 @@ namespace AElf.OS.Network.Grpc
                 Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
             
             if (!validData)
-                return AuthError.WrongSig;
+                return AuthError.WrongSignature;
             
             // verify authentication
             var pubKey = handshake.HandshakeData.Pubkey.ToHex();

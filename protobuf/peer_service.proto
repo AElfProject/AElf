@@ -22,19 +22,18 @@ service PeerService {
 
 message ConnectReply {
     Handshake handshake = 1;
-    AuthError err = 2;
+    AuthError error = 2;
 }
 
 enum AuthError {
     NONE = 0;
     UNKNOWN_ERROR = 1;
-    WRONG_SIG = 2;
-    WRONG_AUTH = 3;
-    INVALID_HANDSHAKE = 4;
-    INVALID_PEER = 5;
-    CHAIN_MISMATCH = 6;
-    PROTOCOL_MISMATCH = 7;
-    CONNECTION_REFUSED = 8;
+    WRONG_SIGNATURE = 2;
+    INVALID_HANDSHAKE = 3;
+    INVALID_PEER = 4;
+    CHAIN_MISMATCH = 5;
+    PROTOCOL_MISMATCH = 6;
+    CONNECTION_REFUSED = 7;
 }
 
 // **** Blocks *****
