@@ -1,10 +1,12 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Types;
-using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Token;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -16,6 +18,13 @@ namespace AElf.Contracts.MultiToken
         private readonly Address _address = Address.Generate();
         private const string SymbolForTest = "ELFTEST";
         private const long Amount = 100;
+        private Address BasicFunctionContractAddress { get; set; }
+        private Address OtherBasicFunctionContractAddress { get; set; }
+        private BasicFunctionContractContainer.BasicFunctionContractStub BasicFunctionContractStub { get; set; }
+        private BasicFunctionContractContainer.BasicFunctionContractStub OtherBasicFunctionContractStub { get; set; }
+        private byte[] BasicFunctionContractCode => Codes.Single(kv => kv.Key.Contains("BasicFunction")).Value;
+        private Hash BasicFunctionContractName => Hash.FromString("AElf.TestContractNames.BasicFunction");
+        private Hash OtherBasicFunctionContractName => Hash.FromString("AElf.TestContractNames.OtherBasicFunction");
 
 
         public LockTest()
@@ -37,9 +46,21 @@ namespace AElf.Contracts.MultiToken
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = TokenContractCode;
                 TokenContractAddress = await DeploySystemSmartContract(category, code,
-                    TokenConverterSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+                    TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+                
+                BasicFunctionContractAddress = await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
+                    BasicFunctionContractName, DefaultSenderKeyPair);
+                BasicFunctionContractStub =
+                    GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(BasicFunctionContractAddress,
+                        DefaultSenderKeyPair);
+                
+                OtherBasicFunctionContractAddress = await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
+                    OtherBasicFunctionContractName, DefaultSenderKeyPair);
+                OtherBasicFunctionContractStub =
+                    GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(OtherBasicFunctionContractAddress,
+                        DefaultSenderKeyPair);
 
                 await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput()
                 {
@@ -49,7 +70,7 @@ namespace AElf.Contracts.MultiToken
                     TokenName = "elf token",
                     TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
                     Issuer = DefaultSender,
-                    LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
+                    LockWhiteSystemContractNameList = {BasicFunctionContractName,OtherBasicFunctionContractName}
                 });
                 await TokenContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
                 {
@@ -76,8 +97,8 @@ namespace AElf.Contracts.MultiToken
                     TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
                     LockWhiteList =
                     {
-                        User1Address,
-                        User2Address
+                        BasicFunctionContractAddress,
+                        OtherBasicFunctionContractAddress
                     }
                 });
                 await TokenContractStub.Issue.SendAsync(new IssueInput
@@ -88,6 +109,26 @@ namespace AElf.Contracts.MultiToken
                     Memo = "Issue"
                 });
             }
+        }
+
+        [Fact]
+        public async Task Create_Token_Use_Custom_Address()
+        {
+            var transactionResult = (await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = "TEST",
+                Decimals = 2,
+                IsBurnable = true,
+                Issuer = DefaultSender,
+                TokenName = "elf test token",
+                TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
+                LockWhiteList =
+                {
+                    User1Address
+                }
+            })).TransactionResult;
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Addresses in lock white list should be system contract addresses");
         }
 
         [Fact]
@@ -110,16 +151,13 @@ namespace AElf.Contracts.MultiToken
                 });
                 result.Balance.ShouldBe(Amount);
             }
-            
-            var use1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
 
             var lockId = Hash.Generate();
 
             // Lock.
-            var lockTokenResult = (await use1Stub.Lock.SendAsync(new LockInput
+            var lockTokenResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput
             {
-                From = _address,
-                To = User1Address,
+                Address = _address,
                 Amount = Amount,
                 Symbol = SymbolForTest,
                 LockId = lockId,
@@ -138,10 +176,9 @@ namespace AElf.Contracts.MultiToken
             }
 
             // Unlock.
-            var unlockResult = (await use1Stub.Unlock.SendAsync(new UnlockInput
+            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput
             {
-                From = _address,
-                To = User1Address,
+                Address = _address,
                 Amount = Amount,
                 Symbol = SymbolForTest,
                 LockId = lockId,
@@ -184,13 +221,12 @@ namespace AElf.Contracts.MultiToken
             // Try to lock.
             var lockId = Hash.Generate();
 
-            var use1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
+            var defaultSenderStub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
             // Lock.
-            var lockResult = (await use1Stub.Lock.SendAsync(new LockInput
+            var lockResult = (await defaultSenderStub.Lock.SendAsync(new LockInput
             {
-                From = _address,
-                To = Address.Generate(),
+                Address = _address,
                 Amount = Amount,
                 Symbol = SymbolForTest,
                 LockId = lockId,
@@ -224,12 +260,10 @@ namespace AElf.Contracts.MultiToken
 
             var lockId = Hash.Generate();
             
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
             // Lock.
-            var lockResult = (await user1Stub.Lock.SendAsync(new LockInput()
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
-                From = _address,
-                To = User1Address,
+                Address = _address,
                 Symbol = SymbolForTest,
                 Amount = Amount * 2,
                 LockId = lockId,
@@ -257,12 +291,10 @@ namespace AElf.Contracts.MultiToken
 
             var lockId = Hash.Generate();
 
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
             // Lock.
-            var lockResult = (await user1Stub.Lock.SendAsync(new LockInput()
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
-                From = _address,
-                To = User1Address,
+                Address = _address,
                 Symbol = SymbolForTest,
                 Amount = Amount,
                 LockId = lockId,
@@ -272,10 +304,9 @@ namespace AElf.Contracts.MultiToken
 
             // Unlock half of the amount at first.
             {
-                var unlockResult = (await user1Stub.Unlock.SendAsync(new UnlockInput()
+                var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
                 {
-                    From = _address,
-                    To = User1Address,
+                    Address = _address,
                     Amount = Amount / 2,
                     Symbol = SymbolForTest,
                     LockId = lockId,
@@ -287,10 +318,9 @@ namespace AElf.Contracts.MultiToken
 
             // Unlock another half of the amount.
             {
-                var unlockResult = (await user1Stub.Unlock.SendAsync(new UnlockInput()
+                var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
                 {
-                    From = _address,
-                    To = User1Address,
+                    Address = _address,
                     Amount = Amount / 2,
                     Symbol = SymbolForTest,
                     LockId = lockId,
@@ -302,10 +332,9 @@ namespace AElf.Contracts.MultiToken
 
             // Cannot keep on unlocking.
             {
-                var unlockResult = (await user1Stub.Unlock.SendAsync(new UnlockInput()
+                var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
                 {
-                    From = _address,
-                    To = User1Address,
+                    Address = _address,
                     Amount = 1,
                     Symbol = SymbolForTest,
                     LockId = lockId,
@@ -330,12 +359,10 @@ namespace AElf.Contracts.MultiToken
 
             var lockId = Hash.Generate();
 
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
             // Lock.
-            var lockResult = (await user1Stub.Lock.SendAsync(new LockInput()
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
-                From = _address,
-                To = User1Address,
+                Address = _address,
                 Symbol = SymbolForTest,
                 Amount = Amount,
                 LockId = lockId,
@@ -343,10 +370,9 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var unlockResult = (await user1Stub.Unlock.SendAsync(new UnlockInput()
+            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
             {
-                From = _address,
-                To = User1Address,
+                Address = _address,
                 Amount = Amount + 1,
                 Symbol = SymbolForTest,
                 LockId = lockId,
@@ -370,12 +396,10 @@ namespace AElf.Contracts.MultiToken
 
             var lockId = Hash.Generate();
 
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
             // Lock.
-            var lockResult = (await user1Stub.Lock.SendAsync(new LockInput()
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
-                From = _address,
-                To = User1Address,
+                Address = _address,
                 Symbol = SymbolForTest,
                 Amount = Amount,
                 LockId = lockId,
@@ -393,11 +417,9 @@ namespace AElf.Contracts.MultiToken
                 result.Balance.ShouldBe(0);
             }
 
-            var user2Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User2KeyPair);
-            var unlockResult = (await user2Stub.Unlock.SendAsync(new UnlockInput()
+            var unlockResult = (await OtherBasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
             {
-                From = _address,
-                To = User1Address,
+                Address = _address,
                 Amount = Amount,
                 Symbol = SymbolForTest,
                 LockId = lockId,
@@ -421,12 +443,10 @@ namespace AElf.Contracts.MultiToken
             
             var lockId = Hash.Generate();
 
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
             // Lock.
-            var lockResult = (await user1Stub.Lock.SendAsync(new LockInput()
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
-                From = _address,
-                To = User1Address,
+                Address = _address,
                 Symbol = SymbolForTest,
                 Amount = Amount,
                 LockId = lockId,
@@ -434,10 +454,9 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var unlockResult = (await user1Stub.Unlock.SendAsync(new UnlockInput()
+            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
             {
-                From = _address,
-                To = User1Address,
+                Address = _address,
                 Amount = Amount,
                 Symbol = SymbolForTest,
                 LockId = Hash.Generate(),
@@ -447,5 +466,43 @@ namespace AElf.Contracts.MultiToken
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
             unlockResult.Error.ShouldContain("Insufficient balance");
         }
+        
+                [Fact]
+        public async Task Unlock_Token_To_Other_Address()
+        {
+            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
+            {
+                Symbol = SymbolForTest,
+                Amount = Amount,
+                To = _address
+            })).TransactionResult;
+            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var lockId = Hash.Generate();
+
+            // Lock.
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
+            {
+                Address = _address,
+                Symbol = SymbolForTest,
+                Amount = Amount,
+                LockId = lockId,
+                Usage = "Testing"
+            })).TransactionResult;
+            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
+            {
+                Address = User2Address,
+                Amount = Amount,
+                Symbol = SymbolForTest,
+                LockId = lockId,
+                Usage = "Testing."
+            })).TransactionResult;
+
+            unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            unlockResult.Error.ShouldContain("Insufficient balance");
+        }
+
     }
 }

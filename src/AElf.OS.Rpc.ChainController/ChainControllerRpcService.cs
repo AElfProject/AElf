@@ -53,7 +53,7 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetChainInformation")]
         public Task<JObject> GetChainInformation()
         {
-            var map = SmartContractAddressService.GetSystemContractNameToAddressMapping();
+            //var map = SmartContractAddressService.GetSystemContractNameToAddressMapping();
             var basicContractZero = SmartContractAddressService.GetZeroSmartContractAddress();
             var response = new JObject
             {

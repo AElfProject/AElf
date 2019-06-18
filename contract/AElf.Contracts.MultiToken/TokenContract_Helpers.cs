@@ -40,10 +40,9 @@ namespace AElf.Contracts.MultiToken
             });
         }
 
-        private void AssertLockAddress(string symbol, Address address)
+        private void AssertLockAddress(string symbol)
         {
             var symbolState = State.LockWhiteLists[symbol];
-            Assert(symbolState != null && symbolState[address], "Not in white list.");
             Assert(symbolState != null && symbolState[Context.Sender], "Not in white list.");
         }
 

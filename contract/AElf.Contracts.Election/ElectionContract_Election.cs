@@ -127,8 +127,7 @@ namespace AElf.Contracts.Election
 
             State.TokenContract.Lock.Send(new LockInput
             {
-                From = Context.Sender,
-                To = Context.Self,
+                Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConstants.LockTokenForElection,
                 LockId = Context.TransactionId,
@@ -167,8 +166,7 @@ namespace AElf.Contracts.Election
             State.Candidates.Value.Value.Remove(publicKeyByteString);
             State.TokenContract.Unlock.Send(new UnlockInput
             {
-                From = Context.Sender,
-                To = Context.Self,
+                Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 LockId = candidateInformation.AnnouncementTransactionId,
                 Amount = ElectionContractConstants.LockTokenForElection,
@@ -266,11 +264,10 @@ namespace AElf.Contracts.Election
 
             State.TokenContract.Lock.Send(new LockInput
             {
-                From = Context.Sender,
+                Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 LockId = Context.TransactionId,
                 Amount = input.Amount,
-                To = Context.Self,
                 Usage = "Voting for Main Chain Miner Election."
             });
 
@@ -320,11 +317,10 @@ namespace AElf.Contracts.Election
 
             State.TokenContract.Unlock.Send(new UnlockInput
             {
-                From = Context.Sender,
+                Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = votingRecord.Amount,
                 LockId = input,
-                To = Context.Self,
                 Usage = "Withdraw votes for Main Chain Miner Election."
             });
 

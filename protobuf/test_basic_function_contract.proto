@@ -16,6 +16,10 @@ service BasicFunctionContract {
     }
     rpc UserPlayBet(BetInput) returns (google.protobuf.Empty) {
     }
+    rpc LockToken(LockTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc UnlockToken(UnlockTokenInput) returns (google.protobuf.Empty) {
+    }
 
     //View
     rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
@@ -44,6 +48,22 @@ message BetLimitInput {
 
 message BetInput {
     int64 Int64Value = 1;
+}
+
+message LockTokenInput{
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lockId = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
+}
+
+message UnlockTokenInput {
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lockId = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
 }
 //Output
 
