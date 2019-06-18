@@ -68,7 +68,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public async Task DecryptMessageTest()
         {
-            var previousTriggers = await GenerateEncryptedMessages();
+            var previousTriggers = await GenerateEncryptedMessagesAsync();
 
             await BootMinerChangeRoundAsync();
 
@@ -115,7 +115,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// Generate encrypted messages and put them to round information.
         /// </summary>
         /// <returns></returns>
-        private async Task<Dictionary<string, AElfConsensusTriggerInformation>> GenerateEncryptedMessages()
+        private async Task<Dictionary<string, AElfConsensusTriggerInformation>> GenerateEncryptedMessagesAsync()
         {
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
