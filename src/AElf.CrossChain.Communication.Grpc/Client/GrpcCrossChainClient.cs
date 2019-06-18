@@ -70,7 +70,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         public Task ConnectAsync()
         {
-            return RequestAsync(HandshakeAsync());
+            return RequestAsync(HandshakeAsync);
         }
         
         public async Task CloseAsync()
@@ -86,7 +86,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 NextHeight = targetHeight
             };
 
-            return RequestAsync(RequestCrossChainDataAsync(requestData));
+            return RequestAsync(() => RequestCrossChainDataAsync(requestData));
         }
 
         private async Task RequestCrossChainDataAsync(CrossChainRequest crossChainRequest)
@@ -120,11 +120,11 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         
-        private async Task RequestAsync(Task requestFunc)
+        private async Task RequestAsync(Func<Task> requestFunc)
         {
             try
             {
-                await requestFunc;
+                await requestFunc();
             }
             catch (RpcException)
             {
