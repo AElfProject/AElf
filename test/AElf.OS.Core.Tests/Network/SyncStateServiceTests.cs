@@ -91,10 +91,6 @@ namespace AElf.OS.Network
         {
             Mock<IPeer> peerMock = new Mock<IPeer>();
             peerMock.Setup(p => p.LastKnowLibHeight).Returns(libHeight);
-            
-//            var connectionInfo = new GrpcPeerInfo { LibHeightAtHandshake = libHeight };
-//            var channel = new Channel("127.0.0.1:5000", ChannelCredentials.Insecure);
-//            var client = new PeerService.PeerServiceClient(channel);
             return peerMock.Object;
         }
     }
