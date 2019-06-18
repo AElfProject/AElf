@@ -206,9 +206,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
             // For now we just extract the miner list from main chain consensus information, then update miners list.
-            if (input == null || input.Bytes.IsEmpty)
+            if (input == null || input.Value.IsEmpty)
                 return new Empty();
-            var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Bytes);
+            var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value);
 
             // check round number of shared consensus, not term number
             if (consensusInformation.Round.RoundNumber <= State.MainChainRoundNumber.Value)
