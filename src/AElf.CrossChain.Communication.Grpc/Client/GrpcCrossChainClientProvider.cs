@@ -16,9 +16,6 @@ namespace AElf.CrossChain.Communication.Grpc
         private readonly ConcurrentDictionary<int, ICrossChainClient> _grpcCrossChainClients =
             new ConcurrentDictionary<int, ICrossChainClient>();
         
-        private readonly ConcurrentDictionary<int, ICrossChainClient> _connectionFailedClients =
-            new ConcurrentDictionary<int, ICrossChainClient>();
-        
         private readonly IBlockCacheEntityProducer _blockCacheEntityProducer;
 
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
@@ -61,6 +58,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var localChainId = crossChainClientDto.LocalChainId;
             client = CreateGrpcClient(uriStr, localChainId, chainId, isClientToParentChain);
             _ = TryConnectAndUpdateClientAsync(client);
+            Logger.LogTrace("Create client finished.");
         }
 
         /// <summary>
@@ -70,22 +68,18 @@ namespace AElf.CrossChain.Communication.Grpc
         /// <returns></returns>
         public async Task<ICrossChainClient> GetClientAsync(int chainId)
         {
-            if (_grpcCrossChainClients.TryGetValue(chainId, out var crossChainClient))
+            if (!_grpcCrossChainClients.TryGetValue(chainId, out var crossChainClient)) 
+                return null;
+            if (crossChainClient.IsConnected)
                 return crossChainClient;
-
-            if (_connectionFailedClients.TryGetValue(chainId, out crossChainClient))
-            {
-                // try connect first 
-                var connectionResult = await TryConnectAndUpdateClientAsync(crossChainClient);
+            // try connect first 
+            var connectionResult = await TryConnectAndUpdateClientAsync(crossChainClient);
                 
-                return connectionResult ? crossChainClient : null;
-            }
-            
-            return null;
+            return connectionResult ? crossChainClient : null;
         }
         
         /// <summary>
-        /// Create a new client to parent chain 
+        /// Create a new client to another chain.
         /// </summary>
         /// <returns>
         /// </returns>
@@ -107,19 +101,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         private bool TryGetCachedClient(int chainId, out ICrossChainClient client)
         {
-            return _grpcCrossChainClients.TryGetValue(chainId, out client) ||
-                   _connectionFailedClients.TryGetValue(chainId, out client);
-        }
-
-        /// <summary>
-        /// Mark a client if its connection failed.
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <returns></returns>
-        private void MarkConnectionFailedClient(int chainId)
-        {
-            if (_grpcCrossChainClients.TryRemove(chainId, out var client))
-                _connectionFailedClients.AddOrUpdate(chainId, client, (id, c) => client);
+            return _grpcCrossChainClients.TryGetValue(chainId, out client);
         }
         
         #endregion Create client
@@ -129,7 +111,6 @@ namespace AElf.CrossChain.Communication.Grpc
         private async Task<bool> TryConnectAndUpdateClientAsync(ICrossChainClient client)
         {
             Logger.LogTrace($"Try handshake with chain {ChainHelpers.ConvertChainIdToBase58(client.RemoteChainId)}");
-            _connectionFailedClients.TryAdd(client.RemoteChainId, client);
             var connectionResult = await RequestAsync(client, c => c.ConnectAsync());
             if (connectionResult)
             {
@@ -137,6 +118,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 UpdateClient(client);
             }
             
+            Logger.LogTrace("Connect finished.");
             return connectionResult;
         }
 
@@ -168,12 +150,12 @@ namespace AElf.CrossChain.Communication.Grpc
         private void HandleRpcException(ICrossChainClient client, RpcException e)
         {
             Logger.LogWarning($"Cross chain grpc request failed with exception {e.Message}");
-            MarkConnectionFailedClient(client.RemoteChainId); 
+            client.IsConnected = false;
         }
 
         private void UpdateClient(ICrossChainClient client)
         {
-            _connectionFailedClients.TryRemove(client.RemoteChainId, out _);
+            client.IsConnected = true;
             _grpcCrossChainClients.TryAdd(client.RemoteChainId, client);
         }
 

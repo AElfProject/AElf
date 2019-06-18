@@ -35,6 +35,7 @@ namespace AElf.CrossChain.Communication.Grpc
         private readonly string _host;
         
         public string TargetUriString => Channel.Target;
+        public bool IsConnected { get; set; }
         public int RemoteChainId { get; }
 
 
