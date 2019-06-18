@@ -46,7 +46,7 @@ namespace AElf.Contracts.Profit
                 Creator = Context.Sender,
                 ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
                 CurrentPeriod = 1,
-                IsReleaseAllBalanceEverytimeByDefault = input.IsReleaseAllBalanceEverytimeByDefault
+                IsReleaseAllBalanceEverytimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault
             };
 
             var createdProfitItems = State.CreatedProfitItemsMap[Context.Sender];
@@ -604,6 +604,11 @@ namespace AElf.Contracts.Profit
             State.ProfitDetailsMap[input.ProfitId][Context.Sender] = profitDetails;
 
             return new Empty();
+        }
+
+        public override Hash GetTreasuryProfitId(Empty input)
+        {
+            return State.TreasuryProfitId.Value;
         }
     }
 }

@@ -188,27 +188,6 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
-        public override StringValue GetExchangeRate(GetExchangeRateInput input)
-        {
-            Assert(IsValidSymbol(input.FromSymbol), "Invalid from symbol.");
-            Assert(IsValidSymbol(input.ToSymbol), "Invalid to symbol.");
-            var fromConnector = State.Connectors[input.FromSymbol];
-            Assert(fromConnector != null, "Can't find connector.");
-            var fromTokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
-            {
-                Symbol = input.FromSymbol
-            });
-            var toConnector = State.Connectors[State.BaseTokenSymbol.Value];
-            return new StringValue
-            {
-                Value = BancorHelpers.GetReturnFromPaid(
-                    GetSelfBalance(fromConnector), GetWeight(fromConnector),
-                    GetSelfBalance(toConnector), GetWeight(toConnector),
-                    (long) Math.Pow(10, fromTokenInfo.Decimals)
-                ).ToString()
-            };
-        }
-
         public override Empty Sell(SellInput input)
         {
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");

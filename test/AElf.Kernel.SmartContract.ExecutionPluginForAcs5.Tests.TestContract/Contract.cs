@@ -17,7 +17,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
             State.ProfitContract.CreateTreasuryProfitItem.Send(new Contracts.Profit.CreateProfitItemInput
             {
-                IsReleaseAllBalanceEverytimeByDefault = true
+                IsReleaseAllBalanceEveryTimeByDefault = true
             });
 
             return new Empty();

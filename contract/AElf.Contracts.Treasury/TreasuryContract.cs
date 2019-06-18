@@ -25,7 +25,7 @@ namespace AElf.Contracts.Treasury
             {
                 State.ProfitContract.CreateProfitItem.Send(new CreateProfitItemInput
                 {
-                    IsReleaseAllBalanceEverytimeByDefault = true
+                    IsReleaseAllBalanceEveryTimeByDefault = true
                 });
             }
 

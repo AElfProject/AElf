@@ -14,7 +14,7 @@ service ProfitSharingContract {
     
     rpc InitializeProfitSharingContract (InitializeProfitSharingContractInput) returns (google.protobuf.Empty) {
     }
-    rpc IAmRich (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc SendForFun (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
 }
 

@@ -58,11 +58,14 @@ service ProfitContract {
     rpc GetProfitAmount (ProfitInput) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
+    rpc GetTreasuryProfitId (google.protobuf.Empty) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message CreateProfitItemInput {
     sint64 profit_receiving_due_period_count = 1;
-    bool is_release_all_balance_everytime_by_default = 2;
+    bool is_release_all_balance_every_time_by_default = 2;
 }
 
 message ProfitItem {

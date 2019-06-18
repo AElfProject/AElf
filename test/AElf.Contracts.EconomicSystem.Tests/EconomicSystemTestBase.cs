@@ -106,7 +106,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal TokenConverterContractContainer.TokenConverterContractStub GetTokenConverterContractTester(
             ECKeyPair keyPair)
         {
-            return GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenContractAddress, keyPair);
+            return GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress, keyPair);
         }
 
         internal VoteContractContainer.VoteContractStub GetVoteContractTester(ECKeyPair keyPair)
@@ -131,7 +131,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
 
         internal TreasuryContractContainer.TreasuryContractStub GetTreasuryContractStub(ECKeyPair keyPair)
         {
-            return GetTester<TreasuryContractContainer.TreasuryContractStub>(ConsensusContractAddress, keyPair);
+            return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
         }
 
         protected void InitializeContracts()
@@ -191,15 +191,6 @@ namespace AElf.Contracts.EconomicSystem.Tests
             TokenConverterContractStub = GetTokenConverterContractTester(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeTokenConverter);
 
-            // Deploy AElf Consensus Contract.
-            ConsensusContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-                KernelConstants.CodeCoverageRunnerCategory,
-                ConsensusContractCode,
-                ConsensusSmartContractAddressNameProvider.Name,
-                BootMinerKeyPair));
-            AEDPoSContractStub = GetAEDPoSContractStub(BootMinerKeyPair);
-            AsyncHelper.RunSync(InitializeAElfConsensus);
-
             // Deploy Treasury Contract.
             TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
@@ -208,6 +199,15 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 BootMinerKeyPair));
             TreasuryContractStub = GetTreasuryContractStub(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeTreasuryConverter);
+            
+            // Deploy AElf Consensus Contract.
+            ConsensusContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                ConsensusContractCode,
+                ConsensusSmartContractAddressNameProvider.Name,
+                BootMinerKeyPair));
+            AEDPoSContractStub = GetAEDPoSContractStub(BootMinerKeyPair);
+            AsyncHelper.RunSync(InitializeAElfConsensus);
 
             var profitIds = AsyncHelper.RunSync(() =>
                 ProfitContractStub.GetCreatedProfitItems.CallAsync(
@@ -302,7 +302,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 {
                     Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                     Amount = EconomicSystemTestConstants.TotalSupply / 5,
-                    ToSystemContractName = ConsensusSmartContractAddressNameProvider.Name,
+                    ToSystemContractName = ProfitSmartContractAddressNameProvider.Name,
                     Memo = "Prepare mining rewards.",
                 });
                 CheckResult(result.TransactionResult);
@@ -370,15 +370,24 @@ namespace AElf.Contracts.EconomicSystem.Tests
             var result = await TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
             {
                 BaseTokenSymbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                FeeRate = "0.01"
             });
             CheckResult(result.TransactionResult);
         }
 
         private async Task InitializeTreasuryConverter()
         {
-            var result =
-                await TreasuryContractStub.InitialTreasuryContract.SendAsync(new InitialTreasuryContractInput());
-            CheckResult(result.TransactionResult);
+            {
+                var result =
+                    await TreasuryContractStub.InitialTreasuryContract.SendAsync(new InitialTreasuryContractInput());
+                CheckResult(result.TransactionResult);
+            }
+            {
+                var result =
+                    await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(
+                        new InitialMiningRewardProfitItemInput());
+                CheckResult(result.TransactionResult);
+            }
         }
 
         private async Task InitializeProfit()

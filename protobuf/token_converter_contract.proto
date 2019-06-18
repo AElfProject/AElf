@@ -43,9 +43,6 @@ service TokenConverterContract {
     rpc GetBaseTokenSymbol (google.protobuf.Empty) returns (TokenSymbol) {
         option (aelf.is_view) = true;
     }
-    rpc GetExchangeRate (GetExchangeRateInput) returns (google.protobuf.StringValue) {
-        option (aelf.is_view) = true;
-    }
 }
 
 message Connector {

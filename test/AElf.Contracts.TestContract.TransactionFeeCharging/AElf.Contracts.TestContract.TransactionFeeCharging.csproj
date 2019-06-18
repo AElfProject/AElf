@@ -2,9 +2,9 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <PackageId>AElf.Contracts.TestContract.ProfitSharing</PackageId>
+        <PackageId>AElf.Contracts.TestContract.TransactionFeeCharging</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <RootNamespace>AElf.Contracts.TestContract.ProfitSharing</RootNamespace>
+        <RootNamespace>AElf.Contracts.TestContract.TransactionFeeCharging</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,21 +12,18 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractBase Include="..\..\protobuf\acs5.proto">
-            <Link>Protobuf\Proto\reference\acs5.proto</Link>
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\reference\acs1.proto</Link>
         </ContractBase>
     </ItemGroup>
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
-        <ContractReference Include="..\..\protobuf\profit_contract.proto">
-            <Link>Protobuf\Proto\reference\profit_contract.proto</Link>
-        </ContractReference>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\test_profit_sharing_contract.proto">
-            <Link>Protobuf\Proto\test_basic_update_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\test_transaction_fee_charging_contract.proto">
+            <Link>Protobuf\Proto\test_transaction_fee_charging_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 
