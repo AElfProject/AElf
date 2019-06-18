@@ -7,13 +7,10 @@ namespace AElf.OS.Network.Events
         public PeerNewBlockAnnouncement Announce { get; }
         public string SenderPubKey { get; }
         
-        public DateTime CreateTime { get; set; }
-        
         public AnnouncementReceivedEvent(PeerNewBlockAnnouncement an, string senderPubKey)
         {
             SenderPubKey = senderPubKey;
             Announce = an;
-            CreateTime = DateTime.Now;
         }
     }
 }

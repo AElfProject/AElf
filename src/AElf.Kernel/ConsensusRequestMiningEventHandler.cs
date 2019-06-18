@@ -37,7 +37,6 @@ namespace AElf.Kernel
 
         public async Task HandleEventAsync(ConsensusRequestMiningEvent eventData)
         {
-            Logger.LogTrace($"## ConsensusRequestMiningEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             try
             {
                 _taskQueueManager.Enqueue(async () =>

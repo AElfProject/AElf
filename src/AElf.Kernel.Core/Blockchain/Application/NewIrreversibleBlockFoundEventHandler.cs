@@ -28,7 +28,6 @@ namespace AElf.Kernel.Blockchain.Application
         
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            Logger.LogTrace($"## NewIrreversibleBlockFoundEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             var blockHash = eventData.BlockHash;
             while (true)
             {

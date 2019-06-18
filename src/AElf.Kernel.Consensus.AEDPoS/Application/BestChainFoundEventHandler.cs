@@ -32,7 +32,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public async Task HandleEventAsync(BestChainFoundEvent eventData)
         {
-            Logger.LogTrace($"## TransactionResourcesNeededEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             Logger.LogDebug($"Handle best chain found for lib: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
             
             var chain = await _blockchainService.GetChainAsync();

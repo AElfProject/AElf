@@ -9,7 +9,5 @@ namespace AElf.Kernel.Blockchain.Events
         public long PreviousIrreversibleBlockHeight { get; set; }
         public Hash BlockHash { get; set; }
         public long BlockHeight { get; set; }
-        
-        public DateTime CreateTime { get; set; }
     }
 }

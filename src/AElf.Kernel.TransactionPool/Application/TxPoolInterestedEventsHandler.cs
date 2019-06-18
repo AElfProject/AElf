@@ -28,31 +28,26 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public async Task HandleEventAsync(TransactionsReceivedEvent eventData)
         {
-            Logger.LogTrace($"## TransactionsReceivedEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             await _txHub.HandleTransactionsReceivedAsync(eventData);
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
         {
-            Logger.LogTrace($"## BlockAcceptedEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             await _txHub.HandleBlockAcceptedAsync(eventData);
         }
 
         public async Task HandleEventAsync(BestChainFoundEvent eventData)
         {
-            Logger.LogTrace($"## BestChainFoundEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             await _txHub.HandleBestChainFoundAsync(eventData);
         }
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            Logger.LogTrace($"## NewIrreversibleBlockFoundEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             await _txHub.HandleNewIrreversibleBlockFoundAsync(eventData);
         }
 
         public async Task HandleEventAsync(UnexecutableTransactionsFoundEvent eventData)
         {
-            Logger.LogTrace($"## UnexecutableTransactionsFoundEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             await _txHub.HandleUnexecutableTransactionsFoundAsync(eventData);
         }
     }

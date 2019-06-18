@@ -15,7 +15,6 @@ namespace AElf.OS.Handlers
 
             public Task HandleEventAsync(BlockAcceptedEvent eventData)
             {
-                Console.WriteLine($"## BlockAcceptedEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)}");
                 NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
                 return Task.CompletedTask;
             }

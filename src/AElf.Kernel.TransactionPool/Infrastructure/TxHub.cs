@@ -196,7 +196,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
             {
                 TransactionIds = transactionIds,
-                CreateTime = DateTime.Now
             });
         }
 
@@ -206,7 +205,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
         {
-            Logger.LogTrace($"## TransactionsReceivedEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             var executableTransactions = new List<Transaction>();
             foreach (var transaction in eventData.Transactions)
             {
@@ -261,27 +259,23 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
                     {
                         Transaction = transaction,
-                        CreateTime = DateTime.Now
                     });
                 }
             }
             await LocalEventBus.PublishAsync(new TransactionResourcesNeededEvent()
             {
                 Transactions = executableTransactions,
-                CreateTime = DateTime.Now
             });
         }
 
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
-            Logger.LogTrace($"## BlockAcceptedEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
             CleanTransactions(block.Body.Transactions.ToList());
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEvent eventData)
         {
-            Logger.LogTrace($"## BestChainFoundEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             Logger.LogDebug($"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
             
             var heights = _allTransactions.Select(kv => kv.Value.Transaction.RefBlockNumber).Distinct();
@@ -302,7 +296,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            Logger.LogTrace($"## NewIrreversibleBlockFoundEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             CleanTransactions(_expiredByExpiryBlock, eventData.BlockHeight);
             CleanTransactions(_invalidatedByBlock, eventData.BlockHeight);
 
@@ -311,7 +304,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
         {
-            Logger.LogTrace($"## UnexecutableTransactionsFoundEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             CleanTransactions(eventData.Transactions);
 
             await Task.CompletedTask;

@@ -8,6 +8,5 @@ namespace AElf.CrossChain.Communication.Grpc
         public int RemoteServerPort { get; set; }
         public int RemoteChainId { get; set; }
         
-        public DateTime CreateTime { get; set; }
     }
 }

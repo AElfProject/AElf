@@ -285,7 +285,6 @@ namespace AElf.Kernel.Blockchain.Application
                 PreviousIrreversibleBlockHeight = chain.LastIrreversibleBlockHeight,
                 BlockHash = irreversibleBlockHash,
                 BlockHeight = irreversibleBlockHeight,
-                CreateTime = DateTime.Now
             };
 
             // TODO: move to background job, it will slow down our system

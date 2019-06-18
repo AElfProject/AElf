@@ -90,7 +90,6 @@ namespace AElf.Kernel.Consensus.Application
                 await LocalEventBus.PublishAsync(new ConsensusValidationFailedEvent
                 {
                     ValidationResultMessage = validationResult.Message,
-                    CreateTime = DateTime.Now
                 });
             }
 
@@ -114,7 +113,6 @@ namespace AElf.Kernel.Consensus.Application
                 await LocalEventBus.PublishAsync(new ConsensusValidationFailedEvent
                 {
                     ValidationResultMessage = validationResult.Message,
-                    CreateTime = DateTime.Now
                 });
             }
 

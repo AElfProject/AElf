@@ -23,7 +23,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public async Task HandleEventAsync(ConsensusValidationFailedEvent eventData)
         {
-            Logger.LogTrace($"## ConsensusValidationFailedEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             var chain = await _blockchainService.GetChainAsync();
             if (eventData.ValidationResultMessage == "Time slot already passed before execution.")
             {

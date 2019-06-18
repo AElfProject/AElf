@@ -8,7 +8,5 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
     {
         public int ChainId { get; set; }
         public Transaction Transaction { get; set; }
-        
-        public DateTime CreateTime { get; set; }
     }
 }

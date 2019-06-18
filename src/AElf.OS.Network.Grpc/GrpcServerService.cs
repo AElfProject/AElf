@@ -184,7 +184,6 @@ namespace AElf.OS.Network.Grpc
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent
             {
                 Transactions = new List<Transaction> {tx},
-                CreateTime = DateTime.Now
                 
             });
 

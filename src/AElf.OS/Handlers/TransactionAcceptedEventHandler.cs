@@ -18,7 +18,6 @@ namespace AElf.OS.Handlers
         public async Task HandleEventAsync(TransactionAcceptedEvent eventData)
         {
             // No need to wait for the result
-            Console.WriteLine($"## TransactionAcceptedEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             _ = NetworkService.BroadcastTransactionAsync(eventData.Transaction);
         }
     }

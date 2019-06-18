@@ -10,12 +10,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             BlockHeader = header;
             Transactions = transactions;
-            CreateTime = DateTime.Now;
         }
 
         public BlockHeader BlockHeader { get; }
         public List<Hash> Transactions { get; }
-        
-        public DateTime CreateTime { get; set; }
     }
 }

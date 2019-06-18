@@ -23,13 +23,11 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public async Task HandleEventAsync(TransactionResourcesNeededEvent eventData)
         {
-            Logger.LogTrace($"## TransactionResourcesNeededEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             await _resourceExtractionService.HandleTransactionResourcesNeededAsync(eventData);
         }
         
         public async Task HandleEventAsync(TransactionResourcesNoLongerNeededEvent eventData)
         {
-            Logger.LogTrace($"## TransactionResourcesNoLongerNeededEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             await _resourceExtractionService.HandleTransactionResourcesNoLongerNeededAsync(eventData);
         }
     }

@@ -38,7 +38,6 @@ namespace AElf.OS.Handlers
 
         public Task HandleEventAsync(AnnouncementReceivedEvent eventData)
         {
-            Logger.LogTrace($"## AnnouncementReceivedEvent: {ChainHelpers.GetEventReceivedTimeSpan(eventData.CreateTime)} ms");
             ProcessNewBlockAsync(eventData, eventData.SenderPubKey);
             return Task.CompletedTask;
         }
