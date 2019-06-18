@@ -34,6 +34,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override BytesValue GetInformationToUpdateConsensus(BytesValue input)
         {
+            Context.LogDebug(() => "Entered GetInformationToUpdateConsensus");
             var triggerInformation = new AElfConsensusTriggerInformation();
             triggerInformation.MergeFrom(input.Value);
 
@@ -71,6 +72,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override TransactionList GenerateConsensusTransactions(BytesValue input)
         {
+            Context.LogDebug(() => "Entered GenerateConsensusTransactions");
+
             var triggerInformation = new AElfConsensusTriggerInformation();
             triggerInformation.MergeFrom(input.Value);
             // Some basic checks.
