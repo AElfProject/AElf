@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -49,11 +50,11 @@ namespace AElf.Kernel.SmartContract.Application
                 var trace = await ExecuteOneAsync(0, groupChainContext, transaction,
                     transactionExecutingDto.BlockHeader.Time,
                     cancellationToken);
-                
+
                 // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
                 //Logger.LogTrace(transaction.MethodName);
                 //Logger.LogTrace(trace.StateSet.Writes.Values.Select(v => v.ToBase64().CalculateHash().ToHex()).JoinAsString("\n"));
-                
+
                 if (!trace.IsSuccessful())
                 {
                     if (throwException)
@@ -147,26 +148,10 @@ namespace AElf.Kernel.SmartContract.Application
 
                 if (depth == 0)
                 {
-                    foreach (var plugin in _plugins)
+                    if (!await ExecutePluginOnPreTransactionStageAsync(executive, txCtxt, currentBlockTime,
+                        internalChainContext, internalStateCache, cancellationToken))
                     {
-                        var transactions = await plugin.GetPreTransactionsAsync(executive.Descriptors, txCtxt);
-                        foreach (var preTx in transactions)
-                        {
-                            var preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
-                                cancellationToken);
-                            trace.PreTransactions.Add(preTx);
-                            trace.PreTraces.Add(preTrace);
-                            if (!preTrace.IsSuccessful())
-                            {
-                                trace.ExecutionStatus = ExecutionStatus.Prefailed;
-                                preTrace.SurfaceUpError();
-                                trace.StdErr += preTrace.StdErr;
-                                return trace;
-                            }
-
-                            internalStateCache.Update(preTrace.GetFlattenedWrite()
-                                .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
-                        }
+                        return trace;
                     }
                 }
 
@@ -174,25 +159,8 @@ namespace AElf.Kernel.SmartContract.Application
 
                 await executive.ApplyAsync(txCtxt);
 
-                if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)
-                {
-                    internalStateCache.Update(txCtxt.Trace.GetFlattenedWrite()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
-                    foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
-                    {
-                        var inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
-                            currentBlockTime, cancellationToken);
-                        trace.InlineTraces.Add(inlineTrace);
-                        if (!inlineTrace.IsSuccessful())
-                        {
-                            // Fail already, no need to execute remaining inline transactions
-                            break;
-                        }
-
-                        internalStateCache.Update(inlineTrace.GetFlattenedWrite()
-                            .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
-                    }
-                }
+                await ExecuteInlineTransactions(depth, currentBlockTime, txCtxt, internalStateCache,
+                    internalChainContext, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -206,6 +174,64 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             return trace;
+        }
+
+        private async Task ExecuteInlineTransactions(int depth, Timestamp currentBlockTime,
+            TransactionContext txCtxt, TieredStateCache internalStateCache,
+            ChainContextWithTieredStateCache internalChainContext, CancellationToken cancellationToken)
+        {
+            var trace = txCtxt.Trace;
+            if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)
+            {
+                internalStateCache.Update(txCtxt.Trace.GetFlattenedWrite()
+                    .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
+                {
+                    var inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
+                        currentBlockTime, cancellationToken);
+                    trace.InlineTraces.Add(inlineTrace);
+                    if (!inlineTrace.IsSuccessful())
+                    {
+                        // Fail already, no need to execute remaining inline transactions
+                        break;
+                    }
+
+                    internalStateCache.Update(inlineTrace.GetFlattenedWrite()
+                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                }
+            }
+        }
+
+        private async Task<bool> ExecutePluginOnPreTransactionStageAsync(IExecutive executive,
+            ITransactionContext txCtxt,
+            Timestamp currentBlockTime, ChainContextWithTieredStateCache internalChainContext,
+            TieredStateCache internalStateCache,
+            CancellationToken cancellationToken)
+        {
+            var trace = txCtxt.Trace;
+            foreach (var plugin in _plugins)
+            {
+                var transactions = await plugin.GetPreTransactionsAsync(executive.Descriptors, txCtxt);
+                foreach (var preTx in transactions)
+                {
+                    var preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
+                        cancellationToken);
+                    trace.PreTransactions.Add(preTx);
+                    trace.PreTraces.Add(preTrace);
+                    if (!preTrace.IsSuccessful())
+                    {
+                        trace.ExecutionStatus = ExecutionStatus.Prefailed;
+                        preTrace.SurfaceUpError();
+                        trace.StdErr += preTrace.StdErr;
+                        return false;
+                    }
+
+                    internalStateCache.Update(preTrace.GetFlattenedWrite()
+                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                }
+            }
+
+            return true;
         }
 
         private TransactionResult GetTransactionResult(TransactionTrace trace, long blockHeight)
