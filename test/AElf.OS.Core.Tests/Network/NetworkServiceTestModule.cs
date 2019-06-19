@@ -13,6 +13,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS
 {
+    [DependsOn(typeof(OSCoreTestAElfModule))]
     public class NetworkServiceTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

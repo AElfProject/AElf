@@ -20,5 +20,11 @@ namespace AElf.OS
 
             Configure<NetworkOptions>(configuration.GetSection("Network"));
         }
+        
+        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();
+            taskQueueManager.CreateQueue(NetworkConstants.PeerReconnectionQueueName);
+        }
     }
 }
