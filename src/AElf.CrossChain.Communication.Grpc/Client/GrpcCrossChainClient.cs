@@ -51,7 +51,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
         
         /// <summary>
-        /// Create a new channel
+        /// Create a new channel.
         /// </summary>
         /// <param name="uriStr"></param>
         /// <param name="crt">Certificate</param>
@@ -63,21 +63,39 @@ namespace AElf.CrossChain.Communication.Grpc
             return channel;
         }
 
+        /// <summary>
+        /// Create a new channel.
+        /// </summary>
+        /// <param name="uriStr"></param>
+        /// <returns></returns>
         private static Channel CreateChannel(string uriStr)
         {
             return new Channel(uriStr, ChannelCredentials.Insecure);
         }
 
+        /// <summary>
+        /// Connect with target chain.
+        /// </summary>
+        /// <returns></returns>
         public Task ConnectAsync()
         {
             return RequestAsync(HandshakeAsync);
         }
         
+        /// <summary>
+        /// Close client and clear channel.
+        /// </summary>
+        /// <returns></returns>
         public async Task CloseAsync()
         {
             await Channel.ShutdownAsync();
         }
         
+        /// <summary>
+        /// Request target chain for cross chain data from target height. 
+        /// </summary>
+        /// <param name="targetHeight"></param>
+        /// <returns></returns>
         public Task RequestCrossChainDataAsync(long targetHeight)
         {
             var requestData = new CrossChainRequest
@@ -87,6 +105,33 @@ namespace AElf.CrossChain.Communication.Grpc
             };
 
             return RequestAsync(() => RequestCrossChainDataAsync(requestData));
+        }
+        
+        /// <summary>
+        /// Asynchronous request method.
+        /// </summary>
+        /// <param name="requestFunc"></param>
+        /// <returns></returns>
+        private async Task RequestAsync(Func<Task> requestFunc)
+        {
+            try
+            {
+                await requestFunc();
+            }
+            catch (RpcException)
+            {
+                IsConnected = false;
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Create options for grpc request.
+        /// </summary>
+        /// <returns></returns>
+        protected CallOptions CreateOption()
+        {
+            return new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().ToDateTime().AddMilliseconds(DialTimeout));
         }
 
         private async Task RequestCrossChainDataAsync(CrossChainRequest crossChainRequest)
@@ -117,25 +162,6 @@ namespace AElf.CrossChain.Communication.Grpc
             var res = reply != null && reply.Result;
             IsConnected = res;
             return Task.FromResult(res);
-        }
-
-        
-        private async Task RequestAsync(Func<Task> requestFunc)
-        {
-            try
-            {
-                await requestFunc();
-            }
-            catch (RpcException)
-            {
-                IsConnected = false;
-                throw;
-            }
-        }
-
-        protected CallOptions CreateOption()
-        {
-            return new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().ToDateTime().AddMilliseconds(DialTimeout));
         }
 
         public abstract Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
