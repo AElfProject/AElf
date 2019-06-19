@@ -165,8 +165,8 @@ message ChargeMethodProfitsInput {
 }
 
 message ClaimTransactionFeesInput {
-    string symbol = 1;
-    sint64 height = 2;
+    //string symbol = 1;
+    //sint64 height = 2;
 }
 
 message GetTokenInfoInput {
@@ -249,4 +249,8 @@ message Burned
 message IsInWhiteListInput {
     string symbol = 1;
     aelf.Address address = 2;
+}
+
+message TokenSymbolList {
+    repeated string symbol_list = 1;
 }

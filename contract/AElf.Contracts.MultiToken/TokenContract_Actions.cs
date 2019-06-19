@@ -278,6 +278,11 @@ namespace AElf.Contracts.MultiToken
             // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
             Assert(existingBalance >= amount, "Insufficient balance to pay transaction fee.");
 
+            if (!State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Contains(symbol))
+            {
+                State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Add(symbol);
+            }
+
             State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
             State.ChargedFees[fromAddress][symbol] = State.ChargedFees[fromAddress][symbol].Add(amount);
             return new Empty();
@@ -291,9 +296,6 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(ClaimTransactionFeesInput input)
         {
-            var tokenInfo = State.TokenInfos[input.Symbol];
-            Assert(tokenInfo != null, "Invalid token.");
-
             var feePoolAddressNotSet =
                 State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
             Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
@@ -301,13 +303,19 @@ namespace AElf.Contracts.MultiToken
             var transactions = Context.GetPreviousBlockTransactions();
             var senders = transactions.Select(t => t.From).ToList();
             var feePool = State.FeePoolAddress.Value;
-            var totalFee = 0L;
-            foreach (var sender in senders)
+            foreach (var symbol in State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList)
             {
-                totalFee = totalFee.Add(State.ChargedFees[sender][input.Symbol]);
-                State.ChargedFees[sender][input.Symbol] = 0;
+                var totalFee = 0L;
+                foreach (var sender in senders)
+                {
+                    totalFee = totalFee.Add(State.ChargedFees[sender][symbol]);
+                    State.ChargedFees[sender][symbol] = 0;
+                }
+                State.Balances[feePool][symbol] = State.Balances[feePool][symbol].Add(totalFee);
             }
-            State.Balances[feePool][input.Symbol] = State.Balances[feePool][input.Symbol].Add(totalFee);
+
+            State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
+
             return new Empty();
         }
 
