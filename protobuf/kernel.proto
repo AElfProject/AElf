@@ -135,33 +135,6 @@ message BinaryMerkleTree {
     int32 leaf_count = 3;
 }
 
-message BlockAbstract {
-    string miner_pubkey = 1;
-    google.protobuf.Timestamp time = 2;
-}
-
-enum BlockValidationResult {
-    // The chosen one!
-    SUCCESS = 0;
-
-    // Cache them.
-    NOT_MINER = 11;
-    INVALID_TIME_SLOT = 12;
-    FAILED_TO_CHECK_CONSENSUS_INVALIDATION = 13;
-    DOING_ROLLBACK = 14;
-
-    // Discard.
-    BLOCKQ_IS_NULL = 101;
-    SAME_WITH_CURRENT_ROUND = 102;
-    INCORRECT_CONSENSUS_TRANSACTION = 103;
-    PARSE_PROBLEM = 104;
-    NO_TRANSACTION = 105;
-    INCORRECT_TX_MERKLE_TREE_ROOT = 106;
-    INCORRECT_SIDE_CHAIN_INFO = 107;
-    INCORRECT_POW_RESULT = 108;
-    NOT_IMPLEMENT_CONSENSUS = 109;
-}
-
 message VersionedState {
     string key = 1;
     bytes value = 2;
