@@ -124,9 +124,9 @@ message Block {
 }
 
 enum DataAccessMode {
-    read_only_account_sharing = 0;
-    read_write_account_sharing = 1;
-    account_specific = 2;
+    READ_ONLY_ACCOUNT_SHARING = 0;
+    READ_WRITE_ACCOUNT_SHARING = 1;
+    ACCOUNT_SPECIFIC = 2;
 }
 
 message BinaryMerkleTree {
