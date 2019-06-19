@@ -13,7 +13,7 @@ namespace AElf.OS.Node.Application
 
         public string GetAppDataPath()
         {
-            return _staticNodeInformationProvider.AppDataPath;
+            return _staticNodeInformationProvider.GetAppDataPath();
         }
     }
 }

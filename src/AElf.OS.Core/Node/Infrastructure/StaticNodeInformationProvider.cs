@@ -7,11 +7,25 @@ namespace AElf.OS.Node.Infrastructure
     public class StaticNodeInformationProvider : IStaticNodeInformationProvider, ISingletonDependency
     {
         private const string ApplicationFolderName = "aelf";
-        public string AppDataPath { get; }
+        private string _appDataPath;
 
         public StaticNodeInformationProvider()
         {
-            AppDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ApplicationFolderName);
+        }
+
+        public string GetAppDataPath()
+        {
+            if (string.IsNullOrWhiteSpace(_appDataPath))
+            {
+                _appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), ApplicationFolderName);
+
+                if (!Directory.Exists(_appDataPath))
+                {
+                    Directory.CreateDirectory(_appDataPath);
+                }
+            }
+
+            return _appDataPath;
         }
     }
 }
