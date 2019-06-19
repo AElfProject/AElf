@@ -100,7 +100,7 @@ namespace AElf.OS.Account.Infrastructure
             _keyStore.DefaultTimeoutToClose = TimeSpan.FromMilliseconds(50);
             await _keyStore.OpenAsync(addString, "123");
             
-            await Task.Delay(200); //update due to window ci io speed issue may cased case failed.
+            Thread.Sleep(200); //update due to window ci io speed issue may cased case failed.
             var keyPairInfo = _keyStore.GetAccountKeyPair(addString);
             keyPairInfo.ShouldBeNull();
         }
