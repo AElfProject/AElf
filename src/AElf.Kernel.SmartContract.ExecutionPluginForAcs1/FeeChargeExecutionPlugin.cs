@@ -44,6 +44,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             {
                 Name = context.TransactionContext.Transaction.MethodName
             });
+            
+            if (!fee.SymbolToAmount.Any())
+            {
+                return new List<Transaction>();
+            }
+            
             var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
             var tokenStub = new TokenContractContainer.TokenContractStub()
             {

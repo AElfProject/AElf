@@ -381,11 +381,8 @@ namespace AElf.Contracts.MultiToken
         public async Task Claim_Transaction_Fees_Without_FeePoolAddress()
         {
             await Initialize_TokenContract();
-            var result = (await TokenContractStub.ClaimTransactionFees.SendAsync(new ClaimTransactionFeesInput
-            {
-                Symbol = DefaultSymbol,
-                Height = 1L
-            })).TransactionResult;
+            var result = (await TokenContractStub.ClaimTransactionFees.SendAsync(new ClaimTransactionFeesInput()))
+                .TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Fee pool address is not set.").ShouldBeTrue();
         }

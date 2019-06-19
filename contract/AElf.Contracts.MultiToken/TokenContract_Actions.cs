@@ -195,6 +195,7 @@ namespace AElf.Contracts.MultiToken
                     DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
                     return new Empty();
                 }
+
                 Assert(false, "Insufficient allowance.");
             }
 
@@ -261,6 +262,11 @@ namespace AElf.Contracts.MultiToken
             ChargeFirstSufficientToken(input.SymbolToAmount.ToDictionary(i => i.Key, i => i.Value), out var symbol,
                 out var amount, out var existingBalance);
 
+            if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null)
+            {
+                State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
+            }
+
             if (!State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Contains(symbol))
             {
                 State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Add(symbol);
@@ -281,7 +287,17 @@ namespace AElf.Contracts.MultiToken
 
             ChargeFirstSufficientToken(input.SymbolToAmount.ToDictionary(i => i.Key, i => i.Value), out var symbol,
                 out var amount, out var existingBalance);
+
+            if (State.PreviousBlockProfitTokenSymbolList.Value == null)
+            {
+                State.PreviousBlockProfitTokenSymbolList.Value = new TokenSymbolList();
+            }
             
+            if (!State.PreviousBlockProfitTokenSymbolList.Value.SymbolList.Contains(symbol))
+            {
+                State.PreviousBlockProfitTokenSymbolList.Value.SymbolList.Add(symbol);
+            }
+
             var fromAddress = Context.Sender;
             State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
             State.ReceivedProfits[fromAddress][symbol] = State.ReceivedProfits[fromAddress][symbol].Add(amount);
@@ -308,7 +324,7 @@ namespace AElf.Contracts.MultiToken
                     break;
                 }
             }
-            
+
             // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
             Assert(existingBalance >= amount, "Insufficient balance to pay.");
         }
@@ -323,7 +339,7 @@ namespace AElf.Contracts.MultiToken
             var feePoolAddressNotSet =
                 State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
             Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
-            
+
             var transactions = Context.GetPreviousBlockTransactions();
             var senders = transactions.Select(t => t.From).ToList();
             var feePool = State.FeePoolAddress.Value;
@@ -335,6 +351,7 @@ namespace AElf.Contracts.MultiToken
                     totalFee = totalFee.Add(State.ChargedFees[sender][symbol]);
                     State.ChargedFees[sender][symbol] = 0;
                 }
+
                 State.Balances[feePool][symbol] = State.Balances[feePool][symbol].Add(totalFee);
             }
 
@@ -355,7 +372,7 @@ namespace AElf.Contracts.MultiToken
             {
                 return new Empty();
             }
-            
+
             var transactions = Context.GetPreviousBlockTransactions();
             var senders = transactions.Select(t => t.From).ToList();
             foreach (var symbol in State.PreviousBlockProfitTokenSymbolList.Value.SymbolList)
@@ -366,6 +383,7 @@ namespace AElf.Contracts.MultiToken
                     totalAmount = totalAmount.Add(State.ChargedFees[sender][symbol]);
                     State.ReceivedProfits[sender][symbol] = 0;
                 }
+
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
@@ -373,6 +391,8 @@ namespace AElf.Contracts.MultiToken
                 });
             }
             
+            State.PreviousBlockProfitTokenSymbolList.Value = new TokenSymbolList();
+
             return new Empty();
         }
 
