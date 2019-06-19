@@ -276,11 +276,10 @@ namespace AElf.Contracts.MultiToken
             }
 
             // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
-            Assert(existingBalance >= amount, "Insufficient balance.");
+            Assert(existingBalance >= amount, "Insufficient balance to pay transaction fee.");
 
             State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
-            State.ChargedFees[fromAddress][symbol] =
-                State.ChargedFees[fromAddress][symbol].Add(amount);
+            State.ChargedFees[fromAddress][symbol] = State.ChargedFees[fromAddress][symbol].Add(amount);
             return new Empty();
         }
 
@@ -302,13 +301,13 @@ namespace AElf.Contracts.MultiToken
             var transactions = Context.GetPreviousBlockTransactions();
             var senders = transactions.Select(t => t.From).ToList();
             var feePool = State.FeePoolAddress.Value;
+            var totalFee = 0L;
             foreach (var sender in senders)
             {
-                var fee = State.ChargedFees[sender][input.Symbol];
+                totalFee = totalFee.Add(State.ChargedFees[sender][input.Symbol]);
                 State.ChargedFees[sender][input.Symbol] = 0;
-                State.Balances[feePool][input.Symbol] = State.Balances[feePool][input.Symbol].Add(fee);
             }
-
+            State.Balances[feePool][input.Symbol] = State.Balances[feePool][input.Symbol].Add(totalFee);
             return new Empty();
         }
 

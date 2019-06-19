@@ -243,7 +243,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 BootMinerKeyPair));
             TransactionFeeChargingContractStub = GetTransactionFeeChargingContractStub(BootMinerKeyPair);
 
-            TransactionFeeChargingContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+            ProfitSharingContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 ProfitSharingContractCode,
                 Hash.FromString("AElf.ContractNames.ProfitSharing"),

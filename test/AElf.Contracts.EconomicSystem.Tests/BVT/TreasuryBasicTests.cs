@@ -1,6 +1,8 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -50,6 +52,28 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
         [Fact]
         public async Task EconomistSystem_ChargeMethodTransactionFee()
+        {
+            await EconomistSystem_SetMethodTransactionFee();
+
+            var chosenOneKeyPair = CoreDataCenterKeyPairs.First();
+            var chosenOneAddress = Address.FromPublicKey(chosenOneKeyPair.PublicKey);
+            var balanceBefore = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = chosenOneAddress,
+                Symbol = EconomicSystemTestConstants.NativeTokenSymbol
+            });
+            var tycoon = GetTransactionFeeChargingContractStub(chosenOneKeyPair);
+            await tycoon.SendForFun.SendAsync(new Empty());
+            var balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = chosenOneAddress,
+                Symbol = EconomicSystemTestConstants.NativeTokenSymbol
+            });
+            balanceAfter.Balance.ShouldBeLessThan(balanceBefore.Balance);
+        }
+
+        [Fact]
+        public async Task EconomistSystem_SetMethodTransactionFee_MultipleSymbol()
         {
             
         }
