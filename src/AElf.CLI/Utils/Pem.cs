@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using AElf.Cryptography.Certificate;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -105,12 +104,6 @@ namespace AElf.CLI.Utils
 
             Console.WriteLine($@"Account info has been saved to ""{filePath}""");
             return true;
-        }
-
-        public static void WriteCertificate(string configurationPath, string chainId, string ip)
-        {
-            var certificateStore = new CertificateStore(configurationPath);
-            certificateStore.WriteKeyAndCertificate(chainId, ip);
         }
     }
 }

@@ -77,7 +77,7 @@ namespace AElf.OS.Network
         {
             var handshake = await _pool.GetHandshakeAsync();
             handshake.ShouldNotBeNull();
-            handshake.HskData.Version.ShouldBe(KernelConstants.ProtocolVersion);
+            handshake.HandshakeData.Version.ShouldBe(KernelConstants.ProtocolVersion);
         }
 
         [Fact]
