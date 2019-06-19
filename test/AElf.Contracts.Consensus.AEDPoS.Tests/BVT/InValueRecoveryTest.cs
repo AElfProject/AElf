@@ -32,7 +32,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var decryptedValues = new Dictionary<string, byte[]>();
             var ownerKeyPair = InitialMinersKeyPairs[0];
             var othersKeyPairs = InitialMinersKeyPairs.Skip(1).ToList();
-            var decryptResult = "";
+            var decryptResult=new byte[0];
 
             var initial = 0;
             foreach (var keyPair in othersKeyPairs)
@@ -62,7 +62,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            decryptResult.ShouldBe(Encoding.UTF8.GetString(message));
+            decryptResult.ShouldBe(message);
         }
 
         [Fact]

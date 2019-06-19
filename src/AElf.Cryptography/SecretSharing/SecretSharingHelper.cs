@@ -17,7 +17,7 @@ namespace AElf.Cryptography.SecretSharing
             // Polynomial construction.
             var coefficients = new BigInteger[threshold];
             // Set p(0) = secret message.
-            coefficients[0] = new BigInteger(secretMessage);
+            coefficients[0] = secretMessage.ConvetToBigInteger();
             for (var i = 1; i < threshold; i++)
             {
                 var foo = new byte[32];
@@ -65,7 +65,7 @@ namespace AElf.Cryptography.SecretSharing
                 result %= SecretSharingConsts.FieldPrime;
             }
 
-            return result.ToByteArray();
+            return result.ConvertToBytes();
         }
 
         private static BigInteger RationalToWhole(BigInteger numerator, BigInteger denominator)

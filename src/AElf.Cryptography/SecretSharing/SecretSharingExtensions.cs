@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading;
@@ -8,7 +9,23 @@ namespace AElf.Cryptography.SecretSharing
     public static class SecretSharingExtensions
     {
 
+        public static BigInteger  ConvetToBigInteger(this byte[] bytes)
+        {
+            var tempBytes = new byte[bytes.Length + 1];
+            tempBytes[0] = 00;
+            Array.Copy(bytes.Reverse().ToArray(), 0, tempBytes, 1, bytes.Length);
+            return new BigInteger(tempBytes);
+        }
 
+        public static byte[] ConvertToBytes(this BigInteger integer)
+        {
+            var tempBytes = integer.ToByteArray().Reverse().ToArray();
+            var result = new byte[tempBytes.Length-1];
+            Array.Copy(tempBytes,0,result,0,result.Length);
+
+            return result;
+        }
+        
         public static string ConvertToString(this BigInteger integer)
         {
             var bytes = integer.ToByteArray();
