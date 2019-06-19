@@ -1,10 +1,10 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Modularity;
-using AElf.OS.Account;
+using AElf.OS.Account.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
