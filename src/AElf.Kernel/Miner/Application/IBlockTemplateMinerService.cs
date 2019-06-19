@@ -3,7 +3,7 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.Miner.Application
-{
+{    
     public interface IBlockTemplateMinerService
     {
         Task<BlockHeader> CreateTemplateCacheAsync(Hash previousBlockHash, long previousBlockHeight,

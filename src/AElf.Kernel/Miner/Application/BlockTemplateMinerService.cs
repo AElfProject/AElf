@@ -29,7 +29,7 @@ namespace AElf.Kernel.Miner.Application
                 await _minerService.MineAsync(previousBlockHash, previousBlockHeight, blockTime, blockExecutionTime);
 
             _blockCache.Header.Signature = ByteString.Empty;
-            
+
             return _blockCache.Header;
         }
 
@@ -37,21 +37,19 @@ namespace AElf.Kernel.Miner.Application
         {
             var block = _blockCache.Clone();
 
-            if (block != null &&
-                block.Header.PreviousBlockHash == blockHeader.PreviousBlockHash &&
-                block.Header.MerkleTreeRootOfTransactions == blockHeader.MerkleTreeRootOfTransactions &&
-                block.Header.Time == blockHeader.Time)
-            {
-                //same block
-
-                block.Header = blockHeader;
-                block.Header.Signature =
-                    ByteString.CopyFrom(await _accountService.SignAsync(block.GetHash().DumpByteArray()));
-            }
-            else
-            {
+            if (block == null || block.Header.PreviousBlockHash != blockHeader.PreviousBlockHash ||
+                block.Header.MerkleTreeRootOfTransactions != blockHeader.MerkleTreeRootOfTransactions ||
+                block.Header.Time != blockHeader.Time)
                 throw new InvalidOperationException("template cache not match");
-            }
+            //same block
+
+            block.Header = blockHeader;
+            block.Header.Signature =
+                ByteString.CopyFrom(await _accountService.SignAsync(block.GetHash().DumpByteArray()));
+
+            block.Body.BlockHeader = blockHeader.GetHash();
+
+            return block;
         }
     }
 }
