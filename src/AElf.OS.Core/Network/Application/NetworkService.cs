@@ -89,9 +89,10 @@ namespace AElf.OS.Network.Application
 
                 return true;
             }
-            catch (NetworkException e)
+            catch (NetworkException ex)
             {
-                Logger.LogError(e, "Error while sending block.");
+                Logger.LogError(ex, "Error while announcing.");
+                await HandleNetworkException(peer, ex);
             }
 
             return false;
