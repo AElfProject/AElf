@@ -54,10 +54,6 @@ message DisconnectReason {
     }
 }
 
-message Announcement {
-    aelf.BlockHeader header = 1;
-}
-
 message BlockRequest {
     aelf.Hash hash = 1;
 }
