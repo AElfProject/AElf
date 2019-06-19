@@ -63,6 +63,7 @@ namespace AElf.Contracts.AssociationAuth
                 organization.Reviewers.AddRange(input.Reviewers);
                 State.Organisations[organizationAddress] = organization;
             }
+            
             return organizationAddress;
         }
 
@@ -103,6 +104,7 @@ namespace AElf.Contracts.AssociationAuth
                 //State.Proposals[approvalInput.ProposalId] = null;
                 return new BoolValue{Value = false};
             }
+            
             // check approval not existed
             Assert(!proposalInfo.ApprovedReviewer.Contains(Context.Sender), "Approval already exists.");
             var organization = GetOrganization(proposalInfo.OrganizationAddress);
@@ -112,13 +114,29 @@ namespace AElf.Contracts.AssociationAuth
             proposalInfo.ApprovedWeight += reviewer.Weight;
             State.Proposals[approvalInput.ProposalId] = proposalInfo;
 
+//            if (IsReadyToRelease(proposalInfo, organization))
+//            {
+//                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
+//                    proposalInfo.Params);
+//                //State.Proposals[approvalInput.ProposalId] = null;
+//            }
+            
+            return new BoolValue{Value = true};
+        }
+
+        public override Empty Release(Hash proposalId)
+        {
+            var proposalInfo = State.Proposals[proposalId];
+            Assert(proposalInfo != null, "Proposal not found.");
+            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
+            var organization = State.Organisations[proposalInfo.OrganizationAddress];
             if (IsReadyToRelease(proposalInfo, organization))
             {
                 Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
                     proposalInfo.Params);
-                //State.Proposals[approvalInput.ProposalId] = null;
             }
-            return new BoolValue{Value = true};
+            
+            return new Empty();
         }
 
         #endregion

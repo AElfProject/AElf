@@ -52,10 +52,7 @@ namespace AElf.Contracts.ParliamentAuth
             State.GenesisOwnerAddress.Value =
                 CreateOrganization(new CreateOrganizationInput {ReleaseThreshold = input.GenesisOwnerReleaseThreshold});
             State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
-            State.GenesisContract.InitializeGenesisOwner.Send(new InitializeGenesisOwnerInput
-            {
-                GenesisOwner = State.GenesisOwnerAddress.Value
-            });
+            State.GenesisContract.ChangeGenesisOwner.Send(State.GenesisOwnerAddress.Value);
             return new Empty();
         }
         
@@ -123,15 +120,32 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(IsValidRepresentative(representatives), "Not authorized approval.");
             proposalInfo.ApprovedRepresentatives.Add(Context.Sender);
             State.Proposals[approvalInput.ProposalId] = proposalInfo;
+//            var organization = State.Organisations[proposalInfo.OrganizationAddress];
+//            if (IsReadyToRelease(proposalInfo, organization, representatives))
+//            {
+//                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
+//                    proposalInfo.Params);
+//                //State.Proposals[approvalInput.ProposalId] = null;
+//            }
+
+            return new BoolValue {Value = true};
+        }
+
+        public override Empty Release(Hash proposalId)
+        {
+            var proposalInfo = State.Proposals[proposalId];
+            Assert(proposalInfo != null, "Proposal not found.");
+            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
+            var representatives = GetRepresentatives();
             if (IsReadyToRelease(proposalInfo, organization, representatives))
             {
                 Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
                     proposalInfo.Params);
                 //State.Proposals[approvalInput.ProposalId] = null;
             }
-
-            return new BoolValue {Value = true};
+            
+            return new Empty();
         }
     }
 }

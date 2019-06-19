@@ -17,11 +17,11 @@ service ACS0 {
     }
     rpc ChangeContractOwner (ChangeContractOwnerInput) returns (google.protobuf.Empty) {
     }
-    rpc InitializeGenesisOwner (InitializeGenesisOwnerInput) returns (google.protobuf.Empty) {
-    }
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
     rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeAdministrator(aelf.Address) returns (google.protobuf.Empty) {
     }
     
     // Views
@@ -61,7 +61,6 @@ message ContractInfo
 message ContractDeploymentInput {
     sint32 category = 1;
     bytes code = 2;
-    aelf.Hash name = 3;
 }
 
 message SystemContractDeploymentInput {
@@ -90,10 +89,6 @@ message ChangeContractOwnerInput {
 
 message InitializeInput{
     bool contractDeploymentAuthorityRequired = 1;
-}
-
-message InitializeGenesisOwnerInput{
-    aelf.Address GenesisOwner = 1; 
 }
 
 // Events

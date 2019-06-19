@@ -149,5 +149,20 @@ namespace AElf.Contracts.ReferendumAuth
             });
             return new Empty();
         }
+        
+        public override Empty Release(Hash proposalId)
+        {
+            var proposalInfo = State.Proposals[proposalId];
+            Assert(proposalInfo != null, "Proposal not found.");
+            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
+            var organization = State.Organisations[proposalInfo.OrganizationAddress];
+            if (IsReadyToRelease(proposalId, organization))
+            {
+                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
+                    proposalInfo.Params);
+            }
+            
+            return new Empty();
+        }
     }
 }
