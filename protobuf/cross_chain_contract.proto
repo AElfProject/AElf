@@ -66,6 +66,7 @@ service CrossChainContract {
 message InitializeInput {
     int32 parentChainId = 1;
     int64 creationHeightOnParentChain = 2;
+    aelf.Address chainCreator = 3;
 }
 
 message RechargeInput {
@@ -93,9 +94,5 @@ message Disposed
     option (aelf.is_event) = true;
     int32 chainId = 1;
 }
-
-
-
-// from crosschain.proto
 
 
