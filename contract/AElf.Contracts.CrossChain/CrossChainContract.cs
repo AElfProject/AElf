@@ -221,17 +221,11 @@ namespace AElf.Contracts.CrossChain
             actualCrossChainData.ParentChainBlockData.AddRange(crossChainBlockData.ParentChainBlockData);
             actualCrossChainData.SideChainBlockData.AddRange(indexedSideChainBlockData);
             State.IndexedCrossChainBlockData[Context.CurrentHeight] = actualCrossChainData;
-//            Context.FireEvent(new CrossChainIndexingEvent
-//            {
-//                SideChainTransactionsMerkleTreeRoot = calculatedRoot,
-//                CrossChainBlockData = crossChainBlockData,
-//                Sender = Context.Sender // for validation 
-//            });
             return new Empty();
         }
 
         /// <summary>
-        /// Index parent chain blocks.
+        /// Index parent chain block data.
         /// </summary>
         /// <param name="parentChainBlockData"></param>
         private void IndexParentChainBlockInfo(ParentChainBlockData[] parentChainBlockData)
@@ -277,10 +271,10 @@ namespace AElf.Contracts.CrossChain
         }
 
         /// <summary>
-        /// Index side chain block(s).
+        /// Index side chain block data.
         /// </summary>
-        /// <param name="sideChainBlockData"></param>
-        /// <returns>Root of merkle tree created from side chain txn roots.</returns>
+        /// <param name="sideChainBlockData">Side chain block data to be indexed.</param>
+        /// <returns>Valid side chain block data which are indexed.</returns>
         private List<SideChainBlockData> IndexSideChainBlockInfo(SideChainBlockData[] sideChainBlockData)
         {
             // only miner can do this.
@@ -312,7 +306,7 @@ namespace AElf.Contracts.CrossChain
                 
                 if (lockedToken < indexingPrice)
                 {
-                    info.SideChainStatus = SideChainStatus.InsufficientBalance;
+                    info.SideChainStatus = SideChainStatus.Terminated;
                 }
                 
                 State.SideChainInfos[chainId] = info;
