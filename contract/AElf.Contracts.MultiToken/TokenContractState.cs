@@ -1,8 +1,7 @@
-using Acs0;
 using Acs1;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.TokenConverter;
+using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -16,8 +15,10 @@ namespace AElf.Contracts.MultiToken
         public MappedState<Address, string, long> Balances { get; set; }
         public MappedState<Address, Address, string, long> Allowances { get; set; }
         public MappedState<Address, string, long> ChargedFees { get; set; }
+        public MappedState<Address, string, long> ReceivedProfits { get; set; }
         public SingletonState<Address> FeePoolAddress { get; set; }
         public SingletonState<TokenSymbolList> PreviousBlockTransactionFeeTokenSymbolList { get; set; }
+        public SingletonState<TokenSymbolList> PreviousBlockProfitTokenSymbolList { get; set; }
 
         /// <summary>
         /// symbol -> address -> is in white list.
@@ -27,6 +28,6 @@ namespace AElf.Contracts.MultiToken
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
 
-        internal TokenConverterContractContainer.TokenConverterContractReferenceState TokenConverterContract { get; set; }
+        internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
     }
 }

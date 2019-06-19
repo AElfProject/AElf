@@ -46,6 +46,8 @@ service TokenContract {
     }
     rpc ChargeMethodProfits (ChargeMethodProfitsInput) returns (google.protobuf.Empty) {
     }
+    rpc DonateProfitsToTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;

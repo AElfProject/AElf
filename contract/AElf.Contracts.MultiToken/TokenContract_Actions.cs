@@ -4,6 +4,7 @@ using System.Linq;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TokenConverter;
+using AElf.Contracts.Treasury;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -257,14 +258,47 @@ namespace AElf.Contracts.MultiToken
                 return new Empty();
             }
 
+            ChargeFirstSufficientToken(input.SymbolToAmount.ToDictionary(i => i.Key, i => i.Value), out var symbol,
+                out var amount, out var existingBalance);
+
+            if (!State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Contains(symbol))
+            {
+                State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Add(symbol);
+            }
+
+            var fromAddress = Context.Sender;
+            State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
+            State.ChargedFees[fromAddress][symbol] = State.ChargedFees[fromAddress][symbol].Add(amount);
+            return new Empty();
+        }
+
+        public override Empty ChargeMethodProfits(ChargeMethodProfitsInput input)
+        {
+            if (input.Equals(new ChargeMethodProfitsInput()))
+            {
+                return new Empty();
+            }
+
+            ChargeFirstSufficientToken(input.SymbolToAmount.ToDictionary(i => i.Key, i => i.Value), out var symbol,
+                out var amount, out var existingBalance);
+            
+            var fromAddress = Context.Sender;
+            State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
+            State.ReceivedProfits[fromAddress][symbol] = State.ReceivedProfits[fromAddress][symbol].Add(amount);
+            return new Empty();
+        }
+
+        private void ChargeFirstSufficientToken(Dictionary<string, long> symbolToAmountMap, out string symbol,
+            out long amount, out long existingBalance)
+        {
+            symbol = Context.Variables.NativeSymbol;
+            amount = 0L;
+            existingBalance = 0L;
             var fromAddress = Context.Sender;
 
             // Traverse available token symbols, check balance one by one
             // until there's balance of one certain token is enough to pay the fee.
-            var symbol = Context.Variables.NativeSymbol;
-            var existingBalance = 0L;
-            var amount = 0L;
-            foreach (var symbolToAmount in input.SymbolToAmount)
+            foreach (var symbolToAmount in symbolToAmountMap)
             {
                 existingBalance = State.Balances[fromAddress][symbolToAmount.Key];
                 symbol = symbolToAmount.Key;
@@ -274,28 +308,18 @@ namespace AElf.Contracts.MultiToken
                     break;
                 }
             }
-
-            // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
-            Assert(existingBalance >= amount, "Insufficient balance to pay transaction fee.");
-
-            if (!State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Contains(symbol))
-            {
-                State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Add(symbol);
-            }
-
-            State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
-            State.ChargedFees[fromAddress][symbol] = State.ChargedFees[fromAddress][symbol].Add(amount);
-            return new Empty();
-        }
-
-        public override Empty ChargeMethodProfits(ChargeMethodProfitsInput input)
-        {
             
-            return new Empty();
+            // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
+            Assert(existingBalance >= amount, "Insufficient balance to pay.");
         }
 
         public override Empty ClaimTransactionFees(ClaimTransactionFeesInput input)
         {
+            if (!State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Any())
+            {
+                return new Empty();
+            }
+
             var feePoolAddressNotSet =
                 State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
             Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
@@ -316,6 +340,39 @@ namespace AElf.Contracts.MultiToken
 
             State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
 
+            return new Empty();
+        }
+
+        public override Empty DonateProfitsToTreasury(Empty input)
+        {
+            if (State.TreasuryContract.Value == null)
+            {
+                State.TreasuryContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+            }
+
+            if (!State.PreviousBlockProfitTokenSymbolList.Value.SymbolList.Any())
+            {
+                return new Empty();
+            }
+            
+            var transactions = Context.GetPreviousBlockTransactions();
+            var senders = transactions.Select(t => t.From).ToList();
+            foreach (var symbol in State.PreviousBlockProfitTokenSymbolList.Value.SymbolList)
+            {
+                var totalAmount = 0L;
+                foreach (var sender in senders)
+                {
+                    totalAmount = totalAmount.Add(State.ChargedFees[sender][symbol]);
+                    State.ReceivedProfits[sender][symbol] = 0;
+                }
+                State.TreasuryContract.Donate.Send(new DonateInput
+                {
+                    Symbol = symbol,
+                    Amount = totalAmount
+                });
+            }
+            
             return new Empty();
         }
 

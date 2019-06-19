@@ -31,6 +31,12 @@
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractBase>
     </ItemGroup>
+
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\treasury_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
     
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\token_contract_impl.proto">
