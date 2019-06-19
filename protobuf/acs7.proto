@@ -59,7 +59,7 @@ message ParentChainBlockData {
     map<string, bytes> extra_data = 6;
 }
 
-message CrossChainExtraData{
+message CrossChainExtraData {
     // Merkle tree root of side chain block headers
     aelf.Hash side_chain_block_headers_root = 1;
 
