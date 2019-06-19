@@ -83,8 +83,8 @@ namespace AElf.Contracts.Genesis
 
         private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code)
         {
-            // hash name is needed when deploy contract
-            Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
+            if (name != null)
+                Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
 
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment
@@ -124,7 +124,10 @@ namespace AElf.Contracts.Genesis
             Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
 
 
-            State.NameAddressMapping[name] = contractAddress;
+            if (name != null)
+                State.NameAddressMapping[name] = contractAddress;
+
+
             return contractAddress;
         }
 
@@ -132,7 +135,7 @@ namespace AElf.Contracts.Genesis
         {
             var contractDeploymentAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
             RequireAuthority(contractDeploymentAuthorityRequired);
-            var address = PrivateDeploySystemSmartContract(input.Name, input.Category, input.Code.ToByteArray());
+            var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray());
             return address;
         }
 
@@ -206,22 +209,29 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
-        public override Empty InitializeGenesisOwner(InitializeGenesisOwnerInput input)
+        public override Empty ChangeGenesisOwner(Address newOwnerAddress)
         {
-            Assert(State.GenesisOwner.Value == null, "Genesis owner already initialized");
-            var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-            Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
-            Assert(input.GenesisOwner != null, "Genesis Owner should not be null."); 
-            State.GenesisOwner.Value = input.GenesisOwner;
+            if (State.GenesisOwner.Value == null)
+                InitializeGenesisOwner(newOwnerAddress);
+            else
+            {
+                RequireAuthority(true);
+                State.GenesisOwner.Value = newOwnerAddress;
+            }
+
             return new Empty();
         }
 
-        public override Empty ChangeGenesisOwner(Address newOwnerAddress)
+        public override Empty ChangeAdministrator(Address newAdministrator)
         {
-            Assert(State.Initialized.Value, "Contract zero not initialized.");
-            Assert(State.GenesisOwner.Value != null, "Genesis owner not initialized");
-            RequireAuthority(true);
-            State.GenesisOwner.Value = newOwnerAddress;
+            if (State.Administrator.Value == null)
+                InitializeAdministrator(newAdministrator);
+            else
+            {
+                RequireAuthority(State.Administrator.Value);
+                State.Administrator.Value = newAdministrator;
+            }
+            
             return new Empty();
         }
 
@@ -257,6 +267,11 @@ namespace AElf.Contracts.Genesis
                 // genesis owner authority check is required
                 authorityRequiredAddress = State.GenesisOwner.Value;
             }
+            else
+            {
+                // administrator authority check is required if it is not null.
+                authorityRequiredAddress = State.Administrator.Value;
+            }
             
             if (authorityRequiredAddress != null)
                 CheckAuthorityWith(authorityRequiredAddress);
@@ -265,6 +280,24 @@ namespace AElf.Contracts.Genesis
         private void CheckAuthorityWith(Address address)
         {
             Assert(Context.Sender.Equals(address), "Unauthorized behavior.");
+        }
+        
+        private void InitializeGenesisOwner(Address genesisOwner)
+        {
+            Assert(State.GenesisOwner.Value == null, "Genesis owner already initialized");
+            var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
+            Assert(genesisOwner != null, "Genesis Owner should not be null."); 
+            State.GenesisOwner.Value = genesisOwner;
+        }
+
+        private void InitializeAdministrator(Address administrator)
+        {
+            Assert(State.Administrator.Value == null, "Administrator already initialized");
+            var address = GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
+            Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
+            Assert(administrator != null, "Genesis Owner should not be null."); 
+            State.GenesisOwner.Value = administrator;
         }
     }
 

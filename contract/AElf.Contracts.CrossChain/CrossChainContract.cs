@@ -22,6 +22,13 @@ namespace AElf.Contracts.CrossChain
             State.ParentChainId.Value = input.ParentChainId;
             State.CreationHeightOnParentChain.Value = input.CreationHeightOnParentChain;
             State.CurrentParentChainHeight.Value = input.CreationHeightOnParentChain - 1;
+            if (input.ChainCreator != null)
+            {
+                // initialize contract administrator
+                State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
+                State.GenesisContract.ChangeAdministrator.Send(input.ChainCreator);
+            }
+            
             return new Empty();
         }
 
