@@ -66,7 +66,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = new MinerList
-                {PublicKeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}};
+                {Pubkeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}};
             SetMinerListOfCurrentTerm(minerList);
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
@@ -218,7 +218,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
             State.MainChainCurrentMiners.Value = new MinerList
             {
-                PublicKeys = {minersKeys.Select(k => k.ToByteString())}
+                Pubkeys = {minersKeys.Select(k => k.ToByteString())}
             };
             return new Empty();
         }

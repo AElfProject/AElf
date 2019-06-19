@@ -22,15 +22,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var tuneOrderInformation = RealTimeMinersInformation.Values
                 .Where(m => m.FinalOrderOfNextRound != m.SupposedOrderOfNextRound)
-                .ToDictionary(m => m.PublicKey, m => m.FinalOrderOfNextRound);
+                .ToDictionary(m => m.Pubkey, m => m.FinalOrderOfNextRound);
 
             var decryptedPreviousInValues = RealTimeMinersInformation.Values.Where(v =>
-                    v.PublicKey != publicKey && v.DecryptedPreviousInValues.ContainsKey(publicKey))
-                .ToDictionary(info => info.PublicKey, info => info.DecryptedPreviousInValues[publicKey]);
+                    v.Pubkey != publicKey && v.DecryptedPreviousInValues.ContainsKey(publicKey))
+                .ToDictionary(info => info.Pubkey, info => info.DecryptedPreviousInValues[publicKey]);
 
             var minersPreviousInValues =
                 RealTimeMinersInformation.Values.Where(info => info.PreviousInValue != null).ToDictionary(
-                    info => info.PublicKey,
+                    info => info.Pubkey,
                     info => info.PreviousInValue);
 
             return new UpdateValueInput

@@ -84,7 +84,7 @@ message UpdateValueInput {
 
 // The miners public key list for each term.
 message MinerList {
-    repeated bytes public_keys = 1;
+    repeated bytes pubkeys = 1;
 }
 
 // To query first round number of each term.
@@ -94,7 +94,7 @@ message TermNumberLookUp {
 
 // All the candidates.
 message Candidates {
-    repeated bytes public_keys = 1;
+    repeated bytes pubkeys = 1;
 }
 
 // The information of a round.
@@ -117,7 +117,7 @@ message MinerInRound {
     google.protobuf.Timestamp expected_mining_time = 6;
     sint64 produced_blocks = 7;
     sint64 missed_time_slots = 8;
-    string public_key = 9;
+    string pubkey = 9;
     aelf.Hash previous_in_value = 12;
     sint32 supposed_order_of_next_round = 13;
     sint32 final_order_of_next_round = 14;
@@ -128,7 +128,7 @@ message MinerInRound {
 }
 
 message AElfConsensusHeaderInformation {
-    bytes sender_publicKey = 1;
+    bytes sender_pubkey = 1;
     Round round = 2;
     AElfConsensusBehaviour behaviour = 3;
 }
@@ -147,7 +147,7 @@ enum AElfConsensusBehaviour {
 }
 
 message AElfConsensusTriggerInformation {
-    bytes public_key = 1;// A must-have.
+    bytes pubkey = 1;// A must-have.
     aelf.Hash random_hash = 2;// To calculate In Value.
     aelf.Hash previous_random_hash = 3;// Random hash of previous round for validation.
     AElfConsensusBehaviour behaviour = 4;

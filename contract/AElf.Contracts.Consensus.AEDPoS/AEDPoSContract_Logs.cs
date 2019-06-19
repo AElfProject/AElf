@@ -32,13 +32,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var previousMinerInRound =
                 currentRound.RealTimeMinersInformation.Values.First(m => m.Order == minerInRound.Order.Sub(1));
             var previousTinyBlocks = previousMinerInRound.ProducedTinyBlocks;
-            if ((extraBlockProducerOfPreviousRound == previousMinerInRound.PublicKey &&
+            if ((extraBlockProducerOfPreviousRound == previousMinerInRound.Pubkey &&
                  previousTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber.Mul(2)) ||
-                (extraBlockProducerOfPreviousRound != previousMinerInRound.PublicKey &&
+                (extraBlockProducerOfPreviousRound != previousMinerInRound.Pubkey &&
                  previousTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber))
             {
                 Context.LogDebug(() =>
-                    $"CONSENSUS WARNING: Previous miner {previousMinerInRound.PublicKey} only produced {previousTinyBlocks} tiny blocks during round {currentRound.RoundNumber}.");
+                    $"CONSENSUS WARNING: Previous miner {previousMinerInRound.Pubkey} only produced {previousTinyBlocks} tiny blocks during round {currentRound.RoundNumber}.");
             }
         }
     }

@@ -25,9 +25,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.FinalOrderOfNextRound))
             {
                 var order = minerInRound.FinalOrderOfNextRound;
-                nextRound.RealTimeMinersInformation[minerInRound.PublicKey] = new MinerInRound
+                nextRound.RealTimeMinersInformation[minerInRound.Pubkey] = new MinerInRound
                 {
-                    PublicKey = minerInRound.PublicKey,
+                    Pubkey = minerInRound.Pubkey,
                     Order = order,
                     ExpectedMiningTime = currentBlockTimestamp.AddMilliseconds(miningInterval.Mul(order)),
                     ProducedBlocks = minerInRound.ProducedBlocks,
@@ -42,9 +42,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var order = ableOrders[i];
                 var minerInRound = minersNotMinedCurrentRound[i];
-                nextRound.RealTimeMinersInformation[minerInRound.PublicKey] = new MinerInRound
+                nextRound.RealTimeMinersInformation[minerInRound.Pubkey] = new MinerInRound
                 {
-                    PublicKey = minersNotMinedCurrentRound[i].PublicKey,
+                    Pubkey = minersNotMinedCurrentRound[i].Pubkey,
                     Order = order,
                     ExpectedMiningTime = currentBlockTimestamp
                         .AddMilliseconds(miningInterval.Mul(order)),

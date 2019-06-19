@@ -40,7 +40,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var maybeNewOrder = i > minersCount ? i % minersCount : i;
                     if (RealTimeMinersInformation.Values.All(m => m.FinalOrderOfNextRound != maybeNewOrder))
                     {
-                        RealTimeMinersInformation[orderConflictedMiner.PublicKey].FinalOrderOfNextRound =
+                        RealTimeMinersInformation[orderConflictedMiner.Pubkey].FinalOrderOfNextRound =
                             maybeNewOrder;
                         break;
                     }

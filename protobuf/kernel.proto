@@ -136,7 +136,7 @@ message BinaryMerkleTree {
 }
 
 message BlockAbstract {
-    string miner_publickey = 1;
+    string miner_pubkey = 1;
     google.protobuf.Timestamp time = 2;
 }
 
