@@ -184,17 +184,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
-        private void CleanTransactions(List<Hash> transactionIds)
+        private void CleanTransactions(IEnumerable<Hash> transactionIds)
         {
             foreach (var transactionId in transactionIds)
             {
                 _allTransactions.TryRemove(transactionId, out _);
             }
-            
-            LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
-            {
-                TransactionIds = transactionIds
-            });
         }
 
         #endregion
@@ -260,10 +255,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     });
                 }
             }
-            await LocalEventBus.PublishAsync(new TransactionResourcesNeededEvent()
-            {
-                Transactions = executableTransactions
-            });
         }
 
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)

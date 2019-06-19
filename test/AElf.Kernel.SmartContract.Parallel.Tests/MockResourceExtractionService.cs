@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -17,12 +19,22 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 (tx, TransactionResourceInfo.Parser.ParseFrom(tx.Params))));
         }
 
-        public Task HandleTransactionResourcesNeededAsync(TransactionResourcesNeededEvent eventData)
+        public Task HandleTransactionAcceptedEvent(TransactionAcceptedEvent eventData)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task HandleTransactionResourcesNoLongerNeededAsync(TransactionResourcesNoLongerNeededEvent eventData)
+        public Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             throw new System.NotImplementedException();
         }
