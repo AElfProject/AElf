@@ -52,22 +52,25 @@ namespace AElf.OS.Account.Application
         private async Task<ECKeyPair> GetAccountKeyPairAsync()
         {
             var nodeAccount = _accountOptions.NodeAccount;
+            var nodePassword = _accountOptions.NodeAccountPassword ?? string.Empty;
             if (string.IsNullOrWhiteSpace(nodeAccount))
             {
                 var accountList = await _keyStore.ListAccountsAsync();
                 if (accountList.Count == 0)
                 {
-                    var keyPair = await _keyStore.CreateAsync(_accountOptions.NodeAccountPassword);
-                    return keyPair;
+                    var keyPair = await _keyStore.CreateAsync(nodePassword);
+                    nodeAccount = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
                 }
-
-                nodeAccount = accountList.First();
+                else
+                {
+                    nodeAccount = accountList.First();
+                }
             }
 
             var accountKeyPair = _keyStore.GetAccountKeyPair(nodeAccount);
             if (accountKeyPair == null)
             {
-                await _keyStore.OpenAsync(nodeAccount, _accountOptions.NodeAccountPassword, false);
+                await _keyStore.OpenAsync(nodeAccount, nodePassword, false);
                 accountKeyPair = _keyStore.GetAccountKeyPair(nodeAccount);
             }
 

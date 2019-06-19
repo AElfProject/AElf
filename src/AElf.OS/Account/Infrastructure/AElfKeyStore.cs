@@ -152,20 +152,12 @@ namespace AElf.OS.Account.Infrastructure
 
             // Ensure path exists
             GetOrCreateKeystoreDir();
+            
+            var address = Address.FromPublicKey(keyPair.PublicKey);
+            var fullPath = GetKeyFileFullPath(address.GetFormatted());
 
-            string fullPath;
-            try
-            {
-                var address = Address.FromPublicKey(keyPair.PublicKey);
-                fullPath = GetKeyFileFullPath(address.GetFormatted());
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Could not calculate the address from the keypair.", e);
-                return false;
-            }
-
-            var privateKeyParam = new ECPrivateKeyParameters(new BigInteger(1, keyPair.PrivateKey), ECParameters.DomainParams);
+            var privateKeyParam =
+                new ECPrivateKeyParameters(new BigInteger(1, keyPair.PrivateKey), ECParameters.DomainParams);
             var publicKeyParam = new ECPublicKeyParameters("EC", ECParameters.Curve.Curve.DecodePoint(keyPair.PublicKey), ECParameters.DomainParams);
 
             var asymmetricCipherKeyPair = new AsymmetricCipherKeyPair(publicKeyParam, privateKeyParam);

@@ -19,4 +19,9 @@ namespace AElf.OS
     {
         
     }
+
+    public class KeyStoreTestBase : AElfIntegratedTest<KeyStoreTestAElfModule>
+    {
+        
+    }
 }
