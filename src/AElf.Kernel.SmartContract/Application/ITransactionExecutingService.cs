@@ -15,8 +15,7 @@ namespace AElf.Kernel.SmartContract.Application
     public interface ITransactionExecutingService
     {
         Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
-            CancellationToken cancellationToken, bool throwException = false,
-            BlockStateSet partialBlockStateSet = null);
+            CancellationToken cancellationToken, bool throwException = false);
     }
 
     public class TransactionExecutingService : ITransactionExecutingService
@@ -36,11 +35,11 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
-            CancellationToken cancellationToken, bool throwException, BlockStateSet partialBlockStateSet)
+            CancellationToken cancellationToken, bool throwException)
         {
-            var groupStateCache = partialBlockStateSet == null
+            var groupStateCache = transactionExecutingDto.PartialBlockStateSet == null
                 ? new TieredStateCache()
-                : new TieredStateCache(new StateCacheFromPartialBlockStateSet(partialBlockStateSet));
+                : new TieredStateCache(new StateCacheFromPartialBlockStateSet(transactionExecutingDto.PartialBlockStateSet));
             var groupChainContext = new ChainContextWithTieredStateCache(
                 transactionExecutingDto.BlockHeader.PreviousBlockHash,
                 transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);

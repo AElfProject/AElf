@@ -57,8 +57,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
             if (cancellable.Count > 0)
             {
                 cancellableReturnSets = await _executingService.ExecuteAsync(
-                    new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = cancellable},
-                    cancellationToken, false, returnSetCollection.ToBlockStateSet());
+                    new TransactionExecutingDto
+                    {
+                        BlockHeader = blockHeader,
+                        Transactions = cancellable,
+                        PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
+                    },
+                    cancellationToken, false);
                 returnSetCollection.AddRange(cancellableReturnSets);
             }
 
