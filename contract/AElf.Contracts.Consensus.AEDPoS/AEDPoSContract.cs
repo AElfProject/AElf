@@ -55,6 +55,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.FirstRoundNumberOfEachTerm[1] = 1L;
             SetBlockchainStartTimestamp(input.GetStartTime());
             State.MiningInterval.Value = input.GetMiningInterval();
+            State.MainChainCurrentMinerList.Value = new MinerList
+            {
+                PublicKeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
+            };
 
             if (State.ElectionContract.Value != null)
             {
