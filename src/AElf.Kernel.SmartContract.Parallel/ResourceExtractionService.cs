@@ -11,6 +11,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Parallel
@@ -19,7 +20,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private ILogger<TransactionGrouper> Logger { get; set; }
+        public ILogger<ResourceExtractionService> Logger { get; set; }
 
         private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache = 
             new ConcurrentDictionary<Hash, TransactionResourceCache>();
@@ -29,6 +30,8 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             _smartContractExecutiveService = smartContractExecutiveService;
             _blockchainService = blockchainService;
+            
+            Logger = NullLogger<ResourceExtractionService>.Instance;
         }
 
         public async Task<IEnumerable<(Transaction, TransactionResourceInfo)>> GetResourcesAsync(IChainContext chainContext,
