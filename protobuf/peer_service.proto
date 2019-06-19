@@ -16,71 +16,56 @@ service PeerService {
     rpc Connect (Handshake) returns (ConnectReply) {}
     
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
-    
-    rpc GetConnectedPeers(PeersRequest) returns (PeersResponse){}
 }
 
 // **** Connection *****
 
 message ConnectReply {
-    Handshake Handshake = 1;
-    AuthError Err = 2;
+    Handshake handshake = 1;
+    AuthError error = 2;
 }
 
 enum AuthError {
-    None = 0;
-    UnknownError = 1;
-    WrongSig = 2;
-    WrongAuth = 3;
-    InvalidHandshake = 4;
-    InvalidPeer = 5;
-    ChainMismatch = 6;
-    ProtocolMismatch = 7;
-    ConnectionRefused = 8;
+    NONE = 0;
+    UNKNOWN = 1;
+    WRONG_SIGNATURE = 2;
+    INVALID_HANDSHAKE = 3;
+    INVALID_PEER = 4;
+    CHAIN_MISMATCH = 5;
+    PROTOCOL_MISMATCH = 6;
+    CONNECTION_REFUSED = 7;
 }
 
 // **** Blocks *****
 
 message BlocksRequest {
-    aelf.Hash PreviousBlockHash = 1;
-    int32 Count = 2;
+    aelf.Hash previous_block_hash = 1;
+    int32 count = 2;
 }
 
 message BlockList {
-    repeated BlockWithTransactions Blocks = 1;
+    repeated BlockWithTransactions blocks = 1;
 }
 
 message DisconnectReason {
-    Reason Why = 1;
+    Reason why = 1;
     enum Reason {
         SHUTDOWN = 0;
     }
 }
 
-message Announcement {
-    aelf.BlockHeader Header = 1;
-}
-
 message BlockRequest {
-    aelf.Hash Hash = 1;
+    aelf.Hash hash = 1;
 }
 
 message BlockReply {
-    string Error = 1;
-    BlockWithTransactions Block = 2;
+    string error = 1;
+    BlockWithTransactions block = 2;
 }
 
 // **** No reply *****
 
 message VoidReply {
-}
-
-message PeersRequest{
-    
-}
-
-message PeersResponse{
-    repeated string IpList = 1;
 }
 
 
