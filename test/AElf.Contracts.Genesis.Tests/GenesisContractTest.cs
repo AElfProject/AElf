@@ -18,29 +18,12 @@ namespace AElf.Contracts.Genesis
             var result = await DefaultTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value),
-                Name = Hash.FromString("MultiToken")
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
             });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var address = DefaultTester.GetContractAddressByName.CallAsync(Hash.FromString("MultiToken")).Result;
-            result.Output.ShouldBe(address);
+            result.Output.ShouldNotBeNull();
             return result.Output;
         }
-        
-        [Fact]
-        public async Task DeploySmartContracts_RepeatedName()
-        {
-            await Deploy_SmartContracts();
-            var result = await DefaultTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
-            {
-                Category = KernelConstants.DefaultRunnerCategory, 
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value),
-                Name = Hash.FromString("MultiToken")
-            });
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("contract name already been registered").ShouldBeTrue();
-        }
-
 
         [Fact]
         public async Task Query_SmartContracts_info()

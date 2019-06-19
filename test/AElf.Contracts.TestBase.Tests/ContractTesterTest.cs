@@ -142,8 +142,7 @@ namespace AElf.Contracts.TestBase.Tests
                 new ContractDeploymentInput
                 {
                     Category = DefaultCategory,
-                    Code = ByteString.CopyFrom(TokenContractCode),
-                    Name = Hash.FromString("MultiToken")
+                    Code = ByteString.CopyFrom(TokenContractCode)
                 }
             );
 

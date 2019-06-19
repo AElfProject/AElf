@@ -16,10 +16,10 @@ namespace AElf.Contracts.Genesis
         public async Task Initialize_AlreadyExist()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.InitializeGenesisOwner), new InitializeGenesisOwnerInput());
+                nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), Address.FromString("Genesis"));
 
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            txResult.Error.Contains("Genesis owner already initialized").ShouldBeTrue();
+            txResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
         }
 
         [Fact]
@@ -28,8 +28,7 @@ namespace AElf.Contracts.Genesis
             var contractDeploymentInput = new ContractDeploymentInput
             {
                 Category = KernelConstants.DefaultRunnerCategory, // test the default runner
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value),
-                Name = Hash.FromString("MultiToken")
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
             };
             string methodName = "DeploySmartContract";
             //create proposal to deploy
@@ -72,8 +71,7 @@ namespace AElf.Contracts.Genesis
                 nameof(ACS0Container.ACS0Stub.DeploySmartContract), (new ContractDeploymentInput()
                 {
                     Category = KernelConstants.DefaultRunnerCategory, 
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value),
-                    Name = Hash.FromString("MultiToken")
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
                 }));
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
@@ -86,8 +84,7 @@ namespace AElf.Contracts.Genesis
                 nameof(ACS0Container.ACS0Stub.DeploySmartContract), (new ContractDeploymentInput()
                 {
                     Category = KernelConstants.DefaultRunnerCategory, 
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value),
-                    Name = Hash.FromString("MultiToken")
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
                 }));
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
             txResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();

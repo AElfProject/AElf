@@ -50,8 +50,7 @@ namespace AElf.Contracts.TestKit
             var res = await zeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput()
             {
                 Category = category,
-                Code = ByteString.CopyFrom(code),
-                Name = hashName
+                Code = ByteString.CopyFrom(code)
             });
             return res.Output;
         }
