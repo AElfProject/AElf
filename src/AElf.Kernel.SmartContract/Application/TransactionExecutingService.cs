@@ -103,7 +103,8 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, IChainContext chainContext,
-            Transaction transaction, Timestamp currentBlockTime, CancellationToken cancellationToken)
+            Transaction transaction, Timestamp currentBlockTime, CancellationToken cancellationToken,
+            Address origin = null)
         {
             if (cancellationToken.IsCancellationRequested)
             {
@@ -135,6 +136,11 @@ namespace AElf.Kernel.SmartContract.Application
                 CallDepth = depth,
                 StateCache = chainContext.StateCache
             };
+
+            if (origin != null)
+            {
+                txCtxt.Origin = origin;
+            }
 
             var internalStateCache = new TieredStateCache(chainContext.StateCache);
             var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
@@ -188,7 +194,7 @@ namespace AElf.Kernel.SmartContract.Application
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
                     var inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
-                        currentBlockTime, cancellationToken);
+                        currentBlockTime, cancellationToken, txCtxt.Origin);
                     trace.InlineTraces.Add(inlineTrace);
                     if (!inlineTrace.IsSuccessful())
                     {

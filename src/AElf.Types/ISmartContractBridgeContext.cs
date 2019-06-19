@@ -11,7 +11,6 @@ namespace AElf
     {
         public ContextVariableDictionary(IDictionary<string, string> dictionary) : base(dictionary)
         {
-        
         }
 
         public string NativeSymbol => this[nameof(NativeSymbol)];
@@ -34,14 +33,16 @@ namespace AElf
         Address Sender { get; }
 
         Address Self { get; }
-        
+
+        Address Origin { get; }
+
         long CurrentHeight { get; }
 
         Timestamp CurrentBlockTime { get; }
         Hash PreviousBlockHash { get; }
 
         byte[] RecoverPublicKey();
-        
+
         List<Transaction> GetPreviousBlockTransactions();
 
         bool VerifySignature(Transaction tx);

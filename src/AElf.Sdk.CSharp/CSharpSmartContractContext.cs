@@ -7,7 +7,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp
 {
-    public class CSharpSmartContractContext
+    public class CSharpSmartContractContext : ISmartContractBridgeContext
     {
         private readonly ISmartContractBridgeContext _smartContractBridgeContextImplementation;
 
@@ -37,6 +37,7 @@ namespace AElf.Sdk.CSharp
         public Address Sender => _smartContractBridgeContextImplementation.Sender;
 
         public Address Self => _smartContractBridgeContextImplementation.Self;
+        public Address Origin => _smartContractBridgeContextImplementation.Origin;
 
         public long CurrentHeight => _smartContractBridgeContextImplementation.CurrentHeight;
 
