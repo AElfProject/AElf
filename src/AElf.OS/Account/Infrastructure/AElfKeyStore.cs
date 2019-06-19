@@ -194,15 +194,8 @@ namespace AElf.OS.Account.Infrastructure
 
         private DirectoryInfo GetOrCreateKeystoreDir()
         {
-            try
-            {
-                var dirPath = GetKeystoreDirectoryPath();
-                return Directory.CreateDirectory(dirPath);
-            }
-            catch (Exception e)
-            {
-                throw new KeyStoreNotFoundException("Invalid data directory path", e);
-            }
+            var dirPath = GetKeystoreDirectoryPath();
+            return Directory.CreateDirectory(dirPath);
         }
 
         private string GetKeystoreDirectoryPath()
