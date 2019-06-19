@@ -43,6 +43,6 @@ message ProposalInfo {
     bytes params = 4;
     google.protobuf.Timestamp expired_time = 5;
     aelf.Address proposer = 6;
-    aelf.Address organization_address =7;
+    aelf.Address organization_address = 7;
     repeated aelf.Address approved_representatives = 8;
 }
