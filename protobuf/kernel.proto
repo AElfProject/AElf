@@ -176,7 +176,7 @@ message BlockHeader {
 message BlockBody {
     Hash BlockHeader = 1;
     repeated Hash Transactions = 2;
-    // TODO: remove
+    // DONE: remove
     repeated Transaction TransactionList = 3;
 }
 
@@ -208,30 +208,30 @@ message BinaryMerkleTree {
 //    repeated Hash Path = 1;
 //}
 //
-// TODO: check with yiqi
+// DONE: check with yiqi
 //message StringList {
 //    repeated string Values = 1;
 //    string Remark = 2;
 //}
 
-// TODO: check with yiqi
+// DONE: check with yiqi
 //message HashList {
 //    repeated Hash Values = 1;
 //}
 
-// TODO: check with yiqi
+// DONE: check with yiqi
 //message LongList {
 //    repeated int64 Values = 1;
 //    string Remark = 2;
 //}
 
-// TODO: check with yiqi or remove
+// DONE: check with yiqi or remove
 message BlockAbstract {
     string MinerPublicKey = 1;
     google.protobuf.Timestamp Time = 2;
 }
 
-// TODO: remove
+// DONE: remove
 enum BlockValidationResult {
     // The chosen one!
     Success = 0;
@@ -290,7 +290,7 @@ message ChainStateInfo {
     ChainStateMergingStatus Status = 5;
 }
 
-// TODO: check with yiqi
+// DONE: check with yiqi
 //message ActionResult {
 //    bool Success = 1;
 //    string ErrorMessage = 2;
