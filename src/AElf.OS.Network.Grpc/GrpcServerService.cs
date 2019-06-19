@@ -132,7 +132,7 @@ namespace AElf.OS.Network.Grpc
                 StartHeight = handshake.BestChainBlockHeader.Height,
                 IsInbound = true
             };
-
+            
             return new GrpcPeer(channel, client, connectionInfo);
         }
 
