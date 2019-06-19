@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using AElf.Cryptography.ECDSA;
 
-namespace AElf.Cryptography
+namespace AElf.OS.Account.Infrastructure
 {
     public class OpenAccount
     {
