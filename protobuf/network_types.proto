@@ -7,27 +7,27 @@ import "aelf/core.proto";
 import "kernel.proto";
 
 message Handshake {
-    HandshakeData HskData = 1;
-    bytes Signature = 2;
-    bool Success = 3;
-    aelf.BlockHeader Header = 4;
-    sint64 LibBlockHeight = 5;
+    HandshakeData handshake_data = 1;
+    bytes signature = 2;
+    bool success = 3;
+    aelf.BlockHeader best_chain_block_header = 4;
+    sint64 lib_block_height = 5;
 }
 
 message HandshakeData {
-    int32 ChainId = 1;
-    int32 Version = 2;
-    int64 ListeningPort = 3;
-    bytes PublicKey = 4;
+    int32 chain_id = 1;
+    int32 version = 2;
+    int64 listening_port = 3;
+    bytes pubkey = 4;
 }
 
 message PeerNewBlockAnnouncement {
-    aelf.Hash BlockHash = 1;
-    int64 BlockHeight = 2;
-    bool HasFork = 3;
+    aelf.Hash block_hash = 1;
+    int64 block_height = 2;
+    bool has_fork = 3;
 }
 
 message BlockWithTransactions {
-    aelf.BlockHeader Header = 1;
-    repeated aelf.Transaction Transactions = 2;
+    aelf.BlockHeader header = 1;
+    repeated aelf.Transaction transactions = 2;
 }

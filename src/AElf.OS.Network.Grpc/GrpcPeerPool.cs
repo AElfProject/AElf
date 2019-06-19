@@ -106,22 +106,22 @@ namespace AElf.OS.Network.Grpc
 
             // todo refactor so that connect returns the handshake and we'll check here 
             // todo if not correct we kill the channel.
-            if (connectReply?.Handshake?.HskData == null || connectReply.Err != AuthError.None)
+            if (connectReply?.Handshake?.HandshakeData == null || connectReply.Error != AuthError.None)
             {
-                Logger.LogWarning($"Incorrect handshake for {ipAddress}, {connectReply?.Err}.");
+                Logger.LogWarning($"Incorrect handshake for {ipAddress}, {connectReply?.Error}.");
                 await channel.ShutdownAsync();
                 return false;
             }
 
-            var pubKey = connectReply.Handshake.HskData.PublicKey.ToHex();
+            var pubKey = connectReply.Handshake.HandshakeData.Pubkey.ToHex();
             
             var connectionInfo = new GrpcPeerInfo
             {
                 PublicKey = pubKey,
                 PeerIpAddress = ipAddress,
-                ProtocolVersion = connectReply.Handshake.HskData.Version,
+                ProtocolVersion = connectReply.Handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = connectReply.Handshake.Header.Height,
+                StartHeight = connectReply.Handshake.BestChainBlockHeader.Height,
                 IsInbound = false,
                 LibHeightAtHandshake = connectReply.Handshake.LibBlockHeight
             };
@@ -141,8 +141,8 @@ namespace AElf.OS.Network.Grpc
 
             _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(new PeerNewBlockAnnouncement
             {
-                BlockHash = connectReply.Handshake.Header.GetHash(),
-                BlockHeight = connectReply.Handshake.Header.Height
+                BlockHash = connectReply.Handshake.BestChainBlockHeader.GetHash(),
+                BlockHeight = connectReply.Handshake.BestChainBlockHeader.Height
             }, pubKey));
 
             return true;
@@ -212,7 +212,7 @@ namespace AElf.OS.Network.Grpc
             var nd = new HandshakeData
             {
                 ListeningPort = _networkOptions.ListeningPort,
-                PublicKey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
+                Pubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
                 Version = KernelConstants.ProtocolVersion,
                 ChainId = _blockchainService.GetChainId()
             };
@@ -223,9 +223,9 @@ namespace AElf.OS.Network.Grpc
                 
             var hsk = new Handshake
             {
-                HskData = nd,
+                HandshakeData = nd,
                 Signature = ByteString.CopyFrom(sig),
-                Header = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
+                BestChainBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
                 LibBlockHeight = chain?.LastIrreversibleBlockHeight ?? 0
             };
 
