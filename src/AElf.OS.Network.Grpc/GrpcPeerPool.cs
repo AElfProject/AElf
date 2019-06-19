@@ -23,7 +23,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class GrpcPeerPool : IPeerPool, ILocalEventHandler<PeerDisconnectionEvent>
+    public class GrpcPeerPool : IPeerPool
     {
         private readonly NetworkOptions _networkOptions;
 
@@ -256,12 +256,6 @@ namespace AElf.OS.Network.Grpc
             return false;
         }
         
-        public async Task HandleEventAsync(PeerDisconnectionEvent eventData)
-        {
-            if (eventData.Peer is GrpcPeer p)
-                await RemovePeerAsync(p.PubKey, false);
-        }
-
         public async Task<IPeer> RemovePeerAsync(string publicKey, bool sendDisconnect)
         {
             if (_authenticatedPeers.TryRemove(publicKey, out GrpcPeer removed))
