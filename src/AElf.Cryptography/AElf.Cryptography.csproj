@@ -10,7 +10,6 @@
         <PackageReference Include="Virgil.Crypto" Version="2.4.10" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
         <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
 </Project>
