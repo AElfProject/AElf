@@ -52,16 +52,23 @@ namespace AElf.OS.Network.Application
         {
             int successfulBcasts = 0;
             
+            var blockHash = blockHeader.GetHash();
+            if (!_peerPool.AddAnnouncementCache(blockHeader.Height, blockHash))
+            {
+                Logger.LogDebug($"Block: {blockHeader} has been broadcast.");
+                return successfulBcasts;
+            }
+
             var announce = new PeerNewBlockAnnouncement
             {
-                BlockHash = blockHeader.GetHash(),
+                BlockHash = blockHash,
                 BlockHeight = blockHeader.Height,
                 HasFork = hasFork
             };
             
             var peers = _peerPool.GetPeers().ToList();
 
-            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash(), hasFork);
+            _peerPool.AddRecentBlockHeightAndHash(announce.BlockHeight, announce.BlockHash, hasFork);
             
             Logger.LogDebug("About to broadcast to peers.");
             
