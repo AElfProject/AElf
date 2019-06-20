@@ -16,12 +16,14 @@ namespace AElf.OS.Network.Application
     public class NetworkService : INetworkService, ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
+        private readonly ITaskQueueManager _taskQueueManager;
 
         public ILogger<NetworkService> Logger { get; set; }
 
-        public NetworkService(IPeerPool peerPool)
+        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager)
         {
             _peerPool = peerPool;
+            _taskQueueManager = taskQueueManager;
 
             Logger = NullLogger<NetworkService>.Instance;
         }
@@ -87,9 +89,10 @@ namespace AElf.OS.Network.Application
 
                 return true;
             }
-            catch (NetworkException e)
+            catch (NetworkException ex)
             {
-                Logger.LogError(e, "Error while sending block.");
+                Logger.LogError(ex, "Error while announcing.");
+                await HandleNetworkException(peer, ex);
             }
 
             return false;
@@ -107,9 +110,10 @@ namespace AElf.OS.Network.Application
                     
                     successfulBcasts++;
                 }
-                catch (NetworkException e)
+                catch (NetworkException ex)
                 {
-                    Logger.LogError(e, "Error while sending transaction.");
+                    Logger.LogError(ex, "Error while sending transaction.");
+                    await HandleNetworkException(peer, ex);
                 }
             }
             
@@ -185,12 +189,41 @@ namespace AElf.OS.Network.Application
                 
                 return (peer, res);
             }
-            catch (NetworkException e)
+            catch (NetworkException ex)
             {
-                Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
+                Logger.LogError(ex, $"Error while requesting block from {peer.PeerIpAddress}.");
+                await HandleNetworkException(peer, ex);
             }
             
             return (peer, null);
+        }
+
+        private async Task HandleNetworkException(IPeer peer, NetworkException exception)
+        {
+            if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
+            {
+                await _peerPool.RemovePeerAsync(peer.PubKey, false);
+            }
+            else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
+            {
+                Logger.LogError(exception, $"Queuing for reconnection {peer.PeerIpAddress}.");
+                QueueConnectionWait(peer);
+            }
+        }
+
+        private void QueueConnectionWait(IPeer peer)
+        {
+            _taskQueueManager.Enqueue(async () =>
+            {
+                if (peer.IsReady) // peer recovered already
+                    return;
+                
+                var success = await peer.TryWaitForStateChangedAsync();
+
+                if (!success)
+                    await _peerPool.RemovePeerAsync(peer.PubKey, false);
+                
+            }, NetworkConstants.PeerReconnectionQueueName);
         }
 
         private async Task<T> RequestAsync<T>(List<IPeer> peers, Func<IPeer, Task<T>> func,

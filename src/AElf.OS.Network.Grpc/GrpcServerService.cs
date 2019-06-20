@@ -137,7 +137,7 @@ namespace AElf.OS.Network.Grpc
                 IsInbound = true,
                 LibHeightAtHandshake = handshake.LibBlockHeight
             };
-
+            
             return new GrpcPeer(channel, client, connectionInfo);
         }
 
