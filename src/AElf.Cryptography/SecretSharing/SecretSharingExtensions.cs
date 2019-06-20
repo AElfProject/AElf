@@ -19,7 +19,7 @@ namespace AElf.Cryptography.SecretSharing
         public static byte[] ToBytesArray(this BigInteger integer)
         {
             var tempBytes = integer.ToByteArray().Reverse().ToArray();
-            var result = new byte[32];
+            var result = new byte[tempBytes.Length-1];
             Array.Copy(tempBytes,0,result,0,result.Length);
 
             return result;
