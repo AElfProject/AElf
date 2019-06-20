@@ -152,7 +152,7 @@ namespace AElf.CrossChain
                 }
             };
             
-            block.Header.BlockExtraData.Add(new CrossChainExtraData{SideChainTransactionsRoot = merkleTreeRoot}.ToByteString());
+            block.Header.ExtraData.Add(new CrossChainExtraData{SideChainTransactionsRoot = merkleTreeRoot}.ToByteString());
             return block;
         }
 

@@ -36,7 +36,7 @@ namespace AElf.CrossChain.Communication.Grpc
                         Header = new BlockHeader
                         {
                             ChainId = 0,
-                            BlockExtraData =
+                            ExtraData =
                             {
                                 ByteString.CopyFrom(new CrossChainExtraData().ToByteArray()),
                                 ByteString.CopyFrom(Hash.Generate().ToByteArray())
