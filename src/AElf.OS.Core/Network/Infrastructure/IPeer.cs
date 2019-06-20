@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.OS.Network.Types;
 using AElf.Types;
 
 namespace AElf.OS.Network.Infrastructure
@@ -19,7 +20,7 @@ namespace AElf.OS.Network.Infrastructure
         
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         
-        IReadOnlyDictionary<long, Hash> PreLibBlockHeightAndHashMappings { get; }
+        IReadOnlyDictionary<long, PreLibBlockInfo> PreLibBlockHeightAndHashMappings { get; }
 
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
 
@@ -32,6 +33,7 @@ namespace AElf.OS.Network.Infrastructure
 
         Task AnnounceAsync(PeerNewBlockAnnouncement an);
         Task PreLibAnnounceAsync(PeerPreLibAnnouncement peerPreLibAnnouncement);
+        Task<bool> PreLibConfirmAsync(PeerPreLibConfirm peerPreLibConfirm);
         Task SendTransactionAsync(Transaction tx);
         Task<BlockWithTransactions> RequestBlockAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);

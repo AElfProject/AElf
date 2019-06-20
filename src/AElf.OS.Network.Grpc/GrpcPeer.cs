@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Types;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -28,7 +29,8 @@ namespace AElf.OS.Network.Grpc
             Announce,
             GetBlocks,
             GetBlock,
-            PreLibAnnounce
+            PreLibAnnounce,
+            PreLibConfirm
         };
         
         public event EventHandler DisconnectionEvent;
@@ -59,8 +61,8 @@ namespace AElf.OS.Network.Grpc
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
 
-        public IReadOnlyDictionary<long, Hash> PreLibBlockHeightAndHashMappings { get; }
-        private readonly ConcurrentDictionary<long, Hash> _preLibBlockHeightAndHashMappings;
+        public IReadOnlyDictionary<long, PreLibBlockInfo> PreLibBlockHeightAndHashMappings { get; }
+        private readonly ConcurrentDictionary<long, PreLibBlockInfo> _preLibBlockHeightAndHashMappings;
         
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
@@ -80,8 +82,8 @@ namespace AElf.OS.Network.Grpc
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
             
-            _preLibBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
-            PreLibBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_preLibBlockHeightAndHashMappings);
+            _preLibBlockHeightAndHashMappings = new ConcurrentDictionary<long, PreLibBlockInfo>();
+            PreLibBlockHeightAndHashMappings = new ReadOnlyDictionary<long, PreLibBlockInfo>(_preLibBlockHeightAndHashMappings);
             
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
             RecentRequestsRoundtripTimes = new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
@@ -90,6 +92,8 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.PreLibAnnounce),
+                new ConcurrentQueue<RequestMetric>());
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.PreLibConfirm),
                 new ConcurrentQueue<RequestMetric>());
         }
 
@@ -179,8 +183,23 @@ namespace AElf.OS.Network.Grpc
 
             return RequestAsync(_client, c => c.PreLibAnnounceAsync(peerPreLibAnnouncement, data), request);
         }
-        
-        
+
+        public async Task<bool> PreLibConfirmAsync(PeerPreLibConfirm peerPreLibConfirm)
+        {
+            var request = new GrpcRequest
+            {
+                ErrorMessage = $"Pre lib confirm for {peerPreLibConfirm.BlockHash} failed.",
+                MetricName = nameof(MetricNames.GetBlock),
+                MetricInfo = $"Pre lib confirm for {peerPreLibConfirm.BlockHash}"
+            };
+
+            var data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
+
+            var preLibConfirmReply 
+                = await RequestAsync(_client, c => c.PreLibConfirmAsync(peerPreLibConfirm, data), request);
+
+            return preLibConfirmReply?.Confirm ?? false;
+        }
 
         public Task SendTransactionAsync(Transaction tx)
         {
@@ -301,17 +320,14 @@ namespace AElf.OS.Network.Grpc
 
         public void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement)
         {
-            if (peerNewBlockAnnouncement.HasFork)
-            {
-                _recentBlockHeightAndHashMappings.Clear();
-                _preLibBlockHeightAndHashMappings.Clear();
-                return;
-            }
-            
             CurrentBlockHeight = peerNewBlockAnnouncement.BlockHeight;
             CurrentBlockHash = peerNewBlockAnnouncement.BlockHash;
+            if (peerNewBlockAnnouncement.HasFork)
+            {
+                _preLibBlockHeightAndHashMappings.TryRemove(CurrentBlockHeight, out _);
+            }
             _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
-            while (_recentBlockHeightAndHashMappings.Count > 10)
+            while (_recentBlockHeightAndHashMappings.Count > 20)
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
             }
@@ -319,10 +335,26 @@ namespace AElf.OS.Network.Grpc
 
         public void HandlerRemotePreLibAnnounce(PeerPreLibAnnouncement peerPreLibAnnouncement)
         {
-            CurrentBlockHeight = peerPreLibAnnouncement.BlockHeight;
-            CurrentBlockHash = peerPreLibAnnouncement.BlockHash;
-            _preLibBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
-            while (_preLibBlockHeightAndHashMappings.Count > 10)
+            var blockHeight = peerPreLibAnnouncement.BlockHeight;
+            var blockHash = peerPreLibAnnouncement.BlockHash;
+            var preLibCount = peerPreLibAnnouncement.PreLibCount;
+            if (_preLibBlockHeightAndHashMappings.TryGetValue(blockHeight, out var preLibBlockInfo))
+            {
+                if(preLibBlockInfo.BlockHash == blockHash && preLibCount > preLibBlockInfo.PreLibCount)
+                    preLibBlockInfo.PreLibCount = preLibCount;
+                preLibBlockInfo.BlockHash = blockHash;
+            }
+            else
+            {
+                preLibBlockInfo = new PreLibBlockInfo
+                {
+                    BlockHash = blockHash,
+                    PreLibCount = preLibCount
+                };
+            }
+
+            _preLibBlockHeightAndHashMappings[blockHeight] = preLibBlockInfo;
+            while (_preLibBlockHeightAndHashMappings.Count > 20)
             {
                 _preLibBlockHeightAndHashMappings.TryRemove(_preLibBlockHeightAndHashMappings.Keys.Min(), out _);
             }

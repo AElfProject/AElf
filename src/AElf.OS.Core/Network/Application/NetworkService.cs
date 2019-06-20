@@ -77,9 +77,9 @@ namespace AElf.OS.Network.Application
             return successfulBcasts;
         }
 
-        public async Task<int> BroadcastPreLibAnnounceAsync(long blockHeight, Hash blockHash)
+        public async Task<int> BroadcastPreLibAnnounceAsync(long blockHeight, Hash blockHash,int preLibCount)
         {
-            int successfulBcasts = 0;
+            var successfulBcasts = 0;
             
             var hasBlock = _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeight, out var hash) &&
                            hash == blockHash;
@@ -88,12 +88,13 @@ namespace AElf.OS.Network.Application
             var announce = new PeerPreLibAnnouncement
             {
                 BlockHash = blockHash,
-                BlockHeight = blockHeight
+                BlockHeight = blockHeight,
+                PreLibCount = preLibCount
             };
 
             var peers = _peerPool.GetPeers().ToList();
 
-            _peerPool.AddPreLibBlockHeightAndHash(announce.BlockHeight, announce.BlockHash);
+            _peerPool.AddPreLibBlockHeightAndHash(announce.BlockHeight, announce.BlockHash, preLibCount);
 
             Logger.LogDebug("About to broadcast pre lib to peers.");
 

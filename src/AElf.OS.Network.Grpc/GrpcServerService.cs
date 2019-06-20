@@ -227,6 +227,20 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new VoidReply());
         }
 
+        public override Task<PeerPreLibConfirmReply> PreLibConfirm(PeerPreLibConfirm request, ServerCallContext context)
+        {
+            var confirm = false;
+            var hasBlock =
+                _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(request.BlockHeight, out var blockHash) &&
+                blockHash == request.BlockHash;
+            var hasPreLib =
+                _peerPool.PreLibBlockHeightAndHashMappings.TryGetValue(request.BlockHeight, out var preLibBlockInfo) &&
+                preLibBlockInfo.BlockHash == request.BlockHash;
+            if (hasBlock && hasPreLib)
+                confirm = true;
+            return Task.FromResult(new PeerPreLibConfirmReply {Confirm = confirm});
+        }
+
         /// <summary>
         /// This method returns a block. The parameter is a <see cref="BlockRequest"/> object, if the value
         /// of <see cref="BlockRequest.Hash"/> is not null, the request is by ID, otherwise it will be

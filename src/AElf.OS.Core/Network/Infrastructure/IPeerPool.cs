@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.OS.Network.Types;
 using AElf.Types;
 
 namespace AElf.OS.Network.Infrastructure
@@ -13,7 +14,7 @@ namespace AElf.OS.Network.Infrastructure
         
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         
-        IReadOnlyDictionary<long, Hash> PreLibBlockHeightAndHashMappings { get; }
+        IReadOnlyDictionary<long, PreLibBlockInfo> PreLibBlockHeightAndHashMappings { get; }
         
         IPeer FindPeerByAddress(string peerIpAddress);
         IPeer FindPeerByPublicKey(string remotePubKey);
@@ -26,6 +27,6 @@ namespace AElf.OS.Network.Infrastructure
 
         void AddRecentBlockHeightAndHash(long blockHeight, Hash blockHash, bool hasFork);
 
-        void AddPreLibBlockHeightAndHash(long blockHeight, Hash blockHash);
+        void AddPreLibBlockHeightAndHash(long blockHeight, Hash blockHash,int preLibCount);
     }
 }

@@ -15,7 +15,7 @@ namespace AElf.OS.Network.Application
         List<IPeer> GetPeers();
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null);
         Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork);
-        Task<int> BroadcastPreLibAnnounceAsync(long blockHeight, Hash blockHash);
+        Task<int> BroadcastPreLibAnnounceAsync(long blockHeight, Hash blockHash, int preLibCount);
         Task<int> BroadcastTransactionAsync(Transaction tx);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, string peerPubKey = null);
         Task<long> GetBestChainHeightAsync(string peerPubKey = null);

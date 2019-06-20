@@ -35,14 +35,12 @@ namespace AElf.OS.Handlers
 
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            var senderPeer = _peerPool.FindPeerByPublicKey(eventData.SenderPubKey);
-
-            if (senderPeer == null)
-                return;
-
-            var orderedBlocks = senderPeer.RecentBlockHeightAndHashMappings.OrderByDescending(p => p.Key).ToList();
-            if (orderedBlocks.Count == 0) return;
-
+            var blockHeight = eventData.Announce.BlockHeight;
+            var blockHash = eventData.Announce.BlockHash;
+            var hasBlock = _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeight, out var hash) &&
+                           hash == blockHash;
+            if (!hasBlock) return;
+            
             var chain = await _blockchainService.GetChainAsync();
             var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
             var pubkeyList = (await _dpoSInformationProvider.GetCurrentMinerList(chainContext)).ToList();
@@ -53,24 +51,33 @@ namespace AElf.OS.Handlers
             if (peers.Count == 0 && !pubkeyList.Contains(pubKey))
                 return;
 
-            foreach (var block in orderedBlocks)
-            {
-                var hasBlock = _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
-                               blockHash == block.Value;
-                if (!hasBlock) continue;
-                
-                var peersHadBlockAmount = peers.Where(p =>
-                {
-                    p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
-                    return hash == block.Value;
-                }).Count();
-                if (pubkeyList.Contains(pubKey))
-                    peersHadBlockAmount++;
+            var peersHadBlockAmount = peers.Count(p =>
+                p.RecentBlockHeightAndHashMappings.TryGetValue(blockHeight, out hash) && hash == blockHash);
+            if (pubkeyList.Contains(pubKey))
+                peersHadBlockAmount++;
 
-                var sureAmount = pubkeyList.Count.Mul(2).Div(3) + 1;
-                if (peersHadBlockAmount < sureAmount) continue;
-                var _ = _networkService.BroadcastPreLibAnnounceAsync(block.Key, block.Value);
-                return;
+            var sureAmount = pubkeyList.Count.Mul(2).Div(3) + 1;
+            if (peersHadBlockAmount < sureAmount) return;
+            var peersHadPreLibAmount = peers.Count(p =>
+                p.PreLibBlockHeightAndHashMappings.TryGetValue(blockHeight, out var preLibBlockInfo) &&
+                preLibBlockInfo.BlockHash == blockHash);
+            if (pubkeyList.Contains(pubKey))
+                peersHadPreLibAmount++;
+            var _ = _networkService.BroadcastPreLibAnnounceAsync(blockHeight, blockHash, peersHadPreLibAmount);
+            var preLibBlocks = _peerPool.PreLibBlockHeightAndHashMappings.OrderByDescending(p => p.Key);
+            foreach (var preLibBlock in preLibBlocks)
+            {
+                if (!_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(preLibBlock.Key, out var preLibHash) ||
+                    preLibHash != preLibBlock.Value.BlockHash)
+                    continue;
+                peersHadPreLibAmount = peers.Count(p =>
+                    p.PreLibBlockHeightAndHashMappings.TryGetValue(preLibBlock.Key, out var preLibBlockInfo) &&
+                    preLibBlockInfo.BlockHash == preLibHash);
+                peersHadPreLibAmount++;
+                if(peersHadPreLibAmount < sureAmount)
+                    continue;
+                _ = _networkService.BroadcastPreLibAnnounceAsync(preLibBlock.Key, preLibHash, peersHadPreLibAmount);
+                break;
             }
         }
     }
