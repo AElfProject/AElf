@@ -243,7 +243,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
             {
-                return new TransactionResult()
+                return new TransactionResult
                 {
                     TransactionId = trace.TransactionId,
                     Status = TransactionResultStatus.Unexecutable,
@@ -253,7 +253,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (trace.IsSuccessful())
             {
-                var txRes = new TransactionResult()
+                var txRes = new TransactionResult
                 {
                     TransactionId = trace.TransactionId,
                     Status = TransactionResultStatus.Mined,
@@ -263,20 +263,13 @@ namespace AElf.Kernel.SmartContract.Application
                     //StateHash = trace.GetSummarizedStateHash(),
                     Logs = {trace.FlattenedLogs}
                 };
+                
                 txRes.UpdateBloom();
-
-                // insert deferred txn to transaction pool and wait for execution 
-                if (trace.DeferredTransaction.Length != 0)
-                {
-                    var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                    txRes.DeferredTransactions.Add(deferredTxn);
-                    txRes.DeferredTxnId = deferredTxn.GetHash();
-                }
 
                 return txRes;
             }
 
-            return new TransactionResult()
+            return new TransactionResult
             {
                 TransactionId = trace.TransactionId,
                 Status = TransactionResultStatus.Failed,
@@ -286,17 +279,12 @@ namespace AElf.Kernel.SmartContract.Application
 
         private ExecutionReturnSet GetReturnSet(TransactionTrace trace, TransactionResult result)
         {
-            var returnSet = new ExecutionReturnSet()
+            var returnSet = new ExecutionReturnSet
             {
                 TransactionId = result.TransactionId,
                 Status = result.Status,
                 Bloom = result.Bloom
             };
-
-            foreach (var tx in result.DeferredTransactions)
-            {
-                returnSet.DeferredTransactions.Add(tx);
-            }
 
             if (trace.IsSuccessful())
             {

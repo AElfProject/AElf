@@ -211,11 +211,6 @@ namespace AElf.Kernel.SmartContract
             return tx.VerifySignature();
         }
 
-        public void SendDeferredTransaction(Transaction deferredTxn)
-        {
-            TransactionContext.Trace.DeferredTransaction = deferredTxn.ToByteString();
-        }
-
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
         {
             if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress()))
