@@ -37,9 +37,6 @@ namespace AElf.OS.Network.Grpc
 
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
 
-        private readonly ConcurrentDictionary<Hash, long> _recentBroadcastAnnouncementCache;
-        private readonly ConcurrentQueue<Hash> _toBeCleanedAnnouncementCacheKeys;
-
         public ILogger<GrpcPeerPool> Logger { get; set; }
 
         public GrpcPeerPool(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService, 
@@ -52,9 +49,6 @@ namespace AElf.OS.Network.Grpc
             _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
-            
-            _recentBroadcastAnnouncementCache = new ConcurrentDictionary<Hash, long>();
-            _toBeCleanedAnnouncementCacheKeys = new ConcurrentQueue<Hash>();
 
             Logger = NullLogger<GrpcPeerPool>.Instance;
         }
@@ -292,33 +286,17 @@ namespace AElf.OS.Network.Grpc
         
         public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash, bool hasFork)
         {
-            if (hasFork)
-            {
-                _recentBlockHeightAndHashMappings.Clear();
-                return;
-            }
+            // In the network lib branch, this logic is no longer required.
+//            if (hasFork)
+//            {
+//                _recentBlockHeightAndHashMappings.Clear();
+//                return;
+//            }
             _recentBlockHeightAndHashMappings[blockHeight] = blockHash;
             while (_recentBlockHeightAndHashMappings.Count > 10)
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
             }
-        }
-
-        public bool AddAnnouncementCache(long blockHeight, Hash blockHash)
-        {
-            if (_recentBroadcastAnnouncementCache.TryAdd(blockHash, blockHeight))
-            {
-                _toBeCleanedAnnouncementCacheKeys.Enqueue(blockHash);
-                while (_recentBroadcastAnnouncementCache.Count > 100)
-                {
-                    if (_toBeCleanedAnnouncementCacheKeys.TryDequeue(out var cleanKey))
-                        _recentBroadcastAnnouncementCache.TryRemove(cleanKey, out _);
-                }
-
-                return true;
-            }
-
-            return false;
         }
     }
 }

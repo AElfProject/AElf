@@ -53,7 +53,8 @@ namespace AElf.OS.Network.Application
             int successfulBcasts = 0;
             
             var blockHash = blockHeader.GetHash();
-            if (!_peerPool.AddAnnouncementCache(blockHeader.Height, blockHash))
+            if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlockHash) &&
+                recentBlockHash == blockHash)
             {
                 Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
                 return successfulBcasts;
@@ -61,14 +62,14 @@ namespace AElf.OS.Network.Application
 
             var announce = new PeerNewBlockAnnouncement
             {
-                BlockHash = blockHash,
+                BlockHash = blockHeader.GetHash(),
                 BlockHeight = blockHeader.Height,
                 HasFork = hasFork
             };
             
             var peers = _peerPool.GetPeers().ToList();
 
-            _peerPool.AddRecentBlockHeightAndHash(announce.BlockHeight, announce.BlockHash, hasFork);
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash(), hasFork);
             
             Logger.LogDebug("About to broadcast to peers.");
             
