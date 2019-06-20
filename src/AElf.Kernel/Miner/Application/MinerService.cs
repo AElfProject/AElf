@@ -16,13 +16,16 @@ namespace AElf.Kernel.Miner.Application
     {
         public ILogger<MinerService> Logger { get; set; }
         private ITxHub _txHub;
+        private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private IMiningService _miningService;
         public ILocalEventBus EventBus { get; set; }
 
-        public MinerService(IMiningService miningService, ITxHub txHub)
+        public MinerService(IMiningService miningService, ITxHub txHub,
+            IBlockTransactionLimitProvider blockTransactionLimitProvider)
         {
             _miningService = miningService;
             _txHub = txHub;
+            _blockTransactionLimitProvider = blockTransactionLimitProvider;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<MinerService>.Instance;
@@ -36,7 +39,8 @@ namespace AElf.Kernel.Miner.Application
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp dateTime,
             Duration blockExecutionTime)
         {
-            var executableTransactionSet = await _txHub.GetExecutableTransactionSetAsync();
+            var executableTransactionSet =
+                await _txHub.GetExecutableTransactionSetAsync(_blockTransactionLimitProvider.Limit);
             var pending = new List<Transaction>();
             if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
             {
