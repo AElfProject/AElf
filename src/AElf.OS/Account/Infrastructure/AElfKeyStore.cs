@@ -122,12 +122,14 @@ namespace AElf.OS.Account.Infrastructure
             try
             {
                 var keyFilePath = GetKeyFileFullPath(address);
-                AsymmetricCipherKeyPair cypherKeyPair;
-                using (var textReader = File.OpenText(keyFilePath))
+                var cypherKeyPair = await Task.Run(() =>
                 {
-                    var pr = new PemReader(textReader, new Password(password.ToCharArray()));
-                    cypherKeyPair = await Task.Run(() => pr.ReadObject() as AsymmetricCipherKeyPair);
-                }
+                    using (var textReader = File.OpenText(keyFilePath))
+                    {
+                        var pr = new PemReader(textReader, new Password(password.ToCharArray()));
+                        return pr.ReadObject() as AsymmetricCipherKeyPair;
+                    }
+                });
 
                 return cypherKeyPair == null ? null : new ECKeyPair(cypherKeyPair);
             }
