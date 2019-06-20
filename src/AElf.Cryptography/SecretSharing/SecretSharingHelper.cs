@@ -105,7 +105,6 @@ namespace AElf.Cryptography.SecretSharing
             BigInteger numeratorLhs, BigInteger denominatorLhs,
             BigInteger numeratorRhs, BigInteger denominatorRhs)
         {
-            denominatorRhs = denominatorRhs;//.Abs();
             var numerator = numeratorLhs * numeratorRhs % SecretSharingConsts.FieldPrime;
             var denominator = denominatorLhs * denominatorRhs % SecretSharingConsts.FieldPrime;
             var gcd = GetGreatestCommonDivisor(numerator, denominator);
