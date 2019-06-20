@@ -27,6 +27,7 @@
 
     <ItemGroup>
       <Folder Include="Protobuf" />
+      <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">
