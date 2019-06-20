@@ -10,7 +10,12 @@ namespace AElf.Kernel.Miner.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
-        private readonly Dictionary<LogEvent, Bloom> _blooms;
+        private Dictionary<LogEvent, Bloom> _blooms;
+
+        private Dictionary<LogEvent, Bloom> Blooms =>
+            _blooms ??
+            (_blooms = _eventHandlers.Select(h => h.InterestedEvent).ToDictionary(e => e, e => e.GetBloom()));
+
         private readonly List<ILogEventHandler> _eventHandlers;
 
         public LogEventListeningService(IBlockchainService blockchainService,
@@ -20,7 +25,6 @@ namespace AElf.Kernel.Miner.Application
             _blockchainService = blockchainService;
             _transactionResultQueryService = transactionResultQueryService;
             _eventHandlers = eventHandlers.ToList();
-            _blooms = _eventHandlers.Select(h => h.InterestedEvent).ToDictionary(e => e, e => e.GetBloom());
         }
 
         public async Task Apply(Chain chain, IEnumerable<Hash> blockHashes)
@@ -30,7 +34,7 @@ namespace AElf.Kernel.Miner.Application
                 var block = await _blockchainService.GetBlockByHashAsync(blockId);
 
                 var blockBloom = new Bloom(block.Header.Bloom.ToByteArray());
-                if (!_blooms.Values.Any(b => b.IsIn(blockBloom)))
+                if (!Blooms.Values.Any(b => b.IsIn(blockBloom)))
                 {
                     // No interested event in the block
                     continue;
@@ -59,12 +63,15 @@ namespace AElf.Kernel.Miner.Application
                     foreach (var handler in _eventHandlers)
                     {
                         var interestedEvent = handler.InterestedEvent;
-                        var interestedBloom = _blooms[interestedEvent];
+                        var interestedBloom = Blooms[interestedEvent];
                         if (!interestedBloom.IsIn(resultBloom))
                         {
+                            // Interested bloom is not found in the transaction result
                             continue;
                         }
 
+                        // Interested bloom is found in the transaction result,
+                        // find the log that yields the bloom and apply the handler
                         foreach (var log in result.Logs)
                         {
                             if (log.Address != interestedEvent.Address || log.Name != interestedEvent.Name)
