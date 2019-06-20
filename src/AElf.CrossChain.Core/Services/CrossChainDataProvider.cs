@@ -112,7 +112,13 @@ namespace AElf.CrossChain
                 if (cachedSideChainBlockData == null)
                     throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");
                 if (!cachedSideChainBlockData.Equals(sideChainBlockData))
+                {
+                    Logger.LogWarning("Inconsistent side chain block data.");
+                    Logger.LogWarning($"Target height - {targetHeight}");
+                    Logger.LogWarning($"Remote - {sideChainBlockData}");
+                    Logger.LogWarning($"Local - {cachedSideChainBlockData}");
                     return false;
+                }
                 sideChainValidatedHeightDict[sideChainBlockData.ChainId] = sideChainBlockData.Height;
             }
 
@@ -194,8 +200,8 @@ namespace AElf.CrossChain
                 {
                     Logger.LogWarning("Inconsistent parent chain block data.");
                     Logger.LogWarning($"Target height - {targetHeight}");
-                    Logger.LogWarning($"Remote height - {parentChainBlockData.Height}");
-                    Logger.LogWarning($"Local height - {parentChainBlockDataList[i].Height}");
+                    Logger.LogWarning($"Remote - {parentChainBlockDataList[i]}");
+                    Logger.LogWarning($"Local - {parentChainBlockData}");
                     // cached parent chain block info is not compatible with provided.
                     return false;
                 }
