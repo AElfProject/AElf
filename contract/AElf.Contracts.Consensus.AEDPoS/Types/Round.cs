@@ -206,6 +206,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var checkableMinerInRound = minerInRound.Value.Clone();
                 checkableMinerInRound.EncryptedInValues.Clear();
+                checkableMinerInRound.DecryptedPreviousInValues.Clear();
                 checkableMinerInRound.ActualMiningTimes.Clear();
                 if (!isContainPreviousInValue)
                 {

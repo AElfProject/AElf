@@ -8,6 +8,7 @@ namespace AElf.OS.Network.Infrastructure
     public interface IPeer
     {
         bool IsBest { get; set; }
+        bool IsReady { get; }
         Hash CurrentBlockHash { get; }
         long CurrentBlockHeight { get; }
         
@@ -28,6 +29,8 @@ namespace AElf.OS.Network.Infrastructure
         
         void HandlerRemotePreLibAnnounce(PeerPreLibAnnouncement peerPreLibAnnouncement);
 
+        Task<bool> TryWaitForStateChangedAsync();
+        
         Task SendDisconnectAsync();
         Task StopAsync();
 
