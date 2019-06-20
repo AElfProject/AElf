@@ -20,6 +20,12 @@ namespace AElf.Contracts.TestContract.TransactionFeeCharging
                 IsBurnable = true,
                 TotalSupply = 1_000_000_000
             });
+            State.TokenContract.Issue.Send(new IssueInput
+            {
+                Symbol = input.Symbol,
+                Amount = TransactionFeeChargingContractConstants.AmountIssueToTokenConverterContract,
+                To = Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
+            });
             return new Empty();
         }
 

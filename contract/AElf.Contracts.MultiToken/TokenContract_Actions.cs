@@ -196,7 +196,7 @@ namespace AElf.Contracts.MultiToken
                     return new Empty();
                 }
 
-                Assert(false, "Insufficient allowance.");
+                Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
             }
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);

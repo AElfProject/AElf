@@ -36,8 +36,11 @@ namespace AElf.Contracts.EconomicSystem.Tests
         protected Timestamp StartTimestamp => TimestampHelper.GetUtcNow();
 
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs[0];
+        protected ECKeyPair ConnectorManagerKeyPair => SampleECKeyPairs.KeyPairs[0];
 
         protected Address BootMinerAddress => Address.FromPublicKey(BootMinerKeyPair.PublicKey);
+        
+        protected Address ConnectorManagerAddress => Address.FromPublicKey(ConnectorManagerKeyPair.PublicKey);
 
         internal static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
             SampleECKeyPairs.KeyPairs.Take(EconomicSystemTestConstants.InitialCoreDataCenterCount).ToList();
@@ -266,6 +269,8 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 {ProfitType.VotesWeightReward, profitIds[5]},
                 {ProfitType.ReElectionReward, profitIds[6]},
             };
+
+            AsyncHelper.RunSync(SetConnectors);
         }
 
         internal enum ProfitType
@@ -432,12 +437,15 @@ namespace AElf.Contracts.EconomicSystem.Tests
 
         private async Task InitializeTokenConverter()
         {
-            var result = await TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
             {
-                BaseTokenSymbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                FeeRate = "0.01"
-            });
-            CheckResult(result.TransactionResult);
+                var result = await TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
+                {
+                    BaseTokenSymbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                    ManagerAddress = ConnectorManagerAddress,
+                    FeeRate = "0.01"
+                });
+                CheckResult(result.TransactionResult);
+            }
         }
 
         private async Task InitializeTreasuryConverter()
@@ -459,6 +467,35 @@ namespace AElf.Contracts.EconomicSystem.Tests
         {
             var result = await ProfitContractStub.InitializeProfitContract.SendAsync(new Empty());
             CheckResult(result.TransactionResult);
+        }
+
+        private async Task SetConnectors()
+        {
+            var manager =
+                GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                    ConnectorManagerKeyPair);
+            await manager.SetConnector.SendAsync(new Connector
+            {
+                Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                IsPurchaseEnabled = true,
+                Weight = "0.5",
+                IsVirtualBalanceEnabled = true,
+                VirtualBalance = 1_000_000
+            });
+            await manager.SetConnector.SendAsync(new Connector
+            {
+                Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
+                IsPurchaseEnabled = true,
+                Weight = "0.2",
+                IsVirtualBalanceEnabled = true
+            });
+            await manager.SetConnector.SendAsync(new Connector
+            {
+                Symbol = EconomicSystemTestConstants.ProfitSharingContractTokenSymbol,
+                IsPurchaseEnabled = true,
+                Weight = "0.2",
+                IsVirtualBalanceEnabled = true
+            });
         }
 
         private void CheckResult(TransactionResult result)

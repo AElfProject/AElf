@@ -21,6 +21,12 @@ namespace AElf.Contracts.TestContract.ProfitSharing
                 Decimals = 2,
                 TotalSupply = ProfitSharingContractConstants.TotalSupply
             });
+            State.TokenContract.Issue.Send(new IssueInput
+            {
+                Symbol = input.Symbol,
+                Amount = ProfitSharingContractConstants.AmountIssueToTokenConverterContract,
+                To = Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
+            });
             
             // Create Token Connector.
             return new Empty();

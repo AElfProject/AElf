@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TokenConverter;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -112,13 +113,23 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 });
                 balance.Balance.ShouldBe(0);
             }
-
-            // Issue some TFCC to the chosen one's address.
-            await TokenContractStub.Issue.SendAsync(new IssueInput
+            
+            // The chosen one decide to buy some TFCC tokens.
+            var chosenOneTokenContractStub =
+                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, chosenOneKeyPair);
+            await chosenOneTokenContractStub.Approve.SendAsync(new ApproveInput
             {
-                To = chosenOneAddress,
-                Amount = feeAmount,
-                Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
+                Spender = TokenConverterContractAddress,
+                Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                Amount = 100_000// Enough,
+            });
+            var chosenOneTokenConverterContractStub =
+                GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                    chosenOneKeyPair);
+            await chosenOneTokenConverterContractStub.Buy.SendAsync(new BuyInput
+            {
+                Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
+                Amount = feeAmount
             });
             
             {
