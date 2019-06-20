@@ -23,12 +23,6 @@ enum TransactionStatus {
     TransactionExecuted = 2;
 }
 
-enum SignatureStatus {
-    UnknownSignatureStatus = 0;
-    SignatureValid = 1;
-    SignatureInvalid = -1;
-}
-
 enum RefBlockStatus {
     UnknownRefBlockStatus = 0;
     RefBlockValid = 1;
@@ -40,11 +34,10 @@ enum RefBlockStatus {
 message TransactionReceipt {
     Hash TransactionId = 1;
     Transaction Transaction = 2;
-    SignatureStatus SignatureStatus = 3;
-    RefBlockStatus RefBlockStatus = 4;
-    TransactionStatus TransactionStatus = 5;
-    bool IsSystemTxn = 6;
-    int64 ExecutedBlockNumber = 7;
+    RefBlockStatus RefBlockStatus = 3;
+    TransactionStatus TransactionStatus = 4;
+    bool IsSystemTxn = 5;
+    int64 ExecutedBlockNumber = 6;
 }
 
 //message StatePath {
