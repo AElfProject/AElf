@@ -109,7 +109,7 @@ enum ExecutionStatus {
 message TransactionTrace {
     Hash TransactionId = 1;
     bytes ReturnValue = 2;
-    string StandardError = 3;
+    string Error = 3;
     repeated Transaction PreTransactions = 4;
     repeated TransactionTrace PreTraces = 5;
     repeated Transaction InlineTransactions = 6;
