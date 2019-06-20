@@ -55,6 +55,9 @@ namespace AElf.Contracts.Treasury
 
             BuildTreasury();
 
+            var treasuryVirtualAddress = Context.ConvertVirtualAddressToContractAddress(createdProfitIds[0]);
+            State.TreasuryVirtualAddress.Value = treasuryVirtualAddress;
+
             return new Empty();
         }
 
@@ -63,17 +66,10 @@ namespace AElf.Contracts.Treasury
             Assert(Context.Sender == State.AEDPoSContract.Value,
                 "Only AElf Consensus Contract can release profits from Treasury.");
 
-            var totalReleasedAmount = State.TokenContract.GetBalance.Call(new GetBalanceInput
-            {
-                Owner = State.TreasuryVirtualAddress.Value,
-                Symbol = Context.Variables.NativeSymbol
-            }).Balance;
-
             var releasingPeriodNumber = input.TermNumber.Sub(1);
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.TreasuryHash.Value,
-                Amount = totalReleasedAmount,
                 Period = releasingPeriodNumber
             });
 

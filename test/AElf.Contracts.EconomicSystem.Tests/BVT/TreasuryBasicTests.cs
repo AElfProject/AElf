@@ -73,9 +73,74 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task EconomistSystem_SetMethodTransactionFee_MultipleSymbol()
+        public async Task<long> EconomistSystem_SetMethodTransactionFee_MultipleSymbol()
         {
+            const long feeAmount = 10L;
+
+            await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new SetMethodFeeInput
+            {
+                Method = nameof(TransactionFeeChargingContractStub.SendForFun),
+                SymbolToAmount =
+                {
+                    {EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, feeAmount},
+                    {EconomicSystemTestConstants.NativeTokenSymbol, feeAmount}
+                }
+            });
+
+            var tokenAmount = await TransactionFeeChargingContractStub.GetMethodFee.CallAsync(new MethodName
+                {Name = nameof(TransactionFeeChargingContractStub.SendForFun)});
+            tokenAmount.SymbolToAmount[EconomicSystemTestConstants.NativeTokenSymbol].ShouldBe(feeAmount);
+            tokenAmount.SymbolToAmount[EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol]
+                .ShouldBe(feeAmount);
+
+            return feeAmount;
+        }
+
+        [Fact]
+        public async Task EconomicSystem_ChangeMethodTransactionFee_MultipleSymbol()
+        {
+            var feeAmount = await EconomistSystem_SetMethodTransactionFee_MultipleSymbol();
+
+            var chosenOneKeyPair = CoreDataCenterKeyPairs.First();
+            var chosenOneAddress = Address.FromPublicKey(chosenOneKeyPair.PublicKey);
             
+            {
+                var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = chosenOneAddress,
+                    Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
+                });
+                balance.Balance.ShouldBe(0);
+            }
+
+            // Issue some TFCC to the chosen one's address.
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                To = chosenOneAddress,
+                Amount = feeAmount,
+                Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
+            });
+            
+            {
+                var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = chosenOneAddress,
+                    Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
+                });
+                balance.Balance.ShouldBe(feeAmount);
+            }
+            
+            var tycoon = GetTransactionFeeChargingContractStub(chosenOneKeyPair);
+            await tycoon.SendForFun.SendAsync(new Empty());
+            
+            {
+                var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = chosenOneAddress,
+                    Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
+                });
+                balance.Balance.ShouldBe(0L);
+            }
         }
     }
 }

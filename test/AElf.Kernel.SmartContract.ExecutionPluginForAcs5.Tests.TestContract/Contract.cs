@@ -50,7 +50,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
 
         public override Empty SetMethodProfitFee(SetMethodProfitFeeInput input)
         {
-            State.MethodProfitFees[input.MethodName] = input.MethodProfitFee;
+            State.MethodProfitFees[input.Method] = new MethodProfitFee {SymbolToAmount = {input.SymbolToAmount}};
             return new Empty();
         }
 

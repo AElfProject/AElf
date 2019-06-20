@@ -52,8 +52,8 @@ message MethodProfitFee {
 }
 
 message SetMethodProfitFeeInput {
-    string method_name = 1;
-    MethodProfitFee method_Profit_fee = 2;
+    string method = 1;
+    map<string, sint64> symbol_to_amount = 2;// The order matters.
 }
 
 message SetMethodProfitFeesInput {

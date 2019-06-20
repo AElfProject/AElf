@@ -88,10 +88,8 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
-
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
             TransactionFeeChargingContractStub { get; set; }
-
         internal ProfitSharingContractContainer.ProfitSharingContractStub ProfitSharingContractStub { get; set; }
 
         private byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("AEDPoS")).Value;
@@ -242,6 +240,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 Hash.FromString("AElf.ContractNames.TransactionFeeCharging"),
                 BootMinerKeyPair));
             TransactionFeeChargingContractStub = GetTransactionFeeChargingContractStub(BootMinerKeyPair);
+            AsyncHelper.RunSync(InitializeTransactionFeeChargingContract);
 
             ProfitSharingContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
@@ -249,6 +248,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 Hash.FromString("AElf.ContractNames.ProfitSharing"),
                 BootMinerKeyPair));
             ProfitSharingContractStub = GetProfitSharingContractStub(BootMinerKeyPair);
+            AsyncHelper.RunSync(InitializeProfitSharingContract);
 
             var profitIds = AsyncHelper.RunSync(() =>
                 ProfitContractStub.GetCreatedProfitItems.CallAsync(
@@ -298,18 +298,42 @@ namespace AElf.Contracts.EconomicSystem.Tests
 
         private async Task InitializeAElfConsensus()
         {
-            var result1 = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
-                new InitialAElfConsensusContractInput
+            {
+                var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
+                    new InitialAElfConsensusContractInput
+                    {
+                        TimeEachTerm = 604800L
+                    });
+                CheckResult(result.TransactionResult);
+            }
+            {
+                var result = await AEDPoSContractStub.FirstRound.SendAsync(
+                    new MinerList
+                    {
+                        PublicKeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
+                    }.GenerateFirstRoundOfNewTerm(EconomicSystemTestConstants.MiningInterval, StartTimestamp));
+                CheckResult(result.TransactionResult);
+            }
+        }
+        
+        private async Task InitializeTransactionFeeChargingContract()
+        {
+            var result = await TransactionFeeChargingContractStub.InitializeTransactionFeeChargingContract.SendAsync(
+                new InitializeTransactionFeeChargingContractInput
                 {
-                    TimeEachTerm = 604800L
+                    Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
                 });
-            CheckResult(result1.TransactionResult);
-            var result2 = await AEDPoSContractStub.FirstRound.SendAsync(
-                new MinerList
+            CheckResult(result.TransactionResult);
+        }
+        
+        private async Task InitializeProfitSharingContract()
+        {
+            var result = await ProfitSharingContractStub.InitializeProfitSharingContract.SendAsync(
+                new InitializeProfitSharingContractInput
                 {
-                    PublicKeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
-                }.GenerateFirstRoundOfNewTerm(EconomicSystemTestConstants.MiningInterval, StartTimestamp));
-            CheckResult(result2.TransactionResult);
+                    Symbol = EconomicSystemTestConstants.ProfitSharingContractTokenSymbol
+                });
+            CheckResult(result.TransactionResult);
         }
 
         private async Task InitializeToken()

@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs1;
+using Acs5;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Shouldly;
 using Volo.Abp.Threading;
@@ -378,37 +380,31 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Claim_Transaction_Fees_Without_FeePoolAddress()
-        {
-            await Initialize_TokenContract();
-            var result = (await TokenContractStub.ClaimTransactionFees.SendAsync(new ClaimTransactionFeesInput()))
-                .TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("Fee pool address is not set.").ShouldBeTrue();
-        }
-
-        [Fact]
         public async Task Set_And_Get_Method_Fee()
         {
             await Initialize_TokenContract();
             var feeChargerStub = GetTester<FeeChargedContractContainer.FeeChargedContractStub>(TokenContractAddress,
                 DefaultSenderKeyPair);
+
+            // Fee not set yet.
             {
                 var fee = await feeChargerStub.GetMethodFee.CallAsync(
-                    new MethodName()
+                    new MethodName
                     {
                         Name = nameof(TokenContractContainer.TokenContractStub.Transfer)
                     });
                 fee.SymbolToAmount.Keys.ShouldNotContain(DefaultSymbol);
             }
 
+            // Set method fee.
             var resultSet = (await feeChargerStub.SetMethodFee.SendAsync(new SetMethodFeeInput
             {
                 Method = nameof(TokenContractContainer.TokenContractStub.Transfer),
                 SymbolToAmount = {new Dictionary<string, long> {{DefaultSymbol, 10L}}}
-            })).TransactionResult; 
+            })).TransactionResult;
             resultSet.Status.ShouldBe(TransactionResultStatus.Mined);
 
+            // Check fee.
             {
                 var fee = await feeChargerStub.GetMethodFee.CallAsync(
                     new MethodName()
@@ -419,26 +415,38 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
-        [Fact(Skip = "Failed because we didn't deploy election contract in test base for now.")]
-        public async Task Set_FeePoolAddress()
+        [Fact]
+        public async Task MultiTokenContract_ContractProfits()
         {
             await Initialize_TokenContract();
+            var profitChargerStub = GetTester<ProfitSharingContractContainer.ProfitSharingContractStub>(
+                TokenContractAddress, DefaultSenderKeyPair);
 
-            // this is needed, NOT GOOD DESIGN, it doesn't matter what code we deploy, all we need is an address
-            await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, TokenContractCode, DividendSmartContractAddressNameProvider.Name,
-                DefaultSenderKeyPair);
+            // Profit not set yet.
+            {
+                var profit = await profitChargerStub.GetMethodProfitFee.CallAsync(new StringValue
+                {
+                    Value = nameof(TokenContractContainer.TokenContractStub.Transfer)
+                });
+                profit.SymbolToAmount.Keys.ShouldNotContain(DefaultSymbol);
+            }
 
-            var transactionResult =
-                (await TokenContractStub.SetFeePoolAddress.SendAsync(DividendSmartContractAddressNameProvider.Name))
-                .TransactionResult;
-            
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            //set again
-            transactionResult = (await TokenContractStub.SetFeePoolAddress.SendAsync(DividendSmartContractAddressNameProvider.Name))
-                .TransactionResult;
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Fee pool address already set.").ShouldBeTrue();
+            // Set profit.
+            var resultSet = (await profitChargerStub.SetMethodProfitFee.SendAsync(new SetMethodProfitFeeInput
+            {
+                Method = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                SymbolToAmount = {new Dictionary<string, long> {{DefaultSymbol, 10L}}}
+            })).TransactionResult;
+            resultSet.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            // Check profit.
+            {
+                var profit = await profitChargerStub.GetMethodProfitFee.CallAsync(new StringValue
+                {
+                    Value = nameof(TokenContractContainer.TokenContractStub.Transfer)
+                });
+                profit.SymbolToAmount[DefaultSymbol].ShouldBe(10L);
+            }
         }
     }
 }

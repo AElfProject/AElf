@@ -331,18 +331,19 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(ClaimTransactionFeesInput input)
         {
+            if (State.TreasuryContract.Value == null)
+            {
+                State.TreasuryContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+            }
+
             if (!State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Any())
             {
                 return new Empty();
             }
 
-            var feePoolAddressNotSet =
-                State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
-            Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
-
             var transactions = Context.GetPreviousBlockTransactions();
             var senders = transactions.Select(t => t.From).ToList();
-            var feePool = State.FeePoolAddress.Value;
             foreach (var symbol in State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList)
             {
                 var totalFee = 0L;
@@ -352,7 +353,11 @@ namespace AElf.Contracts.MultiToken
                     State.ChargedFees[sender][symbol] = 0;
                 }
 
-                State.Balances[feePool][symbol] = State.Balances[feePool][symbol].Add(totalFee);
+                State.TreasuryContract.Donate.Send(new DonateInput
+                {
+                    Symbol = symbol,
+                    Amount = totalFee
+                });
             }
 
             State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
@@ -377,31 +382,22 @@ namespace AElf.Contracts.MultiToken
             var senders = transactions.Select(t => t.From).ToList();
             foreach (var symbol in State.PreviousBlockProfitTokenSymbolList.Value.SymbolList)
             {
-                var totalAmount = 0L;
+                var totalProfits = 0L;
                 foreach (var sender in senders)
                 {
-                    totalAmount = totalAmount.Add(State.ChargedFees[sender][symbol]);
+                    totalProfits = totalProfits.Add(State.ChargedFees[sender][symbol]);
                     State.ReceivedProfits[sender][symbol] = 0;
                 }
 
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
-                    Amount = totalAmount
+                    Amount = totalProfits
                 });
             }
             
             State.PreviousBlockProfitTokenSymbolList.Value = new TokenSymbolList();
 
-            return new Empty();
-        }
-
-        public override Empty SetFeePoolAddress(Hash feePoolContractSystemName)
-        {
-            var feePoolAddress = Context.GetContractAddressByName(feePoolContractSystemName);
-            var notSet = State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
-            Assert(notSet, "Fee pool address already set.");
-            State.FeePoolAddress.Value = feePoolAddress;
             return new Empty();
         }
 
