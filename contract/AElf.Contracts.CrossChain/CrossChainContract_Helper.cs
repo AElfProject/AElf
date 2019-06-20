@@ -151,7 +151,7 @@ namespace AElf.Contracts.CrossChain
         
         private Hash GetSideChainMerkleTreeRoot(long parentChainHeight)
         {
-            var indexedSideChainData = State.IndexedCrossChainBlockData[parentChainHeight];
+            var indexedSideChainData = State.IndexedSideChainBlockData[parentChainHeight];
             return ComputeRootWithMultiHash(
                 indexedSideChainData.SideChainBlockData.Select(d => d.TransactionMerkleTreeRoot));
         }
