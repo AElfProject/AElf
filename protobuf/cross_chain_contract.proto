@@ -73,6 +73,15 @@ message RechargeInput {
     sint64 amount = 2;
 }
 
+message IndexedParentChainBlockData{
+    int64 blockHeight = 1;
+    repeated acs7.ParentChainBlockData parentChainBlockData = 2;
+}
+
+message IndexedSideChainBlockData{
+    repeated acs7.SideChainBlockData sideChainBlockData = 1;
+}
+
 message VerifyTransactionInput {
     aelf.Hash transactionId = 1;
     repeated aelf.Hash path = 2;
