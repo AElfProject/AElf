@@ -55,7 +55,7 @@ namespace AElf.OS.Network.Application
             var blockHash = blockHeader.GetHash();
             if (!_peerPool.AddAnnouncementCache(blockHeader.Height, blockHash))
             {
-                Logger.LogDebug($"Block: {blockHeader} has been broadcast.");
+                Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
                 return successfulBcasts;
             }
 
