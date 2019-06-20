@@ -22,7 +22,7 @@ enum TransactionStatus {
     TransactionExecuted = 2;
 }
 
-// TODO: remove??
+// DONE: remove?? Note: yes remove, only used by tests.
 enum SignatureStatus {
     UnknownSignatureStatus = 0;
     SignatureValid = 1;
@@ -120,9 +120,9 @@ enum ExecutionStatus {
 message TransactionTrace {
     Hash TransactionId = 1;
     bytes ReturnValue = 2;
-    // TODO: remove ??
+    // DONE: remove ?? Note: yes, not used.
     string StdOut = 3;
-    // TODO: rename
+    // DONE: rename, Note: yes, renamed to Error.
     string StdErr = 4;
     repeated Transaction PreTransactions = 5;
     repeated TransactionTrace PreTraces = 6;
@@ -132,9 +132,9 @@ message TransactionTrace {
     int64 Elapsed = 10;
     ExecutionStatus ExecutionStatus = 11;
     TransactionExecutingStateSet StateSet = 12;
-    // TODO: remove
+    // DONE: remove
     bytes DeferredTransaction = 13;
-    // TODO: remove
+    // DONE: remove
     string ReadableReturnValue = 14;
 }
 
@@ -143,7 +143,7 @@ message ExecutionReturnSet {
     TransactionResultStatus Status = 2;
     map<string, bytes> StateChanges = 3;
     bytes Bloom = 4;
-    // TODO: remove
+    // DONE: remove
     repeated Transaction DeferredTransactions = 5;
     bytes ReturnValue = 6;
 }
