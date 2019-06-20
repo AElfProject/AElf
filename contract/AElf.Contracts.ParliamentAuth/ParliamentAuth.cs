@@ -22,7 +22,9 @@ namespace AElf.Contracts.ParliamentAuth
         {
             var proposal = State.Proposals[proposalId];
             Assert(proposal != null, "Not found proposal.");
-            
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var representatives = GetRepresentatives();
+            var isReadyToRelease = IsReadyToRelease(proposal, organization, representatives);
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -31,7 +33,8 @@ namespace AElf.Contracts.ParliamentAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                ToAddress = proposal.ToAddress
+                ToAddress = proposal.ToAddress,
+                IsReadyToRelease = isReadyToRelease
             };
 
             return result;
@@ -138,12 +141,9 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
             var representatives = GetRepresentatives();
-            if (IsReadyToRelease(proposalInfo, organization, representatives))
-            {
-                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
-                    proposalInfo.Params);
-                //State.Proposals[approvalInput.ProposalId] = null;
-            }
+            Assert(IsReadyToRelease(proposalInfo, organization, representatives), "Not approved.");
+            Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
+                proposalInfo.ContractMethodName, proposalInfo.Params);
             
             return new Empty();
         }

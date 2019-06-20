@@ -24,6 +24,8 @@ namespace AElf.Contracts.AssociationAuth
             var proposal = State.Proposals[proposalId];
             Assert(proposal !=null,"Not found proposal.");
             
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var isReadyToRelease = IsReadyToRelease(proposal, organization);
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -32,7 +34,8 @@ namespace AElf.Contracts.AssociationAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                ToAddress = proposal.ToAddress
+                ToAddress = proposal.ToAddress,
+                IsReadyToRelease = isReadyToRelease
             };
 
             return result;
@@ -130,11 +133,9 @@ namespace AElf.Contracts.AssociationAuth
             Assert(proposalInfo != null, "Proposal not found.");
             Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
-            if (IsReadyToRelease(proposalInfo, organization))
-            {
-                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
-                    proposalInfo.Params);
-            }
+            Assert(IsReadyToRelease(proposalInfo, organization), "Not approved.");
+            Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
+                proposalInfo.ContractMethodName, proposalInfo.Params);
             
             return new Empty();
         }

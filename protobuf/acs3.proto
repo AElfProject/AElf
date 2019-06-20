@@ -42,4 +42,5 @@ message ProposalOutput{
     google.protobuf.Timestamp expiredTime = 5;
     aelf.Address organizationAddress = 6;
     aelf.Address proposer = 7;
+    bool IsReadyToRelease = 8;
 }
