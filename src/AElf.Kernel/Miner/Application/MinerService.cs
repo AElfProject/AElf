@@ -17,14 +17,12 @@ namespace AElf.Kernel.Miner.Application
         public ILogger<MinerService> Logger { get; set; }
         private ITxHub _txHub;
         private IMiningService _miningService;
-        public ILocalEventBus EventBus { get; set; }
 
         public MinerService(IMiningService miningService, ITxHub txHub)
         {
             _miningService = miningService;
             _txHub = txHub;
 
-            EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<MinerService>.Instance;
         }
 
