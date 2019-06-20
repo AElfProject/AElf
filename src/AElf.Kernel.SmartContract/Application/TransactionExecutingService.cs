@@ -59,7 +59,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     if (throwException)
                     {
-                        Logger.LogError(trace.StdErr);
+                        Logger.LogError(trace.StandardError);
                     }
 
                     // Do not package this transaction if any of his inline transactions canceled.
@@ -76,9 +76,9 @@ namespace AElf.Kernel.SmartContract.Application
                         .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                 }
 
-                if (trace.StdErr != string.Empty)
+                if (trace.StandardError != string.Empty)
                 {
-                    Logger.LogError(trace.StdErr);
+                    Logger.LogError(trace.StandardError);
                 }
 
                 var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
@@ -111,7 +111,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     TransactionId = transaction.GetHash(),
                     ExecutionStatus = ExecutionStatus.Canceled,
-                    StdErr = "Execution cancelled"
+                    StandardError = "Execution cancelled"
                 };
             }
 
@@ -165,7 +165,7 @@ namespace AElf.Kernel.SmartContract.Application
             catch (Exception ex)
             {
                 txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                txCtxt.Trace.StdErr += ex + "\n";
+                txCtxt.Trace.StandardError += ex + "\n";
                 throw;
             }
             finally
@@ -222,7 +222,7 @@ namespace AElf.Kernel.SmartContract.Application
                     {
                         trace.ExecutionStatus = ExecutionStatus.Prefailed;
                         preTrace.SurfaceUpError();
-                        trace.StdErr += preTrace.StdErr;
+                        trace.StandardError += preTrace.StandardError;
                         return false;
                     }
 
@@ -247,7 +247,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     TransactionId = trace.TransactionId,
                     Status = TransactionResultStatus.Unexecutable,
-                    Error = trace.StdErr
+                    Error = trace.StandardError
                 };
             }
 
@@ -280,7 +280,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 TransactionId = trace.TransactionId,
                 Status = TransactionResultStatus.Failed,
-                Error = trace.StdErr
+                Error = trace.StandardError
             };
         }
 

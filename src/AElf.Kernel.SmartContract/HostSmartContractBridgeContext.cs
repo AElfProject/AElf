@@ -157,7 +157,7 @@ namespace AElf.Kernel.SmartContract
 
             if (!trace.IsSuccessful())
             {
-                throw new ContractCallException(trace.StdErr);
+                throw new ContractCallException(trace.StandardError);
             }
 
             var obj = new T();

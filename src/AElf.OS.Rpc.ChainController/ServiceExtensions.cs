@@ -248,8 +248,8 @@ namespace AElf.OS.Rpc.ChainController
 
             var trace = await s.TransactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, TimestampHelper.GetUtcNow());
 
-            if (!string.IsNullOrEmpty(trace.StdErr))
-                throw new Exception(trace.StdErr);
+            if (!string.IsNullOrEmpty(trace.StandardError))
+                throw new Exception(trace.StandardError);
 
             return trace.ReturnValue.ToByteArray();
         }

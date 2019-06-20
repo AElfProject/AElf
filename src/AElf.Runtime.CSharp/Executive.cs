@@ -90,7 +90,7 @@ namespace AElf.Runtime.CSharp
                 if (CurrentTransactionContext.CallDepth > CurrentTransactionContext.MaxCallDepth)
                 {
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
-                    CurrentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
+                    CurrentTransactionContext.Trace.StandardError = "\n" + "ExceededMaxCallDepth";
                     return;
                 }
 
@@ -139,18 +139,18 @@ namespace AElf.Runtime.CSharp
                 }
                 catch (TargetInvocationException ex)
                 {
-                    CurrentTransactionContext.Trace.StdErr += ex;
+                    CurrentTransactionContext.Trace.StandardError += ex;
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 }
                 catch (AssertionException ex)
                 {
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                    CurrentTransactionContext.Trace.StdErr += "\n" + ex;
+                    CurrentTransactionContext.Trace.StandardError += "\n" + ex;
                 }
                 catch (Exception ex)
                 {
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                    CurrentTransactionContext.Trace.StdErr += "\n" + ex;
+                    CurrentTransactionContext.Trace.StandardError += "\n" + ex;
                 }
 
                 if (!handler.IsView() && CurrentTransactionContext.Trace.IsSuccessful())
@@ -185,7 +185,7 @@ namespace AElf.Runtime.CSharp
             catch (Exception ex)
             {
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
-                CurrentTransactionContext.Trace.StdErr += ex + "\n";
+                CurrentTransactionContext.Trace.StandardError += ex + "\n";
             }
             finally
             {

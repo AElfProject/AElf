@@ -109,18 +109,17 @@ enum ExecutionStatus {
 message TransactionTrace {
     Hash TransactionId = 1;
     bytes ReturnValue = 2;
-    string StdOut = 3;
-    string StdErr = 4;
-    repeated Transaction PreTransactions = 5;
-    repeated TransactionTrace PreTraces = 6;
-    repeated Transaction InlineTransactions = 7;
-    repeated TransactionTrace InlineTraces = 8;
-    repeated LogEvent Logs = 9;
-    int64 Elapsed = 10;
-    ExecutionStatus ExecutionStatus = 11;
-    TransactionExecutingStateSet StateSet = 12;
-    bytes DeferredTransaction = 13;
-    string ReadableReturnValue = 14;
+    string StandardError = 3;
+    repeated Transaction PreTransactions = 4;
+    repeated TransactionTrace PreTraces = 5;
+    repeated Transaction InlineTransactions = 6;
+    repeated TransactionTrace InlineTraces = 7;
+    repeated LogEvent Logs = 8;
+    int64 Elapsed = 9;
+    ExecutionStatus ExecutionStatus = 10;
+    TransactionExecutingStateSet StateSet = 11;
+    bytes DeferredTransaction = 12;
+    string ReadableReturnValue = 13;
 }
 
 message ExecutionReturnSet {
