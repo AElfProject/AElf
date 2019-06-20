@@ -189,10 +189,17 @@ namespace AElf.CrossChain
                 {
                     throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");
                 }
-                    
+
                 if (!parentChainBlockDataList[i].Equals(parentChainBlockData))
+                {
+                    Logger.LogWarning("Inconsistent parent chain block data.");
+                    Logger.LogWarning($"Target height - {targetHeight}");
+                    Logger.LogWarning($"Remote height - {parentChainBlockData.Height}");
+                    Logger.LogWarning($"Local height - {parentChainBlockDataList[i].Height}");
                     // cached parent chain block info is not compatible with provided.
                     return false;
+                }
+
                 targetHeight++;
                 i++;
             }
