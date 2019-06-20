@@ -13,6 +13,8 @@ service ConsensusContract {
     rpc GetConsensusCommand (google.protobuf.BytesValue) returns (ConsensusCommand) {
         option (aelf.is_view) = true;
     }
+    
+    //TODO: rename to GenerateBlockHeaderExtraData
     rpc GetInformationToUpdateConsensus (google.protobuf.BytesValue) returns (google.protobuf.BytesValue) {
         option (aelf.is_view) = true;
     }
