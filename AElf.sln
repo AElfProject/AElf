@@ -293,6 +293,10 @@ ProjectSection(SolutionItems) = preProject
 	contract\Directory.Build.props = contract\Directory.Build.props
 EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Blockchains.PowChain", "src\AElf.Blockchains.PowChain\AElf.Blockchains.PowChain.csproj", "{0B4D68FA-61EB-402B-91FC-582D164CAE9C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Consensus.PoW", "contract\AElf.Contracts.Consensus.PoW\AElf.Contracts.Consensus.PoW.csproj", "{DD91A4EA-F973-4479-9F39-4BE5AD784294}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -823,6 +827,14 @@ Global
 		{2968AA64-9848-4932-A571-39F160166FD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2968AA64-9848-4932-A571-39F160166FD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2968AA64-9848-4932-A571-39F160166FD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B4D68FA-61EB-402B-91FC-582D164CAE9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B4D68FA-61EB-402B-91FC-582D164CAE9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B4D68FA-61EB-402B-91FC-582D164CAE9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B4D68FA-61EB-402B-91FC-582D164CAE9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD91A4EA-F973-4479-9F39-4BE5AD784294}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD91A4EA-F973-4479-9F39-4BE5AD784294}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD91A4EA-F973-4479-9F39-4BE5AD784294}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD91A4EA-F973-4479-9F39-4BE5AD784294}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -971,5 +983,7 @@ Global
 		{CF33B86C-3056-49D1-BF23-96E69564337C} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{380A3025-5888-498D-8359-0F63961E7C4C} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{2968AA64-9848-4932-A571-39F160166FD7} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{0B4D68FA-61EB-402B-91FC-582D164CAE9C} = {8EF44709-4B5E-489B-A945-EDCB2D1A69C2}
+		{DD91A4EA-F973-4479-9F39-4BE5AD784294} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 	EndGlobalSection
 EndGlobal

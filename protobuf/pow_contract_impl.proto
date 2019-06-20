@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package PoWImpl;
+
+import "aelf/options.proto";
+import "acs4.proto";
+import "pow_contract.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.PoW";
+
+service PoWContractImpl {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.PoW.PoWContractState";
+    option (aelf.base) = "acs4.proto";
+    option (aelf.base) = "pow_contract.proto";
+}

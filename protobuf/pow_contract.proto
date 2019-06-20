@@ -1,0 +1,177 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Contracts.Consensus.PoW";
+
+service PoWContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Consensus.PoW.PoWContractState";
+    // Actions
+    // -> Process
+    rpc InitialAElfConsensusContract (InitialAElfConsensusContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc FirstRound (Round) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateValue (UpdateValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc NextRound (Round) returns (google.protobuf.Empty) {
+    }
+    rpc NextTerm (Round) returns (google.protobuf.Empty) {
+    }
+    rpc UpdateTinyBlockInformation (TinyBlockInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc GetLIBOffset (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    }
+    rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
+    }
+
+    // Views
+    rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetRoundInformation (aelf.SInt64Value) returns (Round) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentRoundNumber (google.protobuf.Empty) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentRoundInformation (google.protobuf.Empty) returns (Round) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPreviousRoundInformation (google.protobuf.Empty) returns (Round) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentTermNumber (google.protobuf.Empty) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+}
+
+// Events
+message IrreversibleBlockFound {
+    option (aelf.is_event) = true;
+    sint64 offset = 1;
+}
+
+message InitialAElfConsensusContractInput {
+    bool is_term_stay_one = 1;
+    bool is_side_chain = 2;
+    sint64 time_each_term = 3;
+}
+
+// Just used as parameter of consensus contract method.
+message UpdateValueInput {
+    aelf.Hash out_value = 1;// Calculated from current in value.
+    aelf.Hash signature = 2;// Calculated from current in value and signatures of previous round.
+    sint64 round_id = 3;// To ensure the values to update will be apply to correct round by comparing round id.
+    aelf.Hash previous_in_value = 5;// Publish previous in value for validation previous signature and previous out value.
+    google.protobuf.Timestamp actual_mining_time = 6;
+    sint32 supposed_order_of_next_round = 7;
+    map<string, int32> tune_order_information = 8;
+    map<string, bytes> encrypted_in_values = 9;// For others to recover his in value of current round.
+    map<string, bytes> decrypted_previous_in_values = 10;
+    sint64 produced_blocks = 11;
+    map<string, aelf.Hash> miners_previous_in_values = 12;
+}
+
+// The miners public key list for each term.
+message MinerList {
+    repeated bytes public_keys = 1;
+}
+
+// To query first round number of each term.
+message TermNumberLookUp {
+    map<sint64, sint64> map = 1;// Term number -> Round number.
+}
+
+// All the candidates.
+message Candidates {
+    repeated bytes public_keys = 1;
+}
+
+// The information of a round.
+message Round {
+    sint64 round_number = 1;
+    map<string, MinerInRound> real_time_miners_information = 2;
+    sint64 main_chain_miners_round_number = 3;
+    sint64 blockchain_age = 4;
+    string extra_block_producer_of_previous_round = 7;
+    sint64 term_number = 8;
+}
+
+// The information of a miner in a specific round.
+message MinerInRound {
+    sint32 order = 1;
+    bool is_extra_block_producer = 2;
+    aelf.Hash in_value = 3;
+    aelf.Hash out_value = 4;
+    aelf.Hash signature = 5;
+    google.protobuf.Timestamp expected_mining_time = 6;
+    sint64 produced_blocks = 7;
+    sint64 missed_time_slots = 8;
+    string public_key = 9;
+    aelf.Hash previous_in_value = 12;
+    sint32 supposed_order_of_next_round = 13;
+    sint32 final_order_of_next_round = 14;
+    repeated google.protobuf.Timestamp actual_mining_times = 15;// Miners must fill actual mining time when they do the mining.
+    map<string, bytes> encrypted_in_values = 16;
+    map<string, bytes> decrypted_previous_inValues = 17;
+    sint32 produced_tiny_blocks = 18;
+}
+
+message AElfConsensusHeaderInformation {
+    bytes sender_publicKey = 1;
+    Round round = 2;
+    AElfConsensusBehaviour behaviour = 3;
+}
+
+message AElfConsensusHint {
+    AElfConsensusBehaviour behaviour = 1;
+}
+
+enum AElfConsensusBehaviour {
+    UpdateValue = 0;
+    NextRound = 1;
+    NextTerm = 2;
+    UpdateValueWithoutPreviousInValue = 3;
+    Nothing = 4;
+    TinyBlock = 5;
+}
+
+message AElfConsensusTriggerInformation {
+    bytes public_key = 1;// A must-have.
+    aelf.Hash random_hash = 2;// To calculate In Value.
+    aelf.Hash previous_random_hash = 3;// Random hash of previous round for validation.
+    AElfConsensusBehaviour behaviour = 4;
+}
+
+message TermInfo {
+    sint64 term_number = 1;
+    sint64 round_number = 2;
+}
+
+message MinerListWithRoundNumber {
+    MinerList miner_list = 1;
+    sint64 round_number = 2;
+}
+
+message TinyBlockInput {
+    sint64 round_id = 1;
+    google.protobuf.Timestamp actual_mining_time = 2;
+    sint64 produced_blocks = 3;
+}
+
+message VoteMinersCountInput {
+    sint32 miners_count = 1;
+    sint64 amount = 2;
+}
+
+message ConsensusInformation {
+    bytes Bytes = 1;
+}
