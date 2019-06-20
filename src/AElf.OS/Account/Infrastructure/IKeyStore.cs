@@ -6,12 +6,12 @@ namespace AElf.OS.Account.Infrastructure
 {
     public interface IKeyStore
     {
-        Task<AElfKeyStore.Errors> OpenAsync(string address, string password, bool withTimeout = true);
+        Task<AElfKeyStore.Errors> UnlockAccountAsync(string address, string password, bool withTimeout = true);
 
         ECKeyPair GetAccountKeyPair(string address);
 
-        Task<ECKeyPair> CreateAsync(string password);
+        Task<ECKeyPair> CreateAccountKeyPairAsync(string password);
 
-        Task<List<string>> ListAccountsAsync();
+        Task<List<string>> GetAccountsAsync();
     }
 }

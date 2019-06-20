@@ -29,7 +29,7 @@ namespace AElf.OS.Account.Infrastructure
 
         private const string _algo = "AES-256-CFB";
 
-        private readonly List<OpenAccount> _openAccounts;
+        private readonly List<Account> _unlockedAccounts;
         public TimeSpan DefaultTimeoutToClose = TimeSpan.FromMinutes(10); //in order to customize time setting.
 
         public enum Errors
@@ -44,37 +44,37 @@ namespace AElf.OS.Account.Infrastructure
         public AElfKeyStore(INodeInformationService nodeInformationService)
         {
             _nodeInformationService = nodeInformationService;
-            _openAccounts = new List<OpenAccount>();
+            _unlockedAccounts = new List<Account>();
         }
 
-        private async Task OpenAsync(string address, string password, TimeSpan? timeoutToClose)
+        private async Task UnlockAccountAsync(string address, string password, TimeSpan? timeoutToClose)
         {
             var keyPair = await ReadKeyPairAsync(address, password);
-            var openAccount = new OpenAccount(address) {KeyPair = keyPair};
+            var unlockedAccount = new Account(address) {KeyPair = keyPair};
 
             if (timeoutToClose.HasValue)
             {
-                var t = new Timer(CloseAccount, openAccount, timeoutToClose.Value, timeoutToClose.Value);
-                openAccount.CloseTimer = t;
+                var t = new Timer(LockAccount, unlockedAccount, timeoutToClose.Value, timeoutToClose.Value);
+                unlockedAccount.LockTimer = t;
             }
 
-            _openAccounts.Add(openAccount);
+            _unlockedAccounts.Add(unlockedAccount);
         }
 
-        public async Task<Errors> OpenAsync(string address, string password, bool withTimeout = true)
+        public async Task<Errors> UnlockAccountAsync(string address, string password, bool withTimeout = true)
         {
             try
             {
-                if (_openAccounts.Any(x => x.AccountName == address))
+                if (_unlockedAccounts.Any(x => x.AccountName == address))
                     return Errors.AccountAlreadyUnlocked;
 
                 if (withTimeout)
                 {
-                    await OpenAsync(address, password, DefaultTimeoutToClose);
+                    await UnlockAccountAsync(address, password, DefaultTimeoutToClose);
                 }
                 else
                 {
-                    await OpenAsync(address, password, null);
+                    await UnlockAccountAsync(address, password, null);
                 }
             }
             catch (InvalidPasswordException)
@@ -89,32 +89,32 @@ namespace AElf.OS.Account.Infrastructure
             return Errors.None;
         }
 
-        private void CloseAccount(object accountObject)
+        private void LockAccount(object accountObject)
         {
-            if (!(accountObject is OpenAccount openAccount))
+            if (!(accountObject is Account unlockedAccount))
                 return;
-            openAccount.Close();
-            _openAccounts.Remove(openAccount);
+            unlockedAccount.Lock();
+            _unlockedAccounts.Remove(unlockedAccount);
         }
 
         public ECKeyPair GetAccountKeyPair(string address)
         {
-            return _openAccounts.FirstOrDefault(oa => oa.AccountName == address)?.KeyPair;
+            return _unlockedAccounts.FirstOrDefault(oa => oa.AccountName == address)?.KeyPair;
         }
 
-        public async Task<ECKeyPair> CreateAsync(string password)
+        public async Task<ECKeyPair> CreateAccountKeyPairAsync(string password)
         {
             var keyPair = CryptoHelpers.GenerateKeyPair();
             var res = await WriteKeyPairAsync(keyPair, password);
             return !res ? null : keyPair;
         }
 
-        public async Task<List<string>> ListAccountsAsync()
+        public async Task<List<string>> GetAccountsAsync()
         {
-            var dir = GetOrCreateKeystoreDir();
+            var dir = GetOrCreateKeystoreDirectory();
             var files = dir.GetFiles("*" + KeyFileExtension);
 
-            return await Task.FromResult(files.Select(f => Path.GetFileNameWithoutExtension(f.Name)).ToList());
+            return await Task.Run(() => files.Select(f => Path.GetFileNameWithoutExtension(f.Name)).ToList());
         }
 
         public async Task<ECKeyPair> ReadKeyPairAsync(string address, string password)
@@ -126,7 +126,7 @@ namespace AElf.OS.Account.Infrastructure
                 using (var textReader = File.OpenText(keyFilePath))
                 {
                     var pr = new PemReader(textReader, new Password(password.ToCharArray()));
-                    cypherKeyPair = await Task.FromResult(pr.ReadObject() as AsymmetricCipherKeyPair);
+                    cypherKeyPair = await Task.Run(() => pr.ReadObject() as AsymmetricCipherKeyPair);
                 }
 
                 return cypherKeyPair == null ? null : new ECKeyPair(cypherKeyPair);
@@ -151,7 +151,7 @@ namespace AElf.OS.Account.Infrastructure
                 throw new InvalidKeyPairException("Invalid keypair (null reference).", null);
 
             // Ensure path exists
-            GetOrCreateKeystoreDir();
+            GetOrCreateKeystoreDirectory();
             
             var address = Address.FromPublicKey(keyPair.PublicKey);
             var fullPath = GetKeyFileFullPath(address.GetFormatted());
@@ -192,7 +192,7 @@ namespace AElf.OS.Account.Infrastructure
             return filePathWithExtension;
         }
 
-        private DirectoryInfo GetOrCreateKeystoreDir()
+        private DirectoryInfo GetOrCreateKeystoreDirectory()
         {
             var dirPath = GetKeystoreDirectoryPath();
             return Directory.CreateDirectory(dirPath);

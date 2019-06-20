@@ -3,22 +3,22 @@ using AElf.Cryptography.ECDSA;
 
 namespace AElf.OS.Account.Infrastructure
 {
-    public class OpenAccount
+    public class Account
     {
         // Close account when time out 
-        public Timer CloseTimer { private get; set; }
+        public Timer LockTimer { private get; set; }
         
         public ECKeyPair KeyPair { get; set; }
         public string AccountName { get; }
 
-        public OpenAccount(string address)
+        public Account(string address)
         {
             AccountName = address;
         }
 
-        public void Close()
+        public void Lock()
         {
-            CloseTimer.Dispose();
+            LockTimer.Dispose();
         }
     }
 }

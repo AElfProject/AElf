@@ -55,10 +55,10 @@ namespace AElf.OS.Account.Application
             var nodePassword = _accountOptions.NodeAccountPassword ?? string.Empty;
             if (string.IsNullOrWhiteSpace(nodeAccount))
             {
-                var accountList = await _keyStore.ListAccountsAsync();
+                var accountList = await _keyStore.GetAccountsAsync();
                 if (accountList.Count == 0)
                 {
-                    var keyPair = await _keyStore.CreateAsync(nodePassword);
+                    var keyPair = await _keyStore.CreateAccountKeyPairAsync(nodePassword);
                     nodeAccount = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
                 }
                 else
@@ -70,7 +70,7 @@ namespace AElf.OS.Account.Application
             var accountKeyPair = _keyStore.GetAccountKeyPair(nodeAccount);
             if (accountKeyPair == null)
             {
-                await _keyStore.OpenAsync(nodeAccount, nodePassword, false);
+                await _keyStore.UnlockAccountAsync(nodeAccount, nodePassword, false);
                 accountKeyPair = _keyStore.GetAccountKeyPair(nodeAccount);
             }
 

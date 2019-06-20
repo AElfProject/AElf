@@ -41,7 +41,7 @@ namespace AElf.OS
 
                 keyStore.Setup(k => k.GetAccountKeyPair(It.IsAny<string>())).Returns(() => keyPair);
 
-                keyStore.Setup(k => k.OpenAsync(It.IsAny<string>(), It.IsAny<string>(), false)).Returns(() =>
+                keyStore.Setup(k => k.UnlockAccountAsync(It.IsAny<string>(), It.IsAny<string>(), false)).Returns(() =>
                 {
                     keyPair = ecKeyPair;
                     return Task.FromResult(AElfKeyStore.Errors.None);
