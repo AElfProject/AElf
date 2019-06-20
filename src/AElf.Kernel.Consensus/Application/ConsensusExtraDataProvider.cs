@@ -17,7 +17,7 @@ namespace AElf.Kernel.Consensus.Application
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
         {
-            if (blockHeader.Height == 1 || blockHeader.BlockExtraDatas.Any())
+            if (blockHeader.Height == 1 || blockHeader.BlockExtraData.Any())
             {
                 return null;
             }

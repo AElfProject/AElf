@@ -21,7 +21,7 @@ namespace AElf.Kernel.Consensus.Application
             if (block.Header.Height == Constants.GenesisBlockHeight)
                 return true;
 
-            if (block.Header.BlockExtraDatas.Count == 0)
+            if (block.Header.BlockExtraData.Count == 0)
             {
                 Logger.LogWarning($"Block header extra data is empty {block}");
                 return false;

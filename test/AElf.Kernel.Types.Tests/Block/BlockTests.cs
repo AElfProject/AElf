@@ -85,7 +85,7 @@ namespace AElf.Kernel.Types.Tests
                 MerkleTreeRootOfTransactions = Hash.Generate(),
                 MerkleTreeRootOfWorldState = Hash.Generate(),
                 Bloom = ByteString.Empty,
-                BlockExtraDatas = { ByteString.CopyFromUtf8("test")}
+                BlockExtraData = { ByteString.CopyFromUtf8("test")}
             };
             var hash = blockHeader.GetHash();
             hash.ShouldNotBeNull();   

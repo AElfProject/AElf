@@ -229,7 +229,7 @@ namespace AElf.OS.Rpc.ChainController
                     ["PreviousBlockHash"] = blockInfo.Header.PreviousBlockHash.ToHex(),
                     ["MerkleTreeRootOfTransactions"] = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                     ["MerkleTreeRootOfWorldState"] = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    ["Extra"] = blockInfo.Header.BlockExtraDatas.ToString(),
+                    ["Extra"] = blockInfo.Header.BlockExtraData.ToString(),
                     ["Height"] = blockInfo.Header.Height.ToString(),
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
                     ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
