@@ -109,8 +109,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (!State.IsMainChain.Value && IsMainChainMinerListChanged(currentRound))
             {
+                Context.LogDebug(() => "About to change miners.");
                 nextRound = State.MainChainCurrentMinerList.Value.GenerateFirstRoundOfNewTerm(
                     currentRound.GetMiningInterval(), currentBlockTime, currentRound.RoundNumber);
+                Context.LogDebug(() => "Round of new miners generated.");
                 return true;
             }
 
@@ -155,6 +157,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool IsMainChainMinerListChanged(Round currentRound)
         {
+            Context.LogDebug(() => "Entered IsMainChainMinerListChanged.");
             return State.MainChainCurrentMinerList.Value.PublicKeys.Any() &&
                    GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
                    GetMinerListHash(State.MainChainCurrentMinerList.Value.PublicKeys.Select(p => p.ToHex()));
