@@ -65,9 +65,8 @@ message SmartContractRegistration {
 }
 
 message TransactionExecutingStateSet {
-    int64 version = 1;
-    map<string, bytes> writes = 2;
-    map<string, bool> reads = 3;
+    map<string, bytes> writes = 1;
+    map<string, bool> reads = 2;
 }
 
 // Common
