@@ -9,18 +9,17 @@ namespace AElf.Cryptography.SecretSharing
     public static class SecretSharingExtensions
     {
 
-        public static BigInteger  ConvetToBigInteger(this byte[] bytes)
+        public static BigInteger  ToBigInteger(this byte[] bytes)
         {
             var tempBytes = new byte[bytes.Length + 1];
-            tempBytes[0] = 00;
             Array.Copy(bytes.Reverse().ToArray(), 0, tempBytes, 1, bytes.Length);
             return new BigInteger(tempBytes);
         }
 
-        public static byte[] ConvertToBytes(this BigInteger integer)
+        public static byte[] ToBytesArray(this BigInteger integer)
         {
             var tempBytes = integer.ToByteArray().Reverse().ToArray();
-            var result = new byte[tempBytes.Length-1];
+            var result = new byte[32];
             Array.Copy(tempBytes,0,result,0,result.Length);
 
             return result;

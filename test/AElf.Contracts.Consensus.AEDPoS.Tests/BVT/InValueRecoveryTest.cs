@@ -56,7 +56,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 if (decryptedValues.Count >= MinimumCount)
                 {
                     decryptResult = SecretSharingHelper.DecodeSecret(
-                        decryptedValues.Values.Select(v => v).ToList(),
+                        decryptedValues.Values.ToList(),
                         Enumerable.Range(1, MinimumCount).ToList(), MinimumCount);
                     break;
                 }

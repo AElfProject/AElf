@@ -17,7 +17,7 @@ namespace AElf.Cryptography.SecretSharing
             // Polynomial construction.
             var coefficients = new BigInteger[threshold];
             // Set p(0) = secret message.
-            coefficients[0] = secretMessage.ConvetToBigInteger();
+            coefficients[0] = secretMessage.ToBigInteger();
             for (var i = 1; i < threshold; i++)
             {
                 var foo = new byte[32];
@@ -65,7 +65,7 @@ namespace AElf.Cryptography.SecretSharing
                 result %= SecretSharingConsts.FieldPrime;
             }
 
-            return result.ConvertToBytes();
+            return result.ToBytesArray();
         }
 
         private static BigInteger RationalToWhole(BigInteger numerator, BigInteger denominator)
@@ -105,7 +105,7 @@ namespace AElf.Cryptography.SecretSharing
             BigInteger numeratorLhs, BigInteger denominatorLhs,
             BigInteger numeratorRhs, BigInteger denominatorRhs)
         {
-            denominatorRhs = denominatorRhs.Abs();
+            denominatorRhs = denominatorRhs;//.Abs();
             var numerator = numeratorLhs * numeratorRhs % SecretSharingConsts.FieldPrime;
             var denominator = denominatorLhs * denominatorRhs % SecretSharingConsts.FieldPrime;
             var gcd = GetGreatestCommonDivisor(numerator, denominator);
