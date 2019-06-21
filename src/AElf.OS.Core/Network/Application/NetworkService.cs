@@ -62,14 +62,14 @@ namespace AElf.OS.Network.Application
 
             var announce = new PeerNewBlockAnnouncement
             {
-                BlockHash = blockHeader.GetHash(),
+                BlockHash = blockHash,
                 BlockHeight = blockHeader.Height,
                 HasFork = hasFork
             };
             
             var peers = _peerPool.GetPeers().ToList();
 
-            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash(), hasFork);
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
             
             Logger.LogDebug("About to broadcast to peers.");
             
