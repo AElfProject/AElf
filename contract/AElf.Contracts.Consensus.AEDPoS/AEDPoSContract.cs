@@ -10,6 +10,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         #region Initial
 
+        private static readonly int _minerNumber = 17;
+
+        private static readonly int _miner_increse_timespan = 120;
+        
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -177,10 +181,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var actualBlockchainStartTimestamp = input.GetStartTime();
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
-            }
-            else
-            {
-                var minersCount = GetMinersCount();
+                var minersCount = GetRequiredCount(input);
                 if (minersCount != 0 && State.ElectionContract.Value != null)
                 {
                     State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
@@ -188,6 +189,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         MinersCount = minersCount
                     });
                 }
+                Context.LogDebug(()=>"the count of the round:"+minersCount);
             }
 
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");

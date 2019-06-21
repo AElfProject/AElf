@@ -47,9 +47,9 @@ namespace AElf.Contracts.Election
 
         internal const int MiningInterval = 4000;
         
-        internal const int InitialMinersCount = 5;
-        internal const int FullNodesCount = 10;
-        internal const int VotersCount = 10;
+        internal const int InitialMinersCount = 17;
+        internal const int FullNodesCount = 20;
+        internal const int VotersCount = 20;
 
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }

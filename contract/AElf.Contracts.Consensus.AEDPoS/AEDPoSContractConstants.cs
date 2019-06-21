@@ -7,5 +7,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public const int LimitBlockExecutionTimeTotalWeight = 5;
         public const int LimitBlockExecutionTimeWeight = 3;
         public const int TimeForNetwork = 100;
+        public const int InitialMinersCount = 17;
+        public const long TimeEachTerm = 120;
     }
 }
