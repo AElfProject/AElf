@@ -3,10 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Miner.Application
 {
-    public class LogEventListeningService : ILogEventListeningService
+    public class LogEventListeningService : ILogEventListeningService, ISingletonDependency
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
@@ -24,7 +25,7 @@ namespace AElf.Kernel.Miner.Application
         {
             _blockchainService = blockchainService;
             _transactionResultQueryService = transactionResultQueryService;
-            _eventHandlers = eventHandlers.ToList();
+            _eventHandlers = eventHandlers.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
         public async Task ApplyAsync(IEnumerable<Hash> blockHashes)
