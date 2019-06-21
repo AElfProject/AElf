@@ -22,6 +22,8 @@ service TreasuryContract {
     }
     rpc Register (RegisterInput) returns (google.protobuf.Empty) {
     }
+    rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {
+    }
 
     // View
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
@@ -61,4 +63,8 @@ message GetWelfareRewardAmountSampleInput {
 
 message GetWelfareRewardAmountSampleOutput {
     repeated sint64 value = 1;
+}
+
+message DonateAllInput {
+    string symbol = 1;
 }

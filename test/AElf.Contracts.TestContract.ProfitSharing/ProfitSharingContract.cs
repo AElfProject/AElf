@@ -27,7 +27,7 @@ namespace AElf.Contracts.TestContract.ProfitSharing
                 Amount = ProfitSharingContractConstants.AmountIssueToTokenConverterContract,
                 To = Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
             });
-            
+
             // Create Token Connector.
             return new Empty();
         }
@@ -36,5 +36,18 @@ namespace AElf.Contracts.TestContract.ProfitSharing
         {
             return new Empty();
         }
+
+        public override Empty SetMethodProfitFee(SetMethodProfitFeeInput input)
+        {
+            State.MethodProfitFees[input.Method] = new MethodProfitFee {SymbolToAmount = {input.SymbolToAmount}};
+            return new Empty();
+        }
+
+        public override MethodProfitFee GetMethodProfitFee(StringValue input)
+        {
+            return State.MethodProfitFees[input.Value];
+        }
+        
+        
     }
 }

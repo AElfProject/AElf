@@ -84,7 +84,7 @@ namespace AElf.Contracts.Treasury
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
-                To = Context.Self,
+                To = State.TreasuryVirtualAddress.Value,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = "Donate to treasury."
@@ -92,14 +92,48 @@ namespace AElf.Contracts.Treasury
 
             if (input.Symbol != Context.Variables.NativeSymbol)
             {
-                State.TokenConverterContract.Sell.Send(new SellInput
-                {
-                    Symbol = input.Symbol,
-                    Amount = input.Amount
-                });
+                ConvertToNativeToken(input.Symbol, input.Amount);
             }
 
             return new Empty();
+        }
+
+        public override Empty DonateAll(DonateAllInput input)
+        {
+            var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+            {
+                Symbol = input.Symbol,
+                Owner = Context.Sender
+            }).Balance;
+            
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = State.TreasuryVirtualAddress.Value,
+                Symbol = Context.Variables.NativeSymbol,
+                Amount = balance,
+                Memo = "Donate all token to treasury."
+            });
+            
+            if (input.Symbol != Context.Variables.NativeSymbol)
+            {
+                ConvertToNativeToken(input.Symbol, balance);
+            }
+
+            return new Empty();
+        }
+
+        private void ConvertToNativeToken(string symbol, long amount)
+        {
+            State.TokenConverterContract.Sell.Send(new SellInput
+            {
+                Symbol = symbol,
+                Amount = amount
+            });
+            Context.SendInline(Context.Self, nameof(DonateAll), new DonateAllInput
+            {
+                Symbol = Context.Variables.NativeSymbol
+            });
         }
 
         /// <summary>

@@ -1,7 +1,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
+using Acs5;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestContract.ProfitSharing;
 using AElf.Contracts.TokenConverter;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -47,7 +49,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             });
 
             var tokenAmount = await TransactionFeeChargingContractStub.GetMethodFee.CallAsync(new MethodName
-                {Name = nameof(TransactionFeeChargingContractStub.SendForFun)});
+            {
+                Name = nameof(TransactionFeeChargingContractStub.SendForFun)
+            });
             tokenAmount.SymbolToAmount[EconomicSystemTestConstants.NativeTokenSymbol].ShouldBe(feeAmount);
         }
 
@@ -153,5 +157,23 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 balance.Balance.ShouldBe(0L);
             }
         }
+        
+        [Fact]
+        public async Task EconomistSystem_SetMethodProfitFee()
+        {
+            const long profitAmount = 100L;
+            await ProfitSharingContractStub.SetMethodProfitFee.SendAsync(new SetMethodProfitFeeInput
+            {
+                Method = nameof(ProfitSharingContractStub.SendForFun),
+                SymbolToAmount = {{EconomicSystemTestConstants.NativeTokenSymbol, profitAmount}}
+            });
+
+            var tokenAmount = await ProfitSharingContractStub.GetMethodProfitFee.CallAsync(new StringValue
+            {
+                Value = nameof(ProfitSharingContractStub.SendForFun)
+            });
+            tokenAmount.SymbolToAmount[EconomicSystemTestConstants.NativeTokenSymbol].ShouldBe(profitAmount);
+        }
+
     }
 }
