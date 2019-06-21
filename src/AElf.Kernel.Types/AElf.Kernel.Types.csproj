@@ -15,8 +15,5 @@
         <CommonMessage Include="..\..\protobuf\metadata.proto">
             <Link>Protobuf/Proto/metadata.proto</Link>
         </CommonMessage>
-        <CommonMessage Include="..\..\protobuf\smart_contract.proto">
-            <Link>Protobuf/Proto/smart_contract.proto</Link>
-        </CommonMessage>
     </ItemGroup>
 </Project>
