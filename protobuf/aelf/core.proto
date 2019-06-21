@@ -44,11 +44,8 @@ message TransactionResult {
     int32 index = 8;
     Hash state_hash = 9;
     // Merkle proof path for this transaction
-    // TODO: Remove DeferredTxnId
-    repeated Transaction deferred_transactions = 10;
-    Hash deferred_txn_id = 11;
-    string error = 12;
-    string readable_return_value = 13;
+    string Error = 10;
+    string ReadableReturnValue = 11;
 }
 
 message LogEvent {
