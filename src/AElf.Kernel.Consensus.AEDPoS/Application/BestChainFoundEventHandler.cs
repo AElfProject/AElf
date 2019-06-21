@@ -9,6 +9,7 @@ using Volo.Abp.EventBus;
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     /// <summary>
+    /// TODO: add unit test
     /// Discover LIB from consensus contract then set LIB.
     /// </summary>
     public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEvent>, ITransientDependency

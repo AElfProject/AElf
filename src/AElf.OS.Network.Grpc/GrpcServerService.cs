@@ -59,7 +59,7 @@ namespace AElf.OS.Network.Grpc
             var peer = GrpcUrl.Parse(context.Peer);
             
             if (peer == null)
-                return new ConnectReply { Err = AuthError.InvalidPeer };
+                return new ConnectReply { Error = AuthError.InvalidPeer };
 
             if (NetworkOptions.MaxPeers != 0)
             {
@@ -67,7 +67,7 @@ namespace AElf.OS.Network.Grpc
                 if (peerCount >= NetworkOptions.MaxPeers)
                 {
                     Logger.LogWarning($"Cannot add peer, there's currently {peerCount} peers (max. {NetworkOptions.MaxPeers}).");
-                    return new ConnectReply { Err = AuthError.ConnectionRefused };
+                    return new ConnectReply { Error = AuthError.ConnectionRefused };
                 }
             }
 
@@ -76,10 +76,10 @@ namespace AElf.OS.Network.Grpc
             if (error != AuthError.None)
             {
                 Logger.LogWarning($"Handshake not valid: {error}");
-                return new ConnectReply {Err = error};
+                return new ConnectReply {Error = error};
             }
             
-            var pubKey = handshake.HskData.PublicKey.ToHex();
+            var pubKey = handshake.HandshakeData.Pubkey.ToHex();
             var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
 
             if (oldPeer != null)
@@ -89,7 +89,7 @@ namespace AElf.OS.Network.Grpc
             }
 
             // TODO: find a URI type to use
-            var peerAddress = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
+            var peerAddress = peer.IpAddress + ":" + handshake.HandshakeData.ListeningPort;
             var grpcPeer = DialPeer(peerAddress, handshake);
 
             // send our credentials
@@ -122,43 +122,43 @@ namespace AElf.OS.Network.Grpc
                 var c = channel.WaitForStateChangedAsync(channel.State);
             }
 
-            var pubKey = handshake.HskData.PublicKey.ToHex();
+            var pubKey = handshake.HandshakeData.Pubkey.ToHex();
             
             var connectionInfo = new GrpcPeerInfo
             {
                 PublicKey = pubKey,
                 PeerIpAddress = peerAddress,
-                ProtocolVersion = handshake.HskData.Version,
+                ProtocolVersion = handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = handshake.Header.Height,
+                StartHeight = handshake.BestChainBlockHeader.Height,
                 IsInbound = true
             };
-
+            
             return new GrpcPeer(channel, client, connectionInfo);
         }
 
         private AuthError ValidateHandshake(Handshake handshake)
         {
-            if (handshake?.HskData == null)
+            if (handshake?.HandshakeData == null)
                 return AuthError.InvalidHandshake;
 
             // verify chain id
-            if (handshake.HskData.ChainId != _blockchainService.GetChainId())
+            if (handshake.HandshakeData.ChainId != _blockchainService.GetChainId())
                 return AuthError.ChainMismatch;
 
             // verify protocol
-            if (handshake.HskData.Version != KernelConstants.ProtocolVersion)
+            if (handshake.HandshakeData.Version != KernelConstants.ProtocolVersion)
                 return AuthError.ProtocolMismatch;
 
             // verify signature
             var validData = CryptoHelpers.VerifySignature(handshake.Signature.ToByteArray(),
-                Hash.FromMessage(handshake.HskData).ToByteArray(), handshake.HskData.PublicKey.ToByteArray());
+                Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
             
             if (!validData)
-                return AuthError.WrongSig;
+                return AuthError.WrongSignature;
             
             // verify authentication
-            var pubKey = handshake.HskData.PublicKey.ToHex();
+            var pubKey = handshake.HandshakeData.Pubkey.ToHex();
             if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized
                 && !NetworkOptions.AuthorizedKeys.Contains(pubKey))
             {

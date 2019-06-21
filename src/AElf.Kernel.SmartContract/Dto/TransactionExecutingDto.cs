@@ -7,5 +7,6 @@ namespace AElf.Kernel.SmartContract
     {
         public BlockHeader BlockHeader { get; set; }
         public IEnumerable<Transaction> Transactions { get; set; }
+        public BlockStateSet PartialBlockStateSet { get; set; }
     }
 }

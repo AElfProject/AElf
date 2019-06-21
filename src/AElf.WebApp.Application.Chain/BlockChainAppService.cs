@@ -26,37 +26,39 @@ namespace AElf.WebApp.Application.Chain
 {
     public interface IBlockChainAppService : IApplicationService
     {
-        Task<string> Call(CallInput input);
-
-        Task<byte[]> GetContractFileDescriptorSet(string address);
-
-        Task<CreateRawTransactionOutput> CreateRawTransaction(CreateRawTransactionInput input);
+        Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input);
         
-        Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input);
+        Task<string> ExecuteRawTransactionAsync(ExecuteRawTransactionDto input);
 
-        Task<BroadcastTransactionOutput> BroadcastTransaction(BroadcastTransactionInput input);
+        Task<byte[]> GetContractFileDescriptorSetAsync(string address);
 
-        Task<string[]> BroadcastTransactions(BroadcastTransactionsInput input);
-
-        Task<TransactionResultDto> GetTransactionResult(string transactionId);
-
-        Task<List<TransactionResultDto>> GetTransactionResults(string blockHash, int offset = 0, int limit = 10);
-
-        Task<long> GetBlockHeight();
-
-        Task<BlockDto> GetBlock(string blockHash, bool includeTransactions = false);
-
-        Task<BlockDto> GetBlockByHeight(long blockHeight, bool includeTransactions = false);
+        Task<CreateRawTransactionOutput> CreateRawTransactionAsync(CreateRawTransactionInput input);
         
-        Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus();
+        Task<SendRawTransactionOutput> SendRawTransactionAsync(SendRawTransactionInput input);
 
-        Task<ChainStatusDto> GetChainStatus();
+        Task<SendTransactionOutput> SendTransactionAsync(SendTransactionInput input);
 
-        Task<BlockStateDto> GetBlockState(string blockHash);
+        Task<string[]> SendTransactionsAsync(SendTransactionsInput input);
 
-        List<TaskQueueInfoDto> GetTaskQueueStatus();
+        Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
 
-        Task<RoundDto> GetCurrentRoundInformation();
+        Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0, int limit = 10);
+
+        Task<long> GetBlockHeightAsync();
+
+        Task<BlockDto> GetBlockAsync(string blockHash, bool includeTransactions = false);
+
+        Task<BlockDto> GetBlockByHeightAsync(long blockHeight, bool includeTransactions = false);
+        
+        Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatusAsync();
+
+        Task<ChainStatusDto> GetChainStatusAsync();
+
+        Task<BlockStateDto> GetBlockStateAsync(string blockHash);
+
+        List<TaskQueueInfoDto> GetTaskQueueStatusAsync();
+
+        Task<RoundDto> GetCurrentRoundInformationAsync();
     }
     
     public class BlockChainAppService : IBlockChainAppService
@@ -103,20 +105,43 @@ namespace AElf.WebApp.Application.Chain
         /// Call a read-only method on a contract.
         /// </summary>
         /// <returns></returns>
-        public async Task<string> Call(CallInput input)
+        public async Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input)
         {
             try
             {
-                var hexString = ByteArrayHelpers.FromHexString(input.RawTransaction);
-                var transaction = Transaction.Parser.ParseFrom(hexString);
+                var byteArray = ByteArrayHelpers.FromHexString(input.RawTransaction);
+                var transaction = Transaction.Parser.ParseFrom(byteArray);
                 if (!transaction.VerifySignature())
                 {
                     throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
                         Error.InvalidTransaction.ToString());
                 }
 
-                var response = await CallReadOnly(transaction);
+                var response = await CallReadOnlyAsync(transaction);
                 return response?.ToHex();
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                    Error.InvalidTransaction.ToString());
+            }
+        }
+
+        public async Task<string> ExecuteRawTransactionAsync(ExecuteRawTransactionDto input)
+        {
+            try
+            {
+                var byteArray = ByteArrayHelpers.FromHexString(input.RawTransaction);
+                var transaction = Transaction.Parser.ParseFrom(byteArray);
+                transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
+                if (!transaction.VerifySignature())
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                        Error.InvalidTransaction.ToString());
+                }
+
+                var response = await CallReadOnlyReturnReadableValueAsync(transaction);
+                return response;
             }
             catch
             {
@@ -131,7 +156,7 @@ namespace AElf.WebApp.Application.Chain
         /// </summary>
         /// <param name="address">contract address</param>
         /// <returns></returns>
-        public async Task<byte[]> GetContractFileDescriptorSet(string address)
+        public async Task<byte[]> GetContractFileDescriptorSetAsync(string address)
         {
             try
             {
@@ -149,7 +174,7 @@ namespace AElf.WebApp.Application.Chain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public async Task<CreateRawTransactionOutput> CreateRawTransaction(CreateRawTransactionInput input)
+        public async Task<CreateRawTransactionOutput> CreateRawTransactionAsync(CreateRawTransactionInput input)
         {
             var transaction = new Transaction
             {
@@ -186,7 +211,7 @@ namespace AElf.WebApp.Application.Chain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public async Task<SendRawTransactionOutput> SendRawTransaction(SendRawTransactionInput input)
+        public async Task<SendRawTransactionOutput> SendRawTransactionAsync(SendRawTransactionInput input)
         {
             var transaction = Transaction.Parser.ParseFrom(ByteArrayHelpers.FromHexString(input.Transaction));
             transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
@@ -215,10 +240,10 @@ namespace AElf.WebApp.Application.Chain
         /// Broadcast a transaction
         /// </summary>
         /// <returns></returns>
-        public async Task<BroadcastTransactionOutput> BroadcastTransaction(BroadcastTransactionInput input)
+        public async Task<SendTransactionOutput> SendTransactionAsync(SendTransactionInput input)
         {
             var txIds = await PublishTransactionsAsync(new[] {input.RawTransaction});
-            return new BroadcastTransactionOutput
+            return new SendTransactionOutput
             {
                 TransactionId = txIds[0]
             };
@@ -229,7 +254,7 @@ namespace AElf.WebApp.Application.Chain
         /// Broadcast multiple transactions
         /// </summary>
         /// <returns></returns>
-        public async Task<string[]> BroadcastTransactions(BroadcastTransactionsInput input)
+        public async Task<string[]> SendTransactionsAsync(SendTransactionsInput input)
         {
             var txIds = await PublishTransactionsAsync(input.RawTransactions.Split(","));
             
@@ -241,7 +266,7 @@ namespace AElf.WebApp.Application.Chain
         /// </summary>
         /// <param name="transactionId">transaction id</param>
         /// <returns></returns>
-        public async Task<TransactionResultDto> GetTransactionResult(string transactionId)
+        public async Task<TransactionResultDto> GetTransactionResultAsync(string transactionId)
         {
             Hash transactionHash;
             try
@@ -254,13 +279,13 @@ namespace AElf.WebApp.Application.Chain
                     Error.InvalidTransactionId.ToString());
             }
 
-            var transactionResult = await GetTransactionResult(transactionHash);
+            var transactionResult = await GetTransactionResultAsync(transactionHash);
             var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
 
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
-                var block = await GetBlockAtHeight(transactionResult.BlockNumber);
+                var block = await GetBlockAtHeightAsync(transactionResult.BlockNumber);
                 output.BlockHash = block.GetHash().ToHex();
             }
 
@@ -290,7 +315,7 @@ namespace AElf.WebApp.Application.Chain
         /// <param name="limit">limit</param>
         /// <returns></returns>
         /// <exception cref="UserFriendlyException"></exception>
-        public async Task<List<TransactionResultDto>> GetTransactionResults(string blockHash, int offset = 0,
+        public async Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10)
         {
             if (offset < 0)
@@ -314,7 +339,7 @@ namespace AElf.WebApp.Application.Chain
                     Error.InvalidBlockHash.ToString());
             }
 
-            var block = await GetBlock(realBlockHash);
+            var block = await GetBlockAsync(realBlockHash);
             if (block == null)
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
@@ -327,7 +352,7 @@ namespace AElf.WebApp.Application.Chain
                 var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, limit);
                 foreach (var hash in transactionHashes)
                 {
-                    var transactionResult = await GetTransactionResult(hash);
+                    var transactionResult = await GetTransactionResultAsync(hash);
                     var transactionResultDto =
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
                     var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
@@ -356,7 +381,7 @@ namespace AElf.WebApp.Application.Chain
         /// Get the height of the current chain.
         /// </summary>
         /// <returns></returns>
-        public async Task<long> GetBlockHeight()
+        public async Task<long> GetBlockHeightAsync()
         {
             var chainContext = await _blockchainService.GetChainAsync();
             return chainContext.BestChainHeight;
@@ -368,7 +393,7 @@ namespace AElf.WebApp.Application.Chain
         /// <param name="blockHash">block hash</param>
         /// <param name="includeTransactions">include transactions or not</param>
         /// <returns></returns>
-        public async Task<BlockDto> GetBlock(string blockHash, bool includeTransactions = false)
+        public async Task<BlockDto> GetBlockAsync(string blockHash, bool includeTransactions = false)
         {
             Hash realBlockHash;
             try
@@ -381,7 +406,7 @@ namespace AElf.WebApp.Application.Chain
                     Error.InvalidBlockHash.ToString());
             }
 
-            var block = await GetBlock(realBlockHash);
+            var block = await GetBlockAsync(realBlockHash);
             
             if (block == null)
             {
@@ -431,11 +456,11 @@ namespace AElf.WebApp.Application.Chain
         /// <param name="blockHeight">block height</param>
         /// <param name="includeTransactions">include transactions or not</param>
         /// <returns></returns>
-        public async Task<BlockDto> GetBlockByHeight(long blockHeight, bool includeTransactions = false)
+        public async Task<BlockDto> GetBlockByHeightAsync(long blockHeight, bool includeTransactions = false)
         {
             if (blockHeight == 0)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-            var blockInfo = await GetBlockAtHeight(blockHeight);
+            var blockInfo = await GetBlockAtHeightAsync(blockHeight);
             
             if (blockInfo == null)
             {
@@ -483,7 +508,7 @@ namespace AElf.WebApp.Application.Chain
         /// Get the transaction pool status.
         /// </summary>
         /// <returns></returns>
-        public async Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatus()
+        public async Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatusAsync()
         {
             var queued = await _txHub.GetTransactionPoolSizeAsync();
             return new GetTransactionPoolStatusOutput
@@ -496,7 +521,7 @@ namespace AElf.WebApp.Application.Chain
         /// Get the current status of the block chain.
         /// </summary>
         /// <returns></returns>
-        public async Task<ChainStatusDto> GetChainStatus()
+        public async Task<ChainStatusDto> GetChainStatusAsync()
         {
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
      
@@ -506,7 +531,7 @@ namespace AElf.WebApp.Application.Chain
 
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
             {
-                var block = await GetBlock(Hash.LoadBase64(notLinkedBlock.Value));
+                var block = await GetBlockAsync(Hash.LoadBase64(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new NotLinkedBlockDto
                     {
                         BlockHash = block.GetHash().ToHex(),
@@ -537,7 +562,7 @@ namespace AElf.WebApp.Application.Chain
         /// </summary>
         /// <param name="blockHash">block hash</param>
         /// <returns></returns>
-        public async Task<BlockStateDto> GetBlockState(string blockHash)
+        public async Task<BlockStateDto> GetBlockStateAsync(string blockHash)
         {
             var blockState = await _blockchainStateManager.GetBlockStateSetAsync(Hash.LoadHex(blockHash));
             if (blockState == null)
@@ -545,7 +570,7 @@ namespace AElf.WebApp.Application.Chain
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
         }
 
-        public List<TaskQueueInfoDto> GetTaskQueueStatus()
+        public List<TaskQueueInfoDto> GetTaskQueueStatusAsync()
         {
             var taskQueueStatus = _taskQueueManager.GetQueueStatus();
             return taskQueueStatus.Select(taskQueueState => new TaskQueueInfoDto
@@ -559,7 +584,7 @@ namespace AElf.WebApp.Application.Chain
         /// Get AEDPoS latest round information from last block header's consensus extra data of best chain.
         /// </summary>
         /// <returns></returns>
-        public async Task<RoundDto> GetCurrentRoundInformation()
+        public async Task<RoundDto> GetCurrentRoundInformationAsync()
         {
             var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", blockHeader);
@@ -588,17 +613,17 @@ namespace AElf.WebApp.Application.Chain
             };
         }
 
-        private async Task<Block> GetBlock(Hash blockHash)
+        private async Task<Block> GetBlockAsync(Hash blockHash)
         {
             return await _blockchainService.GetBlockByHashAsync(blockHash);
         }
         
-        private async Task<Block> GetBlockAtHeight(long height)
+        private async Task<Block> GetBlockAtHeightAsync(long height)
         {
             return await _blockchainService.GetBlockByHeightInBestChainBranchAsync(height);
         }
         
-        private async Task<TransactionResult> GetTransactionResult(Hash txHash)
+        private async Task<TransactionResult> GetTransactionResultAsync(Hash txHash)
         {
             // in storage
             var res = await _transactionResultQueryService.GetTransactionResultAsync(txHash);
@@ -702,7 +727,7 @@ namespace AElf.WebApp.Application.Chain
             return await _transactionReadOnlyExecutionService.GetFileDescriptorsAsync(chainContext, address);
         }
         
-        private async Task<byte[]> CallReadOnly(Transaction tx)
+        private async Task<byte[]> CallReadOnlyAsync(Transaction tx)
         {
             var chainContext = await GetChainContextAsync();
 
@@ -712,6 +737,18 @@ namespace AElf.WebApp.Application.Chain
                 throw new Exception(trace.StdErr);
 
             return trace.ReturnValue.ToByteArray();
+        }
+        
+        private async Task<string> CallReadOnlyReturnReadableValueAsync(Transaction tx)
+        {
+            var chainContext = await GetChainContextAsync();
+
+            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow.ToTimestamp());
+
+            if (!string.IsNullOrEmpty(trace.StdErr))
+                throw new Exception(trace.StdErr);
+
+            return trace.ReadableReturnValue;
         }
         
         private async Task<ChainContext> GetChainContextAsync()

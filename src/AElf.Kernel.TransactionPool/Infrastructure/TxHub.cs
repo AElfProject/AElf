@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,8 +71,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight
             };
-            //take limited transactions
-            output.Transactions.AddRange(_validated.Values.Take(KernelConstants.SelectionMaxTransactionCount).Select(x => x.Transaction));
+            output.Transactions.AddRange(_validated.Values.Select(x => x.Transaction));
 
             return output;
         }
@@ -186,17 +184,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
-        private void CleanTransactions(List<Hash> transactionIds)
+        private void CleanTransactions(IEnumerable<Hash> transactionIds)
         {
             foreach (var transactionId in transactionIds)
             {
                 _allTransactions.TryRemove(transactionId, out _);
             }
-            
-            LocalEventBus.PublishAsync(new TransactionResourcesNoLongerNeededEvent()
-            {
-                TransactionIds = transactionIds,
-            });
         }
 
         #endregion
@@ -258,14 +251,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 {
                     await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
                     {
-                        Transaction = transaction,
+                        Transaction = transaction
                     });
                 }
             }
-            await LocalEventBus.PublishAsync(new TransactionResourcesNeededEvent()
-            {
-                Transactions = executableTransactions,
-            });
         }
 
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
@@ -274,7 +263,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             CleanTransactions(block.Body.Transactions.ToList());
         }
 
-        public async Task HandleBestChainFoundAsync(BestChainFoundEvent eventData)
+        public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
         {
             Logger.LogDebug($"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
             

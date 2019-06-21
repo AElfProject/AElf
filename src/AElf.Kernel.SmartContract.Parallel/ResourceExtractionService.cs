@@ -7,8 +7,11 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Parallel
@@ -17,16 +20,18 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        public ILogger<TransactionGrouper> Logger { get; set; }
+        public ILogger<ResourceExtractionService> Logger { get; set; }
 
-        private readonly ConcurrentDictionary<Hash, TransactionResourceInfo> _resourceCache = 
-            new ConcurrentDictionary<Hash, TransactionResourceInfo>();
+        private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache = 
+            new ConcurrentDictionary<Hash, TransactionResourceCache>();
 
         public ResourceExtractionService(IBlockchainService blockchainService, 
             ISmartContractExecutiveService smartContractExecutiveService)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
             _blockchainService = blockchainService;
+            
+            Logger = NullLogger<ResourceExtractionService>.Instance;
         }
 
         public async Task<IEnumerable<(Transaction, TransactionResourceInfo)>> GetResourcesAsync(IChainContext chainContext,
@@ -47,8 +52,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                     NonParallelizable = true
                 });
 
-            if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceInfo))
-                return (transaction, resourceInfo);
+            if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
+                return (transaction, resourceCache.ResourceInfo);
 
             return (transaction, await GetResourcesForOneAsync(chainContext, transaction, ct));
         }
@@ -77,32 +82,50 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         #region Event Handler Methods
         
-        public async Task HandleTransactionResourcesNeededAsync(TransactionResourcesNeededEvent eventData)
+        public async Task HandleTransactionAcceptedEvent(TransactionAcceptedEvent eventData)
         {
             var chainContext = await GetChainContextAsync();
-            
-            foreach (var tx in eventData.Transactions)
-            {
-                _resourceCache.TryAdd(tx.GetHash(), await GetResourcesForOneAsync(chainContext, tx, CancellationToken.None));
-            }
+            var transaction = eventData.Transaction;
 
-            Logger?.LogTrace($"Resource cache size current: {_resourceCache.Count}");
+            _resourceCache.TryAdd(transaction.GetHash(), 
+                new TransactionResourceCache(transaction.RefBlockNumber, 
+                    await GetResourcesForOneAsync(chainContext, transaction, CancellationToken.None)));
         }
 
-        public async Task HandleTransactionResourcesNoLongerNeededAsync(TransactionResourcesNoLongerNeededEvent eventData)
+        public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            foreach (var txId in eventData.TransactionIds)
+            ClearResourceCache(_resourceCache.Where(c => c.Value.RefBlockNumber <= eventData.BlockHeight)
+                .Select(c => c.Key));
+            
+            await Task.CompletedTask;
+        }
+
+        public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
+        {
+            ClearResourceCache(eventData.Transactions);
+            
+            await Task.CompletedTask;
+        }
+
+        public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
+        {
+            var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
+            
+            ClearResourceCache(block.TransactionHashList);
+            
+            await Task.CompletedTask;
+        }
+
+        private void ClearResourceCache(IEnumerable<Hash> transactions)
+        {
+            foreach (var transactionId in transactions)
             {
-                _resourceCache.TryRemove(txId, out _);
+                _resourceCache.TryRemove(transactionId, out _);
             }
             
-            Logger?.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
+            Logger.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
         }
         
-        public async Task<int> GetResourceCacheCount()
-        {
-            return await Task.FromResult(_resourceCache.Count);
-        }
         #endregion
         
         private async Task<ChainContext> GetChainContextAsync()
@@ -119,6 +142,18 @@ namespace AElf.Kernel.SmartContract.Parallel
                 BlockHeight = chain.BestChainHeight
             };
             return chainContext;
+        }
+    }
+    
+    internal class TransactionResourceCache
+    {
+        public readonly long RefBlockNumber;
+        public readonly TransactionResourceInfo ResourceInfo;
+
+        public TransactionResourceCache(long refBlockNumber, TransactionResourceInfo resourceInfo)
+        {
+            RefBlockNumber = refBlockNumber;
+            ResourceInfo = resourceInfo;
         }
     }
 }
