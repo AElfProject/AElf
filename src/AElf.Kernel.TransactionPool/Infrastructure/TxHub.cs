@@ -71,7 +71,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight
             };
-            output.Transactions.AddRange(_validated.Values.Select(x => x.Transaction));
+            output.Transactions.AddRange(_validated.Values.Take(300).Select(x => x.Transaction));
 
             return output;
         }
