@@ -263,7 +263,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             CleanTransactions(block.Body.Transactions.ToList());
         }
 
-        public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
+        public async Task HandleBestChainFoundAsync(BestChainFoundEvent eventData)
         {
             Logger.LogDebug($"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
             

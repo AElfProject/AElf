@@ -19,14 +19,14 @@ namespace AElf
         [Fact]
         public async Task StartQueueTest_Twice()
         {
-            _taskQueue.StartAsync();
-            await Should.ThrowAsync<InvalidOperationException>(async () => await _taskQueue.StartAsync());
+            _taskQueue.Start();
+            Should.Throw<InvalidOperationException>(() => _taskQueue.Start());
         }
 
         [Fact]
         public async Task EnqueueTest()
         {
-            _taskQueue.StartAsync();
+            _taskQueue.Start();
             _taskQueue.Enqueue(ProcessTask);
             Thread.Sleep(10);
             _counter.ShouldBe(1);
@@ -38,7 +38,7 @@ namespace AElf
         [Fact]
         public async Task Enqueue_MultipleTimes()
         {
-            _taskQueue.StartAsync();
+            _taskQueue.Start();
             for (var i = 0; i < 10; i++)
             {
                 _taskQueue.Enqueue(ProcessTask);
@@ -50,7 +50,7 @@ namespace AElf
         [Fact]
         public async Task Dispose_QueueTest()
         {
-            _taskQueue.StartAsync();
+            _taskQueue.Start();
             _taskQueue.Dispose();
 
             Should.Throw<InvalidOperationException>(() => _taskQueue.Enqueue(ProcessTask));
@@ -59,8 +59,8 @@ namespace AElf
         [Fact]
         public async Task Stop_QueueTest()
         {
-            _taskQueue.StartAsync();
-            await _taskQueue.StopAsync();
+            _taskQueue.Start();
+            _taskQueue.Dispose();
             Should.Throw<InvalidOperationException>(() => _taskQueue.Enqueue(ProcessTask));
         }
 

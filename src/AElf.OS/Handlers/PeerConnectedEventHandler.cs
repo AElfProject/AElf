@@ -12,7 +12,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class PeerConnectedEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>
+    public class PeerConnectedEventHandler : ILocalEventHandler<AnnouncementReceivedEvent>
     {
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
 
@@ -38,14 +38,14 @@ namespace AElf.OS.Handlers
 
         //TODO: need to directly test ProcessNewBlockAsync, or unit test cannot catch exceptions of ProcessNewBlockAsync
 
-        public Task HandleEventAsync(AnnouncementReceivedEventData eventData)
+        public Task HandleEventAsync(AnnouncementReceivedEvent eventData)
         {
             var _ = ProcessNewBlockAsync(eventData, eventData.SenderPubKey);
             return Task.CompletedTask;
         }
 
 
-        private async Task ProcessNewBlockAsync(AnnouncementReceivedEventData header, string senderPubKey)
+        private async Task ProcessNewBlockAsync(AnnouncementReceivedEvent header, string senderPubKey)
         {
             Logger.LogTrace($"Receive announcement and sync block {{ hash: {header.Announce.BlockHash}, height: {header.Announce.BlockHeight} }} from {senderPubKey}.");
 
@@ -79,7 +79,7 @@ namespace AElf.OS.Handlers
             EnqueueJob(header, senderPubKey);
         }
 
-        private void EnqueueJob(AnnouncementReceivedEventData header, string senderPubKey)
+        private void EnqueueJob(AnnouncementReceivedEvent header, string senderPubKey)
         {
             var enqueueTimestamp = TimestampHelper.GetUtcNow();
             _taskQueueManager.Enqueue(async () =>

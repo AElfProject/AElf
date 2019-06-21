@@ -24,6 +24,7 @@ namespace AElf.Kernel.Parallel.MultiToken.Tests
             _osTestHelper = GetRequiredService<OSTestHelper>();
         }
         
+        /*
         [Fact]
         public async Task HandleResourceNeeded_Success()
         {
@@ -77,5 +78,6 @@ namespace AElf.Kernel.Parallel.MultiToken.Tests
 
             return transactions;
         }
+        */
     }
 }

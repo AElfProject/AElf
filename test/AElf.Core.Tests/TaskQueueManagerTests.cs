@@ -21,11 +21,11 @@ namespace AElf
         public void Test_StartAsync()
         {
             var testQueue = _taskQueueManager.GetQueue("TestQueue");
+            
+            Should.Throw<InvalidOperationException>(()=>testQueue.Start());
 
-            testQueue.StartAsync().ShouldThrow<InvalidOperationException>();
-
-            testQueue.StopAsync();
-            Assert.Throws<InvalidOperationException>(() => testQueue.Enqueue(async () => { }));
+            testQueue.Dispose();
+            Should.Throw<InvalidOperationException>(() => testQueue.Enqueue(async () => { }));
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace AElf
 
             result.ShouldBe(4);
 
-            Assert.Throws<ObjectDisposedException>(() => testQueue.Enqueue(async () => { result++; }));
+            Should.Throw<ObjectDisposedException>(() => testQueue.Enqueue(async () => { result++; }));
         }
 
         [Fact]
@@ -117,7 +117,7 @@ namespace AElf
         public async Task Test_TaskQueue_StopAsync()
         {
             var testQueue = _taskQueueManager.GetQueue("TestQueue");
-            await testQueue.StopAsync();
+            testQueue.Dispose();
 
             var result = 1;
             Should.Throw<InvalidOperationException>(() =>
