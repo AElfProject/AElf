@@ -5,7 +5,7 @@
         <RootNamespace>AElf.CrossChain</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Moq" Version="4.10.1" />
+        <PackageReference Include="Moq" Version="4.12.0" />
         <PackageReference Include="Volo.Abp.EventBus" Version="0.15.0" />
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
