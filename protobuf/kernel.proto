@@ -123,12 +123,6 @@ message Block {
     BlockBody body = 2;
 }
 
-enum DataAccessMode {
-    READ_ONLY_ACCOUNT_SHARING = 0;
-    READ_WRITE_ACCOUNT_SHARING = 1;
-    ACCOUNT_SPECIFIC = 2;
-}
-
 message BinaryMerkleTree {
     repeated Hash nodes = 1;
     Hash root = 2;
