@@ -10,6 +10,7 @@
     <ItemGroup>
       <PackageReference Include="Mono.Cecil" Version="0.10.3" />
       <PackageReference Include="Hyperion" Version="0.9.8" />
+      <PackageReference Include="Unofficial.CoreRT.ILVerify" Version="0.0.1" />
 
     </ItemGroup>
 

@@ -181,12 +181,6 @@ message Block {
 //    Hash CodeHash = 3;
 //}
 
-enum DataAccessMode {
-    ReadOnlyAccountSharing = 0;
-    ReadWriteAccountSharing = 1;
-    AccountSpecific = 2;
-}
-
 message BinaryMerkleTree {
     repeated Hash Nodes = 1;
     Hash Root = 2;
