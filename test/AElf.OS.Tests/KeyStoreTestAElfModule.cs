@@ -17,9 +17,9 @@ namespace AElf.OS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<INodeInformationService>(o =>
+            context.Services.AddSingleton<INodeEnvironmentService>(o =>
             {
-                var service = new Mock<INodeInformationService>();
+                var service = new Mock<INodeEnvironmentService>();
 
                 service.Setup(s => s.GetAppDataPath())
                     .Returns(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

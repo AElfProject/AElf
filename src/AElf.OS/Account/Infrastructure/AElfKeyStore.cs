@@ -20,7 +20,7 @@ namespace AElf.OS.Account.Infrastructure
 {
     public class AElfKeyStore : IKeyStore,ISingletonDependency
     {
-        private readonly INodeInformationService _nodeInformationService;
+        private readonly INodeEnvironmentService _nodeEnvironmentService;
         
         private readonly SecureRandom Random = new SecureRandom();
 
@@ -41,9 +41,9 @@ namespace AElf.OS.Account.Infrastructure
             AccountFileNotFound = 4
         }
 
-        public AElfKeyStore(INodeInformationService nodeInformationService)
+        public AElfKeyStore(INodeEnvironmentService nodeEnvironmentService)
         {
-            _nodeInformationService = nodeInformationService;
+            _nodeEnvironmentService = nodeEnvironmentService;
             _unlockedAccounts = new List<Account>();
         }
 
@@ -202,7 +202,7 @@ namespace AElf.OS.Account.Infrastructure
 
         private string GetKeystoreDirectoryPath()
         {
-            return Path.Combine(_nodeInformationService.GetAppDataPath(), KeyFolderName);
+            return Path.Combine(_nodeEnvironmentService.GetAppDataPath(), KeyFolderName);
         }
     }
 }

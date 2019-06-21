@@ -4,12 +4,12 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Node.Infrastructure
 {
-    public class StaticNodeInformationProvider : IStaticNodeInformationProvider, ISingletonDependency
+    public class NodeEnvironmentProvider : INodeEnvironmentProvider, ISingletonDependency
     {
         private const string ApplicationFolderName = "aelf";
         private string _appDataPath;
 
-        public StaticNodeInformationProvider()
+        public NodeEnvironmentProvider()
         {
         }
 

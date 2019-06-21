@@ -14,12 +14,12 @@ namespace AElf.OS.Account.Infrastructure
     public class AElfKeyStoreTests:KeyStoreTestBase
     {
         private readonly AElfKeyStore _keyStore;
-        private readonly INodeInformationService _nodeInformationService;
+        private readonly INodeEnvironmentService _nodeEnvironmentService;
 
         public AElfKeyStoreTests()
         {
             _keyStore = GetRequiredService<AElfKeyStore>();
-            _nodeInformationService = GetRequiredService<INodeInformationService>();
+            _nodeEnvironmentService = GetRequiredService<INodeEnvironmentService>();
         }
 
         [Fact]
@@ -46,7 +46,7 @@ namespace AElf.OS.Account.Infrastructure
             errResult = await _keyStore.UnlockAccountAsync(addString, "123", false);
             errResult.ShouldBe(AElfKeyStore.Errors.AccountAlreadyUnlocked);
 
-            Directory.Delete(Path.Combine(_nodeInformationService.GetAppDataPath(), "keys"), true);
+            Directory.Delete(Path.Combine(_nodeEnvironmentService.GetAppDataPath(), "keys"), true);
 
             await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync(addString + "_fake", "123"));
         }
@@ -73,7 +73,7 @@ namespace AElf.OS.Account.Infrastructure
                 publicKey.ShouldBe(publicKey1);
                 address.ShouldBe(address1);
 
-                Directory.Delete(Path.Combine(_nodeInformationService.GetAppDataPath(), "keys"), true);
+                Directory.Delete(Path.Combine(_nodeEnvironmentService.GetAppDataPath(), "keys"), true);
             }
         }
 

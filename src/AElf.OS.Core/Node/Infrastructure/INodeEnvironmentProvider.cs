@@ -1,6 +1,6 @@
 namespace AElf.OS.Node.Infrastructure
 {
-    public interface IStaticNodeInformationProvider
+    public interface INodeEnvironmentProvider
     {
         string GetAppDataPath();
     }
