@@ -17,10 +17,6 @@ namespace AElf.Kernel.SmartContractExecution
             var services = context.Services;
 
             services.AddAssemblyOf<SmartContractExecutionAElfModule>();
-
-
-            services.AddTransient<IGrouper, Grouper>();
-            services.AddTransient<IResourceUsageDetectionService, ResourceUsageDetectionService>();
             services.AddTransient<IBlockchainExecutingService, FullBlockchainExecutingService>();
         }
 

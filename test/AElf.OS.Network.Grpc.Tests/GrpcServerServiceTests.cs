@@ -221,7 +221,7 @@ namespace AElf.OS.Network
             
             ConnectReply connectReply = await _service.Connect(new Handshake(), BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
             
-            connectReply.Err.ShouldBe(AuthError.ConnectionRefused);
+            connectReply.Error.ShouldBe(AuthError.ConnectionRefused);
         }
         
         [Fact]
@@ -247,7 +247,7 @@ namespace AElf.OS.Network
             var nd = new HandshakeData
             {
                 ListeningPort = 1234,
-                PublicKey = ByteString.CopyFrom(keyPair.PublicKey),
+                Pubkey = ByteString.CopyFrom(keyPair.PublicKey),
                 Version = KernelConstants.ProtocolVersion,
                 ChainId = _blockchainService.GetChainId()
             };
@@ -256,9 +256,9 @@ namespace AElf.OS.Network
 
             var hsk = new Handshake
             {
-                HskData = nd,
+                HandshakeData = nd,
                 Signature = ByteString.CopyFrom(sig),
-                Header = new BlockHeader()
+                BestChainBlockHeader = new BlockHeader()
             };
 
             return hsk;
@@ -275,20 +275,20 @@ namespace AElf.OS.Network
                 var context = BuildServerCallContext(metadata, "ipv4:127.0.0.1:1000");
 
                 var connectReply = await _service.Connect(handshake, context);
-                connectReply.Err.ShouldBe(AuthError.InvalidHandshake);
+                connectReply.Error.ShouldBe(AuthError.InvalidHandshake);
             }
             
             // wrong sig
             {
                 var handshake = await _peerPool.GetHandshakeAsync();
-                handshake.HskData.PublicKey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey);
+                handshake.HandshakeData.Pubkey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey);
                 var metadata = new Metadata
                     {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
                 var context = TestServerCallContext.Create("mock", "127.0.0.1", TimestampHelper.GetUtcNow().AddHours(1).ToDateTime(), metadata, CancellationToken.None, 
                     "ipv4:127.0.0.1:2000", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
                 
                 var connectReply = await _service.Connect(handshake, context);
-                connectReply.Err.ShouldBe(AuthError.WrongSig);
+                connectReply.Error.ShouldBe(AuthError.WrongSignature);
             }
             
             // invalid peer
@@ -299,7 +299,7 @@ namespace AElf.OS.Network
                 var context = BuildServerCallContext(metadata, "127.0.0.1:3000");
 
                 var connectReply = await _service.Connect(handshake, context);
-                connectReply.Err.ShouldBe(AuthError.InvalidPeer);
+                connectReply.Error.ShouldBe(AuthError.InvalidPeer);
             }
         }
         
@@ -329,7 +329,7 @@ namespace AElf.OS.Network
                 var handshake = CreateHandshake(nonAuthorizedPeer);
                 var connectReply = await _service.Connect(handshake, context);
 
-                connectReply.Err.ShouldBe(AuthError.ConnectionRefused);
+                connectReply.Error.ShouldBe(AuthError.ConnectionRefused);
             }
 
             {
@@ -337,7 +337,7 @@ namespace AElf.OS.Network
                 var handshake = CreateHandshake(authorizedPeer);
                 var connectReply = await _service.Connect(handshake, context); 
                 
-                connectReply.Err.ShouldBe(AuthError.None);
+                connectReply.Error.ShouldBe(AuthError.None);
             }
 
             minersOnlyOptions.AuthorizedPeers = AuthorizedPeers.Any;
@@ -347,7 +347,7 @@ namespace AElf.OS.Network
                 var handshake = CreateHandshake(nonAuthorizedPeer);
                 var connectReply = await _service.Connect(handshake, context);
 
-                connectReply.Err.ShouldBe(AuthError.None);
+                connectReply.Error.ShouldBe(AuthError.None);
             }
             
             {
@@ -355,7 +355,7 @@ namespace AElf.OS.Network
                 var handshake = CreateHandshake(authorizedPeer);
                 var connectReply = await _service.Connect(handshake, context); 
                 
-                connectReply.Err.ShouldBe(AuthError.None);
+                connectReply.Error.ShouldBe(AuthError.None);
             }
         }
         

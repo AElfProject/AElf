@@ -34,39 +34,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override BytesValue GetInformationToUpdateConsensus(BytesValue input)
         {
-            var triggerInformation = new AElfConsensusTriggerInformation();
-            triggerInformation.MergeFrom(input.Value);
-
-            Assert(triggerInformation.PublicKey.Any(), "Invalid public key.");
-
-            if (!TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                Assert(false, "Failed to get current round information.");
-            }
-
-            var publicKeyBytes = triggerInformation.PublicKey;
-            var publicKey = publicKeyBytes.ToHex();
-
-            LogIfPreviousMinerHasNotProduceEnoughTinyBlocks(currentRound, publicKey);
-
-            switch (triggerInformation.Behaviour)
-            {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
-                case AElfConsensusBehaviour.UpdateValue:
-                    return GetInformationToUpdateConsensusToPublishOutValue(currentRound, publicKey,
-                        triggerInformation).ToBytesValue();
-                case AElfConsensusBehaviour.TinyBlock:
-                    return GetInformationToUpdateConsensusForTinyBlock(currentRound, publicKey,
-                        triggerInformation).ToBytesValue();
-                case AElfConsensusBehaviour.NextRound:
-                    return GetInformationToUpdateConsensusForNextRound(currentRound, publicKey,
-                        triggerInformation).ToBytesValue();
-                case AElfConsensusBehaviour.NextTerm:
-                    return GetInformationToUpdateConsensusForNextTerm(publicKey, triggerInformation)
-                        .ToBytesValue();
-                default:
-                    return new BytesValue();
-            }
+            return GetConsensusBlockExtraData(input);
         }
 
         public override TransactionList GenerateConsensusTransactions(BytesValue input)
@@ -79,7 +47,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var publicKey = triggerInformation.PublicKey;
             var consensusInformation = new AElfConsensusHeaderInformation();
-            consensusInformation.MergeFrom(GetInformationToUpdateConsensus(input).Value);
+            consensusInformation.MergeFrom(GetConsensusBlockExtraData(input, true).Value);
             var round = consensusInformation.Round;
             var behaviour = consensusInformation.Behaviour;
             switch (behaviour)

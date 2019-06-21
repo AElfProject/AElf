@@ -19,14 +19,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var miningInterval = GetMiningInterval();
             nextRound.RoundNumber = RoundNumber + 1;
             nextRound.TermNumber = TermNumber;
-            if (RoundNumber == 1)
-            {
-                nextRound.BlockchainAge = 1;
-            }
-            else
-            {
-                nextRound.BlockchainAge = (currentBlockTimestamp - blockchainStartTimestamp).Seconds;
-            }
+            nextRound.BlockchainAge = RoundNumber == 1 ? 1 : (currentBlockTimestamp - blockchainStartTimestamp).Seconds;
 
             // Set next round miners' information of miners who successfully mined during this round.
             foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.FinalOrderOfNextRound))
@@ -36,8 +29,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     PublicKey = minerInRound.PublicKey,
                     Order = order,
-                    ExpectedMiningTime = currentBlockTimestamp
-                        .AddMilliseconds(miningInterval.Mul(order)),
+                    ExpectedMiningTime = currentBlockTimestamp.AddMilliseconds(miningInterval.Mul(order)),
                     ProducedBlocks = minerInRound.ProducedBlocks,
                     MissedTimeSlots = minerInRound.MissedTimeSlots
                 };
@@ -94,7 +86,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return order;
         }
 
-        private List<MinerInRound> GetMinedMiners()
+        public List<MinerInRound> GetMinedMiners()
         {
             // For now only this implementation can support test cases.
             return RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound != 0).ToList();

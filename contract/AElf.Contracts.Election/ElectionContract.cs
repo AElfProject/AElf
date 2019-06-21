@@ -328,6 +328,8 @@ namespace AElf.Contracts.Election
             }
 
             State.CandidateVotes[input.CandidatePublicKey] = candidateVotes;
+            
+            
 
             State.TokenContract.Transfer.Send(new TransferInput
             {
