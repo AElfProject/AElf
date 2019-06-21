@@ -53,7 +53,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionOptions = transactionOptions.Value;
         }
 
-        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount)
+        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount=0)
         {
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
