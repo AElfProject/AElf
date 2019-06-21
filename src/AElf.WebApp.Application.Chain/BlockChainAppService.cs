@@ -525,27 +525,17 @@ namespace AElf.WebApp.Application.Chain
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
      
             var chain = await _blockchainService.GetChainAsync();
-            var branches = JsonConvert.DeserializeObject<Dictionary<string, long>>(chain.Branches.ToString());
-            var formattedNotLinkedBlocks = new List<NotLinkedBlockDto>();
 
-            foreach (var notLinkedBlock in chain.NotLinkedBlocks)
-            {
-                var block = await GetBlockAsync(Hash.LoadBase64(notLinkedBlock.Value));
-                formattedNotLinkedBlocks.Add(new NotLinkedBlockDto
-                    {
-                        BlockHash = block.GetHash().ToHex(),
-                        Height = block.Height,
-                        PreviousBlockHash = block.Header.PreviousBlockHash.ToHex()
-                    }
-                );
-            }
+            var branches = chain.Branches.ToDictionary(b => Hash.LoadBase64(b.Key).ToHex(), b => b.Value);
+            var notLinkedBlocks = chain.NotLinkedBlocks.ToDictionary(b => Hash.LoadBase64(b.Key).ToHex(),
+                b => Hash.LoadBase64(b.Value).ToHex());
 
-            return new ChainStatusDto()
+            return new ChainStatusDto
             {
                 ChainId = ChainHelpers.ConvertChainIdToBase58(chain.Id),
                 GenesisContractAddress = basicContractZero?.GetFormatted(),
                 Branches = branches,
-                NotLinkedBlocks = formattedNotLinkedBlocks,
+                NotLinkedBlocks = notLinkedBlocks,
                 LongestChainHeight = chain.LongestChainHeight,
                 LongestChainHash = chain.LongestChainHash?.ToHex(),
                 GenesisBlockHash = chain.GenesisBlockHash.ToHex(),
