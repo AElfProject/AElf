@@ -614,13 +614,6 @@ namespace AElf.WebApp.Application.Chain
         
         private async Task<TransactionResult> GetTransactionResultAsync(Hash txHash)
         {
-            // in storage
-            var res = await _transactionResultQueryService.GetTransactionResultAsync(txHash);
-            if (res != null)
-            {
-                return res;
-            }
-
             // in tx pool
             var receipt = await _txHub.GetTransactionReceiptAsync(txHash);
             if (receipt != null)
@@ -630,6 +623,13 @@ namespace AElf.WebApp.Application.Chain
                     TransactionId = receipt.TransactionId,
                     Status = TransactionResultStatus.Pending
                 };
+            }
+            
+            // in storage
+            var res = await _transactionResultQueryService.GetTransactionResultAsync(txHash);
+            if (res != null)
+            {
+                return res;
             }
 
             // not existed
