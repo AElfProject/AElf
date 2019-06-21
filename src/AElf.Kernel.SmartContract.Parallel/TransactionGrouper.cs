@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -58,6 +59,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                 toBeGrouped = transactions;
             }
 
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             using (var cts = new CancellationTokenSource(_options.GroupingTimeOut))
             {
                 Logger.LogTrace($"Extracting resources for transactions.");
@@ -94,8 +97,9 @@ namespace AElf.Kernel.SmartContract.Parallel
                 
                 groups.AddRange(groupedTxs);
             }
+            stopwatch.Stop();
             
-            Logger.LogTrace($"From {transactions.Count} transactions, grouped into {groups.Count}, " +
+            Logger.LogTrace($"From {transactions.Count} transactions, grouped into {groups.Count} with time cost {stopwatch.ElapsedMilliseconds} ms, " +
                             $"left {nonParallelizables.Count} as non-parallelizable.");
 
             return (groups, nonParallelizables);

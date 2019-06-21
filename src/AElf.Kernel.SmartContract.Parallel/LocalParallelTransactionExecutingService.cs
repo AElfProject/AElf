@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,6 +48,8 @@ namespace AElf.Kernel.SmartContract.Parallel
 //            }
 
             var (parallelizable, nonParallizable) = await _grouper.GroupAsync(transactions);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
             var tasks = parallelizable.AsParallel().Select(
                 txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
                 {
@@ -55,8 +58,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                     PartialBlockStateSet = transactionExecutingDto.PartialBlockStateSet
                 }, cancellationToken, throwException));
             var results = await Task.WhenAll(tasks);
-
-            Logger.LogTrace($"Executed parallelizables.");
+            stopwatch.Stop();
+            Logger.LogTrace($"Executed parallelizables with time cost: {stopwatch.ElapsedMilliseconds} ms.");
 
             var returnSets = MergeResults(results, out var conflictingSets).Item1;
             var returnSetCollection = new ReturnSetCollection(returnSets);
