@@ -1,11 +1,9 @@
-using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Treasury
@@ -81,10 +79,12 @@ namespace AElf.Contracts.Treasury
 
         public override Empty Donate(DonateInput input)
         {
+            var isNativeSymbol = input.Symbol != Context.Variables.NativeSymbol;
+
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
-                To = State.TreasuryVirtualAddress.Value,
+                To = isNativeSymbol ? State.TreasuryVirtualAddress.Value : Context.Self,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = "Donate to treasury."
@@ -105,20 +105,12 @@ namespace AElf.Contracts.Treasury
                 Symbol = input.Symbol,
                 Owner = Context.Sender
             }).Balance;
-            
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
+
+            Donate(new DonateInput
             {
-                From = Context.Sender,
-                To = State.TreasuryVirtualAddress.Value,
-                Symbol = Context.Variables.NativeSymbol,
-                Amount = balance,
-                Memo = "Donate all token to treasury."
+                Symbol = input.Symbol,
+                Amount = balance
             });
-            
-            if (input.Symbol != Context.Variables.NativeSymbol)
-            {
-                ConvertToNativeToken(input.Symbol, balance);
-            }
 
             return new Empty();
         }
@@ -311,12 +303,11 @@ namespace AElf.Contracts.Treasury
                 .RealTimeMinersInformation.Keys.ToList();
 
             var previousMinersAddresses =
-                previousMiners.Select(k => Address.FromPublicKey(ByteArrayHelpers.FromHexString(k)));
+                previousMiners.Select(k => Address.FromPublicKey(ByteArrayHelpers.FromHexString(k))).ToList();
 
             var treasuryVirtualAddress = Context.ConvertVirtualAddressToContractAddress(State.TreasuryHash.Value);
 
-            // TODO: Get this from ElectionContract.
-            var victories = new List<ByteString>();
+            var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value;
 
             // Manage weights of `MinerBasicReward`
             basicRewardProfitSubWeights.Receivers.AddRange(previousMinersAddresses);
@@ -386,7 +377,27 @@ namespace AElf.Contracts.Treasury
 
         public override SInt64Value GetCurrentWelfareReward(Empty input)
         {
-            return State.ProfitContract.GetProfitAmount.Call(new ProfitInput {ProfitId = State.WelfareHash.Value});
+            var welfareVirtualAddress = Context.ConvertVirtualAddressToContractAddress(State.WelfareHash.Value);
+            return new SInt64Value
+            {
+                Value = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                {
+                    Owner = welfareVirtualAddress,
+                    Symbol = Context.Variables.NativeSymbol
+                }).Balance
+            };
+        }
+
+        public override SInt64Value GetCurrentTreasuryBalance(Empty input)
+        {
+            return new SInt64Value
+            {
+                Value = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                {
+                    Owner = State.TreasuryVirtualAddress.Value,
+                    Symbol = Context.Variables.NativeSymbol
+                }).Balance
+            };
         }
 
         private long GetVotesWeight(long votesAmount, long lockTime)
