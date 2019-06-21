@@ -27,7 +27,7 @@ namespace AElf.Kernel.Miner.Application
             _eventHandlers = eventHandlers.ToList();
         }
 
-        public async Task Apply(Chain chain, IEnumerable<Hash> blockHashes)
+        public async Task ApplyAsync(IEnumerable<Hash> blockHashes)
         {
             foreach (var blockId in blockHashes)
             {
