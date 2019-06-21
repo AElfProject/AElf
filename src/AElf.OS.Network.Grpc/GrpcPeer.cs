@@ -24,6 +24,7 @@ namespace AElf.OS.Network.Grpc
         private const int BlockRequestTimeout = 300;
         private const int TransactionBroadcastTimeout = 300;
         private const int BlocksRequestTimeout = 500;
+        private const int GetNodesTimeout = 500;
         
         private enum MetricNames
         {
@@ -99,6 +100,21 @@ namespace AElf.OS.Network.Grpc
             }
 
             return metrics;
+        }
+
+        public Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultMaxNodeRequestCount)
+        {
+            GrpcRequest request = new GrpcRequest
+            {
+                ErrorMessage = $"Request peers failed."
+            };
+            
+            Metadata data = new Metadata
+            {
+                {GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()}
+            };
+            
+            return RequestAsync(_client, c => c.GetNodesAsync(new GetNodesRequest { MaxCount = 10 }, data), request);
         }
 
         public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)

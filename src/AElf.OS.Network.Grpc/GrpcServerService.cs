@@ -5,6 +5,8 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.OS.Network.Application;
+using AElf.OS.Network.Domain;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
 using AElf.OS.Network.Infrastructure;
@@ -32,15 +34,18 @@ namespace AElf.OS.Network.Grpc
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
+        private readonly IPeerDiscoveryService _peerDiscoveryService;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService)
+        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockchainService, 
+            IAccountService accountService, IPeerDiscoveryService peerDiscoveryService)
         {
             _peerPool = peerPool;
             _blockchainService = blockchainService;
             _accountService = accountService;
+            _peerDiscoveryService = peerDiscoveryService;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -252,6 +257,18 @@ namespace AElf.OS.Network.Grpc
             }
             
             return blockList;
+        }
+
+        public override async Task<NodeList> GetNodes(GetNodesRequest request, ServerCallContext context)
+        {
+            if (request == null) 
+                return new NodeList();
+            
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.MaxCount} nodes.");
+            
+            var nodes = await _peerDiscoveryService.GetNodesAsync(request.MaxCount);
+
+            return nodes;
         }
 
         /// <summary>

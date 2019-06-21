@@ -7,10 +7,12 @@ using AElf.Modularity;
 using AElf.OS.Consensus.DPos;
 using AElf.OS.Handlers;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Worker;
 using AElf.Types;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
+using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
@@ -31,6 +33,7 @@ namespace AElf.OS
             context.Services.AddAssemblyOf<OSAElfModule>();
 
             context.Services.AddSingleton<PeerConnectedEventHandler>();
+            context.Services.AddSingleton<PeerDiscoveryWorker>();
 
             //TODO: make ApplicationHelper as a provider, inject it into key store
             var keyStore = new AElfKeyStore(ApplicationHelper.AppDataPath);
@@ -64,12 +67,15 @@ namespace AElf.OS
             });
         }
         
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+        public override async void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
             var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();
 
             taskQueueManager.CreateQueue(OSConsts.BlockSyncAttachQueueName);
             taskQueueManager.CreateQueue(OSConsts.BlockSyncQueueName);
+
+            var peerDiscoveryWorker = context.ServiceProvider.GetService<PeerDiscoveryWorker>();
+            await peerDiscoveryWorker.StartAsync();
         }
     }
 }
