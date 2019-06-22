@@ -74,7 +74,7 @@ namespace AElf.OS.Network.Application
 
         public Task<NodeList> GetNodesAsync(int maxCount)
         {
-            return _nodeManager.GetRandomNodes(maxCount);
+            return _nodeManager.GetRandomNodesAsync(maxCount);
         }
     }
 }

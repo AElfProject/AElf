@@ -13,7 +13,7 @@ namespace AElf.OS.Network.Domain
     {
         Task<bool> AddNodeAsync(Node node);
         Task<NodeList> AddNodesAsync(NodeList node);
-        Task<NodeList> GetRandomNodes(int maxCount);
+        Task<NodeList> GetRandomNodesAsync(int maxCount);
     }
     
     public class NodeManager : INodeManager, ISingletonDependency
@@ -50,7 +50,7 @@ namespace AElf.OS.Network.Domain
             return Task.FromResult(addedNodes);
         }
         
-        public Task<NodeList> GetRandomNodes(int maxCount)
+        public Task<NodeList> GetRandomNodesAsync(int maxCount)
         {
             Random rnd = new Random();
             
