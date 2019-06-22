@@ -124,13 +124,7 @@ namespace AElf.Contracts.ReferendumAuth
                 LockId = Context.TransactionId,
                 Usage = "Referendum."
             });
-
-            if (IsReadyToRelease(approval.ProposalId, organization))
-            {
-                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
-                    proposalInfo.Params);
-                //State.Proposals[approval.ProposalId] = null;
-            }
+            
             return new BoolValue{Value = true};
         }
 
