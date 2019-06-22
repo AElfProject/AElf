@@ -18,7 +18,7 @@ namespace AElf.Contracts.TestContract.TransactionFeeCharging
                 Decimals = 2,
                 Issuer = Context.Self,
                 IsBurnable = true,
-                TotalSupply = 1_000_000_000
+                TotalSupply = TransactionFeeChargingContractConstants.TotalSupply
             });
             State.TokenContract.Issue.Send(new IssueInput
             {

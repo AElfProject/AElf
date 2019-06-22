@@ -1,4 +1,6 @@
-﻿using AElf.Kernel.SmartContract.Infrastructure;
+﻿using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;

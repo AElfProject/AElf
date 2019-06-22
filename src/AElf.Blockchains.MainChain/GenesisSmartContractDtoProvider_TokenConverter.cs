@@ -13,7 +13,7 @@ namespace AElf.Blockchains.MainChain
             var l = new List<GenesisSmartContractDto>();
 
             l.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Contains("TokenConverter")).Value,
+                _codes.Single(kv => kv.Key.Contains("TokenConverter")).Value,
                 TokenConverterSmartContractAddressNameProvider.Name,
                 GenerateTokenConverterInitializationCallList());
             return l;
@@ -22,7 +22,8 @@ namespace AElf.Blockchains.MainChain
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateTokenConverterInitializationCallList()
         {
-            var tokenConverterInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            var tokenConverterInitializationCallList =
+                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenConverterInitializationCallList.Add(
                 nameof(TokenConverterContractContainer.TokenConverterContractStub.Initialize),
                 new InitializeInput
@@ -36,9 +37,10 @@ namespace AElf.Blockchains.MainChain
                             IsPurchaseEnabled = true,
                             IsVirtualBalanceEnabled = true,
                             Weight = "0.5",
-                            VirtualBalance = 0
+                            VirtualBalance = 0,
                         }
-                    }
+                    },
+                    BaseTokenSymbol = _tokenInitialOptions.Symbol
                 });
             return tokenConverterInitializationCallList;
         }

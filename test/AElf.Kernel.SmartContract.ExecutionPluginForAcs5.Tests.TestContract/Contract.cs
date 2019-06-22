@@ -26,33 +26,24 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
             return new Empty();
         }
 
-        public override Empty SetMethodProfitFee(SetMethodProfitFeeInput input)
-        {
-            AssertPerformedByContractOwner();
-
-            State.MethodProfitFees[input.Method] = new MethodProfitFee {SymbolToAmount = {input.SymbolToAmount}};
-            return new Empty();
-        }
-
-        public override Empty SetMethodProfitFees(SetMethodProfitFeesInput input)
-        {
-            AssertPerformedByContractOwner();
-
-            foreach (var methodProfitFee in input.MethodProfitFees)
-            {
-                State.MethodProfitFees[methodProfitFee.Key] = methodProfitFee.Value;
-            }
-
-            return new Empty();
-        }
-
         public override MethodProfitFee GetMethodProfitFee(StringValue input)
         {
-            return State.MethodProfitFees[input.Value] ?? new MethodProfitFee();
+            // An alternative of using SetMethodProfitFee(s).
+            switch (input.Value)
+            {
+                case nameof(DummyMethod):
+                    return new MethodProfitFee
+                    {
+                        SymbolToAmount = {{Context.Variables.NativeSymbol, 10L}}
+                    };
+                default: return new MethodProfitFee();
+            }
         }
 
         public override Empty ReceiveProfits(Empty input)
         {
+            AssertPerformedByContractOwner();
+
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.ProfitId.Value,
@@ -71,7 +62,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
 
         private void AssertPerformedByContractOwner()
         {
-            var contractInfo = State.ASC0Contract.GetContractInfo.Call(Context.Self);
+            var contractInfo = State.Acs0Contract.GetContractInfo.Call(Context.Self);
             Assert(Context.Sender == contractInfo.Owner, "Only owner are permitted to call this method.");
         }
     }

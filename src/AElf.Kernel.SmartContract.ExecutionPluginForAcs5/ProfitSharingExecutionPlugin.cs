@@ -69,7 +69,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
             }
 
             // Generate profit contract stub.
-            var profitContractAddress = context.GetContractAddressByName(ProfitSmartContractAddressNameProvider.Name);
+            var profitContractAddress = context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.Profit"));
             var profitStub = new ProfitContractContainer.ProfitContractStub
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory

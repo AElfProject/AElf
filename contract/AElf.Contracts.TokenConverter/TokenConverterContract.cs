@@ -66,7 +66,7 @@ namespace AElf.Contracts.TokenConverter
         {
             //Assert(input.TokenContractAddress != null, "Token contract address required.");
             //Assert(input.FeeReceiverAddress != null, "Fee receiver address required.");
-            Assert(IsValidSymbol(input.BaseTokenSymbol), "Base token symbol is invalid.");
+            Assert(IsValidSymbol(input.BaseTokenSymbol), $"Base token symbol is invalid. {input.BaseTokenSymbol}");
             Assert(State.TokenContract.Value == null, "Already initialized.");
             State.TokenContract.Value = input.TokenContractAddress != null
                 ? input.TokenContractAddress

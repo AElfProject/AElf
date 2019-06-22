@@ -10,6 +10,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs5\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
 

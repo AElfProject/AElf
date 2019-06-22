@@ -24,6 +24,9 @@ service ProfitSharingContract {
     rpc GetMethodProfitFee (google.protobuf.StringValue) returns (MethodProfitFee) {
         option (aelf.is_view) = true;
     }
+    rpc GetTokenSymbol (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message ProfitReceiverInformation {

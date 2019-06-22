@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
@@ -82,9 +79,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var chain = await bcs.GetChainAsync();
             var transactions = (await plugin.GetPreTransactionsAsync(TestContract.ContractContainer.Descriptors,
-                new TransactionContext()
+                new TransactionContext
                 {
-                    Transaction = new Transaction()
+                    Transaction = new Transaction
                     {
                         From = DefaultSender,
                         To = TestContractAddress,
@@ -141,7 +138,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         }
 
         [Fact]
-        public async Task ChargeFee_Prefailed()
+        public async Task ChargeFee_PreFailed()
         {
             await DeployContractsAsync();
             await InitializeTokenAsync();

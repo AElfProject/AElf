@@ -15,6 +15,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
         public SingletonState<long> ReleasedTimes { get; set; }
         
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
-        internal ACS0Container.ACS0ReferenceState ASC0Contract { get; set; }
+        internal ACS0Container.ACS0ReferenceState Acs0Contract { get; set; }
     }
 }

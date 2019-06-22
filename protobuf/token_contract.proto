@@ -38,7 +38,7 @@ service TokenContract {
     }
     rpc ChargeMethodProfits (ChargeMethodProfitsInput) returns (google.protobuf.Empty) {
     }
-    rpc ClaimTransactionFees (ClaimTransactionFeesInput) returns (google.protobuf.Empty) {
+    rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc DonateProfitsToTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
@@ -162,11 +162,6 @@ message ChargeTransactionFeesInput {
 
 message ChargeMethodProfitsInput {
     map<string, sint64> symbol_to_amount = 1;
-}
-
-message ClaimTransactionFeesInput {
-    //string symbol = 1;
-    //sint64 height = 2;
 }
 
 message GetTokenInfoInput {

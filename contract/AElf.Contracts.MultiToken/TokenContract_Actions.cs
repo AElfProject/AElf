@@ -329,7 +329,7 @@ namespace AElf.Contracts.MultiToken
             Assert(existingBalance >= amount, "Insufficient balance to pay.");
         }
 
-        public override Empty ClaimTransactionFees(ClaimTransactionFeesInput input)
+        public override Empty ClaimTransactionFees(Empty input)
         {
             if (State.TreasuryContract.Value == null)
             {
@@ -337,7 +337,8 @@ namespace AElf.Contracts.MultiToken
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
             }
 
-            if (!State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Any())
+            if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null ||
+                !State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Any())
             {
                 return new Empty();
             }
@@ -372,8 +373,9 @@ namespace AElf.Contracts.MultiToken
                 State.TreasuryContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
             }
-
-            if (!State.PreviousBlockProfitTokenSymbolList.Value.SymbolList.Any())
+            
+            if (State.PreviousBlockProfitTokenSymbolList.Value == null ||
+                !State.PreviousBlockProfitTokenSymbolList.Value.SymbolList.Any())
             {
                 return new Empty();
             }
