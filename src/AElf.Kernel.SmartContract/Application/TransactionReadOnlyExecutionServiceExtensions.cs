@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (failedThrowException)
             {
-                throw new SmartContractExecutingException(trace.StdErr);
+                throw new SmartContractExecutingException(trace.Error);
             }
 
             return default(T);
