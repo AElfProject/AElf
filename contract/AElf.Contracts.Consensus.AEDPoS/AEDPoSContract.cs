@@ -31,9 +31,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.ElectionContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
 
-            State.TreasuryContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-
             State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
 
             return new Empty();

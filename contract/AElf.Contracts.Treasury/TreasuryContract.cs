@@ -27,6 +27,9 @@ namespace AElf.Contracts.Treasury
                 });
             }
 
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+
             State.Initialized.Value = true;
 
             return new Empty();

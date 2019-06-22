@@ -67,6 +67,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 });
             }
 
+            if (State.TreasuryContract.Value == null)
+            {
+                State.TreasuryContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            }
+
             State.TreasuryContract.Donate.Send(new DonateInput
             {
                 Symbol = Context.Variables.NativeSymbol,
