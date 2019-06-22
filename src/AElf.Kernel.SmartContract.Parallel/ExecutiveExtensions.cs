@@ -15,6 +15,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 {
     internal static class ExecutiveExtensions
     {
+        // TODO: maybe use ITransactionReadOnlyExecutionService
         public static async Task<TransactionResourceInfo> GetTransactionResourceInfoAsync(this IExecutive executive,
             IChainContext chainContext, Transaction input)
         {

@@ -80,7 +80,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             returnSets.AddRange(nonParallelizableReturnSets);
             if (conflictingSets.Count > 0)
             {
-                // TODO: Add event handler somewhere
+                // TODO: Add event handler somewhere, identify the conflicting transactions and remove them from txHub
                 await EventBus.PublishAsync(
                     new ConflictingTransactionsFoundInParallelGroupsEvent(returnSets, conflictingSets));
             }
@@ -105,6 +105,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             IEnumerable<(List<ExecutionReturnSet>, HashSet<string>)> results,
             out List<ExecutionReturnSet> conflictingSets)
         {
+            // TODO: Throw exception upon conflicts
             var returnSets = new List<ExecutionReturnSet>();
             conflictingSets = new List<ExecutionReturnSet>();
             var existingKeys = new HashSet<string>();
