@@ -55,8 +55,8 @@ namespace AElf.Contracts.CrossChain
             LockTokenAndResource(input, chainId);
 
             // side chain creation proposal
-            Hash proposalId = Propose(RequestChainCreationWaitingPeriod, Context.Self, nameof(CreateSideChain),
-                new SInt32Value {Value = chainId});
+//            Hash proposalId = Propose(RequestChainCreationWaitingPeriod, Context.Self, nameof(CreateSideChain),
+//                new SInt32Value {Value = chainId});
 //            request.ProposalHash = hash;
             var sideChainInfo = new SideChainInfo
             {
@@ -89,22 +89,33 @@ namespace AElf.Contracts.CrossChain
         /// <summary>
         /// Create side chain. It is a proposal result from system address.
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="sideChainCreationRequest"></param>
         /// <returns></returns>
-        public override SInt32Value CreateSideChain(SInt32Value input)
+        public override SInt32Value CreateSideChain(SideChainCreationRequest sideChainCreationRequest)
         {
-            var chainId = input.Value;
             // side chain creation should be triggered by organization address from parliament.
             CheckOwnerAuthority();
-            var sideChainInfo = State.SideChainInfos[chainId];
             
-            Assert(
-                sideChainInfo != null &&
-                sideChainInfo.SideChainStatus == SideChainStatus.Review, "Side chain creation request not found.");
+            Assert(sideChainCreationRequest.LockedTokenAmount > 0 
+                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice 
+                   && !sideChainCreationRequest.ContractCode.IsEmpty,
+                "Invalid chain creation request.");
 
-            sideChainInfo.SideChainStatus = SideChainStatus.Active;
-            sideChainInfo.CreationTimestamp = Context.CurrentBlockTime;
-            sideChainInfo.CreationHeightOnParentChain = Context.CurrentHeight;
+            State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
+            var serialNumber = State.SideChainSerialNumber.Value;
+            int chainId = ChainHelpers.GetChainId(serialNumber);
+
+            // lock token and resource
+            LockTokenAndResource(sideChainCreationRequest, chainId);
+            var sideChainInfo = new SideChainInfo
+            {
+                Proposer = Context.Sender,
+                SideChainId = chainId,
+                SideChainStatus = SideChainStatus.Active,
+                SideChainCreationRequest = sideChainCreationRequest,
+                CreationTimestamp = Context.CurrentBlockTime,
+                CreationHeightOnParentChain = Context.CurrentHeight
+            };
             State.SideChainInfos[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = 0;
 

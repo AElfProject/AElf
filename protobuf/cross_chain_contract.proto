@@ -20,8 +20,6 @@ service CrossChainContract {
     
     rpc WithdrawRequest (aelf.SInt32Value) returns (google.protobuf.Empty) {
     }
-    rpc CreateSideChain (aelf.SInt32Value) returns (aelf.SInt32Value) {
-    }
     rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
     }
     rpc RequestChainDisposal (aelf.SInt32Value) returns (aelf.Hash) {

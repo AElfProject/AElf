@@ -12,7 +12,9 @@ option (aelf.identity) = "acs7";
 service ACS7{
     rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
     }
-    rpc RequestChainCreation (SideChainCreationRequest) returns (RequestChainCreationOutput) {
+//    rpc RequestChainCreation (SideChainCreationRequest) returns (RequestChainCreationOutput) {
+//    }
+    rpc CreateSideChain (SideChainCreationRequest) returns (aelf.SInt32Value) {
     }
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
@@ -68,11 +70,11 @@ message CrossChainExtraData{
 
 enum SideChainStatus
 {
-    Apply = 0;
-    Review = 1;
-    Active = 2;
-    InsufficientBalance = 3;
-    Terminated = 4;
+//    Apply = 0;
+    Fatal = 0;
+    Active = 1;
+    InsufficientBalance = 2;
+    Terminated = 3;
 }
 
 message SideChainIdAndHeightDict {
