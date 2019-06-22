@@ -7,7 +7,6 @@ namespace AElf.Kernel.SmartContract.Application
     public interface ITransactionExecutingService
     {
         Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
-            CancellationToken cancellationToken, bool throwException = false,
-            BlockStateSet partialBlockStateSet = null);
+            CancellationToken cancellationToken, bool throwException = false);
     }
 }

@@ -133,7 +133,6 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 Body = body,
                 Header = header,
-                Height = header.Height
             };
             var blockArray = SerializationHelper.Serialize(block);
             var block1 = SerializationHelper.Deserialize<Block>(blockArray);
