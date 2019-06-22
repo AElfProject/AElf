@@ -43,8 +43,6 @@ namespace AElf.OS.BlockSync.Application
             var chain = await _blockchainService.GetChainAsync();
             chain.BestChainHash.ShouldBe(peerBlock.GetHash());
             chain.BestChainHeight.ShouldBe(peerBlock.Height);
-             
-            _announcementCacheProvider.ContainsAnnouncement(peerBlock.GetHash(),peerBlock.Height).ShouldBeTrue();
         }
         
         [Fact]
@@ -59,8 +57,6 @@ namespace AElf.OS.BlockSync.Application
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHash.ShouldBe(bestChainHash);
             chain.BestChainHeight.ShouldBe(bestChainHeight);
-             
-            _announcementCacheProvider.ContainsAnnouncement(Hash.Empty,15).ShouldBeFalse();
         }
 
         [Fact]
@@ -75,33 +71,17 @@ namespace AElf.OS.BlockSync.Application
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(21);
-
-            _announcementCacheProvider.ContainsAnnouncement(peerBlockHash, peerBlockHeight).ShouldBeTrue();
         }
         
         [Fact]
         public async Task SyncBlock_QueueIsBusy()
         {
-            _blockSyncStateProvider.BlockSyncJobEnqueueTime = TimestampHelper.GetUtcNow().AddMilliseconds(-600);
+            _blockSyncStateProvider.BlockSyncJobEnqueueTime = TimestampHelper.GetUtcNow().AddMilliseconds(-1200);
             
             var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
 
             await _blockSyncService.SyncBlockAsync(peerBlock.GetHash(), peerBlock.Height, 5, null);
             
-            var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
-            block.ShouldBeNull();
-
-            _announcementCacheProvider.ContainsAnnouncement(peerBlock.GetHash(),peerBlock.Height).ShouldBeFalse();
-        }
-        
-        [Fact]
-        public async Task SyncBlock_AlreadySynchronized()
-        {
-            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
-            _announcementCacheProvider.CacheAnnouncement(peerBlock.GetHash(), peerBlock.Height);
-
-            await _blockSyncService.SyncBlockAsync(peerBlock.GetHash(), peerBlock.Height, 5, null);
-
             var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
             block.ShouldBeNull();
         }

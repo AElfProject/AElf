@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Concurrent;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
@@ -7,51 +6,32 @@ namespace AElf.OS.BlockSync.Infrastructure
 {
     public interface IAnnouncementCacheProvider
     {
-        bool CacheAnnouncement(Hash blockHash, long blockHeight);
-
-        bool ContainsAnnouncement(Hash blockHash, long blockHeight);
-
-        void ClearCache(long blockHeight);
+        bool AddAnnouncementCache(Hash blockHash, long blockHeight);
     }
 
     public class AnnouncementCacheProvider : IAnnouncementCacheProvider, ISingletonDependency
     {
-        private SortedDictionary<long, HashSet<Hash>> _cache = new SortedDictionary<long, HashSet<Hash>>();
+        private ConcurrentDictionary<Hash, long> _cache = new ConcurrentDictionary<Hash, long>();
 
-        public bool CacheAnnouncement(Hash blockHash, long blockHeight)
+        private ConcurrentQueue<Hash> _toBeCleanedKeys = new ConcurrentQueue<Hash>();
+
+        public bool AddAnnouncementCache(Hash blockHash, long blockHeight)
         {
-            if (!_cache.TryGetValue(blockHeight, out var blockHashes))
+            if (_cache.ContainsKey(blockHash))
             {
-                _cache.Add(blockHeight, new HashSet<Hash> {blockHash});
-                return true;
+                return false;
             }
 
-            return blockHashes.Add(blockHash);
-        }
-
-        public bool ContainsAnnouncement(Hash blockHash, long blockHeight)
-        {
-            if (_cache.TryGetValue(blockHeight, out var blockHashes))
+            _toBeCleanedKeys.Enqueue(blockHash);
+            while (_toBeCleanedKeys.Count > 100)
             {
-                return blockHashes.Contains(blockHash);
+                if (_toBeCleanedKeys.TryDequeue(out var cleanKey))
+                    _cache.TryRemove(cleanKey, out _);
             }
 
-            return false;
-        }
+            _cache[blockHash] = blockHeight;
 
-        public void ClearCache(long blockHeight)
-        {
-            while (_cache.Count > 0)
-            {
-                var firstCache = _cache.First();
-
-                if (firstCache.Key > blockHeight)
-                {
-                    break;
-                }
-
-                _cache.Remove(firstCache.Key);
-            }
+            return true;
         }
     }
 }
