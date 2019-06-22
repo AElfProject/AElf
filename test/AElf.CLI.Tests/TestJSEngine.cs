@@ -7,6 +7,7 @@ using Xunit.Abstractions;
 
 namespace AElf.CLI.Tests
 {
+
     public class TestJSEngine
     {
         private IJSEngine GetJSEngine(string serverAddress = "http://127.0.0.1:1234")
