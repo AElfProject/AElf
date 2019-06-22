@@ -12,7 +12,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
 {
     public class BlockTransactionLimitChangedLogEventHandler : ILogEventHandler, ISingletonDependency
     {
-        private readonly BlockTransactionLimitProvider _provider;
+        private readonly IBlockTransactionLimitProvider _provider;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private LogEvent _interestedEvent;
 
@@ -32,7 +32,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
 
         public ILogger<BlockTransactionLimitChangedLogEventHandler> Logger { get; set; }
 
-        public BlockTransactionLimitChangedLogEventHandler(BlockTransactionLimitProvider provider,
+        public BlockTransactionLimitChangedLogEventHandler(IBlockTransactionLimitProvider provider,
             ISmartContractAddressService smartContractAddressService)
         {
             _provider = provider;
