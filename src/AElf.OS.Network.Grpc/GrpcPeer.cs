@@ -102,7 +102,7 @@ namespace AElf.OS.Network.Grpc
             return metrics;
         }
 
-        public Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultMaxNodeRequestCount)
+        public Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest)
         {
             GrpcRequest request = new GrpcRequest
             {

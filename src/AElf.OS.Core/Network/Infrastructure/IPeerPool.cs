@@ -10,6 +10,7 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> RemovePeerByAddressAsync(string address);
         List<IPeer> GetPeers(bool includeFailing = false);
         IPeer GetBestPeer();
+        int CurrentPeerCount();
         
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         

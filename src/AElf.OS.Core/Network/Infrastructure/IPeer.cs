@@ -33,6 +33,6 @@ namespace AElf.OS.Network.Infrastructure
         Task SendTransactionAsync(Transaction tx);
         Task<BlockWithTransactions> RequestBlockAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
-        Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultMaxNodeRequestCount);
+        Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest);
     }
 }

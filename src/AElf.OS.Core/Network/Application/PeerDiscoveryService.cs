@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Domain;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -9,38 +13,61 @@ namespace AElf.OS.Network.Application
     public class PeerDiscoveryService : IPeerDiscoveryService
     {
         private readonly IPeerPool _peerPool;
-        private INodeManager _nodeManager;
+        private readonly INodeManager _nodeManager;
+        private readonly IAccountService _accountService;
 
         public ILogger<PeerDiscoveryService> Logger { get; set; }
         
-        public PeerDiscoveryService(IPeerPool peerPool, INodeManager nodeManager)
+        public PeerDiscoveryService(IPeerPool peerPool, INodeManager nodeManager, IAccountService accountService)
         {
             _peerPool = peerPool;
             _nodeManager = nodeManager;
+            _accountService = accountService;
 
             Logger = NullLogger<PeerDiscoveryService>.Instance;
         }
         
         public async Task<NodeList> UpdatePeersAsync()
         {
-            var peers = _peerPool.GetPeers();
+            Random rnd = new Random();
+            
+            var peers = _peerPool.GetPeers()
+                .OrderBy(x => rnd.Next())
+                .Take(NetworkConstants.DefaultDiscoveryPeersToRequestCount)
+                .ToList();
 
             var discoveredNodes = new NodeList();
+            
             foreach (var peer in peers)
             {
                 try
                 {
                     var nodes = await peer.GetNodesAsync();
-                    var added = await _nodeManager.AddNodesAsync(nodes);
                     
-                    if (added != null)
-                        discoveredNodes.Nodes.AddRange(added.Nodes);
+                    if (nodes != null && nodes.Nodes.Count > 0)
+                    {
+                        Logger.LogDebug($"Discovery: {peer} responded with the following nodes: {nodes}.");
+                        
+                        var added = await _nodeManager.AddNodesAsync(nodes);
+                    
+                        if (added != null)
+                            discoveredNodes.Nodes.AddRange(added.Nodes);
+                    }
+                    else
+                    {
+                        Logger.LogDebug($"Discovery: {peer} responded with no nodes.");
+                    }
                 }
                 catch (NetworkException ex)
                 {
                     Logger.LogError(ex, $"Error during discover - {peer}.");
                 }
             }
+            
+            // Check that a peer did not send 
+            var localPubKey = await _accountService.GetPublicKeyAsync();
+            var hexPubkey = localPubKey.ToHex();
+            discoveredNodes.Nodes.RemoveAll(n => n.Pubkey.ToHex().Equals(hexPubkey));
             
             return discoveredNodes;
         }

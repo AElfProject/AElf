@@ -171,6 +171,11 @@ namespace AElf.OS.Network.Grpc
             return (channel, client);
         }
 
+        public int CurrentPeerCount()
+        {
+            return _authenticatedPeers.Count;
+        }
+
         public List<IPeer> GetPeers(bool includeFailing = false)
         {
             var peers = _authenticatedPeers.Select(p => p.Value);
