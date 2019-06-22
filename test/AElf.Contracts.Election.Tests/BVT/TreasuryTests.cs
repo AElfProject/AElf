@@ -456,7 +456,7 @@ namespace AElf.Contracts.Election
                         // Already burned.
                         profitItems[ProfitType.BasicMinerReward].TotalAmount.ShouldBe(0);
                         // Each new miner takes 1 weight.
-                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBe(5);
+                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBe(17);
 
                         // Check released profit information.
                         // We don't give initial miners rewards.
@@ -552,7 +552,7 @@ namespace AElf.Contracts.Election
                     {
                         profitItems[ProfitType.ReElectionReward].TotalAmount.ShouldBe(0);
                         // 3 miners re-elected.
-                        profitItems[ProfitType.ReElectionReward].TotalWeight.ShouldBe(3);
+                        profitItems[ProfitType.ReElectionReward].TotalWeight.ShouldBe(15);
                         
                         // Check released profit information.
                         {
@@ -721,7 +721,7 @@ namespace AElf.Contracts.Election
                         // Already burned.
                         profitItems[ProfitType.BasicMinerReward].TotalAmount.ShouldBe(0);
                         // Each new miner takes 1 weight.
-                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBe(5);
+                        profitItems[ProfitType.BasicMinerReward].TotalWeight.ShouldBe(17);
 
                         // Check released profit information.
                         // We don't give initial miners rewards.
@@ -817,7 +817,7 @@ namespace AElf.Contracts.Election
                     {
                         profitItems[ProfitType.ReElectionReward].TotalAmount.ShouldBe(0);
                         // 3 miners got re-elected twice, 2 miners once.
-                        profitItems[ProfitType.ReElectionReward].TotalWeight.ShouldBe(3 * 2 + 2 * 1);
+                        profitItems[ProfitType.ReElectionReward].TotalWeight.ShouldBe(15 * 2 + 2 * 1);
                         
                         // Check released profit information.
                         {
@@ -828,7 +828,7 @@ namespace AElf.Contracts.Election
                                         ProfitId = ProfitItemsIds[ProfitType.ReElectionReward],
                                         Period = 3
                                     });
-                            releasedProfitsInformation.TotalWeight.ShouldBe(3);
+                            releasedProfitsInformation.TotalWeight.ShouldBe(15);
                             releasedProfitsInformation.ProfitsAmount.ShouldBe(releasedAmount
                                 .Mul(ElectionContractConstants.MinerRewardWeight)
                                 .Div(totalWeightsOfTreasury)

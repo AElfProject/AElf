@@ -219,17 +219,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                        !round.RealTimeMinersInformation.ContainsKey(k));
         }
 
-        private int GetRequiredCount(Round input)
-        {
-            if (!TryToGetRoundInformation(1, out var firstRound)) return 0;
-            return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.InitialMinersCount ? AEDPoSContractConstants.InitialMinersCount: input.RealTimeMinersInformation.Count;
-        }
+
         private int GetMinersCount(Round input)
         {
             if (!TryToGetRoundInformation(1, out var firstRound)) return 0;
-            return AEDPoSContractConstants.InitialMinersCount.Add(
-                (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                .Div(AEDPoSContractConstants.TimeEachTerm).Mul(2));
+            return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.InitialMinersCount
+                ? input.RealTimeMinersInformation.Count
+                : AEDPoSContractConstants.InitialMinersCount.Add(
+                    (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
+                    .Div(AEDPoSContractConstants.TimeEachTerm).Mul(2));
         }
     }
 }

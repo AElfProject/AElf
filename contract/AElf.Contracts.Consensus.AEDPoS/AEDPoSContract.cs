@@ -181,7 +181,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var actualBlockchainStartTimestamp = input.GetStartTime();
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
-                var minersCount = GetRequiredCount(input);
+                var minersCount = GetMinersCount(input);
                 if (minersCount != 0 && State.ElectionContract.Value != null)
                 {
                     State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
