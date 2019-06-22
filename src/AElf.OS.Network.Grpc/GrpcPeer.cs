@@ -106,7 +106,7 @@ namespace AElf.OS.Network.Grpc
         {
             GrpcRequest request = new GrpcRequest
             {
-                ErrorMessage = $"Request peers failed."
+                ErrorMessage = $"Request nodes failed."
             };
             
             Metadata data = new Metadata
