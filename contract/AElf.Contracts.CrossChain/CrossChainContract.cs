@@ -39,52 +39,52 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override RequestChainCreationOutput RequestChainCreation(SideChainCreationRequest input)
-        {
-            // no need to check authority since invoked in transaction from normal address
-            Assert(input.LockedTokenAmount > 0 && input.LockedTokenAmount > input.IndexingPrice && !input.ContractCode.IsEmpty,
-                "Invalid chain creation request.");
+//        public override RequestChainCreationOutput RequestChainCreation(SideChainCreationRequest input)
+//        {
+//            // no need to check authority since invoked in transaction from normal address
+//            Assert(input.LockedTokenAmount > 0 && input.LockedTokenAmount > input.IndexingPrice && !input.ContractCode.IsEmpty,
+//                "Invalid chain creation request.");
+//
+//            State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
+//            var serialNumber = State.SideChainSerialNumber.Value;
+//            int chainId = ChainHelpers.GetChainId(serialNumber);
+//            var info = State.SideChainInfos[chainId];
+//            Assert(info == null, "Chain creation request already exists.");
+//
+//            // lock token and resource
+//            LockTokenAndResource(input, chainId);
+//
+//            // side chain creation proposal
+////            Hash proposalId = Propose(RequestChainCreationWaitingPeriod, Context.Self, nameof(CreateSideChain),
+////                new SInt32Value {Value = chainId});
+////            request.ProposalHash = hash;
+//            var sideChainInfo = new SideChainInfo
+//            {
+//                Proposer = Context.Sender,
+//                SideChainId = chainId,
+//                SideChainStatus = SideChainStatus.Review,
+//                SideChainCreationRequest = input
+//            };
+//            State.SideChainInfos[chainId] = sideChainInfo;
+//
+//            return new RequestChainCreationOutput {ChainId = chainId, ProposalId = proposalId};
+//        }
 
-            State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
-            var serialNumber = State.SideChainSerialNumber.Value;
-            int chainId = ChainHelpers.GetChainId(serialNumber);
-            var info = State.SideChainInfos[chainId];
-            Assert(info == null, "Chain creation request already exists.");
-
-            // lock token and resource
-            LockTokenAndResource(input, chainId);
-
-            // side chain creation proposal
-//            Hash proposalId = Propose(RequestChainCreationWaitingPeriod, Context.Self, nameof(CreateSideChain),
-//                new SInt32Value {Value = chainId});
-//            request.ProposalHash = hash;
-            var sideChainInfo = new SideChainInfo
-            {
-                Proposer = Context.Sender,
-                SideChainId = chainId,
-                SideChainStatus = SideChainStatus.Review,
-                SideChainCreationRequest = input
-            };
-            State.SideChainInfos[chainId] = sideChainInfo;
-
-            return new RequestChainCreationOutput {ChainId = chainId, ProposalId = proposalId};
-        }
-
-        public override Empty WithdrawRequest(SInt32Value input)
-        {
-            var chainId = input.Value;
-            // no need to check authority since invoked in transaction from normal address
-            var sideChainInfo = State.SideChainInfos[chainId];
-            Assert(sideChainInfo != null &&
-                   sideChainInfo.SideChainStatus == SideChainStatus.Review,
-                "Side chain creation request not found.");
-
-            Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Authentication failed.");
-            UnlockTokenAndResource(sideChainInfo);
-            sideChainInfo.SideChainStatus = SideChainStatus.Terminated;
-            State.SideChainInfos[chainId] = sideChainInfo;
-            return new Empty();
-        }
+//        public override Empty WithdrawRequest(SInt32Value input)
+//        {
+//            var chainId = input.Value;
+//            // no need to check authority since invoked in transaction from normal address
+//            var sideChainInfo = State.SideChainInfos[chainId];
+//            Assert(sideChainInfo != null &&
+//                   sideChainInfo.SideChainStatus == SideChainStatus.Review,
+//                "Side chain creation request not found.");
+//
+//            Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Authentication failed.");
+//            UnlockTokenAndResource(sideChainInfo);
+//            sideChainInfo.SideChainStatus = SideChainStatus.Terminated;
+//            State.SideChainInfos[chainId] = sideChainInfo;
+//            return new Empty();
+//        }
 
         /// <summary>
         /// Create side chain. It is a proposal result from system address.

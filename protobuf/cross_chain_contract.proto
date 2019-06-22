@@ -18,16 +18,14 @@ service CrossChainContract {
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
     
-    rpc WithdrawRequest (aelf.SInt32Value) returns (google.protobuf.Empty) {
-    }
+//    rpc WithdrawRequest (aelf.SInt32Value) returns (google.protobuf.Empty) {
+//    }
     rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
     }
     rpc RequestChainDisposal (aelf.SInt32Value) returns (aelf.Hash) {
     }
     rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) {
     }
-    
-
     rpc ChangOwnerAddress(aelf.Address) returns (google.protobuf.Empty) {
     }
 
