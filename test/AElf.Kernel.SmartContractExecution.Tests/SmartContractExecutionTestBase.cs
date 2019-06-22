@@ -11,11 +11,6 @@ namespace AElf.Kernel.SmartContractExecution
     {
         
     }
-    
-    public class SmartContractExecutionGrouperTestBase : AElfIntegratedTest<SmartContractExecutionGrouperTestAElfModule>
-    {
-        
-    }
 
     public class ExecuteFailedTestBase : AElfIntegratedTest<ExecuteFailedTestAElfModule>
     {
@@ -25,9 +20,5 @@ namespace AElf.Kernel.SmartContractExecution
     public class ValidateAfterFailedTestBase : AElfIntegratedTest<ValidateAfterFailedTestAElfModule>
     {
         
-    }
-
-    public class FunctionMetadataTestBase : AElfIntegratedTest<FunctionMetadataTestAElfModule>
-    {
     }
 }
