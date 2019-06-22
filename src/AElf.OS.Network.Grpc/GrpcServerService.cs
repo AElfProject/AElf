@@ -218,7 +218,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
-            if (request == null || request.Hash == null) 
+            if (request == null || request.Hash == null || !_syncStateService.IsSyncFinished()) 
                 return new BlockReply();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested block {request.Hash}.");

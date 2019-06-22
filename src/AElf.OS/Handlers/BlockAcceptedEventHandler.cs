@@ -12,19 +12,28 @@ namespace AElf.OS.Handlers
     {
         public class BlockAcceptedEventHandler : ILocalEventHandler<BlockAcceptedEvent>, ITransientDependency
         {
-            public INetworkService NetworkService { get; set; }
-            public ISyncStateService SyncStateService { get; set; }
-            public ITaskQueueManager TaskQueueManager { get; set; }
+            private readonly INetworkService _networkService;
+            private readonly ISyncStateService _syncStateService;
+            private readonly ITaskQueueManager _taskQueueManager;
+
+            public BlockAcceptedEventHandler(INetworkService networkService, ISyncStateService syncStateService, 
+                ITaskQueueManager taskQueueManager)
+            {
+                _taskQueueManager = taskQueueManager;
+                _networkService = networkService;
+                _syncStateService = syncStateService;
+            }
 
             public Task HandleEventAsync(BlockAcceptedEvent eventData)
             {
-                NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
+                if (_syncStateService.IsSyncFinished())
+                    _networkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
 
-                if (eventData.BlockHeader.Height == 1 || !SyncStateService.IsSyncFinished() 
-                    && SyncStateService.GetCurrentSyncTarget() <= eventData.BlockHeader.Height)
+                if (eventData.BlockHeader.Height == 1 || !_syncStateService.IsSyncFinished() 
+                    && _syncStateService.GetCurrentSyncTarget() <= eventData.BlockHeader.Height)
                 {
-                    TaskQueueManager.Enqueue(async () => {
-                        await SyncStateService.UpdateSyncStateAsync();
+                    _taskQueueManager.Enqueue(async () => {
+                        await _syncStateService.UpdateSyncStateAsync();
                     }, OSConsts.InitialSyncQueueName);
                 }
                 

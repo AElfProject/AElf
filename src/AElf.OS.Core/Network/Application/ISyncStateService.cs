@@ -94,7 +94,7 @@ namespace AElf.OS.Network.Application
             if (candidates.Count == 0)
             {
                 // no peer has a LIB to sync to, stop the sync.
-                await SetSyncAsFinished();
+                await SetSyncAsFinishedAsync();
                 Logger.LogDebug("Finishing sync, no peer has as a LIB.");
             }
             else
@@ -110,7 +110,7 @@ namespace AElf.OS.Network.Application
                 }
                 else
                 {
-                    await SetSyncAsFinished();
+                    await SetSyncAsFinishedAsync();
                     Logger.LogDebug("Finishing sync, no peer has as a LIB high enough.");
                 }
             }
@@ -120,7 +120,7 @@ namespace AElf.OS.Network.Application
         /// Finalizes the sync by changing the target to -1 and launching the
         /// notifying the Kernel of this change.
         /// </summary>
-        private async Task SetSyncAsFinished()
+        private async Task SetSyncAsFinishedAsync()
         {
             _syncStateProvider.SetSyncTarget(-1);
             await _blockchainNodeContextService.FinishInitialSyncAsync();
