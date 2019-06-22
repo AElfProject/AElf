@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.WebApp.Application.Chain.Dto;
 using Volo.Abp.Application.Services;
 
@@ -21,7 +22,7 @@ namespace AElf.WebApp.Application.Chain.AppServices
     /// </summary>
     /// <seealso cref="Object" />
     /// <seealso cref="AElf.WebApp.Application.Chain.AppServices.IAppTransactionPoolService" />
-    public class AppTransactionPoolService : IAppTransactionPoolService
+    public sealed class AppTransactionPoolService : IAppTransactionPoolService
     {
         private readonly ITxHub _txHub;
 

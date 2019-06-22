@@ -1,10 +1,18 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Security.Policy;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.WebApp.Application.Chain.Dto;
 using Newtonsoft.Json;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Hash = AElf.Types.Hash;
+using Transaction = AElf.Types.Transaction;
 
 namespace AElf.WebApp.Application.Chain.AppServices
 {
@@ -23,6 +31,13 @@ namespace AElf.WebApp.Application.Chain.AppServices
         /// <param name="includeTransactions">include transactions or not</param>
         /// <returns></returns>
         Task<BlockDto> GetBlockAsync(string blockHash, bool includeTransactions = false);
+
+        /// <summary>
+        /// Gets the block asynchronous.
+        /// </summary>
+        /// <param name="blockHash">The block hash.</param>
+        /// <returns></returns>
+        Task<Block> GetBlockAsync(Hash blockHash);
 
         /// <summary>
         /// Get information about a given block by block height. Otionally with the list of its transactions.
@@ -51,7 +66,17 @@ namespace AElf.WebApp.Application.Chain.AppServices
         /// <returns></returns>
         Task<RoundDto> GetCurrentRoundInformationAsync();
 
+        /// <summary>
+        /// Gets the block at height asynchronous.
+        /// </summary>
+        /// <param name="height">The height.</param>
+        /// <returns></returns>
         Task<Block> GetBlockAtHeightAsync(long height);
+
+        /// <summary>
+        /// Gets the chain context asynchronous.
+        /// </summary>
+        /// <returns></returns>
         Task<ChainContext> GetChainContextAsync();
     }
 
@@ -75,8 +100,7 @@ namespace AElf.WebApp.Application.Chain.AppServices
         /// <param name="smartContractAddressService">The smart contract address service.</param>
         /// <param name="blockchainStateManager">The blockchain state manager.</param>
         /// <param name="blockExtraDataService">The block extra data service.</param>
-        public AppBlockService(
-            IBlockchainService blockchainService,
+        public AppBlockService(IBlockchainService blockchainService,
             ISmartContractAddressService smartContractAddressService,
             IBlockchainStateManager blockchainStateManager,
             IBlockExtraDataService blockExtraDataService)
@@ -230,11 +254,11 @@ namespace AElf.WebApp.Application.Chain.AppServices
             {
                 var block = await GetBlockAsync(Hash.LoadBase64(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new NotLinkedBlockDto
-                {
-                    BlockHash = block.GetHash().ToHex(),
-                    Height = block.Height,
-                    PreviousBlockHash = block.Header.PreviousBlockHash.ToHex()
-                }
+                    {
+                        BlockHash = block.GetHash().ToHex(),
+                        Height = block.Height,
+                        PreviousBlockHash = block.Header.PreviousBlockHash.ToHex()
+                    }
                 );
             }
 
@@ -326,13 +350,12 @@ namespace AElf.WebApp.Application.Chain.AppServices
         }
 
 
-
         /// <summary>
         /// Gets the block asynchronous.
         /// </summary>
         /// <param name="blockHash">The block hash.</param>
         /// <returns></returns>
-        private async Task<Block> GetBlockAsync(Hash blockHash)
+        public async Task<Block> GetBlockAsync(Hash blockHash)
         {
             return await _blockchainService.GetBlockByHashAsync(blockHash);
         }

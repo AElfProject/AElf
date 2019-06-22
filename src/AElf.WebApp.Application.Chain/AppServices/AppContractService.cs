@@ -1,6 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf.Reflection;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
@@ -72,7 +76,7 @@ namespace AElf.WebApp.Application.Chain.AppServices
         /// <param name="methodName">Name of the method.</param>
         /// <returns></returns>
         /// <exception cref="UserFriendlyException"></exception>
-        internal async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress,
+        public async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress,
             string methodName)
         {
             IEnumerable<FileDescriptor> fileDescriptors;

@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Transactions;
+using AElf.Kernel;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.WebApp.Application.Chain.AppServices;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
@@ -8,6 +11,8 @@ using Newtonsoft.Json;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
+using Hash = AElf.Types.Hash;
+using Transaction = AElf.Types.Transaction;
 
 namespace AElf.WebApp.Application.Chain.AppServices
 {
@@ -61,7 +66,7 @@ namespace AElf.WebApp.Application.Chain.AppServices
         /// <returns></returns>
         public async Task<SendTransactionOutput> SendTransactionAsync(SendTransactionInput input)
         {
-            var txIds = await PublishTransactionsAsync(new[] { input.RawTransaction });
+            var txIds = await PublishTransactionsAsync(new[] {input.RawTransaction});
             return new SendTransactionOutput
             {
                 TransactionId = txIds[0]
@@ -88,7 +93,7 @@ namespace AElf.WebApp.Application.Chain.AppServices
         {
             var transaction = Transaction.Parser.ParseFrom(ByteArrayHelpers.FromHexString(input.Transaction));
             transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
-            var txIds = await PublishTransactionsAsync(new[] { transaction.ToByteArray().ToHex() });
+            var txIds = await PublishTransactionsAsync(new[] {transaction.ToByteArray().ToHex()});
 
             var output = new SendRawTransactionOutput
             {
@@ -167,5 +172,22 @@ namespace AElf.WebApp.Application.Chain.AppServices
             });
             return txIds;
         }
+
+
+
+        #region tool
+        private bool IsValidMessage(IMessage message)
+        {
+            try
+            {
+                JsonFormatter.ToDiagnosticString(message);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        } 
+        #endregion
     }
 }
