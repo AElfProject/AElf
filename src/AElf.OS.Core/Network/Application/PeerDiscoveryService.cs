@@ -27,7 +27,7 @@ namespace AElf.OS.Network.Application
             Logger = NullLogger<PeerDiscoveryService>.Instance;
         }
         
-        public async Task<NodeList> UpdatePeersAsync()
+        public async Task<NodeList> DiscoverNodesAsync()
         {
             Random rnd = new Random();
             
@@ -64,9 +64,9 @@ namespace AElf.OS.Network.Application
                 }
             }
             
-            // Check that a peer did not send 
+            // Check that a peer did not send us this node
             var localPubKey = await _accountService.GetPublicKeyAsync();
-            var hexPubkey = localPubKey.ToHex();
+            string hexPubkey = localPubKey.ToHex();
             discoveredNodes.Nodes.RemoveAll(n => n.Pubkey.ToHex().Equals(hexPubkey));
             
             return discoveredNodes;

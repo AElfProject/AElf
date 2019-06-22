@@ -1,4 +1,3 @@
-using System.Linq;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
@@ -19,7 +18,7 @@ namespace AElf.OS.Worker
         private readonly IPeerDiscoveryService _peerDiscoveryService;
         private readonly IPeerPool _peerPool;
         
-        public ILogger<PeerDiscoveryWorker> Logger { get; set; }
+        public new ILogger<PeerDiscoveryWorker> Logger { get; set; }
 
         public PeerDiscoveryWorker(AbpTimer timer, IPeerDiscoveryService peerDiscoveryService, IPeerPool peerPool) : base(timer)
         {
@@ -33,11 +32,11 @@ namespace AElf.OS.Worker
 
         protected override async void DoWork()
         {
-            var newNodes = await _peerDiscoveryService.UpdatePeersAsync();
+            var newNodes = await _peerDiscoveryService.DiscoverNodesAsync();
 
             if (newNodes == null || newNodes.Nodes.Count <= 0)
             {
-                Logger.LogDebug("Discovery: no new peers discovered");
+                Logger.LogDebug("Discovery: no new nodes discovered");
                 return;
             }
 
@@ -45,10 +44,9 @@ namespace AElf.OS.Worker
 
             foreach (var node in newNodes.Nodes)
             {
-                int currentPeerCount = _peerPool.CurrentPeerCount();
-                if (currentPeerCount >= NetworkOptions.MaxPeers)
+                if (_peerPool.CurrentPeerCount >= NetworkOptions.MaxPeers)
                 {
-                    Logger.LogDebug($"Discovery: Max peers reached {currentPeerCount}, aborting add.");
+                    Logger.LogDebug($"Discovery: Max peers reached {_peerPool.CurrentPeerCount}, aborting add.");
                     break;
                 }
 

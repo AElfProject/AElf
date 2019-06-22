@@ -6,7 +6,7 @@ namespace AElf.OS.Network.Application
 {
     public interface IPeerDiscoveryService
     {
-        Task<NodeList> UpdatePeersAsync();
+        Task<NodeList> DiscoverNodesAsync();
         Task<NodeList> GetNodesAsync(int maxCount);
     }
 }

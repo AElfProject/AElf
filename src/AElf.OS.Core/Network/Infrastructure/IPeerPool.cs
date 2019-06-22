@@ -6,11 +6,12 @@ namespace AElf.OS.Network.Infrastructure
 {
     public interface IPeerPool
     {
+        int CurrentPeerCount { get; }
+        
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerByAddressAsync(string address);
         List<IPeer> GetPeers(bool includeFailing = false);
         IPeer GetBestPeer();
-        int CurrentPeerCount();
         
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         

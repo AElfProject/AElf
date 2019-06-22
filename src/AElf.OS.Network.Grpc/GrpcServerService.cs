@@ -267,6 +267,8 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.MaxCount} nodes.");
             
             var nodes = await _peerDiscoveryService.GetNodesAsync(request.MaxCount);
+            
+            Logger.LogDebug($"Sending {nodes.Nodes.Count} to {context.GetPeerInfo()}.");
 
             return nodes;
         }
