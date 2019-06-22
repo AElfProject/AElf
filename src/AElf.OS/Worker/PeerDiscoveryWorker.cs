@@ -1,3 +1,4 @@
+using System;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
@@ -32,25 +33,32 @@ namespace AElf.OS.Worker
 
         protected override async void DoWork()
         {
-            var newNodes = await _peerDiscoveryService.DiscoverNodesAsync();
-
-            if (newNodes == null || newNodes.Nodes.Count <= 0)
+            try
             {
-                Logger.LogDebug("Discovery: no new nodes discovered");
-                return;
-            }
+                var newNodes = await _peerDiscoveryService.DiscoverNodesAsync();
 
-            Logger.LogDebug($"Discovery: new nodes discovered : {newNodes}.");
-
-            foreach (var node in newNodes.Nodes)
-            {
-                if (_peerPool.CurrentPeerCount >= NetworkOptions.MaxPeers)
+                if (newNodes == null || newNodes.Nodes.Count <= 0)
                 {
-                    Logger.LogDebug($"Discovery: Max peers reached {_peerPool.CurrentPeerCount}, aborting add.");
-                    break;
+                    Logger.LogDebug("Discovery: no new nodes discovered");
+                    return;
                 }
 
-                await _peerPool.AddPeerAsync(node.Endpoint);
+                Logger.LogDebug($"Discovery: new nodes discovered : {newNodes}.");
+
+                foreach (var node in newNodes.Nodes)
+                {
+                    if (_peerPool.CurrentPeerCount >= NetworkOptions.MaxPeers)
+                    {
+                        Logger.LogDebug($"Discovery: Max peers reached {_peerPool.CurrentPeerCount}, aborting add.");
+                        break;
+                    }
+
+                    await _peerPool.AddPeerAsync(node.Endpoint);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Exception in discovery worker.");
             }
         }
     }

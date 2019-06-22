@@ -49,12 +49,6 @@ namespace AElf.OS.Network.Domain
             
             return Task.FromResult(addedNodes);
         }
-
-        public Task<Node> GetNodeAsync(string nodeId)
-        {
-            _nodes.TryGetValue(nodeId, out Node node);
-            return Task.FromResult(node);
-        }
         
         public Task<NodeList> GetRandomNodes(int maxCount)
         {

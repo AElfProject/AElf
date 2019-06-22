@@ -1,5 +1,3 @@
-using System;
-
 namespace AElf.OS.Network
 {
     public static class NetworkConstants
