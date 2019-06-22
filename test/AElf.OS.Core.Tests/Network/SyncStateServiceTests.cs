@@ -43,8 +43,8 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Sync_Finished_Should_Launch_Event()
         {
-            SyncFinishedEvent eventData = null;
-            _eventBus.Subscribe<SyncFinishedEvent>(args =>
+            InitialSyncFinishedEvent eventData = null;
+            _eventBus.Subscribe<InitialSyncFinishedEvent>(args =>
             {
                 eventData = args;
                 return Task.CompletedTask;

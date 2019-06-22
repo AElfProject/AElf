@@ -20,7 +20,8 @@ namespace AElf.OS.Handlers
             {
                 NetworkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
 
-                if (eventData.BlockHeader.Height == 1 || !SyncStateService.IsSyncFinished() && SyncStateService.GetCurrentSyncTarget() >= eventData.BlockHeader.Height)
+                if (eventData.BlockHeader.Height == 1 || !SyncStateService.IsSyncFinished() 
+                    && SyncStateService.GetCurrentSyncTarget() <= eventData.BlockHeader.Height)
                 {
                     TaskQueueManager.Enqueue(async () => {
                         await SyncStateService.UpdateSyncStateAsync();
