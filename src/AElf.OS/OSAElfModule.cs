@@ -6,11 +6,13 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS.Consensus.DPos;
 using AElf.OS.Handlers;
+using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Worker;
 using AElf.Types;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Modularity;
@@ -74,8 +76,13 @@ namespace AElf.OS
             taskQueueManager.CreateQueue(OSConsts.BlockSyncAttachQueueName);
             taskQueueManager.CreateQueue(OSConsts.BlockSyncQueueName);
 
-            var peerDiscoveryWorker = context.ServiceProvider.GetService<PeerDiscoveryWorker>();
-            await peerDiscoveryWorker.StartAsync();
+            var networkOptions = context.ServiceProvider.GetService<IOptionsSnapshot<NetworkOptions>>().Value;
+
+            if (networkOptions.EnablePeerDiscovery)
+            {
+                var peerDiscoveryWorker = context.ServiceProvider.GetService<PeerDiscoveryWorker>();
+                await peerDiscoveryWorker.StartAsync();
+            }
         }
     }
 }
