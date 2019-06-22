@@ -16,6 +16,6 @@ service PoWContract {
 }
 
 message PowBlockHeaderExtraData{
-    uint32 nBits = 1;
-    fixed64 Nonce = 2;
+    uint32 bits = 1;
+    fixed64 nonce = 2;
 }
