@@ -25,6 +25,7 @@ message ScopedStatePath {
     StatePath path = 2;
 }
 
+
 enum TransactionResultStatus {
     NOT_EXISTED = 0;
     PENDING = 1;
@@ -47,6 +48,7 @@ message TransactionResult {
     string Error = 10;
     string ReadableReturnValue = 11;
 }
+ 
 
 message LogEvent {
     Address address = 1;

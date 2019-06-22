@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "aelf/core.proto";
 
-option csharp_namespace = "AElf.Kernel.SmartContractExecution";
+option csharp_namespace = "AElf.Kernel.SmartContract";
 
 message TransactionResourceInfo {
     repeated int32 resources = 1;
