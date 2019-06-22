@@ -71,8 +71,14 @@ namespace AElf.OS.BlockSync.Application
             }
             else
             {
-                var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
-                    chain.BestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
+                var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
+                    chain.LongestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
+
+                if (syncBlockCount == 0)
+                {
+                    syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
+                        chain.BestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
+                }
 
                 if (syncBlockCount == 0 && blockHeight > chain.LongestChainHeight)
                 {
