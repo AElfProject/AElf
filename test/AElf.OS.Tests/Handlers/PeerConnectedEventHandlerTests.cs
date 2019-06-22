@@ -20,6 +20,7 @@ namespace AElf.OS.Handlers
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
         private readonly OSTestHelper _osTestHelper;
+        private readonly IAnnouncementCacheProvider _announcementCacheProvider;
 
         public PeerConnectedEventHandlerTests()
         {
@@ -28,6 +29,7 @@ namespace AElf.OS.Handlers
             _blockchainService = GetRequiredService<IBlockchainService>();
             _networkService = GetRequiredService<INetworkService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
+            _announcementCacheProvider = GetRequiredService<IAnnouncementCacheProvider>();
         }
 
         [Fact]
@@ -140,6 +142,25 @@ namespace AElf.OS.Handlers
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHash.ShouldBe(bestChainHash);
             chain.BestChainHeight.ShouldBe(bestChainHeight);
+        }
+        
+        [Fact]
+        public async Task HandleEvent_AlreadySynchronized()
+        {
+            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+            var peerBlockHash = peerBlock.GetHash();
+            _announcementCacheProvider.AddAnnouncementCache(peerBlockHash, peerBlock.Height);
+
+            var announcement = new PeerNewBlockAnnouncement
+            {
+                BlockHash = peerBlockHash,
+                BlockHeight = peerBlock.Height
+            };
+            
+            await _peerConnectedEventHandler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, null));
+
+            var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
+            block.ShouldBeNull();
         }
     }
 }
