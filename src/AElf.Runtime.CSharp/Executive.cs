@@ -120,9 +120,9 @@ namespace AElf.Runtime.CSharp
                 if (!_callHandlers.TryGetValue(methodName, out var handler))
                 {
                     throw new RuntimeException(
-                        $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: "+
-                        string.Join(", ", _callHandlers.Keys.OrderBy(k=>k))
-                        );
+                        $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: " +
+                        string.Join(", ", _callHandlers.Keys.OrderBy(k => k))
+                    );
                 }
 
                 try
@@ -132,6 +132,7 @@ namespace AElf.Runtime.CSharp
                     if (retVal != null)
                     {
                         CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
+                        // TODO: Clean up ReadableReturnValue
                         CurrentTransactionContext.Trace.ReadableReturnValue = handler.ReturnBytesToString(retVal);
                     }
 
@@ -149,11 +150,12 @@ namespace AElf.Runtime.CSharp
                 }
                 catch (Exception ex)
                 {
+                    // TODO: Simplify exception
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                     CurrentTransactionContext.Trace.Error += "\n" + ex;
                 }
 
-                if (!handler.IsView() && CurrentTransactionContext.Trace.IsSuccessful())
+                if (!handler.IsView())
                 {
                     var changes = _smartContractProxy.GetChanges();
 
@@ -174,6 +176,10 @@ namespace AElf.Runtime.CSharp
                         }
                     }
 
+                    if (!CurrentTransactionContext.Trace.IsSuccessful())
+                    {
+                        changes.Writes.Clear();
+                    }
 
                     CurrentTransactionContext.Trace.StateSet = changes;
                 }
@@ -189,6 +195,7 @@ namespace AElf.Runtime.CSharp
             }
             finally
             {
+                // TODO: Not needed
                 Cleanup();
             }
 

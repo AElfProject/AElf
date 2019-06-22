@@ -6,6 +6,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
@@ -51,80 +52,40 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     CancellationToken.None, true);
             Logger.LogTrace("Executed non-cancellable txs");
 
-            var returnSetContainer = new ReturnSetContainer(nonCancellableReturnSets);
+            var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
             if (cancellable.Count > 0)
             {
                 cancellableReturnSets = await _executingService.ExecuteAsync(
-                    new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = cancellable},
-                    cancellationToken, false, returnSetContainer.ToBlockStateSet());
-                returnSetContainer.AddRange(cancellableReturnSets);
+                    new TransactionExecutingDto
+                    {
+                        BlockHeader = blockHeader,
+                        Transactions = cancellable,
+                        PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
+                    },
+                    cancellationToken, false);
+                returnSetCollection.AddRange(cancellableReturnSets);
             }
 
             Logger.LogTrace("Executed cancellable txs");
 
             Logger.LogTrace("Handled return set");
 
-            if (returnSetContainer.Unexecutable.Count > 0)
+            if (returnSetCollection.Unexecutable.Count > 0)
             {
                 await EventBus.PublishAsync(
-                    new UnexecutableTransactionsFoundEvent(blockHeader, returnSetContainer.Unexecutable));
+                    new UnexecutableTransactionsFoundEvent(blockHeader, returnSetCollection.Unexecutable));
             }
 
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions =
                 nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
-                returnSetContainer.Executed);
+                returnSetCollection.Executed);
 
             Logger.LogTrace("Filled block");
 
             return block;
-        }
-
-        class ReturnSetContainer
-        {
-            private List<ExecutionReturnSet> _executed = new List<ExecutionReturnSet>();
-            private List<Hash> _unexecutable = new List<Hash>();
-
-            public List<ExecutionReturnSet> Executed => _executed;
-
-            public List<Hash> Unexecutable => _unexecutable;
-
-            public ReturnSetContainer(IEnumerable<ExecutionReturnSet> returnSets)
-            {
-                AddRange(returnSets);
-            }
-
-            public void AddRange(IEnumerable<ExecutionReturnSet> returnSets)
-            {
-                foreach (var returnSet in returnSets)
-                {
-                    if (returnSet.Status == TransactionResultStatus.Mined ||
-                        returnSet.Status == TransactionResultStatus.Failed)
-                    {
-                        _executed.Add(returnSet);
-                    }
-                    else if (returnSet.Status == TransactionResultStatus.Unexecutable)
-                    {
-                        _unexecutable.Add(returnSet.TransactionId);
-                    }
-                }
-            }
-
-            public BlockStateSet ToBlockStateSet()
-            {
-                var blockStateSet = new BlockStateSet();
-                foreach (var returnSet in _executed)
-                {
-                    foreach (var change in returnSet.StateChanges)
-                    {
-                        blockStateSet.Changes[change.Key] = change.Value;
-                    }
-                }
-
-                return blockStateSet;
-            }
         }
     }
 }

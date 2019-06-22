@@ -41,6 +41,7 @@ namespace AElf.Sdk.CSharp.State
         internal override void Clear()
         {
             Loaded = false;
+            // TODO: Why do we have this check
             if (typeof(TEntity) == typeof(byte[]))
             {
                 _originalValue = (TEntity) (object) new byte[0];
@@ -56,10 +57,13 @@ namespace AElf.Sdk.CSharp.State
         internal override TransactionExecutingStateSet GetChanges()
         {
             var stateSet = new TransactionExecutingStateSet();
+            var key = Path.ToStateKey(Context.Self);
             if (!Equals(_originalValue, _value))
             {
-                stateSet.Writes[Path.ToStateKey(Context.Self)] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
+                stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
             }
+
+            stateSet.Reads[key] = true;
 
             return stateSet;
         }
