@@ -143,17 +143,6 @@ namespace AElf.Kernel.SmartContract
         }
 
         [Fact]
-        public void Send_DeferredTransaction_Success()
-        {
-            var deferredTransaction = GetNewTransaction();
-
-            _bridgeContext.SendDeferredTransaction(deferredTransaction);
-
-            var currentDeferredTransaction = _bridgeContext.TransactionContext.Trace.DeferredTransaction;
-            currentDeferredTransaction.ShouldBe(deferredTransaction.ToByteString());
-        }
-
-        [Fact]
         public void Deploy_Contract_ThrowNoPermissionException()
         {
             Should.Throw<NoPermissionException>(() =>
