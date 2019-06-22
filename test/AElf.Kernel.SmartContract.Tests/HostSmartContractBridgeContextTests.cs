@@ -84,7 +84,6 @@ namespace AElf.Kernel.SmartContract
             
             var newBlock = new Block
             {
-                Height = 2,
                 Header = new BlockHeader
                 {
                     PreviousBlockHash = Hash.Empty

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Text;
 using AElf.Types;
 
 namespace AElf.Cryptography.SecretSharing
@@ -11,7 +12,7 @@ namespace AElf.Cryptography.SecretSharing
     /// </summary>
     public static class SecretSharingHelper
     {
-        public static List<string> EncodeSecret(string secretMessage, int threshold, int totalParts)
+        public static List<byte[]> EncodeSecret(byte[] secretMessage, int threshold, int totalParts)
         {
             // Polynomial construction.
             var coefficients = new BigInteger[threshold];
@@ -24,7 +25,7 @@ namespace AElf.Cryptography.SecretSharing
                 coefficients[i] = BigInteger.Abs(new BigInteger(foo));
             }
 
-            var result = new List<string>();
+            var result = new List<byte[]>();
             for (var i = 1; i < totalParts + 1; i++)
             {
                 var secretBigInteger = coefficients[0];
@@ -34,20 +35,20 @@ namespace AElf.Cryptography.SecretSharing
                     secretBigInteger %= SecretSharingConsts.FieldPrime;
                 }
 
-                result.Add(Convert.ToBase64String(secretBigInteger.ToByteArray()));
+                result.Add(secretBigInteger.ToByteArray());
             }
 
             return result;
         }
 
         // The shared parts must be sent in order.
-        public static string DecodeSecret(List<string> sharedParts, List<int> orders, int threshold)
+        public static byte[] DecodeSecret(List<byte[]> sharedParts, List<int> orders, int threshold)
         {
             var result = BigInteger.Zero;
             
             for (var i = 0; i < threshold; i++)
             {
-                var numerator = new BigInteger(Convert.FromBase64String(sharedParts[i]));
+                var numerator = new BigInteger(sharedParts[i]);
                 var denominator = BigInteger.One;
                 for (var j = 0; j < threshold; j++)
                 {
@@ -64,7 +65,7 @@ namespace AElf.Cryptography.SecretSharing
                 result %= SecretSharingConsts.FieldPrime;
             }
 
-            return result.ConvertToString();
+            return result.ToBytesArray();
         }
 
         private static BigInteger RationalToWhole(BigInteger numerator, BigInteger denominator)
@@ -104,7 +105,6 @@ namespace AElf.Cryptography.SecretSharing
             BigInteger numeratorLhs, BigInteger denominatorLhs,
             BigInteger numeratorRhs, BigInteger denominatorRhs)
         {
-            denominatorRhs = denominatorRhs.Abs();
             var numerator = numeratorLhs * numeratorRhs % SecretSharingConsts.FieldPrime;
             var denominator = denominatorLhs * denominatorRhs % SecretSharingConsts.FieldPrime;
             var gcd = GetGreatestCommonDivisor(numerator, denominator);
