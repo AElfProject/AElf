@@ -34,6 +34,7 @@ namespace AElf.Blockchains.MainChain
                 GetGenesisSmartContractDtosForToken(zeroContractAddress),
                 GetGenesisSmartContractDtosForCrossChain(zeroContractAddress),
                 GetGenesisSmartContractDtosForParliament(),
+                GetGenesisSmartContractDtosForConfiguration(zeroContractAddress)
                 GetGenesisSmartContractDtosForConsensus(),
                 GetGenesisSmartContractDtosForTokenConverter(),
                 GetGenesisSmartContractDtosForTreasury()

@@ -23,12 +23,6 @@ enum TransactionStatus {
     TransactionExecuted = 2;
 }
 
-enum SignatureStatus {
-    UnknownSignatureStatus = 0;
-    SignatureValid = 1;
-    SignatureInvalid = -1;
-}
-
 enum RefBlockStatus {
     UnknownRefBlockStatus = 0;
     RefBlockValid = 1;
@@ -40,11 +34,10 @@ enum RefBlockStatus {
 message TransactionReceipt {
     Hash TransactionId = 1;
     Transaction Transaction = 2;
-    SignatureStatus SignatureStatus = 3;
-    RefBlockStatus RefBlockStatus = 4;
-    TransactionStatus TransactionStatus = 5;
-    bool IsSystemTxn = 6;
-    int64 ExecutedBlockNumber = 7;
+    RefBlockStatus RefBlockStatus = 3;
+    TransactionStatus TransactionStatus = 4;
+    bool IsSystemTxn = 5;
+    int64 ExecutedBlockNumber = 6;
 }
 
 //message StatePath {
@@ -116,26 +109,24 @@ enum ExecutionStatus {
 message TransactionTrace {
     Hash TransactionId = 1;
     bytes ReturnValue = 2;
-    string StdOut = 3;
-    string StdErr = 4;
-    repeated Transaction PreTransactions = 5;
-    repeated TransactionTrace PreTraces = 6;
-    repeated Transaction InlineTransactions = 7;
-    repeated TransactionTrace InlineTraces = 8;
-    repeated LogEvent Logs = 9;
-    int64 Elapsed = 10;
-    ExecutionStatus ExecutionStatus = 11;
-    TransactionExecutingStateSet StateSet = 12;
-    bytes DeferredTransaction = 13;
-    string ReadableReturnValue = 14;
+    string Error = 3;
+    repeated Transaction PreTransactions = 4;
+    repeated TransactionTrace PreTraces = 5;
+    repeated Transaction InlineTransactions = 6;
+    repeated TransactionTrace InlineTraces = 7;
+    repeated LogEvent Logs = 8;
+    int64 Elapsed = 9;
+    ExecutionStatus ExecutionStatus = 10;
+    TransactionExecutingStateSet StateSet = 11;
+    string ReadableReturnValue = 12;
 }
 
 message ExecutionReturnSet {
     Hash TransactionId = 1;
     TransactionResultStatus Status = 2;
     map<string, bytes> StateChanges = 3;
-    bytes Bloom = 4;
-    repeated Transaction DeferredTransactions = 5;
+    map<string, bool> StateAccesses=4;
+    bytes Bloom = 5;
     bytes ReturnValue = 6;
 }
 
