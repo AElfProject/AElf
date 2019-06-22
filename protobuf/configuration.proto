@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package configuration;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+service Configuration {
+    option (aelf.csharp_state) = "Configuration.ConfigurationState";
+    // Actions
+    rpc SetBlockTransactionLimit (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
+    }
+    // Views
+    rpc GetBlockTransactionLimit (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+    }
+}
+
+// Events
+message BlockTransactionLimitChanged {
+    option (aelf.is_event) = true;
+    int32 old = 1;
+    int32 new = 2;
+}
