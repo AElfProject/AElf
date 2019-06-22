@@ -53,7 +53,7 @@ namespace AElf.Contracts.Profit
             {
             });
 
-            var createdProfitIds = (await creator.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput
+            var createdProfitIds = (await creator.GetCreatedProfitIds.CallAsync(new GetCreatedProfitIdsInput
             {
                 Creator = creatorAddress
             })).ProfitIds;
@@ -98,7 +98,7 @@ namespace AElf.Contracts.Profit
                 executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
-            var createdProfitIds = await creator.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput
+            var createdProfitIds = await creator.GetCreatedProfitIds.CallAsync(new GetCreatedProfitIdsInput
             {
                 Creator = creatorAddress
             });
@@ -1219,7 +1219,7 @@ namespace AElf.Contracts.Profit
                 ProfitReceivingDuePeriodCount = profitReceivingDuePeriodCount
             });
 
-            var createdProfitIds = (await creator.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput
+            var createdProfitIds = (await creator.GetCreatedProfitIds.CallAsync(new GetCreatedProfitIdsInput
             {
                 Creator = creatorAddress
             })).ProfitIds;

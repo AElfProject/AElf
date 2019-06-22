@@ -1,40 +1,24 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Acs5;
 using AElf.Contracts.Profit;
 using AElf.Sdk.CSharp;
-using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
-using CreateProfitItemInput = Acs5.CreateProfitItemInput;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
 {
     public class Contract : ContractContainer.ContractBase
     {
-        public override Empty CreateProfitItem(CreateProfitItemInput input)
-        {
-            State.ProfitContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            State.ProfitContract.CreateTreasuryProfitItem.Send(new Contracts.Profit.CreateProfitItemInput
-            {
-                IsReleaseAllBalanceEveryTimeByDefault = true
-            });
-
-            return new Empty();
-        }
-
         public override Empty SetProfitReceivers(ProfitReceivers input)
         {
-            var profitItems = State.ProfitContract.GetCreatedProfitItems.Call(new GetCreatedProfitItemsInput
-            {
-                Creator = Context.Self
-            });
-            Assert(profitItems.ProfitIds.Any(), "Profit item not found.");
-            var profitId = profitItems.ProfitIds.First();
-            State.ProfitId.Value = profitId;
+            AssertPerformedByContractOwner();
+
+            var profitItems = State.ProfitContract.GetContractProfitItem.Call(Context.Self);
+            Assert(profitItems.IsTreasuryProfitItem, "Invalid profit item.");
+
+            State.ProfitId.Value = profitItems.ProfitId;
             State.ProfitContract.AddWeights.Send(new AddWeightsInput
             {
-                ProfitId = profitId,
+                ProfitId = profitItems.ProfitId,
                 EndPeriod = long.MaxValue,
                 Weights = {input.Value.Select(i => new WeightMap {Receiver = i.Address, Weight = i.Weight})}
             });
@@ -42,20 +26,18 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
             return new Empty();
         }
 
-        public override Address GetProfitVirtualAddress(Empty input)
-        {
-            return Address.FromPublicKey(State.ProfitContract.Value.Value.Concat(
-                State.ProfitId.Value.Value.ToByteArray().CalculateHash()).ToArray());
-        }
-
         public override Empty SetMethodProfitFee(SetMethodProfitFeeInput input)
         {
+            AssertPerformedByContractOwner();
+
             State.MethodProfitFees[input.Method] = new MethodProfitFee {SymbolToAmount = {input.SymbolToAmount}};
             return new Empty();
         }
 
         public override Empty SetMethodProfitFees(SetMethodProfitFeesInput input)
         {
+            AssertPerformedByContractOwner();
+
             foreach (var methodProfitFee in input.MethodProfitFees)
             {
                 State.MethodProfitFees[methodProfitFee.Key] = methodProfitFee.Value;
@@ -82,9 +64,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
             return new Empty();
         }
 
-        public override Hash GetProfitId(Empty input)
+        public override Empty DummyMethod(Empty input)
         {
-            return State.ProfitId.Value;
+            return new Empty();
+        }
+
+        private void AssertPerformedByContractOwner()
+        {
+            var contractInfo = State.ASC0Contract.GetContractInfo.Call(Context.Self);
+            Assert(Context.Sender == contractInfo.Owner, "Only owner are permitted to call this method.");
         }
     }
 }

@@ -11,8 +11,6 @@ option (aelf.identity) = "acs5";
 
 service ProfitSharingContract {
     // Actions
-    rpc CreateProfitItem (CreateProfitItemInput) returns (google.protobuf.Empty) {
-    }
     rpc SetProfitReceivers (ProfitReceivers) returns (google.protobuf.Empty) {
     }
     rpc ReceiveProfits (google.protobuf.Empty) returns (google.protobuf.Empty) {
@@ -26,15 +24,6 @@ service ProfitSharingContract {
     rpc GetMethodProfitFee (google.protobuf.StringValue) returns (MethodProfitFee) {
         option (aelf.is_view) = true;
     }
-    rpc GetProfitId (google.protobuf.Empty) returns (aelf.Hash) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetProfitVirtualAddress (google.protobuf.Empty) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
-}
-
-message CreateProfitItemInput {
 }
 
 message ProfitReceiverInformation {

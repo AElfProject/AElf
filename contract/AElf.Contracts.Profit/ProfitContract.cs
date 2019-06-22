@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Profit
@@ -34,7 +32,7 @@ namespace AElf.Contracts.Profit
             }
 
             var profitId = Context.TransactionId;
-            var createdProfitIds = State.CreatedProfitItemsMap[Context.Sender]?.ProfitIds;
+            var createdProfitIds = State.CreatedProfitIds[Context.Sender]?.ProfitIds;
             if (createdProfitIds != null && createdProfitIds.Contains(profitId))
             {
                 profitId = Hash.FromTwoHashes(profitId, createdProfitIds.Last());
@@ -42,6 +40,7 @@ namespace AElf.Contracts.Profit
 
             State.ProfitItemsMap[profitId] = new ProfitItem
             {
+                ProfitId = profitId,
                 VirtualAddress = Context.ConvertVirtualAddressToContractAddress(profitId),
                 Creator = Context.Sender,
                 ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
@@ -49,10 +48,10 @@ namespace AElf.Contracts.Profit
                 IsReleaseAllBalanceEverytimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault
             };
 
-            var createdProfitItems = State.CreatedProfitItemsMap[Context.Sender];
+            var createdProfitItems = State.CreatedProfitIds[Context.Sender];
             if (createdProfitItems == null)
             {
-                createdProfitItems = new CreatedProfitItems
+                createdProfitItems = new CreatedProfitIds
                 {
                     ProfitIds = {profitId}
                 };
@@ -62,7 +61,7 @@ namespace AElf.Contracts.Profit
                 createdProfitItems.ProfitIds.Add(profitId);
             }
 
-            State.CreatedProfitItemsMap[Context.Sender] = createdProfitItems;
+            State.CreatedProfitIds[Context.Sender] = createdProfitItems;
 
             Context.LogDebug(() => $"Created profit item {profitId}");
             return profitId;

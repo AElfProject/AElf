@@ -254,8 +254,8 @@ namespace AElf.Contracts.EconomicSystem.Tests
             AsyncHelper.RunSync(InitializeProfitSharingContract);
 
             var profitIds = AsyncHelper.RunSync(() =>
-                ProfitContractStub.GetCreatedProfitItems.CallAsync(
-                    new GetCreatedProfitItemsInput
+                ProfitContractStub.GetCreatedProfitIds.CallAsync(
+                    new GetCreatedProfitIdsInput
                     {
                         Creator = TreasuryContractAddress
                     })).ProfitIds;

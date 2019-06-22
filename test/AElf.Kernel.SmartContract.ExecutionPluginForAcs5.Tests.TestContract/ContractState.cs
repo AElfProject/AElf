@@ -1,3 +1,4 @@
+using Acs0;
 using Acs5;
 using AElf.Contracts.Profit;
 using AElf.Sdk.CSharp.State;
@@ -14,5 +15,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
         public SingletonState<long> ReleasedTimes { get; set; }
         
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
+        internal ACS0Container.ACS0ReferenceState ASC0Contract { get; set; }
     }
 }

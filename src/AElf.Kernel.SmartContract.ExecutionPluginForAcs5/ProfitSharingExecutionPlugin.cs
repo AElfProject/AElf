@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs5;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.Profit;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs6;
@@ -11,12 +12,14 @@ using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
+using CreateProfitItemInput = AElf.Contracts.Profit.CreateProfitItemInput;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 {
     public class ProfitSharingExecutionPlugin : IExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
+        private const string AcsSymbol = "acs5";
 
         public ProfitSharingExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
@@ -25,7 +28,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 
         private static bool IsAcs5(IReadOnlyList<ServiceDescriptor> descriptors)
         {
-            return descriptors.Any(service => service.File.GetIndentity() == "acs5");
+            return descriptors.Any(service => service.File.GetIndentity() == AcsSymbol);
         }
 
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
@@ -43,10 +46,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
                 __factory = new MethodStubFactory(context)
             };
 
-            var profit = await selfStub.GetMethodProfitFee.CallAsync(new StringValue
+            var profitFee = await selfStub.GetMethodProfitFee.CallAsync(new StringValue
             {
                 Value = context.TransactionContext.Transaction.MethodName
             });
+            
+            // Generate token contract stub.
             var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
             var tokenStub = new TokenContractContainer.TokenContractStub
             {
@@ -63,12 +68,30 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
                 return new List<Transaction>();
             }
 
-            var profitVirtualAddress = await selfStub.GetProfitVirtualAddress.CallAsync(new Empty());
+            // Generate profit contract stub.
+            var profitContractAddress = context.GetContractAddressByName(ProfitSmartContractAddressNameProvider.Name);
+            var profitStub = new ProfitContractContainer.ProfitContractStub
+            {
+                __factory = new TransactionGeneratingOnlyMethodStubFactory
+                {
+                    Sender = transactionContext.Transaction.To,
+                    ContractAddress = profitContractAddress
+                }
+            };
+            var contractAddress = transactionContext.Transaction.To;
+            var contractProfitItem = await profitStub.GetContractProfitItem.CallAsync(contractAddress);
+            if (!contractProfitItem.IsTreasuryProfitItem)
+            {
+                // Create a contract profit item for this contract.
+                await profitStub.CreateTreasuryProfitItem.SendAsync(new CreateProfitItemInput
+                {
+                    IsReleaseAllBalanceEveryTimeByDefault = true
+                });
+            }
 
             var chargeProfitTransaction = (await tokenStub.ChargeMethodProfits.SendAsync(new ChargeMethodProfitsInput
             {
-                SymbolToAmount = {profit.SymbolToAmount},
-                ProfitVirtualAddress = profitVirtualAddress
+                SymbolToAmount = {profitFee.SymbolToAmount}
             })).Transaction;
             return new List<Transaction>
             {

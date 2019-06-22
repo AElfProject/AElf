@@ -77,7 +77,7 @@ namespace AElf.Contracts.Profit
             {
                 ProfitReceivingDuePeriodCount = 100,
             });
-            TreasuryHash = ProfitContractStub.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput
+            TreasuryHash = ProfitContractStub.GetCreatedProfitIds.CallAsync(new GetCreatedProfitIdsInput
             {
                 Creator = Address.FromPublicKey(StarterKeyPair.PublicKey)
             }).Result.ProfitIds.First();

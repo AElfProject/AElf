@@ -40,7 +40,7 @@ service ProfitContract {
     }
     
     // Views
-    rpc GetCreatedProfitItems (GetCreatedProfitItemsInput) returns (CreatedProfitItems) {
+    rpc GetCreatedProfitIds (GetCreatedProfitIdsInput) returns (CreatedProfitIds) {
         option (aelf.is_view) = true;
     }
     rpc GetProfitItem (aelf.Hash) returns (ProfitItem) {
@@ -61,6 +61,9 @@ service ProfitContract {
     rpc GetTreasuryProfitId (google.protobuf.Empty) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
+    rpc GetContractProfitItem (aelf.Address) returns (ProfitItem) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message CreateProfitItemInput {
@@ -78,6 +81,7 @@ message ProfitItem {
     sint64 profit_receiving_due_period_count = 9;
     bool is_release_all_balance_everytime_by_default = 10;
     bool is_treasury_profit_item = 11;
+    aelf.Hash profit_id = 12;
 }
 
 message SubProfitItem {
@@ -160,11 +164,11 @@ message ReleasedProfitsInformation {
     bool is_released = 3;
 }
 
-message CreatedProfitItems {
+message CreatedProfitIds {
     repeated aelf.Hash ProfitIds = 1;
 }
 
-message GetCreatedProfitItemsInput {
+message GetCreatedProfitIdsInput {
     aelf.Address creator = 1;
 }
 

@@ -34,7 +34,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty InitialMiningRewardProfitItem(InitialMiningRewardProfitItemInput profitItemInput)
         {
-            var createdProfitIds = State.ProfitContract.GetCreatedProfitItems.Call(new GetCreatedProfitItemsInput
+            var createdProfitIds = State.ProfitContract.GetCreatedProfitIds.Call(new GetCreatedProfitIdsInput
             {
                 Creator = Context.Self
             }).ProfitIds;

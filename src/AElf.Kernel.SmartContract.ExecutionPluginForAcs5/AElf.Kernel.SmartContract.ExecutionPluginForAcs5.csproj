@@ -7,6 +7,7 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+        <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -15,6 +16,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\profit_contract.proto">
+            <Link>Protobuf/Proto/profit_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 </Project>

@@ -163,8 +163,8 @@ namespace AElf.Contracts.Election
             AsyncHelper.RunSync(InitializeAElfConsensus);
 
             var profitIds = AsyncHelper.RunSync(() =>
-                ProfitContractStub.GetCreatedProfitItems.CallAsync(
-                    new GetCreatedProfitItemsInput
+                ProfitContractStub.GetCreatedProfitIds.CallAsync(
+                    new GetCreatedProfitIdsInput
                     {
                         Creator = ElectionContractAddress
                     })).ProfitIds;

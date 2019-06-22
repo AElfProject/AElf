@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -73,6 +74,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         public async Task GetPreTransactionsTest()
         {
             await DeployContractsAsync();
+            await SetMethodFee_Successful(10);
             var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IExecutionPlugin>>()
                 .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per type
             var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(FeeChargeExecutionPlugin));
@@ -103,7 +105,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 Method = nameof(DefaultTester.DummyMethod),
                 SymbolToAmount = {new Dictionary<string, long> {{"ELF", feeAmount}}}
-
             });
             var fee = await DefaultTester.GetMethodFee.CallAsync(new MethodName()
             {

@@ -10,9 +10,9 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitContract
     {
-        public override CreatedProfitItems GetCreatedProfitItems(GetCreatedProfitItemsInput input)
+        public override CreatedProfitIds GetCreatedProfitIds(GetCreatedProfitIdsInput input)
         {
-            return State.CreatedProfitItemsMap[input.Creator];
+            return State.CreatedProfitIds[input.Creator];
         }
 
         public override ProfitItem GetProfitItem(Hash input)
@@ -68,7 +68,9 @@ namespace AElf.Contracts.Profit
 
             var amount = 0L;
 
-            for (var i = 0; i < Math.Min(ProfitContractConsts.ProfitReceivingLimitForEachTime, availableDetails.Count); i++)
+            for (var i = 0;
+                i < Math.Min(ProfitContractConsts.ProfitReceivingLimitForEachTime, availableDetails.Count);
+                i++)
             {
                 var profitDetail = availableDetails[i];
                 if (profitDetail.LastProfitPeriod == 0)
@@ -94,6 +96,21 @@ namespace AElf.Contracts.Profit
             }
 
             return new SInt64Value {Value = amount};
+        }
+
+        public override ProfitItem GetContractProfitItem(Address input)
+        {
+            var createdProfitIds = State.CreatedProfitIds[input];
+            foreach (var profitId in createdProfitIds.ProfitIds)
+            {
+                var profitItem = State.ProfitItemsMap[profitId];
+                if (profitItem.IsTreasuryProfitItem)
+                {
+                    return profitItem;
+                }
+            }
+
+            return new ProfitItem();
         }
     }
 }
