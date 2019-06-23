@@ -149,7 +149,7 @@ namespace AElf.WebApp.Application.Chain
         public async Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10)
         {
-            return await _appTransactionResultService.GetTransactionResultsAsync(blockHash, offset);
+            return await _appTransactionResultService.GetTransactionResultsAsync(blockHash, offset,limit);
         }
 
         /// <summary>

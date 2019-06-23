@@ -88,7 +88,7 @@ namespace AElf.WebApp.Application.Chain.AppServices
         private readonly IBlockchainService _blockchainService;
         private readonly ITxHub _txHub;
 
-        private ILocalEventBus LocalEventBus { get; set; }
+        public ILocalEventBus LocalEventBus { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppTransactionService"/> class.
@@ -183,9 +183,7 @@ namespace AElf.WebApp.Application.Chain.AppServices
                 RefBlockPrefix = ByteString.CopyFrom(Hash.LoadHex(input.RefBlockHash).Value.Take(4).ToArray()),
                 MethodName = input.MethodName
             };
-
-            var methodDescriptor =
-                await GetContractMethodDescriptorAsync(Address.Parse(input.To), input.MethodName);
+            var methodDescriptor = await GetContractMethodDescriptorAsync(Address.Parse(input.To), input.MethodName);
             if (methodDescriptor == null)
                 throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
                     Error.NoMatchMethodInContractAddress.ToString());
