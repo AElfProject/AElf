@@ -1,18 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Security.Policy;
-using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
+﻿using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.WebApp.Application.Chain.Dto;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Hash = AElf.Types.Hash;
-using Transaction = AElf.Types.Transaction;
 
 namespace AElf.WebApp.Application.Chain.AppServices
 {
@@ -80,7 +78,6 @@ namespace AElf.WebApp.Application.Chain.AppServices
         Task<ChainContext> GetChainContextAsync();
     }
 
-
     /// <summary>
     /// app block service
     /// </summary>
@@ -91,7 +88,6 @@ namespace AElf.WebApp.Application.Chain.AppServices
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly IBlockExtraDataService _blockExtraDataService;
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppBlockService"/> class.
@@ -254,11 +250,11 @@ namespace AElf.WebApp.Application.Chain.AppServices
             {
                 var block = await GetBlockAsync(Hash.LoadBase64(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new NotLinkedBlockDto
-                    {
-                        BlockHash = block.GetHash().ToHex(),
-                        Height = block.Height,
-                        PreviousBlockHash = block.Header.PreviousBlockHash.ToHex()
-                    }
+                {
+                    BlockHash = block.GetHash().ToHex(),
+                    Height = block.Height,
+                    PreviousBlockHash = block.Header.PreviousBlockHash.ToHex()
+                }
                 );
             }
 
@@ -348,7 +344,6 @@ namespace AElf.WebApp.Application.Chain.AppServices
             };
             return chainContext;
         }
-
 
         /// <summary>
         /// Gets the block asynchronous.

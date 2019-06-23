@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Types;
+﻿using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 
@@ -36,26 +35,23 @@ namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
     public sealed class AppTransactionResultService : IAppTransactionResultService
     {
         private readonly IAppBlockService _appBlockService;
-        private readonly IAppContractService _appContractService;
-
         private readonly IAppTransactionGetResultService _appTransactionGetResultService;
-
+        private readonly IAppTransactionService _appTransactionService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppTransactionResultService"/> class.
         /// </summary>
         /// <param name="appBlockService">The application block service.</param>
-        /// <param name="appContractService">The application contract service.</param>
+        /// <param name="appTransactionService">The application contract service.</param>
         /// <param name="appTransactionGetResultService">The application transaction get result service.</param>
         public AppTransactionResultService(IAppBlockService appBlockService,
-            IAppContractService appContractService,
+            IAppTransactionService appTransactionService,
             IAppTransactionGetResultService appTransactionGetResultService)
         {
             _appBlockService = appBlockService;
-            _appContractService = appContractService;
+            _appTransactionService = appTransactionService;
             _appTransactionGetResultService = appTransactionGetResultService;
         }
-
 
         /// <summary>
         /// Get the current status of a transaction
@@ -100,7 +96,7 @@ namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
 
             var methodDescriptor =
-                await _appContractService.GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+                await _appTransactionService.GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
             output.Transaction.Params = JsonFormatter.ToDiagnosticString(
                 methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
 
@@ -160,7 +156,6 @@ namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
                     var transactionResultDto =
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
 
-
                     transactionResultDto.BlockHash = block.GetHash().ToHex();
 
                     if (transactionResult.Status == TransactionResultStatus.Failed)
@@ -170,7 +165,7 @@ namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
                         JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
 
                     var methodDescriptor =
-                        await _appContractService.GetContractMethodDescriptorAsync(transaction.To,
+                        await _appTransactionService.GetContractMethodDescriptorAsync(transaction.To,
                             transaction.MethodName);
                     transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
                         methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
