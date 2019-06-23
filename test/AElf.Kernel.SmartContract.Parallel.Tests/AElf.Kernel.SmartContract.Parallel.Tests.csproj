@@ -22,6 +22,6 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
-        <PackageReference Include="Volo.Abp.TestBase" Version="0.17.0" />
+        <PackageReference Include="Volo.Abp.TestBase" Version="0.18.0" />
     </ItemGroup>
 </Project>
