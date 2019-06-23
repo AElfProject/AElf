@@ -75,26 +75,18 @@ namespace AElf.WebApp.Application.Chain
         
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public BlockChainAppService(IBlockchainService blockchainService,
-            ISmartContractAddressService smartContractAddressService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            ITransactionManager transactionManager,
-            ITransactionResultQueryService transactionResultQueryService,
-            IBlockExtraDataService blockExtraDataService,
-            ITxHub txHub,
-            IBlockchainStateManager blockchainStateManager,
-            ITaskQueueManager taskQueueManager
+        public BlockChainAppService(BlockChainAppServiceInitInput input
         )
         {
-            _blockchainService = blockchainService;
-            _smartContractAddressService = smartContractAddressService;
-            _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
-            _transactionManager = transactionManager;
-            _transactionResultQueryService = transactionResultQueryService;
-            _blockExtraDataService = blockExtraDataService;
-            _txHub = txHub;
-            _blockchainStateManager = blockchainStateManager;
-            _taskQueueManager = taskQueueManager;
+            _blockchainService = input.blockchainService;
+            _smartContractAddressService = input.smartContractAddressService;
+            _transactionReadOnlyExecutionService = input.transactionReadOnlyExecutionService;
+            _transactionManager = input.transactionManager;
+            _transactionResultQueryService = input.transactionResultQueryService;
+            _blockExtraDataService = input.blockExtraDataService;
+            _txHub = input.txHub;
+            _blockchainStateManager = input.blockchainStateManager;
+            _taskQueueManager = input.taskQueueManager;
 
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
