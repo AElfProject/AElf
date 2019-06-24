@@ -73,21 +73,26 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             }
 
-            State.TreasuryContract.Donate.Send(new DonateInput
+            Context.LogDebug(() => "About to release mining rewards.");
+
+            State.TreasuryContract.ReleaseMiningReward.Send(new ReleaseMiningRewardInput
             {
-                Symbol = Context.Variables.NativeSymbol,
-                Amount = previousRound.GetMinedBlocks().Mul(GetTokenAmountPerBlock())
+                MinedBlocksCount = previousRound.GetMinedBlocks()
             });
+
+            Context.LogDebug(() => "About to release treasury profits.");
 
             State.TreasuryContract.Release.Send(new ReleaseInput
             {
-                TermNumber = termNumber + 1
+                TermNumber = termNumber,
             });
+
+            Context.LogDebug(() => "About to take snapshot.");
 
             State.ElectionContract.TakeSnapshot.Send(new TakeElectionSnapshotInput
             {
                 MinedBlocks = previousRound.GetMinedBlocks(),
-                TermNumber = termNumber + 1,
+                TermNumber = termNumber,
                 RoundNumber = previousRound.RoundNumber
             });
 
@@ -95,11 +100,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             TryToFindLastIrreversibleBlock();
 
             return new Empty();
-        }
-
-        private int GetTokenAmountPerBlock()
-        {
-            return 1;
         }
 
         private bool SetMinerListOfCurrentTerm(MinerList minerList, bool gonnaReplaceSomeone = false)

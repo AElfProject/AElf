@@ -27,9 +27,6 @@ namespace AElf.Contracts.Treasury
                 });
             }
 
-            State.TokenContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-
             State.Initialized.Value = true;
 
             return new Empty();
@@ -51,23 +48,63 @@ namespace AElf.Contracts.Treasury
             State.BasicRewardHash.Value = createdProfitIds[4];
             State.VotesWeightRewardHash.Value = createdProfitIds[5];
             State.ReElectionRewardHash.Value = createdProfitIds[6];
-            
+
             State.ProfitContract.SetTreasuryProfitId.Send(createdProfitIds[0]);
 
             BuildTreasury();
 
-            var treasuryVirtualAddress = Context.ConvertVirtualAddressToContractAddress(createdProfitIds[0]);
+            var treasuryVirtualAddress = Address.FromPublicKey(State.ProfitContract.Value.Value.Concat(
+                createdProfitIds[0].Value.ToByteArray().CalculateHash()).ToArray());
             State.TreasuryVirtualAddress.Value = treasuryVirtualAddress;
+
+            return new Empty();
+        }
+
+        public override Empty ReleaseMiningReward(ReleaseMiningRewardInput input)
+        {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
+            if (State.AEDPoSContract.Value == null)
+            {
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
+
+            Assert(
+                Context.Sender == State.AEDPoSContract.Value,
+                "Only AElf Consensus Contract can release mining rewards.");
+
+            var rewardAmount = TreasuryContractConstants.RewardPerBlock.Mul(input.MinedBlocksCount);
+            State.TokenContract.Transfer.Send(new TransferInput
+            {
+                To = State.TreasuryVirtualAddress.Value,
+                Symbol = Context.Variables.NativeSymbol,
+                Amount = rewardAmount,
+                Memo = "Mining rewards."
+            });
+
+            Context.LogDebug(() => $"Released {rewardAmount} mining rewards to {State.TreasuryVirtualAddress.Value}");
 
             return new Empty();
         }
 
         public override Empty Release(ReleaseInput input)
         {
-            Assert(Context.Sender == State.AEDPoSContract.Value,
+            if (State.AEDPoSContract.Value == null)
+            {
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
+
+            Assert(
+                Context.Sender == State.AEDPoSContract.Value,
                 "Only AElf Consensus Contract can release profits from Treasury.");
 
-            var releasingPeriodNumber = input.TermNumber.Sub(1);
+            var releasingPeriodNumber = input.TermNumber;
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.TreasuryHash.Value,
@@ -77,11 +114,18 @@ namespace AElf.Contracts.Treasury
             ReleaseTreasurySubProfitItems(releasingPeriodNumber);
             UpdateTreasurySubItemsWeights(input.TermNumber);
 
+            Context.LogDebug(() => "Leaving Release.");
             return new Empty();
         }
 
         public override Empty Donate(DonateInput input)
         {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
             var isNativeSymbol = input.Symbol != Context.Variables.NativeSymbol;
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -103,6 +147,12 @@ namespace AElf.Contracts.Treasury
 
         public override Empty DonateAll(DonateAllInput input)
         {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Symbol = input.Symbol,
@@ -153,7 +203,7 @@ namespace AElf.Contracts.Treasury
                 IsBurnable = true,
                 TotalSupply = input.TotalSupply
             });
-            
+
             // Set bancor connector.
             State.TokenConverterContract.SetConnector.Send(new Connector
             {
@@ -165,7 +215,7 @@ namespace AElf.Contracts.Treasury
             });
 
             State.ContractSymbols[sender] = input.TokenSymbol;
-            
+
             return new Empty();
         }
 
@@ -269,6 +319,12 @@ namespace AElf.Contracts.Treasury
 
         private void UpdateTreasurySubItemsWeights(long termNumber)
         {
+            if (State.ElectionContract.Value == null)
+            {
+                State.ElectionContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+            }
+
             var reElectionProfitAddWeights = new AddWeightsInput
             {
                 ProfitId = State.ReElectionRewardHash.Value,
@@ -308,17 +364,17 @@ namespace AElf.Contracts.Treasury
             var previousMinersAddresses =
                 previousMiners.Select(k => Address.FromPublicKey(ByteArrayHelpers.FromHexString(k))).ToList();
 
-            var treasuryVirtualAddress = Context.ConvertVirtualAddressToContractAddress(State.TreasuryHash.Value);
+            var treasuryVirtualAddress = State.TreasuryVirtualAddress.Value;
 
             var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value;
+            var newMiners = victories.Select(bs => Address.FromPublicKey(bs.ToByteArray()))
+                .Select(a => new WeightMap {Receiver = a, Weight = 1});
 
             // Manage weights of `MinerBasicReward`
             basicRewardProfitSubWeights.Receivers.AddRange(previousMinersAddresses);
             State.ProfitContract.SubWeights.Send(basicRewardProfitSubWeights);
-            basicRewardProfitAddWeights.Weights.AddRange(victories.Select(bs => Address.FromPublicKey(bs.ToByteArray()))
-                .Select(a => new WeightMap {Receiver = a, Weight = 1}));
+            basicRewardProfitAddWeights.Weights.AddRange(newMiners);
             State.ProfitContract.AddWeights.Send(basicRewardProfitAddWeights);
-
             // Manage weights of `ReElectedMinerReward`
             reElectionProfitSubWeights.Receivers.AddRange(previousMinersAddresses);
             reElectionProfitSubWeights.Receivers.Add(treasuryVirtualAddress);
@@ -332,7 +388,6 @@ namespace AElf.Contracts.Treasury
                     Weight = 1
                 });
             }
-
             State.ProfitContract.AddWeights.Send(reElectionProfitAddWeights);
 
             // Manage weights of `MinerVotesWeightReward`
@@ -348,7 +403,6 @@ namespace AElf.Contracts.Treasury
                     Weight = 1
                 });
             }
-
             State.ProfitContract.AddWeights.Send(votesWeightRewardProfitAddWeights);
         }
 
@@ -357,7 +411,7 @@ namespace AElf.Contracts.Treasury
         public override GetWelfareRewardAmountSampleOutput GetWelfareRewardAmountSample(
             GetWelfareRewardAmountSampleInput input)
         {
-            const long amount = 10000;
+            const long sampleAmount = 10000;
             var welfareHash = State.WelfareHash.Value;
             var output = new GetWelfareRewardAmountSampleOutput();
             var welfareItem = State.ProfitContract.GetProfitItem.Call(welfareHash);
@@ -371,7 +425,7 @@ namespace AElf.Contracts.Treasury
             var totalAmount = releasedInformation.ProfitsAmount;
             foreach (var lockTime in input.Value)
             {
-                var weight = GetVotesWeight(amount, lockTime);
+                var weight = GetVotesWeight(sampleAmount, lockTime);
                 output.Value.Add(totalAmount.Mul(weight).Div(totalWeight));
             }
 

@@ -47,6 +47,8 @@ namespace AElf.Contracts.Profit
                 CurrentPeriod = 1,
                 IsReleaseAllBalanceEverytimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault
             };
+            
+            Context.LogDebug(() => $"New profit item created: {State.ProfitItemsMap[profitId]}");
 
             var createdProfitItems = State.CreatedProfitIds[Context.Sender];
             if (createdProfitItems == null)
@@ -296,6 +298,12 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Empty ReleaseProfit(ReleaseProfitInput input)
         {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
             var profitItem = State.ProfitItemsMap[input.ProfitId];
 
             Assert(profitItem != null, "Profit item not found.");
@@ -310,11 +318,10 @@ namespace AElf.Contracts.Profit
 
             Assert(Context.Sender == profitItem.Creator, "Only creator can release profits.");
 
-            var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
-
+            Context.LogDebug(() => $"Virtual Address: {profitItem.VirtualAddress}");
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
-                Owner = profitVirtualAddress,
+                Owner = profitItem.VirtualAddress,
                 Symbol = Context.Variables.NativeSymbol
             }).Balance;
 
@@ -322,12 +329,13 @@ namespace AElf.Contracts.Profit
 
             if (profitItem.IsReleaseAllBalanceEverytimeByDefault && input.Amount == 0)
             {
+                Context.LogDebug(() => $"Update releasing amount to {balance}");
                 input.Amount = balance;
             }
 
             if (input.Period < 0 || totalWeight <= 0)
             {
-                return BurnProfits(input, profitItem, profitVirtualAddress);
+                return BurnProfits(input, profitItem, profitItem.VirtualAddress);
             }
 
             // Update current_period.
@@ -337,7 +345,7 @@ namespace AElf.Contracts.Profit
                 $"Invalid period. When release profit item {input.ProfitId.ToHex()} of period {input.Period}. Current period is {releasingPeriod}");
 
             var profitsReceivingVirtualAddress =
-                GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, releasingPeriod);
+                GetReleasedPeriodProfitsVirtualAddress(profitItem.VirtualAddress, releasingPeriod);
 
             var releasedProfitInformation = State.ReleasedProfitsMap[profitsReceivingVirtualAddress];
             if (releasedProfitInformation == null)
@@ -366,8 +374,10 @@ namespace AElf.Contracts.Profit
 
             var remainAmount = input.Amount;
 
+            Context.LogDebug(() => $"Sub profit items count: {profitItem.SubProfitItems.Count}");
             foreach (var subProfitItem in profitItem.SubProfitItems)
             {
+                Context.LogDebug(() => $"Releasing {subProfitItem.ProfitId}");
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItem.ProfitId);
 
                 var amount = subProfitItem.Weight.Mul(input.Amount).Div(totalWeight);
@@ -375,7 +385,7 @@ namespace AElf.Contracts.Profit
                 {
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
                     {
-                        From = profitVirtualAddress,
+                        From = profitItem.VirtualAddress,
                         To = subItemVirtualAddress,
                         Amount = amount,
                         Symbol = Context.Variables.NativeSymbol
@@ -407,22 +417,28 @@ namespace AElf.Contracts.Profit
                 State.ProfitDetailsMap[input.ProfitId][subItemVirtualAddress] = subItemDetail;
             }
 
+            Context.LogDebug(() => "Finished the releasing of sub profit items.");
             // Transfer remain amount to individuals' receiving profits address.
             if (remainAmount != 0)
             {
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
-                    From = profitVirtualAddress,
+                    From = profitItem.VirtualAddress,
                     To = profitsReceivingVirtualAddress,
                     Amount = remainAmount,
                     Symbol = Context.Variables.NativeSymbol
                 });
             }
 
-            profitItem.CurrentPeriod = input.Period + 1;
-            profitItem.TotalAmounts[Context.Variables.NativeSymbol] =
-                profitItem.TotalAmounts[Context.Variables.NativeSymbol].Sub(input.Amount);
+            profitItem.CurrentPeriod = input.Period.Add(1);
+            if (!profitItem.IsReleaseAllBalanceEverytimeByDefault)
+            {
+                profitItem.TotalAmounts[Context.Variables.NativeSymbol] =
+                    profitItem.TotalAmounts[Context.Variables.NativeSymbol].Sub(input.Amount);
+            }
             State.ProfitItemsMap[input.ProfitId] = profitItem;
+
+            Context.LogDebug(() => "Leaving ReleaseProfit.");
 
             return new Empty();
         }

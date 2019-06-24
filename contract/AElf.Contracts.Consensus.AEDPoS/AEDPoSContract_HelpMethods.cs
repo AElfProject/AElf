@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -61,7 +62,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             From = Context.Sender,
             To = Context.Self,
             MethodName = methodName,
-            Params = parameter.ToByteString()
+            Params = parameter.ToByteString(),
+            RefBlockNumber = Context.CurrentHeight,
+            RefBlockPrefix = ByteString.CopyFrom(Context.PreviousBlockHash.Value.Take(4).ToArray())
         };
 
         private void SetBlockchainStartTimestamp(Timestamp timestamp)

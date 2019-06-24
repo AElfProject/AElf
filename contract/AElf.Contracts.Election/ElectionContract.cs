@@ -87,6 +87,7 @@ namespace AElf.Contracts.Election
 
         public override Empty TakeSnapshot(TakeElectionSnapshotInput input)
         {
+            Context.LogDebug(() => "Entered TakeSnapshot.");
             var snapshot = new TermSnapshot
             {
                 MinedBlocks = input.MinedBlocks,
@@ -107,13 +108,14 @@ namespace AElf.Contracts.Election
             // Update snapshot of corresponding voting record by the way.
             State.VoteContract.TakeSnapshot.Send(new TakeSnapshotInput
             {
-                SnapshotNumber = input.TermNumber - 1,
+                SnapshotNumber = input.TermNumber,
                 VotingItemId = State.MinerElectionVotingItemId.Value
             });
 
-            State.Snapshots[input.TermNumber - 1] = snapshot;
-            State.CurrentTermNumber.Value = input.TermNumber;
-            
+
+            State.Snapshots[input.TermNumber] = snapshot;
+            State.CurrentTermNumber.Value = input.TermNumber.Add(1);
+
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
 
@@ -428,6 +430,7 @@ namespace AElf.Contracts.Election
 
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {
+            Context.LogDebug(() => "Entered UpdateCandidateInformation");
             var candidateInformation = State.CandidateInformationMap[input.PublicKey];
 
             if (input.IsEvilNode)
@@ -451,6 +454,8 @@ namespace AElf.Contracts.Election
             candidateInformation.ProducedBlocks = candidateInformation.ProducedBlocks.Add(input.RecentlyProducedBlocks);
             candidateInformation.MissedTimeSlots = candidateInformation.MissedTimeSlots.Add(input.RecentlyMissedTimeSlots);
             State.CandidateInformationMap[input.PublicKey] = candidateInformation;
+            Context.LogDebug(() => "Leaving UpdateCandidateInformation");
+
             return new Empty();
         }
 

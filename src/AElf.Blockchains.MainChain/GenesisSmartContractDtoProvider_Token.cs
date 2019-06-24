@@ -47,8 +47,8 @@ namespace AElf.Blockchains.MainChain
             {
                 Symbol = _tokenInitialOptions.Symbol,
                 Amount = (long) (_tokenInitialOptions.TotalSupply * _tokenInitialOptions.DividendPoolRatio),
-                ToSystemContractName = ElectionSmartContractAddressNameProvider.Name,
-                Memo = "Set dividends.",
+                ToSystemContractName = TreasurySmartContractAddressNameProvider.Name,
+                Memo = "Set mining rewards."
             });
 
             //TODO: Maybe should be removed after testing.

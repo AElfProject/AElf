@@ -24,6 +24,8 @@ service TreasuryContract {
     }
     rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {
     }
+    rpc ReleaseMiningReward (ReleaseMiningRewardInput) returns (google.protobuf.Empty) {
+    }
 
     // View
     rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (aelf.SInt64Value) {
@@ -70,4 +72,8 @@ message GetWelfareRewardAmountSampleOutput {
 
 message DonateAllInput {
     string symbol = 1;
+}
+
+message ReleaseMiningRewardInput {
+    sint64 mined_blocks_count = 1;
 }
