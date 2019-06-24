@@ -9,3 +9,8 @@ message TransactionResourceInfo {
     bool non_parallelizable = 2;
     aelf.Hash transaction_id = 3;
 }
+
+message CodeRemarks {
+    aelf.Hash code_hash = 1;
+    bool non_parallelizable = 2;
+}
