@@ -15,7 +15,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
     public interface ITxHub
     {
-        Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync();
+        Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount=0);
         Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData);
         Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData);
         Task HandleBestChainFoundAsync(BestChainFoundEvent eventData);

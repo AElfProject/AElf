@@ -22,6 +22,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         public ILogger<ResourceExtractionService> Logger { get; set; }
 
+        // TODO: use non concurrent version
         private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache = 
             new ConcurrentDictionary<Hash, TransactionResourceCache>();
 

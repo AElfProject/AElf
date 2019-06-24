@@ -41,15 +41,7 @@ namespace AElf.Sdk.CSharp.State
         internal override void Clear()
         {
             Loaded = false;
-            if (typeof(TEntity) == typeof(byte[]))
-            {
-                _originalValue = (TEntity) (object) new byte[0];
-            }
-            else
-            {
-                _originalValue = default(TEntity);
-            }
-
+            _originalValue = default(TEntity);
             _value = _originalValue;
         }
 

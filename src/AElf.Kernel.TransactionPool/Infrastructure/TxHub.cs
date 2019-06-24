@@ -53,7 +53,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionOptions = transactionOptions.Value;
         }
 
-        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync()
+        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount=0)
         {
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
@@ -71,7 +71,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight
             };
-            output.Transactions.AddRange(_validated.Values.Select(x => x.Transaction));
+            output.Transactions.AddRange(_validated.Values
+                .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.Transaction));
 
             return output;
         }
