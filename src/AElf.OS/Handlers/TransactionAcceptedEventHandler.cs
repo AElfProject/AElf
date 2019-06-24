@@ -4,7 +4,6 @@ using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
-using Microsoft.Extensions.Logging.Abstractions;
 using Secp256k1Net;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;

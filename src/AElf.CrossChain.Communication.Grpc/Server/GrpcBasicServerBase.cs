@@ -25,7 +25,7 @@ namespace AElf.CrossChain.Communication.Grpc
             {
                 RemoteServerHost = host,
                 RemoteServerPort = port,
-                RemoteChainId = chainId,
+                RemoteChainId = chainId
             });
         }
     }

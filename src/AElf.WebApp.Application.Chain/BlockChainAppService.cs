@@ -698,7 +698,7 @@ namespace AElf.WebApp.Application.Chain
 
             await LocalEventBus.PublishAsync(new TransactionsReceivedEvent()
             {
-                Transactions = transactions,
+                Transactions = transactions
             });
             return txIds;
         }
