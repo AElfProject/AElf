@@ -32,7 +32,7 @@ namespace AElf.OS.BlockSync.Application
 
         public ILogger<BlockSyncService> Logger { get; set; }
 
-        private readonly Duration _blockSyncJobAgeLimit = new Duration {Seconds = 1};
+        private readonly Duration _blockSyncJobAgeLimit = new Duration {Nanos = 500_000_000};
 
         public BlockSyncService(IBlockchainService blockchainService,
             IBlockFetchService blockFetchService,
