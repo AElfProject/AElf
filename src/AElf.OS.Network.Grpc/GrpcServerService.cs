@@ -182,7 +182,7 @@ namespace AElf.OS.Network.Grpc
             
             // if this transaction's ref block is a lot higher than our chain 
             // then don't participate in p2p network
-            if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync)
+            if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
                 return new VoidReply();
             
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
