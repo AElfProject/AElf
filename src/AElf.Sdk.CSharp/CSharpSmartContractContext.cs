@@ -61,11 +61,6 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.VerifySignature(tx);
         }
 
-        public void SendDeferredTransaction(Transaction deferredTxn)
-        {
-            _smartContractBridgeContextImplementation.SendDeferredTransaction(deferredTxn);
-        }
-
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
         {
             _smartContractBridgeContextImplementation.DeployContract(address, registration, name);
