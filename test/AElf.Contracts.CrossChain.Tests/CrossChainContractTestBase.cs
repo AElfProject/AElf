@@ -78,20 +78,20 @@ namespace AElf.Contract.CrossChain.Tests
             await Tester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});
         }
 
-        protected async Task<int> InitAndCreateSideChainAsync(long parentChainHeightOfCreation = 0, int parentChainId = 0, long lockedTokenAmount = 10)
-        {
-            await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId);
-
-            await ApproveBalanceAsync(lockedTokenAmount);
-            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
-            var requestTxResult =await ExecuteContractWithMiningAsync(CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.RequestChainCreation),
-                sideChainCreationRequest);
-            await ApproveWithMinersAsync(RequestChainCreationOutput.Parser.ParseFrom(requestTxResult.ReturnValue).ProposalId);
-            var chainId = ChainHelpers.GetChainId(1);
-            
-            return chainId;
-        }
+//        protected async Task<int> InitAndCreateSideChainAsync(long parentChainHeightOfCreation = 0, int parentChainId = 0, long lockedTokenAmount = 10)
+//        {
+//            await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId);
+//
+//            await ApproveBalanceAsync(lockedTokenAmount);
+//            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
+//            var requestTxResult =await ExecuteContractWithMiningAsync(CrossChainContractAddress,
+//                nameof(CrossChainContractContainer.CrossChainContractStub.RequestChainCreation),
+//                sideChainCreationRequest);
+//            await ApproveWithMinersAsync(RequestChainCreationOutput.Parser.ParseFrom(requestTxResult.ReturnValue).ProposalId);
+//            var chainId = ChainHelpers.GetChainId(1);
+//            
+//            return chainId;
+//        }
 
         protected async Task<Block> MineAsync(List<Transaction> txs)
         {
