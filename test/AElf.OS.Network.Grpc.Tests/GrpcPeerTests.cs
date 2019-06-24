@@ -134,7 +134,6 @@ namespace AElf.OS.Network
         private async Task RestartNetworkServer()
         {
             await _networkServer.StopAsync();
-
             await _networkServer.StartAsync();
         }
     }

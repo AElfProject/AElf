@@ -31,7 +31,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Cannot_Retrigger_Sync()
         {
-            await _syncStateService.UpdateSyncStateAsync();
+            await _syncStateService.StartSyncAsync();
             await _syncStateService.UpdateSyncStateAsync();
             
             _syncStateService.IsSyncFinished().ShouldBeTrue();
@@ -47,7 +47,7 @@ namespace AElf.OS.Network
                 return Task.CompletedTask;
             });
             
-            await _syncStateService.UpdateSyncStateAsync();
+            await _syncStateService.StartSyncAsync();
             
             eventData.ShouldNotBeNull();
         }
@@ -55,7 +55,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task No_Peers_Stops_Sync()
         {
-            await _syncStateService.UpdateSyncStateAsync();
+            await _syncStateService.StartSyncAsync();
             _syncStateService.IsSyncFinished().ShouldBeTrue();
         }
         
@@ -65,7 +65,7 @@ namespace AElf.OS.Network
             _peerPool.AddPeer(CreatePeer());
             _peerPool.AddPeer(CreatePeer());
             
-            await _syncStateService.UpdateSyncStateAsync();
+            await _syncStateService.StartSyncAsync();
             
             _syncStateService.IsSyncFinished().ShouldBeTrue();
         }
@@ -79,7 +79,7 @@ namespace AElf.OS.Network
             foreach (int peer in peers)
                 _peerPool.AddPeer(CreatePeer(peer));
             
-            await _syncStateService.UpdateSyncStateAsync();
+            await _syncStateService.StartSyncAsync();
             
             _syncStateService.IsSyncFinished().ShouldBe(expectedSyncState);
         }
