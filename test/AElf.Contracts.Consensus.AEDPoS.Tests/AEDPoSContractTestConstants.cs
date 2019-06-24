@@ -28,5 +28,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// 7 days.
         /// </summary>
         internal const long TimeEachTerm = 120;// 7 * 60 * 60 * 24
+
+        internal const long MinerIncreaseSpace = 120;
     }
 }

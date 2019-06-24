@@ -227,7 +227,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 ? AEDPoSContractConstants.MinMinersCount
                 : AEDPoSContractConstants.MinMinersCount.Add(
                     (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                    .Div(State.TimeEachTerm.Value).Mul(2));
+                    .Div(State.MinerIncreaseSpace.Value).Mul(2));
         }
     }
 }

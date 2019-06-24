@@ -243,7 +243,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        TimeEachTerm = AEDPoSContractTestConstants.TimeEachTerm
+                        TimeEachTerm = AEDPoSContractTestConstants.TimeEachTerm,
+                        MinerIncreaseSpace = AEDPoSContractTestConstants.MinerIncreaseSpace
                     });
                 CheckResult(result.TransactionResult);
             }

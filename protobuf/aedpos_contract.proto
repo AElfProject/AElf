@@ -63,6 +63,7 @@ message InitialAElfConsensusContractInput {
     bool is_term_stay_one = 1;
     bool is_side_chain = 2;
     sint64 time_each_term = 3;
+    sint64 miner_increase_space = 4;
 }
 
 // Just used as parameter of consensus contract method.
