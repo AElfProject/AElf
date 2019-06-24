@@ -14,13 +14,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 using Hash = AElf.Types.Hash;
 using Transaction = AElf.Types.Transaction;
 
 namespace AElf.WebApp.Application.Chain.AppServices
 {
-    public interface IAppTransactionService : IApplicationService
+    public interface IAppTransactionService
     {
         /// <summary>
         /// excute raw transaction
@@ -82,7 +83,7 @@ namespace AElf.WebApp.Application.Chain.AppServices
     /// transaction services
     /// </summary>
     /// <seealso cref="AElf.WebApp.Application.Chain.AppServices.IAppTransactionService" />
-    public sealed class AppTransactionService : IAppTransactionService
+    public class AppTransactionService : IAppTransactionService,ITransientDependency
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly IBlockchainService _blockchainService;

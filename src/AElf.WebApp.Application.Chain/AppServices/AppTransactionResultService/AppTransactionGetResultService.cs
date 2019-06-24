@@ -11,10 +11,11 @@ using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.AspNetCore.Routing.Template;
 using Newtonsoft.Json;
 using Volo.Abp.Application.Services;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
 {
-    public interface IAppTransactionGetResultService : IApplicationService
+    public interface IAppTransactionGetResultService 
     {
         /// <summary>
         /// Gets the transaction asynchronous.
@@ -31,7 +32,7 @@ namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
         Task<(TransactionResult, Transaction)> GetTransactionAndResultAsync(Hash hash);
     }
 
-    public sealed class AppTransactionGetResultService : IAppTransactionGetResultService
+    public class AppTransactionGetResultService : IAppTransactionGetResultService,ITransientDependency
     {
         private readonly ITransactionResultQueryService _transactionResultQueryService;
 

@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using AElf.WebApp.Application.Chain.Dto;
 using Volo.Abp.Application.Services;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.WebApp.Application.Chain.AppServices
 {
-    public interface IAppTaskQueueService : IApplicationService
+    public interface IAppTaskQueueService
     {
         /// <summary>
         /// Gets the task queue status asynchronous.
@@ -16,7 +17,7 @@ namespace AElf.WebApp.Application.Chain.AppServices
         List<TaskQueueInfoDto> GetTaskQueueStatusAsync();
     }
 
-    public sealed class AppTaskQueueService : IAppTaskQueueService
+    public class AppTaskQueueService : IAppTaskQueueService,ITransientDependency
     {
         private readonly ITaskQueueManager _taskQueueManager;
 

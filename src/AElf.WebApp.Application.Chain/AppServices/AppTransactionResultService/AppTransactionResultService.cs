@@ -8,10 +8,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
 {
-    public interface IAppTransactionResultService : IApplicationService
+    public interface IAppTransactionResultService
     {
         /// <summary>
         /// Get the current status of a transaction
@@ -32,7 +33,7 @@ namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
             int limit = 10);
     }
 
-    public sealed class AppTransactionResultService : IAppTransactionResultService
+    public class AppTransactionResultService : IAppTransactionResultService,ITransientDependency
     {
         private readonly IAppBlockService _appBlockService;
         private readonly IAppTransactionGetResultService _appTransactionGetResultService;

@@ -8,7 +8,7 @@ using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface IBlockChainAppService : IApplicationService
+    public interface IBlockChainAppService:IApplicationService
     {
         Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input);
 

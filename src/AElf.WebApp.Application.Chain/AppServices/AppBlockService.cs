@@ -10,11 +10,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
+using Volo.Abp.DependencyInjection;
 using Hash = AElf.Types.Hash;
 
 namespace AElf.WebApp.Application.Chain.AppServices
 {
-    public interface IAppBlockService : IApplicationService
+    public interface IAppBlockService
     {
         /// <summary>
         /// Get the height of the current chain.
@@ -82,7 +83,7 @@ namespace AElf.WebApp.Application.Chain.AppServices
     /// app block service
     /// </summary>
     /// <seealso cref="AElf.WebApp.Application.Chain.AppServices.IAppBlockService" />
-    public sealed class AppBlockService : IAppBlockService
+    public class AppBlockService : IAppBlockService,ITransientDependency
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
