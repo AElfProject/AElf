@@ -2,8 +2,6 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
@@ -17,13 +15,10 @@ namespace AElf.Kernel.TransactionPool.Application
         ITransientDependency
     {
         private readonly ITxHub _txHub;
-        public ILogger<TxPoolInterestedEventsHandler> Logger { get; set; }
-
 
         public TxPoolInterestedEventsHandler(ITxHub txHub)
         {
             _txHub = txHub;
-            Logger = NullLogger<TxPoolInterestedEventsHandler>.Instance;
         }
 
         public async Task HandleEventAsync(TransactionsReceivedEvent eventData)
