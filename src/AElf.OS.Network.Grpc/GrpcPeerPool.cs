@@ -53,6 +53,8 @@ namespace AElf.OS.Network.Grpc
             Logger = NullLogger<GrpcPeerPool>.Instance;
         }
 
+        public int PeerCount => _authenticatedPeers.Count;
+
         public async Task<bool> AddPeerAsync(string address)
         {
             if (FindPeerByAddress(address) != null)

@@ -13,6 +13,8 @@ namespace AElf.OS.Network.Application
     public interface ISyncStateService
     {
         bool IsSyncFinished();
+        bool IsSyncUninitialized();
+        Task StartSyncAsync();
         long GetCurrentSyncTarget();
         Task UpdateSyncStateAsync();
     }
@@ -39,8 +41,26 @@ namespace AElf.OS.Network.Application
         }
         
         public bool IsSyncFinished() => _syncStateProvider.SyncTarget == -1;
+        public bool IsSyncUninitialized() => _syncStateProvider.SyncTarget == 0;
         public long GetCurrentSyncTarget() => _syncStateProvider.SyncTarget;
         private void SetSyncTarget(long value) => _syncStateProvider.SetSyncTarget(value);
+
+        /// <summary>
+        /// Based on current peers, will determine if a sync is needed or not. This method
+        /// should only be called once, to go from an unknown sync state to either syncing
+        /// or not syncing.
+        /// </summary>
+        /// <returns></returns>
+        public async Task StartSyncAsync()
+        {
+            if (!IsSyncUninitialized())
+            {
+                Logger.LogWarning("Trying to start the sync, but it has already been started.");
+                return;
+            }
+
+            await TryFindSyncTargetAsync();
+        }
 
         /// <summary>
         /// Updates the current target for the initial sync. For now this method will
@@ -49,8 +69,12 @@ namespace AElf.OS.Network.Application
         /// <returns></returns>
         public async Task UpdateSyncStateAsync()
         {
-            if (IsSyncFinished())
+            if (IsSyncFinished() || IsSyncUninitialized())
+            {
+                Logger.LogWarning("Trying to update the sync, but it is either finished or not yet been initialized.");
                 return;
+            }
+                
                 
             var chain = await _blockchainService.GetChainAsync();
             
@@ -70,6 +94,9 @@ namespace AElf.OS.Network.Application
                     {
                         Logger.LogError(e, "Error while updating the lib.");
                     }
+                    
+                    Logger.LogDebug($"Peer {peer} last known LIB is {peer.LastKnowLibHeight}.");
+                    
                 }).ToList();
                 
                 await Task.WhenAll(tasks);
@@ -99,7 +126,7 @@ namespace AElf.OS.Network.Application
             {
                 // no peer has a LIB to sync to, stop the sync.
                 await SetSyncAsFinishedAsync();
-                Logger.LogDebug("Finishing sync, no peer has as a LIB.");
+                Logger.LogDebug($"Finishing sync, not enough peers have a sufficiently high LIB (peer count: {_peerPool.PeerCount}).");
             }
             else
             {
