@@ -45,8 +45,6 @@ namespace AElf.OS.BlockSync.Application
 
             var block = await _blockChainService.GetBlockByHeightInBestChainBranchAsync(originalBestChainHeight);
             block.GetHash().ShouldNotBe(originalBestChainHash);
-            
-            _announcementCacheProvider.ContainsAnnouncement(peerBlockHash,peerBlockHeight).ShouldBeTrue();
         }
         
     }
