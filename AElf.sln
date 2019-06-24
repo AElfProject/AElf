@@ -299,6 +299,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Configuratio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.BlockTransactionLimitController.Tests", "test\AElf.Kernel.BlockTransactionLimitController.Tests\AElf.Kernel.BlockTransactionLimitController.Tests.csproj", "{8024E54C-51C0-48B7-BBE2-CD298F117CA0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.Parallel.MultiToken.Tests", "test\AElf.Kernel.Parallel.MultiToken.Tests\AElf.Kernel.Parallel.MultiToken.Tests.csproj", "{332C2A6A-925B-47B3-BD57-8B71BBBFDC27}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -841,6 +843,10 @@ Global
 		{8024E54C-51C0-48B7-BBE2-CD298F117CA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8024E54C-51C0-48B7-BBE2-CD298F117CA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8024E54C-51C0-48B7-BBE2-CD298F117CA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{332C2A6A-925B-47B3-BD57-8B71BBBFDC27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{332C2A6A-925B-47B3-BD57-8B71BBBFDC27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{332C2A6A-925B-47B3-BD57-8B71BBBFDC27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{332C2A6A-925B-47B3-BD57-8B71BBBFDC27}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -992,5 +998,6 @@ Global
 		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{A9436A00-8763-4C23-BBE0-BFC6C5B49056} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 		{8024E54C-51C0-48B7-BBE2-CD298F117CA0} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{332C2A6A-925B-47B3-BD57-8B71BBBFDC27} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal

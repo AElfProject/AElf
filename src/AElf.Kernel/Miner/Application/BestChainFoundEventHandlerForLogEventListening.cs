@@ -5,7 +5,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Miner.Application
 {
-    public class BestChainFoundEventHandlerForLogEventListening : ILocalEventHandler<BestChainFoundEventData>,
+    public class BestChainFoundEventHandlerForLogEventListening : ILocalEventHandler<BestChainFoundEvent>,
         ITransientDependency
     {
         private readonly ILogEventListeningService _logEventListeningService;
@@ -15,7 +15,7 @@ namespace AElf.Kernel.Miner.Application
             _logEventListeningService = logEventListeningService;
         }
 
-        public async Task HandleEventAsync(BestChainFoundEventData eventData)
+        public async Task HandleEventAsync(BestChainFoundEvent eventData)
         {
             await _logEventListeningService.ApplyAsync(eventData.ExecutedBlocks);
         }
