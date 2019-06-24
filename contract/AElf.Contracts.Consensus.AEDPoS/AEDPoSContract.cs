@@ -10,10 +10,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         #region Initial
 
-        private static readonly int _minerNumber = 17;
-
-        private static readonly int _miner_increse_timespan = 120;
-        
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
