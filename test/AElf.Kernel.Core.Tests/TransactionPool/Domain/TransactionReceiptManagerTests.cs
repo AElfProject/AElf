@@ -23,14 +23,10 @@ namespace AElf.Kernel.TransactionPool.Domain
             var result = await _transactionReceiptManager.GetReceiptAsync(transactionReceipt.TransactionId);
             result.ShouldBe(transactionReceipt);
 
-            transactionReceipt.SignatureStatus = SignatureStatus.SignatureInvalid;
             transactionReceipt.Transaction.MethodName = "TestUpdate";
             await _transactionReceiptManager.AddOrUpdateReceiptAsync(transactionReceipt);
-
             result = await _transactionReceiptManager.GetReceiptAsync(transactionReceipt.TransactionId);
-
-            result.SignatureStatus.ShouldBe(SignatureStatus.SignatureInvalid);
-            transactionReceipt.Transaction.MethodName.ShouldBe("TestUpdate");
+            result.Transaction.MethodName.ShouldBe("TestUpdate");
         }
 
         [Fact]
@@ -45,13 +41,11 @@ namespace AElf.Kernel.TransactionPool.Domain
             //update
             foreach (var transactionReceipt in transactionReceipts)
             {
-                transactionReceipt.SignatureStatus = SignatureStatus.SignatureValid;
                 transactionReceipt.Transaction.MethodName = "UpdateMethod";
             }
 
             await _transactionReceiptManager.AddOrUpdateReceiptsAsync(transactionReceipts);
             var result1 = await _transactionReceiptManager.GetReceiptAsync(transactionReceipts[0].TransactionId);
-            result1.SignatureStatus.ShouldBe(SignatureStatus.SignatureValid);
             result1.Transaction.MethodName.ShouldBe("UpdateMethod");
         }
 
@@ -69,23 +63,7 @@ namespace AElf.Kernel.TransactionPool.Domain
 
             result.ShouldBe(transactionReceipt);
         }
-
-        [Fact]
-        public async Task Receipt_Executable_Test()
-        {
-            var transactionReceipt = GenerateTransactionReceipts(1)[0];
-
-            await _transactionReceiptManager.AddOrUpdateReceiptAsync(transactionReceipt);
-            var result = await _transactionReceiptManager.GetReceiptAsync(transactionReceipt.TransactionId);
-            
-            result.IsExecutable.ShouldBeFalse();
-
-            result.SignatureStatus = SignatureStatus.SignatureValid;
-            result.RefBlockStatus = RefBlockStatus.RefBlockValid;
-            result.TransactionStatus = TransactionStatus.UnknownTransactionStatus;
-            result.IsExecutable.ShouldBeTrue();
-        }
-
+        
         private List<TransactionReceipt> GenerateTransactionReceipts(int count)
         {
             var transactionReceipts = new List<TransactionReceipt>();

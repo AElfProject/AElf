@@ -724,8 +724,8 @@ namespace AElf.WebApp.Application.Chain
 
             var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow.ToTimestamp());
 
-            if (!string.IsNullOrEmpty(trace.StdErr))
-                throw new Exception(trace.StdErr);
+            if (!string.IsNullOrEmpty(trace.Error))
+                throw new Exception(trace.Error);
 
             return trace.ReturnValue.ToByteArray();
         }
@@ -736,8 +736,8 @@ namespace AElf.WebApp.Application.Chain
 
             var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, DateTime.UtcNow.ToTimestamp());
 
-            if (!string.IsNullOrEmpty(trace.StdErr))
-                throw new Exception(trace.StdErr);
+            if (!string.IsNullOrEmpty(trace.Error))
+                throw new Exception(trace.Error);
 
             return trace.ReadableReturnValue;
         }

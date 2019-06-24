@@ -15,36 +15,8 @@ message Transaction {
     bytes Params = 6;
     bytes Signature = 10000;
 }
-//
-//enum TransactionStatus {
-//    UnknownTransactionStatus = 0;
-//    TransactionExecuting = 1;
-//    TransactionExecuted = 2;
-//}
-//
-//enum SignatureStatus {
-//    UnknownSignatureStatus = 0;
-//    SignatureValid = 1;
-//    SignatureInvalid = -1;
-//}
-//
-//enum RefBlockStatus {
-//    UnknownRefBlockStatus = 0;
-//    RefBlockValid = 1;
-//    RefBlockInvalid = -1;
-//    RefBlockExpired = -2;
-//    FutureRefBlock = -3;
-//}
-//
-//message TransactionReceipt {
-//    Hash TransactionId = 1;
-//    Transaction Transaction = 2;
-//    SignatureStatus SignatureStatus = 3;
-//    RefBlockStatus RefBlockStatus = 4;
-//    TransactionStatus TransactionStatus = 5;
-//    bool IsSystemTxn = 6;
-//    int64 ExecutedBlockNumber = 7;
-//}
+
+
 
 message StatePath {
     repeated string parts = 1;
@@ -54,16 +26,7 @@ message ScopedStatePath {
     Address address = 1;
     StatePath path = 2;
 }
-//
-//message StateValue {
-//    bytes CurrentValue = 1;
-//    bytes OriginalValue = 2;
-//}
-//
-//message StateChange {
-//    StatePath StatePath = 1;
-//    StateValue StateValue = 2;
-//}
+
 
 enum TransactionResultStatus {
     NotExisted = 0;
@@ -84,59 +47,10 @@ message TransactionResult {
     int32 Index = 8;
     Hash StateHash = 9;
     // Merkle proof path for this transaction
-    // TODO: Remove DeferredTxnId
-    repeated Transaction DeferredTransactions = 10;
-    Hash DeferredTxnId = 11;
-    string Error = 12;
-    string ReadableReturnValue = 13;
+    string Error = 10;
+    string ReadableReturnValue = 11;
 }
-//
-//// For failed transactions, its status follows the Min of
-//// its own status and its inline transactions'
-//enum ExecutionStatus {
-//    Undefined = 0;
-//    // Successful =>
-//    Executed = 1;
-//
-//    // Failed =>
-//    //   Infrastructure reasons
-//    Canceled = -1;
-//    SystemError = -2;
-//
-//    //   Contract reasons
-//    ContractError = -10;
-//    ExceededMaxCallDepth = -11;
-//    InsufficientTransactionFees = -12;
-//
-//    // Pre-failed
-//    Prefailed = -99;
-//}
-//
-//message TransactionTrace {
-//    Hash TransactionId = 1;
-//    bytes ReturnValue = 2;
-//    string StdOut = 3;
-//    string StdErr = 4;
-//    repeated Transaction PreTransactions = 5;
-//    repeated TransactionTrace PreTraces = 6;
-//    repeated Transaction InlineTransactions = 7;
-//    repeated TransactionTrace InlineTraces = 8;
-//    repeated LogEvent Logs = 9;
-//    int64 Elapsed = 10;
-//    ExecutionStatus ExecutionStatus = 11;
-//    TransactionExecutingStateSet StateSet = 12;
-//    bytes DeferredTransaction = 13;
-//    string ReadableReturnValue = 14;
-//}
-//
-//message ExecutionReturnSet {
-//    Hash TransactionId = 1;
-//    TransactionResultStatus Status = 2;
-//    map<string, bytes> StateChanges = 3;
-//    bytes Bloom = 4;
-//    repeated Transaction DeferredTransactions = 5;
-//    bytes ReturnValue = 6;
-//}
+ 
 
 message LogEvent {
     Address Address = 1;
@@ -144,206 +58,30 @@ message LogEvent {
     repeated bytes Indexed = 3;
     bytes NonIndexed = 4;
 }
-//
-//message BlockHeaderList {
-//    repeated BlockHeader Headers = 1;
-//}
-//
-//message BlockExtraData {
-//    Hash SideChainTransactionsRoot = 1;
-//    bytes ConsensusInformation = 2;
-//}
-//
-//message BlockHeader {
-//    int32 Version = 1;
-//    Hash PreviousBlockHash = 2;
-//    Hash MerkleTreeRootOfTransactions = 3;
-//    Hash MerkleTreeRootOfWorldState = 4;
-//    bytes Bloom = 5;
-//    int64 Height = 6;
-//    bytes Sig = 7;
-//    bytes P = 8;
-//    google.protobuf.Timestamp Time = 9;
-//    int32 ChainId = 10; // Does the BlockHeader needs ChainId ???
-//    repeated bytes BlockExtraDatas = 11;
-//}
-//
-//message BlockBody {
-//    Hash BlockHeader = 1;
-//    repeated Hash Transactions = 2;
-//    repeated Transaction TransactionList = 3;
-//}
-//
-//message Block {
-//    BlockHeader Header = 1;
-//    BlockBody Body = 2;
-//}
+
 
 message SmartContractRegistration {
     int32 Category = 1;
     bytes Code = 2;
     Hash CodeHash = 3;
 }
-//
-//enum DataAccessMode {
-//    ReadOnlyAccountSharing = 0;
-//    ReadWriteAccountSharing = 1;
-//    AccountSpecific = 2;
-//}
-//
-//message BinaryMerkleTree {
-//    repeated Hash Nodes = 1;
-//    Hash Root = 2;
-//    int32 LeafCount = 3;
-//}
 
 message HashList {
     repeated Hash Values = 1;
 }
 
-//message BlockAbstract {
-//    string MinerPublicKey = 1;
-//    google.protobuf.Timestamp Time = 2;
-//}
-//
-//enum BlockValidationResult {
-//    // The chosen one!
-//    Success = 0;
-//
-//    // Cache them.
-//    NotMiner = 11;
-//    InvalidTimeSlot = 12;
-//    FailedToCheckConsensusInvalidation = 13;
-//    DoingRollback = 14;
-//
-//    // Discard.
-//    BlockIsNull = 101;
-//    SameWithCurrentRound = 102;
-//    IncorrectConsensusTransaction = 103;
-//    ParseProblem = 104;
-//    NoTransaction = 105;
-//    IncorrectTxMerkleTreeRoot = 106;
-//    IncorrectSideChainInfo = 107;
-//    IncorrectPoWResult = 108;
-//    NotImplementConsensus = 109;
-//}
-//
-//message VersionedState {
-//    string Key = 1;
-//    bytes Value = 2;
-//    int64 BlockHeight = 3;
-//    Hash BlockHash = 4;
-//    Hash OriginBlockHash = 5;
-//}
-//
-//message BlockStateSet {
-//    Hash BlockHash = 1;
-//    Hash PreviousHash = 2;
-//    int64 BlockHeight = 3;
-//    map<string, bytes> Changes = 4;
-//}
 
 message TransactionExecutingStateSet {
     int64 Version = 1;
     map<string, bytes> Writes = 2;
     map<string, bool> Reads = 3;
 }
-//
-//enum ChainStateMergingStatus {
-//    Common = 0;
-//    Merging = 1;
-//    Merged = 2;
-//}
-//
-//message ChainStateInfo {
-//    int32 ChainId = 1;
-//    Hash BlockHash = 2;
-//    int64 BlockHeight = 3;
-//    Hash MergingBlockHash = 4;
-//    ChainStateMergingStatus Status = 5;
-//}
+
 
 message ActionResult {
     bool Success = 1;
     string ErrorMessage = 2;
 }
-//
-//enum ChainBlockLinkExecutionStatus {
-//    ExecutionNone = 0;
-//    ExecutionSuccess = 1;
-//    ExecutionFailed = 2;
-//}
-//
-//message ChainBlockLink {
-//    Hash BlockHash = 1;
-//    int64 Height = 2;
-//    Hash PreviousBlockHash = 3;
-//    ChainBlockLinkExecutionStatus ExecutionStatus = 4;
-//    bool IsIrreversibleBlock = 5;
-//    bool IsLinked = 6;
-//    bool IsLightBlock = 7; //no block body
-//}
-//
-//message Chain {
-//    int32 Id = 1;
-//    Hash GenesisBlockHash = 2;
-//    Hash LongestChainHash = 3;
-//    int64 LongestChainHeight = 4;
-//    map<string, int64> Branches = 5;
-//    map<string, string> NotLinkedBlocks = 6;
-//    Hash LastIrreversibleBlockHash = 7;
-//    int64 LastIrreversibleBlockHeight = 8;
-//    Hash BestChainHash = 9;
-//    int64 BestChainHeight = 10;
-//}
-//
-//message ChainBlockIndex {
-//    Hash BlockHash = 1;
-//}
-//
-//message TransactionBlockIndex {
-//    Hash BlockHash = 1;
-//}
-
-
-// Contracts
-
-//message ContractInfo
-//{
-//    uint64 SerialNumber=1;
-//    Address Owner = 2;
-//    int32 Category = 3;
-//    Hash CodeHash = 4;
-//}
-//
-//message ContractDeploymentInput {
-//    sint32 category = 1;
-//    bytes code = 2;
-//}
-//
-//message SystemContractDeploymentInput {
-//    message SystemTransactionMethodCall {
-//        string MethodName = 1;
-//        bytes Params = 2;
-//    }
-//    message SystemTransactionMethodCallList {
-//        repeated SystemTransactionMethodCall Value = 1;
-//    }
-//    sint32 category = 1;
-//    bytes code = 2;
-//    Hash name = 3;
-//    SystemTransactionMethodCallList transactionMethodCallList = 4;
-//}
-//
-//message ContractUpdateInput {
-//    Address address = 1;
-//    bytes code = 2;
-//}
-//
-//message ChangeContractOwnerInput {
-//    Address contractAddress = 1;
-//    Address newOwner = 2;
-//}
 
 // Common
 

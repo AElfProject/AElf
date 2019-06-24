@@ -7,6 +7,6 @@ namespace AElf.Kernel
         int Version { get; set; }
         Hash MerkleTreeRootOfTransactions { get; set; }
         int ChainId { get; set; }
-        long Height { get; set; }
+        long Height { get; }
     }
 }

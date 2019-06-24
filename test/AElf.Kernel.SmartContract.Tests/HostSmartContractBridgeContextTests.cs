@@ -84,7 +84,6 @@ namespace AElf.Kernel.SmartContract
             
             var newBlock = new Block
             {
-                Height = 2,
                 Header = new BlockHeader
                 {
                     PreviousBlockHash = Hash.Empty
@@ -140,17 +139,6 @@ namespace AElf.Kernel.SmartContract
 
             var verifyResult = _bridgeContext.VerifySignature(tx);
             verifyResult.ShouldBe(false);
-        }
-
-        [Fact]
-        public void Send_DeferredTransaction_Success()
-        {
-            var deferredTransaction = GetNewTransaction();
-
-            _bridgeContext.SendDeferredTransaction(deferredTransaction);
-
-            var currentDeferredTransaction = _bridgeContext.TransactionContext.Trace.DeferredTransaction;
-            currentDeferredTransaction.ShouldBe(deferredTransaction.ToByteString());
         }
 
         [Fact]

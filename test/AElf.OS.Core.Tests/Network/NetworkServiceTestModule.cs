@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -13,6 +14,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS
 {
+    [DependsOn(typeof(OSCoreTestAElfModule))]
     public class NetworkServiceTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -21,6 +23,8 @@ namespace AElf.OS
             
             Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
             var p3 = new Mock<IPeer>();
+            
+            var recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
 
             peerPoolMock.Setup(p => p.GetBestPeer()).Returns(p3.Object);
                 
@@ -88,6 +92,14 @@ namespace AElf.OS
                     
                     return peers;
                 });
+            
+            peerPoolMock.Setup(p => p.AddRecentBlockHeightAndHash(It.IsAny<long>(), It.IsAny<Hash>(), It.IsAny<bool>
+                ())).Callback<long, Hash, bool>((blockHeight, blockHash, hasFork) =>
+            {
+                recentBlockHeightAndHashMappings[blockHeight] = blockHash;
+            });
+
+            peerPoolMock.Setup(p => p.RecentBlockHeightAndHashMappings).Returns(recentBlockHeightAndHashMappings);
             
             context.Services.AddSingleton<IPeerPool>(o => peerPoolMock.Object);
         }
