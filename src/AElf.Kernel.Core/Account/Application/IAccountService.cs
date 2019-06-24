@@ -41,11 +41,6 @@ namespace AElf.Kernel.Account.Application
             return Task.FromResult(signature);
         }
 
-        public Task<bool> VerifySignatureAsync(byte[] signature, byte[] data, byte[] publicKey)
-        {
-            var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
-            return Task.FromResult(recoverResult && publicKey.BytesEqual(recoverPublicKey));
-        }
 
         public Task<byte[]> GetPublicKeyAsync()
         {
