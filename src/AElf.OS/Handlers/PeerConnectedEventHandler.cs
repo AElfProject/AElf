@@ -48,11 +48,6 @@ namespace AElf.OS.Handlers
         {
             Logger.LogTrace($"Receive announcement and sync block {{ hash: {eventData.Announce.BlockHash}, height: {eventData.Announce.BlockHeight} }} from {senderPubKey}.");
 
-            if (!_blockSyncService.AddAnnouncementCache(eventData.Announce.BlockHash, eventData.Announce.BlockHeight))
-            {
-                return;
-            }
-
             var announcementEnqueueTime = _blockSyncService.GetBlockSyncAnnouncementEnqueueTime();
             if (announcementEnqueueTime != null &&
                 TimestampHelper.GetUtcNow() > announcementEnqueueTime + _blockSyncAnnouncementAgeLimit)
@@ -77,6 +72,11 @@ namespace AElf.OS.Handlers
             {
                 Logger.LogTrace($"Receive lower header {{ hash: {eventData.Announce.BlockHash}, height: {eventData.Announce.BlockHeight} }} " +
                                 $"form {senderPubKey}, ignore.");
+                return;
+            }
+            
+            if (!_blockSyncService.AddAnnouncementCache(eventData.Announce.BlockHash, eventData.Announce.BlockHeight))
+            {
                 return;
             }
 
