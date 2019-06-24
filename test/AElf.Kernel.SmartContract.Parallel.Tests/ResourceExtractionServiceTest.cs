@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Acs2;
 using AElf.Types;
@@ -9,7 +10,7 @@ using Shouldly;
 using Volo.Abp;
 using Xunit;
 
-namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
+namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
     public class ResourceExtractionServiceTest : AbpIntegratedTest<TestModule>
     {
@@ -21,10 +22,11 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
         {
             var txn = GetNonAcs2Transaction(new ResourceInfo());
             var resourceInfos =
-                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn})).ToList();
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
+                .ToList();
 
             resourceInfos.Count.ShouldBe(1);
-            resourceInfos.First().ShouldBe(new TransactionResourceInfo()
+            resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
                 NonParallelizable = true
@@ -39,10 +41,11 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
                 Reources = {12345}
             });
             var resourceInfos =
-                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn})).ToList();
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
+                .ToList();
 
             resourceInfos.Count.ShouldBe(1);
-            resourceInfos.First().ShouldBe(new TransactionResourceInfo()
+            resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
                 Resources =
@@ -60,10 +63,11 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
                 NonParallelizable = true
             });
             var resourceInfos =
-                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn})).ToList();
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
+                .ToList();
 
             resourceInfos.Count.ShouldBe(1);
-            resourceInfos.First().ShouldBe(new TransactionResourceInfo()
+            resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
                 NonParallelizable = true
@@ -76,7 +80,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
             {
                 From = Address.FromString("Dummy"),
                 To = Address.FromString(InternalConstants.Acs2),
-                MethodName = nameof(TestContract.TestContract.GetResourceInfo),
+                MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };
@@ -88,7 +92,7 @@ namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
             {
                 From = Address.FromString("Dummy"),
                 To = Address.FromString(InternalConstants.NonAcs2),
-                MethodName = nameof(TestContract.TestContract.GetResourceInfo),
+                MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };
