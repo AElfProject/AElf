@@ -224,7 +224,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (!TryToGetRoundInformation(1, out var firstRound)) return 0;
             return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.MinMinersCount
-                ? input.RealTimeMinersInformation.Count
+                ? AEDPoSContractConstants.MinMinersCount
                 : AEDPoSContractConstants.MinMinersCount.Add(
                     (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
                     .Div(State.TimeEachTerm.Value).Mul(2));
