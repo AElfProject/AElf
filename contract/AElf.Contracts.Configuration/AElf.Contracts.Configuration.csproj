@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\configuration.proto">
+            <Link>Protobuf/Proto/configuration.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+</Project>
