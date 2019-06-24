@@ -48,7 +48,7 @@ namespace AElf.Contracts.Election
 
         internal const int MiningInterval = 4000;
         
-        internal const int InitialMinersCount = 17;
+        internal const int InitialMinersCount = 7;
         internal const int FullNodesCount = 40;
         internal const int VotersCount = 40;
 
