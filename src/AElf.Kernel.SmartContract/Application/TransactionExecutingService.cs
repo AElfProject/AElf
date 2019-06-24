@@ -30,11 +30,12 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
-            CancellationToken cancellationToken, bool throwException, BlockStateSet partialBlockStateSet)
+            CancellationToken cancellationToken, bool throwException)
         {
-            var groupStateCache = partialBlockStateSet == null
+            var groupStateCache = transactionExecutingDto.PartialBlockStateSet == null
                 ? new TieredStateCache()
-                : new TieredStateCache(new StateCacheFromPartialBlockStateSet(partialBlockStateSet));
+                : new TieredStateCache(
+                    new StateCacheFromPartialBlockStateSet(transactionExecutingDto.PartialBlockStateSet));
             var groupChainContext = new ChainContextWithTieredStateCache(
                 transactionExecutingDto.BlockHeader.PreviousBlockHash,
                 transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
@@ -59,7 +60,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     if (throwException)
                     {
-                        Logger.LogError(trace.StdErr);
+                        Logger.LogError(trace.Error);
                     }
 
                     // Do not package this transaction if any of his inline transactions canceled.
@@ -72,13 +73,13 @@ namespace AElf.Kernel.SmartContract.Application
                 }
                 else
                 {
-                    groupStateCache.Update(trace.GetFlattenedWrite()
+                    groupStateCache.Update(trace.GetFlattenedWrites()
                         .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                 }
 
-                if (trace.StdErr != string.Empty)
+                if (trace.Error != string.Empty)
                 {
-                    Logger.LogError(trace.StdErr);
+                    Logger.LogError(trace.Error);
                 }
 
                 var result = GetTransactionResult(trace, transactionExecutingDto.BlockHeader.Height);
@@ -111,7 +112,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     TransactionId = transaction.GetHash(),
                     ExecutionStatus = ExecutionStatus.Canceled,
-                    StdErr = "Execution cancelled"
+                    Error = "Execution cancelled"
                 };
             }
 
@@ -165,7 +166,7 @@ namespace AElf.Kernel.SmartContract.Application
             catch (Exception ex)
             {
                 txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                txCtxt.Trace.StdErr += ex + "\n";
+                txCtxt.Trace.Error += ex + "\n";
                 throw;
             }
             finally
@@ -183,7 +184,7 @@ namespace AElf.Kernel.SmartContract.Application
             var trace = txCtxt.Trace;
             if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)
             {
-                internalStateCache.Update(txCtxt.Trace.GetFlattenedWrite()
+                internalStateCache.Update(txCtxt.Trace.GetFlattenedWrites()
                     .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
@@ -196,7 +197,7 @@ namespace AElf.Kernel.SmartContract.Application
                         break;
                     }
 
-                    internalStateCache.Update(inlineTrace.GetFlattenedWrite()
+                    internalStateCache.Update(inlineTrace.GetFlattenedWrites()
                         .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                 }
             }
@@ -222,11 +223,11 @@ namespace AElf.Kernel.SmartContract.Application
                     {
                         trace.ExecutionStatus = ExecutionStatus.Prefailed;
                         preTrace.SurfaceUpError();
-                        trace.StdErr += preTrace.StdErr;
+                        trace.Error += preTrace.Error;
                         return false;
                     }
 
-                    internalStateCache.Update(preTrace.GetFlattenedWrite()
+                    internalStateCache.Update(preTrace.GetFlattenedWrites()
                         .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                 }
             }
@@ -243,17 +244,17 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
             {
-                return new TransactionResult()
+                return new TransactionResult
                 {
                     TransactionId = trace.TransactionId,
                     Status = TransactionResultStatus.Unexecutable,
-                    Error = trace.StdErr
+                    Error = trace.Error
                 };
             }
 
             if (trace.IsSuccessful())
             {
-                var txRes = new TransactionResult()
+                var txRes = new TransactionResult
                 {
                     TransactionId = trace.TransactionId,
                     Status = TransactionResultStatus.Mined,
@@ -263,49 +264,42 @@ namespace AElf.Kernel.SmartContract.Application
                     //StateHash = trace.GetSummarizedStateHash(),
                     Logs = {trace.FlattenedLogs}
                 };
+                
                 txRes.UpdateBloom();
-
-                // insert deferred txn to transaction pool and wait for execution 
-                if (trace.DeferredTransaction.Length != 0)
-                {
-                    var deferredTxn = Transaction.Parser.ParseFrom(trace.DeferredTransaction);
-                    txRes.DeferredTransactions.Add(deferredTxn);
-                    txRes.DeferredTxnId = deferredTxn.GetHash();
-                }
 
                 return txRes;
             }
 
-            return new TransactionResult()
+            return new TransactionResult
             {
                 TransactionId = trace.TransactionId,
                 Status = TransactionResultStatus.Failed,
-                Error = trace.StdErr
+                Error = trace.Error
             };
         }
 
         private ExecutionReturnSet GetReturnSet(TransactionTrace trace, TransactionResult result)
         {
-            var returnSet = new ExecutionReturnSet()
+            var returnSet = new ExecutionReturnSet
             {
                 TransactionId = result.TransactionId,
                 Status = result.Status,
                 Bloom = result.Bloom
             };
 
-            foreach (var tx in result.DeferredTransactions)
-            {
-                returnSet.DeferredTransactions.Add(tx);
-            }
-
             if (trace.IsSuccessful())
             {
-                foreach (var s in trace.GetFlattenedWrite())
+                foreach (var s in trace.GetFlattenedWrites())
                 {
                     returnSet.StateChanges[s.Key] = s.Value;
                 }
 
                 returnSet.ReturnValue = trace.ReturnValue;
+            }
+
+            foreach (var s in trace.GetFlattenedReads())
+            {
+                returnSet.StateAccesses[s.Key] = s.Value;
             }
 
             return returnSet;

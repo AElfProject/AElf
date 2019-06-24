@@ -313,7 +313,6 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var block = new Block
             {
-                Height = 12,
                 Header = new BlockHeader(),
                 Body = new BlockBody()
             };
