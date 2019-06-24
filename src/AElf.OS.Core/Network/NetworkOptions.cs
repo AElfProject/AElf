@@ -47,7 +47,10 @@ namespace AElf.OS.Network
         /// </summary>
         public bool CompressBlocksOnRequest { get; set; } = NetworkConstants.DefaultCompressBlocks;
 
-        public int MinBlockGapBeforeSync { get; set; } = NetworkConstants.DefaultMinBlockGapBeforeSync;
+        /// <summary>
+        /// The minimum distance between this node and peers needed to trigger initial sync. 
+        /// </summary>
+        public int InitialSyncOffset { get; set; } = NetworkConstants.DefaultInitialSyncOffset;
     }
     
     [Flags]

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
+using AElf.OS.Network;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -15,6 +16,8 @@ namespace AElf.OS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            Configure<NetworkOptions>(o => { o.InitialSyncOffset = 5; });
+            
             context.Services.AddSingleton<IPeerPool>(o =>
             {
                 var peerList = new List<IPeer>();

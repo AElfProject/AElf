@@ -1,10 +1,7 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Events;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
-using Grpc.Core;
 using Moq;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
@@ -75,9 +72,9 @@ namespace AElf.OS.Network
         
         [Theory]
         [InlineData(true, new int[] {})]
-        [InlineData(true, new []{15, 15})]
+        [InlineData(false, new []{15, 15})]
         [InlineData(true, new []{5, 15})]
-        public async Task Peers_WithLib_LowerThanOffset_Sync(bool expectedSyncState, int[] peers)
+        public async Task Trigger_Sync_Depends_On_Peers_And_Local_LIB(bool expectedSyncState, int[] peers)
         {
             foreach (int peer in peers)
                 _peerPool.AddPeer(CreatePeer(peer));

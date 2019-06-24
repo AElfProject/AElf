@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Node.Application;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Application
@@ -18,6 +19,9 @@ namespace AElf.OS.Network.Application
 
     public class SyncStateService : ISyncStateService, ISingletonDependency
     {
+        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
+        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
+        
         private readonly INodeSyncStateProvider _syncStateProvider;
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
@@ -83,7 +87,7 @@ namespace AElf.OS.Network.Application
             var chain = await _blockchainService.GetChainAsync();
             var peers = _peerPool.GetPeers().ToList();
             
-            long minSyncTarget = chain.LastIrreversibleBlockHeight + NetworkConstants.DefaultInitialSyncOffset;
+            long minSyncTarget = chain.LastIrreversibleBlockHeight + NetworkOptions.InitialSyncOffset;
             
             // determine the peers that are high enough to sync to
             var candidates = peers

@@ -24,6 +24,7 @@ namespace AElf.OS.Network.Grpc
         private const int BlockRequestTimeout = 300;
         private const int TransactionBroadcastTimeout = 300;
         private const int BlocksRequestTimeout = 500;
+        private const int UpdateHandshakeTimeout = 400;
         
         private enum MetricNames
         {
@@ -183,7 +184,7 @@ namespace AElf.OS.Network.Grpc
             
             Metadata data = new Metadata
             {
-                {GrpcConstants.TimeoutMetadataKey, TransactionBroadcastTimeout.ToString()}
+                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()}
             };
             
              var handshake = await RequestAsync(_client, c => c.UpdateHandshakeAsync(new UpdateHandshakeRequest(), data), request);
