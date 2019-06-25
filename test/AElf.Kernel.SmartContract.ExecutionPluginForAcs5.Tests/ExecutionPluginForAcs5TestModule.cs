@@ -1,7 +1,14 @@
+using AElf.Contracts.TestKit;
+using Volo.Abp.Modularity;
+
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
 {
-    public class ExecutionPluginForAcs5TestModule
+    [DependsOn(typeof(ContractTestModule),
+        typeof(ExecutionPluginForAcs5Module))]
+    public class ExecutionPluginForAcs5TestModule : ContractTestModule
     {
-        
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+        }
     }
 }
