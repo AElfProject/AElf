@@ -2,6 +2,7 @@ using System.Linq;
 using Acs5;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
+using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -11,18 +12,19 @@ namespace AElf.Contracts.TestContract.ProfitSharing
     {
         public override Empty InitializeProfitSharingContract(InitializeProfitSharingContractInput input)
         {
+            State.TreasuryContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            State.TreasuryContract.Register.Send(new RegisterInput
+            {
+                TokenSymbol = input.Symbol,
+                TotalSupply =ProfitSharingContractConstants.TotalSupply,
+                ConnectorWeight = "0.2",
+                Decimals = 2,
+                TokenName = "Token of Profit Sharing Contract"
+            });
+
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            // Create token
-            State.TokenContract.Create.Send(new CreateInput
-            {
-                Symbol = input.Symbol,
-                TokenName = "Token of Profit Sharing Contract",
-                Issuer = Context.Self,
-                IsBurnable = true,
-                Decimals = 2,
-                TotalSupply = ProfitSharingContractConstants.TotalSupply
-            });
             State.TokenContract.Issue.Send(new IssueInput
             {
                 Symbol = input.Symbol,
@@ -32,7 +34,6 @@ namespace AElf.Contracts.TestContract.ProfitSharing
 
             State.TokenSymbol.Value = input.Symbol;
 
-            // Create Token Connector.
             return new Empty();
         }
 

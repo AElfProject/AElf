@@ -51,6 +51,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             }
             
             var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
+            if (tokenContractAddress == null)
+            {
+                return new List<Transaction>();
+            }
+
             var tokenStub = new TokenContractContainer.TokenContractStub()
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory()

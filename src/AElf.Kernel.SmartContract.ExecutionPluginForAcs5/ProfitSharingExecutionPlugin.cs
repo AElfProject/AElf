@@ -38,6 +38,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
             {
                 return new List<Transaction>();
             }
+            //descriptors.ToList().ForEach(service => service.Methods.ToList().ForEach(method => method.CustomOptions.TryGetBool(506001, out var isView)));
 
             var context = _contextService.Create();
             context.TransactionContext = transactionContext;
@@ -53,6 +54,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
             
             // Generate token contract stub.
             var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
+            if (tokenContractAddress == null)
+            {
+                return new List<Transaction>();
+            }
+
             var tokenStub = new TokenContractContainer.TokenContractStub
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory
@@ -70,6 +76,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 
             // Generate profit contract stub.
             var profitContractAddress = context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.Profit"));
+            if (profitContractAddress == null)
+            {
+                return new List<Transaction>();
+            }
+
             var profitStub = new ProfitContractContainer.ProfitContractStub
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory
