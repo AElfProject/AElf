@@ -25,7 +25,6 @@ namespace AElf.OS.Network
         private IAElfNetworkServer _networkServer;
         private IPeerPool _pool;
         private IPeer _grpcPeer;
-        private IAccountService _acc;
         private ILocalEventBus _eventBus;
         private OSTestHelper _osTestHelper;
 
@@ -34,7 +33,6 @@ namespace AElf.OS.Network
             _blockchainService = GetRequiredService<IBlockchainService>();
             _networkServer = GetRequiredService<IAElfNetworkServer>();
             _pool = GetRequiredService<IPeerPool>();
-            _acc = GetRequiredService<IAccountService>();
             _eventBus = GetRequiredService<ILocalEventBus>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             
@@ -129,12 +127,6 @@ namespace AElf.OS.Network
             await _grpcPeer.SendDisconnectAsync();
             peers = _pool.GetPeers();
             peers.Count.ShouldBe(1);
-        }
-
-        private async Task RestartNetworkServer()
-        {
-            await _networkServer.StopAsync();
-            await _networkServer.StartAsync();
         }
     }
 }

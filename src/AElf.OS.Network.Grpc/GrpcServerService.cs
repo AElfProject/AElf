@@ -218,7 +218,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
-            if (request == null || request.Hash == null || !_syncStateService.IsSyncFinished()) 
+            if (request == null || request.Hash == null || _syncStateService.GetSyncState() != SyncState.Finished) 
                 return new BlockReply();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested block {request.Hash}.");
@@ -233,7 +233,7 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null || request.PreviousBlockHash == null || !_syncStateService.IsSyncFinished())
+            if (request == null || request.PreviousBlockHash == null || _syncStateService.GetSyncState() != SyncState.Finished)
                 return new BlockList();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");

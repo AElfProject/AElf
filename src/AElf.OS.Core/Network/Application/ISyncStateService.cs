@@ -12,12 +12,13 @@ namespace AElf.OS.Network.Application
 {
     public interface ISyncStateService
     {
-        bool IsSyncFinished();
-        bool IsSyncUninitialized();
-        Task StartSyncAsync();
+        SyncState GetSyncState();
         long GetCurrentSyncTarget();
+        Task StartSyncAsync();
         Task UpdateSyncStateAsync();
     }
+
+    public enum SyncState { UnInitialized, Syncing, Finished }
 
     public class SyncStateService : ISyncStateService, ISingletonDependency
     {
@@ -40,22 +41,34 @@ namespace AElf.OS.Network.Application
             _peerPool = peerPool;
         }
         
-        public bool IsSyncFinished() => _syncStateProvider.SyncTarget == -1;
-        public bool IsSyncUninitialized() => _syncStateProvider.SyncTarget == 0;
         public long GetCurrentSyncTarget() => _syncStateProvider.SyncTarget;
+
+        public SyncState GetSyncState()
+        {
+            switch (_syncStateProvider.SyncTarget)
+            {
+                case 0:
+                    return SyncState.UnInitialized;
+                case -1:
+                    return SyncState.Finished;
+                default:
+                    return SyncState.Syncing;
+            }
+        }
+        
         private void SetSyncTarget(long value) => _syncStateProvider.SetSyncTarget(value);
 
         /// <summary>
         /// Based on current peers, will determine if a sync is needed or not. This method
-        /// should only be called once, to go from an unknown sync state to either syncing
+        /// should only be called once, to go from an uninitialized state to either syncing
         /// or not syncing.
         /// </summary>
         /// <returns></returns>
         public async Task StartSyncAsync()
         {
-            if (!IsSyncUninitialized())
+            if (GetSyncState() != SyncState.UnInitialized)
             {
-                Logger.LogWarning("Trying to start the sync, but it has already been started.");
+                Logger.LogWarning("Trying to start the sync, but it has already been started/finished.");
                 return;
             }
 
@@ -64,17 +77,20 @@ namespace AElf.OS.Network.Application
 
         /// <summary>
         /// Updates the current target for the initial sync. For now this method will
-        /// not have any effect if the sync is already finished.
+        /// not have any effect if the sync is already finished or the target has not
+        /// been initialized.
         /// </summary>
         /// <returns></returns>
         public async Task UpdateSyncStateAsync()
         {
-            if (IsSyncFinished() || IsSyncUninitialized())
+            // This method should only be called when the sync target has already been found and the
+            // node is syncing.
+            
+            if (GetSyncState() != SyncState.Syncing)
             {
                 Logger.LogWarning("Trying to update the sync, but it is either finished or not yet been initialized.");
                 return;
             }
-                
                 
             var chain = await _blockchainService.GetChainAsync();
             
@@ -105,7 +121,13 @@ namespace AElf.OS.Network.Application
         }
 
         /// <summary>
-        /// Based on the given list of peer, will update the target.
+        /// Based on the given list of peer, will update the sync target. It take the peers that have an LIB higher 
+        /// than (our LIB + offset), these constitute the possible nodes to sync to. If this group constitutes at
+        /// least ceil(2/3 * peer_count), take the one with the smallest LIB as target. Like this:
+        /// peer count: 1, nodes that must be higher: 1 - Note: if only one peer, sync.
+        /// peer count: 2, nodes that must be higher: 2
+        /// peer count: 3, nodes that must be higher: 2
+        /// peer count: 4, nodes that must be higher: 3
         /// </summary>
         /// <returns></returns>
         private async Task TryFindSyncTargetAsync()
@@ -153,7 +175,7 @@ namespace AElf.OS.Network.Application
         /// </summary>
         private async Task SetSyncAsFinishedAsync()
         {
-            _syncStateProvider.SetSyncTarget(-1);
+            SetSyncTarget(-1);
             await _blockchainNodeContextService.FinishInitialSyncAsync();
         }
     }

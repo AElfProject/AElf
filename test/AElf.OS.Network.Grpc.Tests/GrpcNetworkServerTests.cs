@@ -7,15 +7,15 @@ using Xunit;
 
 namespace AElf.OS.Network
 {
-    public class GrpcNetworkServerTests : GrpcNetworkTestBase
+    public class GrpcNetworkServerTests : GrpcBasicNetworkTestBase
     {
         private readonly IAElfNetworkServer _networkServer;
         private readonly ILocalEventBus _eventBus;
 
         public GrpcNetworkServerTests()
         {
-            _networkServer = GetRequiredService<IAElfNetworkServer>();;
-            _eventBus = GetRequiredService<ILocalEventBus>();;
+            _networkServer = GetRequiredService<IAElfNetworkServer>();
+            _eventBus = GetRequiredService<ILocalEventBus>();
         }
         
         [Fact]
@@ -24,13 +24,13 @@ namespace AElf.OS.Network
             NetworkInitializationFinishedEvent eventData = null;
             _eventBus.Subscribe<NetworkInitializationFinishedEvent>(ed =>
             {
-                eventData = ed; 
+                eventData = ed;
                 return Task.CompletedTask;
             });
-            
+
             await _networkServer.StartAsync();
             await _networkServer.StopAsync();
-            
+
             eventData.ShouldNotBeNull();
         }
     }

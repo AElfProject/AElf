@@ -25,7 +25,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Initial_State_Is_Syncing()
         {
-            _syncStateService.IsSyncFinished().ShouldBeFalse();
+            _syncStateService.GetSyncState().ShouldBe(SyncState.UnInitialized);
         }
 
         [Fact]
@@ -34,7 +34,7 @@ namespace AElf.OS.Network
             await _syncStateService.StartSyncAsync();
             await _syncStateService.UpdateSyncStateAsync();
             
-            _syncStateService.IsSyncFinished().ShouldBeTrue();
+            _syncStateService.GetSyncState().ShouldBe(SyncState.Finished);
         }
         
         [Fact]
@@ -56,7 +56,7 @@ namespace AElf.OS.Network
         public async Task No_Peers_Stops_Sync()
         {
             await _syncStateService.StartSyncAsync();
-            _syncStateService.IsSyncFinished().ShouldBeTrue();
+            _syncStateService.GetSyncState().ShouldBe(SyncState.Finished);
         }
         
         [Fact]
@@ -67,21 +67,21 @@ namespace AElf.OS.Network
             
             await _syncStateService.StartSyncAsync();
             
-            _syncStateService.IsSyncFinished().ShouldBeTrue();
+            _syncStateService.GetSyncState().ShouldBe(SyncState.Finished);
         }
         
         [Theory]
-        [InlineData(true, new int[] {})]
-        [InlineData(false, new []{15, 15})]
-        [InlineData(true, new []{5, 15})]
-        public async Task Trigger_Sync_Depends_On_Peers_And_Local_LIB(bool expectedSyncState, int[] peers)
+        [InlineData(SyncState.Finished, new int[] {})]
+        [InlineData(SyncState.Syncing, new []{15, 15})]
+        [InlineData(SyncState.Finished, new []{5, 15})]
+        public async Task Trigger_Sync_Depends_On_Peers_And_Local_LIB(SyncState expectedSyncState, int[] peers)
         {
             foreach (int peer in peers)
                 _peerPool.AddPeer(CreatePeer(peer));
             
             await _syncStateService.StartSyncAsync();
             
-            _syncStateService.IsSyncFinished().ShouldBe(expectedSyncState);
+            _syncStateService.GetSyncState().ShouldBe(expectedSyncState);
         }
 
         private IPeer CreatePeer(long libHeight = 0)

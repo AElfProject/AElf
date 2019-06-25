@@ -26,8 +26,7 @@ namespace AElf.OS.Network
             context.Services.AddSingleton<ISyncStateService>(o =>
             {
                 var mockService = new Mock<ISyncStateService>();
-                mockService.Setup(s =>
-                    s.IsSyncFinished()).Returns(true);
+                mockService.Setup(s => s.GetSyncState()).Returns(SyncState.Finished);
                 return mockService.Object;
             });
         }
