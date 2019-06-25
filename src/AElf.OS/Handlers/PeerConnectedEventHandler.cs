@@ -1,10 +1,8 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -16,22 +14,19 @@ namespace AElf.OS.Handlers
     {
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
 
-        private readonly IBlockchainService _blockchainService;
-        private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockSyncService _blockSyncService;
+        private readonly IBlockSyncValidationService _blockSyncValidationService;
+        private readonly ITaskQueueManager _taskQueueManager;
         private readonly NetworkOptions _networkOptions;
-        
-        private readonly Duration _blockSyncAnnouncementAgeLimit = new Duration {Seconds = 4};
-        private readonly Duration _blockSyncAttachBlockAgeLimit = new Duration {Seconds = 2};
 
-        public PeerConnectedEventHandler(ITaskQueueManager taskQueueManager,
-            IBlockchainService blockchainService,
-            IBlockSyncService blockSyncService,
+        public PeerConnectedEventHandler(IBlockSyncService blockSyncService,
+            IBlockSyncValidationService blockSyncValidationService,
+            ITaskQueueManager taskQueueManager,
             IOptionsSnapshot<NetworkOptions> networkOptions)
         {
-            _taskQueueManager = taskQueueManager;
-            _blockchainService = blockchainService;
             _blockSyncService = blockSyncService;
+            _blockSyncValidationService = blockSyncValidationService;
+            _taskQueueManager = taskQueueManager;
             _networkOptions = networkOptions.Value;
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
@@ -40,65 +35,32 @@ namespace AElf.OS.Handlers
 
         public Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
-            var _ = ProcessNewBlockAsync(eventData, eventData.SenderPubKey);
+            var _ = ProcessNewBlockAsync(eventData.Announce, eventData.SenderPubKey);
             return Task.CompletedTask;
         }
-        
-        private async Task ProcessNewBlockAsync(AnnouncementReceivedEventData eventData, string senderPubKey)
+
+        private async Task ProcessNewBlockAsync(PeerNewBlockAnnouncement announcement, string senderPubKey)
         {
-            Logger.LogTrace($"Receive announcement and sync block {{ hash: {eventData.Announce.BlockHash}, height: {eventData.Announce.BlockHeight} }} from {senderPubKey}.");
-
-            if (!_blockSyncService.AddAnnouncementCache(eventData.Announce.BlockHash, eventData.Announce.BlockHeight))
+            if (!await _blockSyncValidationService.ValidateBeforeEnqueue(announcement.BlockHash,
+                announcement.BlockHeight))
             {
                 return;
             }
 
-            var announcementEnqueueTime = _blockSyncService.GetBlockSyncAnnouncementEnqueueTime();
-            if (announcementEnqueueTime != null &&
-                TimestampHelper.GetUtcNow() > announcementEnqueueTime + _blockSyncAnnouncementAgeLimit)
-            {
-                Logger.LogWarning(
-                    $"Block sync queue is too busy, enqueue timestamp: {announcementEnqueueTime.ToDateTime()}");
-                return;
-            }
-            
-            var blockSyncAttachBlockEnqueueTime = _blockSyncService.GetBlockSyncAttachBlockEnqueueTime();
-            if (blockSyncAttachBlockEnqueueTime != null &&
-                TimestampHelper.GetUtcNow() >
-                blockSyncAttachBlockEnqueueTime + _blockSyncAttachBlockAgeLimit)
-            {
-                Logger.LogWarning(
-                    $"Block sync attach queue is too busy, enqueue timestamp: {blockSyncAttachBlockEnqueueTime.ToDateTime()}");
-                return;
-            }
-            
-            var chain = await _blockchainService.GetChainAsync();
-            if (eventData.Announce.BlockHeight <= chain.LastIrreversibleBlockHeight)
-            {
-                Logger.LogTrace($"Receive lower header {{ hash: {eventData.Announce.BlockHash}, height: {eventData.Announce.BlockHeight} }} " +
-                                $"form {senderPubKey}, ignore.");
-                return;
-            }
-
-            EnqueueJob(eventData, senderPubKey);
-        }
-
-        private void EnqueueJob(AnnouncementReceivedEventData header, string senderPubKey)
-        {
             var enqueueTimestamp = TimestampHelper.GetUtcNow();
             _taskQueueManager.Enqueue(async () =>
             {
                 try
                 {
                     _blockSyncService.SetBlockSyncAnnouncementEnqueueTime(enqueueTimestamp);
-                    await _blockSyncService.SyncBlockAsync(header.Announce.BlockHash, header.Announce.BlockHeight,
-                        _networkOptions.BlockIdRequestCount, senderPubKey);
+                    await _blockSyncService.SyncBlockAsync(announcement.BlockHash, announcement.BlockHeight, _networkOptions
+                        .BlockIdRequestCount, senderPubKey);
                 }
                 finally
                 {
                     _blockSyncService.SetBlockSyncAnnouncementEnqueueTime(null);
                 }
             }, OSConsts.BlockSyncQueueName);
-        }        
+        }
     }
 }
