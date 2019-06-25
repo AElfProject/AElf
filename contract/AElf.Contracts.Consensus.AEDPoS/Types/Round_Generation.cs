@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
+using Org.BouncyCastle.Asn1.Cms;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
@@ -66,7 +67,43 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 expectedExtraBlockProducer.IsExtraBlockProducer = true;
             }
 
+            BreakContinuousMining(ref nextRound);
+
             return true;
+        }
+
+        private void BreakContinuousMining(ref Round nextRound)
+        {
+            var minersCount = RealTimeMinersInformation.Count;
+            if (minersCount <= 1) return;
+
+            // First miner of next round != Extra block producer of current round
+            var firstMinerOfNextRound = nextRound.RealTimeMinersInformation.Values.First(i => i.Order == 1);
+            var extraBlockProducerOfCurrentRound = GetExtraBlockProducerInformation();
+            if (firstMinerOfNextRound.PublicKey == extraBlockProducerOfCurrentRound.PublicKey)
+            {
+                var secondMinerOfNextRound =
+                    nextRound.RealTimeMinersInformation.Values.First(i => i.Order == 2);
+                secondMinerOfNextRound.Order = 1;
+                firstMinerOfNextRound.Order = 2;
+                var tempTimestamp = secondMinerOfNextRound.ExpectedMiningTime;
+                secondMinerOfNextRound.ExpectedMiningTime = firstMinerOfNextRound.ExpectedMiningTime;
+                firstMinerOfNextRound.ExpectedMiningTime = tempTimestamp;
+            }
+            
+            // Last miner of next round != Extra block producer of next round
+            var lastMinerOfNextRound = nextRound.RealTimeMinersInformation.Values.First(i => i.Order == minersCount);
+            var extraBlockProducerOfNextRound = nextRound.GetExtraBlockProducerInformation();
+            if (lastMinerOfNextRound.PublicKey == extraBlockProducerOfNextRound.PublicKey)
+            {
+                var lastButOneMinerOfNextRound =
+                    nextRound.RealTimeMinersInformation.Values.First(i => i.Order == minersCount.Sub(1));
+                lastButOneMinerOfNextRound.Order = minersCount;
+                lastMinerOfNextRound.Order = minersCount.Sub(1);
+                var tempTimestamp = lastButOneMinerOfNextRound.ExpectedMiningTime;
+                lastButOneMinerOfNextRound.ExpectedMiningTime = lastMinerOfNextRound.ExpectedMiningTime;
+                lastMinerOfNextRound.ExpectedMiningTime = tempTimestamp;
+            }
         }
         
         private int CalculateNextExtraBlockProducerOrder()
