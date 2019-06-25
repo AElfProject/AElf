@@ -319,6 +319,8 @@ namespace AElf.Contracts.Treasury
 
         private void UpdateTreasurySubItemsWeights(long termNumber)
         {
+            var endPeriod = termNumber.Add(1);
+
             if (State.ElectionContract.Value == null)
             {
                 State.ElectionContract.Value =
@@ -328,7 +330,7 @@ namespace AElf.Contracts.Treasury
             var reElectionProfitAddWeights = new AddWeightsInput
             {
                 ProfitId = State.ReElectionRewardHash.Value,
-                EndPeriod = termNumber
+                EndPeriod = endPeriod
             };
 
             var reElectionProfitSubWeights = new SubWeightsInput
@@ -339,7 +341,7 @@ namespace AElf.Contracts.Treasury
             var basicRewardProfitAddWeights = new AddWeightsInput
             {
                 ProfitId = State.BasicRewardHash.Value,
-                EndPeriod = termNumber
+                EndPeriod = endPeriod
             };
 
             var basicRewardProfitSubWeights = new SubWeightsInput
@@ -350,7 +352,7 @@ namespace AElf.Contracts.Treasury
             var votesWeightRewardProfitAddWeights = new AddWeightsInput
             {
                 ProfitId = State.VotesWeightRewardHash.Value,
-                EndPeriod = termNumber
+                EndPeriod = endPeriod
             };
 
             var votesWeightRewardProfitSubWeights = new SubWeightsInput
@@ -375,6 +377,7 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.SubWeights.Send(basicRewardProfitSubWeights);
             basicRewardProfitAddWeights.Weights.AddRange(newMiners);
             State.ProfitContract.AddWeights.Send(basicRewardProfitAddWeights);
+
             // Manage weights of `ReElectedMinerReward`
             reElectionProfitSubWeights.Receivers.AddRange(previousMinersAddresses);
             reElectionProfitSubWeights.Receivers.Add(treasuryVirtualAddress);

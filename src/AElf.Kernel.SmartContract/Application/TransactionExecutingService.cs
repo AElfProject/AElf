@@ -193,6 +193,7 @@ namespace AElf.Kernel.SmartContract.Application
                     trace.InlineTraces.Add(inlineTrace);
                     if (!inlineTrace.IsSuccessful())
                     {
+                        Logger.LogError($"Method name: {inlineTx.MethodName}, {inlineTrace.Error}");
                         // Fail already, no need to execute remaining inline transactions
                         break;
                     }
@@ -264,7 +265,7 @@ namespace AElf.Kernel.SmartContract.Application
                     //StateHash = trace.GetSummarizedStateHash(),
                     Logs = {trace.FlattenedLogs}
                 };
-                
+
                 txRes.UpdateBloom();
 
                 return txRes;

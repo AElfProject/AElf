@@ -48,8 +48,6 @@ namespace AElf.Contracts.Profit
                 IsReleaseAllBalanceEverytimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault
             };
             
-            Context.LogDebug(() => $"New profit item created: {State.ProfitItemsMap[profitId]}");
-
             var createdProfitItems = State.CreatedProfitIds[Context.Sender];
             if (createdProfitItems == null)
             {
@@ -65,7 +63,7 @@ namespace AElf.Contracts.Profit
 
             State.CreatedProfitIds[Context.Sender] = createdProfitItems;
 
-            Context.LogDebug(() => $"Created profit item {profitId}");
+            Context.LogDebug(() => $"Created profit item {State.ProfitItemsMap[profitId]}");
             return profitId;
         }
 
@@ -167,7 +165,9 @@ namespace AElf.Contracts.Profit
             {
                 return new Empty();
             }
-            
+
+            Context.LogDebug(() => $"Entered AddWeight. {input.ProfitId}, {input.EndPeriod}, current period {profitItem.ProfitId}");
+
             if (profitItem.IsTreasuryProfitItem)
             {
                 Assert(
@@ -191,7 +191,6 @@ namespace AElf.Contracts.Profit
             var currentProfitDetails = State.ProfitDetailsMap[profitId][input.Receiver];
             if (currentProfitDetails == null)
             {
-                // TODO: Reduce Resource token of Profit Contract from DApp Developer because this behaviour will add a new key.
                 currentProfitDetails = new ProfitDetails
                 {
                     Details = {profitDetail}
@@ -298,6 +297,8 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Empty ReleaseProfit(ReleaseProfitInput input)
         {
+            Context.LogDebug(() => $"Entered ReleaseProfit. {input.ProfitId}");
+
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
@@ -346,6 +347,8 @@ namespace AElf.Contracts.Profit
 
             var profitsReceivingVirtualAddress =
                 GetReleasedPeriodProfitsVirtualAddress(profitItem.VirtualAddress, releasingPeriod);
+
+            Context.LogDebug(() => $"Receiving virtual address: {profitsReceivingVirtualAddress}");
 
             var releasedProfitInformation = State.ReleasedProfitsMap[profitsReceivingVirtualAddress];
             if (releasedProfitInformation == null)
@@ -445,6 +448,7 @@ namespace AElf.Contracts.Profit
 
         private Empty BurnProfits(ReleaseProfitInput input, ProfitItem profitItem, Address profitVirtualAddress)
         {
+            Context.LogDebug(() => "Entered BurnProfits.");
             profitItem.CurrentPeriod = input.Period > 0 ? input.Period.Add(1) : profitItem.CurrentPeriod;
 
             // Release to an address that no one can receive this amount of profits.
