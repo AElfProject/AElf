@@ -72,7 +72,7 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task BroadcastTransactionAsync_Succeess()
+        public async Task BroadcastTransactionAsync_Success()
         {
             var successfulBcasts = await _networkService.BroadcastTransactionAsync(new Transaction
             {
