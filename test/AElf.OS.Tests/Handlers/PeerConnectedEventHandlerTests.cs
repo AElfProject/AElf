@@ -144,23 +144,23 @@ namespace AElf.OS.Handlers
             chain.BestChainHeight.ShouldBe(bestChainHeight);
         }
         
-        [Fact]
-        public async Task HandleEvent_AlreadySynchronized()
-        {
-            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
-            var peerBlockHash = peerBlock.GetHash();
-            _announcementCacheProvider.AddAnnouncementCache(peerBlockHash, peerBlock.Height);
-
-            var announcement = new PeerNewBlockAnnouncement
-            {
-                BlockHash = peerBlockHash,
-                BlockHeight = peerBlock.Height
-            };
-            
-            await _peerConnectedEventHandler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, null));
-
-            var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
-            block.ShouldBeNull();
-        }
+//        [Fact]
+//        public async Task HandleEvent_AlreadySynchronized()
+//        {
+//            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+//            var peerBlockHash = peerBlock.GetHash();
+//            _announcementCacheProvider.AddAnnouncementCache(peerBlockHash, peerBlock.Height);
+//
+//            var announcement = new PeerNewBlockAnnouncement
+//            {
+//                BlockHash = peerBlockHash,
+//                BlockHeight = peerBlock.Height
+//            };
+//            
+//            await _peerConnectedEventHandler.HandleEventAsync(new AnnouncementReceivedEventData(announcement, null));
+//
+//            var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
+//            block.ShouldBeNull();
+//        }
     }
 }

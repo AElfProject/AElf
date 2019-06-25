@@ -43,10 +43,11 @@ namespace AElf.OS.Handlers
             var _ = ProcessNewBlockAsync(eventData, eventData.SenderPubKey);
             return Task.CompletedTask;
         }
-        
-        private async Task ProcessNewBlockAsync(AnnouncementReceivedEventData eventData, string senderPubKey)
+
+
+        private async Task ProcessNewBlockAsync(AnnouncementReceivedEventData header, string senderPubKey)
         {
-            Logger.LogTrace($"Receive announcement and sync block {{ hash: {eventData.Announce.BlockHash}, height: {eventData.Announce.BlockHeight} }} from {senderPubKey}.");
+            Logger.LogTrace($"Receive announcement and sync block {{ hash: {header.Announce.BlockHash}, height: {header.Announce.BlockHeight} }} from {senderPubKey}.");
 
             var announcementEnqueueTime = _blockSyncService.GetBlockSyncAnnouncementEnqueueTime();
             if (announcementEnqueueTime != null &&
@@ -68,19 +69,14 @@ namespace AElf.OS.Handlers
             }
             
             var chain = await _blockchainService.GetChainAsync();
-            if (eventData.Announce.BlockHeight <= chain.LastIrreversibleBlockHeight)
+            if (header.Announce.BlockHeight < chain.LastIrreversibleBlockHeight)
             {
-                Logger.LogTrace($"Receive lower header {{ hash: {eventData.Announce.BlockHash}, height: {eventData.Announce.BlockHeight} }} " +
+                Logger.LogTrace($"Receive lower header {{ hash: {header.Announce.BlockHash}, height: {header.Announce.BlockHeight} }} " +
                                 $"form {senderPubKey}, ignore.");
                 return;
             }
-            
-            if (!_blockSyncService.AddAnnouncementCache(eventData.Announce.BlockHash, eventData.Announce.BlockHeight))
-            {
-                return;
-            }
 
-            EnqueueJob(eventData, senderPubKey);
+            EnqueueJob(header, senderPubKey);
         }
 
         private void EnqueueJob(AnnouncementReceivedEventData header, string senderPubKey)

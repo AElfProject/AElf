@@ -18,8 +18,6 @@ namespace AElf.OS.BlockSync.Application
         void SetBlockSyncAnnouncementEnqueueTime(Timestamp timestamp);
         
         Timestamp GetBlockSyncAttachBlockEnqueueTime();
-
-        bool AddAnnouncementCache(Hash blockHash, long blockHeight);
     }
 
     public class BlockSyncService : IBlockSyncService
@@ -32,7 +30,7 @@ namespace AElf.OS.BlockSync.Application
 
         public ILogger<BlockSyncService> Logger { get; set; }
 
-        private readonly Duration _blockSyncJobAgeLimit = new Duration {Seconds = 1};
+        private readonly Duration _blockSyncJobAgeLimit = new Duration {Nanos = 500_000_000};
 
         public BlockSyncService(IBlockchainService blockchainService,
             IBlockFetchService blockFetchService,
@@ -60,21 +58,30 @@ namespace AElf.OS.BlockSync.Application
                     $"Queue is too busy, block sync job enqueue timestamp: {_blockSyncStateProvider.BlockSyncJobEnqueueTime.ToDateTime()}");
                 return;
             }
-
+            
+            if (_announcementCacheProvider.ContainsAnnouncement(blockHash, blockHeight))
+            {
+                Logger.LogWarning($"The block have been synchronized, block hash: {blockHash}");
+                return;
+            }
+            
             Logger.LogDebug(
                 $"Start block sync job, target height: {blockHash}, target block hash: {blockHeight}, peer: {suggestedPeerPubKey}");
 
             var chain = await _blockchainService.GetChainAsync();
+            _announcementCacheProvider.ClearCache(chain.LastIrreversibleBlockHeight);
+                        
+            bool syncResult;
             if (blockHash != null && blockHeight < chain.BestChainHeight + 8)
             {
-                await _blockFetchService.FetchBlockAsync(blockHash, blockHeight, suggestedPeerPubKey);
+                syncResult = await _blockFetchService.FetchBlockAsync(blockHash, blockHeight, suggestedPeerPubKey);
             }
             else
             {
                 // sync from longest chain height
                 var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
                     chain.LongestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
-
+                
                 if (syncBlockCount == 0)
                 {
                     // sync from best chain height
@@ -86,9 +93,16 @@ namespace AElf.OS.BlockSync.Application
                 {
                     // sync from lib height
                     Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
-                    await _blockDownloadService.DownloadBlocksAsync(chain.LastIrreversibleBlockHash,
+                    syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LastIrreversibleBlockHash,
                         chain.LastIrreversibleBlockHeight, batchRequestBlockCount, suggestedPeerPubKey);
                 }
+
+                syncResult = syncBlockCount > 0;
+            }
+
+            if (syncResult)
+            {
+                _announcementCacheProvider.CacheAnnouncement(blockHash, blockHeight);
             }
 
             Logger.LogDebug($"Finishing block sync job, longest chain height: {chain.LongestChainHeight}");
@@ -107,11 +121,6 @@ namespace AElf.OS.BlockSync.Application
         public Timestamp GetBlockSyncAttachBlockEnqueueTime()
         {
             return _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime?.Clone();
-        }
-
-        public bool AddAnnouncementCache(Hash blockHash, long blockHeight)
-        {
-            return _announcementCacheProvider.AddAnnouncementCache(blockHash, blockHeight);
         }
     }
 }
