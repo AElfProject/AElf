@@ -515,7 +515,7 @@ namespace AElf.WebApp.Application.Chain
                 Queued = queued
             };
         }
-        
+
         /// <summary>
         /// Get the current status of the block chain.
         /// </summary>
@@ -523,7 +523,7 @@ namespace AElf.WebApp.Application.Chain
         public async Task<ChainStatusDto> GetChainStatusAsync()
         {
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
-     
+
             var chain = await _blockchainService.GetChainAsync();
 
             var branches = chain.Branches.ToDictionary(b => Hash.LoadBase64(b.Key).ToHex(), b => b.Value);
@@ -545,7 +545,7 @@ namespace AElf.WebApp.Application.Chain
                 BestChainHeight = chain.BestChainHeight
             };
         }
-        
+
         /// <summary>
         /// Get the current state about a given block
         /// </summary>
