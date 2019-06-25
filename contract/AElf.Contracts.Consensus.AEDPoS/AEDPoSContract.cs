@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using AElf.Contracts.Election;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -32,7 +33,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
 
             State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
+            
+            // Transfer token from Treasury Contract to Context.Self
+            var treasuryContractAddress = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            State.TreasuryContract.Value = treasuryContractAddress;
 
+            State.TokenContract.Value = 
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+
+            var miningRewardAmount = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                {Symbol = Context.Variables.NativeSymbol, Owner = treasuryContractAddress}).Balance;
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = treasuryContractAddress,
+                To = Context.Self,
+                Amount = miningRewardAmount
+            });
             return new Empty();
         }
 
