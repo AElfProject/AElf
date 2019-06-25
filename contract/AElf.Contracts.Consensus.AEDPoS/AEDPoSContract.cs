@@ -51,6 +51,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.FirstRoundNumberOfEachTerm[1] = 1L;
             SetBlockchainStartTimestamp(input.GetStartTime());
             State.MiningInterval.Value = input.GetMiningInterval();
+            State.MainChainCurrentMinerList.Value = new MinerList
+            {
+                PublicKeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
+            };
 
             if (State.ElectionContract.Value != null)
             {
@@ -212,7 +216,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Context.LogDebug(() => $"Shared miner list of round {consensusInformation.Round.RoundNumber}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
-            State.MainChainCurrentMiners.Value = new MinerList
+            State.MainChainCurrentMinerList.Value = new MinerList
             {
                 PublicKeys = {minersKeys.Select(k => k.ToByteString())}
             };
