@@ -12,6 +12,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Grpc.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -166,6 +167,29 @@ namespace AElf.OS.Network.Grpc
             }
 
             return AuthError.None;
+        }
+
+        public override async Task<VoidReply> AnnouncementBroadcastStream(IAsyncStreamReader<PeerNewBlockAnnouncement> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(async r => await ProcessAnnouncement(r, context));
+            return new VoidReply();
+        }
+
+        public Task ProcessAnnouncement(PeerNewBlockAnnouncement an, ServerCallContext context)
+        {
+            if (an?.BlockHash == null)
+            {
+                Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
+            }
+            
+            Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
+
+            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            peerInPool?.HandlerRemoteAnnounce(an);
+
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
+            
+            return Task.CompletedTask;
         }
 
         /// <summary>

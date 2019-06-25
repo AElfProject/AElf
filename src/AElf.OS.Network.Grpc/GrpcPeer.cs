@@ -153,7 +153,9 @@ namespace AElf.OS.Network.Grpc
 
             Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
 
-            return RequestAsync(_client, c => c.AnnounceAsync(header, data), request);
+            return _client.AnnouncementBroadcastStream().RequestStream.WriteAsync(header);
+
+            //return RequestAsync(_client, c => c.AnnounceAsync(header, data), request);
         }
 
         public Task SendTransactionAsync(Transaction tx)
