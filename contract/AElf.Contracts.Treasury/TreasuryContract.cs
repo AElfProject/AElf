@@ -189,6 +189,18 @@ namespace AElf.Contracts.Treasury
         /// <returns></returns>
         public override Empty Register(RegisterInput input)
         {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+            
+            if (State.TokenConverterContract.Value == null)
+            {
+                State.TokenConverterContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
+            }
+
             var sender = Context.Sender;
             Assert(State.ContractSymbols[sender] == null,
                 $"Token for contract {sender} already created.");

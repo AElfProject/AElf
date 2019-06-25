@@ -36,11 +36,10 @@ namespace AElf.Contracts.EconomicSystem.Tests
         protected Timestamp StartTimestamp => TimestampHelper.GetUtcNow();
 
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected ECKeyPair ConnectorManagerKeyPair => SampleECKeyPairs.KeyPairs[0];
 
         protected Address BootMinerAddress => Address.FromPublicKey(BootMinerKeyPair.PublicKey);
         
-        protected Address ConnectorManagerAddress => Address.FromPublicKey(ConnectorManagerKeyPair.PublicKey);
+        protected Address ConnectorManagerAddress => Address.FromPublicKey(BootMinerKeyPair.PublicKey);
 
         internal static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
             SampleECKeyPairs.KeyPairs.Take(EconomicSystemTestConstants.InitialCoreDataCenterCount).ToList();
@@ -226,6 +225,12 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 BootMinerKeyPair));
             TreasuryContractStub = GetTreasuryContractStub(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeTreasuryConverter);
+            
+            // Transfer manager of connector setting.
+            AsyncHelper.RunSync(async () =>
+            {
+                await TokenConverterContractStub.SetManagerAddress.SendAsync(TreasuryContractAddress);
+            });
 
             // Deploy AElf Consensus Contract.
             ConsensusContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
@@ -473,7 +478,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         {
             var manager =
                 GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
-                    ConnectorManagerKeyPair);
+                    BootMinerKeyPair);
             await manager.SetConnector.SendAsync(new Connector
             {
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,

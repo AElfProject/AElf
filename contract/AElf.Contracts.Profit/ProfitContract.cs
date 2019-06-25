@@ -69,6 +69,11 @@ namespace AElf.Contracts.Profit
 
         public override Hash CreateTreasuryProfitItem(CreateProfitItemInput input)
         {
+            if (State.IsTreasuryProfitItemCreated[Context.Sender] == false)
+            {
+                return Hash.Empty;
+            }
+
             var profitId = CreateProfitItem(input);
 
             var profitItem = State.ProfitItemsMap[profitId];
@@ -81,6 +86,8 @@ namespace AElf.Contracts.Profit
                 SubProfitId = State.TreasuryProfitId.Value,
                 SubItemWeight = ProfitContractConsts.TreasuryProfitItemTreasuryWeight
             });
+
+            State.IsTreasuryProfitItemCreated[Context.Sender] = true;
 
             return profitId;
         }

@@ -89,16 +89,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
                     ContractAddress = profitContractAddress
                 }
             };
-            var contractAddress = transactionContext.Transaction.To;
-            var contractProfitItem = await profitStub.GetContractProfitItem.CallAsync(contractAddress);
-            if (!contractProfitItem.IsTreasuryProfitItem)
+
+            // Create a contract profit item for this contract.
+            await profitStub.CreateTreasuryProfitItem.SendAsync(new CreateProfitItemInput
             {
-                // Create a contract profit item for this contract.
-                await profitStub.CreateTreasuryProfitItem.SendAsync(new CreateProfitItemInput
-                {
-                    IsReleaseAllBalanceEveryTimeByDefault = true
-                });
-            }
+                IsReleaseAllBalanceEveryTimeByDefault = true
+            });
 
             var chargeProfitTransaction = (await tokenStub.ChargeMethodProfits.SendAsync(new ChargeMethodProfitsInput
             {

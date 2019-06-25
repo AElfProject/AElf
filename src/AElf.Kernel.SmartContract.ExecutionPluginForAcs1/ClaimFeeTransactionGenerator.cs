@@ -27,14 +27,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 return;
             }
 
+            var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
+                TokenSmartContractAddressNameProvider.Name);
+
+            if (tokenContractAddress == null)
+            {
+                return;
+            }
+
             generatedTransactions.AddRange(new List<Transaction>
             {
                 new Transaction
                 {
                     From = from,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees),
-                    To = _smartContractAddressService.GetAddressByContractName(
-                        TokenSmartContractAddressNameProvider.Name),
+                    To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
                     RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),
                     Params = new Empty().ToByteString()
