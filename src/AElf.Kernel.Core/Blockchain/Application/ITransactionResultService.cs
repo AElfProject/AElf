@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain.Events;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
+using System.Collections.Generic;
 
 namespace AElf.Kernel.Blockchain.Application
 {
@@ -82,6 +83,56 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             return null;
+        }
+
+        public async Task<List<TransactionResult>> GetTransactionResultAsync(IList<Hash> transactionIds)
+        {
+            var transactionResultList=new List<TransactionResult>();
+            foreach (var transactionId in transactionIds)
+            {
+                var transactionBlockIndex =
+                    await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(transactionId);
+                if (transactionBlockIndex != null)
+                {
+                    // If TransactionBlockIndex exists, then read the result via TransactionBlockIndex
+                    transactionResultList.Add(await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                        transactionBlockIndex.BlockHash));
+                }
+
+                var chain = await _blockchainService.GetChainAsync();
+                var hash = chain.BestChainHash;
+                var until = chain.LastIrreversibleBlockHeight > Constants.GenesisBlockHeight
+                    ? chain.LastIrreversibleBlockHeight - 1
+                    : Constants.GenesisBlockHeight;
+                while (true)
+                {
+                    var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, hash);
+                    if (result != null)
+                    {
+                        transactionResultList.Add(result);
+                    }
+
+                    var header = await _blockchainService.GetBlockHeaderByHashAsync(hash);
+                    result = await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                        header.GetPreMiningHash());
+                    if (result != null)
+                    {
+                        transactionResultList.Add(result);
+                    }
+
+                    if (header.Height <= until)
+                    {
+                        // do until 1 block below LIB, in case the TransactionBlockIndex is not already added during
+                        // NewIrreversibleBlockFoundEvent handling
+                        break;
+                    }
+
+                    hash = header.PreviousBlockHash;
+                }
+            }
+            
+
+            return transactionResultList;
         }
     }
 }

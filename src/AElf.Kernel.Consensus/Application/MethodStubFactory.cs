@@ -7,6 +7,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
+using System.Collections.Generic;
 
 namespace AElf.Kernel.Consensus.Application
 {
@@ -59,6 +60,13 @@ namespace AElf.Kernel.Consensus.Application
             }
 
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync);
+        }
+
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(List<Method<TInput, TOutput>> methods)
+            where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
+        {
+            throw new NotSupportedException();
         }
     }
 }

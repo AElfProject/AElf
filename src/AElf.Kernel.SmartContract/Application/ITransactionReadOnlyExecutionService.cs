@@ -10,6 +10,9 @@ namespace AElf.Kernel.SmartContract.Application
     {
         Task<TransactionTrace> ExecuteAsync(IChainContext chainContext, Transaction transaction,
             Timestamp currentBlockTime);
+        
+        Task<List<TransactionTrace>> ExecuteAsync(IChainContext chainContext, IList<Transaction> transaction,
+            Timestamp currentBlockTime);
 
         Task<byte[]> GetFileDescriptorSetAsync(IChainContext chainContext, Address address);
 

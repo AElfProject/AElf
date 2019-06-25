@@ -10,6 +10,8 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace AElf.Contracts.TestKit
 {
@@ -75,6 +77,162 @@ namespace AElf.Contracts.TestKit
             }
 
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync);
+        }
+        
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+
+        public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(List<Method<TInput, TOutput>> methods)
+            where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
+        {
+            async Task<List<IExecutionResult<TOutput>>> SendAsync(TInput input)
+            {
+                var refBlockInfo = _refBlockInfoProvider.GetRefBlockInfo();
+                var transactionDic = new Dictionary<Transaction,Method<TInput,TOutput>>();
+                var transactionResultList = new List<IExecutionResult<TOutput>>();
+                foreach (var method in methods)
+                {
+                    var transaction = new Transaction()
+                    {
+                        From = Sender,
+                        To = ContractAddress,
+                        MethodName = method.Name,
+                        Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input)),
+                        RefBlockNumber = refBlockInfo.Height,
+                        RefBlockPrefix = refBlockInfo.Prefix
+                    };
+                    var signature = CryptoHelpers.SignWithPrivateKey(
+                        KeyPair.PrivateKey, transaction.GetHash().Value.ToByteArray());
+                    transaction.Signature = ByteString.CopyFrom(signature);
+                    transactionDic.Add(transaction,method);
+                    
+                }
+                await _transactionExecutor.ExecuteAsync(transactionDic.Keys.ToList());
+                foreach (var transaction in transactionDic)
+                {
+                    var transactionResult =
+                        await _transactionResultService.GetTransactionResultAsync(transaction.Key.GetHash());
+                    var result = new ExecutionResult<TOutput>()
+                    {
+                        Transaction = transaction.Key, TransactionResult = transactionResult,
+                        Output = transaction.Value.ResponseMarshaller.Deserializer(transactionResult.ReturnValue.ToByteArray())
+                    };
+                    transactionResultList.Add(result);
+                }
+
+                return transactionResultList;
+            }
+            
+            async Task<List<TOutput>> CallAsync(TInput input)
+            {
+                var result=new List<TOutput>(); 
+                foreach (var method in methods)
+                {
+                    var transaction = new Transaction()
+                    {
+                        From = Sender,
+                        To = ContractAddress,
+                        MethodName = method.Name,
+                        Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
+                    };
+                    var returnValue = await _transactionExecutor.ReadAsync(transaction);
+                    result.Add(method.ResponseMarshaller.Deserializer(returnValue.ToByteArray()));
+                }
+
+                return result;
+            }
+
+            return new MethodStub<TInput, TOutput>(methods, SendAsync, CallAsync);
+            
+        }
+    }
+    
+    public class MultiMethodStubFactory : IMethodStubFactory, ITransientDependency
+    {    
+        public ECKeyPair KeyPair { get; set; } = CryptoHelpers.GenerateKeyPair();
+
+        public Dictionary<string,Address> ContractCollectionAddress { get; set; }
+
+        public Address Sender => Address.FromPublicKey(KeyPair.PublicKey);
+
+        private readonly IRefBlockInfoProvider _refBlockInfoProvider;
+        private readonly ITransactionExecutor _transactionExecutor;
+        private readonly ITransactionResultService _transactionResultService;
+
+        public MultiMethodStubFactory(IServiceProvider serviceProvider)
+        {
+            _refBlockInfoProvider = serviceProvider.GetRequiredService<IRefBlockInfoProvider>();
+            _transactionExecutor = serviceProvider.GetRequiredService<ITransactionExecutor>();
+            _transactionResultService = serviceProvider.GetRequiredService<ITransactionResultService>();
+        }
+
+        public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
+            where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
+        {
+            throw new NotImplementedException();
+        }
+        
+        public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(List<Method<TInput, TOutput>> methods)
+            where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
+        {
+            async Task<List<IExecutionResult<TOutput>>> SendAsync(TInput input)
+            {
+                var refBlockInfo = _refBlockInfoProvider.GetRefBlockInfo();
+                var transactionDic = new Dictionary<Transaction,Method<TInput,TOutput>>();
+                var transactionResultList = new List<IExecutionResult<TOutput>>();
+                foreach (var method in methods)
+                {
+                    var transaction = new Transaction()
+                    {
+                        From = Sender,
+                        To = ContractCollectionAddress.Single(v=>v.Key==method.Name).Value,
+                        MethodName = method.Name,
+                        Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input)),
+                        RefBlockNumber = refBlockInfo.Height,
+                        RefBlockPrefix = refBlockInfo.Prefix
+                    };
+                    var signature = CryptoHelpers.SignWithPrivateKey(
+                        KeyPair.PrivateKey, transaction.GetHash().Value.ToByteArray());
+                    transaction.Signature = ByteString.CopyFrom(signature);
+                    transactionDic.Add(transaction,method);
+                    
+                }
+                await _transactionExecutor.ExecuteAsync(transactionDic.Keys.ToList());
+                foreach (var transaction in transactionDic)
+                {
+                    var transactionResult =
+                        await _transactionResultService.GetTransactionResultAsync(transaction.Key.GetHash());
+                    var result = new ExecutionResult<TOutput>()
+                    {
+                        Transaction = transaction.Key, TransactionResult = transactionResult,
+                        Output = transaction.Value.ResponseMarshaller.Deserializer(transactionResult.ReturnValue.ToByteArray())
+                    };
+                    transactionResultList.Add(result);
+                }
+
+                return transactionResultList;
+            }
+            
+            async Task<List<TOutput>> CallAsync(TInput input)
+            {
+                var result=new List<TOutput>(); 
+                foreach (var method in methods)
+                {
+                    var transaction = new Transaction()
+                    {
+                        From = Sender,
+                        To = ContractCollectionAddress.Single(v=>v.Key==method.Name).Value,
+                        MethodName = method.Name,
+                        Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
+                    };
+                    var returnValue = await _transactionExecutor.ReadAsync(transaction);
+                    result.Add(method.ResponseMarshaller.Deserializer(returnValue.ToByteArray()));
+                }
+
+                return result;
+            }
+
+            return new MethodStub<TInput, TOutput>(methods, SendAsync, CallAsync);
+            
         }
     }
 }

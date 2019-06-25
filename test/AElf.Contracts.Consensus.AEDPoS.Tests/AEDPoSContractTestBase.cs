@@ -89,6 +89,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;
         protected Timestamp BlockchainStartTimestamp => new Timestamp {Seconds = 0};
 
+        
+        
         protected void InitializeContracts()
         {
             KeyPairProvider.SetKeyPair(BootMinerKeyPair);

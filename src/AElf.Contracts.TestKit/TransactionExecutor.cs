@@ -63,5 +63,50 @@ namespace AElf.Contracts.TestKit
 
             return transactionTrace.ReturnValue;
         }
+        
+        public async Task ExecuteAsync(List<Transaction> transactions)
+        {
+            var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
+            var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
+            var miningService = _serviceProvider.GetRequiredService<IMiningService>();
+            var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
+
+            var block = await miningService.MineAsync(
+                new RequestMiningDto
+                {
+                    PreviousBlockHash = preBlock.GetHash(), PreviousBlockHeight = preBlock.Height,
+                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
+                },
+                transactions,
+                DateTime.UtcNow.ToTimestamp());
+
+            await blockchainService.AddTransactionsAsync(transactions);
+            await blockchainService.AddBlockAsync(block);
+            await blockAttachService.AttachBlockAsync(block);
+        }
+        
+        public async Task<List<ByteString>> ReadAsync(List<Transaction> transactions)
+        {
+            var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
+            var transactionReadOnlyExecutionService =
+                _serviceProvider.GetRequiredService<ITransactionReadOnlyExecutionService>();
+            var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
+
+            var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
+            var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
+                {
+                    BlockHash = preBlock.GetHash(),
+                    BlockHeight = preBlock.Height
+                },
+                transactions,
+                blockTimeProvider.GetBlockTime());
+
+            var traceList=new List<ByteString>();
+            foreach (var trace in transactionTrace)
+            {
+                traceList.Add(trace.ReturnValue);
+            }
+            return traceList;
+        }
     }
 }

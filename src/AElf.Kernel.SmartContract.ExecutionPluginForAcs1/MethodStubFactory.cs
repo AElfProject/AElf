@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
 using Google.Protobuf;
+using System.Collections.Generic;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 {
@@ -31,6 +32,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             }
 
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync);
+        }
+        
+        public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(List<Method<TInput, TOutput>> methods)
+            where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
+        {
+            async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
+            {
+                throw new NotImplementedException();
+            }
+
+            async Task<List<TOutput>> CallAsync(TInput input)
+            {
+                throw new NotImplementedException();
+            }
+            throw new NotImplementedException();
         }
     }
 }

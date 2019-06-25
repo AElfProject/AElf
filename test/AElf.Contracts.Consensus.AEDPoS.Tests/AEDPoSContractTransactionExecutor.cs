@@ -65,5 +65,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return transactionTrace.ReturnValue;
         }
+
+        public async Task ExecuteAsync(List<Transaction> transactions)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<List<ByteString>> ReadAsync(List<Transaction> transactions)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

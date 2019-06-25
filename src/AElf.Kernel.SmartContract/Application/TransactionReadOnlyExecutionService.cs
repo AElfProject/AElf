@@ -50,6 +50,48 @@ namespace AElf.Kernel.SmartContract.Application
 
             return trace;
         }
+        
+        
+        public async Task<List<TransactionTrace>> ExecuteAsync(IChainContext chainContext, IList<Transaction> transactions,
+            Timestamp currentBlockTime)
+        {
+            var traceList=new List<TransactionTrace>();
+            foreach (var transaction in transactions)
+            {
+                var trace = new TransactionTrace()
+                {
+                    TransactionId = transaction.GetHash()
+                };
+
+                var transactionContext = new TransactionContext
+                {
+                    PreviousBlockHash = chainContext.BlockHash,
+                    CurrentBlockTime = currentBlockTime,
+                    Transaction = transaction,
+                    BlockHeight = chainContext.BlockHeight + 1,
+                    Trace = trace,
+                    CallDepth = 0,
+                    StateCache = chainContext.StateCache
+                };
+
+                var executive = await _smartContractExecutiveService.GetExecutiveAsync(
+                    chainContext, transaction.To);
+
+                try
+                {
+                    await executive.ApplyAsync(transactionContext);
+                }
+                finally
+                {
+                    await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
+                }
+                traceList.Add(trace);
+            }
+            
+
+            return traceList;
+        }
+        
 
         public async Task<byte[]> GetFileDescriptorSetAsync(IChainContext chainContext, Address address)
         {

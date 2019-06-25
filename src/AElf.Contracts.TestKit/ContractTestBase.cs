@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs0;
@@ -73,10 +74,40 @@ namespace AElf.Contracts.TestKit
             return res.Output;
         }
 
+        protected async Task<List<Address>> DeploySystemSmartContract(int category, Dictionary<Hash,byte[]> nameCodeDic,
+            ECKeyPair senderKey)
+        {
+            var addressList = new List<Address>();
+            var zeroStub = GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, senderKey);
+            foreach (var kv in nameCodeDic)
+            {
+                var res = await zeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput()
+                {
+                    Category = category,
+                    Code = ByteString.CopyFrom(kv.Value),
+                    Name = kv.Key,
+                    TransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
+                });
+                if (res.TransactionResult.Status != TransactionResultStatus.Mined)
+                {
+                    throw new Exception($"DeploySystemSmartContract failed: {res.TransactionResult}");
+                }
+                addressList.Add(res.Output);
+            }
+
+            return addressList;
+        }
+
         public T GetTester<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
         {
             var factory = Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
             return factory.Create<T>(contractAddress, senderKey);
         }
+        
+        public T GetTester<T>(Dictionary<string,Address> contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
+        {
+            var factory = Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
+            return factory.Create<T>(contractAddress, senderKey);
+        } 
     }
 }
