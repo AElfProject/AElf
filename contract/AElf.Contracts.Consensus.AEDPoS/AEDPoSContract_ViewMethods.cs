@@ -158,9 +158,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool IsMainChainMinerListChanged(Round currentRound)
         {
             Context.LogDebug(() => "Entered IsMainChainMinerListChanged.");
-            return State.MainChainCurrentMinerList.Value.PublicKeys.Any() &&
+            return State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
                    GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
-                   GetMinerListHash(State.MainChainCurrentMinerList.Value.PublicKeys.Select(p => p.ToHex()));
+                   GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
         }
 
         private Hash GetMinerListHash(IEnumerable<string> minerList)

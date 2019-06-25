@@ -57,7 +57,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.MiningInterval.Value = input.GetMiningInterval();
             State.MainChainCurrentMinerList.Value = new MinerList
             {
-                PublicKeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
+                Pubkeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
             };
 
             if (State.ElectionContract.Value != null)
