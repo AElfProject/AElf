@@ -195,39 +195,30 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// This method is called when another peer broadcasts a transaction.
         /// </summary>
-        public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
+        public async Task SendTransaction(Transaction tx, ServerCallContext context)
+        {
+            await ProcessTransaction(tx, context);
+        }
+
+        private async Task ProcessTransaction(Transaction tx, ServerCallContext context)
         {
             var chain = await _blockchainService.GetChainAsync();
             
             // if this transaction's ref block is a lot higher than our chain 
             // then don't participate in p2p network
             if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync)
-                return new VoidReply();
+                return;
             
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
-
-            return new VoidReply();
         }
 
         /// <summary>
         /// This method is called when a peer wants to broadcast an announcement.
         /// </summary>
-        public override Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
+        public override async Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
         {
-            if (an?.BlockHash == null)
-            {
-                Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
-                return Task.FromResult(new VoidReply());
-            }
-            
-            Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
-
-            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
-            peerInPool?.HandlerRemoteAnnounce(an);
-
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
-            
-            return Task.FromResult(new VoidReply());
+            await ProcessAnnouncement(an, context);
+            return new VoidReply();
         }
 
         /// <summary>

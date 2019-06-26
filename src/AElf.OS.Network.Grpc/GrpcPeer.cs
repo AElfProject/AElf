@@ -154,8 +154,6 @@ namespace AElf.OS.Network.Grpc
             Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
 
             return _client.AnnouncementBroadcastStream().RequestStream.WriteAsync(header);
-
-            //return RequestAsync(_client, c => c.AnnounceAsync(header, data), request);
         }
 
         public Task SendTransactionAsync(Transaction tx)
@@ -170,7 +168,7 @@ namespace AElf.OS.Network.Grpc
                 {GrpcConstants.TimeoutMetadataKey, TransactionBroadcastTimeout.ToString()}
             };
             
-            return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
+            return _client.TransactionBroadcastStream().RequestStream.WriteAsync(tx);
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
