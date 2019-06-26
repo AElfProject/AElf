@@ -63,6 +63,9 @@ namespace AElf.OS.Network.Application
                     Logger.LogError(ex, $"Error during discover - {peer}.");
                 }
             }
+
+            if (discoveredNodes.Nodes.Count <= 0)
+                return discoveredNodes;
             
             // Check that a peer did not send us this node
             var localPubKey = await _accountService.GetPublicKeyAsync();

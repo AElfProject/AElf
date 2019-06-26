@@ -114,7 +114,7 @@ namespace AElf.OS.Network.Grpc
                 {GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()}
             };
             
-            return RequestAsync(_client, c => c.GetNodesAsync(new GetNodesRequest { MaxCount = 10 }, data), request);
+            return RequestAsync(_client, c => c.GetNodesAsync(new NodesRequest { MaxCount = count }, data), request);
         }
 
         public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)

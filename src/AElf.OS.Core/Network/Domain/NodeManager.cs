@@ -30,39 +30,27 @@ namespace AElf.OS.Network.Domain
 
         public Task<bool> AddNodeAsync(Node node)
         {
-            string pubKey = node.Pubkey.ToHex();
-            return Task.FromResult(_nodes.TryAdd(pubKey, node));
+            return Task.FromResult(_nodes.TryAdd(node.Pubkey.ToHex(), node));
         }
         
-        public Task<NodeList> AddNodesAsync(NodeList nodes)
+        public async Task<NodeList> AddNodesAsync(NodeList nodes)
         {
             NodeList addedNodes = new NodeList();
+            
             foreach (var node in nodes.Nodes)
             {
-                string pubKey = node.Pubkey.ToHex();
-
-                if (_nodes.TryAdd(pubKey, node))
-                {
+                if (await AddNodeAsync(node))
                     addedNodes.Nodes.Add(node);
-                }
             }
             
-            return Task.FromResult(addedNodes);
+            return addedNodes;
         }
         
         public Task<NodeList> GetRandomNodesAsync(int maxCount)
         {
             Random rnd = new Random();
             
-            List<Node> randomPeers = _nodes.Select(n => new { n.Key, n.Value})
-                .OrderBy(x => rnd.Next())
-                .Take(maxCount)
-                .Select(n => new Node
-                {
-                    Pubkey = n.Key.ToByteString(),
-                    Endpoint = n.Value.Endpoint
-                })
-                .ToList();
+            var randomPeers = _nodes.OrderBy(x => rnd.Next()).Take(maxCount).Select(n => n.Value).ToList();
             
             NodeList nodes = new NodeList();
             nodes.Nodes.AddRange(randomPeers);

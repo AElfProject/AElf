@@ -13,7 +13,7 @@ service PeerService {
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
     rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
     
-    rpc GetNodes (GetNodesRequest) returns (NodeList) {}
+    rpc GetNodes (NodesRequest) returns (NodeList) {}
 
     rpc Connect (Handshake) returns (ConnectReply) {}
     
@@ -70,7 +70,7 @@ message BlockReply {
 message VoidReply {
 }
 
-message GetNodesRequest {
+message NodesRequest {
     int32 max_count = 1;
 }
 

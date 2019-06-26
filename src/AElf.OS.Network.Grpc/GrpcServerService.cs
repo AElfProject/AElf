@@ -259,7 +259,7 @@ namespace AElf.OS.Network.Grpc
             return blockList;
         }
 
-        public override async Task<NodeList> GetNodes(GetNodesRequest request, ServerCallContext context)
+        public override async Task<NodeList> GetNodes(NodesRequest request, ServerCallContext context)
         {
             if (request == null) 
                 return new NodeList();
