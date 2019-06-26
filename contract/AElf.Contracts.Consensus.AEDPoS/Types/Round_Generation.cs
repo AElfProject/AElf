@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
-using Org.BouncyCastle.Asn1.Cms;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
