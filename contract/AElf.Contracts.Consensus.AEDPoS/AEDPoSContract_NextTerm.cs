@@ -26,7 +26,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     MinersCount = minersCount
                 });
             }
-            Context.LogDebug(()=>"The count of miner in The current term :"+minersCount);
             // Reset some fields of first two rounds of next term.
             foreach (var minerInRound in input.RealTimeMinersInformation.Values)
             {

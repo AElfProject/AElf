@@ -244,7 +244,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     new InitialAElfConsensusContractInput
                     {
                         TimeEachTerm = AEDPoSContractTestConstants.TimeEachTerm,
-                        MinerIncreaseSpace = AEDPoSContractTestConstants.MinerIncreaseSpace
+                        MinerIncreaseInterval = AEDPoSContractTestConstants.MinerIncreaseInterval
                     });
                 CheckResult(result.TransactionResult);
             }

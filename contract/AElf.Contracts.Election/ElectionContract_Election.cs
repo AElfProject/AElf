@@ -36,7 +36,7 @@ namespace AElf.Contracts.Election
             }
             State.MinersCount.Value = input.MinerList.Count;
             State.TimeEachTerm.Value = input.TimeEachTerm;
-            State.MinerIncreaseSpace.Value = input.MinerIncreaseSpace;
+            State.MinerIncreaseInterval.Value = input.MinerIncreaseInterval;
             return new Empty();
         }
 

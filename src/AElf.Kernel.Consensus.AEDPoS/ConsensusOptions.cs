@@ -13,6 +13,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
         public Timestamp StartTimestamp { get; set; } = new Timestamp {Seconds = 0};
         public long TimeEachTerm { get; set; } = 604800;
 
-        public long MinerIncreaseSpace { get; set; } = 31536000;
+        public long MinerIncreaseInterval { get; set; } = 31536000;
     }
 }

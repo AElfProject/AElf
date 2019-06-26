@@ -18,7 +18,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 ? int.MaxValue
                 : input.TimeEachTerm;
             
-            State.MinerIncreaseSpace.Value = input.MinerIncreaseSpace;
+            State.MinerIncreaseInterval.Value = input.MinerIncreaseInterval;
 
             Context.LogDebug(() => $"Time each term: {State.TimeEachTerm.Value} seconds.");
 
@@ -64,7 +64,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     MinerList = {input.RealTimeMinersInformation.Keys},
                     TimeEachTerm = State.TimeEachTerm.Value,
-                    MinerIncreaseSpace = State.MinerIncreaseSpace.Value
+                    MinerIncreaseInterval = State.MinerIncreaseInterval.Value
                 });
             }
 
@@ -188,7 +188,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         MinersCount = minersCount
                     });
                 }
-                Context.LogDebug(()=>"the count of the round:"+minersCount);
             }
 
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
