@@ -63,7 +63,8 @@ message TokenInfo {
     sint64 totalSupply = 4;
     sint32 decimals = 5;
     aelf.Address issuer = 6;
-    bool isBurnable = 7;
+    bool is_burnable = 7;
+    bool is_transfer_disabled = 8;
 }
 
 message CreateInput {

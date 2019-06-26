@@ -288,7 +288,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Treasury", "contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj", "{FF705729-1E79-4736-A1A6-D725B8D6EFA6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.ProfitSharing", "test\AElf.Contracts.TestContract.ProfitSharing\AElf.Contracts.TestContract.ProfitSharing.csproj", "{8E7DE108-9D03-4DD7-A245-D12E9042915C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.MethodCallThreshold", "test\AElf.Contracts.TestContract.MethodCallThreshold\AElf.Contracts.TestContract.MethodCallThreshold.csproj", "{8E7DE108-9D03-4DD7-A245-D12E9042915C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContractExecution.Parallel", "src\AElf.Kernel.SmartContractExecution.Parallel\AElf.Kernel.SmartContractExecution.Parallel.csproj", "{CF33B86C-3056-49D1-BF23-96E69564337C}"
 EndProject

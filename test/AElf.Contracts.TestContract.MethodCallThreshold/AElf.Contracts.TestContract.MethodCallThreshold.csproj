@@ -23,19 +23,10 @@
         <ContractReference Include="..\..\protobuf\treasury_contract.proto">
             <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
         </ContractReference>
-        <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
-            <Link>Protobuf\Proto\reference\token_converter_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\profit_contract.proto">
-            <Link>Protobuf\Proto\reference\profit_contract.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\acs0.proto">
-            <Link>Protobuf\Proto\reference\acs0.proto</Link>
-        </ContractReference>
     </ItemGroup>
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\test_profit_sharing_contract.proto">
-            <Link>Protobuf\Proto\test_basic_update_contract.proto</Link>
+        <ContractCode Include="..\..\protobuf\test_method_call_threshold_contract.proto">
+            <Link>Protobuf\Proto\test_method_call_threshold_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 
