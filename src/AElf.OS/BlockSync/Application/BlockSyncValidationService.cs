@@ -40,8 +40,6 @@ namespace AElf.OS.BlockSync.Application
 
             if (!_announcementCacheProvider.TryAddAnnouncementCache(syncBlockHash, syncBlockHeight))
             {
-                Logger.LogWarning(
-                    $"already sync {syncBlockHash} : {syncBlockHeight}");
                 return false;
             }
 
