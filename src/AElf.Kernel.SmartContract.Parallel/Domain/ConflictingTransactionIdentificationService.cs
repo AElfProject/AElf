@@ -1,0 +1,91 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Types;
+
+namespace AElf.Kernel.SmartContract.Parallel.Domain
+{
+    public class ConflictingTransactionIdentificationService : IConflictingTransactionIdentificationService
+    {
+        private readonly IResourceExtractionService _resourceExtractionService;
+        private readonly ITxHub _txHub;
+
+        public ConflictingTransactionIdentificationService(IResourceExtractionService resourceExtractionService,
+            ITxHub txHub)
+        {
+            _resourceExtractionService = resourceExtractionService;
+            _txHub = txHub;
+        }
+
+        public async Task<List<Transaction>> IdentifyConflictingTransactionsAsync(IChainContext chainContext,
+            List<ExecutionReturnSet> returnSets, List<ExecutionReturnSet> conflictingSets)
+        {
+            var possibleConflicting = FindPossibleConflictingReturnSets(returnSets, conflictingSets);
+            var wrong = await FindContractOfWrongResourcesAsync(chainContext, possibleConflicting);
+            return wrong;
+        }
+
+        private List<ExecutionReturnSet> FindPossibleConflictingReturnSets(List<ExecutionReturnSet> returnSets,
+            List<ExecutionReturnSet> conflictingSets)
+        {
+            var existingKeys = new HashSet<string>(returnSets.SelectMany(rs => rs.StateAccesses.Keys));
+            var possibleConflictingKeys = new HashSet<string>(conflictingSets.SelectMany(rs => rs.StateAccesses.Keys));
+            possibleConflictingKeys.IntersectWith(existingKeys);
+            return returnSets.Concat(conflictingSets)
+                .Where(rs => rs.StateAccesses.Any(a => possibleConflictingKeys.Contains(a.Key))).ToList();
+        }
+
+        private async Task<List<Transaction>> FindContractOfWrongResourcesAsync(IChainContext chainContext,
+            List<ExecutionReturnSet> returnSets)
+        {
+            var transactions = new List<Transaction>();
+            foreach (var id in returnSets.Select(rs => rs.TransactionId))
+            {
+                var receipt = await _txHub.GetTransactionReceiptAsync(id);
+                transactions.Add(receipt.Transaction);
+            }
+
+            var txnWithResources =
+                await _resourceExtractionService.GetResourcesAsync(chainContext, transactions, CancellationToken.None);
+
+            var returnSetLookup = returnSets.ToDictionary(rs => rs.TransactionId, rs => rs);
+            var wrongTxns = new List<Transaction>();
+            foreach (var txnWithResource in txnWithResources)
+            {
+                var extracted = new HashSet<string>(txnWithResource.Item2.Paths.Select(p => p.ToStateKey()));
+                var actual = GetKeys(returnSetLookup[txnWithResource.Item1.GetHash()]);
+                actual.ExceptWith(extracted);
+                if (actual.Count > 0)
+                {
+                    wrongTxns.Add(txnWithResource.Item1);
+                }
+            }
+
+            return wrongTxns;
+        }
+
+        private HashSet<string> GetKeys(ExecutionReturnSet returnSet)
+        {
+            return new HashSet<string>(returnSet.StateAccesses.Keys);
+        }
+
+//        private async Task<ChainContext> GetChainContextAsync()
+//        {
+//            var chain = await _blockchainService.GetChainAsync();
+//            if (chain == null)
+//            {
+//                return null;
+//            }
+//
+//            var chainContext = new ChainContext()
+//            {
+//                BlockHash = chain.BestChainHash,
+//                BlockHeight = chain.BestChainHeight
+//            };
+//            return chainContext;
+//        }
+    }
+}

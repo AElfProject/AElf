@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
@@ -20,22 +21,25 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+        private readonly ICodeRemarksManager _codeRemarksManager;
         public ILogger<ResourceExtractionService> Logger { get; set; }
 
         // TODO: use non concurrent version
-        private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache = 
+        private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache =
             new ConcurrentDictionary<Hash, TransactionResourceCache>();
 
-        public ResourceExtractionService(IBlockchainService blockchainService, 
-            ISmartContractExecutiveService smartContractExecutiveService)
+        public ResourceExtractionService(IBlockchainService blockchainService,
+            ISmartContractExecutiveService smartContractExecutiveService, ICodeRemarksManager codeRemarksManager)
         {
             _smartContractExecutiveService = smartContractExecutiveService;
+            _codeRemarksManager = codeRemarksManager;
             _blockchainService = blockchainService;
-            
+
             Logger = NullLogger<ResourceExtractionService>.Instance;
         }
 
-        public async Task<IEnumerable<(Transaction, TransactionResourceInfo)>> GetResourcesAsync(IChainContext chainContext,
+        public async Task<IEnumerable<(Transaction, TransactionResourceInfo)>> GetResourcesAsync(
+            IChainContext chainContext,
             IEnumerable<Transaction> transactions, CancellationToken ct)
         {
             // Parallel processing below (adding AsParallel) causes ReflectionTypeLoadException
@@ -43,7 +47,8 @@ namespace AElf.Kernel.SmartContract.Parallel
             return await Task.WhenAll(tasks);
         }
 
-        private async Task<(Transaction, TransactionResourceInfo)> GetResourcesForOneWithCacheAsync(IChainContext chainContext,
+        private async Task<(Transaction, TransactionResourceInfo)> GetResourcesForOneWithCacheAsync(
+            IChainContext chainContext,
             Transaction transaction, CancellationToken ct)
         {
             if (ct.IsCancellationRequested)
@@ -58,16 +63,26 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             return (transaction, await GetResourcesForOneAsync(chainContext, transaction, ct));
         }
-        
+
         private async Task<TransactionResourceInfo> GetResourcesForOneAsync(IChainContext chainContext,
             Transaction transaction, CancellationToken ct)
         {
             IExecutive executive = null;
             var address = transaction.To;
-            
+
             try
             {
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(chainContext, address);
+                var codeRemarks = await _codeRemarksManager.GetCodeRemarksAsync(executive.ContractHash);
+                if (codeRemarks != null && codeRemarks.NonParallelizable)
+                {
+                    return new TransactionResourceInfo
+                    {
+                        TransactionId = transaction.GetHash(),
+                        NonParallelizable = true
+                    };
+                }
+
                 var resourceInfo = await executive.GetTransactionResourceInfoAsync(chainContext, transaction);
                 // Try storing in cache here
                 return resourceInfo;
@@ -82,14 +97,14 @@ namespace AElf.Kernel.SmartContract.Parallel
         }
 
         #region Event Handler Methods
-        
+
         public async Task HandleTransactionAcceptedEvent(TransactionAcceptedEvent eventData)
         {
             var chainContext = await GetChainContextAsync();
             var transaction = eventData.Transaction;
 
-            _resourceCache.TryAdd(transaction.GetHash(), 
-                new TransactionResourceCache(transaction.RefBlockNumber, 
+            _resourceCache.TryAdd(transaction.GetHash(),
+                new TransactionResourceCache(transaction.RefBlockNumber,
                     await GetResourcesForOneAsync(chainContext, transaction, CancellationToken.None)));
         }
 
@@ -97,23 +112,23 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             ClearResourceCache(_resourceCache.Where(c => c.Value.RefBlockNumber <= eventData.BlockHeight)
                 .Select(c => c.Key));
-            
+
             await Task.CompletedTask;
         }
 
         public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
         {
             ClearResourceCache(eventData.Transactions);
-            
+
             await Task.CompletedTask;
         }
 
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            
+
             ClearResourceCache(block.TransactionHashList);
-            
+
             await Task.CompletedTask;
         }
 
@@ -123,12 +138,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             {
                 _resourceCache.TryRemove(transactionId, out _);
             }
-            
+
             Logger.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
         }
-        
+
         #endregion
-        
+
         private async Task<ChainContext> GetChainContextAsync()
         {
             var chain = await _blockchainService.GetChainAsync();
@@ -145,7 +160,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             return chainContext;
         }
     }
-    
+
     internal class TransactionResourceCache
     {
         public readonly long RefBlockNumber;
