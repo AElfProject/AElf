@@ -13,12 +13,5 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var reward = await TreasuryContractStub.GetCurrentTreasuryBalance.CallAsync(new Empty());
             reward.Value.ShouldBeGreaterThanOrEqualTo(0);
         }
-        
-        [Fact]
-        public async Task GetCurrentTreasuryBalance()
-        {
-            var balance = await TreasuryContractStub.GetCurrentTreasuryBalance.CallAsync(new Empty());
-            balance.Value.ShouldBeGreaterThanOrEqualTo(0);
-        }
     }
 }
