@@ -113,20 +113,7 @@ namespace AElf.Kernel.SmartContract
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.Clone();
         public Address Self => TransactionContext.Transaction.To.Clone();
-
-        public Address Origin
-        {
-            get
-            {
-                if (TransactionContext.Origin.Value.IsEmpty)
-                {
-                    return Sender;
-                }
-
-                return TransactionContext.Origin.Clone();
-            }
-        }
-
+        public Address Origin => TransactionContext.Origin.Clone();
         public long CurrentHeight => TransactionContext.BlockHeight;
         public Timestamp CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();

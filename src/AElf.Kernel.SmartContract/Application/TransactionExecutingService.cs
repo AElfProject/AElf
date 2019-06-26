@@ -134,14 +134,10 @@ namespace AElf.Kernel.SmartContract.Application
                 BlockHeight = chainContext.BlockHeight + 1,
                 Trace = trace,
                 CallDepth = depth,
-                StateCache = chainContext.StateCache
+                StateCache = chainContext.StateCache,
+                Origin = origin != null ? origin : transaction.From
             };
-
-            if (origin != null)
-            {
-                txCtxt.Origin = origin;
-            }
-
+            
             var internalStateCache = new TieredStateCache(chainContext.StateCache);
             var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
             var executive = await _smartContractExecutiveService.GetExecutiveAsync(
