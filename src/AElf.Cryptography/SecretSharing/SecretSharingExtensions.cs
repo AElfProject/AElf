@@ -1,26 +1,30 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 
 namespace AElf.Cryptography.SecretSharing
 {
     public static class SecretSharingExtensions
     {
-        public static BigInteger ToBigInteger(this string str)
+
+        public static BigInteger  ToBigInteger(this byte[] bytes)
         {
-            const int bitSize = 8;
-
-            var bitsSize = (str.Length + 1) * bitSize;
-            var filler = (int) SecretSharingConsts.MaxBits - bitsSize;
-            var totalBytes = new byte[129]; // 1024 / 8 + 1
-            var strBytes = Encoding.UTF8.GetBytes(str);
-
-            Array.Copy(strBytes, totalBytes, strBytes.Length);
-            Array.Copy(CryptoHelpers.RandomFill(filler / 8), 0, totalBytes, strBytes.Length + 1, filler / 8);
-
-            return new BigInteger(totalBytes);
+            var tempBytes = new byte[bytes.Length + 1];
+            Array.Copy(bytes.Reverse().ToArray(), 0, tempBytes, 1, bytes.Length);
+            return new BigInteger(tempBytes);
         }
 
+        public static byte[] ToBytesArray(this BigInteger integer)
+        {
+            var tempBytes = integer.ToByteArray().Reverse().ToArray();
+            var result = new byte[tempBytes.Length-1];
+            Array.Copy(tempBytes,0,result,0,result.Length);
+
+            return result;
+        }
+        
         public static string ConvertToString(this BigInteger integer)
         {
             var bytes = integer.ToByteArray();
@@ -36,10 +40,11 @@ namespace AElf.Cryptography.SecretSharing
 
             return new string(chars, 0, size);
         }
-        
+
         public static BigInteger Abs(this BigInteger integer)
         {
-            return (integer % SecretSharingConsts.FieldPrime + SecretSharingConsts.FieldPrime) % SecretSharingConsts.FieldPrime;
+            return (integer % SecretSharingConsts.FieldPrime + SecretSharingConsts.FieldPrime) %
+                   SecretSharingConsts.FieldPrime;
         }
     }
 }

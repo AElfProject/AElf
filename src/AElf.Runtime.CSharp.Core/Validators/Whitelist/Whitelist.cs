@@ -18,9 +18,14 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
 
         public Whitelist Assembly(Assembly assembly, Trust trustLevel)
         {
-            _assemblies.Add(assembly.FullName, trustLevel);
+            _assemblies.Add(assembly.GetName().Name, trustLevel);
 
             return this;
+        }
+
+        public IEnumerable<string> GetWhitelistedAssemblyNames()
+        {
+            return _assemblies.Select(a => a.Key);
         }
 
         public Whitelist Namespace(string name, Permission permission,
@@ -41,8 +46,8 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
             // Validate assembly references
             foreach (var asmRef in module.AssemblyReferences)
             {
-                if (!_assemblies.Keys.Contains(asmRef.FullName))
-                    results.Add(new WhitelistValidationResult("Assembly " + asmRef.FullName + " is not allowed."));
+                if (!_assemblies.Keys.Contains(asmRef.Name))
+                    results.Add(new WhitelistValidationResult("Assembly " + asmRef.Name + " is not allowed."));
             }
             
             // Validate types in the module
@@ -111,7 +116,7 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
                 return results;
             
             // If referred type is from a fully trusted assembly, stop going deeper
-            if (_assemblies.Any(asm => asm.Key == type.Resolve()?.Module.Assembly.FullName && 
+            if (_assemblies.Any(asm => asm.Key == type.Resolve()?.Module.Assembly.Name.Name && 
                                        asm.Value == Trust.Full))
                 return results;
 

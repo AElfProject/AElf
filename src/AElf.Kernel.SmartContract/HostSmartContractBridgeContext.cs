@@ -157,7 +157,7 @@ namespace AElf.Kernel.SmartContract
 
             if (!trace.IsSuccessful())
             {
-                throw new ContractCallException(trace.StdErr);
+                throw new ContractCallException(trace.Error);
             }
 
             var obj = new T();
@@ -209,11 +209,6 @@ namespace AElf.Kernel.SmartContract
         public bool VerifySignature(Transaction tx)
         {
             return tx.VerifySignature();
-        }
-
-        public void SendDeferredTransaction(Transaction deferredTxn)
-        {
-            TransactionContext.Trace.DeferredTransaction = deferredTxn.ToByteString();
         }
 
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
