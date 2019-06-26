@@ -21,7 +21,6 @@ namespace AElf.Kernel.TransactionPool.Application
             _txHub = txHub;
         }
 
-
         public async Task HandleEventAsync(TransactionsReceivedEvent eventData)
         {
             await _txHub.HandleTransactionsReceivedAsync(eventData);
