@@ -214,9 +214,7 @@ namespace AElf.OS.Network.Grpc
             // then don't participate in p2p network
             if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync)
                 return;
-            
-            Logger.LogDebug($"Received a transaction: {tx.GetHash()}");
-            
+
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
         }
 
