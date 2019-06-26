@@ -25,7 +25,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Initial_State_Is_Syncing()
         {
-            _syncStateService.GetSyncState().ShouldBe(SyncState.UnInitialized);
+            _syncStateService.SyncState.ShouldBe(SyncState.UnInitialized);
         }
 
         [Fact]
@@ -34,7 +34,7 @@ namespace AElf.OS.Network
             await _syncStateService.StartSyncAsync();
             await _syncStateService.UpdateSyncStateAsync();
             
-            _syncStateService.GetSyncState().ShouldBe(SyncState.Finished);
+            _syncStateService.SyncState.ShouldBe(SyncState.Finished);
         }
         
         [Fact]
@@ -56,7 +56,7 @@ namespace AElf.OS.Network
         public async Task No_Peers_Stops_Sync()
         {
             await _syncStateService.StartSyncAsync();
-            _syncStateService.GetSyncState().ShouldBe(SyncState.Finished);
+            _syncStateService.SyncState.ShouldBe(SyncState.Finished);
         }
         
         [Fact]
@@ -67,7 +67,7 @@ namespace AElf.OS.Network
             
             await _syncStateService.StartSyncAsync();
             
-            _syncStateService.GetSyncState().ShouldBe(SyncState.Finished);
+            _syncStateService.SyncState.ShouldBe(SyncState.Finished);
         }
         
         [Theory]
@@ -81,7 +81,7 @@ namespace AElf.OS.Network
             
             await _syncStateService.StartSyncAsync();
             
-            _syncStateService.GetSyncState().ShouldBe(expectedSyncState);
+            _syncStateService.SyncState.ShouldBe(expectedSyncState);
         }
 
         private IPeer CreatePeer(long libHeight = 0)

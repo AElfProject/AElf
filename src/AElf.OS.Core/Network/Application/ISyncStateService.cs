@@ -12,7 +12,7 @@ namespace AElf.OS.Network.Application
 {
     public interface ISyncStateService
     {
-        SyncState GetSyncState();
+        SyncState SyncState { get; }
         long GetCurrentSyncTarget();
         Task StartSyncAsync();
         Task UpdateSyncStateAsync();
@@ -43,16 +43,19 @@ namespace AElf.OS.Network.Application
         
         public long GetCurrentSyncTarget() => _syncStateProvider.SyncTarget;
 
-        public SyncState GetSyncState()
+        public SyncState SyncState
         {
-            switch (_syncStateProvider.SyncTarget)
+            get
             {
-                case 0:
-                    return SyncState.UnInitialized;
-                case -1:
-                    return SyncState.Finished;
-                default:
-                    return SyncState.Syncing;
+                switch (_syncStateProvider.SyncTarget)
+                {
+                    case 0:
+                        return SyncState.UnInitialized;
+                    case -1:
+                        return SyncState.Finished;
+                    default:
+                        return SyncState.Syncing;
+                }
             }
         }
         
@@ -66,7 +69,7 @@ namespace AElf.OS.Network.Application
         /// <returns></returns>
         public async Task StartSyncAsync()
         {
-            if (GetSyncState() != SyncState.UnInitialized)
+            if (SyncState != Application.SyncState.UnInitialized)
             {
                 Logger.LogWarning("Trying to start the sync, but it has already been started/finished.");
                 return;
@@ -86,7 +89,7 @@ namespace AElf.OS.Network.Application
             // This method should only be called when the sync target has already been found and the
             // node is syncing.
             
-            if (GetSyncState() != SyncState.Syncing)
+            if (SyncState != Application.SyncState.Syncing)
             {
                 Logger.LogWarning("Trying to update the sync, but it is either finished or not yet been initialized.");
                 return;
