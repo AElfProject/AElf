@@ -34,23 +34,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
-            return new List<Transaction>();
-/*
-
             if (!IsAcs5(descriptors))
             {
                 return new List<Transaction>();
             }
-            //descriptors.ToList().ForEach(service => service.Methods.ToList().ForEach(method => method.CustomOptions.TryGetBool(506001, out var isView)));
 
             var context = _contextService.Create();
             context.TransactionContext = transactionContext;
-            var selfStub = new ProfitSharingContractContainer.ProfitSharingContractStub
+            var selfStub = new ThresholdSettingContractContainer.ThresholdSettingContractStub
             {
                 __factory = new MethodStubFactory(context)
             };
 
-            var profitFee = await selfStub.GetMethodProfitFee.CallAsync(new StringValue
+            var threshold = await selfStub.GetMethodCallingThreshold.CallAsync(new StringValue
             {
                 Value = context.TransactionContext.Transaction.MethodName
             });
@@ -71,42 +67,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
                 }
             };
             if (transactionContext.Transaction.To == tokenContractAddress &&
-                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeMethodProfits))
-            {
-                // Skip ChargeMethodProfits itself 
-                return new List<Transaction>();
-            }
-
-            // Generate profit contract stub.
-            var profitContractAddress = context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.Profit"));
-            if (profitContractAddress == null)
+                transactionContext.Transaction.MethodName == nameof(tokenStub.CheckThreshold))
             {
                 return new List<Transaction>();
             }
 
-            var profitStub = new ProfitContractContainer.ProfitContractStub
-            {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory
-                {
-                    Sender = transactionContext.Transaction.To,
-                    ContractAddress = profitContractAddress
-                }
-            };
 
-            // Create a contract profit item for this contract.
-            await profitStub.CreateTreasuryProfitItem.SendAsync(new CreateProfitItemInput
-            {
-                IsReleaseAllBalanceEveryTimeByDefault = true
-            });
-
-            var chargeProfitTransaction = (await tokenStub.ChargeMethodProfits.SendAsync(new ChargeMethodProfitsInput
-            {
-                SymbolToAmount = {profitFee.SymbolToAmount}
-            })).Transaction;
-            return new List<Transaction>
-            {
-                chargeProfitTransaction
-            };*/
+            return new List<Transaction>();
         }
     }
 }

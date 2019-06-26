@@ -1,4 +1,4 @@
-namespace AElf.Contracts.TestContract.MethodCallThresholdContract
+namespace AElf.Contracts.TestContract.MethodCallThreshold
 {
     public class MethodCallThresholdContractConstants
     {

@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.TestContract.ProfitSharing</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <RootNamespace>AElf.Contracts.TestContract.MethodCallThresholdContract</RootNamespace>
+        <RootNamespace>AElf.Contracts.TestContract.MethodCallThreshold</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -22,6 +22,9 @@
         </ContractReference>
         <ContractReference Include="..\..\protobuf\treasury_contract.proto">
             <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>

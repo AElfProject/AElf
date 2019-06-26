@@ -1,12 +1,10 @@
 using Acs5;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.TestContract.MethodCallThreshold;
-using AElf.Contracts.TestContract.ProfitSharing;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Contracts.TestContract.MethodCallThresholdContract
+namespace AElf.Contracts.TestContract.MethodCallThreshold
 {
     public class MethodCallThresholdContract : MethodCallThresholdContractContainer.MethodCallThresholdContractBase
     {
@@ -31,8 +29,6 @@ namespace AElf.Contracts.TestContract.MethodCallThresholdContract
                 Amount = MethodCallThresholdContractConstants.AmountIssueToTokenConverterContract,
                 To = Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
             });
-
-            State.TokenSymbol.Value = input.Symbol;
 
             return new Empty();
         }

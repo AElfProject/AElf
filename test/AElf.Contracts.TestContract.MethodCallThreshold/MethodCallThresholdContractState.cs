@@ -2,7 +2,7 @@
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
-namespace AElf.Contracts.TestContract.MethodCallThresholdContract
+namespace AElf.Contracts.TestContract.MethodCallThreshold
 {
     public partial class MethodCallThresholdContractState : ContractState
     {
