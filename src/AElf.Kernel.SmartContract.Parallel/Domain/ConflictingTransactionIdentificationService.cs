@@ -72,20 +72,5 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
             return new HashSet<string>(returnSet.StateAccesses.Keys);
         }
 
-//        private async Task<ChainContext> GetChainContextAsync()
-//        {
-//            var chain = await _blockchainService.GetChainAsync();
-//            if (chain == null)
-//            {
-//                return null;
-//            }
-//
-//            var chainContext = new ChainContext()
-//            {
-//                BlockHash = chain.BestChainHash,
-//                BlockHeight = chain.BestChainHeight
-//            };
-//            return chainContext;
-//        }
     }
 }
