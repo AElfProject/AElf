@@ -11,7 +11,7 @@
         <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0"/>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0"/>
         <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.9.0"/>
-        <PackageReference Include="Volo.Abp.Core" Version="0.15.0"/>
+        <PackageReference Include="Volo.Abp.Core" Version="0.18.1"/>
     </ItemGroup>
 
 </Project>
