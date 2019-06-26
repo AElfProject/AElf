@@ -150,30 +150,11 @@ namespace AElf.OS.Network.Grpc
 
         public Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
-//            GrpcRequest request = new GrpcRequest
-//            {
-//                ErrorMessage = $"Broadcast announce for {header.BlockHash} failed.",
-//                MetricName = nameof(MetricNames.Announce),
-//                MetricInfo = $"Block hash {header.BlockHash}"
-//            };
-//
-//            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
-
             return _announcementStream.WriteAsync(header);
         }
 
         public Task SendTransactionAsync(Transaction tx)
         {
-//            GrpcRequest request = new GrpcRequest
-//            {
-//                ErrorMessage = $"Broadcast transaction for {tx.GetHash()} failed."
-//            };
-//            
-//            Metadata data = new Metadata
-//            {
-//                {GrpcConstants.TimeoutMetadataKey, TransactionBroadcastTimeout.ToString()}
-//            };
-
             return _transactionStream.WriteAsync(tx);
         }
 

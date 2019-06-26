@@ -48,75 +48,47 @@ namespace AElf.OS.Network.Application
             return _peerPool.GetPeers(true).ToList(); 
         }
 
-        public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader,bool hasFork)
+        public async Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
         {
-            int successfulBcasts = 0;
-            
             var blockHash = blockHeader.GetHash();
+            
             if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlockHash) &&
                 recentBlockHash == blockHash)
             {
                 Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
-                return successfulBcasts;
+                return;
             }
-
+            
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
+            
             var announce = new PeerNewBlockAnnouncement
             {
                 BlockHash = blockHash,
                 BlockHeight = blockHeader.Height,
                 HasFork = hasFork
             };
-            
-            var peers = _peerPool.GetPeers().ToList();
 
-            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
-            
-            Logger.LogDebug("About to broadcast to peers.");
-            
-            var tasks = peers.Select(peer => DoAnnounce(peer, announce)).ToList();
-            await Task.WhenAll(tasks);
-
-            foreach (var finishedTask in tasks.Where(t => t.IsCompleted))
+            foreach (var peer in _peerPool.GetPeers())
             {
-                if (finishedTask.Result)
-                    successfulBcasts++;
+                try
+                {
+                    await peer.AnnounceAsync(announce);
+                }
+                catch (NetworkException ex)
+                {
+                    Logger.LogError(ex, $"Error while announcing to {peer}.");
+                    await HandleNetworkException(peer, ex);
+                }
             }
-            
-            Logger.LogDebug("Broadcast successful !");
-            
-            return successfulBcasts;
-        }
-
-        private async Task<bool> DoAnnounce(IPeer peer, PeerNewBlockAnnouncement announce)
-        {
-            try
-            {
-                Logger.LogDebug($"Before broadcast {announce.BlockHash} to {peer}.");
-                await peer.AnnounceAsync(announce);
-                Logger.LogDebug($"After broadcast {announce.BlockHash} to {peer}.");
-
-                return true;
-            }
-            catch (NetworkException ex)
-            {
-                Logger.LogError(ex, "Error while announcing.");
-                await HandleNetworkException(peer, ex);
-            }
-
-            return false;
         }
         
-        public async Task<int> BroadcastTransactionAsync(Transaction tx)
+        public async Task BroadcastTransactionAsync(Transaction tx)
         {
-            int successfulBcasts = 0;
-            
             foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
                     await peer.SendTransactionAsync(tx);
-                    
-                    successfulBcasts++;
                 }
                 catch (NetworkException ex)
                 {
@@ -124,8 +96,6 @@ namespace AElf.OS.Network.Application
                     await HandleNetworkException(peer, ex);
                 }
             }
-            
-            return successfulBcasts;
         }
 
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 
