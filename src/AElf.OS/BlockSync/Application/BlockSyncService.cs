@@ -42,40 +42,43 @@ namespace AElf.OS.BlockSync.Application
             if (syncBlockDto.SyncBlockHeight <= chain.LastIrreversibleBlockHeight)
             {
                 Logger.LogTrace(
-                    $"Receive lower header {{ hash: {syncBlockDto.SyncBlockHash}, height: {syncBlockDto.SyncBlockHeight} }} " +
-                    $"form {syncBlockDto.SuggestedPeerPubKey}, ignore.");
+                    $"Receive lower header {{ hash: {syncBlockDto.SyncBlockHash}, height: {syncBlockDto.SyncBlockHeight} }} form {syncBlockDto.SuggestedPeerPubKey}, ignore.");
                 return;
             }
 
-            bool syncResult;
-            if (syncBlockDto.SyncBlockHash != null && syncBlockDto.SyncBlockHeight <= chain.LongestChainHeight + 1)
+            var syncResult = false;
+            if (QueueIsAvailable())
             {
-                syncResult = await _blockFetchService.FetchBlockAsync(syncBlockDto.SyncBlockHash, syncBlockDto.SyncBlockHeight,
-                    syncBlockDto.SuggestedPeerPubKey);
-            }
-            else
-            {
-                Logger.LogTrace(
-                    $"Receive higher header {{ hash: {syncBlockDto.SyncBlockHash}, height: {syncBlockDto.SyncBlockHeight} }} " +
-                    $"form {syncBlockDto.SuggestedPeerPubKey}, ignore.");
-                var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
-                    chain.LongestChainHeight, syncBlockDto.BatchRequestBlockCount, syncBlockDto.SuggestedPeerPubKey);
-
-                if (syncBlockCount == 0)
+                if (syncBlockDto.SyncBlockHash != null && syncBlockDto.SyncBlockHeight <= chain.LongestChainHeight + 1)
                 {
-                    syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
-                        chain.BestChainHeight, syncBlockDto.BatchRequestBlockCount, syncBlockDto.SuggestedPeerPubKey);
+                    syncResult = await _blockFetchService.FetchBlockAsync(syncBlockDto.SyncBlockHash,
+                        syncBlockDto.SyncBlockHeight, syncBlockDto.SuggestedPeerPubKey);
                 }
-
-                if (syncBlockCount == 0 && syncBlockDto.SyncBlockHeight > chain.LongestChainHeight + 16)
+                else
                 {
-                    Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
-                    syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LastIrreversibleBlockHash,
-                        chain.LastIrreversibleBlockHeight, syncBlockDto.BatchRequestBlockCount,
+                    Logger.LogTrace(
+                        $"Receive higher header {{ hash: {syncBlockDto.SyncBlockHash}, height: {syncBlockDto.SyncBlockHeight} }} form {syncBlockDto.SuggestedPeerPubKey}, ignore.");
+                    var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
+                        chain.LongestChainHeight, syncBlockDto.BatchRequestBlockCount,
                         syncBlockDto.SuggestedPeerPubKey);
-                }
 
-                syncResult = syncBlockCount > 0;
+                    if (syncBlockCount == 0)
+                    {
+                        syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
+                            chain.BestChainHeight, syncBlockDto.BatchRequestBlockCount,
+                            syncBlockDto.SuggestedPeerPubKey);
+                    }
+
+                    if (syncBlockCount == 0 && syncBlockDto.SyncBlockHeight > chain.LongestChainHeight + 16)
+                    {
+                        Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
+                        syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(
+                            chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
+                            syncBlockDto.BatchRequestBlockCount, syncBlockDto.SuggestedPeerPubKey);
+                    }
+
+                    syncResult = syncBlockCount > 0;
+                }
             }
 
             if (!syncResult && syncBlockDto.SyncRetryTimes > 1)
@@ -102,6 +105,32 @@ namespace AElf.OS.BlockSync.Application
                     _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = null;
                 }
             }, OSConsts.BlockSyncQueueName);
+        }
+
+        private bool QueueIsAvailable()
+        {
+            var blockSyncAttachBlockEnqueueTime = _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime;
+            if (blockSyncAttachBlockEnqueueTime != null && TimestampHelper.GetUtcNow() >
+                blockSyncAttachBlockEnqueueTime +
+                TimestampHelper.DurationFromMilliseconds(BlockSyncConstants.BlockSyncAttachBlockAgeLimit))
+            {
+                Logger.LogWarning(
+                    $"Block sync attach queue is too busy, enqueue timestamp: {blockSyncAttachBlockEnqueueTime}");
+                return false;
+            }
+
+            var blockSyncAttachAndExecuteBlockEnqueueTime =
+                _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime;
+            if (blockSyncAttachAndExecuteBlockEnqueueTime != null && TimestampHelper.GetUtcNow() >
+                blockSyncAttachAndExecuteBlockEnqueueTime +
+                TimestampHelper.DurationFromMilliseconds(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit))
+            {
+                Logger.LogWarning(
+                    $"Block sync attach and execute queue is too busy, enqueue timestamp: {blockSyncAttachAndExecuteBlockEnqueueTime}");
+                return false;
+            }
+
+            return true;
         }
     }
 }

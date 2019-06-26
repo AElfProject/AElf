@@ -38,29 +38,10 @@ namespace AElf.OS.BlockSync.Application
                 return false;
             }
 
-            var blockSyncAttachBlockEnqueueTime = _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime;
-            if (blockSyncAttachBlockEnqueueTime != null && TimestampHelper.GetUtcNow() >
-                blockSyncAttachBlockEnqueueTime +
-                TimestampHelper.DurationFromMilliseconds(BlockSyncConstants.BlockSyncAttachBlockAgeLimit))
-            {
-                Logger.LogWarning(
-                    $"Block sync attach queue is too busy, enqueue timestamp: {blockSyncAttachBlockEnqueueTime}");
-                return false;
-            }
-
-            var blockSyncAttachAndExecuteBlockEnqueueTime =
-                _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime;
-            if (blockSyncAttachAndExecuteBlockEnqueueTime != null && TimestampHelper.GetUtcNow() >
-                blockSyncAttachAndExecuteBlockEnqueueTime +
-                TimestampHelper.DurationFromMilliseconds(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit))
-            {
-                Logger.LogWarning(
-                    $"Block sync attach and execute queue is too busy, enqueue timestamp: {blockSyncAttachAndExecuteBlockEnqueueTime}");
-                return false;
-            }
-
             if (!_announcementCacheProvider.AddAnnouncementCache(syncBlockHash, syncBlockHeight))
             {
+                Logger.LogWarning(
+                    $"already sync {syncBlockHash} : {syncBlockHeight}");
                 return false;
             }
 
