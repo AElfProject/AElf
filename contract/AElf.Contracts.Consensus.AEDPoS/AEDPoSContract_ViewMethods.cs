@@ -107,6 +107,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp currentBlockTime, out Round nextRound)
         {
+            if (!State.IsMainChain.Value && IsMainChainMinerListChanged(currentRound))
+            {
+                Context.LogDebug(() => "About to change miners.");
+                nextRound = State.MainChainCurrentMinerList.Value.GenerateFirstRoundOfNewTerm(
+                    currentRound.GetMiningInterval(), currentBlockTime, currentRound.RoundNumber);
+                Context.LogDebug(() => "Round of new miners generated.");
+                return true;
+            }
+
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
             if (TryToGetPreviousRoundInformation(out var previousRound) &&
                 previousRound.TermNumber + 1 != currentRound.TermNumber)
@@ -142,9 +151,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            var result = currentRound.GenerateNextRoundInformation(currentBlockTime,
+            return currentRound.GenerateNextRoundInformation(currentBlockTime,
                 blockchainStartTimestamp, out nextRound);
-            return result;
+        }
+
+        private bool IsMainChainMinerListChanged(Round currentRound)
+        {
+            Context.LogDebug(() => "Entered IsMainChainMinerListChanged.");
+            return State.MainChainCurrentMinerList.Value.PublicKeys.Any() &&
+                   GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
+                   GetMinerListHash(State.MainChainCurrentMinerList.Value.PublicKeys.Select(p => p.ToHex()));
+        }
+
+        private Hash GetMinerListHash(IEnumerable<string> minerList)
+        {
+            return Hash.FromString(
+                minerList.OrderBy(p => p).Aggregate("", (current, publicKey) => current + publicKey));
         }
 
         public override SInt64Value GetCurrentTermNumber(Empty input)

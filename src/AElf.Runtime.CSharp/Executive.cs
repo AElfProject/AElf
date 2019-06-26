@@ -90,7 +90,7 @@ namespace AElf.Runtime.CSharp
                 if (CurrentTransactionContext.CallDepth > CurrentTransactionContext.MaxCallDepth)
                 {
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ExceededMaxCallDepth;
-                    CurrentTransactionContext.Trace.StdErr = "\n" + "ExceededMaxCallDepth";
+                    CurrentTransactionContext.Trace.Error = "\n" + "ExceededMaxCallDepth";
                     return;
                 }
 
@@ -120,9 +120,9 @@ namespace AElf.Runtime.CSharp
                 if (!_callHandlers.TryGetValue(methodName, out var handler))
                 {
                     throw new RuntimeException(
-                        $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: "+
-                        string.Join(", ", _callHandlers.Keys.OrderBy(k=>k))
-                        );
+                        $"Failed to find handler for {methodName}. We have {_callHandlers.Count} handlers: " +
+                        string.Join(", ", _callHandlers.Keys.OrderBy(k => k))
+                    );
                 }
 
                 try
@@ -132,6 +132,7 @@ namespace AElf.Runtime.CSharp
                     if (retVal != null)
                     {
                         CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
+                        // TODO: Clean up ReadableReturnValue
                         CurrentTransactionContext.Trace.ReadableReturnValue = handler.ReturnBytesToString(retVal);
                     }
 
@@ -139,21 +140,22 @@ namespace AElf.Runtime.CSharp
                 }
                 catch (TargetInvocationException ex)
                 {
-                    CurrentTransactionContext.Trace.StdErr += ex;
+                    CurrentTransactionContext.Trace.Error += ex;
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 }
                 catch (AssertionException ex)
                 {
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                    CurrentTransactionContext.Trace.StdErr += "\n" + ex;
+                    CurrentTransactionContext.Trace.Error += "\n" + ex;
                 }
                 catch (Exception ex)
                 {
+                    // TODO: Simplify exception
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                    CurrentTransactionContext.Trace.StdErr += "\n" + ex;
+                    CurrentTransactionContext.Trace.Error += "\n" + ex;
                 }
 
-                if (!handler.IsView() && CurrentTransactionContext.Trace.IsSuccessful())
+                if (!handler.IsView())
                 {
                     var changes = _smartContractProxy.GetChanges();
 
@@ -174,6 +176,10 @@ namespace AElf.Runtime.CSharp
                         }
                     }
 
+                    if (!CurrentTransactionContext.Trace.IsSuccessful())
+                    {
+                        changes.Writes.Clear();
+                    }
 
                     CurrentTransactionContext.Trace.StateSet = changes;
                 }
@@ -185,10 +191,11 @@ namespace AElf.Runtime.CSharp
             catch (Exception ex)
             {
                 CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.SystemError;
-                CurrentTransactionContext.Trace.StdErr += ex + "\n";
+                CurrentTransactionContext.Trace.Error += ex + "\n";
             }
             finally
             {
+                // TODO: Not needed
                 Cleanup();
             }
 
