@@ -68,6 +68,8 @@ namespace AElf.OS.BlockSync.Application
                             chain.BestChainHeight, syncBlockDto.BatchRequestBlockCount,
                             syncBlockDto.SuggestedPeerPubKey);
                     }
+                    
+                    syncResult = syncBlockCount > 0;
 
                     if (syncBlockCount == 0 && syncBlockDto.SyncBlockHeight > chain.LongestChainHeight + 16)
                     {
@@ -75,9 +77,8 @@ namespace AElf.OS.BlockSync.Application
                         syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(
                             chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
                             syncBlockDto.BatchRequestBlockCount, syncBlockDto.SuggestedPeerPubKey);
+                        syncResult = syncBlockCount > 0;
                     }
-
-                    syncResult = syncBlockCount > 0;
                 }
             }
 

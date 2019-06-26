@@ -113,7 +113,7 @@ namespace AElf.OS.BlockSync.Application
             var syncBlockHash = Hash.FromString("SyncBlockHash");
             var syncBlockHeight = chain.LastIrreversibleBlockHeight - 1;
 
-            _announcementCacheProvider.AddAnnouncementCache(syncBlockHash, syncBlockHeight);
+            _announcementCacheProvider.TryAddAnnouncementCache(syncBlockHash, syncBlockHeight);
             
             var validateResult =
                 await _blockSyncValidationService.ValidateBeforeEnqueue(syncBlockHash, syncBlockHeight);
