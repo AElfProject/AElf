@@ -1,13 +1,12 @@
 using System.Threading.Tasks;
-using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
+using AElf.OS.BlockSync.Dto;
 
 namespace AElf.OS.BlockSync.Application
 {
     public interface IBlockSyncService
     {
-        Task SyncBlockAsync(Hash blockHash, long blockHeight, int batchRequestBlockCount, string suggestedPeerPubKey);
+        Task SyncBlockAsync(SyncBlockDto syncBlockDto);
 
-        void SetBlockSyncAnnouncementEnqueueTime(Timestamp timestamp);
+        void EnqueueSyncBlockJob(SyncBlockDto syncBlockDto);
     }
 }

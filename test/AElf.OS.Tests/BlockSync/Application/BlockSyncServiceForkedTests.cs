@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.BlockSync.Dto;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network.Application;
 using AElf.Types;
@@ -37,7 +38,12 @@ namespace AElf.OS.BlockSync.Application
             var peerBlockHash = peerBlock.GetHash();
             var peerBlockHeight = peerBlock.Header.Height;
             
-            await _blockSyncService.SyncBlockAsync(peerBlockHash, peerBlockHeight, 5, null);
+            await _blockSyncService.SyncBlockAsync(new SyncBlockDto
+            {
+                SyncBlockHash = peerBlockHash,
+                SyncBlockHeight = peerBlockHeight,
+                BatchRequestBlockCount = 5
+            });
             
             chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(20);

@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.OS.BlockSync.Application;
+using AElf.OS.BlockSync.Dto;
 using AElf.OS.Network;
 using AElf.OS.Network.Events;
 using Microsoft.Extensions.Logging;
@@ -16,17 +16,14 @@ namespace AElf.OS.Handlers
 
         private readonly IBlockSyncService _blockSyncService;
         private readonly IBlockSyncValidationService _blockSyncValidationService;
-        private readonly ITaskQueueManager _taskQueueManager;
         private readonly NetworkOptions _networkOptions;
 
         public PeerConnectedEventHandler(IBlockSyncService blockSyncService,
             IBlockSyncValidationService blockSyncValidationService,
-            ITaskQueueManager taskQueueManager,
             IOptionsSnapshot<NetworkOptions> networkOptions)
         {
             _blockSyncService = blockSyncService;
             _blockSyncValidationService = blockSyncValidationService;
-            _taskQueueManager = taskQueueManager;
             _networkOptions = networkOptions.Value;
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
@@ -47,20 +44,14 @@ namespace AElf.OS.Handlers
                 return;
             }
 
-            var enqueueTimestamp = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
+            _blockSyncService.EnqueueSyncBlockJob(new SyncBlockDto
             {
-                try
-                {
-                    _blockSyncService.SetBlockSyncAnnouncementEnqueueTime(enqueueTimestamp);
-                    await _blockSyncService.SyncBlockAsync(announcement.BlockHash, announcement.BlockHeight, _networkOptions
-                        .BlockIdRequestCount, senderPubKey);
-                }
-                finally
-                {
-                    _blockSyncService.SetBlockSyncAnnouncementEnqueueTime(null);
-                }
-            }, OSConsts.BlockSyncQueueName);
+                SyncBlockHash = announcement.BlockHash,
+                SyncBlockHeight = announcement.BlockHeight,
+                SuggestedPeerPubKey = senderPubKey,
+                BatchRequestBlockCount = _networkOptions.BlockIdRequestCount,
+                SyncRetryTimes = 3
+            });
         }
     }
 }
