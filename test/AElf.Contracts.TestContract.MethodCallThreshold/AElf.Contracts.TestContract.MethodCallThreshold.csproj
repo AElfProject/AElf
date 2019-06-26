@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.TestContract.ProfitSharing</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <RootNamespace>AElf.Contracts.TestContract.ProfitSharing</RootNamespace>
+        <RootNamespace>AElf.Contracts.TestContract.MethodCallThresholdContract</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

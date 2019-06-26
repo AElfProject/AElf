@@ -17,7 +17,7 @@ namespace AElf.Contracts.TestContract.MethodCallThresholdContract
             State.TreasuryContract.Register.Send(new RegisterInput
             {
                 TokenSymbol = input.Symbol,
-                TotalSupply =ProfitSharingContractConstants.TotalSupply,
+                TotalSupply =MethodCallThresholdContractConstants.TotalSupply,
                 ConnectorWeight = "0.2",
                 Decimals = 2,
                 TokenName = "Token of Profit Sharing Contract"
@@ -28,7 +28,7 @@ namespace AElf.Contracts.TestContract.MethodCallThresholdContract
             State.TokenContract.Issue.Send(new IssueInput
             {
                 Symbol = input.Symbol,
-                Amount = ProfitSharingContractConstants.AmountIssueToTokenConverterContract,
+                Amount = MethodCallThresholdContractConstants.AmountIssueToTokenConverterContract,
                 To = Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
             });
 
