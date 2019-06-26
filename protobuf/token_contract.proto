@@ -38,6 +38,8 @@ service TokenContract {
     }
     rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) {
     }
+    rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -176,6 +178,12 @@ message CrossChainReceiveTokenInput {
     int64 parentChainHeight = 2;
     bytes transferTransactionBytes = 3;
     repeated aelf.Hash merklePath = 4;
+}
+
+message CheckThresholdInput {
+    aelf.Address sender = 1;
+    string symbol = 2;
+    sint64 threshold_amount = 3;
 }
 
 // EventsCreateInput

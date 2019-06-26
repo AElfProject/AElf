@@ -9,7 +9,7 @@ import "google/protobuf/wrappers.proto";
 
 option (aelf.identity) = "acs5";
 
-service ProfitSharingContract {
+service ThresholdSettingContract {
     // Actions
     rpc SetProfitReceivers (ProfitReceivers) returns (google.protobuf.Empty) {
     }
