@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Economic;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
@@ -23,6 +24,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
+using Volo.Abp;
 using Volo.Abp.Threading;
 
 namespace AElf.Contracts.EconomicSystem.Tests
@@ -38,7 +40,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         protected ECKeyPair BootMinerKeyPair => SampleECKeyPairs.KeyPairs[0];
 
         protected Address BootMinerAddress => Address.FromPublicKey(BootMinerKeyPair.PublicKey);
-        
+
         protected Address ConnectorManagerAddress => Address.FromPublicKey(BootMinerKeyPair.PublicKey);
 
         internal static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
@@ -80,6 +82,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         protected Address TreasuryContractAddress { get; set; }
         protected Address TransactionFeeChargingContractAddress { get; set; }
         protected Address ProfitSharingContractAddress { get; set; }
+        protected Address EconomicContractAddress { get; set; }
 
         // Will use BootMinerKeyPair.
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
@@ -90,9 +93,12 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
+
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
             TransactionFeeChargingContractStub { get; set; }
+
         internal ProfitSharingContractContainer.ProfitSharingContractStub ProfitSharingContractStub { get; set; }
+        internal EconomicContractContainer.EconomicContractStub EconomicContractStub { get; set; }
 
         private byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("AEDPoS")).Value;
         private byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
@@ -102,7 +108,10 @@ namespace AElf.Contracts.EconomicSystem.Tests
         private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;
         private byte[] TreasuryContractCode => Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
         private byte[] ProfitSharingContractCode => Codes.Single(kv => kv.Key.Contains("ProfitSharing")).Value;
-        private byte[] TransactionFeeChargingContractCode => Codes.Single(kv => kv.Key.Contains("TransactionFee")).Value;
+        private byte[] EconomicContractCode => Codes.Single(kv => kv.Key.Contains("Economic")).Value;
+
+        private byte[] TransactionFeeChargingContractCode =>
+            Codes.Single(kv => kv.Key.Contains("TransactionFee")).Value;
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
         {
@@ -160,104 +169,41 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 keyPair);
         }
 
+        internal EconomicContractContainer.EconomicContractStub GetEconomicContractStub(ECKeyPair keyPair)
+        {
+            return GetTester<EconomicContractContainer.EconomicContractStub>(EconomicContractAddress, keyPair);
+        }
+        
+        internal enum ProfitType
+        {
+            Treasury,
+            MinerReward,
+            BackupSubsidy,
+            CitizenWelfare,
+            BasicMinerReward,
+            VotesWeightReward,
+            ReElectionReward
+        }
+
         protected void InitializeContracts()
         {
-            BasicContractZeroStub = GetContractZeroTester(BootMinerKeyPair);
-
-            BlockTimeProvider.SetBlockTime(StartTimestamp);
-
-            // Deploy Vote Contract
-            VoteContractAddress = AsyncHelper.RunSync(() =>
-                DeploySystemSmartContract(
-                    KernelConstants.CodeCoverageRunnerCategory,
-                    VoteContractCode,
-                    VoteSmartContractAddressNameProvider.Name,
-                    BootMinerKeyPair));
-            VoteContractStub = GetVoteContractTester(BootMinerKeyPair);
-            AsyncHelper.RunSync(InitializeVote);
-
-            // Deploy Profit Contract
-            ProfitContractAddress = AsyncHelper.RunSync(() =>
-                DeploySystemSmartContract(
-                    KernelConstants.CodeCoverageRunnerCategory,
-                    ProfitContractCode,
-                    ProfitSmartContractAddressNameProvider.Name,
-                    BootMinerKeyPair));
-            ProfitContractStub =
-                GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, BootMinerKeyPair);
-            AsyncHelper.RunSync(InitializeProfit);
-
-            // Deploy Election Contract.
-            ElectionContractAddress = AsyncHelper.RunSync(() =>
-                DeploySystemSmartContract(
-                    KernelConstants.CodeCoverageRunnerCategory,
-                    ElectionContractCode,
-                    ElectionSmartContractAddressNameProvider.Name,
-                    BootMinerKeyPair));
-            ElectionContractStub = GetElectionContractTester(BootMinerKeyPair);
-            AsyncHelper.RunSync(InitializeElection);
-
-            // Deploy Token Contract
-            TokenContractAddress = AsyncHelper.RunSync(() =>
-                DeploySystemSmartContract(
-                    KernelConstants.CodeCoverageRunnerCategory,
-                    TokenContractCode,
-                    TokenSmartContractAddressNameProvider.Name,
-                    BootMinerKeyPair));
-            TokenContractStub = GetTokenContractTester(BootMinerKeyPair);
-            AsyncHelper.RunSync(InitializeToken);
-
-            // Deploy Token Converter Contract
-            TokenConverterContractAddress = AsyncHelper.RunSync(() =>
-                DeploySystemSmartContract(
-                    KernelConstants.CodeCoverageRunnerCategory,
-                    TokenConverterContractCode,
-                    TokenConverterSmartContractAddressNameProvider.Name,
-                    BootMinerKeyPair));
-            TokenConverterContractStub = GetTokenConverterContractTester(BootMinerKeyPair);
-            AsyncHelper.RunSync(InitializeTokenConverter);
-
-            // Deploy Treasury Contract.
-            TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-                KernelConstants.CodeCoverageRunnerCategory,
-                TreasuryContractCode,
-                TreasurySmartContractAddressNameProvider.Name,
-                BootMinerKeyPair));
-            TreasuryContractStub = GetTreasuryContractStub(BootMinerKeyPair);
-            AsyncHelper.RunSync(InitializeTreasury);
+            DeployContracts();
             
+            AsyncHelper.RunSync(InitializeVote);
+            AsyncHelper.RunSync(InitializeProfit);
+            AsyncHelper.RunSync(InitializeTreasuryConverter);
+            AsyncHelper.RunSync(InitializeElection);
+            AsyncHelper.RunSync(InitializeEconomicContract);
+            AsyncHelper.RunSync(InitializeToken);
+            AsyncHelper.RunSync(InitializeAElfConsensus);
+            AsyncHelper.RunSync(InitializeTokenConverter);
             // Transfer manager of connector setting.
             AsyncHelper.RunSync(async () =>
             {
                 await TokenConverterContractStub.SetManagerAddress.SendAsync(TreasuryContractAddress);
             });
-
-            // Deploy AElf Consensus Contract.
-            ConsensusContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-                KernelConstants.CodeCoverageRunnerCategory,
-                ConsensusContractCode,
-                ConsensusSmartContractAddressNameProvider.Name,
-                BootMinerKeyPair));
-            AEDPoSContractStub = GetAEDPoSContractStub(BootMinerKeyPair);
-            AsyncHelper.RunSync(InitializeAElfConsensus);
-
-            // Deploy Contracts for testing.
-            TransactionFeeChargingContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-                KernelConstants.CodeCoverageRunnerCategory,
-                TransactionFeeChargingContractCode,
-                Hash.FromString("AElf.ContractNames.TransactionFeeCharging"),
-                BootMinerKeyPair));
-            TransactionFeeChargingContractStub = GetTransactionFeeChargingContractStub(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeTransactionFeeChargingContract);
-
-            ProfitSharingContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
-                KernelConstants.CodeCoverageRunnerCategory,
-                ProfitSharingContractCode,
-                Hash.FromString("AElf.ContractNames.ProfitSharing"),
-                BootMinerKeyPair));
-            ProfitSharingContractStub = GetProfitSharingContractStub(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeProfitSharingContract);
-
             var profitIds = AsyncHelper.RunSync(() =>
                 ProfitContractStub.GetCreatedProfitIds.CallAsync(
                     new GetCreatedProfitIdsInput
@@ -278,15 +224,97 @@ namespace AElf.Contracts.EconomicSystem.Tests
             AsyncHelper.RunSync(SetConnectors);
         }
 
-        internal enum ProfitType
+        private void DeployContracts()
         {
-            Treasury,
-            MinerReward,
-            BackupSubsidy,
-            CitizenWelfare,
-            BasicMinerReward,
-            VotesWeightReward,
-            ReElectionReward
+            BasicContractZeroStub = GetContractZeroTester(BootMinerKeyPair);
+
+            BlockTimeProvider.SetBlockTime(StartTimestamp);
+
+            // Deploy Vote Contract
+            VoteContractAddress = AsyncHelper.RunSync(() =>
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    VoteContractCode,
+                    VoteSmartContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
+            VoteContractStub = GetVoteContractTester(BootMinerKeyPair);
+
+            // Deploy Profit Contract
+            ProfitContractAddress = AsyncHelper.RunSync(() =>
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    ProfitContractCode,
+                    ProfitSmartContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
+            ProfitContractStub =
+                GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, BootMinerKeyPair);
+            
+            // Deploy Treasury Contract.
+            TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                TreasuryContractCode,
+                TreasurySmartContractAddressNameProvider.Name,
+                BootMinerKeyPair));
+            TreasuryContractStub = GetTreasuryContractStub(BootMinerKeyPair);
+
+            // Deploy Election Contract.
+            ElectionContractAddress = AsyncHelper.RunSync(() =>
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    ElectionContractCode,
+                    ElectionSmartContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
+            ElectionContractStub = GetElectionContractTester(BootMinerKeyPair);
+
+            // Deploy Token Contract
+            TokenContractAddress = AsyncHelper.RunSync(() =>
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    TokenContractCode,
+                    TokenSmartContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
+            TokenContractStub = GetTokenContractTester(BootMinerKeyPair);
+            
+            // Deploy AElf Consensus Contract.
+            ConsensusContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                ConsensusContractCode,
+                ConsensusSmartContractAddressNameProvider.Name,
+                BootMinerKeyPair));
+            AEDPoSContractStub = GetAEDPoSContractStub(BootMinerKeyPair);
+
+            // Deploy Token Converter Contract
+            TokenConverterContractAddress = AsyncHelper.RunSync(() =>
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    TokenConverterContractCode,
+                    TokenConverterSmartContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
+            TokenConverterContractStub = GetTokenConverterContractTester(BootMinerKeyPair);
+
+            // Deploy Economic Contract
+            EconomicContractAddress = AsyncHelper.RunSync(() =>
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    EconomicContractCode,
+                    EconomicSmartContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
+            EconomicContractStub = GetEconomicContractStub(BootMinerKeyPair);
+
+            // Deploy Contracts for testing.
+            TransactionFeeChargingContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                TransactionFeeChargingContractCode,
+                Hash.FromString("AElf.ContractNames.TransactionFeeCharging"),
+                BootMinerKeyPair));
+            TransactionFeeChargingContractStub = GetTransactionFeeChargingContractStub(BootMinerKeyPair);
+
+            ProfitSharingContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                ProfitSharingContractCode,
+                Hash.FromString("AElf.ContractNames.ProfitSharing"),
+                BootMinerKeyPair));
+            ProfitSharingContractStub = GetProfitSharingContractStub(BootMinerKeyPair);
         }
 
         private async Task InitializeVote()
@@ -295,7 +323,25 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 new Empty());
             CheckResult(result.TransactionResult);
         }
-
+        private async Task InitializeProfit()
+        {
+            var result = await ProfitContractStub.InitializeProfitContract.SendAsync(new Empty());
+            CheckResult(result.TransactionResult);
+        }
+        private async Task InitializeTreasuryConverter()
+        {
+            {
+                var result =
+                    await TreasuryContractStub.InitialTreasuryContract.SendAsync(new InitialTreasuryContractInput());
+                CheckResult(result.TransactionResult);
+            }
+            {
+                var result =
+                    await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(
+                        new InitialMiningRewardProfitItemInput());
+                CheckResult(result.TransactionResult);
+            }
+        }
         private async Task InitializeElection()
         {
             var result = await ElectionContractStub.InitialElectionContract.SendAsync(new InitialElectionContractInput
@@ -305,7 +351,56 @@ namespace AElf.Contracts.EconomicSystem.Tests
             });
             CheckResult(result.TransactionResult);
         }
+        private async Task InitializeToken()
+        {
+            foreach (var coreDataCenterKeyPair in CoreDataCenterKeyPairs)
+            {
+                var result = await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                    Amount = ElectionContractConstants.LockTokenForElection * 10,
+                    To = Address.FromPublicKey(coreDataCenterKeyPair.PublicKey),
+                    Memo = "Used to announce election."
+                });
+                CheckResult(result.TransactionResult);
+            }
 
+            foreach (var validationDataCenterKeyPair in ValidationDataCenterKeyPairs)
+            {
+                var result = await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                    Amount = ElectionContractConstants.LockTokenForElection,
+                    To = Address.FromPublicKey(validationDataCenterKeyPair.PublicKey),
+                    Memo = "Used to announce election."
+                });
+                CheckResult(result.TransactionResult);
+            }
+
+            foreach (var validationDataCenterCandidateKeyPair in ValidationDataCenterCandidateKeyPairs)
+            {
+                var result = await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                    Amount = ElectionContractConstants.LockTokenForElection,
+                    To = Address.FromPublicKey(validationDataCenterCandidateKeyPair.PublicKey),
+                    Memo = "Used to announce election."
+                });
+                CheckResult(result.TransactionResult);
+            }
+
+            foreach (var voterKeyPair in VoterKeyPairs)
+            {
+                var result = await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                    Amount = ElectionContractConstants.LockTokenForElection,
+                    To = Address.FromPublicKey(voterKeyPair.PublicKey),
+                    Memo = "Used to vote data center."
+                });
+                CheckResult(result.TransactionResult);
+            }
+        }
         private async Task InitializeAElfConsensus()
         {
             {
@@ -325,7 +420,6 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 CheckResult(result.TransactionResult);
             }
         }
-        
         private async Task InitializeTransactionFeeChargingContract()
         {
             var result = await TransactionFeeChargingContractStub.InitializeTransactionFeeChargingContract.SendAsync(
@@ -335,7 +429,6 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 });
             CheckResult(result.TransactionResult);
         }
-        
         private async Task InitializeProfitSharingContract()
         {
             var result = await ProfitSharingContractStub.InitializeProfitSharingContract.SendAsync(
@@ -345,123 +438,16 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 });
             CheckResult(result.TransactionResult);
         }
-
-        private async Task InitializeToken()
-        {
-            // Create native token.
-            {
-                var result = await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput
-                {
-                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                    Decimals = 2,
-                    IsBurnable = true,
-                    TokenName = "elf token",
-                    TotalSupply = EconomicSystemTestConstants.TotalSupply,
-                    Issuer = BootMinerAddress,
-                    LockWhiteSystemContractNameList =
-                    {
-                        // Thus native token can support locking for announcing election.
-                        ElectionSmartContractAddressNameProvider.Name,
-                        // Thus native token can support voting for any voting item.
-                        VoteSmartContractAddressNameProvider.Name,
-                        // Thus native token can support sharing profits.
-                        ProfitSmartContractAddressNameProvider.Name,
-                    }
-                });
-                CheckResult(result.TransactionResult);
-            }
-
-            foreach (var coreDataCenterKeyPair in CoreDataCenterKeyPairs)
-            {
-                {
-                    var result = await TokenContractStub.Issue.SendAsync(new IssueInput
-                    {
-                        Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                        Amount = ElectionContractConstants.LockTokenForElection * 10,
-                        To = Address.FromPublicKey(coreDataCenterKeyPair.PublicKey),
-                        Memo = "Used to announce election."
-                    });
-                    CheckResult(result.TransactionResult);
-                }
-            }
-
-            foreach (var validationDataCenterKeyPair in ValidationDataCenterKeyPairs)
-            {
-                {
-                    var result = await TokenContractStub.Issue.SendAsync(new IssueInput
-                    {
-                        Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                        Amount = ElectionContractConstants.LockTokenForElection,
-                        To = Address.FromPublicKey(validationDataCenterKeyPair.PublicKey),
-                        Memo = "Used to announce election."
-                    });
-                    CheckResult(result.TransactionResult);
-                }
-            }
-
-            foreach (var validationDataCenterCandidateKeyPair in ValidationDataCenterCandidateKeyPairs)
-            {
-                {
-                    var result = await TokenContractStub.Issue.SendAsync(new IssueInput
-                    {
-                        Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                        Amount = ElectionContractConstants.LockTokenForElection,
-                        To = Address.FromPublicKey(validationDataCenterCandidateKeyPair.PublicKey),
-                        Memo = "Used to announce election."
-                    });
-                    CheckResult(result.TransactionResult);
-                }
-            }
-
-            foreach (var voterKeyPair in VoterKeyPairs)
-            {
-                {
-                    var result = await TokenContractStub.Issue.SendAsync(new IssueInput
-                    {
-                        Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                        Amount = ElectionContractConstants.LockTokenForElection,
-                        To = Address.FromPublicKey(voterKeyPair.PublicKey),
-                        Memo = "Used to vote data center."
-                    });
-                    CheckResult(result.TransactionResult);
-                }
-            }
-        }
-
         private async Task InitializeTokenConverter()
         {
+            var result = await TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
             {
-                var result = await TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
-                {
-                    BaseTokenSymbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                    ManagerAddress = ConnectorManagerAddress,
-                    FeeRate = "0.01"
-                });
-                CheckResult(result.TransactionResult);
-            }
-        }
-
-        private async Task InitializeTreasury()
-        {
-            {
-                var result =
-                    await TreasuryContractStub.InitialTreasuryContract.SendAsync(new InitialTreasuryContractInput());
-                CheckResult(result.TransactionResult);
-            }
-            {
-                var result =
-                    await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(
-                        new InitialMiningRewardProfitItemInput());
-                CheckResult(result.TransactionResult);
-            }
-        }
-
-        private async Task InitializeProfit()
-        {
-            var result = await ProfitContractStub.InitializeProfitContract.SendAsync(new Empty());
+                BaseTokenSymbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                ManagerAddress = ConnectorManagerAddress,
+                FeeRate = "0.01"
+            });
             CheckResult(result.TransactionResult);
         }
-
         private async Task SetConnectors()
         {
             var manager =
@@ -489,6 +475,40 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 Weight = "0.2",
                 IsVirtualBalanceEnabled = true
             });
+        }
+        private async Task InitializeEconomicContract()
+        {
+            //create native token
+            {
+                var result = await EconomicContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput
+                {
+                    Decimals = EconomicSystemTestConstants.Decimals,
+                    IsBurnable = EconomicSystemTestConstants.IsBurnable,
+                    TokenName = EconomicSystemTestConstants.NativeTokenSymbol,
+                    TotalSupply = EconomicSystemTestConstants.TotalSupply
+                });
+                CheckResult(result.TransactionResult);
+            }
+            //InitialMiningReward
+            {
+                var result = await EconomicContractStub.InitialMiningReward.SendAsync(new Empty());
+                CheckResult(result.TransactionResult);
+            }
+            //Issue native token to core data center keyPairs
+            {
+                var result = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
+                {
+                    Amount = EconomicSystemTestConstants.TotalSupply / 5,
+                    To = TreasuryContractAddress,
+                    Memo = "Set mining rewards."
+                });
+                CheckResult(result.TransactionResult);
+            }
+            //Register election voting event
+            {
+                var result = await EconomicContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
+                CheckResult(result.TransactionResult);
+            }
         }
 
         private void CheckResult(TransactionResult result)
