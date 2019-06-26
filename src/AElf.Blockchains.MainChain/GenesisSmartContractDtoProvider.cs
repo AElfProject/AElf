@@ -38,6 +38,7 @@ namespace AElf.Blockchains.MainChain
                 GetGenesisSmartContractDtosForConfiguration(zeroContractAddress),
                 GetGenesisSmartContractDtosForConsensus(),
                 GetGenesisSmartContractDtosForTokenConverter(),
+                GetGenesisSmartContractDtosForEconomic()
             }.SelectMany(x => x);
         }
     }

@@ -60,13 +60,13 @@ namespace AElf.Contracts.Election
                 LockWhiteList = {Context.Self}
             });
 
-            State.TokenContract.Issue.Send(new IssueInput
-            {
-                Symbol = ElectionContractConstants.VoteSymbol,
-                Amount = ElectionContractConstants.VotesTotalSupply,
-                To = Context.Self,
-                Memo = "Power!"
-            });
+//            State.TokenContract.Issue.Send(new IssueInput
+//            {
+//                Symbol = ElectionContractConstants.VoteSymbol,
+//                Amount = ElectionContractConstants.VotesTotalSupply,
+//                To = Context.Self,
+//                Memo = "Power!"
+//            });
 
             var votingRegisterInput = new VotingRegisterInput
             {
@@ -330,15 +330,13 @@ namespace AElf.Contracts.Election
             }
 
             State.CandidateVotes[input.CandidatePublicKey] = candidateVotes;
-            
-            
 
-            State.TokenContract.Transfer.Send(new TransferInput
+            State.TokenContract.Issue.Send(new IssueInput
             {
                 Symbol = ElectionContractConstants.VoteSymbol,
                 To = Context.Sender,
                 Amount = input.Amount,
-                Memo = "Get VOTEs."
+                Memo = "Issue VOTEs."
             });
 
             State.TokenContract.Lock.Send(new LockInput

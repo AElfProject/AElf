@@ -224,7 +224,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 TreasurySmartContractAddressNameProvider.Name,
                 BootMinerKeyPair));
             TreasuryContractStub = GetTreasuryContractStub(BootMinerKeyPair);
-            AsyncHelper.RunSync(InitializeTreasuryConverter);
+            AsyncHelper.RunSync(InitializeTreasury);
             
             // Transfer manager of connector setting.
             AsyncHelper.RunSync(async () =>
@@ -371,18 +371,6 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 CheckResult(result.TransactionResult);
             }
 
-            // Issue native tokens to consensus contract. This amount of tokens will be used for rewarding mining.
-            {
-                var result = await TokenContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
-                {
-                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                    Amount = EconomicSystemTestConstants.TotalSupply / 5,
-                    ToSystemContractName = ProfitSmartContractAddressNameProvider.Name,
-                    Memo = "Prepare mining rewards.",
-                });
-                CheckResult(result.TransactionResult);
-            }
-
             foreach (var coreDataCenterKeyPair in CoreDataCenterKeyPairs)
             {
                 {
@@ -453,7 +441,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
             }
         }
 
-        private async Task InitializeTreasuryConverter()
+        private async Task InitializeTreasury()
         {
             {
                 var result =

@@ -15,20 +15,16 @@ namespace AElf.Blockchains.MainChain
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForProfit(Address zeroContractAddress)
         {
             var l = new List<GenesisSmartContractDto>();
-
             l.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("Profit")).Value,
                 ProfitSmartContractAddressNameProvider.Name, GenerateProfitInitializationCallList());
-
             return l;
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
             var profitContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-
             profitContractMethodCallList.Add(nameof(ProfitContractContainer.ProfitContractStub.InitializeProfitContract),new Empty());
-
             return profitContractMethodCallList;
         }
     }

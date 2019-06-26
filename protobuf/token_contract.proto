@@ -14,11 +14,7 @@ service TokenContract {
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
-    rpc CreateNativeToken (CreateNativeTokenInput) returns (google.protobuf.Empty) {
-    }
     rpc Issue (IssueInput) returns (google.protobuf.Empty) {
-    }
-    rpc IssueNativeToken (IssueNativeTokenInput) returns (google.protobuf.Empty) {
     }
     rpc Transfer (TransferInput) returns (google.protobuf.Empty) {
     }
@@ -36,11 +32,7 @@ service TokenContract {
     }
     rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.Empty) {
     }
-    rpc ChargeMethodProfits (ChargeMethodProfitsInput) returns (google.protobuf.Empty) {
-    }
     rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc DonateProfitsToTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
@@ -82,28 +74,11 @@ message CreateInput {
     repeated aelf.Address lockWhiteList = 7;
 }
 
-message CreateNativeTokenInput {
-    string symbol = 1;
-    string tokenName = 2;
-    sint64 totalSupply = 3;
-    sint32 decimals = 4;
-    aelf.Address issuer = 5;
-    bool isBurnable = 6;
-    repeated aelf.Hash lockWhiteSystemContractNameList = 7;
-}
-
 message IssueInput {
     string symbol = 1;
     sint64 amount = 2;
     string memo = 3;
     aelf.Address to = 4;
-}
-
-message IssueNativeTokenInput {
-    string symbol = 1;
-    sint64 amount = 2;
-    string memo = 3;
-    aelf.Hash toSystemContractName = 4;
 }
 
 message TransferInput {
@@ -157,10 +132,6 @@ message BurnInput {
 }
 
 message ChargeTransactionFeesInput {
-    map<string, sint64> symbol_to_amount = 1;
-}
-
-message ChargeMethodProfitsInput {
     map<string, sint64> symbol_to_amount = 1;
 }
 

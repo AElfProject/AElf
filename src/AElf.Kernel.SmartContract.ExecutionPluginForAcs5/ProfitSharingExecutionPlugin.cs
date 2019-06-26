@@ -34,6 +34,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
+            return new List<Transaction>();
+/*
+
             if (!IsAcs5(descriptors))
             {
                 return new List<Transaction>();
@@ -103,7 +106,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
             return new List<Transaction>
             {
                 chargeProfitTransaction
-            };
+            };*/
         }
     }
 }

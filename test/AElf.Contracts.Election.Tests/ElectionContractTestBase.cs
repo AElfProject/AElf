@@ -7,6 +7,7 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKit;
+using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -22,6 +23,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Contracts.Election
 {
+    // ReSharper disable InconsistentNaming
     public class ElectionContractTestBase : ContractTestBase<ElectionContractTestModule>
     {
         protected IBlockTimeProvider BlockTimeProvider =>
@@ -55,8 +57,8 @@ namespace AElf.Contracts.Election
         protected Address VoteContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         protected Address ElectionContractAddress { get; set; }
-        protected Address MinersCountProviderContractAddress { get; set; }
         protected Address ConsensusContractAddress { get; set; }
+        protected Address TreasuryContractAddress { get; set; }
 
         protected Hash MinerElectionVotingItemId { get; set; }
 
@@ -67,36 +69,44 @@ namespace AElf.Contracts.Election
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
+        internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
         
+
         private byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("AEDPoS")).Value;
         private byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         private byte[] ElectionContractCode => Codes.Single(kv => kv.Key.Contains("Election")).Value;
         private byte[] ProfitContractCode => Codes.Single(kv => kv.Key.Contains("Profit")).Value;
         private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;       
+        private byte[] TreasuryContractCode => Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
 
-        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
+        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroStub(ECKeyPair keyPair)
         {
             return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
         }
 
-        internal TokenContractContainer.TokenContractStub GetTokenContractTester(ECKeyPair keyPair)
+        internal TokenContractContainer.TokenContractStub GetTokenContractStub(ECKeyPair keyPair)
         {
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
-        internal VoteContractContainer.VoteContractStub GetVoteContractTester(ECKeyPair keyPair)
+        internal VoteContractContainer.VoteContractStub GetVoteContractStub(ECKeyPair keyPair)
         {
             return GetTester<VoteContractContainer.VoteContractStub>(VoteContractAddress, keyPair);
         }
 
-        internal ProfitContractContainer.ProfitContractStub GetProfitContractTester(ECKeyPair keyPair)
+        internal ProfitContractContainer.ProfitContractStub GetProfitContractStub(ECKeyPair keyPair)
         {
             return GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, keyPair);
         }
         
-        internal ElectionContractContainer.ElectionContractStub GetElectionContractTester(ECKeyPair keyPair)
+        internal ElectionContractContainer.ElectionContractStub GetElectionContractStub(ECKeyPair keyPair)
         {
             return GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, keyPair);
+        }
+        
+        internal TreasuryContractContainer.TreasuryContractStub GetTreasuryContractStub(ECKeyPair keyPair)
+        {
+            return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
         }
 
         internal AEDPoSContractContainer.AEDPoSContractStub GetAEDPoSContractStub(
@@ -107,7 +117,7 @@ namespace AElf.Contracts.Election
 
         protected void InitializeContracts()
         {
-            BasicContractZeroStub = GetContractZeroTester(BootMinerKeyPair);
+            BasicContractZeroStub = GetContractZeroStub(BootMinerKeyPair);
 
             BlockTimeProvider.SetBlockTime(StartTimestamp);
 
@@ -118,7 +128,7 @@ namespace AElf.Contracts.Election
                     VoteContractCode,
                     VoteSmartContractAddressNameProvider.Name,
                     BootMinerKeyPair));
-            VoteContractStub = GetVoteContractTester(BootMinerKeyPair);
+            VoteContractStub = GetVoteContractStub(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeVote);
             
             // Deploy Profit Contract
@@ -139,8 +149,17 @@ namespace AElf.Contracts.Election
                     ElectionContractCode,
                     ElectionSmartContractAddressNameProvider.Name,
                     BootMinerKeyPair));
-            ElectionContractStub = GetElectionContractTester(BootMinerKeyPair);
+            ElectionContractStub = GetElectionContractStub(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeElection);
+            
+            // Deploy Treasury Contract.
+            TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                TreasuryContractCode,
+                TreasurySmartContractAddressNameProvider.Name,
+                BootMinerKeyPair));
+            TreasuryContractStub = GetTreasuryContractStub(BootMinerKeyPair);
+            AsyncHelper.RunSync(InitializeTreasury);
             
             // Deploy Token Contract
             TokenContractAddress = AsyncHelper.RunSync(() =>
@@ -149,7 +168,7 @@ namespace AElf.Contracts.Election
                     TokenContractCode,
                     TokenSmartContractAddressNameProvider.Name,
                     BootMinerKeyPair));
-            TokenContractStub = GetTokenContractTester(BootMinerKeyPair);
+            TokenContractStub = GetTokenContractStub(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeToken);
 
             // Deploy AElf Consensus Contract.
@@ -160,7 +179,7 @@ namespace AElf.Contracts.Election
                 BootMinerKeyPair));
 
             AEDPoSContractStub = GetAEDPoSContractStub(BootMinerKeyPair);
-            AsyncHelper.RunSync(InitializeAElfConsensus);
+            AsyncHelper.RunSync(InitializeAEDPoS);
 
             var profitIds = AsyncHelper.RunSync(() =>
                 ProfitContractStub.GetCreatedProfitIds.CallAsync(
@@ -182,6 +201,7 @@ namespace AElf.Contracts.Election
             MinerElectionVotingItemId = AsyncHelper.RunSync(() =>
                 ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty()));
         }
+
 
         internal enum ProfitType
         {
@@ -211,7 +231,7 @@ namespace AElf.Contracts.Election
             CheckResult(result.TransactionResult);
         }
         
-        private async Task InitializeAElfConsensus()
+        private async Task InitializeAEDPoS()
         {
             var result1 = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                 new InitialAElfConsensusContractInput
@@ -245,15 +265,6 @@ namespace AElf.Contracts.Election
                 }
             });
             CheckResult(result1.TransactionResult);
-
-            var result2 = await TokenContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
-            {
-                Symbol = ElectionContractTestConstants.NativeTokenSymbol,
-                Amount = ElectionContractTestConstants.NativeTokenTotalSupply / 5,
-                ToSystemContractName = ElectionSmartContractAddressNameProvider.Name,
-                Memo = "Set dividends.",
-            });
-            CheckResult(result2.TransactionResult);
 
             for (var i = 0; i < InitialMinersCount + FullNodesCount + VotersCount; i++)
             {
@@ -298,6 +309,21 @@ namespace AElf.Contracts.Election
         {
             var result = await ProfitContractStub.InitializeProfitContract.SendAsync(new Empty());
             CheckResult(result.TransactionResult);
+        }
+        
+        private async Task InitializeTreasury()
+        {
+            {
+                var result =
+                    await TreasuryContractStub.InitialTreasuryContract.SendAsync(new InitialTreasuryContractInput());
+                CheckResult(result.TransactionResult);
+            }
+            {
+                var result =
+                    await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(
+                        new InitialMiningRewardProfitItemInput());
+                CheckResult(result.TransactionResult);
+            }
         }
 
         private void CheckResult(TransactionResult result)

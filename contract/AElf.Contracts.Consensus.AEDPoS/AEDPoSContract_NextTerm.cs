@@ -1,5 +1,6 @@
 using System.Linq;
 using AElf.Contracts.Election;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -73,21 +74,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             }
 
-            Context.LogDebug(() => "About to release mining rewards.");
-
-            State.TreasuryContract.ReleaseMiningReward.Send(new ReleaseMiningRewardInput
-            {
-                MinedBlocksCount = previousRound.GetMinedBlocks()
-            });
-
-            Context.LogDebug(() => "About to release treasury profits.");
-
+            var miningRewardAmount = previousRound.GetMinedBlocks().Mul(AEDPoSContractConstants.MiningRewardPerBlock);
+            TransferMiningReward(miningRewardAmount);
+            
             State.TreasuryContract.Release.Send(new ReleaseInput
             {
-                TermNumber = termNumber,
+                TermNumber = termNumber
             });
 
-            Context.LogDebug(() => "About to take snapshot.");
+            Context.LogDebug(() => $"Released treasury profit for term {termNumber}");
 
             State.ElectionContract.TakeSnapshot.Send(new TakeElectionSnapshotInput
             {
@@ -144,6 +139,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.CurrentTermNumber.Value = termNumber;
             return true;
+        }
+
+        private void TransferMiningReward(long amount)
+        {
+            State.TokenContract.Transfer.Send(new TransferInput
+            {
+                Symbol = Context.Variables.NativeSymbol,
+                Amount = amount,
+                To = State.TreasuryContract.Value
+            });
+            
+            Context.LogDebug(() => $"Released {amount} mining rewards.");
         }
     }
 }

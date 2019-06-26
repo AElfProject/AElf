@@ -31,24 +31,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.ElectionContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
-
-            State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
-            
-            // Transfer token from Treasury Contract to Context.Self
-            var treasuryContractAddress = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-            State.TreasuryContract.Value = treasuryContractAddress;
-
-            State.TokenContract.Value = 
+            State.TreasuryContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
 
-            var miningRewardAmount = State.TokenContract.GetBalance.Call(new GetBalanceInput
-                {Symbol = Context.Variables.NativeSymbol, Owner = treasuryContractAddress}).Balance;
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = treasuryContractAddress,
-                To = Context.Self,
-                Amount = miningRewardAmount
-            });
             return new Empty();
         }
 
@@ -58,6 +45,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty FirstRound(Round input)
         {
+            // Transfer token from Treasury Contract to Context.Self
             Assert(State.CurrentRoundNumber.Value == 0, "Not first round.");
             Assert(input.RoundNumber == 1, "Invalid round number.");
             Assert(input.RealTimeMinersInformation.Any(), "No miner in input data.");
@@ -86,6 +74,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             SetMinerListOfCurrentTerm(minerList);
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
+
+            Context.LogDebug(() =>
+                $"Initial Miners: {input.RealTimeMinersInformation.Keys.Aggregate("\n", (key1, key2) => key1 + "\n" + key2)}");
+
             return new Empty();
         }
 

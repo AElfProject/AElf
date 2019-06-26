@@ -277,7 +277,7 @@ namespace AElf.Contracts.Election
             }
 
             // Profit
-            var voter = GetProfitContractTester(voterKeyPair);
+            var voter = GetProfitContractStub(voterKeyPair);
             await voter.Profit.SendAsync(new ProfitInput {ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare]});
 
             // Check ELF token balance

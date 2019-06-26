@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package economic;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.Economic";
+
+service EconomicContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Economic.EconomicContractState";
+    rpc CreateNativeToken (CreateNativeTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc IssueNativeToken (IssueNativeTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc InitialMiningReward (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc RegisterElectionVotingEvent (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+}
+
+message CreateNativeTokenInput {
+    //string symbol = 1;
+    string token_name = 2;
+    sint64 total_supply = 3;
+    sint32 decimals = 4;
+    bool is_burnable = 5;
+}
+
+message IssueNativeTokenInput {
+    //string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+    aelf.Address to = 4;
+}

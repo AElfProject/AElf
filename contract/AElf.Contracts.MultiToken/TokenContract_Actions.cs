@@ -18,7 +18,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Create(CreateInput input)
         {
             var existing = State.TokenInfos[input.Symbol];
-            Assert(existing == null || existing == new TokenInfo(), "Token already exists.");
+            Assert(existing == null || !existing.Symbol.Any(), "Token already exists.");
             RegisterTokenInfo(new TokenInfo
             {
                 Symbol = input.Symbol,
@@ -29,36 +29,17 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = input.IsBurnable
             });
 
+            if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
+            {
+                State.NativeTokenSymbol.Value = input.Symbol;
+            }
+
             foreach (var address in input.LockWhiteList)
             {
                 State.LockWhiteLists[input.Symbol][address] = true;
             }
 
             return new Empty();
-        }
-
-        public override Empty CreateNativeToken(CreateNativeTokenInput input)
-        {
-            Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already created.");
-            State.NativeTokenSymbol.Value = input.Symbol;
-            var whiteList = new List<Address>();
-            foreach (var systemContractName in input.LockWhiteSystemContractNameList)
-            {
-                var address = Context.GetContractAddressByName(systemContractName);
-                whiteList.Add(address);
-            }
-
-            var createInput = new CreateInput
-            {
-                Symbol = input.Symbol,
-                TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply,
-                Issuer = input.Issuer,
-                Decimals = input.Decimals,
-                IsBurnable = true,
-                LockWhiteList = {whiteList}
-            };
-            return Create(createInput);
         }
 
         public override Empty Issue(IssueInput input)
@@ -72,20 +53,6 @@ namespace AElf.Contracts.MultiToken
             State.TokenInfos[input.Symbol] = tokenInfo;
             State.Balances[input.To][input.Symbol] = input.Amount;
             return new Empty();
-        }
-
-        public override Empty IssueNativeToken(IssueNativeTokenInput input)
-        {
-            Assert(input.ToSystemContractName != null, "To address not filled.");
-            Assert(input.Symbol == State.NativeTokenSymbol.Value, "Invalid native token symbol.");
-            var issueInput = new IssueInput
-            {
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                Memo = input.Memo,
-                To = Context.GetContractAddressByName(input.ToSystemContractName)
-            };
-            return Issue(issueInput);
         }
 
         public override Empty Transfer(TransferInput input)
@@ -243,7 +210,7 @@ namespace AElf.Contracts.MultiToken
             Assert(existingBalance >= input.Amount, "Burner doesn't own enough balance.");
             State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
-            Context.Fire(new Burned()
+            Context.Fire(new Burned
             {
                 Burner = Context.Sender,
                 Symbol = input.Symbol,
@@ -275,32 +242,6 @@ namespace AElf.Contracts.MultiToken
             var fromAddress = Context.Sender;
             State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
             State.ChargedFees[fromAddress][symbol] = State.ChargedFees[fromAddress][symbol].Add(amount);
-            return new Empty();
-        }
-
-        public override Empty ChargeMethodProfits(ChargeMethodProfitsInput input)
-        {
-            if (input.Equals(new ChargeMethodProfitsInput()))
-            {
-                return new Empty();
-            }
-
-            ChargeFirstSufficientToken(input.SymbolToAmount.ToDictionary(i => i.Key, i => i.Value), out var symbol,
-                out var amount, out var existingBalance);
-
-            if (State.PreviousBlockProfitTokenSymbolList.Value == null)
-            {
-                State.PreviousBlockProfitTokenSymbolList.Value = new TokenSymbolList();
-            }
-            
-            if (!State.PreviousBlockProfitTokenSymbolList.Value.SymbolList.Contains(symbol))
-            {
-                State.PreviousBlockProfitTokenSymbolList.Value.SymbolList.Add(symbol);
-            }
-
-            var fromAddress = Context.Sender;
-            State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
-            State.ReceivedProfits[fromAddress][symbol] = State.ReceivedProfits[fromAddress][symbol].Add(amount);
             return new Empty();
         }
 
@@ -362,43 +303,6 @@ namespace AElf.Contracts.MultiToken
             }
 
             State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
-
-            return new Empty();
-        }
-
-        public override Empty DonateProfitsToTreasury(Empty input)
-        {
-            if (State.TreasuryContract.Value == null)
-            {
-                State.TreasuryContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            }
-            
-            if (State.PreviousBlockProfitTokenSymbolList.Value == null ||
-                !State.PreviousBlockProfitTokenSymbolList.Value.SymbolList.Any())
-            {
-                return new Empty();
-            }
-
-            var transactions = Context.GetPreviousBlockTransactions();
-            var senders = transactions.Select(t => t.From).ToList();
-            foreach (var symbol in State.PreviousBlockProfitTokenSymbolList.Value.SymbolList)
-            {
-                var totalProfits = 0L;
-                foreach (var sender in senders)
-                {
-                    totalProfits = totalProfits.Add(State.ChargedFees[sender][symbol]);
-                    State.ReceivedProfits[sender][symbol] = 0;
-                }
-
-                State.TreasuryContract.Donate.Send(new DonateInput
-                {
-                    Symbol = symbol,
-                    Amount = totalProfits
-                });
-            }
-            
-            State.PreviousBlockProfitTokenSymbolList.Value = new TokenSymbolList();
 
             return new Empty();
         }

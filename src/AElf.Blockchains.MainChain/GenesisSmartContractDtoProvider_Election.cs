@@ -16,11 +16,9 @@ namespace AElf.Blockchains.MainChain
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForElection(Address zeroContractAddress)
         {
             var l = new List<GenesisSmartContractDto>();
-
             l.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("Election")).Value,
                ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
-
             return l;
         }
 

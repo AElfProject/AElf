@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Acs0;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.CrossChain;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
@@ -16,56 +15,15 @@ namespace AElf.Blockchains.MainChain
         {
             var l = new List<GenesisSmartContractDto>();
             l.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Contains("MultiToken")).Value,
+                _codes.Single(kv => kv.Key.Contains("MultiToken")).Value,
                 TokenSmartContractAddressNameProvider.Name,
-                GenerateTokenInitializationCallList(zeroContractAddress));
+                GenerateTokenInitializationCallList());
             return l;
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList(
-            Address issuer)
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
-            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.CreateNativeToken), new CreateNativeTokenInput
-            {
-                Symbol = _tokenInitialOptions.Symbol,
-                Decimals = _tokenInitialOptions.Decimals,
-                IsBurnable = _tokenInitialOptions.IsBurnable,
-                TokenName = _tokenInitialOptions.Name,
-                TotalSupply = _tokenInitialOptions.TotalSupply,
-                // Set the contract zero address as the issuer temporarily.
-                Issuer = issuer,
-                LockWhiteSystemContractNameList =
-                {
-                    ElectionSmartContractAddressNameProvider.Name,
-                    VoteSmartContractAddressNameProvider.Name,
-                    ProfitSmartContractAddressNameProvider.Name,
-                }
-            });
-
-            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.IssueNativeToken), new IssueNativeTokenInput
-            {
-                Symbol = _tokenInitialOptions.Symbol,
-                Amount = (long) (_tokenInitialOptions.TotalSupply * _tokenInitialOptions.DividendPoolRatio),
-                ToSystemContractName = TreasurySmartContractAddressNameProvider.Name,
-                Memo = "Set mining rewards."
-            });
-
-            //TODO: Maybe should be removed after testing.
-            foreach (var tokenReceiver in _consensusOptions.InitialMiners)
-            {
-                tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
-                {
-                    Symbol = _tokenInitialOptions.Symbol,
-                    Amount = (long) (_tokenInitialOptions.TotalSupply * (1 - _tokenInitialOptions.DividendPoolRatio)) /
-                             _consensusOptions.InitialMiners.Count,
-                    To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(tokenReceiver)),
-                    Memo = "Set initial miner's balance."
-                });
-            }
-
-            return tokenContractCallList;
+            return new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
         }
-
     }
 }

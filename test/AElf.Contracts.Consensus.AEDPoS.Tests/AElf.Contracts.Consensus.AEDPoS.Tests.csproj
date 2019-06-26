@@ -47,6 +47,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
@@ -69,6 +74,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\profit_contract.proto">
             <Link>Protobuf/Proto/profit_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf/Proto/treasury_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf/Proto/acs0.proto</Link>

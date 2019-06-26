@@ -7,6 +7,7 @@ using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKit;
+using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -44,6 +45,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
+        protected Address TreasuryContractAddress { get; set; }
+
 
         internal List<AEDPoSContractImplContainer.AEDPoSContractImplStub> InitialMiners => InitialMinersKeyPairs
             .Select(p =>
@@ -81,12 +84,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
+        internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
 
         private byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("AEDPoS")).Value;
         private byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         private byte[] ElectionContractCode => Codes.Single(kv => kv.Key.Contains("Election")).Value;
         private byte[] ProfitContractCode => Codes.Single(kv => kv.Key.Contains("Profit")).Value;
         private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;
+        private byte[] TreasuryContractCode => Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
+
         protected Timestamp BlockchainStartTimestamp => new Timestamp {Seconds = 0};
 
         protected void InitializeContracts()
@@ -123,6 +129,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     BootMinerKeyPair));
             ElectionContractStub = GetElectionContractTester(BootMinerKeyPair);
             AsyncHelper.RunSync(InitializeElectionContract);
+            
+            // Deploy Treasury Contract.
+            TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                KernelConstants.CodeCoverageRunnerCategory,
+                TreasuryContractCode,
+                TreasurySmartContractAddressNameProvider.Name,
+                BootMinerKeyPair));
+            TreasuryContractStub = GetTreasuryContractStub(BootMinerKeyPair);
+            AsyncHelper.RunSync(InitializeTreasury);
 
             // Deploy Token Contract
             TokenContractAddress = AsyncHelper.RunSync(() =>
@@ -169,6 +184,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             return GetTester<VoteContractContainer.VoteContractStub>(VoteContractAddress,
                 keyPair);
+        }
+        
+        internal TreasuryContractContainer.TreasuryContractStub GetTreasuryContractStub(ECKeyPair keyPair)
+        {
+            return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
         }
 
         protected async Task BootMinerChangeRoundAsync(long nextRoundNumber = 2)
@@ -253,6 +273,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     {
                         PublicKeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
                     }.GenerateFirstRoundOfNewTerm(AEDPoSContractTestConstants.MiningInterval, BlockchainStartTimestamp.ToDateTime()));
+                CheckResult(result.TransactionResult);
+            }
+        }
+
+        private async Task InitializeTreasury()
+        {
+            {
+                var result =
+                    await TreasuryContractStub.InitialTreasuryContract.SendAsync(new InitialTreasuryContractInput());
+                CheckResult(result.TransactionResult);
+            }
+            {
+                var result =
+                    await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(
+                        new InitialMiningRewardProfitItemInput());
                 CheckResult(result.TransactionResult);
             }
         }

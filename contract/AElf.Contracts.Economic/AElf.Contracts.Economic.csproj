@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Contracts.Economic</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <IsContract>true</IsContract>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf\Proto\reference\token_converter_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\election_contract.proto">
+            <Link>Protobuf\Proto\reference\election_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\economic_contract.proto">
+            <Link>Protobuf/Proto/economic_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+    
+</Project>

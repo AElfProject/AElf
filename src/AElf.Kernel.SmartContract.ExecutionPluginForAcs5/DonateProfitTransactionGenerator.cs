@@ -40,7 +40,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
                 new Transaction
                 {
                     From = from,
-                    MethodName = nameof(TokenContractContainer.TokenContractStub.DonateProfitsToTreasury),
+                    //MethodName = nameof(TokenContractContainer.TokenContractStub.DonateProfitsToTreasury),
                     To = tokenContractAddress,
                     RefBlockNumber = preBlockHeight,
                     RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray()),

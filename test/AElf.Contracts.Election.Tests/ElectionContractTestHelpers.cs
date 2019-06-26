@@ -38,20 +38,20 @@ namespace AElf.Contracts.Election
         
         private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair)
         {
-            var electionStub = GetElectionContractTester(keyPair);
+            var electionStub = GetElectionContractStub(keyPair);
             return (await electionStub.AnnounceElection.SendAsync(new Empty())).TransactionResult;
         }
 
         private async Task<TransactionResult> QuitElectionAsync(ECKeyPair keyPair)
         {
-            var electionStub = GetElectionContractTester(keyPair);
+            var electionStub = GetElectionContractStub(keyPair);
             return (await electionStub.QuitElection.SendAsync(new Empty())).TransactionResult;
         }
 
         private async Task<TransactionResult> VoteToCandidate(ECKeyPair voterKeyPair, string candidatePublicKey,
             int lockTime, long amount)
         {
-            var electionStub = GetElectionContractTester(voterKeyPair);
+            var electionStub = GetElectionContractStub(voterKeyPair);
             return (await electionStub.Vote.SendAsync(new VoteMinerInput
             {
                 CandidatePublicKey = candidatePublicKey,
@@ -80,7 +80,7 @@ namespace AElf.Contracts.Election
 
         private async Task<TransactionResult> WithdrawVotes(ECKeyPair keyPair, Hash voteId)
         {
-            var electionStub = GetElectionContractTester(keyPair);
+            var electionStub = GetElectionContractStub(keyPair);
             return (await electionStub.Withdraw.SendAsync(voteId)).TransactionResult;
         }
 
