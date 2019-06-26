@@ -191,6 +191,12 @@ namespace AElf.OS.Network.Grpc
             
             return Task.CompletedTask;
         }
+        
+        public override async Task<VoidReply> TransactionBroadcastStream(IAsyncStreamReader<Transaction> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(async tx => await ProcessTransaction(tx, context));
+            return new VoidReply();
+        }
 
         /// <summary>
         /// This method is called when another peer broadcasts a transaction.
