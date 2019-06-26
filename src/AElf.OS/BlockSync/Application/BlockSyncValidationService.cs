@@ -34,7 +34,7 @@ namespace AElf.OS.BlockSync.Application
                 TimestampHelper.DurationFromMilliseconds(BlockSyncConstants.BlockSyncAnnouncementAgeLimit))
             {
                 Logger.LogWarning(
-                    $"Block sync announcement queue is too busy, enqueue timestamp: {announcementEnqueueTime.ToDateTime()}");
+                    $"Block sync announcement queue is too busy, enqueue timestamp: {announcementEnqueueTime}");
                 return false;
             }
 
@@ -44,7 +44,7 @@ namespace AElf.OS.BlockSync.Application
                 TimestampHelper.DurationFromMilliseconds(BlockSyncConstants.BlockSyncAttachBlockAgeLimit))
             {
                 Logger.LogWarning(
-                    $"Block sync attach queue is too busy, enqueue timestamp: {blockSyncAttachBlockEnqueueTime.ToDateTime()}");
+                    $"Block sync attach queue is too busy, enqueue timestamp: {blockSyncAttachBlockEnqueueTime}");
                 return false;
             }
 
@@ -55,7 +55,7 @@ namespace AElf.OS.BlockSync.Application
                 TimestampHelper.DurationFromMilliseconds(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit))
             {
                 Logger.LogWarning(
-                    $"Block sync attach and execute queue is too busy, enqueue timestamp: {blockSyncAttachAndExecuteBlockEnqueueTime.ToDateTime()}");
+                    $"Block sync attach and execute queue is too busy, enqueue timestamp: {blockSyncAttachAndExecuteBlockEnqueueTime}");
                 return false;
             }
 

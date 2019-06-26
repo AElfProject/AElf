@@ -44,12 +44,14 @@ namespace AElf.OS.BlockSync.Application
                 return;
             }
             
-            if (blockHash != null && blockHeight < chain.BestChainHeight + 8)
+            if (blockHash != null && blockHeight <= chain.LongestChainHeight + 1)
             {
                 await _blockFetchService.FetchBlockAsync(blockHash, blockHeight, suggestedPeerPubKey);
             }
             else
             {
+                Logger.LogTrace($"Receive higher header {{ hash: {blockHash}, height: {blockHeight} }} " +
+                                $"form {suggestedPeerPubKey}, ignore.");
                 var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
                     chain.LongestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
 
@@ -59,7 +61,7 @@ namespace AElf.OS.BlockSync.Application
                         chain.BestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
                 }
 
-                if (syncBlockCount == 0 && blockHeight > chain.LongestChainHeight)
+                if (syncBlockCount == 0 && blockHeight > chain.LongestChainHeight + 16)
                 {
                     Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
                     await _blockDownloadService.DownloadBlocksAsync(chain.LastIrreversibleBlockHash,
