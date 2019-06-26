@@ -307,47 +307,10 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        #region ForTests
-
-        /*
-        public void Create2(string symbol, int decimals, bool isBurnable, Address issuer, string tokenName,
-            long totalSupply, Address whiteAddress)
+        public override Empty CheckThreshold(CheckThresholdInput input)
         {
-            Create(new CreateInput()
-            {
-                Symbol = symbol,
-                Decimals = decimals,
-                IsBurnable = isBurnable,
-                Issuer = issuer,
-                TokenName = tokenName,
-                TotalSupply = totalSupply,
-                LockWhiteList = { whiteAddress}
-            });
+            Assert(State.Balances[input.Sender][input.Symbol] >= input.ThresholdAmount, "Cannot meet the calling threshold.");
+            return new Empty();
         }
-
-        public void Issue2(string symbol, long amount, Address to, string memo)
-        {
-            Issue(new IssueInput() {Symbol = symbol, Amount = amount, To = to, Memo = memo});
-        }
-
-        public void Transfer2(string symbol, long amount, Address to, string memo)
-        {
-            Transfer(new TransferInput() {Symbol = symbol, Amount = amount, To = to, Memo = memo});
-        }
-
-        public void Approve2(string symbol, long amount, Address spender)
-        {
-            Approve(new ApproveInput() {Symbol = symbol, Amount = amount, Spender = spender});
-        }
-
-        public void UnApprove2(string symbol, long amount, Address spender)
-        {
-            UnApprove(new UnApproveInput() {Symbol = symbol, Amount = amount, Spender = spender});
-        }
-
-
-        */
-
-        #endregion
     }
 }

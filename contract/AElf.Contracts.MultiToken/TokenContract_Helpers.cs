@@ -20,6 +20,7 @@ namespace AElf.Contracts.MultiToken
             Assert(amount > 0, "Invalid amount.");
             var tokenInfo = State.TokenInfos[symbol];
             Assert(tokenInfo != null && tokenInfo != new TokenInfo(), "Token is not found.");
+            Assert(!tokenInfo.IsTransferDisabled, "Token can't transfer.");
             return tokenInfo;
         }
         
