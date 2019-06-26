@@ -10,7 +10,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<ISystemTransactionGenerator, DonateProfitTransactionGenerator>();
         }
     }
 }
