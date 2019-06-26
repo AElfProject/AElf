@@ -72,7 +72,7 @@ namespace AElf.OS.Network.Application
                 return;
             }
 
-            await TryFindSyncTargetAsync();
+            await UpdateSyncTargetAsync();
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace AElf.OS.Network.Application
                 }).ToList();
                 
                 await Task.WhenAll(tasks);
-                await TryFindSyncTargetAsync();
+                await UpdateSyncTargetAsync();
             }
         }
 
@@ -130,7 +130,7 @@ namespace AElf.OS.Network.Application
         /// peer count: 4, nodes that must be higher: 3
         /// </summary>
         /// <returns></returns>
-        private async Task TryFindSyncTargetAsync()
+        private async Task UpdateSyncTargetAsync()
         {
             // set the target to the lowest LIB
             var chain = await _blockchainService.GetChainAsync();
