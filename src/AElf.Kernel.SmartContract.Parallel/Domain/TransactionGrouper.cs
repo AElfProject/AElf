@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -79,7 +80,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                         continue;
                     }
                     
-                    if (twr.Item2.Resources.Count == 0)
+                    if (twr.Item2.Paths.Count == 0)
                     {
                         // groups.Add(new List<Transaction>() {twr.Item1}); // Run in their dedicated group
                         nonParallelizables.Add(twr.Item1);
@@ -114,7 +115,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 var transactionResourceInfo = txWithResource.Item2;
 
                 // Add resources to disjoint-set, later each resource will be connected to a node id, which will be our group id
-                foreach (var resource in transactionResourceInfo.Resources)
+                foreach (var resource in transactionResourceInfo.Paths.Select(p => p.GetHashCode()))
                 {
                     if (!resourceUnionSet.TryGetValue(resource, out var node))
                     {

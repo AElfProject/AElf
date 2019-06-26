@@ -70,7 +70,10 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 MethodName = methodName,
                 Params = new TransactionResourceInfo
                 {
-                    Resources = {from, to}
+                    Paths =
+                    {
+                        GetPath(from), GetPath(to)
+                    }
                 }.ToByteString()
             };
             return tx;
@@ -79,6 +82,17 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         private string StringRepresentation(List<(int, int)> resources)
         {
             return string.Join(" ", resources.Select(r => r.ToString()).OrderBy(x => x));
+        }
+
+        private ScopedStatePath GetPath(int value)
+        {
+            return new ScopedStatePath
+            {
+                Path = new StatePath
+                {
+                    Parts = {value.ToString()}
+                }
+            };
         }
     }
 }
