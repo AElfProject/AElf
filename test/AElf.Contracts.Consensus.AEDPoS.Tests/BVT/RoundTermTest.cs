@@ -98,7 +98,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 minerCount = currentRound.RealTimeMinersInformation.Count;
                 Assert.Equal(termCount+3,currentRound.RoundNumber);
-                Assert.Equal( 7.Add(termCount.Mul(2)) ,minerCount);
+                Assert.Equal( 9.Add(termCount.Mul(2)) ,minerCount);
                 
                 
                 changeTermTime = BlockchainStartTimestamp.ToDateTime()

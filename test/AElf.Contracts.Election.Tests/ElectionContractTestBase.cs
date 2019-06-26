@@ -48,7 +48,7 @@ namespace AElf.Contracts.Election
 
         internal const int MiningInterval = 4000;
         
-        internal const int InitialMinersCount = 7;
+        internal const int InitialMinersCount = 9;
         internal const int FullNodesCount = 40;
         internal const int VotersCount = 40;
 
@@ -217,7 +217,8 @@ namespace AElf.Contracts.Election
             var result1 = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                 new InitialAElfConsensusContractInput
                 {
-                    TimeEachTerm = 604800L
+                    TimeEachTerm = 604800L,
+                    MinerIncreaseInterval=120L
                 });
             CheckResult(result1.TransactionResult);
             var result2 = await AEDPoSContractStub.FirstRound.SendAsync(
