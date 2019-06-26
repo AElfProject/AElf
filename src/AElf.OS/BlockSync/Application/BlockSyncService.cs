@@ -69,8 +69,6 @@ namespace AElf.OS.BlockSync.Application
                             syncBlockDto.SuggestedPeerPubKey);
                     }
                     
-                    syncResult = syncBlockCount > 0;
-
                     if (syncBlockCount == 0 && syncBlockDto.SyncBlockHeight > chain.LongestChainHeight + 16)
                     {
                         Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
@@ -82,7 +80,9 @@ namespace AElf.OS.BlockSync.Application
                 }
             }
 
-            if (!syncResult && syncBlockDto.SyncRetryTimes > 1)
+            if (!syncResult && syncBlockDto.SyncRetryTimes > 1 &&
+                syncBlockDto.SyncBlockHeight <= chain.LongestChainHeight + 1 &&
+                syncBlockDto.SyncBlockHeight > chain.LongestChainHeight + 16)
             {
                 syncBlockDto.SyncRetryTimes -= 1;
                 EnqueueSyncBlockJob(syncBlockDto);
