@@ -25,20 +25,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public void OffChainDecryptMessageTest()
         {
-            var message = Hash.Generate().ToHex();
+            var message = Hash.Generate().DumpByteArray();
             var secrets =
                 SecretSharingHelper.EncodeSecret(message, MinimumCount, AEDPoSContractTestConstants.InitialMinersCount);
             var encryptedValues = new Dictionary<string, byte[]>();
             var decryptedValues = new Dictionary<string, byte[]>();
             var ownerKeyPair = InitialMinersKeyPairs[0];
             var othersKeyPairs = InitialMinersKeyPairs.Skip(1).ToList();
-            var decryptResult = "";
+            var decryptResult=new byte[0];
 
             var initial = 0;
             foreach (var keyPair in othersKeyPairs)
             {
                 var encryptedMessage = CryptoHelpers.EncryptMessage(ownerKeyPair.PrivateKey, keyPair.PublicKey,
-                    Encoding.UTF8.GetBytes(secrets[initial++]));
+                    secrets[initial++]);
                 encryptedValues.Add(keyPair.PublicKey.ToHex(), encryptedMessage);
             }
 
@@ -56,7 +56,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 if (decryptedValues.Count >= MinimumCount)
                 {
                     decryptResult = SecretSharingHelper.DecodeSecret(
-                        decryptedValues.Values.Select(v => Encoding.UTF8.GetString(v)).ToList(),
+                        decryptedValues.Values.ToList(),
                         Enumerable.Range(1, MinimumCount).ToList(), MinimumCount);
                     break;
                 }

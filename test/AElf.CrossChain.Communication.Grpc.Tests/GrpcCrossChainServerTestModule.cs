@@ -32,7 +32,6 @@ namespace AElf.CrossChain.Communication.Grpc
                 mockService.Setup(m => m.GetBlockByHashAsync(It.IsAny<Hash>()))
                     .Returns(Task.FromResult(new Block
                     {
-                        Height = 10,
                         Header = new BlockHeader
                         {
                             ChainId = 0,

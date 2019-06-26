@@ -29,11 +29,8 @@ namespace AElf.Kernel
 
         public IEnumerable<Hash> TransactionHashList => Body.Transactions;
 
-        public long Height
-        {
-            get => Header?.Height ?? 0;
-            set { }
-        }
+        public long Height => Header?.Height ?? 0;
+        
 
         public Hash GetHash()
         {
