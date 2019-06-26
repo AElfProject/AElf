@@ -174,6 +174,5 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             });
             tokenAmount.SymbolToAmount[EconomicSystemTestConstants.NativeTokenSymbol].ShouldBe(profitAmount);
         }
-
     }
 }
