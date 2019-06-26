@@ -59,6 +59,9 @@ namespace AElf.OS.Network.Grpc
         
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
+        
+        private readonly IClientStreamWriter<Transaction> _transactionStream;
+        private readonly IClientStreamWriter<PeerNewBlockAnnouncement> _announcementStream;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
         {
@@ -81,6 +84,9 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
+            
+            _transactionStream = _client.TransactionBroadcastStream().RequestStream;
+            _announcementStream = _client.AnnouncementBroadcastStream().RequestStream;
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -144,31 +150,31 @@ namespace AElf.OS.Network.Grpc
 
         public Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
-            GrpcRequest request = new GrpcRequest
-            {
-                ErrorMessage = $"Broadcast announce for {header.BlockHash} failed.",
-                MetricName = nameof(MetricNames.Announce),
-                MetricInfo = $"Block hash {header.BlockHash}"
-            };
+//            GrpcRequest request = new GrpcRequest
+//            {
+//                ErrorMessage = $"Broadcast announce for {header.BlockHash} failed.",
+//                MetricName = nameof(MetricNames.Announce),
+//                MetricInfo = $"Block hash {header.BlockHash}"
+//            };
+//
+//            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
 
-            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
-
-            return _client.AnnouncementBroadcastStream().RequestStream.WriteAsync(header);
+            return _announcementStream.WriteAsync(header);
         }
 
         public Task SendTransactionAsync(Transaction tx)
         {
-            GrpcRequest request = new GrpcRequest
-            {
-                ErrorMessage = $"Broadcast transaction for {tx.GetHash()} failed."
-            };
-            
-            Metadata data = new Metadata
-            {
-                {GrpcConstants.TimeoutMetadataKey, TransactionBroadcastTimeout.ToString()}
-            };
-            
-            return _client.TransactionBroadcastStream().RequestStream.WriteAsync(tx);
+//            GrpcRequest request = new GrpcRequest
+//            {
+//                ErrorMessage = $"Broadcast transaction for {tx.GetHash()} failed."
+//            };
+//            
+//            Metadata data = new Metadata
+//            {
+//                {GrpcConstants.TimeoutMetadataKey, TransactionBroadcastTimeout.ToString()}
+//            };
+
+            return _transactionStream.WriteAsync(tx);
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
