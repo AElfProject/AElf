@@ -46,10 +46,8 @@ namespace AElf.OS.BlockSync.Application
             var syncBlockHash = Hash.FromString("SyncBlockHash");
             var syncBlockHeight = chain.LastIrreversibleBlockHeight + 1;
 
-            _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = TimestampHelper.GetUtcNow().AddSeconds(-3);
-            _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = TimestampHelper.GetUtcNow().AddSeconds(-1);
-            _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime =
-                TimestampHelper.GetUtcNow().AddMilliseconds(-200);
+            _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAnnouncementAgeLimit - 1000));
 
             var validateResult =
                 await _blockSyncValidationService.ValidateBeforeEnqueue(syncBlockHash, syncBlockHeight);
@@ -65,46 +63,15 @@ namespace AElf.OS.BlockSync.Application
             var syncBlockHash = Hash.FromString("SyncBlockHash");
             var syncBlockHeight = chain.LastIrreversibleBlockHeight + 1;
 
-            _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = TimestampHelper.GetUtcNow().AddSeconds(-5);
+            _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAnnouncementAgeLimit + 100));
 
             var validateResult =
                 await _blockSyncValidationService.ValidateBeforeEnqueue(syncBlockHash, syncBlockHeight);
             
             validateResult.ShouldBeFalse();
         }
-        
-        [Fact]
-        public async Task ValidateBeforeEnqueue_BlockSyncAttachQueueIsBusy()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            
-            var syncBlockHash = Hash.FromString("SyncBlockHash");
-            var syncBlockHeight = chain.LastIrreversibleBlockHeight + 1;
 
-            _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = TimestampHelper.GetUtcNow().AddSeconds(-4);
-
-            var validateResult =
-                await _blockSyncValidationService.ValidateBeforeEnqueue(syncBlockHash, syncBlockHeight);
-            
-            validateResult.ShouldBeFalse();
-        }
-        
-        [Fact]
-        public async Task ValidateBeforeEnqueue_BlockSyncAttachAndExecuteQueueIsBusy()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            
-            var syncBlockHash = Hash.FromString("SyncBlockHash");
-            var syncBlockHeight = chain.LastIrreversibleBlockHeight + 1;
-
-            _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime = TimestampHelper.GetUtcNow().AddMilliseconds(-800);
-
-            var validateResult =
-                await _blockSyncValidationService.ValidateBeforeEnqueue(syncBlockHash, syncBlockHeight);
-            
-            validateResult.ShouldBeFalse();
-        }
-        
         [Fact]
         public async Task ValidateBeforeEnqueue_AlreadySynchronized()
         {

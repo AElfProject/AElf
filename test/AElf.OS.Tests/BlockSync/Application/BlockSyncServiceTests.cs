@@ -33,7 +33,7 @@ namespace AElf.OS.BlockSync.Application
         public async Task SyncBlock_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
-            var peerBlocks = await _networkService.GetBlocksAsync(chain.BestChainHash, 20);
+            var peerBlocks = await _networkService.GetBlocksAsync(chain.BestChainHash, 30);
 
             var block = peerBlocks[0];
             var peerBlockHash = block.GetHash();
@@ -77,8 +77,8 @@ namespace AElf.OS.BlockSync.Application
 
             {
                 // Receive a higher fork block, sync from the lib
-                // BestChainHeight: 21
-                block = peerBlocks[9];
+                // BestChainHeight: 31
+                block = peerBlocks.Last();
                 peerBlockHash = block.GetHash();
                 peerBlockHeight = block.Height;
                 await _blockSyncService.SyncBlockAsync(new SyncBlockDto
@@ -89,7 +89,7 @@ namespace AElf.OS.BlockSync.Application
                 });
                 chain = await _blockchainService.GetChainAsync();
                 chain.BestChainHash.ShouldBe(peerBlocks.Last().GetHash());
-                chain.BestChainHeight.ShouldBe(21);
+                chain.BestChainHeight.ShouldBe(31);
 
                 var block13 = await _blockchainService.GetBlockByHeightInBestChainBranchAsync(13);
                 block13.GetHash().ShouldNotBe(forkedBlockHash);
@@ -129,7 +129,7 @@ namespace AElf.OS.BlockSync.Application
             await _blockSyncService.SyncBlockAsync(new SyncBlockDto
             {
                 SyncBlockHash = Hash.Empty,
-                SyncBlockHeight = 15,
+                SyncBlockHeight = 12,
                 BatchRequestBlockCount = 5
             });
 
@@ -144,7 +144,7 @@ namespace AElf.OS.BlockSync.Application
             var chain = await _blockchainService.GetChainAsync();
 
             var peerBlockHash = Hash.FromString("PeerBlock");
-            var peerBlockHeight = chain.BestChainHeight + 8;
+            var peerBlockHeight = chain.LongestChainHeight + 2;
 
             await _blockSyncService.SyncBlockAsync(new SyncBlockDto
             {
@@ -154,7 +154,45 @@ namespace AElf.OS.BlockSync.Application
             });
 
             chain = await _blockchainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(21);
+            chain.BestChainHeight.ShouldBe(31);
+        }
+        
+        [Fact]
+        public async Task SyncBlock_AttachAndExecuteQueueIsBusy()
+        {
+            _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime = TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit + 100));
+            
+            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+
+            await _blockSyncService.SyncBlockAsync(new SyncBlockDto
+            {
+                SyncBlockHash = peerBlock.GetHash(),
+                SyncBlockHeight = peerBlock.Height,
+                BatchRequestBlockCount = 5
+            });
+
+            var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
+            block.ShouldBeNull();
+        }
+        
+        [Fact]
+        public async Task SyncBlock_AttachQueueIsBusy()
+        {
+            _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachBlockAgeLimit + 100));
+            
+            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+
+            await _blockSyncService.SyncBlockAsync(new SyncBlockDto
+            {
+                SyncBlockHash = peerBlock.GetHash(),
+                SyncBlockHeight = peerBlock.Height,
+                BatchRequestBlockCount = 5
+            });
+
+            var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
+            block.ShouldBeNull();
         }
     }
 }

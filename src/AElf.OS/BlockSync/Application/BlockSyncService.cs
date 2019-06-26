@@ -41,7 +41,7 @@ namespace AElf.OS.BlockSync.Application
             var chain = await _blockchainService.GetChainAsync();
             if (syncBlockDto.SyncBlockHeight <= chain.LastIrreversibleBlockHeight)
             {
-                Logger.LogTrace(
+                Logger.LogWarning(
                     $"Receive lower header {{ hash: {syncBlockDto.SyncBlockHash}, height: {syncBlockDto.SyncBlockHeight} }} form {syncBlockDto.SuggestedPeerPubKey}, ignore.");
                 return;
             }

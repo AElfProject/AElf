@@ -56,7 +56,7 @@ public class BlockDownloadService : IBlockDownloadService
 
                 if (blocksWithTransactions == null || !blocksWithTransactions.Any())
                 {
-                    Logger.LogDebug($"No blocks returned, current chain height: {chain.LongestChainHeight}.");
+                    Logger.LogWarning($"No blocks returned, current chain height: {chain.LongestChainHeight}.");
                     break;
                 }
 
