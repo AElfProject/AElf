@@ -9,6 +9,7 @@ namespace AElf.Contracts.Economic
 {
     public class EconomicContractState : ContractState
     {
+        public SingletonState<bool> Initialized { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal ElectionContractContainer.ElectionContractReferenceState ElectionContract { get; set; }
     }

@@ -6,37 +6,49 @@ namespace AElf.Contracts.Economic
 {
     public class EconomicContract : EconomicContractContainer.EconomicContractBase
     {
-        public override Empty CreateNativeToken(CreateNativeTokenInput input)
+        public override Empty InitialEconomicSystem(InitialEconomicSystemInput input)
         {
-            if (Context.Sender != Context.GetZeroSmartContractAddress())
-            {
-                return new Empty();
-            }
-
+            Assert(!State.Initialized.Value, "Already initialized.");
+            
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
 
+            CreateNativeToken(input);
+
+            InitialMiningReward(input.MiningRewardTotalAmount);
+            
+            RegisterElectionVotingEvent();
+
+            State.Initialized.Value = true;
+            return new Empty();
+        }
+
+        private void CreateNativeToken(InitialEconomicSystemInput input)
+        {
             State.TokenContract.Create.Send(new CreateInput
             {
-                Symbol = Context.Variables.NativeSymbol,
-                TotalSupply = input.TotalSupply,
-                Decimals = input.Decimals,
-                IsBurnable = input.IsBurnable,
-                TokenName = input.TokenName,
+                Symbol = input.NativeTokenSymbol,
+                TotalSupply = input.NativeTokenTotalSupply,
+                Decimals = input.NativeTokenDecimals,
+                IsBurnable = input.IsNativeTokenBurnable,
                 Issuer = Context.Self,
                 LockWhiteList =
                 {
                     Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName),
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName)
+                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
                 }
             });
-            return new Empty();
         }
 
         public override Empty IssueNativeToken(IssueNativeTokenInput input)
         {
-            if (Context.Sender != Context.GetZeroSmartContractAddress())
+            var nativeTokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            {
+                Symbol = Context.Variables.NativeSymbol
+            });
+            if (Context.Sender != nativeTokenInfo.Issuer)
             {
                 return new Empty();
             }
@@ -51,34 +63,29 @@ namespace AElf.Contracts.Economic
             return new Empty();
         }
 
-        public override Empty InitialMiningReward(Empty input)
+        /// <summary>
+        /// Transfer all the tokens prepared for rewarding mining to consensus contract.
+        /// </summary>
+        /// <param name="miningRewardAmount"></param>
+        private void InitialMiningReward(long miningRewardAmount)
         {
-            if (Context.Sender != Context.GetZeroSmartContractAddress())
-            {
-                return new Empty();
-            }
-
             var consensusContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
 
             State.TokenContract.Issue.Send(new IssueInput
             {
                 To = consensusContractAddress,
-                Amount = EconomicContractConstants.MiningReward,
+                Amount = miningRewardAmount,
                 Symbol = Context.Variables.NativeSymbol,
                 Memo = "Initial mining reward."
             });
-
-            return new Empty();
         }
 
-        public override Empty RegisterElectionVotingEvent(Empty input)
+        private void RegisterElectionVotingEvent()
         {
             State.ElectionContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
-
             State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
-            return new Empty();
         }
     }
 }
