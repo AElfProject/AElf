@@ -20,6 +20,9 @@
         <ContractReference Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf\Proto\reference\token_converter_contract.proto</Link>
+        </ContractReference>
     </ItemGroup>
 
     <ItemGroup>

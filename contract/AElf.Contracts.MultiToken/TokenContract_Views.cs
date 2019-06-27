@@ -1,5 +1,6 @@
 ﻿using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
@@ -38,6 +39,11 @@ namespace AElf.Contracts.MultiToken
         public override BoolValue IsInWhiteList(IsInWhiteListInput input)
         {
             return new BoolValue {Value = State.LockWhiteLists[input.Symbol][input.Address]};
+        }
+
+        public override ProfitReceivingInformation GetProfitReceivingInformation(Address input)
+        {
+            return State.ProfitReceivingInfos[input] ?? new ProfitReceivingInformation();
         }
 
         #region ForTests

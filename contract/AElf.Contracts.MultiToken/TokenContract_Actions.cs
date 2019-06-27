@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acs0;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TokenConverter;
@@ -27,7 +28,8 @@ namespace AElf.Contracts.MultiToken
                 TotalSupply = input.TotalSupply,
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
-                IsBurnable = input.IsBurnable
+                IsBurnable = input.IsBurnable,
+                IsTransferDisabled = input.IsTransferDisabled
             });
 
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
@@ -324,6 +326,21 @@ namespace AElf.Contracts.MultiToken
             }
 
             Assert(meetThreshold, "Cannot meet the calling threshold.");
+            return new Empty();
+        }
+
+        public override Empty SetProfitReceivingInformation(ProfitReceivingInformation input)
+        {
+            if (State.ACS0Contract.Value == null)
+            {
+                State.ACS0Contract.Value = Context.GetZeroSmartContractAddress();
+            }
+
+            var contractOwner = State.ACS0Contract.GetContractOwner.Call(input.ContractAddress);
+            Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
+                "Either contract owner or contract itself can set profit receiving information.");
+
+            State.ProfitReceivingInfos[input.ContractAddress] = input;
             return new Empty();
         }
     }

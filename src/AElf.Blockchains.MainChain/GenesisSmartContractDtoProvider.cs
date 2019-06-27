@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Deployer;
@@ -9,6 +8,9 @@ using Microsoft.Extensions.Options;
 
 namespace AElf.Blockchains.MainChain
 {
+    /// <summary>
+    /// Provide dtos for genesis block contract deployment and initialization.
+    /// </summary>
     public partial class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
         private readonly IReadOnlyDictionary<string, byte[]> _codes =
@@ -38,6 +40,7 @@ namespace AElf.Blockchains.MainChain
                 GetGenesisSmartContractDtosForConfiguration(zeroContractAddress),
                 GetGenesisSmartContractDtosForConsensus(),
                 GetGenesisSmartContractDtosForTokenConverter(),
+                // Economic Contract should always be the last one to deploy and initialize.
                 GetGenesisSmartContractDtosForEconomic()
             }.SelectMany(x => x);
         }

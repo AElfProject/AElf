@@ -22,27 +22,7 @@ namespace AElf.Blockchains.MainChain
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateTokenConverterInitializationCallList()
         {
-            var tokenConverterInitializationCallList =
-                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenConverterInitializationCallList.Add(
-                nameof(TokenConverterContractContainer.TokenConverterContractStub.Initialize),
-                new InitializeInput
-                {
-                    FeeRate = "0.01",
-                    Connectors =
-                    {
-                        new Connector
-                        {
-                            Symbol = _tokenInitialOptions.Symbol,
-                            IsPurchaseEnabled = true,
-                            IsVirtualBalanceEnabled = true,
-                            Weight = "0.5",
-                            VirtualBalance = 0,
-                        }
-                    },
-                    BaseTokenSymbol = _tokenInitialOptions.Symbol
-                });
-            return tokenConverterInitializationCallList;
+            return new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
         }
     }
 }

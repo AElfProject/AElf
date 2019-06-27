@@ -40,6 +40,8 @@ service TokenContract {
     }
     rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
     }
+    rpc SetProfitReceivingInformation (ProfitReceivingInformation) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -52,6 +54,9 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc IsInWhiteList (IsInWhiteListInput) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetProfitReceivingInformation (aelf.Address) returns (ProfitReceivingInformation) {
         option (aelf.is_view) = true;
     }
 }
@@ -75,6 +80,7 @@ message CreateInput {
     aelf.Address issuer = 5;
     bool isBurnable = 6;
     repeated aelf.Address lockWhiteList = 7;
+    bool is_transfer_disabled = 8;
 }
 
 message IssueInput {
@@ -186,7 +192,13 @@ message CheckThresholdInput {
     map<string, sint64> symbol_to_threshold = 2;
 }
 
-// EventsCreateInput
+message ProfitReceivingInformation {
+    aelf.Address contract_address = 1;
+    aelf.Address profit_receiver_address = 2;
+    string donation_parts_per_hundred = 3;
+}
+
+// Events
 message Transferred {
     option (aelf.is_event) = true;
     aelf.Address from = 1 [(aelf.is_indexed) = true];

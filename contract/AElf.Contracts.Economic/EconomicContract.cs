@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -9,15 +11,20 @@ namespace AElf.Contracts.Economic
         public override Empty InitialEconomicSystem(InitialEconomicSystemInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            
+
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
 
             CreateNativeToken(input);
+            CreateTokenConverterToken();
+            CreateResourceTokens();
+            CreateMiningToken();
 
             InitialMiningReward(input.MiningRewardTotalAmount);
-            
+
             RegisterElectionVotingEvent();
+
+            InitializeTokenConverterContract();
 
             State.Initialized.Value = true;
             return new Empty();
@@ -39,6 +46,56 @@ namespace AElf.Contracts.Economic
                     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
                 }
+            });
+        }
+
+        private void CreateTokenConverterToken()
+        {
+            State.TokenContract.Create.Send(new CreateInput
+            {
+                Symbol = EconomicContractConstants.TokenConverterTokenSymbol,
+                TokenName = "AElf Token Converter Token",
+                TotalSupply = EconomicContractConstants.TokenConverterTokenTotalSupply,
+                Decimals = EconomicContractConstants.TokenConverterTokenDecimals,
+                Issuer = Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
+                IsBurnable = true,
+                LockWhiteList =
+                {
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
+                }
+            });
+        }
+
+        private void CreateResourceTokens()
+        {
+            foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenSymbols)
+            {
+                State.TokenContract.Create.Send(new CreateInput
+                {
+                    Symbol = resourceTokenSymbol,
+                    TokenName = $"{resourceTokenSymbol} Token",
+                    TotalSupply = EconomicContractConstants.ResourceTokenTotalSupply,
+                    Decimals = EconomicContractConstants.ResourceTokenDecimals,
+                    Issuer = Context.Self,
+                    IsBurnable = true // TODO: TBD,
+                    
+                });
+            }
+        }
+
+        private void CreateMiningToken()
+        {
+            State.TokenContract.Create.Send(new CreateInput
+            {
+                Symbol = EconomicContractConstants.MiningTokenSymbol,
+                TokenName = "Mining Token",
+                TotalSupply = EconomicContractConstants.MiningTokenTotalSupply,
+                Decimals = 0,
+                Issuer = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName),
+                IsBurnable = true,
+                IsTransferDisabled = true,
+                LockWhiteList = {Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName)}
             });
         }
 
@@ -86,6 +143,50 @@ namespace AElf.Contracts.Economic
             State.ElectionContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
             State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
+        }
+
+        private void InitializeTokenConverterContract()
+        {
+            State.TokenConverterContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
+            var connectors = new List<Connector>
+            {
+                new Connector
+                {
+                    Symbol = Context.Variables.NativeSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.5",
+                    VirtualBalance = 0,
+                },
+                new Connector
+                {
+                    Symbol = EconomicContractConstants.TokenConverterTokenSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.5",
+                    VirtualBalance = EconomicContractConstants.TokenConverterTokenConnectorInitialVirtualBalance
+                },
+            };
+            foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenSymbols)
+            {
+                connectors.Add(new Connector
+                {
+                    Symbol = resourceTokenSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = EconomicContractConstants.ResourceTokenConnectorWeight,
+                    VirtualBalance = EconomicContractConstants.ResourceTokenConnectorInitialVirtualBalance
+                });
+            }
+
+            State.TokenConverterContract.Initialize.Send(new InitializeInput
+            {
+                FeeRate = "0.01",
+                Connectors = {connectors},
+                BaseTokenSymbol = Context.Variables.NativeSymbol,
+                ManagerAddress = Context.Self
+            });
         }
     }
 }
