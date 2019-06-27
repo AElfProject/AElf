@@ -1,4 +1,4 @@
-namespace AElf.Kernel.SmartContractExecution.Parallel.Tests
+namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
     internal class InternalConstants
     {

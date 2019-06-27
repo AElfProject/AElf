@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel
 {
@@ -22,6 +23,8 @@ namespace AElf.Kernel
         private readonly IBlockchainService _blockchainService;
 
         public ILogger<ConsensusRequestMiningEventHandler> Logger { get; set; }
+        
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public ConsensusRequestMiningEventHandler(IMinerService minerService, IBlockAttachService blockAttachService,
             ITaskQueueManager taskQueueManager, IBlockchainService blockchainService)
@@ -31,6 +34,7 @@ namespace AElf.Kernel
             _taskQueueManager = taskQueueManager;
             _blockchainService = blockchainService;
             Logger = NullLogger<ConsensusRequestMiningEventHandler>.Instance;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public async Task HandleEventAsync(ConsensusRequestMiningEventData eventData)
@@ -53,6 +57,13 @@ namespace AElf.Kernel
                         eventData.BlockTime, eventData.BlockExecutionTime);
 
                     await _blockchainService.AddBlockAsync(block);
+
+                    var chain = await _blockchainService.GetChainAsync();
+                    await LocalEventBus.PublishAsync(new BlockMinedEventData()
+                    {
+                        BlockHeader = block.Header,
+                        HasFork = block.Height <= chain.BestChainHeight
+                    });
 
                     // Self mined block do not need do verify
                     _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),

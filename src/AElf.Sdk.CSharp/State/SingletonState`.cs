@@ -41,25 +41,20 @@ namespace AElf.Sdk.CSharp.State
         internal override void Clear()
         {
             Loaded = false;
-            if (typeof(TEntity) == typeof(byte[]))
-            {
-                _originalValue = (TEntity) (object) new byte[0];
-            }
-            else
-            {
-                _originalValue = default(TEntity);
-            }
-
+            _originalValue = default(TEntity);
             _value = _originalValue;
         }
 
         internal override TransactionExecutingStateSet GetChanges()
         {
             var stateSet = new TransactionExecutingStateSet();
+            var key = Path.ToStateKey(Context.Self);
             if (!Equals(_originalValue, _value))
             {
-                stateSet.Writes[Path.ToStateKey(Context.Self)] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
+                stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
             }
+
+            stateSet.Reads[key] = true;
 
             return stateSet;
         }

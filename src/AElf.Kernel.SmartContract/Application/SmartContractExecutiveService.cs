@@ -196,7 +196,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             throw new InvalidOperationException(
-                $"failed to find registration from zero contract {txCtxt.Trace.StdErr}");
+                $"failed to find registration from zero contract {txCtxt.Trace.Error}");
         }
 
         #endregion

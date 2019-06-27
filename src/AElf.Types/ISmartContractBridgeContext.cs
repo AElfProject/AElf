@@ -46,12 +46,6 @@ namespace AElf
 
         bool VerifySignature(Transaction tx);
 
-        /// <summary>
-        /// Generate txn not executed before next block. 
-        /// </summary>
-        /// <param name="deferredTxn"></param>
-        void SendDeferredTransaction(Transaction deferredTxn);
-
         void DeployContract(Address address, SmartContractRegistration registration, Hash name);
 
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);
