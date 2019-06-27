@@ -165,11 +165,10 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             return new Empty();
         }
 
-        public override Empty TestOriginAddress(Empty input)
+        public override Empty TestOriginAddress(Address address)
         {
             ValidateContractState(State.BasicFunctionContract, Hash.FromString("AElf.ContractNames.TestContract.BasicFunction"));
-            State.BasicFunctionContract.SetOriginAddress.Send(new Empty());
-            State.Origin = Context.Origin;
+            State.BasicFunctionContract.ValidateOrigin.Send(address);
             return new Empty();
         }
         

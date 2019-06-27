@@ -89,17 +89,13 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task Basic1Contract_CheckOriginAddress()
+        public async Task BasicContract_ValidateOrigin_Success()
         {
-            await TestBasicSecurityContractStub.TestOriginAddress.SendAsync(new Empty());
-            var originAddress = TestBasicSecurityContractStub.GetOriginAddress.CallAsync(new Empty()).Result;
-            var inlineOriginAddress = TestBasicFunctionContractStub.GetOriginAddress.CallAsync(new Empty()).Result;
-            var inlineSenderAddress = TestBasicFunctionContractStub.GetSenderAddress.CallAsync(new Empty()).Result;
+            var transaction1 = await TestBasicSecurityContractStub.TestOriginAddress.SendAsync(DefaultSender);
+            transaction1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            inlineSenderAddress.ShouldBe(BasicSecurityContractAddress);
-            inlineOriginAddress.ShouldNotBe(inlineSenderAddress);
-            originAddress.ShouldBe(DefaultSender);
-            inlineOriginAddress.ShouldBe(originAddress);
+            var transaction2 = await TestBasicFunctionContractStub.ValidateOrigin.SendAsync(DefaultSender);
+            transaction2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         #endregion 

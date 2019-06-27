@@ -56,10 +56,9 @@ namespace AElf.Contracts.TestContract.BasicFunction
             return new Empty();
         }
 
-        public override Empty SetOriginAddress(Empty input)
+        public override Empty ValidateOrigin(Address address)
         {
-            State.Origin = Context.Origin;
-            State.Sender = Context.Sender;
+            Assert(address == Context.Origin, "Validation failed, origin is not expected.");
             return new Empty();
         }
 

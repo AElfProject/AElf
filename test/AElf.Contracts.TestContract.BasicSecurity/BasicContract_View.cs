@@ -136,10 +136,5 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 Int64Value = data.Int64Value
             };
         }
-        
-        public override Address GetOriginAddress(Empty input)
-        {
-            return State.Origin;
-        }
     }
 }
