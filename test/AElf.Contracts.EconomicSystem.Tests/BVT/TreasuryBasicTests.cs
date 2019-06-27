@@ -107,7 +107,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             var chosenOneKeyPair = CoreDataCenterKeyPairs.First();
             var chosenOneAddress = Address.FromPublicKey(chosenOneKeyPair.PublicKey);
-            
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
@@ -124,7 +123,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Spender = TokenConverterContractAddress,
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                Amount = 100_000// Enough,
+                Amount = 100_000_00000000// Enough,
             });
             var chosenOneTokenConverterContractStub =
                 GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,

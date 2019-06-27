@@ -8,31 +8,6 @@ namespace AElf.Contracts.TestContract.MethodCallThreshold
 {
     public class MethodCallThresholdContract : MethodCallThresholdContractContainer.MethodCallThresholdContractBase
     {
-        public override Empty InitializeMethodCallThresholdContract(InitializeMethodCallThresholdContractInput input)
-        {
-            State.TreasuryContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-            State.TreasuryContract.Register.Send(new RegisterInput
-            {
-                TokenSymbol = input.Symbol,
-                TotalSupply =MethodCallThresholdContractConstants.TotalSupply,
-                ConnectorWeight = "0.2",
-                Decimals = 2,
-                TokenName = "Token of Method Call Threshold Contract"
-            });
-
-            State.TokenContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            State.TokenContract.Issue.Send(new IssueInput
-            {
-                Symbol = input.Symbol,
-                Amount = MethodCallThresholdContractConstants.AmountIssueToTokenConverterContract,
-                To = Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
-            });
-
-            return new Empty();
-        }
-
         public override Empty SetMethodCallingThreshold(SetMethodCallingThresholdInput input)
         {
             AssertPerformedByContractOwner();

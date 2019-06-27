@@ -87,7 +87,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_FewOtherToken_Success()
         {
-            var keyPair = SampleECKeyPairs.KeyPairs[1];
+            var keyPair = CoreDataCenterKeyPairs[0];
 
             await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 100);
             var stub = GetTreasuryContractStub(keyPair);
@@ -109,7 +109,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_AllOtherToken_Success()
         {
-            var keyPair = SampleECKeyPairs.KeyPairs[1];
+            var keyPair = CoreDataCenterKeyPairs[0];
 
             await TransferToken(keyPair, EconomicSystemTestConstants.ConverterTokenSymbol, 100);
             var stub = GetTreasuryContractStub(keyPair);
@@ -130,7 +130,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_OtherToken_LessThan_Owned()
         {
-            var keyPair = SampleECKeyPairs.KeyPairs[1];
+            var keyPair = CoreDataCenterKeyPairs[0];
 
             await TransferToken(keyPair, EconomicSystemTestConstants.ConverterTokenSymbol, 50);
             var stub = GetTreasuryContractStub(keyPair);
