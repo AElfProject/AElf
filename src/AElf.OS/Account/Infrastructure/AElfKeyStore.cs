@@ -111,7 +111,7 @@ namespace AElf.OS.Account.Infrastructure
 
         public async Task<List<string>> GetAccountsAsync()
         {
-            var dir = GetOrCreateKeystoreDirectory();
+            var dir = CreateKeystoreDirectory();
             var files = dir.GetFiles("*" + KeyFileExtension);
 
             return await Task.Run(() => files.Select(f => Path.GetFileNameWithoutExtension(f.Name)).ToList());
@@ -153,7 +153,7 @@ namespace AElf.OS.Account.Infrastructure
                 throw new InvalidKeyPairException("Invalid keypair (null reference).", null);
 
             // Ensure path exists
-            GetOrCreateKeystoreDirectory();
+            CreateKeystoreDirectory();
             
             var address = Address.FromPublicKey(keyPair.PublicKey);
             var fullPath = GetKeyFileFullPath(address.GetFormatted());
@@ -194,7 +194,7 @@ namespace AElf.OS.Account.Infrastructure
             return filePathWithExtension;
         }
 
-        private DirectoryInfo GetOrCreateKeystoreDirectory()
+        private DirectoryInfo CreateKeystoreDirectory()
         {
             var dirPath = GetKeystoreDirectoryPath();
             return Directory.CreateDirectory(dirPath);
