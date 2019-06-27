@@ -54,7 +54,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) & tokenInfo.Symbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
-            Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Invalid token name.");
+            Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), $"Invalid token name. {tokenInfo.Symbol}");
             Assert(tokenInfo.TotalSupply > 0, "Invalid total supply.");
             Assert(tokenInfo.Issuer != null, "Invalid issuer address.");
             State.TokenInfos[tokenInfo.Symbol] = tokenInfo;

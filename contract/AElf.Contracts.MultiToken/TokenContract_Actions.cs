@@ -20,7 +20,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Create(CreateInput input)
         {
             var existing = State.TokenInfos[input.Symbol];
-            Assert(existing == null || !existing.Symbol.Any(), "Token already exists.");
+            Assert(existing == null || !existing.Symbol.Any(), $"Token already exists. Symbol: {input.Symbol}");
             RegisterTokenInfo(new TokenInfo
             {
                 Symbol = input.Symbol,
