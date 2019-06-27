@@ -80,7 +80,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             returnSets.AddRange(nonParallelizableReturnSets);
             if (conflictingSets.Count > 0)
             {
-                // TODO: Add event handler somewhere, identify the conflicting transactions and remove them from txHub
                 await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(
                     blockHeader.Height - 1,
                     blockHeader.PreviousBlockHash,
