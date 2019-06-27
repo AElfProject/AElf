@@ -8,10 +8,13 @@ namespace AElf.Contracts.Economic
     {
         public override Empty CreateNativeToken(CreateNativeTokenInput input)
         {
+            //TODO: for testing, tester cannot monitor zero contract call this method
+            /*
             if (Context.Sender != Context.GetZeroSmartContractAddress())
             {
                 return new Empty();
             }
+            */
 
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
@@ -28,7 +31,8 @@ namespace AElf.Contracts.Economic
                 {
                     Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName),
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName)
+                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
                 }
             });
             return new Empty();
@@ -36,10 +40,13 @@ namespace AElf.Contracts.Economic
 
         public override Empty IssueNativeToken(IssueNativeTokenInput input)
         {
+            //TODO: for testing, tester cannot monitor zero contract call this method
+            /*
             if (Context.Sender != Context.GetZeroSmartContractAddress())
             {
                 return new Empty();
             }
+            */
 
             State.TokenContract.Issue.Send(new IssueInput
             {
