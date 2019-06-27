@@ -7,6 +7,8 @@ namespace AElf.CrossChain.Communication.Grpc
         public string LocalServerHost { get; set; }
         public int LocalServerPort { get; set; }
         
+        public string ListeningHost { get; set; } 
+            
         #endregion
 
         #region Remote

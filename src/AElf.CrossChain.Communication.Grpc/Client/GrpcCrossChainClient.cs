@@ -6,7 +6,6 @@ using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Cache;
 using AElf.Kernel;
 using Grpc.Core;
-using Microsoft.Extensions.Logging;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
