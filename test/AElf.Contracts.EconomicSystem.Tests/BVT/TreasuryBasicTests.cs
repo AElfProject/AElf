@@ -161,11 +161,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         public async Task EconomistSystem_SetMethodProfitFee()
         {
             const long profitAmount = 100L;
-            await MethodCallThresholdContractStub.SetMethodCallingThreshold.SendAsync(new SetMethodCallingThresholdInput
+            var setMethodResult = await MethodCallThresholdContractStub.SetMethodCallingThreshold.SendAsync(new SetMethodCallingThresholdInput
             {
                 Method = nameof(MethodCallThresholdContractStub.SendForFun),
                 SymbolToAmount = {{EconomicSystemTestConstants.NativeTokenSymbol, profitAmount}}
             });
+            setMethodResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var tokenAmount = await MethodCallThresholdContractStub.GetMethodCallingThreshold.CallAsync(new StringValue
             {

@@ -55,6 +55,11 @@ namespace AElf.Contracts.TestContract.MethodCallThreshold
         
         private void AssertPerformedByContractOwner()
         {
+            if (State.Acs0Contract.Value == null)
+            {
+                State.Acs0Contract.Value = Context.GetZeroSmartContractAddress();
+            }
+            
             var contractInfo = State.Acs0Contract.GetContractInfo.Call(Context.Self);
             Assert(Context.Sender == contractInfo.Owner, "Only owner are permitted to call this method.");
         }
