@@ -42,7 +42,7 @@ service TokenContract {
     }
     rpc SetProfitReceivingInformation (ProfitReceivingInformation) returns (google.protobuf.Empty) {
     }
-    rpc ReceiveProfits (aelf.Address) returns (google.protobuf.Empty) {
+    rpc ReceiveProfits (ReceiveProfitsInput) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -197,7 +197,12 @@ message CheckThresholdInput {
 message ProfitReceivingInformation {
     aelf.Address contract_address = 1;
     aelf.Address profit_receiver_address = 2;
-    string donation_parts_per_hundred = 3;
+    sint32 donation_parts_per_hundred = 3;
+}
+
+message ReceiveProfitsInput {
+    aelf.Address contract_address = 1;
+    repeated string symbols = 2;
 }
 
 // Events

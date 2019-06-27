@@ -340,7 +340,30 @@ namespace AElf.Contracts.MultiToken
             Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
                 "Either contract owner or contract itself can set profit receiving information.");
 
+            Assert(0 < input.DonationPartsPerHundred && input.DonationPartsPerHundred < 100, "Invalid donation ratio.");
+
             State.ProfitReceivingInfos[input.ContractAddress] = input;
+            return new Empty();
+        }
+
+        public override Empty ReceiveProfits(ReceiveProfitsInput input)
+        {
+            var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];
+            Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
+                "Only profit receiver can perform this action.");
+            foreach (var symbol in input.Symbols)
+            {
+                var profits = State.Balances[input.ContractAddress][symbol];
+                State.Balances[input.ContractAddress][symbol] = 0;
+                var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
+                State.TreasuryContract.Donate.Send(new DonateInput
+                {
+                    Symbol = symbol,
+                    Amount = donates
+                });
+                State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] = profits.Sub(donates);
+            }
+
             return new Empty();
         }
     }
