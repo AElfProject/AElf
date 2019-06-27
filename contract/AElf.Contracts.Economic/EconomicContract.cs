@@ -35,6 +35,7 @@ namespace AElf.Contracts.Economic
             State.TokenContract.Create.Send(new CreateInput
             {
                 Symbol = input.NativeTokenSymbol,
+                TokenName = "Native Token",
                 TotalSupply = input.NativeTokenTotalSupply,
                 Decimals = input.NativeTokenDecimals,
                 IsBurnable = input.IsNativeTokenBurnable,

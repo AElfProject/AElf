@@ -99,7 +99,7 @@ namespace AElf.Contracts.TokenConverter
 
             State.ConnectorCount.Value = count;
 
-            CreateToken();
+            //CreateToken();
 
             return new Empty();
         }

@@ -469,15 +469,15 @@ namespace AElf.Contracts.EconomicSystem.Tests
 
         private async Task InitializeTokenConverter()
         {
-            {
-                var result = await TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
-                {
-                    BaseTokenSymbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                    ManagerAddress = ConnectorManagerAddress,
-                    FeeRate = "0.01"
-                });
-                CheckResult(result.TransactionResult);
-            }
+//            {
+//                var result = await TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
+//                {
+//                    BaseTokenSymbol = EconomicSystemTestConstants.NativeTokenSymbol,
+//                    ManagerAddress = ConnectorManagerAddress,
+//                    FeeRate = "0.01"
+//                });
+//                CheckResult(result.TransactionResult);
+//            }
             
             await SetConnectors();
         }
@@ -536,20 +536,17 @@ namespace AElf.Contracts.EconomicSystem.Tests
         {
             //create native token
             {
-                var result = await EconomicContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput
+                var result = await EconomicContractStub.InitialEconomicSystem.SendAsync(new InitialEconomicSystemInput
                 {
-                    Decimals = EconomicSystemTestConstants.Decimals,
-                    IsBurnable = EconomicSystemTestConstants.IsBurnable,
-                    TokenName = EconomicSystemTestConstants.NativeTokenSymbol,
-                    TotalSupply = EconomicSystemTestConstants.TotalSupply
+                    NativeTokenDecimals = EconomicSystemTestConstants.Decimals,
+                    IsNativeTokenBurnable = EconomicSystemTestConstants.IsBurnable,
+                    NativeTokenSymbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                    NativeTokenTotalSupply = EconomicSystemTestConstants.TotalSupply,
+                    MiningRewardTotalAmount = EconomicSystemTestConstants.TotalSupply/5
                 });
                 CheckResult(result.TransactionResult);
             }
-            //InitialMiningReward
-            {
-                var result = await EconomicContractStub.InitialMiningReward.SendAsync(new Empty());
-                CheckResult(result.TransactionResult);
-            }
+ 
             //Issue native token to core data center keyPairs
             {
                 var result = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
@@ -558,11 +555,6 @@ namespace AElf.Contracts.EconomicSystem.Tests
                     To = TreasuryContractAddress,
                     Memo = "Set mining rewards."
                 });
-                CheckResult(result.TransactionResult);
-            }
-            //Register election voting event
-            {
-                var result = await EconomicContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
                 CheckResult(result.TransactionResult);
             }
         }
