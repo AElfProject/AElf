@@ -107,7 +107,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         private byte[] ProfitContractCode => Codes.First(kv => kv.Key.Contains("Profit")).Value;
         private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;
         private byte[] TreasuryContractCode => Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
-        private byte[] ProfitSharingContractCode => Codes.Single(kv => kv.Key.Contains("ProfitSharing")).Value;
+        private byte[] MethodCallThresholdContractCode => Codes.Single(kv => kv.Key.Contains("MethodCallThreshold")).Value;
         private byte[] EconomicContractCode => Codes.Single(kv => kv.Key.Contains("Economic")).Value;
 
         private byte[] TransactionFeeChargingContractCode =>
@@ -202,7 +202,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 await TokenConverterContractStub.SetManagerAddress.SendAsync(TreasuryContractAddress);
             });
             AsyncHelper.RunSync(InitializeTransactionFeeChargingContract);
-            AsyncHelper.RunSync(InitializeProfitSharingContract);
+            AsyncHelper.RunSync(InitializeMethodCallThresholdContract);
             var profitIds = AsyncHelper.RunSync(() =>
                 ProfitContractStub.GetCreatedProfitIds.CallAsync(
                     new GetCreatedProfitIdsInput
@@ -310,8 +310,8 @@ namespace AElf.Contracts.EconomicSystem.Tests
 
             MethodCallThresholdContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
-                ProfitSharingContractCode,
-                Hash.FromString("AElf.ContractNames.ProfitSharing"),
+                MethodCallThresholdContractCode,
+                Hash.FromString("AElf.ContractNames.MethodCallThreshold"),
                 BootMinerKeyPair));
             MethodCallThresholdContractStub = GetMethodCallThresholdContractStub(BootMinerKeyPair);
         }
@@ -428,12 +428,12 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 });
             CheckResult(result.TransactionResult);
         }
-        private async Task InitializeProfitSharingContract()
+        private async Task InitializeMethodCallThresholdContract()
         {
             var result = await MethodCallThresholdContractStub.InitializeMethodCallThresholdContract.SendAsync(
                 new InitializeMethodCallThresholdContractInput
                 {
-                    Symbol = EconomicSystemTestConstants.ProfitSharingContractTokenSymbol
+                    Symbol = EconomicSystemTestConstants.MethodCallThresholdContractTokenSymbol
                 });
             CheckResult(result.TransactionResult);
         }
@@ -469,7 +469,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
             });
             await manager.SetConnector.SendAsync(new Connector
             {
-                Symbol = EconomicSystemTestConstants.ProfitSharingContractTokenSymbol,
+                Symbol = EconomicSystemTestConstants.MethodCallThresholdContractTokenSymbol,
                 IsPurchaseEnabled = true,
                 Weight = "0.2",
                 IsVirtualBalanceEnabled = true

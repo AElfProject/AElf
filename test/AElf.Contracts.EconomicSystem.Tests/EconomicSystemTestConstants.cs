@@ -5,7 +5,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         public const string NativeTokenSymbol = "ELF";
         public const string ConverterTokenSymbol = "AETC";
         public const string TransactionFeeChargingContractTokenSymbol = "TFCC";
-        public const string ProfitSharingContractTokenSymbol = "PSC";
+        public const string MethodCallThresholdContractTokenSymbol = "MCT";
         public const int Decimals = 2;
         public const bool IsBurnable = true;
         public const long TotalSupply = 1_000_000_000;
