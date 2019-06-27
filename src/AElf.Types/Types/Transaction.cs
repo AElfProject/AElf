@@ -1,5 +1,4 @@
 using System;
-using System.Security.Cryptography;
 using Google.Protobuf;
 
 namespace AElf.Types
@@ -9,11 +8,6 @@ namespace AElf.Types
         public Hash GetHash()
         {
             return Hash.FromRawBytes(GetSignatureData());
-        }
-
-        public byte[] GetHashBytes()
-        {
-            return SHA256.Create().ComputeHash(GetSignatureData());
         }
 
         private byte[] GetSignatureData()
