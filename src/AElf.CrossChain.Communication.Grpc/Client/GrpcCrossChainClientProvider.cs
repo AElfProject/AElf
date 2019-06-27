@@ -57,7 +57,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var localChainId = crossChainClientDto.LocalChainId;
             client = CreateGrpcClient(uriStr, localChainId, chainId, isClientToParentChain);
             _grpcCrossChainClients.TryAdd(chainId, client);
-            _ = TryConnectAndUpdateClientAsync(client);
+            _ = ConnectAsync(client);
             Logger.LogTrace("Create client finished.");
         }
 
@@ -73,7 +73,7 @@ namespace AElf.CrossChain.Communication.Grpc
             if (crossChainClient.IsConnected)
                 return crossChainClient;
             // try connect first 
-            await TryConnectAndUpdateClientAsync(crossChainClient);
+            await ConnectAsync(crossChainClient);
             
             return crossChainClient.IsConnected ? crossChainClient : null;
         }
@@ -108,7 +108,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         #region Request
         
-        private Task TryConnectAndUpdateClientAsync(ICrossChainClient client)
+        private Task ConnectAsync(ICrossChainClient client)
         {
             Logger.LogTrace($"Try handshake with chain {ChainHelpers.ConvertChainIdToBase58(client.RemoteChainId)}");
             return client.ConnectAsync();

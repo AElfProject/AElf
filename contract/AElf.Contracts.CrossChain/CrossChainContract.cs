@@ -220,11 +220,11 @@ namespace AElf.Contracts.CrossChain
             var indexedCrossChainData = State.IndexedSideChainBlockData[Context.CurrentHeight];
             Assert(indexedCrossChainData == null); // This should not fail.
             
-            var indexedParentChainBlockData = IndexParentChainBlockInfo(crossChainBlockData.ParentChainBlockData);
+            var indexedParentChainBlockData = IndexParentChainBlockData(crossChainBlockData.ParentChainBlockData);
             if (indexedParentChainBlockData.ParentChainBlockData.Count > 0)
                 State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
             
-            var indexedSideChainBlockData = IndexSideChainBlockInfo(crossChainBlockData.SideChainBlockData);
+            var indexedSideChainBlockData = IndexSideChainBlockData(crossChainBlockData.SideChainBlockData);
             if (indexedSideChainBlockData.SideChainBlockData.Count > 0)
                 State.IndexedSideChainBlockData[Context.CurrentHeight] = indexedSideChainBlockData;
             
@@ -235,7 +235,7 @@ namespace AElf.Contracts.CrossChain
         /// Index parent chain block data.
         /// </summary>
         /// <param name="parentChainBlockData"></param>
-        private IndexedParentChainBlockData IndexParentChainBlockInfo(IList<ParentChainBlockData> parentChainBlockData)
+        private IndexedParentChainBlockData IndexParentChainBlockData(IList<ParentChainBlockData> parentChainBlockData)
         {
             // only miner can do this.
             //Api.IsMiner("Not authorized to do this.");
@@ -287,15 +287,14 @@ namespace AElf.Contracts.CrossChain
         /// </summary>
         /// <param name="sideChainBlockData">Side chain block data to be indexed.</param>
         /// <returns>Valid side chain block data which are indexed.</returns>
-        private IndexedSideChainBlockData IndexSideChainBlockInfo(IList<SideChainBlockData> sideChainBlockData)
+        private IndexedSideChainBlockData IndexSideChainBlockData(IList<SideChainBlockData> sideChainBlockData)
         {
             // only miner can do this.
 //            Api.IsMiner("Not authorized to do this.");
 
             var indexedSideChainBlockData = new IndexedSideChainBlockData();
-            for (var i = 0; i < sideChainBlockData.Count; i++)
+            foreach (var blockInfo in sideChainBlockData)
             {
-                var blockInfo = sideChainBlockData[i];
                 var chainId = blockInfo.ChainId;
                 var info = State.SideChainInfos[chainId];
                 if (info == null || info.SideChainStatus != SideChainStatus.Active)

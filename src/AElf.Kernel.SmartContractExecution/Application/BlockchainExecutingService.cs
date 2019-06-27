@@ -109,10 +109,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     });
                 }
             }
-            catch (ValidateNextTimeBlockValidationException ex)
-            {
-                Logger.LogWarning($"Block validate fails after execution. Exception message {ex.Message}");
-            }
             catch (Exception ex)
             {
                 await _chainManager.RemoveLongestBranchAsync(chain);
