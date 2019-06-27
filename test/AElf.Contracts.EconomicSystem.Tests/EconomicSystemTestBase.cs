@@ -8,7 +8,7 @@ using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
-using AElf.Contracts.TestContract.ProfitSharing;
+using AElf.Contracts.TestContract.MethodCallThreshold;
 using AElf.Contracts.TestContract.TransactionFeeCharging;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
@@ -81,7 +81,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         protected Address TokenConverterContractAddress { get; set; }
         protected Address TreasuryContractAddress { get; set; }
         protected Address TransactionFeeChargingContractAddress { get; set; }
-        protected Address ProfitSharingContractAddress { get; set; }
+        protected Address MethodCallThresholdContractAddress { get; set; }
         protected Address EconomicContractAddress { get; set; }
 
         // Will use BootMinerKeyPair.
@@ -97,7 +97,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
             TransactionFeeChargingContractStub { get; set; }
 
-        internal ProfitSharingContractContainer.ProfitSharingContractStub ProfitSharingContractStub { get; set; }
+        internal MethodCallThresholdContractContainer.MethodCallThresholdContractStub MethodCallThresholdContractStub { get; set; }
         internal EconomicContractContainer.EconomicContractStub EconomicContractStub { get; set; }
 
         private byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("AEDPoS")).Value;
@@ -161,11 +161,10 @@ namespace AElf.Contracts.EconomicSystem.Tests
             return GetTester<TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub>(
                 TransactionFeeChargingContractAddress, keyPair);
         }
-
-        internal ProfitSharingContractContainer.ProfitSharingContractStub GetProfitSharingContractStub(
+        internal MethodCallThresholdContractContainer.MethodCallThresholdContractStub GetMethodCallThresholdContractStub(
             ECKeyPair keyPair)
         {
-            return GetTester<ProfitSharingContractContainer.ProfitSharingContractStub>(ProfitSharingContractAddress,
+            return GetTester<MethodCallThresholdContractContainer.MethodCallThresholdContractStub>(MethodCallThresholdContractAddress,
                 keyPair);
         }
 
@@ -309,12 +308,12 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 BootMinerKeyPair));
             TransactionFeeChargingContractStub = GetTransactionFeeChargingContractStub(BootMinerKeyPair);
 
-            ProfitSharingContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+            MethodCallThresholdContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 ProfitSharingContractCode,
                 Hash.FromString("AElf.ContractNames.ProfitSharing"),
                 BootMinerKeyPair));
-            ProfitSharingContractStub = GetProfitSharingContractStub(BootMinerKeyPair);
+            MethodCallThresholdContractStub = GetMethodCallThresholdContractStub(BootMinerKeyPair);
         }
 
         private async Task InitializeVote()
@@ -431,8 +430,8 @@ namespace AElf.Contracts.EconomicSystem.Tests
         }
         private async Task InitializeProfitSharingContract()
         {
-            var result = await ProfitSharingContractStub.InitializeProfitSharingContract.SendAsync(
-                new InitializeProfitSharingContractInput
+            var result = await MethodCallThresholdContractStub.InitializeMethodCallThresholdContract.SendAsync(
+                new InitializeMethodCallThresholdContractInput
                 {
                     Symbol = EconomicSystemTestConstants.ProfitSharingContractTokenSymbol
                 });
