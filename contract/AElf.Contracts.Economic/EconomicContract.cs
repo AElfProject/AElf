@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Economic
@@ -19,6 +22,7 @@ namespace AElf.Contracts.Economic
             CreateTokenConverterToken();
             CreateResourceTokens();
             CreateMiningToken();
+            CreateElectionToken();
 
             InitialMiningReward(input.MiningRewardTotalAmount);
 
@@ -79,7 +83,7 @@ namespace AElf.Contracts.Economic
                     Decimals = EconomicContractConstants.ResourceTokenDecimals,
                     Issuer = Context.Self,
                     IsBurnable = true // TODO: TBD,
-                    
+
                 });
             }
         }
@@ -96,6 +100,20 @@ namespace AElf.Contracts.Economic
                 IsBurnable = true,
                 IsTransferDisabled = true,
                 LockWhiteList = {Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName)}
+            });
+        }
+
+        private void CreateElectionToken()
+        {
+            State.TokenContract.Create.Send(new CreateInput
+            {
+                Symbol = EconomicContractConstants.ElectionTokenSymbol,
+                TokenName = "Election Token",
+                TotalSupply = EconomicContractConstants.ElectionTokenTotalSupply,
+                Decimals = 0,
+                Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                IsBurnable = false,
+                IsTransferDisabled = true
             });
         }
 
@@ -145,8 +163,23 @@ namespace AElf.Contracts.Economic
             State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
         }
 
+        private Address CreateConnectorManager()
+        {
+            State.ParliamentAuthContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+
+            var createOrganizationInput = new CreateOrganizationInput {ReleaseThreshold = 1};
+            State.ParliamentAuthContract.CreateOrganization.Send(createOrganizationInput);
+
+            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(State.ParliamentAuthContract.Value),
+                Hash.FromMessage(createOrganizationInput));
+            return Address.FromPublicKey(State.ParliamentAuthContract.Value.Value.Concat(
+                organizationHash.Value.ToByteArray().CalculateHash()).ToArray());
+        }
+
         private void InitializeTokenConverterContract()
         {
+            var connectorManager = CreateConnectorManager();
             State.TokenConverterContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
             var connectors = new List<Connector>
@@ -182,10 +215,10 @@ namespace AElf.Contracts.Economic
 
             State.TokenConverterContract.Initialize.Send(new InitializeInput
             {
-                FeeRate = "0.01",
+                FeeRate = EconomicContractConstants.TokenConverterFeeRate,
                 Connectors = {connectors},
                 BaseTokenSymbol = Context.Variables.NativeSymbol,
-                ManagerAddress = Context.Self
+                ManagerAddress = connectorManager
             });
         }
     }

@@ -8,6 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf/Proto/acs3.proto</Link>
+        </ContractBase>
+    </ItemGroup>
+
+    <ItemGroup>
         <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
             <Link>Protobuf\Proto\reference\token_converter_contract.proto</Link>
         </ContractReference>
@@ -22,6 +28,9 @@
         </ContractReference>
         <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
             <Link>Protobuf\Proto\reference\token_converter_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
 

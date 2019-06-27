@@ -66,6 +66,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\..\test\AElf.Contracts.ParliamentAuthContract\AElf.Contracts.ParliamentAuthContract.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
@@ -73,6 +78,9 @@
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf/Proto/acs1.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf/Proto/acs3.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf/Proto/acs4.proto</Link>
@@ -119,6 +127,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\economic_contract.proto">
             <Link>Protobuf/Proto/economic_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf/Proto/parliament_auth_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

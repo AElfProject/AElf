@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.MethodCallThreshold;
 using AElf.Contracts.TestContract.TransactionFeeCharging;
@@ -19,12 +21,14 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
+using ApproveInput = AElf.Contracts.MultiToken.Messages.ApproveInput;
 
 namespace AElf.Contracts.EconomicSystem.Tests
 {
@@ -82,6 +86,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         protected Address TransactionFeeChargingContractAddress { get; set; }
         protected Address MethodCallThresholdContractAddress { get; set; }
         protected Address EconomicContractAddress { get; set; }
+        protected Address ParliamentAuthContractAddress { get; set; }
 
         // Will use BootMinerKeyPair.
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
@@ -92,6 +97,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub { get; set; }
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub { get; set; }
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub { get; set; }
 
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
             TransactionFeeChargingContractStub { get; set; }
@@ -111,6 +117,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
         private byte[] ProfitContractCode => Codes.First(kv => kv.Key.Contains("Profit")).Value;
         private byte[] VoteContractCode => Codes.Single(kv => kv.Key.Contains("Vote")).Value;
         private byte[] TreasuryContractCode => Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
+        private byte[] ParliamentAuthContractCode => Codes.Single(kv => kv.Key.Contains("ParliamentAuth")).Value;
 
         private byte[] MethodCallThresholdContractCode =>
             Codes.Single(kv => kv.Key.Contains("MethodCallThreshold")).Value;
@@ -160,6 +167,11 @@ namespace AElf.Contracts.EconomicSystem.Tests
         internal TreasuryContractContainer.TreasuryContractStub GetTreasuryContractStub(ECKeyPair keyPair)
         {
             return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
+        }
+        
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractStub(ECKeyPair keyPair)
+        {
+            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress, keyPair);
         }
 
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
@@ -647,6 +659,25 @@ namespace AElf.Contracts.EconomicSystem.Tests
             {
                 throw new Exception(result.Error);
             }
+        }
+
+        private async Task SetConnector(Connector connector)
+        {
+            var connectorManagerAddress = await TokenConverterContractStub.GetManagerAddress.CallAsync(new Empty());
+            var proposal = new CreateProposalInput
+            {
+                OrganizationAddress = connectorManagerAddress,
+                ContractMethodName = nameof(TokenConverterContractStub.SetConnector),
+                ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                Params = connector.ToByteString(),
+                ToAddress = TokenConverterContractAddress
+            };
+            await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
+            var proposalHash = Hash.FromMessage(proposal);
+            await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
+            {
+                ProposalId = proposalHash,
+            });
         }
     }
 }

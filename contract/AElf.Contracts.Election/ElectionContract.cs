@@ -45,28 +45,7 @@ namespace AElf.Contracts.Election
         {
             Assert(!State.VotingEventRegistered.Value, "Already registered.");
 
-            State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             State.VoteContract.Value = Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
-            State.AEDPoSContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-
-            State.TokenContract.Create.Send(new CreateInput
-            {
-                Symbol = ElectionContractConstants.VoteSymbol,
-                TokenName = "Vote token",
-                Issuer = Context.Self,
-                Decimals = 2,
-                IsBurnable = true,
-                TotalSupply = ElectionContractConstants.VotesTotalSupply,
-                LockWhiteList = {Context.Self}
-            });
-
-//            State.TokenContract.Issue.Send(new IssueInput
-//            {
-//                Symbol = ElectionContractConstants.VoteSymbol,
-//                Amount = ElectionContractConstants.VotesTotalSupply,
-//                To = Context.Self,
-//                Memo = "Power!"
-//            });
 
             var votingRegisterInput = new VotingRegisterInput
             {
@@ -168,6 +147,12 @@ namespace AElf.Contracts.Election
         /// <returns></returns>
         public override Empty AnnounceElection(Empty input)
         {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
             var publicKey = Context.RecoverPublicKey().ToHex();
             var publicKeyByteString = ByteString.CopyFrom(Context.RecoverPublicKey());
 

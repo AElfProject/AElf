@@ -51,15 +51,15 @@ namespace AElf.Contracts.ParliamentAuth
                 CreateOrganization(new CreateOrganizationInput {ReleaseThreshold = _defaultOrganizationReleaseThreshold});
             return new Empty();
         }
-        
+
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
             Assert(input.ReleaseThreshold > 0 && input.ReleaseThreshold <= 10000, "Invalid organization.");
             var organizationHash = GenerateOrganizationVirtualHash(input);
             Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
-            if(State.Organisations[organizationAddress] == null)
+            if (State.Organisations[organizationAddress] == null)
             {
-                var organization =new Organization
+                var organization = new Organization
                 {
                     ReleaseThreshold = input.ReleaseThreshold,
                     OrganizationAddress = organizationAddress,
@@ -67,9 +67,10 @@ namespace AElf.Contracts.ParliamentAuth
                 };
                 State.Organisations[organizationAddress] = organization;
             }
+
             return organizationAddress;
         }
-        
+
         public override Hash CreateProposal(CreateProposalInput proposal)
         {
             CheckProposerAuthority(proposal.OrganizationAddress);

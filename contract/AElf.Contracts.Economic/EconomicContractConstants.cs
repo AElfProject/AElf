@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using System.Linq.Expressions;
 
 namespace AElf.Contracts.Economic
 {
     public class EconomicContractConstants
     {
         // Token Converter Contract related.
+        public const string TokenConverterFeeRate = "0.01";
         public const string TokenConverterTokenSymbol = "AETC";
         public const long TokenConverterTokenTotalSupply = 1_000_000_000_000000000;
         public const int TokenConverterTokenDecimals = 8;
@@ -22,6 +22,9 @@ namespace AElf.Contracts.Economic
         public const string MiningTokenSymbol = "MINE";
         public const long MiningTokenTotalSupply = long.MaxValue;
         
-        
+        // Election related.
+        public const string ElectionTokenSymbol = "VOTE";
+        public const long ElectionTokenTotalSupply = 1_000_000_000_000000000;
+
     }
 }
