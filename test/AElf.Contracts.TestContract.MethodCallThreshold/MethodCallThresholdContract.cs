@@ -18,7 +18,7 @@ namespace AElf.Contracts.TestContract.MethodCallThreshold
                 TotalSupply =MethodCallThresholdContractConstants.TotalSupply,
                 ConnectorWeight = "0.2",
                 Decimals = 2,
-                TokenName = "Token of Profit Sharing Contract"
+                TokenName = "Token of Method Call Threshold Contract"
             });
 
             State.TokenContract.Value =

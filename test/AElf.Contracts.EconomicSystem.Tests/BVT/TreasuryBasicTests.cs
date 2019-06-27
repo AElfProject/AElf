@@ -129,11 +129,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var chosenOneTokenConverterContractStub =
                 GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
                     chosenOneKeyPair);
-            await chosenOneTokenConverterContractStub.Buy.SendAsync(new BuyInput
+            var result = await chosenOneTokenConverterContractStub.Buy.SendAsync(new BuyInput
             {
                 Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
                 Amount = feeAmount
             });
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
