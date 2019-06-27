@@ -170,7 +170,7 @@ namespace AElf.CLI.JS
                 RunScript("_requestor = null;");
                 _requestor = new HttpRequestor(_option.Endpoint, _context);
                 _context.GlobalObject.WriteProperty("_requestor", _requestor);
-                RunScript("aelf = new Aelf(_requestor);");
+                RunScript("aelf = new AElf(_requestor);");
                 RunScript(File.ReadAllText(Path.Combine(DefaultScriptsPath, "requestor.js")));
             }
             catch (Exception)
