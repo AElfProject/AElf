@@ -9,6 +9,11 @@ namespace AElf.Kernel
 {
     public partial class TransactionTrace
     {
+        partial void OnConstruction()
+        {
+            StateSet = new TransactionExecutingStateSet();
+        }
+
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
 
@@ -32,11 +37,11 @@ namespace AElf.Kernel
             }
         }
 
-        public IEnumerable<KeyValuePair<string, ByteString>> GetFlattenedWrite()
+        public IEnumerable<KeyValuePair<string, ByteString>> GetFlattenedWrites()
         {
             foreach (var trace in PreTraces)
             {
-                foreach (var kv in trace.GetFlattenedWrite())
+                foreach (var kv in trace.GetFlattenedWrites())
                 {
                     yield return kv;
                 }
@@ -49,7 +54,31 @@ namespace AElf.Kernel
 
             foreach (var trace in InlineTraces)
             {
-                foreach (var kv in trace.GetFlattenedWrite())
+                foreach (var kv in trace.GetFlattenedWrites())
+                {
+                    yield return kv;
+                }
+            }
+        }
+
+        public IEnumerable<KeyValuePair<string, bool>> GetFlattenedReads()
+        {
+            foreach (var trace in PreTraces)
+            {
+                foreach (var kv in trace.GetFlattenedReads())
+                {
+                    yield return kv;
+                }
+            }
+
+            foreach (var kv in StateSet.Reads)
+            {
+                yield return kv;
+            }
+
+            foreach (var trace in InlineTraces)
+            {
+                foreach (var kv in trace.GetFlattenedReads())
                 {
                     yield return kv;
                 }

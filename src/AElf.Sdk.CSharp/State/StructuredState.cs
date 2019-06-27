@@ -13,7 +13,7 @@ namespace AElf.Sdk.CSharp.State
         private Dictionary<string, PropertyInfo> _propertyInfos;
 
         //private Dictionary<string, StateBase> _states;
-         
+
 
         public StructuredState()
         {
@@ -91,9 +91,15 @@ namespace AElf.Sdk.CSharp.State
             {
                 var propertyInfo = kv.Value;
                 var propertyValue = (StateBase) propertyInfo.GetValue(this);
-                foreach (var kv1 in propertyValue.GetChanges().Writes)
+                var changes = propertyValue.GetChanges();
+                foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
+                }
+
+                foreach (var kv1 in changes.Reads)
+                {
+                    stateSet.Reads[kv1.Key] = kv1.Value;
                 }
             }
 
