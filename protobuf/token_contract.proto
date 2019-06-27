@@ -183,8 +183,7 @@ message CrossChainReceiveTokenInput {
 
 message CheckThresholdInput {
     aelf.Address sender = 1;
-    string symbol = 2;
-    sint64 threshold_amount = 3;
+    map<string, sint64> symbol_to_threshold = 2;
 }
 
 // EventsCreateInput
