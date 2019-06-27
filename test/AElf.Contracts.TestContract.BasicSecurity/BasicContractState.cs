@@ -1,6 +1,5 @@
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp.State;
-using AElf.Types;
 
 namespace AElf.Contracts.TestContract.BasicSecurity
 {

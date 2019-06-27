@@ -1,7 +1,6 @@
 using System;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
-using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -167,16 +166,9 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 
         public override Empty TestOriginAddress(Address address)
         {
-            ValidateContractState(State.BasicFunctionContract, Hash.FromString("AElf.ContractNames.TestContract.BasicFunction"));
+            State.BasicFunctionContract.Value = Context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.TestContract.BasicFunction"));
             State.BasicFunctionContract.ValidateOrigin.Send(address);
             return new Empty();
-        }
-        
-        private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
-        {
-            if (state.Value != null)
-                return;
-            state.Value = Context.GetContractAddressByName(contractSystemName);
         }
     }
 }
