@@ -126,7 +126,7 @@ namespace AElf.Contracts.Treasury
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-            var isNativeSymbol = input.Symbol != Context.Variables.NativeSymbol;
+            var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {

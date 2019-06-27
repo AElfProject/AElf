@@ -80,7 +80,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Owner = Address.FromPublicKey(keyPair.PublicKey),
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol
             })).Balance;
-            userBalance.ShouldBe(100);
+            userBalance.ShouldBe(50);
         }
         
         [Fact]

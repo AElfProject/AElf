@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Acs1;
 using Acs5;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.TestContract.ProfitSharing;
 using AElf.Contracts.TokenConverter;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -162,15 +161,15 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         public async Task EconomistSystem_SetMethodProfitFee()
         {
             const long profitAmount = 100L;
-            await ProfitSharingContractStub.SetMethodProfitFee.SendAsync(new SetMethodProfitFeeInput
+            await MethodCallThresholdContractStub.SetMethodCallingThreshold.SendAsync(new SetMethodCallingThresholdInput
             {
-                Method = nameof(ProfitSharingContractStub.SendForFun),
+                Method = nameof(MethodCallThresholdContractStub.SendForFun),
                 SymbolToAmount = {{EconomicSystemTestConstants.NativeTokenSymbol, profitAmount}}
             });
 
-            var tokenAmount = await ProfitSharingContractStub.GetMethodProfitFee.CallAsync(new StringValue
+            var tokenAmount = await MethodCallThresholdContractStub.GetMethodCallingThreshold.CallAsync(new StringValue
             {
-                Value = nameof(ProfitSharingContractStub.SendForFun)
+                Value = nameof(MethodCallThresholdContractStub.SendForFun)
             });
             tokenAmount.SymbolToAmount[EconomicSystemTestConstants.NativeTokenSymbol].ShouldBe(profitAmount);
         }

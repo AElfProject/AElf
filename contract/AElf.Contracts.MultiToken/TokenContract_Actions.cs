@@ -5,6 +5,7 @@ using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
+using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -315,6 +316,11 @@ namespace AElf.Contracts.MultiToken
                 if (State.Balances[input.Sender][symbolToThreshold.Key] < symbolToThreshold.Value) continue;
                 meetThreshold = true;
                 break;
+            }
+
+            if (input.SymbolToThreshold.Count == 0)
+            {
+                meetThreshold = true;
             }
 
             Assert(meetThreshold, "Cannot meet the calling threshold.");
