@@ -5,6 +5,8 @@ namespace AElf.Contracts.TestContract.BasicFunction
 {
     public class BasicFunctionContractState : ContractState
     {
+        public Address Origin { get; set; }
+        public Address Sender { get; set; }
         public BoolState Initialized { get; set; }
         public StringState ContractName { get; set; }
         public ProtobufState<Address> ContractManager { get; set; }

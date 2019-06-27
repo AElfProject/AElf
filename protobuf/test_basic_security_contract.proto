@@ -38,6 +38,8 @@ service BasicSecurityContract {
     }
     rpc TestExecuteExternalMethod(Int64Input) returns (google.protobuf.Empty) {
     }
+    rpc TestOriginAddress(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
     
     //View
     rpc QueryBoolState(google.protobuf.Empty) returns (BoolOutput) {
@@ -67,6 +69,8 @@ service BasicSecurityContract {
     rpc QueryExternalMethod1(aelf.Address) returns (Int64Output) {
     }
     rpc QueryExternalMethod2(aelf.Address) returns (Int64Output) {
+    }
+    rpc GetOriginAddress(google.protobuf.Empty) returns (aelf.Address) {
     }
 }
 

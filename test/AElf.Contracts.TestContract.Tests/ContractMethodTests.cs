@@ -87,7 +87,21 @@ namespace AElf.Contract.TestContract
                 new Empty())).Int64Value;
             rewardMoney.ShouldBeGreaterThanOrEqualTo(0);
         }
-        
+
+        [Fact]
+        public async Task Basic1Contract_CheckOriginAddress()
+        {
+            await TestBasicSecurityContractStub.TestOriginAddress.SendAsync(new Empty());
+            var originAddress = TestBasicSecurityContractStub.GetOriginAddress.CallAsync(new Empty()).Result;
+            var inlineOriginAddress = TestBasicFunctionContractStub.GetOriginAddress.CallAsync(new Empty()).Result;
+            var inlineSenderAddress = TestBasicFunctionContractStub.GetSenderAddress.CallAsync(new Empty()).Result;
+
+            inlineSenderAddress.ShouldBe(BasicSecurityContractAddress);
+            inlineOriginAddress.ShouldNotBe(inlineSenderAddress);
+            originAddress.ShouldBe(DefaultSender);
+            inlineOriginAddress.ShouldBe(originAddress);
+        }
+
         #endregion 
         
         #region BasicSecurity methods Test
@@ -337,7 +351,7 @@ namespace AElf.Contract.TestContract
             queryResult.FromAmount.ShouldBe(0);
             queryResult.ToAmount.ShouldBe(0);
         }
-        
+
         #endregion
     }
 }

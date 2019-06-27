@@ -1,6 +1,7 @@
 using System;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -126,7 +127,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                     };
             }
 
-          return new Empty();
+            return new Empty();
         }
 
         public override Empty TestMapped2State(Complex3Input input)
@@ -162,6 +163,21 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             });
             
             return new Empty();
+        }
+
+        public override Empty TestOriginAddress(Empty input)
+        {
+            ValidateContractState(State.BasicFunctionContract, Hash.FromString("AElf.ContractNames.TestContract.BasicFunction"));
+            State.BasicFunctionContract.SetOriginAddress.Send(new Empty());
+            State.Origin = Context.Origin;
+            return new Empty();
+        }
+        
+        private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
+        {
+            if (state.Value != null)
+                return;
+            state.Value = Context.GetContractAddressByName(contractSystemName);
         }
     }
 }

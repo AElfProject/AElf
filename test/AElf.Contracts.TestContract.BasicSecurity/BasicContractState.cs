@@ -1,10 +1,12 @@
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 
 namespace AElf.Contracts.TestContract.BasicSecurity
 {
     public partial class BasicSecurityContractState : ContractState
     {
+        public Address Origin { get; set; }
         public BoolState Initialized { get; set; }
         
         public BoolState BoolInfo { get; set; }

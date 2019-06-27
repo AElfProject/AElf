@@ -39,5 +39,15 @@ namespace AElf.Contracts.TestContract.BasicFunction
                 Int64Value = State.LoserHistory[address]
             };
         }
+        
+        public override Address GetOriginAddress(Empty input)
+        {
+            return State.Origin;
+        }
+        
+        public override Address GetSenderAddress(Empty input)
+        {
+            return State.Sender;
+        }
     }
 }

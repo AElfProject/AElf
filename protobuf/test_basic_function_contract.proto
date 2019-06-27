@@ -16,6 +16,8 @@ service BasicFunctionContract {
     }
     rpc UserPlayBet(BetInput) returns (google.protobuf.Empty) {
     }
+    rpc SetOriginAddress(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
 
     //View
     rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
@@ -25,6 +27,10 @@ service BasicFunctionContract {
     rpc QueryUserWinMoney(aelf.Address) returns (MoneyOutput) {
     }
     rpc QueryUserLoseMoney(aelf.Address) returns (MoneyOutput) {
+    }
+    rpc GetOriginAddress(google.protobuf.Empty) returns (aelf.Address) {
+    }
+    rpc GetSenderAddress(google.protobuf.Empty) returns (aelf.Address) {
     }
 }
 
