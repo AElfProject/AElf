@@ -172,13 +172,13 @@ namespace AElf.Contracts.TokenConverter
 
             // Transfer bought token
             State.TokenContract.Transfer.Send(
-                new TransferInput()
+                new TransferInput
                 {
                     Symbol = input.Symbol,
                     To = Context.Sender,
                     Amount = input.Amount
                 });
-            Context.Fire(new TokenBought()
+            Context.Fire(new TokenBought
             {
                 Symbol = input.Symbol,
                 BoughtAmount = input.Amount,

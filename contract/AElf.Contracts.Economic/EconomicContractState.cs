@@ -1,4 +1,5 @@
 ﻿using System;
+using Acs0;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
@@ -16,5 +17,6 @@ namespace AElf.Contracts.Economic
         internal ElectionContractContainer.ElectionContractReferenceState ElectionContract { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractReferenceState TokenConverterContract { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set; }
+        internal ACS0Container.ACS0ReferenceState ACS0Contract { get; set; }
     }
 }

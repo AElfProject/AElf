@@ -42,6 +42,8 @@ service TokenContract {
     }
     rpc SetProfitReceivingInformation (ProfitReceivingInformation) returns (google.protobuf.Empty) {
     }
+    rpc ReceiveProfits (aelf.Address) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {

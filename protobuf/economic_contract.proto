@@ -11,23 +11,20 @@ option csharp_namespace = "AElf.Contracts.Economic";
 
 service EconomicContract {
     option (aelf.csharp_state) = "AElf.Contracts.Economic.EconomicContractState";
-    rpc CreateNativeToken (CreateNativeTokenInput) returns (google.protobuf.Empty) {
-    }
     rpc IssueNativeToken (IssueNativeTokenInput) returns (google.protobuf.Empty) {
     }
-    rpc InitialMiningReward (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc RegisterElectionVotingEvent (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc IssueResourceToken (IssueResourceTokenInput) returns (google.protobuf.Empty) {
     }
     rpc InitialEconomicSystem (InitialEconomicSystemInput) returns (google.protobuf.Empty) {
     }
 }
 
-message CreateNativeTokenInput {
-    //string symbol = 1;
-    sint64 total_supply = 3;
-    sint32 decimals = 4;
-    bool is_burnable = 5;
+message InitialEconomicSystemInput {
+    string native_token_symbol = 1;
+    sint64 native_token_total_supply = 2;
+    sint32 native_token_decimals = 3;
+    bool is_native_token_burnable = 4;
+    sint64 mining_reward_total_amount = 5;
 }
 
 message IssueNativeTokenInput {
@@ -37,11 +34,9 @@ message IssueNativeTokenInput {
     aelf.Address to = 4;
 }
 
-message InitialEconomicSystemInput {
-    string native_token_symbol = 1;
-    sint64 native_token_total_supply = 2;
-    sint32 native_token_decimals = 3;
-    bool is_native_token_burnable = 4;
-    sint64 mining_reward_total_amount = 5;
-    
+message IssueResourceTokenInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+    aelf.Address to = 4;
 }

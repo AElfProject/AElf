@@ -118,13 +118,21 @@ namespace AElf.Contracts.Economic
             });
         }
 
+        /// <summary>
+        /// Only contract owner of Economic Contract can issue native token.
+        /// Mainly for testing.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty IssueNativeToken(IssueNativeTokenInput input)
         {
-            var nativeTokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            if (State.ACS0Contract.Value == null)
             {
-                Symbol = Context.Variables.NativeSymbol
-            });
-            if (Context.Sender != nativeTokenInfo.Issuer)
+                State.ACS0Contract.Value = Context.GetZeroSmartContractAddress();
+            }
+
+            var contractOwner = State.ACS0Contract.GetContractOwner.Call(Context.Self);
+            if (contractOwner != Context.Sender)
             {
                 return new Empty();
             }
@@ -169,7 +177,10 @@ namespace AElf.Contracts.Economic
             State.ParliamentAuthContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
 
-            var createOrganizationInput = new CreateOrganizationInput {ReleaseThreshold = 1};
+            var createOrganizationInput = new CreateOrganizationInput
+            {
+                ReleaseThreshold = EconomicContractConstants.ConnectorSettingProposalReleaseThreshold
+            };
             State.ParliamentAuthContract.CreateOrganization.Send(createOrganizationInput);
 
             var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(State.ParliamentAuthContract.Value),
@@ -191,7 +202,7 @@ namespace AElf.Contracts.Economic
                     IsPurchaseEnabled = true,
                     IsVirtualBalanceEnabled = true,
                     Weight = "0.5",
-                    VirtualBalance = 0,
+                    VirtualBalance = EconomicContractConstants.NativeTokenConnectorInitialVirtualBalance
                 },
                 new Connector
                 {
@@ -200,8 +211,9 @@ namespace AElf.Contracts.Economic
                     IsVirtualBalanceEnabled = true,
                     Weight = "0.5",
                     VirtualBalance = EconomicContractConstants.TokenConverterTokenConnectorInitialVirtualBalance
-                },
+                }
             };
+
             foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenSymbols)
             {
                 connectors.Add(new Connector
