@@ -309,7 +309,15 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CheckThreshold(CheckThresholdInput input)
         {
-            Assert(State.Balances[input.Sender][input.Symbol] >= input.ThresholdAmount, "Cannot meet the calling threshold.");
+            var meetThreshold = false;
+            foreach (var symbolToThreshold in input.SymbolToThreshold)
+            {
+                if (State.Balances[input.Sender][symbolToThreshold.Key] < symbolToThreshold.Value) continue;
+                meetThreshold = true;
+                break;
+            }
+
+            Assert(meetThreshold, "Cannot meet the calling threshold.");
             return new Empty();
         }
     }

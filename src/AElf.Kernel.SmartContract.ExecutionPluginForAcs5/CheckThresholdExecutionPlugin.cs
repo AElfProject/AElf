@@ -50,7 +50,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
             {
                 Value = context.TransactionContext.Transaction.MethodName
             });
-            
+
             // Generate token contract stub.
             var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
             if (tokenContractAddress == null)
@@ -72,8 +72,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
                 return new List<Transaction>();
             }
 
+            var checkThresholdTransaction = (await tokenStub.CheckThreshold.SendAsync(new CheckThresholdInput
+            {
+                SymbolToThreshold = {threshold.SymbolToAmount}
+            })).Transaction;
 
-            return new List<Transaction>();
+            return new List<Transaction>
+            {
+                checkThresholdTransaction
+            };
         }
     }
 }
