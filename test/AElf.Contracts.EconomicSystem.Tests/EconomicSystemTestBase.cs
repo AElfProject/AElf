@@ -209,8 +209,9 @@ namespace AElf.Contracts.EconomicSystem.Tests
             AsyncHelper.RunSync(InitializeTransactionFeeChargingContract);
             AsyncHelper.RunSync(InitializeMethodCallThresholdContract);
         }
-        
+
         #region Deploy and initialize contracts
+
         private void DeployContracts()
         {
             BasicContractZeroStub = GetContractZeroTester(BootMinerKeyPair);
@@ -362,17 +363,17 @@ namespace AElf.Contracts.EconomicSystem.Tests
 
         private async Task InitializeToken()
         {
-            //issue some to default user
+            //issue some to default user and buy resource
             {
-                var result = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
+                var issueResult = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
                 {
                     Amount = 1000_000L,
                     To = Address.FromPublicKey(BootMinerKeyPair.PublicKey),
                     Memo = "Used to transfer other testers"
                 });
-                CheckResult(result.TransactionResult);
+                CheckResult(issueResult.TransactionResult);
             }
-            
+
             foreach (var coreDataCenterKeyPair in CoreDataCenterKeyPairs)
             {
                 var result = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
@@ -446,6 +447,14 @@ namespace AElf.Contracts.EconomicSystem.Tests
                     Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
                 });
             CheckResult(result.TransactionResult);
+            
+            var approveResult = await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                Spender = TokenConverterContractAddress,
+                Amount = 1000_000L
+            });
+            approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         private async Task InitializeMethodCallThresholdContract()
@@ -470,42 +479,57 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 CheckResult(result.TransactionResult);
             }
             
-            //Transfer manager of connector setting.
-            {
-                var result = await TokenConverterContractStub.SetManagerAddress.SendAsync(TreasuryContractAddress);
-                CheckResult(result.TransactionResult);
-            }
-            
             await SetConnectors();
         }
 
         private async Task SetConnectors()
         {
+            //Transfer manager to BootMiner
+            {
+                var result = await TokenConverterContractStub.SetManagerAddress.SendAsync(BootMinerAddress);
+                CheckResult(result.TransactionResult);
+            }
+            
             var manager =
                 GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
                     BootMinerKeyPair);
-            await manager.SetConnector.SendAsync(new Connector
             {
-                Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                IsPurchaseEnabled = true,
-                Weight = "0.5",
-                IsVirtualBalanceEnabled = true,
-                VirtualBalance = 1_000_000
-            });
-            await manager.SetConnector.SendAsync(new Connector
+                var result = await manager.SetConnector.SendAsync(new Connector
+                {
+                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                    IsPurchaseEnabled = true,
+                    Weight = "0.5",
+                    IsVirtualBalanceEnabled = true,
+                    VirtualBalance = 1_000_000
+                });
+                CheckResult(result.TransactionResult);
+            }
             {
-                Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
-                IsPurchaseEnabled = true,
-                Weight = "0.2",
-                IsVirtualBalanceEnabled = true
-            });
-            await manager.SetConnector.SendAsync(new Connector
+                var result = await manager.SetConnector.SendAsync(new Connector
+                {
+                    Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
+                    IsPurchaseEnabled = true,
+                    Weight = "0.2",
+                    IsVirtualBalanceEnabled = true
+                });
+                CheckResult(result.TransactionResult);
+            }
             {
-                Symbol = EconomicSystemTestConstants.MethodCallThresholdContractTokenSymbol,
-                IsPurchaseEnabled = true,
-                Weight = "0.2",
-                IsVirtualBalanceEnabled = true
-            });
+                var result = await manager.SetConnector.SendAsync(new Connector
+                {
+                    Symbol = EconomicSystemTestConstants.MethodCallThresholdContractTokenSymbol,
+                    IsPurchaseEnabled = true,
+                    Weight = "0.2",
+                    IsVirtualBalanceEnabled = true
+                });
+                CheckResult(result.TransactionResult);
+            }
+
+            //Transfer manager to TreasuryContractAddress
+            {
+                var result = await TokenConverterContractStub.SetManagerAddress.SendAsync(TreasuryContractAddress);
+                CheckResult(result.TransactionResult);
+            }
         }
 
         private async Task InitializeEconomicContract()
@@ -542,10 +566,11 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 CheckResult(result.TransactionResult);
             }
         }
-        
+
         #endregion
 
         #region Other Contracts Action and View
+
         internal async Task NextTerm(ECKeyPair keyPair)
         {
             var miner = GetAEDPoSContractStub(keyPair);
@@ -613,9 +638,9 @@ namespace AElf.Contracts.EconomicSystem.Tests
 
             return balance;
         }
-        
+
         #endregion
-        
+
         private void CheckResult(TransactionResult result)
         {
             if (!string.IsNullOrEmpty(result.Error))

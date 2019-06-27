@@ -18,7 +18,7 @@ namespace AElf.Contracts.TestContract.MethodCallThreshold
                 TotalSupply =MethodCallThresholdContractConstants.TotalSupply,
                 ConnectorWeight = "0.2",
                 Decimals = 2,
-                TokenName = "Token of Profit Sharing Contract"
+                TokenName = "Token of Method Call Threshold Contract"
             });
 
             State.TokenContract.Value =
@@ -55,6 +55,11 @@ namespace AElf.Contracts.TestContract.MethodCallThreshold
         
         private void AssertPerformedByContractOwner()
         {
+            if (State.Acs0Contract.Value == null)
+            {
+                State.Acs0Contract.Value = Context.GetZeroSmartContractAddress();
+            }
+            
             var contractInfo = State.Acs0Contract.GetContractInfo.Call(Context.Self);
             Assert(Context.Sender == contractInfo.Owner, "Only owner are permitted to call this method.");
         }
