@@ -213,8 +213,8 @@ namespace AElf.Contracts.CrossChain
             }
             
             var indexedSideChainBlockData = State.IndexedSideChainBlockData[input.Value];
-            if (indexedSideChainBlockData != null)
-                crossChainBlockData.SideChainBlockData.AddRange(indexedSideChainBlockData.SideChainBlockData);
+            Assert(indexedSideChainBlockData != null, "Side chain block data should not be null.");
+            crossChainBlockData.SideChainBlockData.AddRange(indexedSideChainBlockData.SideChainBlockData);
             
             return crossChainBlockData;
         }
@@ -230,8 +230,7 @@ namespace AElf.Contracts.CrossChain
                 State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
             
             var indexedSideChainBlockData = IndexSideChainBlockInfo(crossChainBlockData.SideChainBlockData);
-            if (indexedSideChainBlockData.SideChainBlockData.Count > 0)
-                State.IndexedSideChainBlockData[Context.CurrentHeight] = indexedSideChainBlockData;
+            State.IndexedSideChainBlockData[Context.CurrentHeight] = indexedSideChainBlockData;
             
             return new Empty();
         }

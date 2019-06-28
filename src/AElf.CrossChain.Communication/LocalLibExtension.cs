@@ -10,7 +10,7 @@ namespace AElf.CrossChain.Communication
         public static async Task<Block> GetIrreversibleBlockByHeightAsync(this IBlockchainService blockchainService, long height)
         {
             var chain = await blockchainService.GetChainAsync();
-            if (chain.LastIrreversibleBlockHeight < height + 16)
+            if (chain.LastIrreversibleBlockHeight < height)
                 return null;
             var blockHash = await blockchainService.GetBlockHashByHeightAsync(chain, height, chain.BestChainHash);
             return await blockchainService.GetBlockByHashAsync(blockHash);
