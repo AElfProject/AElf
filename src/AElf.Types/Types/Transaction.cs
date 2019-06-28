@@ -6,9 +6,16 @@ namespace AElf.Types
 {
     public partial class Transaction
     {
+        private Hash _TransactionHash;
+
         public Hash GetHash()
         {
-            return Hash.FromRawBytes(GetSignatureData());
+            if (_TransactionHash == null)
+            {
+                _TransactionHash = Hash.FromRawBytes(GetSignatureData());
+            }
+
+            return _TransactionHash;
         }
 
         public byte[] GetHashBytes()
