@@ -256,7 +256,7 @@ namespace AElf.Contracts.Genesis
 
         private void RequireAuthority(bool isGenesisOwnerAuthorityRequired)
         {
-            Address authorityRequiredAddress = null;
+            Address authorityRequiredAddress;
             if (!State.Initialized.Value)
             {
                 // only authority of contract zero is valid before initialization 

@@ -58,17 +58,9 @@ namespace AElf.Contracts.CrossChain
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
             // update locked token balance
             
-            var balance = GetBalance(new GetBalanceInput
-            {
-                Owner = Context.Sender,
-                Symbol = Context.Variables.NativeSymbol
-            });
-
-            Assert(balance > 0);
-            
             TransferFrom(new TransferFromInput
             {
-                From = Context.Sender,
+                From = Context.Origin,
                 To = Context.Self,
                 Amount = sideChainInfo.LockedTokenAmount,
                 Symbol = Context.Variables.NativeSymbol
