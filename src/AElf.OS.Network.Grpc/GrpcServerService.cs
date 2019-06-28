@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -96,7 +97,10 @@ namespace AElf.OS.Network.Grpc
             var hsk = await _peerPool.GetHandshakeAsync();
             
             // If auth ok -> add it to our peers
-            _peerPool.AddPeer(grpcPeer);
+            if (_peerPool.AddPeer(grpcPeer))
+                Logger.LogDebug($"Added to pool {grpcPeer.PubKey}.");
+
+            // todo handle case where add is false (edge case)
 
             return new ConnectReply { Handshake = hsk };
         }

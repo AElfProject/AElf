@@ -68,7 +68,7 @@ namespace AElf.OS.Network.Application
                 HasFork = hasFork
             };
 
-            foreach (var peer in _peerPool.GetPeers())
+            foreach (var peer in _peerPool.GetPeers().Where(p => p.CanBroadcastAnnounces))
             {
                 try
                 {
@@ -79,12 +79,16 @@ namespace AElf.OS.Network.Application
                     Logger.LogError(ex, $"Error while announcing to {peer}.");
                     await HandleNetworkException(peer, ex);
                 }
+                catch (Exception e)
+                {
+                    Logger.LogError(e, $"Error while announcing to {peer}.");
+                }
             }
         }
         
         public async Task BroadcastTransactionAsync(Transaction tx)
         {
-            foreach (var peer in _peerPool.GetPeers())
+            foreach (var peer in _peerPool.GetPeers().Where(p => p.CanBroadcastTransactions))
             {
                 try
                 {
@@ -94,6 +98,10 @@ namespace AElf.OS.Network.Application
                 {
                     Logger.LogError(ex, "Error while sending transaction.");
                     await HandleNetworkException(peer, ex);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(e, $"Error while sending transaction {peer}.");
                 }
             }
         }
@@ -184,24 +192,61 @@ namespace AElf.OS.Network.Application
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
-                Logger.LogError(exception, $"Queuing for reconnection {peer.PeerIpAddress}.");
-                QueueConnectionWait(peer);
+                Logger.LogError($"Queuing peer for reconnection {peer.PeerIpAddress}.");
+                
+                QueueNetworkTask(async () => {
+                    if (peer.IsReady) // peer recovered already
+                        return;
+                
+                    var success = await peer.TryWaitForStateChangedAsync();
+
+                    if (!success)
+                        await _peerPool.RemovePeerAsync(peer.PubKey, false);
+                });
+            }
+            else if (exception.ExceptionType == NetworkExceptionType.AnnounceStream)
+            {
+                Logger.LogDebug($"Queuing peer for announcement stream recreation {peer.PeerIpAddress}.");
+                
+                QueueNetworkTask(() =>
+                {
+                    if (!peer.CanBroadcastAnnounces)
+                    {
+                        peer.StartAnnouncementStreaming();
+                        Logger.LogDebug($"Started announcement stream {peer.PeerIpAddress}.");
+                    }
+                    else
+                    {
+                        Logger.LogDebug($"Already started announcement stream {peer.PeerIpAddress}.");
+                    }
+                    
+                    return Task.CompletedTask;
+                });
+            }
+            else if (exception.ExceptionType == NetworkExceptionType.TransactionStream)
+            {
+                Logger.LogDebug($"Queuing peer for transaction stream recreation {peer.PeerIpAddress}.");
+
+                QueueNetworkTask(() =>
+                {
+                    if (!peer.CanBroadcastTransactions)
+                    {
+                        peer.StartTransactionStreaming();
+                        Logger.LogDebug($"Started transaction stream {peer.PeerIpAddress}.");
+                    }
+                    else
+                    {
+                        Logger.LogDebug($"Already started transaction stream {peer.PeerIpAddress}.");
+                    }
+                    
+                    return Task.CompletedTask;
+                });
             }
         }
 
-        private void QueueConnectionWait(IPeer peer)
+        private void QueueNetworkTask(Func<Task> task)
         {
-            _taskQueueManager.Enqueue(async () =>
-            {
-                if (peer.IsReady) // peer recovered already
-                    return;
-                
-                var success = await peer.TryWaitForStateChangedAsync();
-
-                if (!success)
-                    await _peerPool.RemovePeerAsync(peer.PubKey, false);
-                
-            }, NetworkConstants.PeerReconnectionQueueName);
+            _taskQueueManager.Enqueue(task, NetworkConstants.PeerReconnectionQueueName);
         }
 
         private async Task<T> RequestAsync<T>(List<IPeer> peers, Func<IPeer, Task<T>> func,

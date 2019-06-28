@@ -18,7 +18,13 @@ namespace AElf.OS.Network.Infrastructure
         bool Inbound { get; }
         long StartHeight { get; }
         
+        bool CanBroadcastTransactions { get; }
+        bool CanBroadcastAnnounces { get; }
+        
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+
+        void StartTransactionStreaming();
+        void StartAnnouncementStreaming();
 
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
 

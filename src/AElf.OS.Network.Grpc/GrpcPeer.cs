@@ -6,12 +6,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
@@ -34,6 +36,8 @@ namespace AElf.OS.Network.Grpc
         
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
+        
+        public ILogger<GrpcPeer> Logger { get; set; }
 
         /// <summary>
         /// Property that describes a valid state. Valid here means that the peer is ready to be used for communication.
@@ -54,14 +58,17 @@ namespace AElf.OS.Network.Grpc
         public bool Inbound { get; }
         public long StartHeight { get; }
 
+        public bool CanBroadcastTransactions { get; private set; } = true;
+        public bool CanBroadcastAnnounces { get; private set; } = true;
+
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
         
-        private readonly IClientStreamWriter<Transaction> _transactionStream;
-        private readonly IClientStreamWriter<PeerNewBlockAnnouncement> _announcementStream;
+        private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
+        private AsyncClientStreamingCall<PeerNewBlockAnnouncement, VoidReply> _announcementStreamCall;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
         {
@@ -77,18 +84,19 @@ namespace AElf.OS.Network.Grpc
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
-            
+
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
-            RecentRequestsRoundtripTimes = new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
+            RecentRequestsRoundtripTimes =
+                new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
 
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
-            
-            _transactionStream = _client.TransactionBroadcastStream().RequestStream;
-            _announcementStream = _client.AnnouncementBroadcastStream().RequestStream;
-        }
 
+            StartAnnouncementStreaming();
+            StartTransactionStreaming();
+        }
+        
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
         {
             Dictionary<string, List<RequestMetric>> metrics = new Dictionary<string, List<RequestMetric>>();
@@ -147,15 +155,57 @@ namespace AElf.OS.Network.Grpc
 
             return list.Blocks.ToList();
         }
-
-        public Task AnnounceAsync(PeerNewBlockAnnouncement header)
+        
+        public void StartAnnouncementStreaming()
         {
-            return _announcementStream.WriteAsync(header);
+            _announcementStreamCall = _client.AnnouncementBroadcastStream();
+            CanBroadcastAnnounces = true;
+        }
+        
+        public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
+        {
+            if (!CanBroadcastAnnounces)
+                return;
+                
+            try
+            {
+                await _announcementStreamCall.RequestStream.WriteAsync(header);
+            }
+            catch (RpcException e)
+            {
+                if (!CanBroadcastAnnounces) // Already down
+                    return;
+                
+                CanBroadcastAnnounces = false;
+                _announcementStreamCall.Dispose();
+                
+                throw new NetworkException($"Failed stream to {this}: ", e, NetworkExceptionType.AnnounceStream);
+            }
         }
 
-        public Task SendTransactionAsync(Transaction tx)
+        public void StartTransactionStreaming()
         {
-            return _transactionStream.WriteAsync(tx);
+            _transactionStreamCall = _client.TransactionBroadcastStream();
+            CanBroadcastTransactions = true;
+        }
+
+        public async Task SendTransactionAsync(Transaction tx)
+        {
+            if (!CanBroadcastTransactions)
+                return;
+            
+            try
+            {
+                await _transactionStreamCall.RequestStream.WriteAsync(tx);
+            }
+            catch (RpcException e)
+            {
+                CanBroadcastTransactions = false;
+                await _transactionStreamCall.RequestStream.CompleteAsync().ConfigureAwait(false);
+                _transactionStreamCall.Dispose();
+                
+                throw new NetworkException($"Failed stream to {this}: ", e, NetworkExceptionType.TransactionStream);
+            }
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
