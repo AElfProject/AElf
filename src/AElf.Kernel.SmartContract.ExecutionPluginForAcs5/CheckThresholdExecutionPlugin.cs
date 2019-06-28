@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs5;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.Profit;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs6;
@@ -12,7 +11,6 @@ using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
-using CreateProfitItemInput = AElf.Contracts.Profit.CreateProfitItemInput;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 {
@@ -74,6 +72,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 
             var checkThresholdTransaction = (await tokenStub.CheckThreshold.SendAsync(new CheckThresholdInput
             {
+                Sender = context.Sender,
                 SymbolToThreshold = {threshold.SymbolToAmount}
             })).Transaction;
 

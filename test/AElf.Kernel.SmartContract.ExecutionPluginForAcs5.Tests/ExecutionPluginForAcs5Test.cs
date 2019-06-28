@@ -1,20 +1,14 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Acs5;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.Profit;
-using AElf.Contracts.TestKit;
-using AElf.Contracts.TokenConverter;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
-using Mono.Cecil.Cil;
 using Shouldly;
 using Xunit;
 
@@ -25,8 +19,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
         [Fact]
         public async Task GetPreTransactionsTest()
         {
+            const long feeAmount = 10;
+            
             await InitializeContracts();
-            await SetProfitReceivers_Successful();
+            await SetThresholdFee(feeAmount);
 
             var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IExecutionPlugin>>()
                 .ToLookup(p => p.GetType()).Select(coll => coll.First());
@@ -54,10 +50,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
         }
 
         [Fact]
-        public async Task ChargeFee_Successful()
+        public async Task CheckThreshold_Successful()
         {
+            const long feeAmount = 10;
+            
             await InitializeContracts();
-            await SetProfitReceivers_Successful();
+            await SetThresholdFee(feeAmount);
 
             var before = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -67,20 +65,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
 
             var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty());
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = DefaultSender,
-                Symbol = "ELF"
-            });
-            after.Balance.ShouldBe(before.Balance - 10);
         }
 
         [Fact]
-        public async Task ChargeFee_PreFailed()
+        public async Task CheckThreshold_PreFailed()
         {
+            const long feeAmount = 10;
+            
             await InitializeContracts();
-            await SetProfitReceivers_Successful();
+            await SetThresholdFee(feeAmount);
 
             var originalBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -99,23 +92,151 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
             var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty());
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
         }
-        
-        private async Task SetProfitReceivers_Successful()
+
+        [Fact]
+        public async Task CheckMultipleThreshold_Enough_ELF()
         {
-            await DefaultTester.SetMethodProfitFee.SendAsync(new SetMethodProfitFeeInput
+            const long elfFeeAmount = 10;
+            const long ramFeeAmount = 20;
+
+            await InitializeContracts();
+            await SetMultipleThresholdFee(elfFeeAmount, ramFeeAmount);
+            
+            var ramBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = DefaultSender,
+                Symbol = "RAM"
+            })).Balance;
+            
+            //enough ELF
+            {
+                var transferResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
+                {
+                    Symbol = "RAM",
+                    To = Address.FromPublicKey(OtherTester.PublicKey),
+                    Amount = ramBalance,
+                    Memo = "transfer ram to other user"
+                });
+                transferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty());
+                dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+        }
+        
+        [Fact]
+        public async Task CheckMultipleThreshold_Enough_RAM()
+        {
+            const long elfFeeAmount = 10;
+            const long ramFeeAmount = 20;
+
+            await InitializeContracts();
+            await SetMultipleThresholdFee(elfFeeAmount, ramFeeAmount);
+            
+            var ramBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = DefaultSender,
+                Symbol = "RAM"
+            })).Balance;
+            
+            //enough RAM
+            {
+                var transferResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
+                {
+                    Symbol = "ELF",
+                    To = Address.FromPublicKey(OtherTester.PublicKey),
+                    Amount = ramBalance,
+                    Memo = "transfer elf to other user"
+                });
+                transferResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty());
+                dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+        }
+        
+        [Fact]
+        public async Task CheckMultipleThreshold_Failed()
+        {
+            const long elfFeeAmount = 10;
+            const long ramFeeAmount = 20;
+
+            await InitializeContracts();
+            await SetMultipleThresholdFee(elfFeeAmount, ramFeeAmount);
+            
+            var elfBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            })).Balance;
+            var ramBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = DefaultSender,
+                Symbol = "RAM"
+            })).Balance;
+            
+            //both ELF and RAM are not enough
+            {
+                var transferElfResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
+                {
+                    Symbol = "ELF",
+                    To = Address.FromPublicKey(OtherTester.PublicKey),
+                    Amount = elfBalance - 5,
+                    Memo = "transfer elf to other user"
+                });
+                transferElfResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var transferRamResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
+                {
+                    Symbol = "RAM",
+                    To = Address.FromPublicKey(OtherTester.PublicKey),
+                    Amount = ramBalance - 5,
+                    Memo = "transfer ram to other user"
+                });
+                transferRamResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty());
+                dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            }
+        }
+        
+        private async Task SetThresholdFee(long callingFee)
+        {
+            await DefaultTester.SetMethodCallingThreshold.SendAsync(new SetMethodCallingThresholdInput
             {
                 Method = nameof(DefaultTester.DummyMethod),
                 SymbolToAmount =
                 {
-                    { "ELF", 10 }
+                    { "ELF", callingFee }
                 }
             });
 
-            var fee = await DefaultTester.GetMethodProfitFee.CallAsync(new StringValue
+            var callingThreshold = await DefaultTester.GetMethodCallingThreshold.CallAsync(new StringValue
             {
                 Value = nameof(DefaultTester.DummyMethod)
             });
-            fee.SymbolToAmount["ELF"].ShouldBe(10);
+            callingThreshold.SymbolToAmount["ELF"].ShouldBe(callingFee);
+        }
+
+        private async Task SetMultipleThresholdFee(long elfFeeAmount, long ramFeeAmount)
+        {
+            var setThresholdResult = await DefaultTester.SetMethodCallingThreshold.SendAsync(new SetMethodCallingThresholdInput
+            {
+                Method = nameof(DefaultTester.DummyMethod),
+                SymbolToAmount =
+                {
+                    { "ELF", elfFeeAmount },
+                    { "RAM", ramFeeAmount }
+                }
+            });
+            setThresholdResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var callingThreshold = await DefaultTester.GetMethodCallingThreshold.CallAsync(new StringValue
+            {
+                Value = nameof(DefaultTester.DummyMethod)
+            });
+            callingThreshold.SymbolToAmount["ELF"].ShouldBe(elfFeeAmount);
+            callingThreshold.SymbolToAmount["RAM"].ShouldBe(ramFeeAmount); 
         }
     }
 }

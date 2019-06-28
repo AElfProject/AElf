@@ -10,9 +10,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractReference Include="..\..\protobuf\profit_contract.proto">
-            <Link>Protobuf/Proto/profit_contract.proto</Link>
-        </ContractReference>
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf/Proto/acs0.proto</Link>
         </ContractReference>

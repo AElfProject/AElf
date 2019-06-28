@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using Acs5;
-using AElf.Contracts.Profit;
+﻿using Acs5;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -8,51 +6,29 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
 {
     public class Contract : ContractContainer.ContractBase
     {
-        public override Empty SetProfitReceivers(ProfitReceivers input)
+        public override Empty SetMethodCallingThreshold(SetMethodCallingThresholdInput input)
         {
             AssertPerformedByContractOwner();
 
-            var profitItems = State.ProfitContract.GetContractProfitItem.Call(Context.Self);
-            Assert(profitItems.IsTreasuryProfitItem, "Invalid profit item.");
-
-            State.ProfitId.Value = profitItems.ProfitId;
-            State.ProfitContract.AddWeights.Send(new AddWeightsInput
+            State.MethodCallingThresholdFees[input.Method] = new MethodCallingThreshold
             {
-                ProfitId = profitItems.ProfitId,
-                EndPeriod = long.MaxValue,
-                Weights = {input.Value.Select(i => new WeightMap {Receiver = i.Address, Weight = i.Weight})}
-            });
+                SymbolToAmount = { input.SymbolToAmount }
+            };
 
             return new Empty();
         }
 
-        public override MethodProfitFee GetMethodProfitFee(StringValue input)
+        public override MethodCallingThreshold GetMethodCallingThreshold(StringValue input)
         {
-            // An alternative of using SetMethodProfitFee(s).
-            switch (input.Value)
+            if(State.MethodCallingThresholdFees[input.Value] == null)
+                return new MethodCallingThreshold();
+            return new MethodCallingThreshold
             {
-                case nameof(DummyMethod):
-                    return new MethodProfitFee
-                    {
-                        SymbolToAmount = {{Context.Variables.NativeSymbol, 10L}}
-                    };
-                default: return new MethodProfitFee();
-            }
-        }
-
-        public override Empty ReceiveProfits(Empty input)
-        {
-            AssertPerformedByContractOwner();
-
-            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
-            {
-                ProfitId = State.ProfitId.Value,
-                Period = State.ReleasedTimes.Value.Add(1)
-            });
-
-            State.ReleasedTimes.Value = State.ReleasedTimes.Value.Add(1);
-
-            return new Empty();
+                SymbolToAmount =
+                {
+                    State.MethodCallingThresholdFees[input.Value].SymbolToAmount
+                }
+            };
         }
 
         public override Empty DummyMethod(Empty input)
@@ -62,6 +38,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
 
         private void AssertPerformedByContractOwner()
         {
+            if (State.Acs0Contract.Value == null)
+            {
+                State.Acs0Contract.Value = Context.GetZeroSmartContractAddress();
+            }
             var contractInfo = State.Acs0Contract.GetContractInfo.Call(Context.Self);
             Assert(Context.Sender == contractInfo.Owner, "Only owner are permitted to call this method.");
         }
